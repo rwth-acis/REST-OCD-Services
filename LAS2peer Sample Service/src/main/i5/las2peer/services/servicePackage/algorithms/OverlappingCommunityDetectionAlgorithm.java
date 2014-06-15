@@ -7,7 +7,7 @@ import i5.las2peer.services.servicePackage.graph.GraphType;
 
 import java.util.Set;
 
-public interface AbstractOverlappingCommunityDetectionAlgorithm {
+public interface OverlappingCommunityDetectionAlgorithm {
 	
 	/**
 	 * Returns the compatible graph types for the algorithm.

@@ -27,7 +27,7 @@ import y.base.NodeCursor;
  * Implements the Random Walk Label Propagation Algorithm
  */
 public class RandomWalkLabelPropagationAlgorithm implements
-		AbstractOverlappingCommunityDetectionAlgorithm {
+		OverlappingCommunityDetectionAlgorithm {
 
 	private static final HashSet<GraphType> compatibilities = new HashSet<GraphType>();
 	static {

@@ -28,7 +28,7 @@ import y.base.NodeCursor;
  * Implements the Speaker Listener Label Propagation Algorithm.
  */
 public class SpeakerListenerLabelPropagationAlgorithm implements
-		AbstractOverlappingCommunityDetectionAlgorithm {
+		OverlappingCommunityDetectionAlgorithm {
 
 	/*
 	 * Declaration of the graph types on which the algorithm can run.
@@ -98,7 +98,9 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		/*
 		 * Returns the cover based on the node memories.
 		 */
-		return calculateMembershipDegrees(graph, memories);
+		Cover cover = calculateMembershipDegrees(graph, memories);
+		cover.doNormalize();
+		return cover;
 	}
 	
 	protected void initializeCommunityDetection(CustomGraph graph, List<List<Integer>> memories, List<Node> nodeOrder) {

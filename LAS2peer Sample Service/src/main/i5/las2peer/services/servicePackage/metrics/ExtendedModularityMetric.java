@@ -1,4 +1,4 @@
-package metrics;
+package i5.las2peer.services.servicePackage.metrics;
 
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
