@@ -7,7 +7,7 @@ import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Node;
 
-public class TestGraphFactory {
+public class OcdTestGraphFactory {
 	
 	public static CustomGraph getTwoCommunitiesGraph() {
 		// Creates new graph
@@ -90,7 +90,7 @@ public class TestGraphFactory {
 	public static CustomGraph getSawmillGraph() {
 		GraphInputAdapterFactory factory = GraphInputAdapterFactory.getFactory();
 		GraphInputAdapter adapter =
-				factory.getEdgeListUndirectedGraphInputAdapter(TestConstants.getSawmillTxtInputFileName());
+				factory.getEdgeListUndirectedGraphInputAdapter(OcdTestConstants.sawmillEdgeListInputPath);
 		return adapter.readGraph();
 	}	
 }

@@ -4,7 +4,7 @@ import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropag
 import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.UniformSpeakerRule;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
-import i5.las2peer.services.servicePackage.testsUtil.TestGraphFactory;
+import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ public class SpeakerListenerLabelPropagationAlgorithmTest {
 	@Test
 	public void testSleaperListenerLabelPropagationAlgo()
 	{
-		CustomGraph graph = TestGraphFactory.getTwoCommunitiesGraph();
+		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
 		AlgorithmFactory factory = AlgorithmFactory.getAlgorithmFactory();
 		SpeakerListenerLabelPropagationAlgorithm algo = 
 				factory.getSpeakerListenerLabelPropagationAlgorithm(

@@ -60,7 +60,9 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		System.out.println("Leaders:");
 		System.out.println(leaders);
 		/////////////////
-		return labelPropagationPhase(graph, leaders);
+		Cover cover = labelPropagationPhase(graph, leaders);
+		cover.doNormalize();
+		return cover;
 	}
 
 	/*
@@ -79,7 +81,8 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		System.out.println("Leadership Values Calculated. Vector:");
 		System.out.println(leadershipVector);
 		Map<Node, Double> followerMap = getFollowerDegrees(graph, leadershipVector);
-		System.out.println("Followers Calculated");
+		System.out.println("Followers Calculated. Follower Map:");
+		System.out.println(followerMap);
 		return getGlobalLeaders(followerMap);
 	}
 	
@@ -133,7 +136,7 @@ public class RandomWalkLabelPropagationAlgorithm implements
 			vec1 = disassortativityMatrix.multiply(vec1);
 			//////////////////////////////////////////// TEST
 			// TODO
-			System.out.println("vec1 updated: ");
+			System.out.println("vec1 updated: " + vec1.toString());
 			///////////////////////
 		}
 		return vec1;
@@ -210,7 +213,10 @@ public class RandomWalkLabelPropagationAlgorithm implements
 					if(followerMap.containsKey(leader)) {
 						followerDegree = followerMap.get(leader);
 					}
-					followerMap.put(leader, followerDegree += maxInfluence / leaders.size());
+					//////////////////////////////// TEST
+					// TODO command correct?
+					// followerMap.put(leader, followerDegree += maxInfluence / leaders.size());
+					followerMap.put(leader, followerDegree += 1 / leaders.size());
 				}
 			}
 			nodes.next();

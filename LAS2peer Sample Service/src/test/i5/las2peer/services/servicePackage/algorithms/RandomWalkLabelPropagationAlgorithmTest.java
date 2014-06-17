@@ -2,13 +2,15 @@ package i5.las2peer.services.servicePackage.algorithms;
 
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
-import i5.las2peer.services.servicePackage.testsUtil.TestGraphFactory;
+import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.vector.Vector;
+
+import y.base.Node;
 
 /*
 LDAV=ones(1,num_vertices(SparseGraph));
@@ -84,7 +86,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	@Ignore
 	@Test
 	public void testRandomWalkLabelPropagationAlgorithm() {
-		CustomGraph graph = TestGraphFactory.getTwoCommunitiesGraph();
+		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.getMemberships());
@@ -93,7 +95,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	@Ignore
 	@Test
 	public void testRandomWalkLabelPropagationAlgorithm2() {
-		CustomGraph graph = TestGraphFactory.getAperiodicTwoCommunitiesGraph();
+		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.getMemberships());
@@ -101,11 +103,17 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	
 	@Test
 	public void testRandomWalkLabelPropagationAlgorithmOnSawmill() {
-		CustomGraph graph = TestGraphFactory.getSawmillGraph();
+		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println("Memberships:");
-		System.out.println(cover.getMemberships());
+		Matrix memberships = cover.getMemberships();
+		Node[] nodes = graph.getNodeArray();
+		for(int i=0; i<graph.nodeCount(); i++) {
+			System.out.println(graph.getNodeName(nodes[i]) + ": ");
+			//System.out.println(memberships.getRow(i));
+		}
+		System.out.println(memberships);	
 	}
 
 }

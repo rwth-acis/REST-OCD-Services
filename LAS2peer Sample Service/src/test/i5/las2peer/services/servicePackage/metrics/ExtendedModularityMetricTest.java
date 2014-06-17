@@ -8,7 +8,7 @@ import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropag
 import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.UniformSpeakerRule;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
-import i5.las2peer.services.servicePackage.testsUtil.TestGraphFactory;
+import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
@@ -21,7 +21,7 @@ public class ExtendedModularityMetricTest {
 	 */
 	@Test
 	public void testExtendedModularityWithOneCommunity() {
-		CustomGraph graph = TestGraphFactory.getSawmillGraph();
+		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		Matrix memberships = new Basic2DMatrix(graph.nodeCount(), 1);
 		for(int i=0; i<memberships.rows(); i++) {
 			memberships.set(i, 0, 1);
@@ -35,7 +35,7 @@ public class ExtendedModularityMetricTest {
 	
 	@Test
 	public void testExtendedModularityOnSawmillSLPA() {
-		CustomGraph graph = TestGraphFactory.getSawmillGraph();
+		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		AlgorithmFactory factory = AlgorithmFactory.getAlgorithmFactory();
 		SpeakerRuleCommand speakerRule = new UniformSpeakerRule();
 		ListenerRuleCommand listenerRule = new PopularityListenerRule();

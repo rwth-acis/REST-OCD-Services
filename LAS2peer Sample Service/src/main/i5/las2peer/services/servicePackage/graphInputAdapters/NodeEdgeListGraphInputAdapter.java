@@ -19,7 +19,7 @@ import y.base.Node;
  * @author Sebastian
  * 
  */
-public class EdgeListGraphInputAdapter extends AbstractGraphInputAdapter {
+public class NodeEdgeListGraphInputAdapter extends AbstractGraphInputAdapter {
 
 	/**
 	 * Creates a new instance of the adapter. This constructor is protected and only
@@ -27,7 +27,7 @@ public class EdgeListGraphInputAdapter extends AbstractGraphInputAdapter {
 	 * @param filename
 	 *            The name of the .txt file containing the graph.
 	 */
-	protected EdgeListGraphInputAdapter(String filename) {
+	protected NodeEdgeListGraphInputAdapter(String filename) {
 		this.filename = filename;
 	}
 
@@ -40,31 +40,30 @@ public class EdgeListGraphInputAdapter extends AbstractGraphInputAdapter {
 			Map<String, Node> reverseNodeNames = new HashMap<String, Node>();
 			List<String> line = readLine(reader);
 			/*
+			 * Reads nodes
+			 */
+			while(line.size() == 1) {
+				Node node = graph.createNode();
+				String nodeName = line.get(0);
+				graph.setNodeName(node, nodeName);
+				reverseNodeNames.put(nodeName, node);
+				///////////TEST
+				System.out.println(node.index());
+				/////////////
+				line = readLine(reader);
+			}
+			/*
 			 * Reads edges
 			 */
 			while(line.size() == 3) {
 				String sourceNodeName = line.get(0);
-				Node sourceNode;
-				if (!reverseNodeNames.containsKey(sourceNodeName)) {
-					sourceNode = graph.createNode();
-					reverseNodeNames.put(sourceNodeName, sourceNode);
-					graph.setNodeName(sourceNode, sourceNodeName);
-				}
-				else {
-					sourceNode = reverseNodeNames.get(sourceNodeName);
-				}
+				Node sourceNode = reverseNodeNames.get(sourceNodeName);
 				String targetNodeName = line.get(1);
-				Node targetNode;
-				if (!reverseNodeNames.containsKey(targetNodeName)) {
-					targetNode = graph.createNode();
-					reverseNodeNames.put(targetNodeName, targetNode);
-					graph.setNodeName(targetNode, targetNodeName);
+				Node targetNode = reverseNodeNames.get(targetNodeName);
+				double edgeWeight = Double.parseDouble(line.get(2));
+				if(targetNode == null || sourceNode == null) {
+					throw new IllegalArgumentException("Node not specified");
 				}
-				else {
-					targetNode = reverseNodeNames.get(targetNodeName);
-				}
-				String edgeWeightString = line.get(2);
-				double edgeWeight = Double.parseDouble(edgeWeightString);
 				Edge edge = graph.createEdge(sourceNode, targetNode);
 				graph.setEdgeWeight(edge, edgeWeight);
 				line = readLine(reader);

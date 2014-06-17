@@ -2,7 +2,7 @@ package i5.las2peer.services.servicePackage.graph;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import i5.las2peer.services.servicePackage.testsUtil.TestGraphFactory;
+import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class CoverTest {
 	 */
 	@Before 
 	public void sawmillCoverSetUp() {
-		CustomGraph graph = TestGraphFactory.getSawmillGraph();
+		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		Matrix memberships = new Basic2DMatrix(graph.nodeCount(), 5);
 		for(int i=0; i<memberships.rows(); i++) {
 			for(int j=0; j<memberships.columns(); j++) {

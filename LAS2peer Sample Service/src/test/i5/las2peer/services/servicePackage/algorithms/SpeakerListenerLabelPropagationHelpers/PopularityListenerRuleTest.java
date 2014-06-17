@@ -2,7 +2,7 @@ package i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropa
 
 import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
-import i5.las2peer.services.servicePackage.testsUtil.TestGraphFactory;
+import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +16,7 @@ public class PopularityListenerRuleTest {
 
 	@Test
 	public void test() {
-		CustomGraph graph = TestGraphFactory.getTwoCommunitiesGraph();
+		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
 		Node listener = graph.getNodeArray()[0];
 		NodeCursor successors = listener.successors();
 		Map<Node, Integer> receivedLabels = new HashMap<Node, Integer>();
