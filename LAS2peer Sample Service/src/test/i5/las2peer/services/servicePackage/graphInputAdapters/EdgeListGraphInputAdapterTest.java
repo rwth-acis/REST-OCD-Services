@@ -13,8 +13,8 @@ public class EdgeListGraphInputAdapterTest {
 		GraphInputAdapter inputAdapter =
 				new EdgeListGraphInputAdapter(OcdTestConstants.sawmillEdgeListInputPath);
 		CustomGraph graph = inputAdapter.readGraph();
-		assertEquals(graph.nodeCount(), 36);
-		assertEquals(graph.edgeCount(), 62);
+		assertEquals(36, graph.nodeCount());
+		assertEquals(62, graph.edgeCount());
 	}
 
 }

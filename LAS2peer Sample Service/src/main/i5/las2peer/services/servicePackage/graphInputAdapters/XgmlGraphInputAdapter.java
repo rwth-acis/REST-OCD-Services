@@ -31,7 +31,7 @@ public class XgmlGraphInputAdapter extends AbstractGraphInputAdapter {
 	/*
 	 * Protected constructor to prevent instantiation by anything but the AdapterFactory
 	 */
-	protected XgmlGraphInputAdapter(String filename) {
+	public XgmlGraphInputAdapter(String filename) {
 		this.filename = filename;
 	}
 	

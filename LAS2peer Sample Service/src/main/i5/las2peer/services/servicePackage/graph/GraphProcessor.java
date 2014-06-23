@@ -15,7 +15,7 @@ import y.base.NodeList;
  * @author Sebastian
  *
  */
-public class GraphPreprocessor {
+public class GraphProcessor {
 
 	/**
 	 * Transforms a graph into an undirected Graph.

@@ -27,7 +27,7 @@ public class EdgeListGraphInputAdapter extends AbstractGraphInputAdapter {
 	 * @param filename
 	 *            The name of the .txt file containing the graph.
 	 */
-	protected EdgeListGraphInputAdapter(String filename) {
+	public EdgeListGraphInputAdapter(String filename) {
 		this.filename = filename;
 	}
 

@@ -27,7 +27,7 @@ public class NodeEdgeListGraphInputAdapter extends AbstractGraphInputAdapter {
 	 * @param filename
 	 *            The name of the .txt file containing the graph.
 	 */
-	protected NodeEdgeListGraphInputAdapter(String filename) {
+	public NodeEdgeListGraphInputAdapter(String filename) {
 		this.filename = filename;
 	}
 
@@ -47,9 +47,6 @@ public class NodeEdgeListGraphInputAdapter extends AbstractGraphInputAdapter {
 				String nodeName = line.get(0);
 				graph.setNodeName(node, nodeName);
 				reverseNodeNames.put(nodeName, node);
-				///////////TEST
-				System.out.println(node.index());
-				/////////////
 				line = readLine(reader);
 			}
 			/*

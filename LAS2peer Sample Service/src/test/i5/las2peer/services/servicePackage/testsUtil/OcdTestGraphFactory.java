@@ -1,8 +1,9 @@
 package i5.las2peer.services.servicePackage.testsUtil;
 
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
+import i5.las2peer.services.servicePackage.graph.GraphProcessor;
 import i5.las2peer.services.servicePackage.graphInputAdapters.GraphInputAdapter;
-import i5.las2peer.services.servicePackage.graphInputAdapters.GraphInputAdapterFactory;
+import i5.las2peer.services.servicePackage.graphInputAdapters.NodeEdgeListGraphInputAdapter;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Node;
@@ -88,9 +89,15 @@ public class OcdTestGraphFactory {
 	}
 	
 	public static CustomGraph getSawmillGraph() {
-		GraphInputAdapterFactory factory = GraphInputAdapterFactory.getFactory();
-		GraphInputAdapter adapter =
-				factory.getEdgeListUndirectedGraphInputAdapter(OcdTestConstants.sawmillEdgeListInputPath);
+		GraphInputAdapter adapter = new NodeEdgeListGraphInputAdapter(OcdTestConstants.sawmillNodeEdgeListInputPath);
+		CustomGraph graph = adapter.readGraph();
+		GraphProcessor processor = new GraphProcessor();
+		processor.makeUndirected(graph);
+		return graph;
+	}
+	
+	public static CustomGraph getDirectedSawmillGraph() {
+		GraphInputAdapter adapter = new NodeEdgeListGraphInputAdapter(OcdTestConstants.sawmillNodeEdgeListInputPath);
 		return adapter.readGraph();
-	}	
+	}
 }
