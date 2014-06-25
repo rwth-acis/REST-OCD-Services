@@ -7,6 +7,11 @@ import i5.las2peer.services.servicePackage.graph.GraphType;
 
 import java.util.Set;
 
+/**
+ * Represents the common interface for all Overlapping Community Detection Algorithms.
+ * @author Sebastian
+ *
+ */
 public interface OverlappingCommunityDetectionAlgorithm {
 	
 	/**
@@ -14,11 +19,12 @@ public interface OverlappingCommunityDetectionAlgorithm {
 	 * 
 	 */	
 	public Set<GraphType> getCompatibleGraphTypes();
+	
 	/**
 	 * Executes the algorithm.
 	 * 
 	 * @param graph The graph whose community structure will be detected.
-	 * @return A cover containing the community structure.
+	 * @return A normalized cover containing the community structure.
 	 */	
 	public Cover detectOverlappingCommunities(CustomGraph graph);
 

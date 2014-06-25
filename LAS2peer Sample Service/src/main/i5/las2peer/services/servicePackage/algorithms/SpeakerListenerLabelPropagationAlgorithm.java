@@ -25,26 +25,43 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
- * Implements the Speaker Listener Label Propagation Algorithm.
+ * Implements an extended version of the Speaker Listener Label Propagation Algorithm.
+ * This version also works on directed and weighted graphs. For unweighted, undirected graphs,
+ * it behaves the same as the original.
  */
 public class SpeakerListenerLabelPropagationAlgorithm implements
 		OverlappingCommunityDetectionAlgorithm {
 
 	/*
-	 * Declaration of the graph types on which the algorithm can run.
+	 * The compatible graph types for the algorithm.
 	 */
 	private static final HashSet<GraphType> compatibilities = new HashSet<GraphType>();
 	static {
 		compatibilities.add(GraphType.WEIGHTED);
 		compatibilities.add(GraphType.DIRECTED);
 	}
-
+	
+	/*
+	 * The size of the node memories and the number of iterations.
+	 */
 	private int memorySize;
+	
+	/*
+	 * Lower bound for the relative label occurrence.
+	 */
 	private double probabilityThreshold;
+	
+	/*
+	 * The rule according to which a speaker decides which label to send.
+	 */
 	private SpeakerRuleCommand speakerRule;
+	
+	/*
+	 * The listener rule according to which a listener decides which label to accept.
+	 */
 	private ListenerRuleCommand listenerRule;
 	
-	/**
+	/*
 	 * Creates an instance of the algorithm.
 	 * @param memorySize Defines the size of the node memories
 	 * and the number of iterations. The standard value is 100.
@@ -56,9 +73,6 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	 * The standard is the UniformSpeakerRule.
 	 * @param listenerRule The listener rule according to which a listener decides which
 	 * label to accept. The standard is the PopularityListenerRule.
-	 */
-	/*
-	 * Protected constructor to prevent instantiation by anything but the AlgorithmFactory.
 	 */
 	protected SpeakerListenerLabelPropagationAlgorithm(int memorySize, double probabilityThreshold,
 			SpeakerRuleCommand speakerRule, ListenerRuleCommand listenerRule) {

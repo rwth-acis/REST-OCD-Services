@@ -24,11 +24,16 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
- * Implements the Random Walk Label Propagation Algorithm
+ * Implements an extended version of the Random Walk Label Propagation Algorithm.
+ * This version also works on directed and weighted graphs. For unweighted, undirected graphs,
+ * it behaves the same as the original.
  */
 public class RandomWalkLabelPropagationAlgorithm implements
 		OverlappingCommunityDetectionAlgorithm {
 
+	/*
+	 * The compatible graph types for the algorithm.
+	 */
 	private static final HashSet<GraphType> compatibilities = new HashSet<GraphType>();
 	static {
 		compatibilities.add(GraphType.WEIGHTED);
@@ -37,10 +42,14 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	
 	// TODO delete iteration bound
 	private int RANDOM_WALK_ITERATION_BOUND = 100000;
+	
+	/*
+	 * The profitability step size for the label propagation phase.
+	 */
 	private double profitabilityDelta;
 	
-	/**
-	 * Creates an instance of the algorithm
+	/*
+	 * Creates an instance of the algorithm.
 	 * @param profitabilityDelta The profitability step size for the label propagation phase.
 	 */
 	protected RandomWalkLabelPropagationAlgorithm(double profitabilityDelta) {
@@ -66,7 +75,9 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	}
 
 	/*
-	 *  Executes the random walk phase of the algorithm and returns global leaders.
+	 * Executes the random walk phase of the algorithm and returns global leaders.
+	 * @param graph The graph whose leaders will be detected.
+	 * @return A list containing all nodes which are global leaders.
 	 */
 	protected List<Node> randomWalkPhase(CustomGraph graph) {
 		// TODO delete console outputs
@@ -87,7 +98,9 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	}
 	
 	/*
-	 *  Returns the transposed normalized disassortativity matrix for the random walk phase.
+	 * Returns the transposed normalized disassortativity matrix for the random walk phase.
+	 * @param graph The graph whose disassortativity matrix will be derived.
+	 * @return The transposed normalized disassortativity matrix.
 	 */
 	protected Matrix getTransposedDisassortativityMatrix(CustomGraph graph) {
 		/*
@@ -121,9 +134,11 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	}
 	
 	/*
-	 * Executes a random walk on the disassortativity matrix
-	 * and returns the resulting disassortativity vector.
+	 * Executes the random walk for the random walk phase.
 	 * The vector is initialized with a uniform distribution.
+	 * @param disassortativityMatrix The disassortativity matrix
+	 * on which the random walk will be performed.
+	 * @return The resulting disassortativity vector.
 	 */
 	protected Vector executeRandomWalk(Matrix disassortativityMatrix) {
 		Vector vec1 = new BasicVector(disassortativityMatrix.columns());
@@ -143,7 +158,10 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	}
 	
 	/*
-	 * Returns the leadership vector.
+	 * Calculates the leadership values of all nodes for the random walk phase.
+	 * @param graph The graph containing the nodes.
+	 * @param disassortativityVector The disassortativity vector calculated earlier in the random walk phase.
+	 * @return A vector containing the leadership value of each node in the entry given by the node index.
 	 */
 	protected Vector getLeadershipValues(CustomGraph graph, Vector disassortativityVector) {
 		Vector leadershipVector = new BasicVector(graph.nodeCount());
@@ -167,7 +185,10 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	}
 	
 	/*
-	 * Returns the follower degree of each node.
+	 * Returns the follower degree of each node for the random walk phase.
+	 * @param graph The graph containing the nodes.
+	 * @param leadershipVector The leadership vector previous calculated during the random walk phase.
+	 * @return A mapping from the nodes to the corresponding follower degrees.
 	 */
 	protected Map<Node, Double> getFollowerDegrees(CustomGraph graph, Vector leadershipVector) {
 		Map<Node, Double> followerMap = new HashMap<Node, Double>();
@@ -225,7 +246,10 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	}
 	
 	/*
-	 * Returns a list of global leaders
+	 * Returns a list of global leaders for the random walk phase.
+	 * @param followerMap The mapping from nodes to their follower degrees previously calculated
+	 * in the random walk phase.
+	 * @return A list containing all nodes which are considered to be global leaders.
 	 */
 	protected List<Node> getGlobalLeaders(Map<Node, Double> followerMap) {
 		double averageFollowerDegree = 0;
@@ -242,8 +266,12 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		return globalLeaders;
 	}
 	
+
 	/*
-	 * Executes the label propagation phase
+	 * Executes the label propagation phase.
+	 * @param graph The graph which is being analyzed.
+	 * @param leaders The list of global leader nodes detected during the random walk phase.
+	 * @return A cover containing the detected communities.
 	 */
 	protected Cover labelPropagationPhase(CustomGraph graph, List<Node> leaders) {
 		/*
@@ -262,9 +290,15 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		} while(1-iterationCount*profitabilityDelta > 0 && !areAllNodesAssigned(graph, communities));
 		return getMembershipDegrees(graph, communities);
 	}
-	
+
 	/*
-	 * Executes the label propagation for a single leader
+	 * Executes the label propagation for a single leader to identify its community members.
+	 * @param graph The graph which is being analyzed.
+	 * @param leader The leader node whose community members will be identified.
+	 * @param profitabilityThreshold The threshold value that determines whether it is profitable
+	 * for a node to join the community of the leader / assume its behavior.
+	 * @return A mapping containing the iteration count for each node that is a community member.
+	 * The iteration count indicates, in which iteration the corresponding node has joint the community.
 	 */
 	protected Map<Node, Integer> executeLabelPropagation(CustomGraph graph, Node leader, double profitabilityThreshold) {
 		Map<Node, Integer> memberships = new HashMap<Node, Integer>();
@@ -300,11 +334,16 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		} while (memberships.size() > previousMemberCount);
 		return memberships;
 	}
-	
+
 	/*
 	 * Returns all predecessors of the nodes which adopted the leader's behavior (and the leader itself)
-	 * for the label propagation. Any key node of the membership map is regarded as a node which adopted
-	 * leader behavior.
+	 * for the label propagation of each leader.
+	 * @param graph The graph which is being analyzed.
+	 * @param memberships The nodes which have adopted leader behavior. Note that the membership degrees are 
+	 * not examined, any key value is considered a node with leader behavior.
+	 * @param leader The node which is leader of the community currently under examination.
+	 * @return A set containing all nodes that have not yet assumed leader behavior,
+	 * but are predecessors of a node with leader behavior.
 	 */
 	protected Set<Node> getBehaviorPredecessors(CustomGraph graph, Map<Node, Integer> memberships, Node leader) {
 		Set<Node> neighbors = new HashSet<Node>();
@@ -330,8 +369,10 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	}
 
 	/*
-	 * Returns TRUE when each node has been assigned to at least one community
-	 * in the label propagation phase, and FALSE otherwise.
+	 * Indicates for the label propagation phase whether all nodes have been assigned to at least one community.
+	 * @param graph The graph which is being analyzed.
+	 * @param communities A mapping from the leader nodes to the membership degrees of that leaders community.
+	 * @return TRUE when each node has been assigned to at least one community, and FALSE otherwise.
 	 */
 	protected boolean areAllNodesAssigned(CustomGraph graph, Map<Node, Map<Node, Integer>>communities) {
 		boolean allNodesAreAssigned = true;
@@ -355,8 +396,10 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	}
 	
 	/*
-	 * Returns a cover containing the membership degrees of all nodes, calculated from the iteration
-	 * counts in the communities map.
+	 * Returns a cover containing the membership degrees of all nodes., calculated from 
+	 * @param graph The graph which is being analyzed.
+	 * @param communities A mapping from the leader nodes to the iteration count mapping of their community members.
+	 * @return A cover containing each nodes membership degree
 	 */
 	protected Cover getMembershipDegrees(CustomGraph graph, Map<Node, Map<Node, Integer>> communities) {
 		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communities.size());
