@@ -22,7 +22,7 @@ import y.base.NodeCursor;
  * @author Sebastian
  *
  */
-public class NewmanModel {
+public class NewmanModel implements GroundTruthBenchmarkModel {
 	
 	private int externalEdges;
 	
@@ -36,6 +36,7 @@ public class NewmanModel {
 		this.externalEdges = externalEdges;
 	}
 	
+	@Override
 	public Cover createGroundTruthCover() {
 		CustomGraph graph = new CustomGraph();
 		Matrix membershipMatrix = new CCSMatrix(128, 4);

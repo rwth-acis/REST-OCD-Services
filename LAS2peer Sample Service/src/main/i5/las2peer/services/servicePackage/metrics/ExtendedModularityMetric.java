@@ -15,10 +15,7 @@ public class ExtendedModularityMetric {
 	public ExtendedModularityMetric() {
 	}
 	
-	/**
-	 * Returns the index of this metric for a given cover.
-	 */
-	public double getMetricIndex(Cover cover) {
+	public double getValue(Cover cover) {
 		double metricValue = 0;
 		Graph graph = cover.getGraph();
 		NodeCursor sourceNodes = graph.nodes();

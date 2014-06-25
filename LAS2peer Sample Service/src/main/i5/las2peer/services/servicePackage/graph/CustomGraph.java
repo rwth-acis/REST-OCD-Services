@@ -10,8 +10,8 @@ import y.view.Graph2D;
 
 public class CustomGraph extends Graph2D {
 	
-	protected Map<Edge, Double> edgeWeights;
-	protected Map<Node, String> nodeNames;
+	private Map<Edge, Double> edgeWeights;
+	private Map<Node, String> nodeNames;
 	
 	public CustomGraph() {
 		this.nodeNames = new HashMap<Node, String>();
