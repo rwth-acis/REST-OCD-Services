@@ -1,14 +1,41 @@
 package i5.las2peer.services.servicePackage.graph;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.PostLoad;
+import javax.persistence.PostPersist;
+import javax.persistence.PostUpdate;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Node;
+import y.base.NodeCursor;
 import y.view.Graph2D;
 
+@Entity
 public class CustomGraph extends Graph2D {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Long id;
+	
+	@Id
+	private String user;
+	
+	@ElementCollection
+	private List<NodeEntity> nodes;
+	
+	@ElementCollection
+	private List<EdgeEntity> edges;
 	
 	private Map<Edge, Double> edgeWeights;
 	private Map<Node, String> nodeNames;
@@ -16,20 +43,45 @@ public class CustomGraph extends Graph2D {
 	public CustomGraph() {
 		this.nodeNames = new HashMap<Node, String>();
 		this.edgeWeights = new HashMap<Edge, Double>();
+		this.nodes = null;
+		this.edges = null;
+		this.user = "";
 	}
 	
 	public CustomGraph(Graph2D graph, Map<Edge, Double> edgeWeights, Map<Node, String> nodeNames) {
 		super(graph);
 		this.edgeWeights = edgeWeights;
 		this.nodeNames = nodeNames;
+		this.nodes = null;
+		this.edges = null;
+		this.user = "";
 	}
 	
 	public CustomGraph(CustomGraph graph) {
 		super(graph);
 		this.nodeNames = graph.getNodeNames();
 		this.edgeWeights = graph.getEdgeWeights();
+		this.nodes = graph.nodes;
+		this.edges = graph.edges;
+		this.user = graph.getUser();
 	}
 	
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
+	}
+
 	public Map<Edge, Double> getEdgeWeights() {
 		return edgeWeights;
 	}
@@ -72,5 +124,46 @@ public class CustomGraph extends Graph2D {
 		}
 		return inDegree;
 	}
+	
+	@PostLoad
+	private void postLoad() {
+		for(int i=0; i<nodes.size(); i++) {
+			nodes.get(i).createNode(this);
+		}
+		for(int i=0; i<edges.size(); i++) {
+			EdgeEntity edgeEntity= edges.get(i);
+			Node[] nodeArray = this.getNodeArray();
+			Node source = nodeArray[edgeEntity.getSource().getIndex()];
+			Node target = nodeArray[edgeEntity.getTarget().getIndex()];
+			edgeEntity.createEdge(this, source, target);
+		}
+		this.nodes = null;
+		this.edges = null;
+	}
 
+	@PrePersist
+	@PreUpdate
+	private void prePersist() {
+		NodeCursor nodeIt = this.nodes();
+		while(nodeIt.ok()) {
+			Node node = nodeIt.node();
+			nodes.add(new NodeEntity(this, node));
+			nodeIt.next();
+		}
+		EdgeCursor edgeIt = this.edges();
+		while(edgeIt.ok()) {
+			Edge edge = edgeIt.edge();
+			NodeEntity source = nodes.get(edge.source().index());
+			NodeEntity target = nodes.get(edge.target().index());
+			edges.add(new EdgeEntity(this, edge, source, target));
+			edgeIt.next();
+		}
+	}
+	
+	@PostPersist
+	@PostUpdate
+	private void postPersist() {
+		this.nodes = null;
+		this.edges = null;
+	}
 }
