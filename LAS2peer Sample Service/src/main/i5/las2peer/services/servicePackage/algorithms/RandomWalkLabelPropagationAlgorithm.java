@@ -31,15 +31,6 @@ import y.base.NodeCursor;
 public class RandomWalkLabelPropagationAlgorithm implements
 		OverlappingCommunityDetectionAlgorithm {
 
-	/*
-	 * The compatible graph types for the algorithm.
-	 */
-	private static final HashSet<GraphType> compatibilities = new HashSet<GraphType>();
-	static {
-		compatibilities.add(GraphType.WEIGHTED);
-		compatibilities.add(GraphType.DIRECTED);
-	}
-	
 	// TODO delete iteration bound
 	private int RANDOM_WALK_ITERATION_BOUND = 100000;
 	
@@ -57,7 +48,10 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	}
 	
 	@Override
-	public Set<GraphType> getCompatibleGraphTypes() {
+	public Set<GraphType> compatibleGraphTypes() {
+		Set<GraphType> compatibilities = new HashSet<GraphType>();
+		compatibilities.add(GraphType.WEIGHTED);
+		compatibilities.add(GraphType.DIRECTED);
 		return compatibilities;
 	}
 

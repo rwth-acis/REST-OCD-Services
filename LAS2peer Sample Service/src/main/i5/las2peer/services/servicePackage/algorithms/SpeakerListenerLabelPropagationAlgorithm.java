@@ -31,15 +31,6 @@ import y.base.NodeCursor;
  */
 public class SpeakerListenerLabelPropagationAlgorithm implements
 		OverlappingCommunityDetectionAlgorithm {
-
-	/*
-	 * The compatible graph types for the algorithm.
-	 */
-	private static final HashSet<GraphType> compatibilities = new HashSet<GraphType>();
-	static {
-		compatibilities.add(GraphType.WEIGHTED);
-		compatibilities.add(GraphType.DIRECTED);
-	}
 	
 	/*
 	 * The size of the node memories and the number of iterations.
@@ -83,7 +74,10 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	}
 	
 	@Override
-	public Set<GraphType> getCompatibleGraphTypes() {
+	public Set<GraphType> compatibleGraphTypes() {
+		Set<GraphType> compatibilities = new HashSet<GraphType>();
+		compatibilities.add(GraphType.WEIGHTED);
+		compatibilities.add(GraphType.DIRECTED);
 		return compatibilities;
 	}
 	

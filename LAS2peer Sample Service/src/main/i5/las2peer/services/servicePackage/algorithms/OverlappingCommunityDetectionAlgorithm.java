@@ -18,7 +18,7 @@ public interface OverlappingCommunityDetectionAlgorithm {
 	 * Returns the compatible graph types for the algorithm.
 	 * 
 	 */	
-	public Set<GraphType> getCompatibleGraphTypes();
+	public Set<GraphType> compatibleGraphTypes();
 	
 	/**
 	 * Executes the algorithm.

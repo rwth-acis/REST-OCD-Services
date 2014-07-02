@@ -10,7 +10,7 @@ import y.base.NodeCursor;
 /**
  * Implements the extended modularity metric.
  */
-public class ExtendedModularityMetric {
+public class ExtendedModularityMetric implements StatisticalMeasure {
 	
 	public ExtendedModularityMetric() {
 	}

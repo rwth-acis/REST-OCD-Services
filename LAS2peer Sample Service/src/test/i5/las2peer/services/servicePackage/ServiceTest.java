@@ -16,6 +16,7 @@ import java.io.PrintStream;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -25,6 +26,7 @@ import org.junit.Test;
  * @author Peter de Lange
  *
  */
+@Ignore
 public class ServiceTest {
 	
 	private static final String HTTP_ADDRESS = "http://127.0.0.1";
