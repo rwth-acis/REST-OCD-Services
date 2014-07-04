@@ -15,6 +15,7 @@ import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import y.base.Node;
@@ -28,6 +29,7 @@ public class SLPAEvaluationTest {
 	/**
 	 * Test the SLPA Algorithm on a simple Graph
 	 */
+	@Ignore
 	@Test
 	public void testSleaperListenerLabelPropagationAlgo()
 	{

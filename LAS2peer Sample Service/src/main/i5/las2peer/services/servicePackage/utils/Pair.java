@@ -29,4 +29,16 @@ public class Pair<F, S> {
         return second;
     }
     
+    public String toString() {
+    	String firstString = "NULL";
+    	String secondString = "NULL";
+    	if(first != null) {
+    		firstString = first.toString();
+    	}
+    	if(second != null) {
+    		secondString = second.toString();
+    	}
+    	return "[F=" + firstString + ", S=" + secondString + "]";
+    }
+    
 }

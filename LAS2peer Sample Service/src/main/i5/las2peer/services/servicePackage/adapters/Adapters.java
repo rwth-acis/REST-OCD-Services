@@ -57,9 +57,6 @@ public class Adapters {
 				str += (char) nextChar;
 				nextChar = reader.read();
 			}
-			System.out.println("Separator: " + nextChar);
-			System.out.println("Separator is Ctrl: "
-					+ (Character.getType(nextChar) == Character.CONTROL));
 			if (!str.equals("")) {
 				line.add(str);
 			}

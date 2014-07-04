@@ -68,24 +68,19 @@ public class OcdTestGraphFactory {
 		graph.createEdge(n[5], n[8]);
 		graph.createEdge(n[5], n[9]);
 		graph.createEdge(n[5], n[10]);
-		graph.createEdge(n[1], n[0]);
-		graph.createEdge(n[2], n[0]);
-		graph.createEdge(n[3], n[0]);
-		graph.createEdge(n[4], n[0]);
-		graph.createEdge(n[10], n[0]);
-		graph.createEdge(n[6], n[5]);
-		graph.createEdge(n[7], n[5]);
-		graph.createEdge(n[8], n[5]);
-		graph.createEdge(n[9], n[5]);
-		graph.createEdge(n[10], n[5]);
-		graph.createEdge(n[8], n[9]);
-		graph.createEdge(n[9], n[8]);
+		graph.createEdge(n[1], n[2]);
+		graph.createEdge(n[2], n[3]);
+		graph.createEdge(n[3], n[4]);
+		graph.createEdge(n[1], n[10]);
+		graph.createEdge(n[4], n[10]);
 		EdgeCursor edges = graph.edges();
 		while(edges.ok()) {
 			Edge edge = edges.edge();
 			graph.setEdgeWeight(edge, 1);
 			edges.next();
 		}
+		GraphProcessor processor = new GraphProcessor();
+		processor.makeUndirected(graph);
 		return graph;
 	}
 	

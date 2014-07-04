@@ -37,7 +37,7 @@ LDAV DA vector
 public class RandomWalkLabelPropagationAlgorithmTest {
 
 	@Test
-	public void testRandomWalkExecution1() {
+	public void testRandomWalkExecution() {
 		Matrix transitionMatrix = new Basic2DMatrix(2, 2);
 		transitionMatrix.set(0, 0, 0.9);
 		transitionMatrix.set(0, 1, 0.5);
@@ -53,39 +53,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	
 	@Ignore
 	@Test
-	public void testRandomWalkExecution2() {
-		Matrix transitionMatrix = new Basic2DMatrix(11, 11);
-		transitionMatrix.set(1, 0, 4.0 / (4*4.0 + 3.0));
-		transitionMatrix.set(2, 0, 4.0 / (4*4.0 + 3.0));
-		transitionMatrix.set(3, 0, 4.0 / (4*4.0 + 3.0));
-		transitionMatrix.set(4, 0, 4.0 / (4*4.0 + 3.0));
-		transitionMatrix.set(10, 0, 3.0 / (4*4.0 + 3.0));
-		transitionMatrix.set(0, 1, 1.0);
-		transitionMatrix.set(0, 2, 1.0);
-		transitionMatrix.set(0, 3, 1.0);
-		transitionMatrix.set(0, 4, 1.0);
-		transitionMatrix.set(6, 5, 4.0 / (4*4.0 + 3.0));
-		transitionMatrix.set(7, 5, 4.0 / (4*4.0 + 3.0));
-		transitionMatrix.set(8, 5, 4.0 / (4*4.0 + 3.0));
-		transitionMatrix.set(9, 5, 4.0 / (4*4.0 + 3.0));
-		transitionMatrix.set(10, 5, 3.0 / (4*4.0 + 3.0));
-		transitionMatrix.set(5, 6, 1.0);
-		transitionMatrix.set(5, 7, 1.0);
-		transitionMatrix.set(5, 8, 1.0);
-		transitionMatrix.set(5, 9, 1.0);
-		transitionMatrix.set(0, 10, 0.5);
-		transitionMatrix.set(5, 10, 0.5);
-		System.out.println("Transition Matrix:");
-		System.out.println(transitionMatrix.transpose());
-		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2);
-		Vector vec = algo.executeRandomWalk(transitionMatrix);
-		System.out.println("Steady State Vector:");
-		System.out.println(vec);
-	}
-	
-	@Ignore
-	@Test
-	public void testRandomWalkLabelPropagationAlgorithm() {
+	public void testOnTwoCommunities() {
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2);
 		Cover cover = algo.detectOverlappingCommunities(graph);
@@ -94,7 +62,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	
 	@Ignore
 	@Test
-	public void testRandomWalkLabelPropagationAlgorithm2() {
+	public void testOnAperiodicTwoCommunities() {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2);
 		Cover cover = algo.detectOverlappingCommunities(graph);
@@ -102,7 +70,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	}
 	
 	@Test
-	public void testRandomWalkLabelPropagationAlgorithmOnSawmill() {
+	public void testOnSawmill() {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2);
 		Cover cover = algo.detectOverlappingCommunities(graph);
