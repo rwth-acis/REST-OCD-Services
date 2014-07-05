@@ -84,6 +84,39 @@ public class OcdTestGraphFactory {
 		return graph;
 	}
 	
+	public static CustomGraph getDirectedAperiodicTwoCommunitiesGraph() {
+		// Creates new graph
+		CustomGraph graph = new CustomGraph();
+		// Creates nodes
+		Node n[] = new Node[11];  
+		for (int i = 0; i < 11; i++) {
+			n[i] = graph.createNode();
+		}
+		// Creates edges
+		graph.createEdge(n[1], n[0]);
+		graph.createEdge(n[2], n[0]);
+		graph.createEdge(n[3], n[0]);
+		graph.createEdge(n[4], n[0]);
+		graph.createEdge(n[10], n[0]);
+		graph.createEdge(n[5], n[6]);
+		graph.createEdge(n[5], n[7]);
+		graph.createEdge(n[5], n[8]);
+		graph.createEdge(n[5], n[9]);
+		graph.createEdge(n[5], n[10]);
+		graph.createEdge(n[1], n[2]);
+		graph.createEdge(n[2], n[3]);
+		graph.createEdge(n[3], n[4]);
+		graph.createEdge(n[1], n[10]);
+		graph.createEdge(n[4], n[10]);
+		EdgeCursor edges = graph.edges();
+		while(edges.ok()) {
+			Edge edge = edges.edge();
+			graph.setEdgeWeight(edge, 1);
+			edges.next();
+		}
+		return graph;
+	}
+	
 	public static CustomGraph getSawmillGraph() {
 		GraphInputAdapter adapter = new NodeWeightedEdgeListGraphInputAdapter(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath);
 		CustomGraph graph = adapter.readGraph();

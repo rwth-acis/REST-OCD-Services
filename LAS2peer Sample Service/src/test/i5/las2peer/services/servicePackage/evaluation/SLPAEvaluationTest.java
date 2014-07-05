@@ -13,6 +13,7 @@ import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestConstants;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.Ignore;
@@ -28,10 +29,11 @@ public class SLPAEvaluationTest {
 
 	/**
 	 * Test the SLPA Algorithm on a simple Graph
+	 * @throws IOException 
 	 */
 	@Ignore
 	@Test
-	public void testSleaperListenerLabelPropagationAlgo()
+	public void testSleaperListenerLabelPropagationAlgo() throws IOException
 	{
 		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
 		AlgorithmFactory factory = AlgorithmFactory.getAlgorithmFactory();

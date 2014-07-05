@@ -48,4 +48,8 @@ public class AlgorithmFactory {
     public RandomWalkLabelPropagationAlgorithm getRandomWalkLabelPropagatoinAlgorithm(double profitabilityDelta) {
     	return new RandomWalkLabelPropagationAlgorithm(profitabilityDelta);
     }
+    
+    public OverlappingCommunityDetectionAlgorithm getStandardSSKAlgorithm() {
+    	return new SSKAlgorithm();
+    }
 }

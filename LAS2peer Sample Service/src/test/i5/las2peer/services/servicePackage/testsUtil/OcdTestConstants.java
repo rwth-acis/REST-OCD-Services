@@ -9,10 +9,13 @@ public class OcdTestConstants {
 	public static final String sawmillNodeWeightedEdgeListInputPath = inputFolderPath + "SawmillNodeEdgeList.txt";
 	public static final String sawmillUnweightedEdgeListInputPath = inputFolderPath + "SawmillUnweightedEdgeList.txt";
 	
+	public static final String sawmillLabeledMembershipMatrixOutputPath = outputFolderPath + "sawmillLabeledMembershipMatrix.txt";
+	
 	public static final String siamDmUnweightedEdgeListInputPath = inputFolderPath + "SIAM_DM.txt";
 	
+	
 	// Evaluation Constants
-	public static final String slpaSiamDmLabeledMembershipMatrixOutputPath = outputFolderPath + "SLPAsiamDm";
-
+	public static final String slpaSiamDmLabeledMembershipMatrixOutputPath = outputFolderPath + "slpaSiamDm.txt";
+	public static final String sskSiamDmLabeledMembershipMatrixOutputPath = outputFolderPath + "sskSiamDm.txt";
 
 }

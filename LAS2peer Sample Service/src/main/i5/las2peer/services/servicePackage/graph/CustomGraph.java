@@ -50,8 +50,8 @@ public class CustomGraph extends Graph2D {
 	
 	public CustomGraph(Graph2D graph, Map<Edge, Double> edgeWeights, Map<Node, String> nodeNames) {
 		super(graph);
-		this.edgeWeights = edgeWeights;
-		this.nodeNames = nodeNames;
+		setEdgeWeights(edgeWeights);
+		setNodeNames(nodeNames);
 		this.nodes = null;
 		this.edges = null;
 		this.user = "";
@@ -87,7 +87,16 @@ public class CustomGraph extends Graph2D {
 	}
 
 	public void setEdgeWeights(Map<Edge, Double> edgeWeights) {
-		this.edgeWeights = edgeWeights;
+		boolean containsEdges = true;
+		for(Edge edge : edgeWeights.keySet()) {
+			if(!this.contains(edge)) {
+				containsEdges = false;
+				break;
+			}
+		}
+		if(containsEdges) {
+			this.edgeWeights = edgeWeights;
+		}
 	}
 
 	public Map<Node, String> getNodeNames() {
@@ -95,7 +104,19 @@ public class CustomGraph extends Graph2D {
 	}
 
 	public void setNodeNames(Map<Node, String> nodeNames) {
-		this.nodeNames = nodeNames;
+		boolean containsNodes = true;
+		for(Map.Entry<Node, String> entry : nodeNames.entrySet()) {
+			if(!this.contains(entry.getKey())) {
+				containsNodes = false;
+				break;
+			}
+			if(entry.getValue() == null) {
+				entry.setValue("");
+			}
+		}
+		if(containsNodes) {
+			this.nodeNames = nodeNames;
+		}
 	}
 
 	public double getEdgeWeight(Edge edge) {
@@ -103,7 +124,9 @@ public class CustomGraph extends Graph2D {
 	}
 	
 	public void setEdgeWeight(Edge edge, double weight) {
-		edgeWeights.put(edge, weight);
+		if(this.contains(edge)) {
+			edgeWeights.put(edge, weight);
+		}
 	}
 	
 	public String getNodeName(Node node) {
@@ -111,16 +134,25 @@ public class CustomGraph extends Graph2D {
 	}
 	
 	public void setNodeName(Node node, String name) {
-		this.nodeNames.put(node, name);
+		if(this.contains(node)) {
+			if(name == null) {
+				this.nodeNames.put(node, "");
+			}
+			else {
+				this.nodeNames.put(node, name);
+			}
+		}
 	}
 	
 	public double getWeightedInDegree(Node node) {
 		double inDegree = 0;
-		EdgeCursor inEdges = node.inEdges();
-		while(inEdges.ok()) {
-			Edge edge = inEdges.edge();
-			inDegree += edgeWeights.get(edge);
-			inEdges.next();
+		if(this.contains(node)) {
+			EdgeCursor inEdges = node.inEdges();
+			while(inEdges.ok()) {
+				Edge edge = inEdges.edge();
+				inDegree += edgeWeights.get(edge);
+				inEdges.next();
+			}
 		}
 		return inDegree;
 	}

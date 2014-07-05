@@ -31,7 +31,7 @@ import y.base.NodeCursor;
 public class RandomWalkLabelPropagationAlgorithm implements
 		OverlappingCommunityDetectionAlgorithm {
 
-	// TODO delete iteration bound
+	// TODO delete/redefine iteration bound
 	private int RANDOM_WALK_ITERATION_BOUND = 100000;
 	
 	/*

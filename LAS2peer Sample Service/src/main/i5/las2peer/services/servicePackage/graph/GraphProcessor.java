@@ -3,6 +3,9 @@ package i5.las2peer.services.servicePackage.graph;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.la4j.matrix.Matrix;
+import org.la4j.matrix.sparse.CCSMatrix;
+
 import y.algo.GraphConnectivity;
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -99,4 +102,39 @@ public class GraphProcessor {
 		}
 		return componentsMap;
 	}
+	
+	/**
+	 * Merges the covers of the separated connected components of a graph to one single cover.
+	 * @param graph The graph containing the connected components.
+	 * @param coverMap A mapping from covers of all the connected components of a graph to a corresponding node mapping,
+	 * that maps the nodes from the connected component to the original graph nodes.
+	 * @return The single cover of the original graph.
+	 */
+	public Cover mergeComponentCovers(CustomGraph graph, Map<Cover, Map<Node, Node>> coverMap) {
+		int totalCommunityCount = 0;
+		for(Cover cover : coverMap.keySet()) {
+			totalCommunityCount += cover.communityCount();
+		}
+		Matrix memberships = new CCSMatrix(graph.nodeCount(), totalCommunityCount);
+		Cover currentCover;
+		NodeCursor currentNodes;
+		Node node;
+		int currentCoverFirstCommunityIndex = 0;
+		double belongingFactor;
+		for(Map.Entry<Cover, Map<Node, Node>> entry : coverMap.entrySet()) {
+			currentCover = entry.getKey();
+			currentNodes = currentCover.getGraph().nodes();
+			while(currentNodes.ok()) {
+				node = currentNodes.node();
+				for(int i=0; i<currentCover.communityCount(); i++) {
+					belongingFactor = currentCover.getBelongingFactor(node, i);
+					memberships.set(entry.getValue().get(node).index(), currentCoverFirstCommunityIndex + i, belongingFactor);
+				}
+				currentNodes.next();
+			}
+			currentCoverFirstCommunityIndex += currentCover.communityCount();
+		}
+		return new Cover(graph, memberships);
+	}
+
 }
