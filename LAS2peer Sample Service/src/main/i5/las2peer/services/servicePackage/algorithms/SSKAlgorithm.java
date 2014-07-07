@@ -26,7 +26,7 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 public class SSKAlgorithm implements OverlappingCommunityDetectionAlgorithm {
-
+	
 	private int randomWalkIterationBound;
 	private double randomWalkPrecisionFactor;
 	private int membershipsIterationBound;
@@ -48,6 +48,11 @@ public class SSKAlgorithm implements OverlappingCommunityDetectionAlgorithm {
 	}
 	
 	@Override
+	public Algorithm getAlgorithm() {
+		return Algorithm.SSK_ALGORITHM;
+	}
+	
+	@Override
 	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> types = new HashSet<GraphType>();
 		types.add(GraphType.DIRECTED);
@@ -61,7 +66,7 @@ public class SSKAlgorithm implements OverlappingCommunityDetectionAlgorithm {
 		Vector totalInfluences = executeRandomWalk(transitionMatrix);
 		Map<Node, Integer> leaders = determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
 		Matrix memberships = calculateMemberships(graph, leaders);
-		return new Cover(graph, memberships);
+		return new Cover(graph, memberships, getAlgorithm());
 	}
 	
 	protected Matrix calculateMemberships(CustomGraph graph, Map<Node, Integer> leaders) {

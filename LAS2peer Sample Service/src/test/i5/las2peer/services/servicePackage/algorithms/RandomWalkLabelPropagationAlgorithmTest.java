@@ -10,8 +10,6 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.vector.Vector;
 
-import y.base.Node;
-
 /*
 LDAV=ones(1,num_vertices(SparseGraph));
 LDAV=LDAV./num_vertices(SparseGraph);
@@ -57,7 +55,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.getMemberships());
+		System.out.println(cover.toString());
 	}
 	
 	@Ignore
@@ -66,7 +64,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.getMemberships());
+		System.out.println(cover.toString());
 	}
 	
 	@Test
@@ -74,14 +72,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println("Memberships:");
-		Matrix memberships = cover.getMemberships();
-		Node[] nodes = graph.getNodeArray();
-		for(int i=0; i<graph.nodeCount(); i++) {
-			System.out.println(graph.getNodeName(nodes[i]) + ": ");
-			//System.out.println(memberships.getRow(i));
-		}
-		System.out.println(memberships);	
+		System.out.println(cover.toString());	
 	}
 
 }

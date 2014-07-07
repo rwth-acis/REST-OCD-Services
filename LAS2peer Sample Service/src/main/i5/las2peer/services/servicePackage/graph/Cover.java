@@ -1,7 +1,12 @@
 package i5.las2peer.services.servicePackage.graph;
 
+import i5.las2peer.services.servicePackage.algorithms.Algorithm;
+import i5.las2peer.services.servicePackage.metrics.Metric;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
@@ -13,10 +18,15 @@ public class Cover {
 
 	private CustomGraph graph;
 	private Matrix memberships;
+	private String name;
+	private Algorithm algorithm;
+	private Map<Metric, Double> metricResults;
 	
-	public Cover(CustomGraph graph, Matrix memberships) {
-		this.graph = graph;
-		this.memberships = memberships;
+	public Cover(CustomGraph graph, Matrix memberships, Algorithm algorithm) {
+		setGraph(graph);
+		setMemberships(memberships);
+		setAlgorithm(algorithm);
+		metricResults = new HashMap<Metric, Double>();
 	}
 
 	public CustomGraph getGraph() {
@@ -33,6 +43,53 @@ public class Cover {
 
 	public void setMemberships(Matrix memberships) {
 		this.memberships = memberships;
+	}
+	
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Algorithm getAlgorithm() {
+		return algorithm;
+	}
+
+	public void setAlgorithm(Algorithm algorithm) {
+		if(algorithm != null) {
+			this.algorithm = algorithm;
+		}
+		else {
+			this.algorithm = Algorithm.UNDEFINED;
+		}
+	}
+
+	public Map<Metric, Double> getMetricResults() {
+		return metricResults;
+	}
+
+	public void setMetricResults(Map<Metric, Double> metricResults) {
+		for(Map.Entry<Metric, Double> entry : metricResults.entrySet()) {
+			if(entry.getKey() != null && entry.getValue() != null)
+				this.metricResults.put(entry.getKey(), entry.getValue());
+		}
+	}
+
+	public double getMetricResult(Metric metric) {
+		if(this.metricResults.containsKey(metric)) {
+			return metricResults.get(metric);
+		}
+		else {
+			return Double.NaN;
+		}
+	}
+	
+	public void setMetricResult(Metric metric, double result) {
+		if(metric != null) {
+			this.metricResults.put(metric, result);
+		}
 	}
 	
 	public int communityCount() {
@@ -78,4 +135,23 @@ public class Cover {
 		}
 	}
 
+	@Override
+	public String toString() {
+		String coverString = "Cover:" + getName() + "\n";
+		coverString += "Graph: " + getGraph().getName() + "\n";
+		coverString += "Algorithm: " + getAlgorithm().toString() + "\n";
+		coverString += "Membership Matrix\n";
+		Metric metric;
+		for(int i=0; i<Metric.values().length; i++) {
+			metric = Metric.values()[i];
+			if(metricResults.containsKey(metric)) {
+				coverString += metric.toString();
+				coverString += metricResults.get(metric);
+				coverString += "\n";
+			}
+		}
+		coverString += getMemberships().toString();
+		return coverString;
+	}
+	
 }

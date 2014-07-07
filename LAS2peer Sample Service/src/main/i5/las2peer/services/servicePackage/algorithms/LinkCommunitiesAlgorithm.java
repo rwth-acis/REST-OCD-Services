@@ -24,8 +24,11 @@ import y.base.NodeCursor;
 
 public class LinkCommunitiesAlgorithm implements
 		OverlappingCommunityDetectionAlgorithm {
-
 	
+	@Override
+	public Algorithm getAlgorithm() {
+		return Algorithm.LINK_COMMUNITIES_ALGORITHM;
+	}
 	
 	@Override
 	public Set<GraphType> compatibleGraphTypes() {
@@ -520,7 +523,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 				memberships.set(edge.source().index(), i, belongingFactor);
 			}
 		}
-		Cover cover = new Cover(graph, memberships);
+		Cover cover = new Cover(graph, memberships, getAlgorithm());
 		cover.doNormalize();
 		return cover;
 	}

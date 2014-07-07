@@ -27,5 +27,12 @@ public interface OverlappingCommunityDetectionAlgorithm {
 	 * @return A normalized cover containing the community structure.
 	 */	
 	public Cover detectOverlappingCommunities(CustomGraph graph);
+	
+	/**
+	 * Returns an instance of the the enum Algorithm that corresponds to the 
+	 * concrete algorithm.
+	 * @return The enum instance.
+	 */
+	public Algorithm getAlgorithm();
 
 }

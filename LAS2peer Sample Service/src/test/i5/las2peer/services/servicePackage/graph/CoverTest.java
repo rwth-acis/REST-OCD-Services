@@ -29,7 +29,7 @@ public class CoverTest {
 				memberships.set(i, j, i*j);
 			}
 		}
-		cover = new Cover(graph, memberships);
+		cover = new Cover(graph, memberships, null);
 	}
 	
 	/*

@@ -30,7 +30,7 @@ import y.base.NodeCursor;
  */
 public class RandomWalkLabelPropagationAlgorithm implements
 		OverlappingCommunityDetectionAlgorithm {
-
+	
 	// TODO delete/redefine iteration bound
 	private int RANDOM_WALK_ITERATION_BOUND = 100000;
 	
@@ -45,6 +45,11 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	 */
 	protected RandomWalkLabelPropagationAlgorithm(double profitabilityDelta) {
 		this.profitabilityDelta = profitabilityDelta;
+	}
+	
+	@Override
+	public Algorithm getAlgorithm() {
+		return Algorithm.RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM;
 	}
 	
 	@Override
@@ -406,7 +411,7 @@ public class RandomWalkLabelPropagationAlgorithm implements
 			}
 			communityIndex++;
 		}
-		Cover cover = new Cover(graph, membershipMatrix);
+		Cover cover = new Cover(graph, membershipMatrix, getAlgorithm());
 		return cover;
 	}
 }

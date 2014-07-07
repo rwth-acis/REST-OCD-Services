@@ -74,6 +74,11 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	}
 	
 	@Override
+	public Algorithm getAlgorithm() {
+		return Algorithm.SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM;
+	}
+	
+	@Override
 	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.WEIGHTED);
@@ -158,7 +163,7 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		    }
 		    membershipMatrix.setRow(i, nodeMembershipDegrees);
 		}
-		return new Cover(graph, membershipMatrix);
+		return new Cover(graph, membershipMatrix, getAlgorithm());
 	}
 	
 	/*

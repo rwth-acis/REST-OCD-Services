@@ -1,36 +1,44 @@
 package i5.las2peer.services.servicePackage.evaluation;
 
 import i5.las2peer.services.servicePackage.OverlappingCommunityDetectionAnalyzer;
-import i5.las2peer.services.servicePackage.adapters.coverOutput.CoverOutputAdapter;
-import i5.las2peer.services.servicePackage.adapters.coverOutput.LabeledMembershipMatrixOutputAdapter;
 import i5.las2peer.services.servicePackage.algorithms.OverlappingCommunityDetectionAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.SSKAlgorithm;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
+import i5.las2peer.services.servicePackage.graph.GraphProcessor;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
-import i5.las2peer.services.servicePackage.testsUtil.OcdTestConstants;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
-/*
- * Test Class for the Speaker Listener Label Propagation Algorithm
- */
-public class SSKEvaluationTest {
+import y.base.Node;
 
-	/**
-	 * Test the SLPA Algorithm on a simple Graph
-	 * @throws IOException 
-	 */
+public class GraphEvaluationTest {
 
 	@Test
-	public void testSskAlgoOnSiamDm() throws IOException
-	{
+	public void testSiamComponents() {
 		System.out.println("Siam Components:");
+		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
+		GraphProcessor processor = new GraphProcessor();
+		Map<CustomGraph, Map<Node, Node>> components = processor.divideIntoConnectedComponents(graph);
+		Iterator<CustomGraph> iterator = components.keySet().iterator();
+		CustomGraph component;
+		int index = 0;
+		while(iterator.hasNext()) {
+			component = iterator.next();
+			System.out.println("Component Nodes " + index + ": " + component.nodeCount());
+			index++;
+		}
+	}
+
+	@Test
+	public void testSiamAnalyzer() {
+		System.out.println("Siam Component Analyzer:");
 		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
 		OverlappingCommunityDetectionAnalyzer analyzer = new OverlappingCommunityDetectionAnalyzer();
 		List<CustomGraph> graphs = new ArrayList<CustomGraph>();
@@ -38,11 +46,9 @@ public class SSKEvaluationTest {
 		List<OverlappingCommunityDetectionAlgorithm> algorithms = new ArrayList<OverlappingCommunityDetectionAlgorithm>();
 		algorithms.add(new SSKAlgorithm());
 		List<StatisticalMeasure> statisticalMeasures = new ArrayList<StatisticalMeasure>();
-		List<Cover> covers = analyzer.analyze(graphs, algorithms, statisticalMeasures, 8);
+		List<Cover> covers = analyzer.analyze(graphs, algorithms, statisticalMeasures, 1100);
 		Cover cover = covers.get(0);
 		System.out.println(cover.toString());
-		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter();
-		adapter.setFilename(OcdTestConstants.sskSiamDmLabeledMembershipMatrixOutputPath);
-		adapter.writeCover(cover);
 	}
+	
 }

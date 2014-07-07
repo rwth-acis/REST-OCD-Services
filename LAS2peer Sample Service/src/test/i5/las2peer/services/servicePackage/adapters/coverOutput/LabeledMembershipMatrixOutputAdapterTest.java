@@ -28,7 +28,7 @@ public class LabeledMembershipMatrixOutputAdapterTest {
 			e.printStackTrace();
 			fail();
 		}
-		System.out.println(cover.getMemberships());
+		System.out.println(cover.toString());
 	}
 
 }

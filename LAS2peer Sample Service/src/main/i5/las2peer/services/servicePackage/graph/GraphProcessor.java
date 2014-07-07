@@ -1,6 +1,9 @@
 package i5.las2peer.services.servicePackage.graph;
 
+import i5.las2peer.services.servicePackage.algorithms.Algorithm;
+
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.la4j.matrix.Matrix;
@@ -56,7 +59,7 @@ public class GraphProcessor {
 	 * @return A map containing the connected components and a corresponding mapping
 	 * from the new component nodes to the original graph nodes.
 	 */
-	public Map<CustomGraph, Map<Node, Node>> getConnectedComponents(CustomGraph graph) {
+	public Map<CustomGraph, Map<Node, Node>> divideIntoConnectedComponents(CustomGraph graph) {
 		/*
 		 * Iterates over all connected components of the graph creating a copy for each of them.
 		 */
@@ -106,22 +109,27 @@ public class GraphProcessor {
 	/**
 	 * Merges the covers of the separated connected components of a graph to one single cover.
 	 * @param graph The graph containing the connected components.
-	 * @param coverMap A mapping from covers of all the connected components of a graph to a corresponding node mapping,
+	 * @param componentCovers A mapping from covers of all the connected components of a graph to a corresponding node mapping,
 	 * that maps the nodes from the connected component to the original graph nodes.
 	 * @return The single cover of the original graph.
 	 */
-	public Cover mergeComponentCovers(CustomGraph graph, Map<Cover, Map<Node, Node>> coverMap) {
+	public Cover mergeComponentCovers(CustomGraph graph, Map<Cover, Map<Node, Node>> componentCovers) {
 		int totalCommunityCount = 0;
-		for(Cover cover : coverMap.keySet()) {
+		for(Cover cover : componentCovers.keySet()) {
 			totalCommunityCount += cover.communityCount();
 		}
 		Matrix memberships = new CCSMatrix(graph.nodeCount(), totalCommunityCount);
-		Cover currentCover;
+		Cover currentCover = null;
+		Algorithm algo = Algorithm.UNDEFINED;
+		Iterator<Cover> it = componentCovers.keySet().iterator();
+		if(it.hasNext()) {
+			algo = it.next().getAlgorithm();
+		}
 		NodeCursor currentNodes;
 		Node node;
 		int currentCoverFirstCommunityIndex = 0;
 		double belongingFactor;
-		for(Map.Entry<Cover, Map<Node, Node>> entry : coverMap.entrySet()) {
+		for(Map.Entry<Cover, Map<Node, Node>> entry : componentCovers.entrySet()) {
 			currentCover = entry.getKey();
 			currentNodes = currentCover.getGraph().nodes();
 			while(currentNodes.ok()) {
@@ -133,8 +141,11 @@ public class GraphProcessor {
 				currentNodes.next();
 			}
 			currentCoverFirstCommunityIndex += currentCover.communityCount();
+			if(!currentCover.getAlgorithm().equals(algo)) {
+				algo = Algorithm.UNDEFINED;
+			}
 		}
-		return new Cover(graph, memberships);
+		return new Cover(graph, memberships, currentCover.getAlgorithm());
 	}
 
 }

@@ -206,8 +206,7 @@ public class SSKAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
 		SSKAlgorithm algo = new SSKAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println("Directed Aperiodic Two Communities Cover:");
-		System.out.println(cover.getMemberships());
+		System.out.println(cover.toString());
 	}
 	
 	/*
@@ -218,8 +217,7 @@ public class SSKAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SSKAlgorithm algo = new SSKAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println("Sawmill Cover:");
-		System.out.println(cover.getMemberships());
+		System.out.println(cover.toString());
 	}
 	
 }

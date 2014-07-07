@@ -15,7 +15,7 @@ public class ExtendedModularityMetric implements StatisticalMeasure {
 	public ExtendedModularityMetric() {
 	}
 	
-	public double getValue(Cover cover) {
+	public void measure(Cover cover) {
 		double metricValue = 0;
 		Graph graph = cover.getGraph();
 		NodeCursor sourceNodes = graph.nodes();
@@ -28,7 +28,8 @@ public class ExtendedModularityMetric implements StatisticalMeasure {
 			}
 			sourceNodes.next();
 		}
-		return metricValue / graph.edgeCount();
+		metricValue /= graph.edgeCount();
+		cover.setMetricResult(Metric.ExtendedModularityMetric, metricValue);
 	}
 	
 	/*

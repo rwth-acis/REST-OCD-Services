@@ -6,8 +6,6 @@ import java.util.Map;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.PostLoad;
 import javax.persistence.PostPersist;
@@ -25,11 +23,10 @@ import y.view.Graph2D;
 public class CustomGraph extends Graph2D {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
+	private String user;
 	
 	@Id
-	private String user;
+	private String name;
 	
 	@ElementCollection
 	private List<NodeEntity> nodes;
@@ -45,7 +42,8 @@ public class CustomGraph extends Graph2D {
 		this.edgeWeights = new HashMap<Edge, Double>();
 		this.nodes = null;
 		this.edges = null;
-		this.user = "";
+		setUser("");
+		setName("");
 	}
 	
 	public CustomGraph(Graph2D graph, Map<Edge, Double> edgeWeights, Map<Node, String> nodeNames) {
@@ -54,7 +52,8 @@ public class CustomGraph extends Graph2D {
 		setNodeNames(nodeNames);
 		this.nodes = null;
 		this.edges = null;
-		this.user = "";
+		setUser("");
+		setName("");
 	}
 	
 	public CustomGraph(CustomGraph graph) {
@@ -65,14 +64,6 @@ public class CustomGraph extends Graph2D {
 		this.edges = graph.edges;
 		this.user = graph.getUser();
 	}
-	
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
 
 	public String getUser() {
 		return user;
@@ -80,6 +71,14 @@ public class CustomGraph extends Graph2D {
 
 	public void setUser(String user) {
 		this.user = user;
+	}
+	
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public Map<Edge, Double> getEdgeWeights() {

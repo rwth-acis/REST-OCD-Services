@@ -1,7 +1,13 @@
 package i5.las2peer.services.servicePackage.graph;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmFactory;
+import i5.las2peer.services.servicePackage.algorithms.OverlappingCommunityDetectionAlgorithm;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -12,12 +18,14 @@ import y.base.NodeCursor;
 public class GraphProcessorTest {
 
 	/*
-	 * Tests whether the makeUndirected method does indeed create 
-	 * all the reverse edges for a graph and also set the
-	 * corresponding edge weights correctly.
+	 * Tests making a graph undirected, i.e. the reverse edge creation
+	 * and edge weight setting, on sawmill.
 	 */
 	@Test
 	public void testMakeUndirected() {
+		/*
+		 * Note that getSawmillGraph makes use of makeUndirected.
+		 */
 		CustomGraph undirectedGraph = OcdTestGraphFactory.getSawmillGraph();
 		CustomGraph directedGraph = OcdTestGraphFactory.getDirectedSawmillGraph();
 		assertEquals(undirectedGraph.nodeCount(), directedGraph.nodeCount());
@@ -52,6 +60,27 @@ public class GraphProcessorTest {
 			}
 			directedNodes.next();
 		}
+	}
+	
+	/*
+	 * Tests the component division and cover remerge on simple two components.
+	 */
+	@Test
+	public void testDivideAndMergeConnectedComponents() {
+		CustomGraph graph = OcdTestGraphFactory.getSimpleTwoComponentsGraph();
+		GraphProcessor processor = new GraphProcessor();
+		Map<CustomGraph, Map<Node, Node>> componentMap = processor.divideIntoConnectedComponents(graph);
+		Map<Cover, Map<Node, Node>> coverMap = new HashMap<Cover, Map<Node, Node>>();
+		Cover currentCover;
+		AlgorithmFactory factory = AlgorithmFactory.getAlgorithmFactory();
+		OverlappingCommunityDetectionAlgorithm algo = factory.getStandardSSKAlgorithm();
+		for(Map.Entry<CustomGraph, Map<Node, Node>> entry : componentMap.entrySet()) {
+			currentCover = algo.detectOverlappingCommunities(entry.getKey());
+			coverMap.put(currentCover, entry.getValue());
+		}
+		Cover cover = processor.mergeComponentCovers(graph, coverMap);
+		System.out.println("Divide and merge of simple two components");
+		System.out.println(cover.toString());
 	}
 
 }

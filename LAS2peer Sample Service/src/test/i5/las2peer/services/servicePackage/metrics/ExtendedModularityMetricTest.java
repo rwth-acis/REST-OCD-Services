@@ -26,11 +26,11 @@ public class ExtendedModularityMetricTest {
 		for(int i=0; i<memberships.rows(); i++) {
 			memberships.set(i, 0, 1);
 		}
-		Cover cover = new Cover(graph, memberships);
+		Cover cover = new Cover(graph, memberships, null);
 		ExtendedModularityMetric metric = new ExtendedModularityMetric();
-		double index = metric.getValue(cover);
+		metric.measure(cover);
 		System.out.println("1 Community");
-		System.out.println(index);
+		System.out.println(cover.getMetricResult(Metric.ExtendedModularityMetric));
 	}
 	
 	@Test
@@ -42,9 +42,9 @@ public class ExtendedModularityMetricTest {
 		OverlappingCommunityDetectionAlgorithm algo = factory.getSpeakerListenerLabelPropagationAlgorithm(100, 0.04, speakerRule, listenerRule);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		ExtendedModularityMetric metric = new ExtendedModularityMetric();
-		double index = metric.getValue(cover);
+		metric.measure(cover);
 		System.out.println("Sawmill SLPA");
-		System.out.println(index);
+		System.out.println(cover.getMetricResult(Metric.ExtendedModularityMetric));
 	}
 
 }

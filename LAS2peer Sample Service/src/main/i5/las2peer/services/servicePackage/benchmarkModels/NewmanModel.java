@@ -82,7 +82,7 @@ public class NewmanModel implements GroundTruthBenchmarkModel {
 				redesignExternalEdges(graph, groupMap, nodeOrder, unsatisfiedNodes, nodeA, rand);
 			}
 		}
-		Cover cover = new Cover(graph, membershipMatrix);
+		Cover cover = new Cover(graph, membershipMatrix, null);
 		return cover;
 	}
 	

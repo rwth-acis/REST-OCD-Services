@@ -24,7 +24,7 @@ public class SpeakerListenerLabelPropagationAlgorithmTest {
 		SpeakerListenerLabelPropagationAlgorithm algo = 
 				factory.getSpeakerListenerLabelPropagationAlgorithm(
 						100, 0.04, new UniformSpeakerRule(), new PopularityListenerRule());
-		Cover result = algo.detectOverlappingCommunities(graph);
-		System.out.println(result.getMemberships());
+		Cover cover = algo.detectOverlappingCommunities(graph);
+		System.out.println(cover.toString());
 	}
 }
