@@ -1,11 +1,12 @@
 package i5.las2peer.services.servicePackage;
 
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
-import i5.las2peer.services.servicePackage.algorithms.OverlappingCommunityDetectionAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
+import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,10 +18,10 @@ import org.la4j.matrix.sparse.CCSMatrix;
 
 import y.base.Node;
 
-public class OverlappingCommunityDetectionAnalyzer {
+public class GraphAnalyzer {
 
-	public List<Cover> analyze(List<CustomGraph> graphs, List<OverlappingCommunityDetectionAlgorithm> algorithms,
-			List<StatisticalMeasure> statisticalMeasures, int componentNodeCountFilter) {
+	public List<Cover> analyze(List<CustomGraph> graphs, List<OcdAlgorithm> algorithms,
+			List<StatisticalMeasure> statisticalMeasures, int componentNodeCountFilter) throws OcdAlgorithmException {
 		List<Cover> covers = new ArrayList<Cover>();
 		GraphProcessor processor = new GraphProcessor();
 		CustomGraph graph;
@@ -43,7 +44,7 @@ public class OverlappingCommunityDetectionAnalyzer {
 	}
 	
 	private Map<Cover, Map<Node, Node>> calculateComponentCovers(Map<CustomGraph, Map<Node, Node>> components,
-			OverlappingCommunityDetectionAlgorithm algorithm, int componentNodeCountFilter) {
+			OcdAlgorithm algorithm, int componentNodeCountFilter) throws OcdAlgorithmException {
 		Map<Cover, Map<Node, Node>> componentCovers = new HashMap<Cover, Map<Node, Node>>();
 		CustomGraph component;
 		Cover componentCover;

@@ -23,7 +23,7 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 public class LinkCommunitiesAlgorithm implements
-		OverlappingCommunityDetectionAlgorithm {
+		OcdAlgorithm {
 	
 	@Override
 	public Algorithm getAlgorithm() {
@@ -524,7 +524,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 			}
 		}
 		Cover cover = new Cover(graph, memberships, getAlgorithm());
-		cover.doNormalize();
+		cover.normalizeMemberships();
 		return cover;
 	}
 	

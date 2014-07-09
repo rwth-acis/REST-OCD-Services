@@ -3,6 +3,7 @@ package i5.las2peer.services.servicePackage.algorithms;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphType;
+import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
+import org.la4j.vector.Vectors;
 import org.la4j.vector.dense.BasicVector;
 
 import y.base.Edge;
@@ -29,21 +31,41 @@ import y.base.NodeCursor;
  * it behaves the same as the original.
  */
 public class RandomWalkLabelPropagationAlgorithm implements
-		OverlappingCommunityDetectionAlgorithm {
+		OcdAlgorithm {
 	
-	// TODO delete/redefine iteration bound
-	private int RANDOM_WALK_ITERATION_BOUND = 100000;
-	
-	/*
+	/**
+	 * The iteration bound for the random walk phase.
+	 * The standard value is 1000.
+	 */
+	private int randomWalkIterationBound = 1000;
+	/**
+	 * The precision factor for the random walk phase.
+	 * The phase ends when the infinity norm of the difference between the updated vector
+	 * and the previous one is smaller than this factor divided by the vector
+	 * length (i.e. the node count of the graph).
+	 * The standard value is 0.001.
+	 */
+	private double randomWalkPrecisionFactor = 0.001;
+	/**
 	 * The profitability step size for the label propagation phase.
+	 * The standard value is 0.1.
 	 */
-	private double profitabilityDelta;
+	private double profitabilityDelta = 0.1;
 	
-	/*
-	 * Creates an instance of the algorithm.
-	 * @param profitabilityDelta The profitability step size for the label propagation phase.
+	/**
+	 * Standard Constructor.
+	 * Initializes the algorithm with standard attribute values.
 	 */
-	protected RandomWalkLabelPropagationAlgorithm(double profitabilityDelta) {
+	public RandomWalkLabelPropagationAlgorithm() {
+	}
+	
+	/**
+	 * Advanced constructor.
+	 * @param profitabilityDelta Sets the profitabilityDelta. Must be in (0, 1).
+	 * @param randomWalkIterationBound Sets the randomWalkIterationBound. Must be greater than 0.
+	 * @param randomWalkPrecisionFactor Sets the randomWalkPrecisionFactor. Must be in greater than 0 and smaller than infinity.
+	 */
+	public RandomWalkLabelPropagationAlgorithm(double profitabilityDelta, int randomWalkIterationBound, double randomWalkPrecisionFactor) {
 		this.profitabilityDelta = profitabilityDelta;
 	}
 	
@@ -61,7 +83,7 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	}
 
 	@Override
-	public Cover detectOverlappingCommunities(CustomGraph graph) {
+	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException {
 		List<Node> leaders = randomWalkPhase(graph);
 		///////////////////////////////////////TEST
 		// TODO
@@ -69,7 +91,7 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		System.out.println(leaders);
 		/////////////////
 		Cover cover = labelPropagationPhase(graph, leaders);
-		cover.doNormalize();
+		cover.normalizeMemberships();
 		return cover;
 	}
 
@@ -78,21 +100,11 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	 * @param graph The graph whose leaders will be detected.
 	 * @return A list containing all nodes which are global leaders.
 	 */
-	protected List<Node> randomWalkPhase(CustomGraph graph) {
-		// TODO delete console outputs
-		System.out.println("Random Walk Phase began");
+	protected List<Node> randomWalkPhase(CustomGraph graph) throws OcdAlgorithmException {
 		Matrix disassortativityMatrix = getTransposedDisassortativityMatrix(graph);
-		System.out.println("Transition Matrix Calculated.");
-		System.out.println(disassortativityMatrix);
 		Vector disassortativityVector = executeRandomWalk(disassortativityMatrix);
-		System.out.println("Random Walk Completed. Vector:");
-		System.out.println(disassortativityVector);
 		Vector leadershipVector = getLeadershipValues(graph, disassortativityVector);
-		System.out.println("Leadership Values Calculated. Vector:");
-		System.out.println(leadershipVector);
 		Map<Node, Double> followerMap = getFollowerDegrees(graph, leadershipVector);
-		System.out.println("Followers Calculated. Follower Map:");
-		System.out.println(followerMap);
 		return getGlobalLeaders(followerMap);
 	}
 	
@@ -107,27 +119,26 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		 */
 		Matrix disassortativities = new CCSMatrix(graph.nodeCount(), graph.nodeCount());
 		EdgeCursor edges = graph.edges();
-		double[] columnSums = new double[graph.nodeCount()];
+		double disassortativity;
+		Edge edge;
 		while(edges.ok()) {
-			Edge edge = edges.edge();
-			double disassortativity = Math.abs(graph.getWeightedInDegree(edge.target())
+			edge = edges.edge();
+			disassortativity = Math.abs(graph.getWeightedInDegree(edge.target())
 					- graph.getWeightedInDegree(edge.source()));
 			disassortativities.set(edge.target().index(), edge.source().index(), disassortativity);
-			columnSums[edge.source().index()] += disassortativity;
 			edges.next();
 		}
 		/*
 		 * Column normalizes transposed disassortativity matrix.
 		 */
-		edges.toFirst();
-		while(edges.ok()) {
-			Edge edge = edges.edge();
-			if(columnSums[edge.source().index()] > 0) {
-				double normDisassortativity = disassortativities.get(edge.target().index(), edge.source().index());
-				normDisassortativity /= columnSums[edge.source().index()];
-				disassortativities.set(edge.target().index(), edge.source().index(), normDisassortativity);
+		double norm;
+		Vector column;
+		for(int i=0; i<disassortativities.columns(); i++) {
+			column = disassortativities.getColumn(i);
+			norm = column.fold(Vectors.mkManhattanNormAccumulator());
+			if(norm > 0) {
+				disassortativities.setColumn(i, column.divide(norm));
 			}
-			edges.next();
 		}
 		return disassortativities;
 	}
@@ -139,19 +150,23 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	 * on which the random walk will be performed.
 	 * @return The resulting disassortativity vector.
 	 */
-	protected Vector executeRandomWalk(Matrix disassortativityMatrix) {
+	protected Vector executeRandomWalk(Matrix disassortativityMatrix) throws OcdAlgorithmException {
 		Vector vec1 = new BasicVector(disassortativityMatrix.columns());
 		for(int i=0; i<vec1.length(); i++) {
 			vec1.set(i, 1.0 / vec1.length());
 		}
-		Vector vec2 = new BasicVector();
-		for(int i=0; !vec1.equals(vec2) && i < RANDOM_WALK_ITERATION_BOUND; i++) {
+		Vector vec2 = new BasicVector(vec1.length());
+		int iteration;
+		for(iteration=0; vec1.subtract(vec2).fold(Vectors.mkInfinityNormAccumulator()) > randomWalkPrecisionFactor / (double)vec1.length()
+				&& iteration < randomWalkIterationBound; iteration++) {
 			vec2 = new BasicVector(vec1);
 			vec1 = disassortativityMatrix.multiply(vec1);
-			//////////////////////////////////////////// TEST
-			// TODO
-			System.out.println("vec1 updated: " + vec1.toString());
+			//////////////////////////////////////////// TODO TEST
+//			System.out.println("vec1 updated: " + vec1.toString());
 			///////////////////////
+		}
+		if(iteration >= randomWalkIterationBound) {
+			throw new OcdAlgorithmException("Random walk iteration bound exceeded: iteration " + iteration);
 		}
 		return vec1;
 	}
@@ -165,17 +180,19 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	protected Vector getLeadershipValues(CustomGraph graph, Vector disassortativityVector) {
 		Vector leadershipVector = new BasicVector(graph.nodeCount());
 		NodeCursor nodes = graph.nodes();
+		Node node;
+		double leadershipValue;
 		while(nodes.ok()) {
-			Node node = nodes.node();
-			double leadershipValue = graph.getWeightedInDegree(node) * disassortativityVector.get(node.index());
+			node = nodes.node();
+			leadershipValue = graph.getWeightedInDegree(node) * disassortativityVector.get(node.index());
 			///////////////////////////////////////////////////// TEST
 			// TODO
-			System.out.println("Node: " + node.index());
-			System.out.println("Name: " + graph.getNodeName(node));
-			System.out.println("Disassortativity: " + disassortativityVector.get(node.index()));
-			System.out.println("Weigted Deg: " + graph.getWeightedInDegree(node));
-			System.out.println("Leadership Val: " + leadershipValue);
-			System.out.println();
+//			System.out.println("Node: " + node.index());
+//			System.out.println("Name: " + graph.getNodeName(node));
+//			System.out.println("Disassortativity: " + disassortativityVector.get(node.index()));
+//			System.out.println("Weigted Deg: " + graph.getWeightedInDegree(node));
+//			System.out.println("Leadership Val: " + leadershipValue);
+//			System.out.println();
 			/////////////////////////////////////
 			leadershipVector.set(node.index(), leadershipValue);
 			nodes.next();
@@ -195,21 +212,30 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		/*
 		 * Iterates over all nodes to detect their local leader
 		 */
+		Node node;
+		NodeCursor successors;
+		double maxInfluence;
+		List<Node> leaders = new ArrayList<Node>();
+		Node successor;
+		Edge successorEdge;
+		double successorInfluence;
+		Edge nodeEdge;
+		double followerDegree;
 		while(nodes.ok()) {
-			Node node = nodes.node();
-			NodeCursor successors = node.successors();
-			double maxInfluence = Double.NEGATIVE_INFINITY;
-			List<Node> leaders = new ArrayList<Node>();
+			node = nodes.node();
+			successors = node.successors();
+			maxInfluence = Double.NEGATIVE_INFINITY;
+			leaders.clear();
 			/*
 			 * Checks all successors for possible leader
 			 */
 			while(successors.ok()) {
-				Node successor = successors.node();
-				Edge successorEdge = node.getEdgeTo(successor);
-				double successorInfluence =
+				successor = successors.node();
+				successorEdge = node.getEdgeTo(successor);
+				successorInfluence =
 						leadershipVector.get(successor.index()) * graph.getEdgeWeight(successorEdge);
 				if(successorInfluence >= maxInfluence) {
-					Edge nodeEdge = node.getEdgeFrom(successor);
+					nodeEdge = node.getEdgeFrom(successor);
 					/*
 					 * Ensures the node itself is not a leader of the successor
 					 */
@@ -228,15 +254,15 @@ public class RandomWalkLabelPropagationAlgorithm implements
 				successors.next();
 			}
 			if(!leaders.isEmpty()) {
-				double followerDegree = 0;
+				followerDegree = 0;
 				for(Node leader : leaders) {
 					if(followerMap.containsKey(leader)) {
 						followerDegree = followerMap.get(leader);
 					}
 					//////////////////////////////// TEST
-					// TODO command correct?
+					// TODO better with maxInfluence?
 					// followerMap.put(leader, followerDegree += maxInfluence / leaders.size());
-					followerMap.put(leader, followerDegree += 1 / leaders.size());
+					followerMap.put(leader, followerDegree += 1d / leaders.size());
 				}
 			}
 			nodes.next();
@@ -278,12 +304,12 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		 */
 		int iterationCount=0;
 		Map<Node, Map<Node, Integer>> communities = new HashMap<Node, Map<Node, Integer>>();
+		Map<Node, Integer> communityMemberships;
 		do{
 			communities.clear();
 			iterationCount++;
 			for(Node leader : leaders) {
-				Map<Node, Integer> communityMemberships 
-						= executeLabelPropagation(graph, leader, 1-iterationCount*profitabilityDelta);
+				communityMemberships = executeLabelPropagation(graph, leader, 1-iterationCount*profitabilityDelta);
 				communities.put(leader, communityMemberships);
 			}
 		} while(1-iterationCount*profitabilityDelta > 0 && !areAllNodesAssigned(graph, communities));
@@ -306,20 +332,26 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		/*
 		 * Iterates as long as new members assume the behavior.
 		 */
+		Set<Node> predecessors;
+		Iterator<Node> nodeIt;
+		Node node;
+		double profitability;
+		NodeCursor nodeSuccessors;
+		Node nodeSuccessor;
 		do {
 			iterationCount++;
 			previousMemberCount = memberships.size();
-			Set<Node> predecessors = getBehaviorPredecessors(graph, memberships, leader);
-			Iterator<Node> nodeIt = predecessors.iterator();
+			predecessors = getBehaviorPredecessors(graph, memberships, leader);
+			nodeIt = predecessors.iterator();
 			/*
 			 * Checks for each predecessor of the leader behavior nodes whether it assumes the new behavior.
 			 */
 			while(nodeIt.hasNext()) {
-				Node node = nodeIt.next();
-				double profitability = 0;
-				NodeCursor nodeSuccessors = node.successors();
+				node = nodeIt.next();
+				profitability = 0;
+				nodeSuccessors = node.successors();
 				while(nodeSuccessors.ok()) {
-					Node nodeSuccessor = nodeSuccessors.node();
+					nodeSuccessor = nodeSuccessors.node();
 					if(nodeSuccessor.equals(leader) || memberships.containsKey(nodeSuccessor)) {
 						profitability++;
 					}
@@ -346,18 +378,21 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	 */
 	protected Set<Node> getBehaviorPredecessors(CustomGraph graph, Map<Node, Integer> memberships, Node leader) {
 		Set<Node> neighbors = new HashSet<Node>();
-		NodeCursor leaderPredecessors = leader.predecessors();		
+		NodeCursor leaderPredecessors = leader.predecessors();
+		Node leaderPredecessor;
 		while(leaderPredecessors.ok()) {
-			Node leaderPredecessor = leaderPredecessors.node();
+			leaderPredecessor = leaderPredecessors.node();
 			if(!memberships.containsKey(leaderPredecessor)) {
 				neighbors.add(leaderPredecessor);
 			}
 			leaderPredecessors.next();
 		}
+		NodeCursor memberPredecessors;
+		Node memberPredecessor;
 		for(Node member : memberships.keySet()) {
-			NodeCursor memberPredecessors = member.predecessors();
+			memberPredecessors = member.predecessors();
 			while(memberPredecessors.ok()) {
-				Node memberPredecessor = memberPredecessors.node();
+				memberPredecessor = memberPredecessors.node();
 				if(!memberPredecessor.equals(leader) && !memberships.containsKey(memberPredecessor)) {
 					neighbors.add(memberPredecessor);
 				}
@@ -376,9 +411,11 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	protected boolean areAllNodesAssigned(CustomGraph graph, Map<Node, Map<Node, Integer>>communities) {
 		boolean allNodesAreAssigned = true;
 		NodeCursor nodes = graph.nodes();
+		boolean nodeIsAssigned;
+		Node node;
 		while(nodes.ok()) {
-			boolean nodeIsAssigned = false;
-			Node node = nodes.node();
+			nodeIsAssigned = false;
+			node = nodes.node();
 			for(Map.Entry<Node, Map<Node, Integer>> entry : communities.entrySet()) {
 				if(entry.getValue().containsKey(node)) {
 					nodeIsAssigned = true;
@@ -403,10 +440,11 @@ public class RandomWalkLabelPropagationAlgorithm implements
 	protected Cover getMembershipDegrees(CustomGraph graph, Map<Node, Map<Node, Integer>> communities) {
 		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communities.size());
 		int communityIndex = 0;
+		double membershipDegree;
 		for(Node leader : communities.keySet()) {
 			membershipMatrix.set(leader.index(), communityIndex, 1.0);
 			for(Map.Entry<Node, Integer> entry : communities.get(leader).entrySet()) {
-				double membershipDegree = 1.0 / Math.pow(entry.getValue(), 2);
+				membershipDegree = 1.0 / Math.pow(entry.getValue(), 2);
 				membershipMatrix.set(entry.getKey().index(), communityIndex, membershipDegree);
 			}
 			communityIndex++;

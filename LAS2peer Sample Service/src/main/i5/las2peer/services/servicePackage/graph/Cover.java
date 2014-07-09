@@ -2,6 +2,7 @@ package i5.las2peer.services.servicePackage.graph;
 
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
 import i5.las2peer.services.servicePackage.metrics.Metric;
+import i5.las2peer.services.servicePackage.utils.CustomVectors;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.la4j.matrix.Matrix;
+import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 
@@ -16,17 +18,16 @@ import y.base.Node;
 
 public class Cover {
 
-	private CustomGraph graph;
-	private Matrix memberships;
-	private String name;
-	private Algorithm algorithm;
-	private Map<Metric, Double> metricResults;
+	private CustomGraph graph = new CustomGraph();
+	private Matrix memberships = new CCSMatrix();
+	private String name = "";
+	private Algorithm algorithm = Algorithm.UNDEFINED;
+	private Map<Metric, Double> metricResults = new HashMap<Metric, Double>();
 	
 	public Cover(CustomGraph graph, Matrix memberships, Algorithm algorithm) {
 		setGraph(graph);
 		setMemberships(memberships);
 		setAlgorithm(algorithm);
-		metricResults = new HashMap<Metric, Double>();
 	}
 
 	public CustomGraph getGraph() {
@@ -71,6 +72,7 @@ public class Cover {
 	}
 
 	public void setMetricResults(Map<Metric, Double> metricResults) {
+		this.metricResults.clear();
 		for(Map.Entry<Metric, Double> entry : metricResults.entrySet()) {
 			if(entry.getKey() != null && entry.getValue() != null)
 				this.metricResults.put(entry.getKey(), entry.getValue());
@@ -96,16 +98,6 @@ public class Cover {
 		return memberships.columns();
 	}
 	
-	public List<Integer> getCommunityIndices(int nodeIndex) {
-		List<Integer> communities = new ArrayList<Integer>();
-		for(int j=0; j < memberships.columns(); j++) {
-			if(memberships.get(nodeIndex, j) > 0) {
-				communities.add(j);
-			}
-		}
-		return communities;
-	}
-	
 	public List<Integer> getCommunityIndices(Node node) {
 		List<Integer> communities = new ArrayList<Integer>();
 		for(int j=0; j < memberships.columns(); j++) {
@@ -122,9 +114,10 @@ public class Cover {
 	
 	/**
 	 * Normalizes each row of the membership matrix using the one norm.
-	 * A row stays equal if the sum of the absolute values of all entries equals 0.
+	 * All matrix results are removed.
+	 * Note that a row stays equal to 0 if all values are 0 already.
 	 */
-	public void doNormalize() {
+	public void normalizeMemberships() {
 		for(int i=0; i<memberships.rows(); i++) {
 			Vector row = memberships.getRow(i);
 			double norm = row.fold(Vectors.mkManhattanNormAccumulator());
@@ -133,6 +126,55 @@ public class Cover {
 				memberships.setRow(i, row);
 			}
 		}
+		setMetricResults(new HashMap<Metric, Double>());
+	}
+	
+	/**
+	 * Filters the cover membership matrix by removing insignificant membership values.
+	 * The cover is then normalized and empty communities are removed. All metric results
+	 * are removed as well.
+	 * All entries below the threshold will be set to 0, unless they are the maximum 
+	 * belonging factor of the node.
+	 * @param threshold 
+	 * 
+	 */
+	public void filterMembershipsbyThreshold(double threshold) {
+		Vector row;
+		double rowThreshold;
+		for(int i=0; i<memberships.rows(); i++) {
+			row = memberships.getRow(i);
+			rowThreshold = Math.min(row.fold(Vectors.mkMaxAccumulator()), threshold);
+			CustomVectors.setEntriesBelowThresholdToZero(row, rowThreshold);
+			memberships.setRow(i, row);
+		}
+		normalizeMemberships();
+		removeEmptyCommunities();
+		setMetricResults(new HashMap<Metric, Double>());
+	}
+	
+	/**
+	 * Removes all empty communities from the graph.
+	 * A community is considered as empty when the corresponding belonging factor
+	 * equals 0 for each node.
+	 */
+	public void removeEmptyCommunities() {
+		Vector column;
+		List<Integer> nonZeroIndices = new ArrayList<Integer>();
+		for(int i=0; i<memberships.columns(); i++) {
+			column = memberships.getColumn(i);
+			if(!column.is(Vectors.ZERO_VECTOR)) {
+				nonZeroIndices.add(i);
+			}
+		}
+		int[] rowIndices = new int[graph.nodeCount()];
+		for(int i=0; i<rowIndices.length; i++) {
+			rowIndices[i] = i;
+		}
+		int[] columnIndices = new int[nonZeroIndices.size()];
+		for(int i=0; i<columnIndices.length; i++) {
+			columnIndices[i] = nonZeroIndices.get(i);
+		}
+		memberships = memberships.select(rowIndices, columnIndices);
 	}
 
 	@Override
@@ -140,7 +182,7 @@ public class Cover {
 		String coverString = "Cover:" + getName() + "\n";
 		coverString += "Graph: " + getGraph().getName() + "\n";
 		coverString += "Algorithm: " + getAlgorithm().toString() + "\n";
-		coverString += "Membership Matrix\n";
+		coverString += "Community Count: " + communityCount() + "\n";
 		Metric metric;
 		for(int i=0; i<Metric.values().length; i++) {
 			metric = Metric.values()[i];
@@ -150,6 +192,7 @@ public class Cover {
 				coverString += "\n";
 			}
 		}
+		coverString += "Membership Matrix\n";
 		coverString += getMemberships().toString();
 		return coverString;
 	}

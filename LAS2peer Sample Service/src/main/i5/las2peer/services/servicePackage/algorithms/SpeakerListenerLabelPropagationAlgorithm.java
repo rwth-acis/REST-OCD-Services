@@ -2,7 +2,9 @@ package i5.las2peer.services.servicePackage.algorithms;
 
 
 import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.ListenerRuleCommand;
+import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.PopularityListenerRule;
 import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.SpeakerRuleCommand;
+import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.UniformSpeakerRule;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphType;
@@ -30,42 +32,46 @@ import y.base.NodeCursor;
  * it behaves the same as the original.
  */
 public class SpeakerListenerLabelPropagationAlgorithm implements
-		OverlappingCommunityDetectionAlgorithm {
+		OcdAlgorithm {
 	
-	/*
+	/**
 	 * The size of the node memories and the number of iterations.
+	 * The standard value is 100.
 	 */
-	private int memorySize;
-	
-	/*
-	 * Lower bound for the relative label occurrence.
+	private int memorySize = 100;
+	/**
+	 * The lower bound for the relative label occurrence.
+	 * Labels received by a node with a relative occurrence lower than this threshold will be ignored
+	 * and do not have any influence on that nodes community memberships.
+	 * The standard value is 0.05 and the recommended range is [0.02,0.1].
 	 */
-	private double probabilityThreshold;
-	
-	/*
-	 * The rule according to which a speaker decides which label to send.
+	private double probabilityThreshold = 0.05;
+	/**
+	 * The speaker rule according to which a speaker decides which label to send.
+	 * The standard rule is the UniformSpeakerRule.
 	 */
-	private SpeakerRuleCommand speakerRule;
-	
-	/*
+	private SpeakerRuleCommand speakerRule = new UniformSpeakerRule();
+	/**
 	 * The listener rule according to which a listener decides which label to accept.
+	 * The standard rule is the popularity listener rule.
 	 */
-	private ListenerRuleCommand listenerRule;
+	private ListenerRuleCommand listenerRule = new PopularityListenerRule();
 	
-	/*
-	 * Creates an instance of the algorithm.
-	 * @param memorySize Defines the size of the node memories
-	 * and the number of iterations. The standard value is 100.
-	 * @param probabilityThreshold Labels received by a node with a relative
-	 * occurrence lower than this threshold will be ignored and not
-	 * have any influence on that nodes community memberships. Has to be in the range
-	 * [0,1]. The standard range is [0.02,0.1]
-	 * @param speakerRule The rule according to which a speaker decides which label to send.
-	 * The standard is the UniformSpeakerRule.
-	 * @param listenerRule The listener rule according to which a listener decides which
-	 * label to accept. The standard is the PopularityListenerRule.
+	/**
+	 * Standard constructor.
+	 * Initializes the algorithm with standard attribute values.
 	 */
-	protected SpeakerListenerLabelPropagationAlgorithm(int memorySize, double probabilityThreshold,
+	public SpeakerListenerLabelPropagationAlgorithm() {
+	}
+	
+	/**
+	 * Advanced constructor.
+	 * @param memorySize Sets the memorySize. Must be greater than 0.
+	 * @param probabilityThreshold  Sets the probabilityThreshold. Must be at least 0 and at most 1.
+	 * @param speakerRule The speaker rule according to which a speaker decides which label to send.
+	 * @param listenerRule The listener rule according to which a listener decides which label to accept.
+	 */
+	public SpeakerListenerLabelPropagationAlgorithm(int memorySize, double probabilityThreshold,
 			SpeakerRuleCommand speakerRule, ListenerRuleCommand listenerRule) {
 		this.memorySize = memorySize;
 		this.speakerRule = speakerRule;
@@ -99,12 +105,13 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		 * Selects each node as a listener and updates its memory until
 		 * the node memories are full.
 		 */
+		Node listener;
+		List<Integer> memory;
 		for(int t=0; t+1<memorySize; t++) {
 			Collections.shuffle(nodeOrder);
-			Node listener;
 			for(int i=0; i<graph.nodeCount(); i++) {
 				listener = nodeOrder.get(i);
-				List<Integer> memory = memories.get(listener.index());
+				memory = memories.get(listener.index());
 				memory.add(getNextLabel(graph, memories, listener));
 			}
 		}
@@ -112,13 +119,14 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		 * Returns the cover based on the node memories.
 		 */
 		Cover cover = calculateMembershipDegrees(graph, memories);
-		cover.doNormalize();
+		cover.normalizeMemberships();
 		return cover;
 	}
 	
 	protected void initializeCommunityDetection(CustomGraph graph, List<List<Integer>> memories, List<Node> nodeOrder) {
+		List<Integer> memory = new ArrayList<Integer>();
 		for(int i=0; i<graph.nodeCount(); i++) {
-			List<Integer> memory = new ArrayList<Integer>();
+			memory.clear();
 			memory.add(i);
 			memories.add(memory);
 			nodeOrder.add(graph.getNodeArray()[i]);
@@ -132,8 +140,9 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	protected int getNextLabel(CustomGraph graph, List<List<Integer>> memories, Node listener) {
 		Map<Node, Integer> receivedLabels = new HashMap<Node, Integer>();
 		NodeCursor speakers = listener.successors();
+		Node speaker;
 		while(speakers.ok()) {
-			Node speaker = speakers.node();
+			speaker = speakers.node();
 			receivedLabels.put(speaker, speakerRule.getLabel(graph, speaker, memories.get(speaker.index())));
 			speakers.next();
 		}
@@ -150,11 +159,15 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		 * Creates a label histogram for each node based on its memory
 		 * and adapts the membership matrix accordingly.
 		 */
+		List<Integer> memory;
+		int labelCount;
+		Map<Integer, Integer> histogram;
+		Vector nodeMembershipDegrees;
 		for(int i=0; i<memories.size(); i++) {
-			List<Integer> memory = memories.get(i);
-			int labelCount = memorySize;
-			Map<Integer, Integer> histogram = getNodeHistogram(memory, labelCount);
-			Vector nodeMembershipDegrees = calculateMembershipsFromHistogram(histogram, communities, labelCount);
+			memory = memories.get(i);
+			labelCount = memorySize;
+			histogram = getNodeHistogram(memory, labelCount);
+			nodeMembershipDegrees = calculateMembershipsFromHistogram(histogram, communities, labelCount);
 		    if(nodeMembershipDegrees.length() > membershipMatrix.columns()) {
 				/*
 				 * Adapts matrix size for new communities.
@@ -176,9 +189,10 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		/*
 		 * Creates the histogram.
 		 */
+		int count;
 		for (int label : memory) {
 			if(histogram.containsKey(label)) {
-				Integer count = histogram.get(label);
+				count = histogram.get(label).intValue();
 				histogram.put(label, ++count);
 				if(count > maxCount) {
 					maxCount = count;
@@ -191,9 +205,10 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		/*
 		 * Removes labels whose occurrence frequency is below the probability threshold.
 		 */
+		Map.Entry<Integer, Integer> entry;
 	    for(Iterator<Map.Entry<Integer, Integer>> it = histogram.entrySet().iterator(); it.hasNext(); ) {
-	        Map.Entry<Integer, Integer> entry = it.next();
-	        int count = entry.getValue();
+	        entry = it.next();
+	        count = entry.getValue();
 	        if((double)count / (double)memorySize < probabilityThreshold && count < maxCount) {
 	        	it.remove();
 	        	labelCount -= count;
@@ -208,8 +223,9 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	 */
 	protected Vector calculateMembershipsFromHistogram(Map<Integer, Integer> histogram, List<Integer> communities, int labelCount) {
 		Vector membershipDegrees = new CompressedVector(communities.size());
+		int count;
 	    for(Integer label : histogram.keySet()) {
-	    	int count = histogram.get(label);
+	    	count = histogram.get(label);
 	    	if(!communities.contains(label)){
 	    		/*
 	    		 * Adapts vector size for new communities.

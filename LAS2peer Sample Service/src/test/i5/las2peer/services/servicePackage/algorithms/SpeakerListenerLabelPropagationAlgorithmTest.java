@@ -1,7 +1,5 @@
 package i5.las2peer.services.servicePackage.algorithms;
 
-import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.PopularityListenerRule;
-import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.UniformSpeakerRule;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
@@ -20,10 +18,7 @@ public class SpeakerListenerLabelPropagationAlgorithmTest {
 	public void testSleaperListenerLabelPropagationAlgo()
 	{
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
-		AlgorithmFactory factory = AlgorithmFactory.getAlgorithmFactory();
-		SpeakerListenerLabelPropagationAlgorithm algo = 
-				factory.getSpeakerListenerLabelPropagationAlgorithm(
-						100, 0.04, new UniformSpeakerRule(), new PopularityListenerRule());
+		SpeakerListenerLabelPropagationAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}

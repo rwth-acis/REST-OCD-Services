@@ -1,7 +1,9 @@
 package i5.las2peer.services.servicePackage.metrics;
 
 import i5.las2peer.services.servicePackage.graph.Cover;
-import i5.las2peer.services.servicePackage.graph.CustomGraph;
+
+import org.la4j.vector.Vectors;
+
 import y.base.Graph;
 import y.base.Node;
 import y.base.NodeCursor;
@@ -11,83 +13,92 @@ import y.base.NodeCursor;
  * Implements the extended modularity metric.
  */
 public class ExtendedModularityMetric implements StatisticalMeasure {
-	
+		
 	public ExtendedModularityMetric() {
 	}
 	
 	public void measure(Cover cover) {
 		double metricValue = 0;
 		Graph graph = cover.getGraph();
-		NodeCursor sourceNodes = graph.nodes();
-		while(sourceNodes.ok()) {
-			NodeCursor targetNodes = graph.nodes();
-			while(targetNodes.ok()) {
+		NodeCursor nodesA = graph.nodes();
+		NodeCursor nodesB = graph.nodes();
+		Node nodeA;
+		Node nodeB;
+		while(nodesA.ok()) {
+			nodesB.toFirst();
+			while(nodesB.ok()) {
+				nodeA = nodesA.node();
+				nodeB = nodesB.node();
+				if(nodeB.index() > nodeA.index()) {
+					break;
+				}
 				metricValue +=
-						getEdgeModularityContribution(cover, sourceNodes.node(), targetNodes.node());
-				targetNodes.next();
+						getNodePairModularityContribution(cover, nodesA.node(), nodesB.node());
+				nodesB.next();
 			}
-			sourceNodes.next();
+			nodesA.next();
 		}
-		metricValue /= graph.edgeCount();
-		cover.setMetricResult(Metric.ExtendedModularityMetric, metricValue);
+		if(graph.edgeCount() > 0) {
+			metricValue /= graph.edgeCount();
+		}
+		cover.setMetricResult(Metric.EXTENDED_MODULARITY_METRIC, metricValue);
 	}
 	
 	/*
-	 * Returns the belonging factor of an edge for a certain community
+	 * Returns the belonging coefficient of an edge for a certain community.
+	 * @param cover The cover being measured.
+	 * @param sourceNode The source node of the edge.
+	 * @param targetNode The target node of the edge.
+	 * @param communityIndex The community index.
+	 * @return The belonging coefficient.
 	 */
 	private double getEdgeBelongingCoefficient(Cover cover, Node sourceNode, Node targetNode, int communityIndex) {
 		return cover.getBelongingFactor(sourceNode, communityIndex) * cover.getBelongingFactor(targetNode, communityIndex);
 	}
 	
 	/*
-	 * Returns the expected belonging coefficient of an incoming edge 
-	 * pointing to the target node for a certain community.
+	 * Returns the modularity index contribution by the null model for two given nodes a and b and a certain community.
+	 * This contains the contribution for edge a -> b and edge b -> a.
+	 * @param cover The cover being measured.
+	 * @param nodeA The first node.
+	 * @param nodeB The second node.
+	 * @param communityIndex The community index.
+	 * @return The null model contribution value.
 	 */
-	private double getInEdgeExpectedBelongingCoefficient(Cover cover, Node targetNode, int communityIndex) {
-		CustomGraph graph = cover.getGraph();
-		double coeff = 0;
-		NodeCursor nodes = graph.nodes();
-		while(nodes.ok()) {
-			Node sourceNode = nodes.node();
-			coeff += getEdgeBelongingCoefficient(cover, sourceNode, targetNode, communityIndex);
-			nodes.next();
+	private double getNullModelContribution(Cover cover, Node nodeA, Node nodeB, int communityIndex) {
+		double coeff = cover.getBelongingFactor(nodeA, communityIndex);
+		coeff *= cover.getBelongingFactor(nodeB, communityIndex);
+		coeff *= nodeA.outDegree() * nodeB.inDegree() + nodeA.inDegree() * nodeB.outDegree();
+		if(coeff != 0) {
+			coeff /= Math.pow(cover.getGraph().nodeCount(), 2);
+			/*
+			 * Edge count cannot be 0 here due to the node degrees.
+			 */
+			coeff /= cover.getGraph().edgeCount();
+			coeff *= Math.pow(cover.getMemberships().getColumn(communityIndex).fold(Vectors.mkManhattanNormAccumulator()), 2);
 		}
-		coeff /= graph.nodeCount();
 		return coeff;
 	}
-	
+
 	/*
-	 * Returns the expected belonging coefficient of an outgoing edge 
-	 * pointing away from the source node for a certain community.
+	 * Returns the modularity index for the two nodes a and b.
+	 * This includes the edges a -> b and b -> a.
+	 * @param cover The cover being measured.
+	 * @param nodeA The first node.
+	 * @param nodeB The second node.
+	 * @return The modularity index for nodes a and b with regard to all communities.
 	 */
-	private double getOutEdgeExpectedBelongingCoefficient(Cover cover, Node sourceNode, int communityIndex) {
-		CustomGraph graph = cover.getGraph();
-		double coeff = 0;
-		NodeCursor nodes = graph.nodes();
-		while(nodes.ok()) {
-			Node targetNode = nodes.node();
-			coeff += getEdgeBelongingCoefficient(cover, sourceNode, targetNode, communityIndex);
-			nodes.next();
-		}
-		coeff /= graph.nodeCount();
-		return coeff;
-	}
-	
-	/*
-	 * Returns the contribution of modularity for the single edge from source node to target node
-	 */
-	private double getEdgeModularityContribution(Cover cover, Node sourceNode, Node targetNode) {
+	private double getNodePairModularityContribution(Cover cover, Node nodeA, Node nodeB) {
 		double edgeContribution = 0;
 		for(int i=0; i<cover.communityCount(); i++) {
 			double coverContribution = 0;
-			if(sourceNode.getEdgeTo(targetNode) != null) {
-				coverContribution = getEdgeBelongingCoefficient(cover, sourceNode, targetNode, i);
+			if(nodeA.getEdgeTo(nodeB) != null) {
+				coverContribution += getEdgeBelongingCoefficient(cover, nodeA, nodeB, i);
 			}
-			double nullModelContribution = sourceNode.outDegree() * targetNode.inDegree();
-			nullModelContribution *= getOutEdgeExpectedBelongingCoefficient(cover, sourceNode, i);
-			nullModelContribution *= getInEdgeExpectedBelongingCoefficient(cover, targetNode, i);
-			CustomGraph graph = cover.getGraph();
-			nullModelContribution /= graph.edgeCount();
+			if(nodeB.getEdgeTo(nodeA) != null) {
+				coverContribution += getEdgeBelongingCoefficient(cover, nodeB, nodeA, i);
+			}
+			double nullModelContribution = getNullModelContribution(cover, nodeA, nodeB, i);
 			edgeContribution += coverContribution - nullModelContribution;
 		}
 		return edgeContribution;

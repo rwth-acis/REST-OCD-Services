@@ -3,6 +3,7 @@ package i5.las2peer.services.servicePackage.testsUtil;
 import i5.las2peer.services.servicePackage.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.NodeWeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
+import i5.las2peer.services.servicePackage.evaluation.EvaluationConstants;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
 import y.base.Edge;
@@ -163,7 +164,7 @@ public class OcdTestGraphFactory {
 	}
 	
 	public static CustomGraph getSiamDmGraph() {
-		GraphInputAdapter adapter = new UnweightedEdgeListGraphInputAdapter(OcdTestConstants.siamDmUnweightedEdgeListInputPath);
+		GraphInputAdapter adapter = new UnweightedEdgeListGraphInputAdapter(EvaluationConstants.siamDmUnweightedEdgeListInputPath);
 		CustomGraph graph = adapter.readGraph();
 		GraphProcessor processor = new GraphProcessor();
 		processor.makeUndirected(graph);

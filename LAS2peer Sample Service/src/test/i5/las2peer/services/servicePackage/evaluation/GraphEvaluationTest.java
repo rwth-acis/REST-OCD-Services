@@ -1,13 +1,13 @@
 package i5.las2peer.services.servicePackage.evaluation;
 
-import i5.las2peer.services.servicePackage.OverlappingCommunityDetectionAnalyzer;
-import i5.las2peer.services.servicePackage.algorithms.OverlappingCommunityDetectionAlgorithm;
+import i5.las2peer.services.servicePackage.GraphAnalyzer;
+import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.SSKAlgorithm;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
-import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -23,7 +23,7 @@ public class GraphEvaluationTest {
 	@Test
 	public void testSiamComponents() {
 		System.out.println("Siam Components:");
-		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
+		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
 		GraphProcessor processor = new GraphProcessor();
 		Map<CustomGraph, Map<Node, Node>> components = processor.divideIntoConnectedComponents(graph);
 		Iterator<CustomGraph> iterator = components.keySet().iterator();
@@ -37,13 +37,13 @@ public class GraphEvaluationTest {
 	}
 
 	@Test
-	public void testSiamAnalyzer() {
+	public void testSiamAnalyzer() throws OcdAlgorithmException {
 		System.out.println("Siam Component Analyzer:");
-		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
-		OverlappingCommunityDetectionAnalyzer analyzer = new OverlappingCommunityDetectionAnalyzer();
+		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
+		GraphAnalyzer analyzer = new GraphAnalyzer();
 		List<CustomGraph> graphs = new ArrayList<CustomGraph>();
 		graphs.add(graph);
-		List<OverlappingCommunityDetectionAlgorithm> algorithms = new ArrayList<OverlappingCommunityDetectionAlgorithm>();
+		List<OcdAlgorithm> algorithms = new ArrayList<OcdAlgorithm>();
 		algorithms.add(new SSKAlgorithm());
 		List<StatisticalMeasure> statisticalMeasures = new ArrayList<StatisticalMeasure>();
 		List<Cover> covers = analyzer.analyze(graphs, algorithms, statisticalMeasures, 1100);

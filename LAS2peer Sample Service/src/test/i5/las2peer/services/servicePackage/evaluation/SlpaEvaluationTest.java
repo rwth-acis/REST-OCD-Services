@@ -2,14 +2,11 @@ package i5.las2peer.services.servicePackage.evaluation;
 
 import i5.las2peer.services.servicePackage.adapters.coverOutput.CoverOutputAdapter;
 import i5.las2peer.services.servicePackage.adapters.coverOutput.LabeledMembershipMatrixOutputAdapter;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmFactory;
+import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationAlgorithm;
-import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.PopularityListenerRule;
-import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.UniformSpeakerRule;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
-import i5.las2peer.services.servicePackage.testsUtil.OcdTestConstants;
-import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,21 +20,19 @@ import y.base.NodeCursor;
 /*
  * Test Class for the Speaker Listener Label Propagation Algorithm
  */
-public class SLPAEvaluationTest {
+public class SlpaEvaluationTest {
 
 	/**
 	 * Test the SLPA Algorithm on a simple Graph
 	 * @throws IOException 
+	 * @throws OcdAlgorithmException 
 	 */
 	@Ignore
 	@Test
-	public void testSleaperListenerLabelPropagationAlgo() throws IOException
+	public void testSleaperListenerLabelPropagationAlgo() throws IOException, OcdAlgorithmException
 	{
-		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
-		AlgorithmFactory factory = AlgorithmFactory.getAlgorithmFactory();
-		SpeakerListenerLabelPropagationAlgorithm algo = 
-				factory.getSpeakerListenerLabelPropagationAlgorithm(
-						100, 0.04, new UniformSpeakerRule(), new PopularityListenerRule());
+		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
+		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 		System.out.println();
@@ -53,7 +48,7 @@ public class SLPAEvaluationTest {
 			nodes.next();
 		}
 		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter();
-		adapter.setFilename(OcdTestConstants.slpaSiamDmLabeledMembershipMatrixOutputPath);
+		adapter.setFilename(EvaluationConstants.slpaSiamDmLabeledMembershipMatrixOutputPath);
 		adapter.writeCover(cover);
 	}
 }

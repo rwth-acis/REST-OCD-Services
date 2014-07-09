@@ -23,37 +23,24 @@ import y.view.Graph2D;
 public class CustomGraph extends Graph2D {
 	
 	@Id
-	private String user;
-	
+	private String user = "";
 	@Id
-	private String name;
-	
+	private String name = "";
 	@ElementCollection
-	private List<NodeEntity> nodes;
-	
+	private List<NodeEntity> nodes = null;
 	@ElementCollection
-	private List<EdgeEntity> edges;
+	private List<EdgeEntity> edges = null;
 	
-	private Map<Edge, Double> edgeWeights;
-	private Map<Node, String> nodeNames;
+	private Map<Edge, Double> edgeWeights = new HashMap<Edge, Double>();
+	private Map<Node, String> nodeNames = new HashMap<Node, String>();
 	
 	public CustomGraph() {
-		this.nodeNames = new HashMap<Node, String>();
-		this.edgeWeights = new HashMap<Edge, Double>();
-		this.nodes = null;
-		this.edges = null;
-		setUser("");
-		setName("");
 	}
 	
 	public CustomGraph(Graph2D graph, Map<Edge, Double> edgeWeights, Map<Node, String> nodeNames) {
 		super(graph);
 		setEdgeWeights(edgeWeights);
 		setNodeNames(nodeNames);
-		this.nodes = null;
-		this.edges = null;
-		setUser("");
-		setName("");
 	}
 	
 	public CustomGraph(CustomGraph graph) {
@@ -63,6 +50,7 @@ public class CustomGraph extends Graph2D {
 		this.nodes = graph.nodes;
 		this.edges = graph.edges;
 		this.user = graph.getUser();
+		this.name = graph.getName();
 	}
 
 	public String getUser() {

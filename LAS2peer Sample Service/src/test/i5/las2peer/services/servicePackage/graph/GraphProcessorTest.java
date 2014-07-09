@@ -2,9 +2,10 @@ package i5.las2peer.services.servicePackage.graph;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmFactory;
-import i5.las2peer.services.servicePackage.algorithms.OverlappingCommunityDetectionAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.SSKAlgorithm;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -66,14 +67,13 @@ public class GraphProcessorTest {
 	 * Tests the component division and cover remerge on simple two components.
 	 */
 	@Test
-	public void testDivideAndMergeConnectedComponents() {
+	public void testDivideAndMergeConnectedComponents() throws OcdAlgorithmException {
 		CustomGraph graph = OcdTestGraphFactory.getSimpleTwoComponentsGraph();
 		GraphProcessor processor = new GraphProcessor();
 		Map<CustomGraph, Map<Node, Node>> componentMap = processor.divideIntoConnectedComponents(graph);
 		Map<Cover, Map<Node, Node>> coverMap = new HashMap<Cover, Map<Node, Node>>();
 		Cover currentCover;
-		AlgorithmFactory factory = AlgorithmFactory.getAlgorithmFactory();
-		OverlappingCommunityDetectionAlgorithm algo = factory.getStandardSSKAlgorithm();
+		OcdAlgorithm algo = new SSKAlgorithm();
 		for(Map.Entry<CustomGraph, Map<Node, Node>> entry : componentMap.entrySet()) {
 			currentCover = algo.detectOverlappingCommunities(entry.getKey());
 			coverMap.put(currentCover, entry.getValue());

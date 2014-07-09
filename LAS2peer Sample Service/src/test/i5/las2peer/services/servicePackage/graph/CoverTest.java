@@ -2,6 +2,8 @@ package i5.las2peer.services.servicePackage.graph;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import i5.las2peer.services.servicePackage.metrics.ExtendedModularityMetric;
+import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import java.util.List;
@@ -36,23 +38,45 @@ public class CoverTest {
 	 * Tests cover normalization.
 	 */
 	@Test
-	public void testDoNormalize() {
-		cover.doNormalize();
+	public void testNormalizeMemberships() {
+		cover.normalizeMemberships();
 		Matrix memberships = cover.getMemberships();
-		// First row must remain unchanged and sum up to zero precisely.
+		/*
+		 * First row must remain unchanged and sum up to zero precisely.
+		 */
 		double rowSum = 0;
 		for(int j=0; j<memberships.columns(); j++) {
 			rowSum += memberships.get(0, j);
 		}
-		// Other rows must sum up to one.
-		assertEquals(rowSum, 0.0, 0.0);
+		assertEquals(0.0, rowSum, 0.0);
+		/*
+		 * Other rows must sum up to one.
+		 */
 		for(int i=1; i<memberships.rows(); i++) {
 			rowSum = 0;
 			for(int j=0; j<memberships.columns(); j++) {
 				rowSum += memberships.get(i, j);
 			}
-			assertEquals(rowSum, 1.0, 0.00001);
+			assertEquals(1.0, rowSum, 0.00001);
 		}
+	}
+	
+	/*
+	 * Tests membership filtering.
+	 */
+	@Test
+	public void testFilterMemberships() {
+		cover.normalizeMemberships();
+		StatisticalMeasure metric = new ExtendedModularityMetric();
+		metric.measure(cover);
+		/*
+		 * First row must remain unchanged and sum up to zero precisely.
+		 */
+		System.out.println(cover.toString());
+		cover.filterMembershipsbyThreshold(0.25);
+		System.out.println(cover.toString());
+		assertEquals(0, cover.getMetricResults().size());
+		assertEquals(2, cover.communityCount());
 	}
 	
 	/*
@@ -84,17 +108,12 @@ public class CoverTest {
 	public void testGetCommunityIndices() {
 		CustomGraph graph = cover.getGraph();
 		Node[] nodes = graph.getNodeArray();
-		List<Integer> indicesA = cover.getCommunityIndices(0);
-		List<Integer> indicesB = cover.getCommunityIndices(nodes[0]);
-		assertTrue(indicesA.isEmpty());
-		assertTrue(indicesB.isEmpty());
-		indicesA = cover.getCommunityIndices(1);
-		indicesB = cover.getCommunityIndices(nodes[1]);
-		assertTrue(indicesA.size() == 4);
-		assertTrue(indicesB.size() == 4);
+		List<Integer> indices = cover.getCommunityIndices(nodes[0]);
+		assertTrue(indices.isEmpty());
+		indices = cover.getCommunityIndices(nodes[1]);
+		assertTrue(indices.size() == 4);
 		for(int i=1; i<= 4; i++) {
-			assertTrue(indicesA.contains(i));
-			assertTrue(indicesB.contains(i));
+			assertTrue(indices.contains(i));
 		}
 	}
 

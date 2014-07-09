@@ -12,8 +12,8 @@ public enum Algorithm {
 	@Override
 	public String toString() {
 		String name = name();
-		name.replace('_', ' ');
-		name.toLowerCase(Locale.ROOT);
+		name = name.replace('_', ' ');
+		name = name.toLowerCase(Locale.ROOT);
 		return name;
 	}
 }

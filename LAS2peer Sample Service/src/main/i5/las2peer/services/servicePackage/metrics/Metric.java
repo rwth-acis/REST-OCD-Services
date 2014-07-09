@@ -3,13 +3,13 @@ package i5.las2peer.services.servicePackage.metrics;
 import java.util.Locale;
 
 public enum Metric {
-	ExtendedModularityMetric;
+	EXTENDED_MODULARITY_METRIC;
 	
 	@Override
 	public String toString() {
 		String name = name();
-		name.replace('_', ' ');
-		name.toLowerCase(Locale.ROOT);
+		name = name.replace('_', ' ');
+		name = name.toLowerCase(Locale.ROOT);
 		return name;
 	}
 }

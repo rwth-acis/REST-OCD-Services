@@ -25,7 +25,7 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
-public class SSKAlgorithm implements OverlappingCommunityDetectionAlgorithm {
+public class SSKAlgorithm implements OcdAlgorithm {
 	
 	private int randomWalkIterationBound;
 	private double randomWalkPrecisionFactor;

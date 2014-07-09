@@ -33,8 +33,8 @@ public class LabeledMembershipMatrixOutputAdapter extends AbstractCoverOutputAda
 				nodes.next();
 			}
 		}
-		catch (Exception e) {
-			throw new IOException();
+		catch (IOException e) {
+			throw e;
 		}
 		finally {
 			try {
