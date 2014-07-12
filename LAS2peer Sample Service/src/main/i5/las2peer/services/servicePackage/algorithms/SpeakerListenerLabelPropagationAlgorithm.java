@@ -1,10 +1,10 @@
 package i5.las2peer.services.servicePackage.algorithms;
 
 
-import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.ListenerRuleCommand;
-import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.PopularityListenerRule;
-import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.SpeakerRuleCommand;
-import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationHelpers.UniformSpeakerRule;
+import i5.las2peer.services.servicePackage.algorithms.utils.SlpaListenerRuleCommand;
+import i5.las2peer.services.servicePackage.algorithms.utils.SlpaPopularityListenerRule;
+import i5.las2peer.services.servicePackage.algorithms.utils.SlpaSpeakerRuleCommand;
+import i5.las2peer.services.servicePackage.algorithms.utils.SlpaUniformSpeakerRule;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphType;
@@ -50,12 +50,12 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	 * The speaker rule according to which a speaker decides which label to send.
 	 * The standard rule is the UniformSpeakerRule.
 	 */
-	private SpeakerRuleCommand speakerRule = new UniformSpeakerRule();
+	private SlpaSpeakerRuleCommand speakerRule = new SlpaUniformSpeakerRule();
 	/**
 	 * The listener rule according to which a listener decides which label to accept.
 	 * The standard rule is the popularity listener rule.
 	 */
-	private ListenerRuleCommand listenerRule = new PopularityListenerRule();
+	private SlpaListenerRuleCommand listenerRule = new SlpaPopularityListenerRule();
 	
 	/**
 	 * Standard constructor.
@@ -72,7 +72,7 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	 * @param listenerRule The listener rule according to which a listener decides which label to accept.
 	 */
 	public SpeakerListenerLabelPropagationAlgorithm(int memorySize, double probabilityThreshold,
-			SpeakerRuleCommand speakerRule, ListenerRuleCommand listenerRule) {
+			SlpaSpeakerRuleCommand speakerRule, SlpaListenerRuleCommand listenerRule) {
 		this.memorySize = memorySize;
 		this.speakerRule = speakerRule;
 		this.listenerRule = listenerRule;

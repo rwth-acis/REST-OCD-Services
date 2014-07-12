@@ -25,7 +25,7 @@ public class SSKAlgorithmTest {
 	@Test
 	public void testCalculateTransitionMatrixOnDirectedAperiodicTwoCommunities() {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
-		SSKAlgorithm algo = new SSKAlgorithm();
+		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
 		System.out.println("Transition Matrix:");
 		System.out.println(transitionMatrix);
@@ -38,7 +38,7 @@ public class SSKAlgorithmTest {
 	@Test
 	public void testCalculateTransitionMatrixOnAperiodicTwoCommunities() {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
-		SSKAlgorithm algo = new SSKAlgorithm();
+		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
 		System.out.println("Transition Matrix:");
 		System.out.println(transitionMatrix);
@@ -51,7 +51,7 @@ public class SSKAlgorithmTest {
 	@Test
 	public void testExecuteRandomWalkOnSawmill() {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		SSKAlgorithm algo = new SSKAlgorithm();
+		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
 		Vector totalInfluences = algo.executeRandomWalk(transitionMatrix);
 		System.out.println("Random Walk Vector:");
@@ -64,7 +64,7 @@ public class SSKAlgorithmTest {
 	@Test
 	public void testExecuteRandomWalkOnDirectedAperiodicTwoCommunities() {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
-		SSKAlgorithm algo = new SSKAlgorithm();
+		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
 		Vector totalInfluences = algo.executeRandomWalk(transitionMatrix);
 		System.out.println("Random Walk Vector Directed Aperiodic Communities:");
@@ -78,7 +78,7 @@ public class SSKAlgorithmTest {
 	@Test
 	public void testDetermineGlobalLeadersOnAperiodicTwoCommunities() {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
-		SSKAlgorithm algo = new SSKAlgorithm();
+		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
 		Vector totalInfluences = algo.executeRandomWalk(transitionMatrix);
 		Map<Node, Integer> globalLeaders = algo.determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
@@ -95,7 +95,7 @@ public class SSKAlgorithmTest {
 	@Test
 	public void testDetermineGlobalLeadersOnSawmill() {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		SSKAlgorithm algo = new SSKAlgorithm();
+		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
 		Vector totalInfluences = algo.executeRandomWalk(transitionMatrix);
 		Map<Node, Integer> globalLeaders = algo.determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
@@ -116,7 +116,7 @@ public class SSKAlgorithmTest {
 	@Test
 	public void testDetermineGlobalLeadersOnDirectedAperiodicTwoCommunities() {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
-		SSKAlgorithm algo = new SSKAlgorithm();
+		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
 		Vector totalInfluences = algo.executeRandomWalk(transitionMatrix);
 		Map<Node, Integer> globalLeaders = algo.determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
@@ -140,7 +140,7 @@ public class SSKAlgorithmTest {
 	@Test
 	public void testInitMembershipMatrixOnDirectedAperiodicTwoCommunities() {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
-		SSKAlgorithm algo = new SSKAlgorithm();
+		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
 		Vector totalInfluences = algo.executeRandomWalk(transitionMatrix);
 		Map<Node, Integer> globalLeaders = algo.determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
@@ -173,7 +173,7 @@ public class SSKAlgorithmTest {
 	@Test
 	public void testInitMembershipCoefficientMatrixOnDirectedAperiodicTwoCommunities() {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
-		SSKAlgorithm algo = new SSKAlgorithm();
+		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
 		Vector totalInfluences = algo.executeRandomWalk(transitionMatrix);
 		Map<Node, Integer> globalLeaders = algo.determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
@@ -204,7 +204,7 @@ public class SSKAlgorithmTest {
 	@Test
 	public void testSSKALgorithmOnDirectedAperiodicTwoCommunitiesGraph() {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
-		SSKAlgorithm algo = new SSKAlgorithm();
+		SskAlgorithm algo = new SskAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
@@ -215,7 +215,7 @@ public class SSKAlgorithmTest {
 	@Test
 	public void testSSKALgorithmOnSawmill() {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		SSKAlgorithm algo = new SSKAlgorithm();
+		SskAlgorithm algo = new SskAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}

@@ -150,6 +150,44 @@ public class OcdTestGraphFactory {
 		return graph;
 	}
 	
+	/*
+	 * A small test graph given in the original paper that introduces
+	 * the link communities algorithm.
+	 * Is undirected and unweighted.
+	 */
+	public static CustomGraph getLinkCommunitiesTestGraph() {
+		// Creates new graph
+		CustomGraph graph = new CustomGraph();
+		// Creates nodes
+		for (int i = 0; i < 9; i++) {
+			graph.createNode();
+		}
+		// Creates edges
+		Node n[] = graph.getNodeArray();
+		graph.createEdge(n[0], n[1]);
+		graph.createEdge(n[0], n[2]);
+		graph.createEdge(n[0], n[3]);
+		graph.createEdge(n[1], n[2]);
+		graph.createEdge(n[1], n[3]);
+		graph.createEdge(n[2], n[3]);
+		graph.createEdge(n[3], n[4]);
+		graph.createEdge(n[3], n[5]);
+		graph.createEdge(n[3], n[6]);
+		graph.createEdge(n[4], n[5]);
+		graph.createEdge(n[6], n[7]);
+		graph.createEdge(n[6], n[8]);
+		graph.createEdge(n[7], n[8]);
+		EdgeCursor edges = graph.edges();
+		while(edges.ok()) {
+			Edge edge = edges.edge();
+			graph.setEdgeWeight(edge, 1);
+			edges.next();
+		}
+		GraphProcessor processor = new GraphProcessor();
+		processor.makeUndirected(graph);
+		return graph;
+	}
+	
 	public static CustomGraph getSawmillGraph() {
 		GraphInputAdapter adapter = new NodeWeightedEdgeListGraphInputAdapter(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath);
 		CustomGraph graph = adapter.readGraph();

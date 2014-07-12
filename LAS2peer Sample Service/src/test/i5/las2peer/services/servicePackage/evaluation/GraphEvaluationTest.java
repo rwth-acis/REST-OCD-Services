@@ -2,12 +2,12 @@ package i5.las2peer.services.servicePackage.evaluation;
 
 import i5.las2peer.services.servicePackage.GraphAnalyzer;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
-import i5.las2peer.services.servicePackage.algorithms.SSKAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.SskAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
-import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,7 +44,7 @@ public class GraphEvaluationTest {
 		List<CustomGraph> graphs = new ArrayList<CustomGraph>();
 		graphs.add(graph);
 		List<OcdAlgorithm> algorithms = new ArrayList<OcdAlgorithm>();
-		algorithms.add(new SSKAlgorithm());
+		algorithms.add(new SskAlgorithm());
 		List<StatisticalMeasure> statisticalMeasures = new ArrayList<StatisticalMeasure>();
 		List<Cover> covers = analyzer.analyze(graphs, algorithms, statisticalMeasures, 1100);
 		Cover cover = covers.get(0);

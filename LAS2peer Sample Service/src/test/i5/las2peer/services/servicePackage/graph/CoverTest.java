@@ -2,6 +2,7 @@ package i5.las2peer.services.servicePackage.graph;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import i5.las2peer.services.servicePackage.algorithms.Algorithm;
 import i5.las2peer.services.servicePackage.metrics.ExtendedModularityMetric;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
@@ -12,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
+import org.la4j.matrix.sparse.CCSMatrix;
 
 import y.base.Node;
 
@@ -115,6 +117,26 @@ public class CoverTest {
 		for(int i=1; i<= 4; i++) {
 			assertTrue(indices.contains(i));
 		}
+	}
+	
+	@Test
+	public void testSetEntriesBelowThresholdToZero() {
+		Matrix memberships = new CCSMatrix(1, 5);
+		memberships.set(0, 1, 1);
+		memberships.set(0, 2, 2);
+		memberships.set(0, 3, 3);
+		memberships.set(0, 4, 4);
+		CustomGraph graph = new CustomGraph();
+		graph.createNode();
+		Cover cover = new Cover(graph, memberships, Algorithm.UNDEFINED);
+		cover.setRowEntriesBelowThresholdToZero(0, 3d);
+		memberships = cover.getMemberships();
+		assertEquals(0, memberships.get(0, 0), 0);
+		assertEquals(0, memberships.get(0, 1), 0);
+		assertEquals(0, memberships.get(0, 2), 0);
+		assertEquals(3, memberships.get(0, 3), 0);
+		assertEquals(4, memberships.get(0, 4), 0);
+		System.out.println(memberships);
 	}
 
 }

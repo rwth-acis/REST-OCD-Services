@@ -1,9 +1,9 @@
 package i5.las2peer.services.servicePackage.algorithms;
 
+import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphType;
-import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -260,8 +260,7 @@ public class RandomWalkLabelPropagationAlgorithm implements
 						followerDegree = followerMap.get(leader);
 					}
 					//////////////////////////////// TEST
-					// TODO better with maxInfluence?
-					// followerMap.put(leader, followerDegree += maxInfluence / leaders.size());
+					// TODO better with maxInfluence instead of 1d
 					followerMap.put(leader, followerDegree += 1d / leaders.size());
 				}
 			}

@@ -25,21 +25,21 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
-public class SSKAlgorithm implements OcdAlgorithm {
+public class SskAlgorithm implements OcdAlgorithm {
 	
 	private int randomWalkIterationBound;
 	private double randomWalkPrecisionFactor;
 	private int membershipsIterationBound;
 	private double membershipsPrecisionFactor;
 	
-	public SSKAlgorithm() {
+	public SskAlgorithm() {
 		randomWalkIterationBound = 1000;
 		membershipsIterationBound = 1000;
 		randomWalkPrecisionFactor = 0.001;
 		membershipsPrecisionFactor = 0.001;
 	}
 	
-	public SSKAlgorithm(int randomWalkIterationBound, double randomWalkPrecisionFactor,
+	public SskAlgorithm(int randomWalkIterationBound, double randomWalkPrecisionFactor,
 			int membershipsIterationBound, double membershipsPrecisionFactor) {
 		this.randomWalkIterationBound = randomWalkIterationBound;
 		this.randomWalkPrecisionFactor = randomWalkPrecisionFactor;

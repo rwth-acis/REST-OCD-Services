@@ -7,13 +7,13 @@ import i5.las2peer.services.servicePackage.adapters.coverOutput.CoverOutputAdapt
 import i5.las2peer.services.servicePackage.adapters.coverOutput.LabeledMembershipMatrixOutputAdapter;
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
-import i5.las2peer.services.servicePackage.algorithms.SSKAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.SskAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.metrics.ExtendedModularityMetric;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
-import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class SskEvaluationTest {
 		List<CustomGraph> graphs = new ArrayList<CustomGraph>();
 		graphs.add(graph);
 		List<OcdAlgorithm> algorithms = new ArrayList<OcdAlgorithm>();
-		algorithms.add(new SSKAlgorithm());
+		algorithms.add(new SskAlgorithm());
 		List<StatisticalMeasure> statisticalMeasures = new ArrayList<StatisticalMeasure>();
 		statisticalMeasures.add(new ExtendedModularityMetric());
 		List<Cover> covers = analyzer.analyze(graphs, algorithms, statisticalMeasures, 8);

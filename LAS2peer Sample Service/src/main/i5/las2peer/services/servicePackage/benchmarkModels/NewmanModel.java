@@ -244,7 +244,7 @@ public class NewmanModel implements GroundTruthBenchmarkModel {
 		 * Deletes an external edge incident to B and creates
 		 * a new edge between A and B
 		 */
-		NodeCursor neighbors = nodeB.neighbors();
+		NodeCursor neighbors = nodeB.successors();
 		Node neighbor = null;
 		boolean externalNeighborFound = false;
 		while(neighbors.ok() && !externalNeighborFound) {

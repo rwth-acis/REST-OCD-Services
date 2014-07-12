@@ -4,10 +4,10 @@ import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
-import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import org.junit.Test;
 import org.la4j.matrix.Matrix;

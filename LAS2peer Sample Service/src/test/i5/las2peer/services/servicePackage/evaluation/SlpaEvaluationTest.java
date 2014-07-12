@@ -4,9 +4,9 @@ import i5.las2peer.services.servicePackage.adapters.coverOutput.CoverOutputAdapt
 import i5.las2peer.services.servicePackage.adapters.coverOutput.LabeledMembershipMatrixOutputAdapter;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
-import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.io.IOException;
 import java.util.List;

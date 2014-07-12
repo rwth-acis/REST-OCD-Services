@@ -2,11 +2,11 @@ package i5.las2peer.services.servicePackage;
 
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
-import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.util.ArrayList;
 import java.util.HashMap;

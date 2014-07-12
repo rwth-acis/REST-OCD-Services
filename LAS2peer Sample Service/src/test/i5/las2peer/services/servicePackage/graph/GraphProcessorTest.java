@@ -3,9 +3,9 @@ package i5.las2peer.services.servicePackage.graph;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
-import i5.las2peer.services.servicePackage.algorithms.SSKAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.SskAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
-import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -73,7 +73,7 @@ public class GraphProcessorTest {
 		Map<CustomGraph, Map<Node, Node>> componentMap = processor.divideIntoConnectedComponents(graph);
 		Map<Cover, Map<Node, Node>> coverMap = new HashMap<Cover, Map<Node, Node>>();
 		Cover currentCover;
-		OcdAlgorithm algo = new SSKAlgorithm();
+		OcdAlgorithm algo = new SskAlgorithm();
 		for(Map.Entry<CustomGraph, Map<Node, Node>> entry : componentMap.entrySet()) {
 			currentCover = algo.detectOverlappingCommunities(entry.getKey());
 			coverMap.put(currentCover, entry.getValue());

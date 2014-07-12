@@ -1,4 +1,4 @@
-package i5.las2peer.services.servicePackage.utils;
+package i5.las2peer.services.servicePackage.algorithms.utils;
 
 public class OcdAlgorithmException extends Exception {
 

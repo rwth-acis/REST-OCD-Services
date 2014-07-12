@@ -3,10 +3,10 @@ package i5.las2peer.services.servicePackage.evaluation;
 import i5.las2peer.services.servicePackage.GraphAnalyzer;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.RandomWalkLabelPropagationAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
-import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.io.IOException;
 import java.util.ArrayList;

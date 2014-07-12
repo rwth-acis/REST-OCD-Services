@@ -1,15 +1,15 @@
 package i5.las2peer.services.servicePackage.algorithms;
 
 
+import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphType;
-import i5.las2peer.services.servicePackage.utils.OcdAlgorithmException;
 
 import java.util.Set;
 
 /**
- * Represents the common interface for all Overlapping Community Detection Algorithms.
+ * The common interface for all Overlapping Community Detection Algorithms.
  * @author Sebastian
  *
  */

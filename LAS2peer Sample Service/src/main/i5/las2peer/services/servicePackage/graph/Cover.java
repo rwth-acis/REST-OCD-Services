@@ -2,7 +2,6 @@ package i5.las2peer.services.servicePackage.graph;
 
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
 import i5.las2peer.services.servicePackage.metrics.Metric;
-import i5.las2peer.services.servicePackage.utils.CustomVectors;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -139,13 +138,8 @@ public class Cover {
 	 * 
 	 */
 	public void filterMembershipsbyThreshold(double threshold) {
-		Vector row;
-		double rowThreshold;
 		for(int i=0; i<memberships.rows(); i++) {
-			row = memberships.getRow(i);
-			rowThreshold = Math.min(row.fold(Vectors.mkMaxAccumulator()), threshold);
-			CustomVectors.setEntriesBelowThresholdToZero(row, rowThreshold);
-			memberships.setRow(i, row);
+			setRowEntriesBelowThresholdToZero(i, threshold);
 		}
 		normalizeMemberships();
 		removeEmptyCommunities();
@@ -195,6 +189,23 @@ public class Cover {
 		coverString += "Membership Matrix\n";
 		coverString += getMemberships().toString();
 		return coverString;
+	}
+	
+	/*
+	 * Sets all entries of a row which are lower than the threshold and the rows max entry to zero.
+	 * @param rowIndex The index of the row to be filtered.
+	 * @param threshold The threshold.
+	 */
+	protected void setRowEntriesBelowThresholdToZero(int rowIndex, double threshold) {
+		Vector row = memberships.getRow(rowIndex);
+		double rowThreshold = Math.min(row.fold(Vectors.mkMaxAccumulator()), threshold);
+		BelowThresholdEntriesVectorProcedure procedure = new BelowThresholdEntriesVectorProcedure(rowThreshold);
+		row.eachNonZero(procedure);
+		List<Integer> belowThresholdEntries = procedure.getBelowThresholdEntries();
+		for(int i : belowThresholdEntries) {
+			row.set(i, 0);
+		}
+		memberships.setRow(rowIndex, row);
 	}
 	
 }

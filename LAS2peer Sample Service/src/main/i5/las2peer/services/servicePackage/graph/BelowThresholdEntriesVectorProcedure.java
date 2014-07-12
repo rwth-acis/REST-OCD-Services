@@ -1,4 +1,4 @@
-package i5.las2peer.services.servicePackage.utils;
+package i5.las2peer.services.servicePackage.graph;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,10 +13,9 @@ import org.la4j.vector.functor.VectorProcedure;
 public class BelowThresholdEntriesVectorProcedure implements VectorProcedure {
 
 	private double threshold;
-	private List<Integer> belowThresholdEntries;
-
+	private List<Integer> belowThresholdEntries = new ArrayList<Integer>();
+	
 	protected BelowThresholdEntriesVectorProcedure(double threshold) {
-		this.belowThresholdEntries = new ArrayList<Integer>();
 		this.threshold = threshold;
 	}
 
