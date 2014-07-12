@@ -217,6 +217,9 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		Node node;
 		NodeCursor predecessors;
 		Node predecessor;
+		double edgeWeight;
+		double minEdgeWeight = graph.getMinEdgeWeight();
+		double maxEdgeWeight = graph.getMaxEdgeWeight();
 		Map<Node, Double> influencedNodeDistances = new HashMap<Node, Double>();
 		Map<Node, Double> candidateNodeDistances = new HashMap<Node, Double>();
 		Matrix nodeDistances = new CCSMatrix(graph.nodeCount(), graph.nodeCount());
@@ -235,7 +238,8 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 			predecessors = node.predecessors();
 			while(predecessors.ok()) {
 				predecessor = predecessors.node();
-				candidateNodeDistances.put(predecessor, graph.getEdgeWeight(node.getEdgeFrom(predecessor)));
+				edgeWeight = graph.getEdgeWeight(node.getEdgeFrom(predecessor));
+				candidateNodeDistances.put(predecessor, getEdgeLength(edgeWeight, minEdgeWeight, maxEdgeWeight));
 				predecessors.next();
 			}
 			/*
@@ -260,7 +264,8 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 					predecessors = closestCandidate.predecessors();
 					while(predecessors.ok()) {
 						predecessor = predecessors.node();
-						updatedDistance = closestCandidateDistance + graph.getEdgeWeight(closestCandidate.getEdgeFrom(predecessor));
+						edgeWeight = graph.getEdgeWeight(node.getEdgeFrom(predecessor));
+						updatedDistance = closestCandidateDistance + getEdgeLength(edgeWeight, minEdgeWeight, maxEdgeWeight);
 						if(candidateNodeDistances.containsKey(predecessor)) {
 							updatedDistance = Math.min(updatedDistance, candidateNodeDistances.get(predecessor));
 							candidateNodeDistances.put(predecessor, updatedDistance);
@@ -319,6 +324,18 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		 */
 		nodeInDistances.eachNonZero(influenceNodesProcedure);
 		return influenceNodesProcedure.getInfluencingNodeIndices();
+	}
+	
+	/*
+	 * Calculates the length of an edge in terms of a distance based interpretation (a high value
+	 * means two nodes belong together only loosely) rather than an influence based interpretation
+	 * (a high value means two nodes belong together closely).
+	 * @param edgeWeight The original edge weight.
+	 * @param minWeight The smallest edge weight greater 0 of the examined graph.
+	 * @param maxWeight The maximum edge weight of the examined graph.
+	 */
+	private double getEdgeLength(double edgeWeight, double minEdgeWeight, double maxEdgeWeight) {
+		return maxEdgeWeight + minEdgeWeight - edgeWeight;
 	}
 
 }

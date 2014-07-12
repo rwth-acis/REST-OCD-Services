@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.graph;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,6 +143,35 @@ public class CustomGraph extends Graph2D {
 			}
 		}
 		return inDegree;
+	}
+	
+	/**
+	 * Returns the maximum edge weight.
+	 * @return The maximum edge weight.
+	 */
+	public double getMaxEdgeWeight() {
+		double maxWeight = 0;
+		if(!edgeWeights.isEmpty()) {
+			maxWeight = Collections.max(edgeWeights.values());
+		}
+		return maxWeight;		
+	}
+	
+	/**
+	 * Returns the smallest edge weight greater 0.
+	 * @return The smallest edge weight.
+	 */
+	public double getMinEdgeWeight() {
+		double minWeight = Double.POSITIVE_INFINITY;
+		for(double edgeWeight : edgeWeights.values()) {
+			if(edgeWeight < minWeight && edgeWeight > 0) {
+				minWeight = edgeWeight;
+			}
+		}
+		if(minWeight == Double.POSITIVE_INFINITY) {
+			minWeight = 0;
+		}
+		return minWeight;
 	}
 	
 	@PostLoad
