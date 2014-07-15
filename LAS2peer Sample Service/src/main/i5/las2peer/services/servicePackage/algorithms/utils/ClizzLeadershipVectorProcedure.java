@@ -33,7 +33,7 @@ public class ClizzLeadershipVectorProcedure implements VectorProcedure {
 	@Override
 	public void apply(int i, double value) {
 		if(value > 0) {
-			leadershipIndex += Math.pow(Math.E, 1d / value / influenceFactor);
+			leadershipIndex += Math.pow(Math.E, - value / influenceFactor);
 		}
 	}
 

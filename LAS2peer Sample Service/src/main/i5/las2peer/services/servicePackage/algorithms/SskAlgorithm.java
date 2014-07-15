@@ -27,22 +27,53 @@ import y.base.NodeCursor;
 
 public class SskAlgorithm implements OcdAlgorithm {
 	
-	private int randomWalkIterationBound;
-	private double randomWalkPrecisionFactor;
-	private int membershipsIterationBound;
-	private double membershipsPrecisionFactor;
+	/**
+	 * The iteration bound for the leadership calculation phase.
+	 * The default value is 1000.
+	 */
+	private int leadershipIterationBound = 1000;
+	/**
+	 * The precision factor for the leadership calculation phase.
+	 * The phase ends when the infinity norm of the difference between the updated vector
+	 * and the previous one is smaller than this factor divided by the vector
+	 * length (i.e. the node count of the graph).
+	 * The default value is 0.001.
+	 */
+	private double leadershipPrecisionFactor = 0.001;
+	/**
+	 * The iteration bound for the membership assignation phase.
+	 * The default value is 1000.
+	 */
+	private int membershipsIterationBound = 1000;
+	/**
+	 * The precision factor for the membership assignation phase.
+	 * The phase ends when the infinity norm of the difference between the updated membership
+	 * matrix and the previous one is smaller than this factor divided by the membership matrix
+	 * column count (i.e. the community count of the final cover).
+	 * The default value is 0.001.
+	 */
+	private double membershipsPrecisionFactor = 0.001;
 	
+	/**
+	 * Creates a standard instance of the algorithm.
+	 * All attributes are assigned their default values.
+	 */
 	public SskAlgorithm() {
-		randomWalkIterationBound = 1000;
-		membershipsIterationBound = 1000;
-		randomWalkPrecisionFactor = 0.001;
-		membershipsPrecisionFactor = 0.001;
 	}
 	
-	public SskAlgorithm(int randomWalkIterationBound, double randomWalkPrecisionFactor,
+	/**
+	 * Creates a customized instance of the algorithm.
+	 * @param leadershipIterationBound Sets the leadershipCalculationIterationBound. Must be greater than 0.
+	 * @param leadershipPrecisionFactor Sets the leadershipCalculationPrecisionFactor. Must be greater than 0 and smaller than infinity.
+	 * Recommended are values close to 0.
+	 * @param membershipsIterationBound Sets the membershipsIterationBound. Must be greater than 0.
+	 * @param membershipsPrecisionFactor Sets the membershipsPrecisionFactor. Must be greater than 0 and smaller than infinity.
+	 * Recommended are values close to 0.
+	 */
+	public SskAlgorithm(int leadershipIterationBound, double leadershipPrecisionFactor,
 			int membershipsIterationBound, double membershipsPrecisionFactor) {
-		this.randomWalkIterationBound = randomWalkIterationBound;
-		this.randomWalkPrecisionFactor = randomWalkPrecisionFactor;
+		this.leadershipIterationBound = leadershipIterationBound;
+		this.leadershipPrecisionFactor = leadershipPrecisionFactor;
 		this.membershipsPrecisionFactor = membershipsPrecisionFactor;
 		this.membershipsIterationBound = membershipsIterationBound;
 	}
@@ -69,6 +100,12 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return new Cover(graph, memberships, getAlgorithm());
 	}
 	
+	/*
+	 * Determines the membership matrix through a random walk process.
+	 * @param graph The graph being analyzed.
+	 * @param leaders A mapping from the community leader nodes to the indices of their communities.
+	 * @return The membership matrix.
+	 */
 	protected Matrix calculateMemberships(CustomGraph graph, Map<Node, Integer> leaders) {
 		Matrix coefficients = initMembershipCoefficientMatrix(graph, leaders);
 		Matrix memberships;
@@ -105,11 +142,19 @@ public class SskAlgorithm implements OcdAlgorithm {
 			}
 			nodes.toFirst();
 			iteration++;
-		} while (getMaxDifference(updatedMemberships, memberships) > membershipsPrecisionFactor
+		} while (getMaxDifference(updatedMemberships, memberships) > membershipsPrecisionFactor / memberships.columns()
 				&& iteration < membershipsIterationBound);
 		return memberships;
 	}
 	
+	/*
+	 * Returns the maximum difference between two matrices.
+	 * It is calculated entry-wise as the greatest absolute value
+	 * of any entry in the difference among the two matrices.
+	 * @param matA The first matrix.
+	 * @param matB The second matrix.
+	 * @return The maximum difference.
+	 */
 	protected double getMaxDifference(Matrix matA, Matrix matB) {
 		Matrix diffMatrix = matA.subtract(matB);
 		double maxDifference = 0;
@@ -124,6 +169,14 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return maxDifference;
 	}
 	
+	/*
+	 * Initializes the membership matrix for the memberships assignation phase.
+	 * Leader nodes are set to belong entirely to their own community. All other nodes
+	 * have equal memberships for all communities.
+	 * @param graph The graph being analyzed.
+	 * @param leaders A mapping from the leader nodes to their community indices.
+	 * @return The initial membership matrix.
+	 */
 	protected Matrix initMembershipMatrix(CustomGraph graph, Map<Node, Integer> leaders) {
 		int communityCount = Collections.max(leaders.values()) + 1;
 		Matrix memberships = new CCSMatrix(graph.nodeCount(), communityCount);
@@ -144,6 +197,14 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return memberships;
 	}
 	
+	/*
+	 * Initializes the membership coefficient matrix C for the memberships assignation phase.
+	 * The coefficient of the membership vector of node i for the calculation of the updated
+	 * memberships of node j is stored in entry C_ij, where i and j are the node indices.
+	 * @param graph The graph being analyzed.
+	 * @param leaders A mapping from the leader nodes to their community indices.
+	 * @return The membership coefficient matrix.
+	 */
 	protected Matrix initMembershipCoefficientMatrix(CustomGraph graph, Map<Node, Integer> leaders) {
 		Matrix coefficients = new CCSMatrix(graph.nodeCount(), graph.nodeCount());
 		EdgeCursor edges = graph.edges();
@@ -262,8 +323,8 @@ public class SskAlgorithm implements OcdAlgorithm {
 			vec1.set(i, 1.0 / vec1.length());
 		}
 		Vector vec2 = new BasicVector(vec1.length());
-		for(int i=0; vec1.subtract(vec2).fold(Vectors.mkInfinityNormAccumulator()) > randomWalkPrecisionFactor / (double)vec1.length()
-				&& i < randomWalkIterationBound; i++) {
+		for(int i=0; vec1.subtract(vec2).fold(Vectors.mkInfinityNormAccumulator()) > leadershipPrecisionFactor / (double)vec1.length()
+				&& i < leadershipIterationBound; i++) {
 			vec2 = new BasicVector(vec1);
 			vec1 = transitionMatrix.multiply(vec1);
 		}

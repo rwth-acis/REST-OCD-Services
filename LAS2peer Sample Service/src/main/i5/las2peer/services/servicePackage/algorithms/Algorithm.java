@@ -3,7 +3,7 @@ package i5.las2peer.services.servicePackage.algorithms;
 import java.util.Locale;
 
 /**
- * An enum representation for all overlapping community detection algorithms.
+ * An enum representation for overlapping community detection algorithms.
  * @author Sebastian
  *
  */

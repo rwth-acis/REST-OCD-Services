@@ -10,6 +10,7 @@ import i5.las2peer.services.servicePackage.graph.GraphType;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,13 +31,45 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 
 	/**
 	 * The influence range of each node.
-	 * Determines the distance in which a node has influence
-	 * on other nodes and can become their leader.
+	 * Determines the distance in which a node has influence on other nodes and can become their leader.
+	 * A node A will have influence on a node B if the shortest distance from B to A is
+	 * less than 3 / SQRT(2) times the influence factor.
+	 * The default value is 1.
 	 */
-	private double influenceFactor = Double.POSITIVE_INFINITY;
+	private double influenceFactor = 0.9;
+	/**
+	 * The iteration bound for the membership calculation phase.
+	 * The default value is 1000.
+	 */
+	private int membershipsIterationBound = 1000;
+	/**
+	 * The precision factor for the membership assignation phase.
+	 * The phase ends when the infinity norm of the difference between the updated membership
+	 * matrix and the previous one is smaller than this factor divided by the membership matrix
+	 * column count (i.e. the community count of the final cover).
+	 * The default value is 0.001.
+	 */
+	private double membershipsPrecisionFactor = 0.001;
 	
-	private int membershipsIterationBound;
-	private double membershipsPrecisionFactor;
+	/**
+	 * Creates a standard instance of the algorithm.
+	 * All attributes are assigned their default values.
+	 */
+	public ClizzAlgorithm() {
+	}
+	
+	/**
+	 * Creates a customized instance of the Algorithm.
+	 * @param influenceFactor Sets the influence factor. Must be greater than 0.
+	 * @param membershipsIterationBound Sets the membershipsIterationBound. Must be greater than 0.
+	 * @param membershipsPrecisionFactor Sets the membershipsPrecisionFactor. Must be greater than 0 and smaller than infinity.
+	 * Recommended are values close to 0.
+	 */
+	public ClizzAlgorithm(double influenceFactor, int membershipsIterationBound, double membershipsPrecisionFactor) {
+		this.influenceFactor = influenceFactor;
+		this.membershipsIterationBound = membershipsIterationBound;
+		this.membershipsPrecisionFactor = membershipsPrecisionFactor;
+	}
 	
 	@Override
 	public Set<GraphType> compatibleGraphTypes() {
@@ -61,6 +94,12 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return Algorithm.CLIZZ_ALGORITHM;
 	}
 	
+	/*
+	 * Determines the membership matrix through a random walk process.
+	 * @param graph The graph being analyzed.
+	 * @param leaders A mapping from the community leader nodes to the indices of their communities.
+	 * @return The membership matrix.
+	 */
 	protected Matrix calculateMemberships(CustomGraph graph, Map<Node, Integer> leaders) {
 		Matrix memberships;
 		Matrix updatedMemberships = initMembershipMatrix(graph, leaders);
@@ -94,11 +133,19 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 			}
 			nodes.toFirst();
 			iteration++;
-		} while (getMaxDifference(updatedMemberships, memberships) > membershipsPrecisionFactor
+		} while (getMaxDifference(updatedMemberships, memberships) > membershipsPrecisionFactor / memberships.columns()
 				&& iteration < membershipsIterationBound);
 		return memberships;
 	}
 	
+	/*
+	 * Returns the maximum difference between two matrices.
+	 * It is calculated entry-wise as the greatest absolute value
+	 * of any entry in the difference among the two matrices.
+	 * @param matA The first matrix.
+	 * @param matB The second matrix.
+	 * @return The maximum difference.
+	 */
 	protected double getMaxDifference(Matrix matA, Matrix matB) {
 		Matrix diffMatrix = matA.subtract(matB);
 		double maxDifference = 0;
@@ -113,6 +160,14 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return maxDifference;
 	}
 	
+	/*
+	 * Initializes the membership matrix for the memberships assignation phase.
+	 * Leader nodes are set to belong entirely to their own community. All other nodes
+	 * have equal memberships for all communities.
+	 * @param graph The graph being analyzed.
+	 * @param leaders A mapping from the leader nodes to their community indices.
+	 * @return The initial membership matrix.
+	 */
 	protected Matrix initMembershipMatrix(CustomGraph graph, Map<Node, Integer> leaders) {
 		int communityCount = Collections.max(leaders.values()) + 1;
 		Matrix memberships = new CCSMatrix(graph.nodeCount(), communityCount);
@@ -134,7 +189,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	}
 	
 	/*
-	 * Determines the community leaders of all communities. 
+	 * Determines the community leaders and their community indices. 
 	 * @param graph The graph being analyzed.
 	 * @param distances The distance matrix corresponding the graph.
 	 * @param leadershipValues A mapping from the graph's nodes to their leadership values.
@@ -142,46 +197,64 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * leaders may have the same community index.
 	 */
 	private Map<Node, Integer> determineCommunityLeaders(CustomGraph graph, Matrix distances, Map<Node, Double> leadershipValues) {
-		NodeCursor nodes = graph.nodes();
-		Node node;
 		Node[] nodeArray = graph.getNodeArray();
-		double nodeLeadershipValue;
-		double influencerLeadershipIndex;
-		Set<Node> currentLeaders = new HashSet<Node>();
 		Map<Node, Integer> communityLeaders = new HashMap<Node, Integer>();
 		int communityCount = 0;
+		Set<Node> leaders = determineLeaders(graph, distances, leadershipValues);
+		Iterator<Node> leaderIt = leaders.iterator();
+		Node leader;
+		Node influenceNode;
+		while(leaderIt.hasNext()) {
+			leader = leaderIt.next();
+			communityLeaders.put(leader, communityCount);
+			leaders.remove(leader);
+			for(Integer i : getInfluenceNodes(distances.getRow(leader.index()), distances.getColumn(leader.index()))) {
+				influenceNode = nodeArray[i];
+				if(leaders.contains(influenceNode)) {
+					communityLeaders.put(influenceNode, communityCount);
+					leaders.remove(influenceNode);
+				}
+			}
+			/*
+			 * Iterator is reset to avoid side effects from element removal.
+			 */
+			leaderIt = leaders.iterator();
+			communityCount++;
+		}
+		return communityLeaders;
+	}
+	
+	/*
+	 * Returns the leader nodes of the graph.
+	 * @param graph The graph being analyzed.
+	 * @param distances The distance matrix.
+	 * @param leadershipValues The nodes' leadership values.
+	 * @return The nodes which are community leaders.
+	 */
+	private Set<Node> determineLeaders(CustomGraph graph, Matrix distances, Map<Node, Double> leadershipValues) {
+		Set<Node> leaders = new HashSet<Node>();
+		NodeCursor nodes = graph.nodes();
+		Node[] nodeArray = graph.getNodeArray();
+		Node node;
+		while(nodes.ok()) {
+			leaders.add(nodes.node());
+			nodes.next();
+		}
+		nodes.toFirst();
 		while(nodes.ok()) {
 			node = nodes.node();
-			nodeLeadershipValue = leadershipValues.get(node);
-			currentLeaders.clear();
-			currentLeaders.add(node);
-			for(Integer i : getInfluenceNodes(distances.getRow(node.index()), distances.getColumn(node.index()))) {
-				influencerLeadershipIndex = leadershipValues.get(nodeArray[i]);
-				if(influencerLeadershipIndex > nodeLeadershipValue) {
-					currentLeaders.clear();
-					break;
-				}
-				else if(influencerLeadershipIndex == nodeLeadershipValue) {
-					if(node.index() < i) {
-						currentLeaders.add(nodeArray[i]);
-					}
-					/*
-					 * Grouped leaders are only added in the iteration over the first corresponding leader.
-					 */
-					else {
-						currentLeaders.clear();
+			if(leaders.contains(node)) {
+				double nodeLeadershipValue = leadershipValues.get(node);
+				for(Integer i : getInfluenceNodes(distances.getRow(node.index()), distances.getColumn(node.index()))) {
+					if(leadershipValues.get(nodeArray[i]) > nodeLeadershipValue) {
+						leaders.remove(node);
 						break;
 					}
 				}
 			}
-			if(currentLeaders.size() > 0) {
-				for(Node leader : currentLeaders) {
-					communityLeaders.put(leader, communityCount);
-				}
-				communityCount++;
-			}
+			nodes.next();
 		}
-		return communityLeaders;
+		return leaders;
 	}
 	
 	/*
@@ -235,6 +308,9 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 			candidateNodeDistances.clear();
 			node = nodes.node();
 			influencedNodeDistances.put(node, 0d);
+			/*
+			 * Initializes node predecessors.
+			 */
 			predecessors = node.predecessors();
 			while(predecessors.ok()) {
 				predecessor = predecessors.node();
@@ -264,7 +340,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 					predecessors = closestCandidate.predecessors();
 					while(predecessors.ok()) {
 						predecessor = predecessors.node();
-						edgeWeight = graph.getEdgeWeight(node.getEdgeFrom(predecessor));
+						edgeWeight = graph.getEdgeWeight(closestCandidate.getEdgeFrom(predecessor));
 						updatedDistance = closestCandidateDistance + getEdgeLength(edgeWeight, minEdgeWeight, maxEdgeWeight);
 						if(candidateNodeDistances.containsKey(predecessor)) {
 							updatedDistance = Math.min(updatedDistance, candidateNodeDistances.get(predecessor));

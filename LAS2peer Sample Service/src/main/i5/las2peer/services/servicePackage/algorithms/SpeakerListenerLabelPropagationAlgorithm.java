@@ -36,38 +36,39 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	
 	/**
 	 * The size of the node memories and the number of iterations.
-	 * The standard value is 100.
+	 * The default value is 100.
 	 */
 	private int memorySize = 100;
 	/**
 	 * The lower bound for the relative label occurrence.
 	 * Labels received by a node with a relative occurrence lower than this threshold will be ignored
 	 * and do not have any influence on that nodes community memberships.
-	 * The standard value is 0.05 and the recommended range is [0.02,0.1].
+	 * The default value is 0.05.
 	 */
 	private double probabilityThreshold = 0.05;
 	/**
 	 * The speaker rule according to which a speaker decides which label to send.
-	 * The standard rule is the UniformSpeakerRule.
+	 * The default rule is the UniformSpeakerRule.
 	 */
 	private SlpaSpeakerRuleCommand speakerRule = new SlpaUniformSpeakerRule();
 	/**
 	 * The listener rule according to which a listener decides which label to accept.
-	 * The standard rule is the popularity listener rule.
+	 * The default rule is the popularity listener rule.
 	 */
 	private SlpaListenerRuleCommand listenerRule = new SlpaPopularityListenerRule();
 	
 	/**
-	 * Standard constructor.
-	 * Initializes the algorithm with standard attribute values.
+	 * Creates a standard instance of the algorithm.
+	 * All attributes are assigned their default values.
 	 */
 	public SpeakerListenerLabelPropagationAlgorithm() {
 	}
 	
 	/**
-	 * Advanced constructor.
+	 * Creates a customized instance of the algorithm.
 	 * @param memorySize Sets the memorySize. Must be greater than 0.
 	 * @param probabilityThreshold  Sets the probabilityThreshold. Must be at least 0 and at most 1.
+	 * Recommended are values between 0.02 and 0.1.
 	 * @param speakerRule The speaker rule according to which a speaker decides which label to send.
 	 * @param listenerRule The listener rule according to which a listener decides which label to accept.
 	 */

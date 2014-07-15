@@ -34,39 +34,42 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		OcdAlgorithm {
 	
 	/**
-	 * The iteration bound for the random walk phase.
-	 * The standard value is 1000.
+	 * The iteration bound for the leadership calculation phase.
+	 * The default value is 1000.
 	 */
-	private int randomWalkIterationBound = 1000;
+	private int leadershipIterationBound = 1000;
 	/**
-	 * The precision factor for the random walk phase.
+	 * The precision factor for the leadership calculation phase.
 	 * The phase ends when the infinity norm of the difference between the updated vector
 	 * and the previous one is smaller than this factor divided by the vector
 	 * length (i.e. the node count of the graph).
-	 * The standard value is 0.001.
+	 * The default value is 0.001.
 	 */
-	private double randomWalkPrecisionFactor = 0.001;
+	private double leadershipPrecisionFactor = 0.001;
 	/**
 	 * The profitability step size for the label propagation phase.
-	 * The standard value is 0.1.
+	 * The default value is 0.1.
 	 */
 	private double profitabilityDelta = 0.1;
 	
 	/**
-	 * Standard Constructor.
-	 * Initializes the algorithm with standard attribute values.
+	 * Creates a standard instance of the algorithm.
+	 * All attributes are assigned there default values.
 	 */
 	public RandomWalkLabelPropagationAlgorithm() {
 	}
 	
 	/**
-	 * Advanced constructor.
+	 * Creates a customized instance of the algorithm.
 	 * @param profitabilityDelta Sets the profitabilityDelta. Must be in (0, 1).
-	 * @param randomWalkIterationBound Sets the randomWalkIterationBound. Must be greater than 0.
-	 * @param randomWalkPrecisionFactor Sets the randomWalkPrecisionFactor. Must be in greater than 0 and smaller than infinity.
+	 * @param leadershipIterationBound Sets the randomWalkIterationBound. Must be greater than 0.
+	 * @param leadershipPrecisionFactor Sets the randomWalkPrecisionFactor. Must be greater than 0 and smaller than infinity.
+	 * Recommended are values close to 0.
 	 */
-	public RandomWalkLabelPropagationAlgorithm(double profitabilityDelta, int randomWalkIterationBound, double randomWalkPrecisionFactor) {
+	public RandomWalkLabelPropagationAlgorithm(double profitabilityDelta, int leadershipIterationBound, double leadershipPrecisionFactor) {
 		this.profitabilityDelta = profitabilityDelta;
+		this.leadershipIterationBound = leadershipIterationBound;
+		this.leadershipPrecisionFactor = leadershipPrecisionFactor;
 	}
 	
 	@Override
@@ -157,15 +160,15 @@ public class RandomWalkLabelPropagationAlgorithm implements
 		}
 		Vector vec2 = new BasicVector(vec1.length());
 		int iteration;
-		for(iteration=0; vec1.subtract(vec2).fold(Vectors.mkInfinityNormAccumulator()) > randomWalkPrecisionFactor / (double)vec1.length()
-				&& iteration < randomWalkIterationBound; iteration++) {
+		for(iteration=0; vec1.subtract(vec2).fold(Vectors.mkInfinityNormAccumulator()) > leadershipPrecisionFactor / (double)vec1.length()
+				&& iteration < leadershipIterationBound; iteration++) {
 			vec2 = new BasicVector(vec1);
 			vec1 = disassortativityMatrix.multiply(vec1);
 			//////////////////////////////////////////// TODO TEST
 //			System.out.println("vec1 updated: " + vec1.toString());
 			///////////////////////
 		}
-		if(iteration >= randomWalkIterationBound) {
+		if(iteration >= leadershipIterationBound) {
 			throw new OcdAlgorithmException("Random walk iteration bound exceeded: iteration " + iteration);
 		}
 		return vec1;

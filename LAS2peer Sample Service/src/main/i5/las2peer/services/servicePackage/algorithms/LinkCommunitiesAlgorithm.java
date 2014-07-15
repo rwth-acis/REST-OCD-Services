@@ -29,6 +29,12 @@ import y.base.NodeCursor;
 public class LinkCommunitiesAlgorithm implements
 		OcdAlgorithm {
 	
+	/**
+	 * Creates an instance of the algorithm.
+	 */
+	public LinkCommunitiesAlgorithm() {
+	}
+	
 	@Override
 	public Algorithm getAlgorithm() {
 		return Algorithm.LINK_COMMUNITIES_ALGORITHM;
