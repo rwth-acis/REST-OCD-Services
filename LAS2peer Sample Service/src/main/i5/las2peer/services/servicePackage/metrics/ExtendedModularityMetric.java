@@ -41,7 +41,7 @@ public class ExtendedModularityMetric implements StatisticalMeasure {
 		if(graph.edgeCount() > 0) {
 			metricValue /= graph.edgeCount();
 		}
-		cover.setMetricResult(Metric.EXTENDED_MODULARITY_METRIC, metricValue);
+		cover.setMetricValue(Metric.EXTENDED_MODULARITY_METRIC, metricValue);
 	}
 	
 	/*

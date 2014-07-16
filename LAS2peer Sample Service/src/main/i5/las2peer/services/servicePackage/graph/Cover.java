@@ -2,6 +2,7 @@ package i5.las2peer.services.servicePackage.graph;
 
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
 import i5.las2peer.services.servicePackage.metrics.Metric;
+import i5.las2peer.services.servicePackage.utils.NonZeroEntriesVectorProcedure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -87,9 +88,9 @@ public class Cover {
 		}
 	}
 	
-	public void setMetricResult(Metric metric, double result) {
+	public void setMetricValue(Metric metric, double value) {
 		if(metric != null) {
-			this.metricResults.put(metric, result);
+			this.metricResults.put(metric, value);
 		}
 	}
 	
@@ -206,6 +207,13 @@ public class Cover {
 			row.set(i, 0);
 		}
 		memberships.setRow(rowIndex, row);
+	}
+	
+	public int getCommunitySize(int communityIndex) {
+		Vector communityMemberships = memberships.getColumn(communityIndex);
+		NonZeroEntriesVectorProcedure procedure = new NonZeroEntriesVectorProcedure();
+		communityMemberships.eachNonZero(procedure);
+		return procedure.getNonZeroEntryCount();
 	}
 	
 }
