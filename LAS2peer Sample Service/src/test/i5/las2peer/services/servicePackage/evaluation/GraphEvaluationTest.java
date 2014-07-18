@@ -1,17 +1,14 @@
 package i5.las2peer.services.servicePackage.evaluation;
 
-import i5.las2peer.services.servicePackage.GraphAnalyzer;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithmExecutor;
 import i5.las2peer.services.servicePackage.algorithms.SskAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
-import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -40,14 +37,9 @@ public class GraphEvaluationTest {
 	public void testSiamAnalyzer() throws OcdAlgorithmException {
 		System.out.println("Siam Component Analyzer:");
 		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
-		GraphAnalyzer analyzer = new GraphAnalyzer();
-		List<CustomGraph> graphs = new ArrayList<CustomGraph>();
-		graphs.add(graph);
-		List<OcdAlgorithm> algorithms = new ArrayList<OcdAlgorithm>();
-		algorithms.add(new SskAlgorithm());
-		List<StatisticalMeasure> statisticalMeasures = new ArrayList<StatisticalMeasure>();
-		List<Cover> covers = analyzer.analyze(graphs, algorithms, statisticalMeasures, 1100);
-		Cover cover = covers.get(0);
+		OcdAlgorithmExecutor algoExecutor = new OcdAlgorithmExecutor();
+		OcdAlgorithm algorithm = new SskAlgorithm();
+		Cover cover = algoExecutor.execute(graph, algorithm, 1100);
 		System.out.println(cover.toString());
 	}
 	

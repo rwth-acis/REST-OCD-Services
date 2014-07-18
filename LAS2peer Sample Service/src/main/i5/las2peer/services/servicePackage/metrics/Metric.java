@@ -4,7 +4,8 @@ import java.util.Locale;
 
 public enum Metric {
 	EXTENDED_MODULARITY_METRIC,
-	EXTENDED_NORMALIZED_MUTUAL_INFORMATION;
+	EXTENDED_NORMALIZED_MUTUAL_INFORMATION,
+	EXECUTION_TIME;
 	
 	@Override
 	public String toString() {

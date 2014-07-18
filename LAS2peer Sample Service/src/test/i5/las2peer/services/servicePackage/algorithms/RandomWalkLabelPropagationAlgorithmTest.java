@@ -3,7 +3,7 @@ package i5.las2peer.services.servicePackage.algorithms;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
-import i5.las2peer.services.servicePackage.metrics.ExtendedModularityMetric;
+import i5.las2peer.services.servicePackage.metrics.ExtendedModularity;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
@@ -95,7 +95,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		profitabililtyDeltas[8] = 0.250;
 		profitabililtyDeltas[9] = 0.275;
 		profitabililtyDeltas[10] = 0.300;
-		StatisticalMeasure metric = new ExtendedModularityMetric();
+		StatisticalMeasure metric = new ExtendedModularity();
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		for(int i=0; i < profitabililtyDeltas.length; i++) {
 			System.out.println("Delta: " + profitabililtyDeltas[i]);

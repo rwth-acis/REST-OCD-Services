@@ -12,9 +12,9 @@ import y.base.NodeCursor;
 /**
  * Implements the extended modularity metric.
  */
-public class ExtendedModularityMetric implements StatisticalMeasure {
+public class ExtendedModularity implements StatisticalMeasure {
 		
-	public ExtendedModularityMetric() {
+	public ExtendedModularity() {
 	}
 	
 	public void measure(Cover cover) {

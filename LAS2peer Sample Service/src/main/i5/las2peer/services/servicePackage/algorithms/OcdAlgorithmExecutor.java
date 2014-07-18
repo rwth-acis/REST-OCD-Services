@@ -1,16 +1,12 @@
-package i5.las2peer.services.servicePackage;
+package i5.las2peer.services.servicePackage.algorithms;
 
-import i5.las2peer.services.servicePackage.algorithms.Algorithm;
-import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
-import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
+import i5.las2peer.services.servicePackage.metrics.ExecutionTime;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.la4j.matrix.Matrix;
@@ -18,33 +14,22 @@ import org.la4j.matrix.sparse.CCSMatrix;
 
 import y.base.Node;
 
-public class GraphAnalyzer {
+public class OcdAlgorithmExecutor {
 
-	public List<Cover> analyze(List<CustomGraph> graphs, List<OcdAlgorithm> algorithms,
-			List<StatisticalMeasure> statisticalMeasures, int componentNodeCountFilter) throws OcdAlgorithmException {
-		List<Cover> covers = new ArrayList<Cover>();
+	public Cover execute(CustomGraph graph, OcdAlgorithm algorithm, int componentNodeCountFilter) throws OcdAlgorithmException {
 		GraphProcessor processor = new GraphProcessor();
-		CustomGraph graph;
 		Map<CustomGraph, Map<Node, Node>> components;
 		Map<Cover, Map<Node, Node>> componentCovers;
-		Cover cover;
-		for(int i=0; i<graphs.size(); i++) {
-			for(int j=0; j<algorithms.size(); j++) {
-				graph = graphs.get(i);
-				components = processor.divideIntoConnectedComponents(graph);
-				componentCovers = calculateComponentCovers(components, algorithms.get(j), componentNodeCountFilter);
-				cover = processor.mergeComponentCovers(graph, componentCovers);
-				for(int k=0; k<statisticalMeasures.size(); k++) {
-					statisticalMeasures.get(k).measure(cover);;
-				}
-				covers.add(cover);
-			}
-		}
-		return covers;
+		components = processor.divideIntoConnectedComponents(graph);
+		ExecutionTime executionTime = new ExecutionTime();
+		componentCovers = calculateComponentCovers(components, algorithm, componentNodeCountFilter, executionTime);
+		Cover cover = processor.mergeComponentCovers(graph, componentCovers);
+		executionTime.setCoverExecutionTime(cover);
+		return cover;
 	}
 	
 	private Map<Cover, Map<Node, Node>> calculateComponentCovers(Map<CustomGraph, Map<Node, Node>> components,
-			OcdAlgorithm algorithm, int componentNodeCountFilter) throws OcdAlgorithmException {
+			OcdAlgorithm algorithm, int componentNodeCountFilter, ExecutionTime executionTime) throws OcdAlgorithmException {
 		Map<Cover, Map<Node, Node>> componentCovers = new HashMap<Cover, Map<Node, Node>>();
 		CustomGraph component;
 		Cover componentCover;
@@ -54,7 +39,9 @@ public class GraphAnalyzer {
 				componentCover = computeSingleCommunityCover(component, algorithm.getAlgorithm());
 			}
 			else {
+				executionTime.start();
 				componentCover = algorithm.detectOverlappingCommunities(component);
+				executionTime.stop();
 			}
 			componentCovers.put(componentCover, entry.getValue());
 		}

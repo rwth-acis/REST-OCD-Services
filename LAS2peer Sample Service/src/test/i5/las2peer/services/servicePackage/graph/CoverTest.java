@@ -3,7 +3,7 @@ package i5.las2peer.services.servicePackage.graph;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
-import i5.las2peer.services.servicePackage.metrics.ExtendedModularityMetric;
+import i5.las2peer.services.servicePackage.metrics.ExtendedModularity;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
@@ -69,7 +69,7 @@ public class CoverTest {
 	@Test
 	public void testFilterMemberships() {
 		cover.normalizeMemberships();
-		StatisticalMeasure metric = new ExtendedModularityMetric();
+		StatisticalMeasure metric = new ExtendedModularity();
 		metric.measure(cover);
 		/*
 		 * First row must remain unchanged and sum up to zero precisely.

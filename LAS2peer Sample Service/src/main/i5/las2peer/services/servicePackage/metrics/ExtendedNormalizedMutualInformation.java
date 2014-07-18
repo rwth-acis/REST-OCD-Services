@@ -12,11 +12,13 @@ import org.la4j.vector.Vector;
 public class ExtendedNormalizedMutualInformation implements KnowledgeDrivenMeasure {
 
 	@Override
-	public void measure(Cover output, Cover groundTruth) {
+	public void measure(Cover cover, Cover groundTruth) {
 		double metricValue = 1;
-		metricValue -= 0.5 * calculateArbitraryConditionalEntropy(output, groundTruth);
-		metricValue -= 0.5 * calculateArbitraryConditionalEntropy(groundTruth, output);
-		output.setMetricValue(Metric.EXTENDED_NORMALIZED_MUTUAL_INFORMATION, metricValue);
+		Map<Integer, Integer> coverCommunitySizes = determineCommunitySizes(cover);
+		Map<Integer, Integer> groundTruthCommunitySizes = determineCommunitySizes(groundTruth);
+		metricValue -= 0.5 * calculateArbitraryConditionalEntropy(cover, groundTruth, coverCommunitySizes, groundTruthCommunitySizes);
+		metricValue -= 0.5 * calculateArbitraryConditionalEntropy(groundTruth, cover, groundTruthCommunitySizes, coverCommunitySizes);
+		cover.setMetricValue(Metric.EXTENDED_NORMALIZED_MUTUAL_INFORMATION, metricValue);
 	}
 
 	/*
@@ -26,17 +28,19 @@ public class ExtendedNormalizedMutualInformation implements KnowledgeDrivenMeasu
 	 * @param cover2 The cover 2.
 	 * @return The uncertainty calculated as the normalized conditional entropy.
 	 */
-	private double calculateArbitraryConditionalEntropy(Cover cover1, Cover cover2) {
+	private double calculateArbitraryConditionalEntropy(Cover cover1, Cover cover2,
+			Map<Integer, Integer> cover1CommunitySizes, Map<Integer, Integer> cover2CommunitySizes) {
 		Matrix cover1Memberships = cover1.getMemberships();
 		Matrix cover2Memberships = cover2.getMemberships();
-		Map<Integer, Integer> cover1CommunitySizes = determineCommunitySizes(cover1);
-		Map<Integer, Integer> cover2CommunitySizes = determineCommunitySizes(cover2);
-		double minParticularConditionalEntropy = Double.POSITIVE_INFINITY;
+		double minParticularConditionalEntropy;
 		double currentParticularConditionalEntropy;
 		double arbitraryConditionalEntropy = 0;
 		double communityEntropy;
+		double probability_x0;
+		double probability_x1;
 		int nodeCount = cover1.getGraph().nodeCount();
 		for(int i=0; i<cover1.communityCount(); i++) {
+			minParticularConditionalEntropy = Double.POSITIVE_INFINITY;
 			for(int j=0; j<cover2.communityCount(); j++) {
 				currentParticularConditionalEntropy = calculateParticularConditionalEntropy(cover1Memberships, cover2Memberships, i, j,
 						cover1CommunitySizes.get(i), cover2CommunitySizes.get(j));
@@ -45,10 +49,15 @@ public class ExtendedNormalizedMutualInformation implements KnowledgeDrivenMeasu
 				}
 			}
 			if(minParticularConditionalEntropy != Double.POSITIVE_INFINITY) {
-				communityEntropy = - (double)cover1CommunitySizes.get(i) / (double)nodeCount
-						* Math.log( (double)cover1CommunitySizes.get(i) / (double)nodeCount) / Math.log(2);
-				communityEntropy -= ( (double)(nodeCount - cover1CommunitySizes.get(i))  / (double)nodeCount)
-						* Math.log( (double)(nodeCount - cover1CommunitySizes.get(i)) / (double)nodeCount) / Math.log(2);
+				probability_x0 = (double)(nodeCount - cover1CommunitySizes.get(i)) / (double)nodeCount;
+				probability_x1 = (double)cover1CommunitySizes.get(i) / (double)nodeCount;
+				communityEntropy = 0;
+				if(probability_x0 > 0) {
+					communityEntropy -= probability_x0 * Math.log(probability_x0) / Math.log(2);
+				}
+				if(probability_x1 > 0) {
+					communityEntropy -= probability_x1 * Math.log(probability_x1) / Math.log(2);
+				}
 				minParticularConditionalEntropy /= communityEntropy;
 			}
 			else {
@@ -92,20 +101,37 @@ public class ExtendedNormalizedMutualInformation implements KnowledgeDrivenMeasu
 		int joinedMembersCount = procedure.getNonZeroEntryCount();
 		int nodeCount = cover1Memberships.rows();
 		/*
-		 * probabilities of 
+		 * Probabilities of y
 		 */
-		double probability_x0_y0 = (double)( nodeCount - joinedMembersCount ) / (double)nodeCount;
-		double probability_x1_y0 = (double)( cover1CommunitySize - sharedMembersCount ) / (double)nodeCount;
-		double probability_x0_y1 = (double)( cover2CommunitySize - sharedMembersCount ) / (double)nodeCount;
-		double probability_x1_y1 = (double) sharedMembersCount / (double) nodeCount;
-		double h_x0_y0 = - probability_x0_y0 * Math.log(probability_x0_y0) / Math.log(2);
-		double h_x1_y0 = - probability_x1_y0 * Math.log(probability_x1_y0) / Math.log(2);
-		double h_x0_y1 = - probability_x0_y1 * Math.log(probability_x0_y1) / Math.log(2);
-		double h_x1_y1 = - probability_x1_y1 * Math.log(probability_x1_y1) / Math.log(2);
+		double probability_y0 = (double)(nodeCount - cover2CommunitySize) / (double)nodeCount;
+		double probability_y1 = (double)cover2CommunitySize / (double)nodeCount;
+		/*
+		 * Conditional probabilities of x given y
+		 */
+		double probability_x0_y0 = (double)( nodeCount - joinedMembersCount ) / (double)nodeCount / probability_y0;
+		double probability_x1_y0 = (double)( cover1CommunitySize - sharedMembersCount ) / (double)nodeCount / probability_y0;
+		double probability_x0_y1 = (double)( cover2CommunitySize - sharedMembersCount ) / (double)nodeCount / probability_y1;
+		double probability_x1_y1 = (double) sharedMembersCount / (double) nodeCount / probability_y1;
+		double h_x0_y0 = 0;
+		if(probability_x0_y0 > 0) {
+			h_x0_y0 = - probability_x0_y0 * Math.log(probability_x0_y0) / Math.log(2d);
+		}
+		double h_x1_y0 = 0;
+		if(probability_x1_y0 > 0) {
+			h_x1_y0 = - probability_x1_y0 * Math.log(probability_x1_y0) / Math.log(2d);
+		}
+		double h_x0_y1 = 0;
+		if(probability_x0_y1 > 0) {
+			h_x0_y1 = - probability_x0_y1 * Math.log(probability_x0_y1) / Math.log(2d);
+		}
+		double h_x1_y1 = 0;
+		if(probability_x1_y1 > 0) {
+			h_x1_y1 = - probability_x1_y1 * Math.log(probability_x1_y1) / Math.log(2d);
+		}
 		double conditionalEntropy = Double.POSITIVE_INFINITY;
-		if(h_x0_y0 + h_x1_y1 > h_x1_y0 + h_x0_y1) {
-			conditionalEntropy = (h_x0_y0 + h_x1_y0) * ( (double)(nodeCount - cover2CommunitySize) / (double)nodeCount);
-			conditionalEntropy += (h_x0_y1 + h_x1_y1) * (double)cover2CommunitySize / (double)nodeCount;
+		if(h_x0_y0 + h_x1_y1 >= h_x1_y0 + h_x0_y1) {
+			conditionalEntropy = (h_x0_y0 + h_x1_y0) * probability_y0;
+			conditionalEntropy += (h_x0_y1 + h_x1_y1) * probability_y1;
 		}
 		return conditionalEntropy;
 	}

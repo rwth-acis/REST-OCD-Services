@@ -21,7 +21,7 @@ public class LabeledMembershipMatrixInputAdapterTest {
 		try {
 			CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 			Algorithm algorithm = Algorithm.UNDEFINED;
-			cover = adapter.readCover(OcdTestConstants.sawmillLabeledMembershipMatrixInputPath, graph, algorithm);
+			cover = adapter.readCover(OcdTestConstants.sawmillArbitraryLabeledMembershipMatrixInputPath, graph, algorithm);
 			assertEquals(4, cover.communityCount());
 			assertEquals(algorithm, cover.getAlgorithm());
 			assertEquals(graph, cover.getGraph());

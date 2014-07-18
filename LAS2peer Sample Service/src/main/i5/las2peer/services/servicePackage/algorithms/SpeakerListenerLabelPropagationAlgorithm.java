@@ -43,9 +43,9 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	 * The lower bound for the relative label occurrence.
 	 * Labels received by a node with a relative occurrence lower than this threshold will be ignored
 	 * and do not have any influence on that nodes community memberships.
-	 * The default value is 0.05.
+	 * The default value is 0.15.
 	 */
-	private double probabilityThreshold = 0.05;
+	private double probabilityThreshold = 0.15;
 	/**
 	 * The speaker rule according to which a speaker decides which label to send.
 	 * The default rule is the UniformSpeakerRule.
@@ -125,9 +125,9 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	}
 	
 	protected void initializeCommunityDetection(CustomGraph graph, List<List<Integer>> memories, List<Node> nodeOrder) {
-		List<Integer> memory = new ArrayList<Integer>();
+		List<Integer> memory;
 		for(int i=0; i<graph.nodeCount(); i++) {
-			memory.clear();
+			memory = new ArrayList<Integer>();
 			memory.add(i);
 			memories.add(memory);
 			nodeOrder.add(graph.getNodeArray()[i]);

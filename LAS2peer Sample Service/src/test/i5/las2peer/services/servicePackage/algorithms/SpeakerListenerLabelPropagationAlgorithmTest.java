@@ -15,9 +15,18 @@ public class SpeakerListenerLabelPropagationAlgorithmTest {
 	 * Test the SLPA Algorithm on a simple Graph
 	 */
 	@Test
-	public void testSleaperListenerLabelPropagationAlgo()
+	public void testOnTwoCommunities()
 	{
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
+		SpeakerListenerLabelPropagationAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
+		Cover cover = algo.detectOverlappingCommunities(graph);
+		System.out.println(cover.toString());
+	}
+	
+	@Test
+	public void testOnSawmill()
+	{
+		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SpeakerListenerLabelPropagationAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());

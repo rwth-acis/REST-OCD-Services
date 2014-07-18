@@ -174,7 +174,7 @@ public class Cover {
 
 	@Override
 	public String toString() {
-		String coverString = "Cover:" + getName() + "\n";
+		String coverString = "Cover: " + getName() + "\n";
 		coverString += "Graph: " + getGraph().getName() + "\n";
 		coverString += "Algorithm: " + getAlgorithm().toString() + "\n";
 		coverString += "Community Count: " + communityCount() + "\n";
@@ -182,7 +182,7 @@ public class Cover {
 		for(int i=0; i<Metric.values().length; i++) {
 			metric = Metric.values()[i];
 			if(metricResults.containsKey(metric)) {
-				coverString += metric.toString();
+				coverString += metric.toString() + ": ";
 				coverString += metricResults.get(metric);
 				coverString += "\n";
 			}

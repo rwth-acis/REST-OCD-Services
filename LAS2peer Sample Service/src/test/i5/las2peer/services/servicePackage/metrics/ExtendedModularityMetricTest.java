@@ -27,7 +27,7 @@ public class ExtendedModularityMetricTest {
 			memberships.set(i, 0, 1);
 		}
 		Cover cover = new Cover(graph, memberships, null);
-		ExtendedModularityMetric metric = new ExtendedModularityMetric();
+		ExtendedModularity metric = new ExtendedModularity();
 		metric.measure(cover);
 		System.out.println("1 Community");
 		System.out.println(cover.getMetricResult(Metric.EXTENDED_MODULARITY_METRIC));
@@ -38,7 +38,7 @@ public class ExtendedModularityMetricTest {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		ExtendedModularityMetric metric = new ExtendedModularityMetric();
+		ExtendedModularity metric = new ExtendedModularity();
 		metric.measure(cover);
 		System.out.println("Sawmill SLPA");
 		System.out.println(cover.getMetricResult(Metric.EXTENDED_MODULARITY_METRIC));
@@ -66,7 +66,7 @@ public class ExtendedModularityMetricTest {
 		memberships.set(10, 1, 0.4);
 		memberships.set(10, 2, 0.2);
 		Cover cover = new Cover(graph, memberships, Algorithm.UNDEFINED);
-		ExtendedModularityMetric metric = new ExtendedModularityMetric();
+		ExtendedModularity metric = new ExtendedModularity();
 		metric.measure(cover);
 		assertEquals(0.581, cover.getMetricResult(Metric.EXTENDED_MODULARITY_METRIC), 0.01);
 		System.out.println(cover);
