@@ -26,6 +26,7 @@ public interface OcdAlgorithm {
 	 * 
 	 * @param graph The graph whose community structure will be detected.
 	 * @return A normalized cover containing the community structure.
+	 * @throws OcdAlgorithmException
 	 */	
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException;
 	

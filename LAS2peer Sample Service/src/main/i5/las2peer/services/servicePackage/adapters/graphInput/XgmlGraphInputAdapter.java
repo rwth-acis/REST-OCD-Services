@@ -1,8 +1,8 @@
 package i5.las2peer.services.servicePackage.adapters.graphInput;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,12 +35,8 @@ public class XgmlGraphInputAdapter extends AbstractGraphInputAdapter {
 		this.filename = filename;
 	}
 	
-	/**
-	 * Reads a graph from a file using the XGML format
-	 */
 	@Override
-	public CustomGraph readGraph() {
-		CustomGraph graph;
+	public CustomGraph readGraph() throws AdapterException {
 		try {  
 		    // Reads in the graph using an IOHandler.
 			Graph2D inputGraph = new Graph2D();
@@ -66,11 +62,10 @@ public class XgmlGraphInputAdapter extends AbstractGraphInputAdapter {
 		    	edgeWeights.put(edge, edgeWeight);
 		    	edges.next();
 		    }
-		    graph = new CustomGraph(inputGraph, edgeWeights, nodeNames);
+		    return new CustomGraph(inputGraph, edgeWeights, nodeNames);
 		}  
-		catch (IOException ioEx) {
-			graph = new CustomGraph();
+		catch (Exception e) {
+			throw new AdapterException();
 		}
-		return graph;
 	}
 }

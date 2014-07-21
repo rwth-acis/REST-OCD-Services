@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.algorithms;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
@@ -24,7 +25,7 @@ public class SpeakerListenerLabelPropagationAlgorithmTest {
 	}
 	
 	@Test
-	public void testOnSawmill()
+	public void testOnSawmill() throws AdapterException
 	{
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SpeakerListenerLabelPropagationAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();

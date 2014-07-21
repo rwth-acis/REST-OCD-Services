@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.adapters.coverOutput;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.SskAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
@@ -15,7 +16,7 @@ import org.junit.Test;
 public class LabeledMembershipMatrixOutputAdapterTest {
 
 	@Test
-	public void test() throws OcdAlgorithmException, IOException {
+	public void test() throws OcdAlgorithmException, IOException, AdapterException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new SskAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);

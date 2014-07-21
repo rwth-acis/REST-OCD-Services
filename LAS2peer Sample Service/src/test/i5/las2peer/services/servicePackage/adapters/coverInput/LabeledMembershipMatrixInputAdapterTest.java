@@ -17,11 +17,12 @@ public class LabeledMembershipMatrixInputAdapterTest {
 	@Test
 	public void testReadCoverOnSawmill() {
 		CoverInputAdapter adapter = new LabeledMembershipMatrixInputAdapter();
+		adapter.setFilename(OcdTestConstants.sawmillArbitraryLabeledMembershipMatrixInputPath);
 		Cover cover;
 		try {
 			CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 			Algorithm algorithm = Algorithm.UNDEFINED;
-			cover = adapter.readCover(OcdTestConstants.sawmillArbitraryLabeledMembershipMatrixInputPath, graph, algorithm);
+			cover = adapter.readCover(graph, algorithm);
 			assertEquals(4, cover.communityCount());
 			assertEquals(algorithm, cover.getAlgorithm());
 			assertEquals(graph, cover.getGraph());

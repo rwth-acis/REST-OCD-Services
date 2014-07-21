@@ -2,6 +2,7 @@ package i5.las2peer.services.servicePackage.graph;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.SskAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
@@ -23,7 +24,7 @@ public class GraphProcessorTest {
 	 * and edge weight setting, on sawmill.
 	 */
 	@Test
-	public void testMakeUndirected() {
+	public void testMakeUndirected() throws AdapterException {
 		/*
 		 * Note that getSawmillGraph makes use of makeUndirected.
 		 */

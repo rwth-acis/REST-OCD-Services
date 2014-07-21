@@ -1,6 +1,7 @@
 package i5.las2peer.services.servicePackage.adapters.graphInput;
 
 import static org.junit.Assert.assertEquals;
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.NodeWeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
@@ -14,7 +15,7 @@ import y.base.NodeCursor;
 public class NodeWeightedEdgeListGraphInputAdapterTest {
 
 	@Test
-	public void test() {
+	public void test() throws AdapterException {
 		GraphInputAdapter inputAdapter =
 				new NodeWeightedEdgeListGraphInputAdapter(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath);
 		CustomGraph graph = inputAdapter.readGraph();

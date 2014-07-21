@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.adapters.coverInput;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.Adapters;
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
 import i5.las2peer.services.servicePackage.graph.Cover;
@@ -15,10 +16,10 @@ import org.la4j.matrix.sparse.CCSMatrix;
 public class LabeledMembershipMatrixInputAdapter extends AbstractCoverInputAdapter {
 
 	@Override
-	public Cover readCover(String filename, CustomGraph graph, Algorithm algorithm) throws Exception {
+	public Cover readCover(CustomGraph graph, Algorithm algorithm) throws AdapterException {
 		Reader reader = null;
 		try {
-			reader = new FileReader(filename);
+			reader = new FileReader(this.filename);
 			List<String> line = Adapters.readLine(reader);
 			Matrix memberships = new CCSMatrix(graph.nodeCount(), line.size() - 1);
 			int nodeIndex = 0;
@@ -34,7 +35,7 @@ public class LabeledMembershipMatrixInputAdapter extends AbstractCoverInputAdapt
 			return new Cover(graph, memberships, algorithm);
 		}
 		catch (Exception e) {
-			throw e;
+			throw new AdapterException();
 		}
 		finally {
 			try {

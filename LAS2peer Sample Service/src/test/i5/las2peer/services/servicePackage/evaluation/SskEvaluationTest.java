@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.evaluation;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.coverInput.CoverInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.coverInput.LabeledMembershipMatrixInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.coverOutput.CoverOutputAdapter;
@@ -30,10 +31,11 @@ public class SskEvaluationTest {
 	 * Test the SLPA Algorithm on a simple Graph
 	 * @throws IOException 
 	 * @throws OcdAlgorithmException 
+	 * @throws AdapterException 
 	 */
 	@Ignore
 	@Test
-	public void testSskAlgoOnSiamDm() throws IOException, OcdAlgorithmException
+	public void testSskAlgoOnSiamDm() throws IOException, OcdAlgorithmException, AdapterException
 	{
 		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
 		OcdAlgorithmExecutor algoExecutor = new OcdAlgorithmExecutor();
@@ -51,11 +53,12 @@ public class SskEvaluationTest {
 	@Test
 	public void testCoverModularity() {
 		CoverInputAdapter adapter = new LabeledMembershipMatrixInputAdapter();
+		adapter.setFilename(EvaluationConstants.sskSiamDmLabeledMembershipMatrixOutputPath);
 		Cover cover;
 		try {
 			CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
 			Algorithm algorithm = Algorithm.UNDEFINED;
-			cover = adapter.readCover(EvaluationConstants.sskSiamDmLabeledMembershipMatrixOutputPath, graph, algorithm);
+			cover = adapter.readCover(graph, algorithm);
 			cover.filterMembershipsbyThreshold(0.2);
 			StatisticalMeasure metric = new ExtendedModularity();
 			metric.measure(cover);

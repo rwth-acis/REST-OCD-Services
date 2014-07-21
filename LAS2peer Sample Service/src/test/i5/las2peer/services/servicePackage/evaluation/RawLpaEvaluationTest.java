@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.evaluation;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithmExecutor;
 import i5.las2peer.services.servicePackage.algorithms.RandomWalkLabelPropagationAlgorithm;
@@ -18,10 +19,11 @@ public class RawLpaEvaluationTest {
 	 * Tests the Random Walk Label Propagation Algorithm on Siam
 	 * @throws IOException
 	 * @throws OcdAlgorithmException
+	 * @throws AdapterException 
 	 */
 	@Ignore
 	@Test
-	public void testRawLpaOnSiamDm() throws IOException, OcdAlgorithmException
+	public void testRawLpaOnSiamDm() throws IOException, OcdAlgorithmException, AdapterException
 	{
 		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
 		OcdAlgorithmExecutor algoExecutor = new OcdAlgorithmExecutor();

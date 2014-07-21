@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.metrics;
 
+import static org.junit.Assert.*;
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.RandomWalkLabelPropagationAlgorithm;
@@ -86,6 +87,7 @@ public class ExtendedNormalizedMutualInformationTest {
 	Cover groundTruth = new Cover(graph, memberships2, Algorithm.UNDEFINED);
 	KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformation();
 	metric.measure(cover, groundTruth);
+	assertEquals(0.29, cover.getMetricResult(Metric.EXTENDED_NORMALIZED_MUTUAL_INFORMATION), 0.01);
 	System.out.println("Known Result");
 	System.out.println(cover);
 	}

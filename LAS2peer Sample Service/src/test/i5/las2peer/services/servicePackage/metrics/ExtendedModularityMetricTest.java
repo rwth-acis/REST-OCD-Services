@@ -1,6 +1,7 @@
 package i5.las2peer.services.servicePackage.metrics;
 
 import static org.junit.Assert.assertEquals;
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationAlgorithm;
@@ -20,7 +21,7 @@ public class ExtendedModularityMetricTest {
 	 * Assures that modularity is 0 if only one community exists.
 	 */
 	@Test
-	public void testExtendedModularityWithOneCommunity() {
+	public void testExtendedModularityWithOneCommunity() throws AdapterException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		Matrix memberships = new Basic2DMatrix(graph.nodeCount(), 1);
 		for(int i=0; i<memberships.rows(); i++) {
@@ -34,7 +35,7 @@ public class ExtendedModularityMetricTest {
 	}
 	
 	@Test
-	public void testExtendedModularityOnSawmillSLPA() throws OcdAlgorithmException {
+	public void testExtendedModularityOnSawmillSLPA() throws OcdAlgorithmException, AdapterException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);

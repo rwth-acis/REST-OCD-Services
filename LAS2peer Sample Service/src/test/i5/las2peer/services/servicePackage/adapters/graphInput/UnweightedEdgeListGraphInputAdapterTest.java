@@ -1,6 +1,7 @@
 package i5.las2peer.services.servicePackage.adapters.graphInput;
 
 import static org.junit.Assert.*;
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
@@ -11,7 +12,7 @@ import org.junit.Test;
 public class UnweightedEdgeListGraphInputAdapterTest {
 
 	@Test
-	public void testOnSawmill() {
+	public void testOnSawmill() throws AdapterException {
 		GraphInputAdapter inputAdapter =
 				new UnweightedEdgeListGraphInputAdapter(OcdTestConstants.sawmillUnweightedEdgeListInputPath);
 		CustomGraph graph = inputAdapter.readGraph();
@@ -20,7 +21,7 @@ public class UnweightedEdgeListGraphInputAdapterTest {
 	}
 	
 	@Test
-	public void testOnSiam() {
+	public void testOnSiam() throws AdapterException {
 		GraphInputAdapter inputAdapter =
 				new UnweightedEdgeListGraphInputAdapter(OcdTestConstants.siamDmUnweightedEdgeListInputPath);
 		CustomGraph graph = inputAdapter.readGraph();

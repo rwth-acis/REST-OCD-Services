@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.algorithms;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
@@ -71,7 +72,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	}
 	
 	@Test
-	public void testOnSawmill() throws OcdAlgorithmException {
+	public void testOnSawmill() throws OcdAlgorithmException, AdapterException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2, 1000, 0.001);
 		Cover cover = algo.detectOverlappingCommunities(graph);
@@ -79,7 +80,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	}
 	
 	@Test
-	public void testProfitabilityDelta() throws OcdAlgorithmException {
+	public void testProfitabilityDelta() throws OcdAlgorithmException, AdapterException {
 		System.out.println();
 		System.out.println();
 		System.out.println("Test Profitability Delta");

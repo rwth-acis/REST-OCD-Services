@@ -12,7 +12,8 @@ public interface GroundTruthBenchmarkModel {
 	/**
 	 * Returns a ground truth cover with the corresponding graph created according to the benchmark model.
 	 * @return The ground truth cover. The graph can be obtained via the cover.
+	 * @throws BenchmarkException 
 	 */
-	public Cover createGroundTruthCover();
+	public Cover createGroundTruthCover() throws BenchmarkException;
 	
 }

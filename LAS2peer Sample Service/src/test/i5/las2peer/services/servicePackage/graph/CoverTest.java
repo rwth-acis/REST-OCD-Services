@@ -2,6 +2,7 @@ package i5.las2peer.services.servicePackage.graph;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.Algorithm;
 import i5.las2peer.services.servicePackage.metrics.ExtendedModularity;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
@@ -25,7 +26,7 @@ public class CoverTest {
 	 * Creates a cover for the sawmill graph
 	 */
 	@Before 
-	public void sawmillCoverSetUp() {
+	public void sawmillCoverSetUp() throws AdapterException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		Matrix memberships = new Basic2DMatrix(graph.nodeCount(), 5);
 		for(int i=0; i<memberships.rows(); i++) {

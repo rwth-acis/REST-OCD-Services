@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.evaluation;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithmExecutor;
 import i5.las2peer.services.servicePackage.algorithms.SskAlgorithm;
@@ -18,7 +19,7 @@ import y.base.Node;
 public class GraphEvaluationTest {
 
 	@Test
-	public void testSiamComponents() {
+	public void testSiamComponents() throws AdapterException {
 		System.out.println("Siam Components:");
 		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
 		GraphProcessor processor = new GraphProcessor();
@@ -34,7 +35,7 @@ public class GraphEvaluationTest {
 	}
 
 	@Test
-	public void testSiamAnalyzer() throws OcdAlgorithmException {
+	public void testSiamAnalyzer() throws OcdAlgorithmException, AdapterException {
 		System.out.println("Siam Component Analyzer:");
 		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
 		OcdAlgorithmExecutor algoExecutor = new OcdAlgorithmExecutor();

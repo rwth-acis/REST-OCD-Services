@@ -10,8 +10,9 @@ public class OcdTestCoverFactory {
 	
 	public static Cover getSawmillGroundTruth() throws Exception {
 		CoverInputAdapter adapter = new LabeledMembershipMatrixInputAdapter();
+		adapter.setFilename(OcdTestConstants.sawmillGroundTruthLabeledMembershipMatrixInputPath);
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		return adapter.readCover(OcdTestConstants.sawmillGroundTruthLabeledMembershipMatrixInputPath, graph, Algorithm.UNDEFINED);
+		return adapter.readCover(graph, Algorithm.UNDEFINED);
 	}
 	
 }

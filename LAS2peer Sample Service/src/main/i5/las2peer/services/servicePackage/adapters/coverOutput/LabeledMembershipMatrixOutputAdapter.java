@@ -1,10 +1,10 @@
 package i5.las2peer.services.servicePackage.adapters.coverOutput;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Writer;
 
 import y.base.Node;
@@ -13,7 +13,7 @@ import y.base.NodeCursor;
 public class LabeledMembershipMatrixOutputAdapter extends AbstractCoverOutputAdapter {
 
 	@Override
-	public void writeCover(Cover cover) throws IOException {
+	public void writeCover(Cover cover) throws AdapterException {
 		Writer writer = null;
 		try {
 			writer = new FileWriter(filename);
@@ -33,8 +33,8 @@ public class LabeledMembershipMatrixOutputAdapter extends AbstractCoverOutputAda
 				nodes.next();
 			}
 		}
-		catch (IOException e) {
-			throw e;
+		catch (Exception e) {
+			throw new AdapterException();
 		}
 		finally {
 			try {

@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.evaluation;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.coverOutput.CoverOutputAdapter;
 import i5.las2peer.services.servicePackage.adapters.coverOutput.LabeledMembershipMatrixOutputAdapter;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
@@ -26,10 +27,11 @@ public class SlpaEvaluationTest {
 	 * Test the SLPA Algorithm on a simple Graph
 	 * @throws IOException 
 	 * @throws OcdAlgorithmException 
+	 * @throws AdapterException 
 	 */
 	@Ignore
 	@Test
-	public void testSleaperListenerLabelPropagationAlgo() throws IOException, OcdAlgorithmException
+	public void testSleaperListenerLabelPropagationAlgo() throws IOException, OcdAlgorithmException, AdapterException
 	{
 		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
 		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();

@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.adapters.graphInput;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.Adapters;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 
@@ -31,7 +32,7 @@ public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAda
 	}
 
 	@Override
-	public CustomGraph readGraph() {
+	public CustomGraph readGraph() throws AdapterException {
 		CustomGraph graph = new CustomGraph();
 		Reader reader = null;
 		try {
@@ -64,9 +65,10 @@ public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAda
 				graph.setEdgeWeight(edge, edgeWeight);
 				line = Adapters.readLine(reader);
 			}
+			return graph;
 		}
 		catch (Exception e) {
-			graph = new CustomGraph();
+			throw new AdapterException();
 		}
 		finally {
 			try {
@@ -75,7 +77,6 @@ public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAda
 			catch (Exception e) {
 			}
 		}
-		return graph;
 	}
 	
 }

@@ -1,5 +1,6 @@
 package i5.las2peer.services.servicePackage.testsUtil;
 
+import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.NodeWeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
@@ -188,7 +189,7 @@ public class OcdTestGraphFactory {
 		return graph;
 	}
 	
-	public static CustomGraph getSawmillGraph() {
+	public static CustomGraph getSawmillGraph() throws AdapterException {
 		GraphInputAdapter adapter = new NodeWeightedEdgeListGraphInputAdapter(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath);
 		CustomGraph graph = adapter.readGraph();
 		GraphProcessor processor = new GraphProcessor();
@@ -196,12 +197,12 @@ public class OcdTestGraphFactory {
 		return graph;
 	}
 	
-	public static CustomGraph getDirectedSawmillGraph() {
+	public static CustomGraph getDirectedSawmillGraph() throws AdapterException {
 		GraphInputAdapter adapter = new NodeWeightedEdgeListGraphInputAdapter(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath);
 		return adapter.readGraph();
 	}
 	
-	public static CustomGraph getSiamDmGraph() {
+	public static CustomGraph getSiamDmGraph() throws AdapterException {
 		GraphInputAdapter adapter = new UnweightedEdgeListGraphInputAdapter(EvaluationConstants.siamDmUnweightedEdgeListInputPath);
 		CustomGraph graph = adapter.readGraph();
 		GraphProcessor processor = new GraphProcessor();
