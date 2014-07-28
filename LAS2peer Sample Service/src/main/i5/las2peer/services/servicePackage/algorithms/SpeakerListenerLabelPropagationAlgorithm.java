@@ -81,8 +81,13 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	}
 	
 	@Override
-	public Algorithm getAlgorithm() {
-		return Algorithm.SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM;
+	public AlgorithmLog getAlgorithm() {
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put("memorySize", Integer.toString(memorySize));
+		parameters.put("probabilityThreshold", Double.toString(probabilityThreshold));
+		parameters.put("listenerRule", listenerRule.toString());
+		parameters.put("speakerRule", speakerRule.toString());
+		return new AlgorithmLog(AlgorithmIdentifier.SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM, parameters);
 	}
 	
 	@Override

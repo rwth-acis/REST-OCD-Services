@@ -9,6 +9,7 @@ import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestConstants;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
+import java.io.FileWriter;
 import java.io.IOException;
 
 import org.junit.Test;
@@ -20,10 +21,9 @@ public class LabeledMembershipMatrixOutputAdapterTest {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new SskAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter();
-		adapter.setFilename(OcdTestConstants.sawmillLabeledMembershipMatrixOutputPath);
-		adapter.writeCover(cover);
 		System.out.println(cover.toString());
+		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter(new FileWriter(OcdTestConstants.sawmillLabeledMembershipMatrixOutputPath));
+		adapter.writeCover(cover);
 	}
 
 }

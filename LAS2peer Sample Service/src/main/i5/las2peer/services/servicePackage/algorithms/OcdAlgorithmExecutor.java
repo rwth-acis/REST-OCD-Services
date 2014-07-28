@@ -48,7 +48,7 @@ public class OcdAlgorithmExecutor {
 		return componentCovers;
 	}
 	
-	private Cover computeSingleCommunityCover(CustomGraph graph, Algorithm algorithm) {
+	private Cover computeSingleCommunityCover(CustomGraph graph, AlgorithmLog algorithm) {
 		Matrix memberships = new CCSMatrix(graph.nodeCount(), 1);
 		memberships.assign(1);
 		return new Cover(graph, memberships, algorithm);

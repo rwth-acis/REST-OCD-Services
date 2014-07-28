@@ -26,5 +26,10 @@ public class SlpaUniformSpeakerRule implements SlpaSpeakerRuleCommand {
 		Random rand = new Random();
 		return memory.get(rand.nextInt(memory.size()));
 	}
+	
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName();
+	}
 
 }

@@ -1,7 +1,11 @@
 package i5.las2peer.services.servicePackage.metrics;
 
 import static org.junit.Assert.*;
-import i5.las2peer.services.servicePackage.algorithms.Algorithm;
+
+import java.util.HashMap;
+
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.RandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
@@ -69,7 +73,7 @@ public class ExtendedNormalizedMutualInformationTest {
 	memberships1.set(8, 1, 1);
 	memberships1.set(9, 1, 0.5);
 	memberships1.set(10, 1, 1);
-	Cover cover = new Cover(graph, memberships1, Algorithm.UNDEFINED);
+	Cover cover = new Cover(graph, memberships1, new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>()));
 	Matrix memberships2 = new CCSMatrix(11, 2);
 	memberships2.set(0, 0, 1);
 	memberships2.set(1, 0, 1);
@@ -84,10 +88,10 @@ public class ExtendedNormalizedMutualInformationTest {
 	memberships2.set(8, 1, 1);
 	memberships2.set(9, 1, 1);
 	memberships2.set(10, 1, 1);
-	Cover groundTruth = new Cover(graph, memberships2, Algorithm.UNDEFINED);
+	Cover groundTruth = new Cover(graph, memberships2, new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>()));
 	KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformation();
 	metric.measure(cover, groundTruth);
-	assertEquals(0.29, cover.getMetricResult(Metric.EXTENDED_NORMALIZED_MUTUAL_INFORMATION), 0.01);
+	assertEquals(0.29, cover.getMetric(MetricIdentifier.EXTENDED_NORMALIZED_MUTUAL_INFORMATION).getValue(), 0.01);
 	System.out.println("Known Result");
 	System.out.println(cover);
 	}

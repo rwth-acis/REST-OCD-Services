@@ -7,6 +7,7 @@ import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
+import java.io.FileNotFoundException;
 import java.util.Map;
 
 import org.junit.Ignore;
@@ -50,7 +51,7 @@ public class SSKAlgorithmTest {
 	 */
 	@Ignore
 	@Test
-	public void testExecuteRandomWalkOnSawmill() throws AdapterException {
+	public void testExecuteRandomWalkOnSawmill() throws AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
@@ -94,7 +95,7 @@ public class SSKAlgorithmTest {
 	 * Tests the global leader detection on aperiodic two communities.
 	 */
 	@Test
-	public void testDetermineGlobalLeadersOnSawmill() throws AdapterException {
+	public void testDetermineGlobalLeadersOnSawmill() throws AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
@@ -214,7 +215,7 @@ public class SSKAlgorithmTest {
 	 * Test the community detection on sawmill.
 	 */
 	@Test
-	public void testSSKALgorithmOnSawmill() throws AdapterException {
+	public void testSSKALgorithmOnSawmill() throws AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);

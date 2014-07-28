@@ -2,6 +2,8 @@ package i5.las2peer.services.servicePackage.metrics;
 
 import i5.las2peer.services.servicePackage.graph.Cover;
 
+import java.util.HashMap;
+
 import org.la4j.vector.Vectors;
 
 import y.base.Graph;
@@ -41,7 +43,8 @@ public class ExtendedModularity implements StatisticalMeasure {
 		if(graph.edgeCount() > 0) {
 			metricValue /= graph.edgeCount();
 		}
-		cover.setMetricValue(Metric.EXTENDED_MODULARITY_METRIC, metricValue);
+		MetricLog metric = new MetricLog(MetricIdentifier.EXTENDED_MODULARITY_METRIC, metricValue, new HashMap<String, String>());
+		cover.setMetric(metric);
 	}
 	
 	/*

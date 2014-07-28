@@ -76,8 +76,12 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	}
 
 	@Override
-	public Algorithm getAlgorithm() {
-		return Algorithm.RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM;
+	public AlgorithmLog getAlgorithm() {
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put("profitabilityDelta", Double.toString(profitabilityDelta));
+		parameters.put("leadershipIterationBound", Integer.toString(leadershipIterationBound));
+		parameters.put("leadershipPrecisionFactor", Double.toString(leadershipPrecisionFactor));
+		return new AlgorithmLog(AlgorithmIdentifier.RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM, parameters);
 	}
 
 	@Override

@@ -2,11 +2,11 @@ package i5.las2peer.services.servicePackage.adapters.coverInput;
 
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.Adapters;
-import i5.las2peer.services.servicePackage.algorithms.Algorithm;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 
-import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,45 +21,44 @@ import y.base.NodeCursor;
 
 public class NodeCommunityListInputAdapter extends AbstractCoverInputAdapter {
 
-	public NodeCommunityListInputAdapter(String filename) {
-		this.setFilename(filename);
+	public NodeCommunityListInputAdapter(Reader reader) {
+		this.setReader(reader);
 	}
 	
 	@Override
-	public Cover readCover(CustomGraph graph, Algorithm algorithm)
+	public Cover readCover(CustomGraph graph, AlgorithmLog algorithm)
 			throws AdapterException {
-		Reader reader = null;
 		String nodeName;
 		Map<String, List<Integer>> nodeCommunities = new HashMap<String,  List<Integer>>();;
 		List<Integer> communityIndices;
 		Map<String, Integer> communityNames = new HashMap<String, Integer>();
 		int communityCount = 0;
 		try {
-			reader = new FileReader(filename);
 			List<String> line = Adapters.readLine(reader);
 			String communityName;
 			/*
 			 * Reads edges
 			 */
-			while (line.size() == 2) {
+			while (line.size() >= 2) {
 				nodeName = line.get(0);
-				communityName = line.get(1);
-				if(!communityNames.containsKey(communityName)) {
-					communityNames.put(communityName, communityCount);
-					communityCount++;
-				}
-				if (!nodeCommunities.containsKey(nodeName)) {
-					communityIndices = new ArrayList<Integer>();
-					communityIndices.add(communityNames.get(communityName));
-					nodeCommunities.put(nodeName, communityIndices);
-				} else {
-					nodeCommunities.get(nodeName).add(communityNames.get(communityName));
+				for(int i=1; i<line.size(); i++) {
+					communityName = line.get(i);
+					if(!communityNames.containsKey(communityName)) {
+						communityNames.put(communityName, communityCount);
+						communityCount++;
+					}
+					if (!nodeCommunities.containsKey(nodeName)) {
+						communityIndices = new ArrayList<Integer>();
+						communityIndices.add(communityNames.get(communityName));
+						nodeCommunities.put(nodeName, communityIndices);
+					} else {
+						nodeCommunities.get(nodeName).add(communityNames.get(communityName));
+					}
 				}
 				line = Adapters.readLine(reader);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new AdapterException();
+			throw new AdapterException(e);
 		} finally {
 			try {
 				reader.close();
@@ -79,7 +78,7 @@ public class NodeCommunityListInputAdapter extends AbstractCoverInputAdapter {
 			}
 			nodes.next();
 		}
-		return new Cover(graph, memberships, Algorithm.UNDEFINED);
+		return new Cover(graph, memberships, new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>()));
 	}
 	
 }

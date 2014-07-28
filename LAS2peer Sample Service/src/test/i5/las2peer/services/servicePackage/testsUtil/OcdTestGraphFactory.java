@@ -7,6 +7,10 @@ import i5.las2peer.services.servicePackage.adapters.graphInput.UnweightedEdgeLis
 import i5.las2peer.services.servicePackage.evaluation.EvaluationConstants;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Node;
@@ -189,21 +193,21 @@ public class OcdTestGraphFactory {
 		return graph;
 	}
 	
-	public static CustomGraph getSawmillGraph() throws AdapterException {
-		GraphInputAdapter adapter = new NodeWeightedEdgeListGraphInputAdapter(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath);
+	public static CustomGraph getSawmillGraph() throws AdapterException, FileNotFoundException {
+		GraphInputAdapter adapter = new NodeWeightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath));
 		CustomGraph graph = adapter.readGraph();
 		GraphProcessor processor = new GraphProcessor();
 		processor.makeUndirected(graph);
 		return graph;
 	}
 	
-	public static CustomGraph getDirectedSawmillGraph() throws AdapterException {
-		GraphInputAdapter adapter = new NodeWeightedEdgeListGraphInputAdapter(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath);
+	public static CustomGraph getDirectedSawmillGraph() throws AdapterException, FileNotFoundException {
+		GraphInputAdapter adapter = new NodeWeightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath));
 		return adapter.readGraph();
 	}
 	
-	public static CustomGraph getSiamDmGraph() throws AdapterException {
-		GraphInputAdapter adapter = new UnweightedEdgeListGraphInputAdapter(EvaluationConstants.siamDmUnweightedEdgeListInputPath);
+	public static CustomGraph getSiamDmGraph() throws AdapterException, FileNotFoundException {
+		GraphInputAdapter adapter = new UnweightedEdgeListGraphInputAdapter(new FileReader(EvaluationConstants.siamDmUnweightedEdgeListInputPath));
 		CustomGraph graph = adapter.readGraph();
 		GraphProcessor processor = new GraphProcessor();
 		processor.makeUndirected(graph);

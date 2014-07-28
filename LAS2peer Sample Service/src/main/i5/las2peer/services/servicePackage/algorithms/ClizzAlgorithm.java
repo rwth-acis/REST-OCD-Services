@@ -86,12 +86,16 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		Map<Node, Double> leadershipValues = calculateLeadershipValues(graph, distances);
 		Map<Node, Integer> leaders = determineCommunityLeaders(graph, distances, leadershipValues);
 		Matrix memberships = calculateMemberships(graph, leaders);
-		return new Cover(graph, memberships, Algorithm.CLIZZ_ALGORITHM);
+		return new Cover(graph, memberships, this.getAlgorithm());
 	}
 
 	@Override
-	public Algorithm getAlgorithm() {
-		return Algorithm.CLIZZ_ALGORITHM;
+	public AlgorithmLog getAlgorithm() {
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put("influenceFactor", Double.toString(influenceFactor));
+		parameters.put("membershipsIterationBound", Integer.toString(membershipsIterationBound));
+		parameters.put("membershipsPrecisionFactor", Double.toString(membershipsPrecisionFactor));
+		return new AlgorithmLog(AlgorithmIdentifier.CLIZZ_ALGORITHM, parameters);
 	}
 	
 	/*

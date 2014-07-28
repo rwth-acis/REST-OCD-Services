@@ -1,5 +1,7 @@
 package i5.las2peer.services.servicePackage.algorithms;
 
+import java.io.FileNotFoundException;
+
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
@@ -25,7 +27,7 @@ public class SpeakerListenerLabelPropagationAlgorithmTest {
 	}
 	
 	@Test
-	public void testOnSawmill() throws AdapterException
+	public void testOnSawmill() throws AdapterException, FileNotFoundException
 	{
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SpeakerListenerLabelPropagationAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();

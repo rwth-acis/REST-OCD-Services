@@ -2,21 +2,23 @@ package i5.las2peer.services.servicePackage.metrics;
 
 import i5.las2peer.services.servicePackage.graph.Cover;
 
+import java.util.HashMap;
+
 public class ExecutionTime {
 	
 	private long startTime;
 	private long totalTime = 0;
 	
 	public void start() {
-		this.startTime = System.nanoTime();
+		this.startTime = System.currentTimeMillis();
 	}
 	
 	public void stop() {
-		long stopTime = System.nanoTime();
-		totalTime += this.startTime - stopTime;
+		totalTime += System.currentTimeMillis() - this.startTime;
 	}
 	
 	public void setCoverExecutionTime(Cover cover) {
-		cover.setMetricValue(Metric.EXECUTION_TIME, this.totalTime);
+		MetricLog metric = new MetricLog(MetricIdentifier.EXECUTION_TIME, (double)totalTime / 1000d, new HashMap<String, String>());
+		cover.setMetric(metric);
 	}
 }

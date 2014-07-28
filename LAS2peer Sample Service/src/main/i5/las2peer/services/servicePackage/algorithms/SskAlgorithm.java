@@ -79,8 +79,13 @@ public class SskAlgorithm implements OcdAlgorithm {
 	}
 	
 	@Override
-	public Algorithm getAlgorithm() {
-		return Algorithm.SSK_ALGORITHM;
+	public AlgorithmLog getAlgorithm() {
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put("leadershipIterationBound", Integer.toString(leadershipIterationBound));
+		parameters.put("leadershipPrecisionFactor", Double.toString(leadershipPrecisionFactor));
+		parameters.put("membershipsIterationBound", Integer.toString(membershipsIterationBound));
+		parameters.put("membershipsPrecisionFactor", Double.toString(membershipsPrecisionFactor));
+		return new AlgorithmLog(AlgorithmIdentifier.SSK_ALGORITHM, parameters);
 	}
 	
 	@Override

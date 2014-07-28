@@ -14,6 +14,9 @@ public class PointEntity {
 	@Column
 	private double y;
 	
+	protected PointEntity() {
+	}
+	
 	protected PointEntity(YPoint point) {
 		this.x = point.getX();
 		this.y = point.getY();

@@ -4,7 +4,6 @@ import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.Adapters;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 
-import java.io.FileReader;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.List;
@@ -27,16 +26,14 @@ public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAda
 	 * @param filename
 	 *            The name of the .txt file containing the graph.
 	 */
-	public NodeWeightedEdgeListGraphInputAdapter(String filename) {
-		this.filename = filename;
+	public NodeWeightedEdgeListGraphInputAdapter(Reader reader) {
+		this.setReader(reader);
 	}
 
 	@Override
 	public CustomGraph readGraph() throws AdapterException {
 		CustomGraph graph = new CustomGraph();
-		Reader reader = null;
 		try {
-			reader = new FileReader(filename);
 			Map<String, Node> reverseNodeNames = new HashMap<String, Node>();
 			List<String> line = Adapters.readLine(reader);
 			/*
@@ -68,7 +65,7 @@ public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAda
 			return graph;
 		}
 		catch (Exception e) {
-			throw new AdapterException();
+			throw new AdapterException(e);
 		}
 		finally {
 			try {

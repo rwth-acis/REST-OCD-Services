@@ -9,6 +9,7 @@ import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
 
+import java.io.FileNotFoundException;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -19,7 +20,7 @@ import y.base.Node;
 public class GraphEvaluationTest {
 
 	@Test
-	public void testSiamComponents() throws AdapterException {
+	public void testSiamComponents() throws AdapterException, FileNotFoundException {
 		System.out.println("Siam Components:");
 		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
 		GraphProcessor processor = new GraphProcessor();
@@ -35,7 +36,7 @@ public class GraphEvaluationTest {
 	}
 
 	@Test
-	public void testSiamAnalyzer() throws OcdAlgorithmException, AdapterException {
+	public void testSiamAnalyzer() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
 		System.out.println("Siam Component Analyzer:");
 		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
 		OcdAlgorithmExecutor algoExecutor = new OcdAlgorithmExecutor();

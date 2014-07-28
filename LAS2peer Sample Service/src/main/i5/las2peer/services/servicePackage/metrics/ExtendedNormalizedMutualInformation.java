@@ -18,7 +18,8 @@ public class ExtendedNormalizedMutualInformation implements KnowledgeDrivenMeasu
 		Map<Integer, Integer> groundTruthCommunitySizes = determineCommunitySizes(groundTruth);
 		metricValue -= 0.5 * calculateArbitraryConditionalEntropy(cover, groundTruth, coverCommunitySizes, groundTruthCommunitySizes);
 		metricValue -= 0.5 * calculateArbitraryConditionalEntropy(groundTruth, cover, groundTruthCommunitySizes, coverCommunitySizes);
-		cover.setMetricValue(Metric.EXTENDED_NORMALIZED_MUTUAL_INFORMATION, metricValue);
+		MetricLog metric = new MetricLog(MetricIdentifier.EXTENDED_NORMALIZED_MUTUAL_INFORMATION, metricValue, new HashMap<String, String>());
+		cover.setMetric(metric);
 	}
 
 	/*

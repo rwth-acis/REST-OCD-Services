@@ -1,8 +1,13 @@
 package i5.las2peer.services.servicePackage.metrics;
 
 import static org.junit.Assert.assertEquals;
+
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
-import i5.las2peer.services.servicePackage.algorithms.Algorithm;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
@@ -21,7 +26,7 @@ public class ExtendedModularityMetricTest {
 	 * Assures that modularity is 0 if only one community exists.
 	 */
 	@Test
-	public void testExtendedModularityWithOneCommunity() throws AdapterException {
+	public void testExtendedModularityWithOneCommunity() throws AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		Matrix memberships = new Basic2DMatrix(graph.nodeCount(), 1);
 		for(int i=0; i<memberships.rows(); i++) {
@@ -31,18 +36,18 @@ public class ExtendedModularityMetricTest {
 		ExtendedModularity metric = new ExtendedModularity();
 		metric.measure(cover);
 		System.out.println("1 Community");
-		System.out.println(cover.getMetricResult(Metric.EXTENDED_MODULARITY_METRIC));
+		System.out.println(cover.toString());
 	}
 	
 	@Test
-	public void testExtendedModularityOnSawmillSLPA() throws OcdAlgorithmException, AdapterException {
+	public void testExtendedModularityOnSawmillSLPA() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		ExtendedModularity metric = new ExtendedModularity();
 		metric.measure(cover);
 		System.out.println("Sawmill SLPA");
-		System.out.println(cover.getMetricResult(Metric.EXTENDED_MODULARITY_METRIC));
+		System.out.println(cover.toString());
 	}
 	
 	@Test
@@ -66,10 +71,10 @@ public class ExtendedModularityMetricTest {
 		memberships.set(10, 0, 0.4);
 		memberships.set(10, 1, 0.4);
 		memberships.set(10, 2, 0.2);
-		Cover cover = new Cover(graph, memberships, Algorithm.UNDEFINED);
+		Cover cover = new Cover(graph, memberships, new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>()));
 		ExtendedModularity metric = new ExtendedModularity();
 		metric.measure(cover);
-		assertEquals(0.581, cover.getMetricResult(Metric.EXTENDED_MODULARITY_METRIC), 0.01);
+		assertEquals(0.581, cover.getMetric(MetricIdentifier.EXTENDED_MODULARITY_METRIC).getValue(), 0.01);
 		System.out.println(cover);
 	}
 

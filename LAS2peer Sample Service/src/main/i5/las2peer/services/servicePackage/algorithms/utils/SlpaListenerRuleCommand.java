@@ -18,4 +18,5 @@ public interface SlpaListenerRuleCommand {
 	 * Determines the label which the listener node will accept.
 	 */
 	public abstract int getLabel(CustomGraph graph, Node listener, Map<Node, Integer> receivedLabels);
+
 }

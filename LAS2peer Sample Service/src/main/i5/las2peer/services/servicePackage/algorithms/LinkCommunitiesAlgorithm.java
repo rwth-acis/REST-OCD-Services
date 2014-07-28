@@ -6,6 +6,7 @@ import i5.las2peer.services.servicePackage.graph.GraphType;
 import i5.las2peer.services.servicePackage.utils.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -36,8 +37,8 @@ public class LinkCommunitiesAlgorithm implements
 	}
 	
 	@Override
-	public Algorithm getAlgorithm() {
-		return Algorithm.LINK_COMMUNITIES_ALGORITHM;
+	public AlgorithmLog getAlgorithm() {
+		return new AlgorithmLog(AlgorithmIdentifier.LINK_COMMUNITIES_ALGORITHM, new HashMap<String, String>());
 	}
 	
 	@Override

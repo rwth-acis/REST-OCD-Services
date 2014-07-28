@@ -22,19 +22,18 @@ public interface OcdAlgorithm {
 	public Set<GraphType> compatibleGraphTypes();
 	
 	/**
-	 * Executes the algorithm.
-	 * 
-	 * @param graph The graph whose community structure will be detected.
-	 * @return A normalized cover containing the community structure.
+	 * Executes the algorithm on a connected graph.
+	 * @param graph An at least weakly connected graph whose community structure will be detected.
+	 * @return A normalized cover for the input graph containing the community structure.
+	 * Normalized here means that for each node the belonging factors sum up to one.
 	 * @throws OcdAlgorithmException
 	 */	
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException;
 	
 	/**
-	 * Returns an instance of the the enum Algorithm that corresponds to the 
-	 * concrete algorithm.
-	 * @return The enum instance.
+	 * Returns a log representing the concrete algorithm.
+	 * @return The log.
 	 */
-	public Algorithm getAlgorithm();
+	public AlgorithmLog getAlgorithm();
 
 }

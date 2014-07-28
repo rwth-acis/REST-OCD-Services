@@ -10,9 +10,9 @@
 	<classpathentry kind="lib" path="lib/la4j-0.4.9.jar"/>
 	<classpathentry kind="lib" path="lib/y.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/derby-10.8.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/eclipselink.jar"/>
 	<classpathentry kind="lib" path="lib/geronimo-jpa_2.0_spec-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-exec-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang3-3.3.2.jar"/>
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

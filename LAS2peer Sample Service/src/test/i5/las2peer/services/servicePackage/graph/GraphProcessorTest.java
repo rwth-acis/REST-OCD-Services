@@ -8,6 +8,7 @@ import i5.las2peer.services.servicePackage.algorithms.SskAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +25,7 @@ public class GraphProcessorTest {
 	 * and edge weight setting, on sawmill.
 	 */
 	@Test
-	public void testMakeUndirected() throws AdapterException {
+	public void testMakeUndirected() throws AdapterException, FileNotFoundException {
 		/*
 		 * Note that getSawmillGraph makes use of makeUndirected.
 		 */

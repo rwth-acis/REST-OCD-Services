@@ -18,4 +18,5 @@ public interface SlpaSpeakerRuleCommand {
 	 * Determines the label which a speaker node will send.
 	 */
 	public abstract int getLabel(CustomGraph graph, Node speaker, List<Integer> memory);
+	
 }

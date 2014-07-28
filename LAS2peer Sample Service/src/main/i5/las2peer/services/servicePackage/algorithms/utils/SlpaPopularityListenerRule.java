@@ -66,4 +66,9 @@ public class SlpaPopularityListenerRule implements SlpaListenerRuleCommand {
 		return chosenLabel;
 	}
 	
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName();
+	}
+	
 }

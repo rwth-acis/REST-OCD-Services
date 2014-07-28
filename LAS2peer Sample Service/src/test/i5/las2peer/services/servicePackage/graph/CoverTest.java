@@ -3,11 +3,14 @@ package i5.las2peer.services.servicePackage.graph;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
-import i5.las2peer.services.servicePackage.algorithms.Algorithm;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
 import i5.las2peer.services.servicePackage.metrics.ExtendedModularity;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
+import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.Before;
@@ -26,7 +29,7 @@ public class CoverTest {
 	 * Creates a cover for the sawmill graph
 	 */
 	@Before 
-	public void sawmillCoverSetUp() throws AdapterException {
+	public void sawmillCoverSetUp() throws AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		Matrix memberships = new Basic2DMatrix(graph.nodeCount(), 5);
 		for(int i=0; i<memberships.rows(); i++) {
@@ -78,7 +81,7 @@ public class CoverTest {
 		System.out.println(cover.toString());
 		cover.filterMembershipsbyThreshold(0.25);
 		System.out.println(cover.toString());
-		assertEquals(0, cover.getMetricResults().size());
+		assertEquals(0, cover.getMetrics().size());
 		assertEquals(2, cover.communityCount());
 	}
 	
@@ -129,9 +132,8 @@ public class CoverTest {
 		memberships.set(0, 4, 4);
 		CustomGraph graph = new CustomGraph();
 		graph.createNode();
-		Cover cover = new Cover(graph, memberships, Algorithm.UNDEFINED);
-		cover.setRowEntriesBelowThresholdToZero(0, 3d);
-		memberships = cover.getMemberships();
+		Cover cover = new Cover(graph, memberships, new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>()));
+		cover.setRowEntriesBelowThresholdToZero(memberships, 0, 3d);
 		assertEquals(0, memberships.get(0, 0), 0);
 		assertEquals(0, memberships.get(0, 1), 0);
 		assertEquals(0, memberships.get(0, 2), 0);

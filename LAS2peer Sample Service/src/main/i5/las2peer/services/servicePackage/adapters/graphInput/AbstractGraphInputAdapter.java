@@ -1,8 +1,8 @@
 package i5.las2peer.services.servicePackage.adapters.graphInput;
 
-import i5.las2peer.services.servicePackage.adapters.AbstractAdapter;
+import i5.las2peer.services.servicePackage.adapters.AbstractInputAdapter;
 
 
-public abstract class AbstractGraphInputAdapter extends AbstractAdapter implements GraphInputAdapter {
+public abstract class AbstractGraphInputAdapter extends AbstractInputAdapter implements GraphInputAdapter {
 
 }

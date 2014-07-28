@@ -1,5 +1,7 @@
 package i5.las2peer.services.servicePackage.algorithms;
 
+import java.io.FileNotFoundException;
+
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
@@ -72,7 +74,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	}
 	
 	@Test
-	public void testOnSawmill() throws OcdAlgorithmException, AdapterException {
+	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2, 1000, 0.001);
 		Cover cover = algo.detectOverlappingCommunities(graph);
@@ -80,7 +82,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	}
 	
 	@Test
-	public void testProfitabilityDelta() throws OcdAlgorithmException, AdapterException {
+	public void testProfitabilityDelta() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
 		System.out.println();
 		System.out.println();
 		System.out.println("Test Profitability Delta");
