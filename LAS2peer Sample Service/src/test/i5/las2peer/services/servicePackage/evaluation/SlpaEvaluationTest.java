@@ -10,6 +10,7 @@ import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmExceptio
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.metrics.ExtendedModularity;
+import i5.las2peer.services.servicePackage.metrics.MetricException;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 
 import java.io.FileWriter;
@@ -37,7 +38,7 @@ public class SlpaEvaluationTest {
 	 */
 	@Ignore
 	@Test
-	public void testOnAcmSigmod() throws IOException, OcdAlgorithmException, AdapterException
+	public void testOnAcmSigmod() throws IOException, OcdAlgorithmException, AdapterException, MetricException
 	{
 		CustomGraph graph = EvaluationGraphFactory.getAcmSigmodGraph();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
@@ -54,7 +55,7 @@ public class SlpaEvaluationTest {
 	 */
 	@Ignore
 	@Test
-	public void testOnCikm() throws IOException, OcdAlgorithmException, AdapterException
+	public void testOnCikm() throws IOException, OcdAlgorithmException, AdapterException, MetricException
 	{
 		CustomGraph graph = EvaluationGraphFactory.getCikmGraph();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
@@ -71,7 +72,7 @@ public class SlpaEvaluationTest {
 	 */
 	@Ignore
 	@Test
-	public void testOnIcde() throws IOException, OcdAlgorithmException, AdapterException
+	public void testOnIcde() throws IOException, OcdAlgorithmException, AdapterException, MetricException
 	{
 		CustomGraph graph = EvaluationGraphFactory.getIcdeGraph();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
@@ -88,7 +89,7 @@ public class SlpaEvaluationTest {
 	 */
 	@Ignore
 	@Test
-	public void testOnIcdm() throws IOException, OcdAlgorithmException, AdapterException
+	public void testOnIcdm() throws IOException, OcdAlgorithmException, AdapterException, MetricException
 	{
 		CustomGraph graph = EvaluationGraphFactory.getIcdmGraph();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
@@ -105,7 +106,7 @@ public class SlpaEvaluationTest {
 	 */
 	@Ignore
 	@Test
-	public void testOnKdd() throws IOException, OcdAlgorithmException, AdapterException
+	public void testOnKdd() throws IOException, OcdAlgorithmException, AdapterException, MetricException
 	{
 		CustomGraph graph = EvaluationGraphFactory.getKddGraph();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
@@ -122,7 +123,7 @@ public class SlpaEvaluationTest {
 	 */
 	@Ignore
 	@Test
-	public void testOnPods() throws IOException, OcdAlgorithmException, AdapterException
+	public void testOnPods() throws IOException, OcdAlgorithmException, AdapterException, MetricException
 	{
 		CustomGraph graph = EvaluationGraphFactory.getPodsGraph();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
@@ -139,7 +140,7 @@ public class SlpaEvaluationTest {
 	 */
 	@Ignore
 	@Test
-	public void testOnSiamDm() throws IOException, OcdAlgorithmException, AdapterException
+	public void testOnSiamDm() throws IOException, OcdAlgorithmException, AdapterException, MetricException
 	{
 		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
@@ -157,7 +158,7 @@ public class SlpaEvaluationTest {
 	 */
 	@Ignore
 	@Test
-	public void testOnVldb() throws IOException, OcdAlgorithmException, AdapterException
+	public void testOnVldb() throws IOException, OcdAlgorithmException, AdapterException, MetricException
 	{
 		CustomGraph graph = EvaluationGraphFactory.getVldbGraph();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();

@@ -6,11 +6,13 @@ import java.util.Map;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Transient;
 
 /**
  * A log representation for any OcdAlgorithm.
@@ -24,7 +26,7 @@ public class AlgorithmLog {
 	 * Database column name definitions.
 	 */
 	private static final String idColumnName = "ID";
-	private static final String identifierColumnName = "IDENTIFIER";
+	private static final String typeColumnName = "TYPE";
 	private static final String parametersColumnName = "PARAMETERS";
 	
 	/**
@@ -34,12 +36,13 @@ public class AlgorithmLog {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
 	private long id;
-	@Enumerated(EnumType.STRING)
-	@Column(name = identifierColumnName)
-	private AlgorithmIdentifier identifier;
+	@Transient
+	private AlgorithmType type;
 	@ElementCollection
 	@Column(name = parametersColumnName)
 	private Map<String, String> parameters;
+	@Column(name = typeColumnName)
+	private int typeId;
 	
 	/*
 	 * Only provided for persistence.
@@ -47,12 +50,12 @@ public class AlgorithmLog {
 	public AlgorithmLog() {
 	}
 	
-	public AlgorithmLog(AlgorithmIdentifier identifier, Map<String, String> parameters) {
-		if(identifier != null) {
-			this.identifier = identifier;
+	public AlgorithmLog(AlgorithmType type, Map<String, String> parameters) {
+		if(type != null) {
+			this.type = type;
 		}
 		else {
-			this.identifier = AlgorithmIdentifier.UNDEFINED;
+			this.type = AlgorithmType.UNDEFINED;
 		}
 		if(parameters != null) {
 			this.parameters = parameters;
@@ -62,12 +65,27 @@ public class AlgorithmLog {
 		}
 	}
 
-	public AlgorithmIdentifier getIdentifier() {
-		return identifier;
+	public AlgorithmType getType() {
+		return type;
 	}
 
 	public Map<String, String> getParameters() {
 		return parameters;
 	}
+
+	public long getId() {
+		return id;
+	}
 	
+	@PrePersist
+	@PreUpdate
+	private void prePersist() {
+		this.typeId = this.type.getId();
+	}
+	
+	@PostLoad
+	private void postLoad() {
+		this.type = AlgorithmType.lookupType(this.typeId);
+	}
+		
 }

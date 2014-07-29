@@ -1,8 +1,8 @@
 package i5.las2peer.services.servicePackage.graph;
 
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
-import i5.las2peer.services.servicePackage.metrics.MetricIdentifier;
+import i5.las2peer.services.servicePackage.metrics.MetricType;
 import i5.las2peer.services.servicePackage.metrics.MetricLog;
 import i5.las2peer.services.servicePackage.utils.NonZeroEntriesVectorProcedure;
 
@@ -86,7 +86,7 @@ public class Cover {
 	 */
 	@OneToOne(orphanRemoval = true, cascade={CascadeType.ALL})
 	@JoinColumn(name = algorithmColumnName)
-	private AlgorithmLog algorithm = new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>());
+	private AlgorithmLog algorithm = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>());
 	@OneToMany(orphanRemoval = true, cascade={CascadeType.ALL})
 	@JoinColumn(name=idJoinColumnName, referencedColumnName = idColumnName)
 	private List<Community> communities = new ArrayList<Community>();
@@ -174,6 +174,10 @@ public class Cover {
 		this.description = description;
 	}
 
+	public Timestamp getLastUpdate() {
+		return lastUpdate;
+	}
+
 	public List<Community> getCommunities() {
 		return communities;
 	}
@@ -196,7 +200,7 @@ public class Cover {
 			this.algorithm = algorithm;
 		}
 		else {
-			this.algorithm = new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>());
+			this.algorithm = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>());
 		}
 	}
 
@@ -213,13 +217,13 @@ public class Cover {
 	}
 
 	/**
-	 * Returns the first metric occurrence with the corresponding identifier.
-	 * @param metricId
+	 * Returns the first metric occurrence with the corresponding type.
+	 * @param metricType
 	 * @return The metric. Null if no such metric exists.
 	 */
-	public MetricLog getMetric(MetricIdentifier metricId) {
+	public MetricLog getMetric(MetricType metricType) {
 		for(MetricLog metric : this.metrics){
-			if(metricId == metric.getIdentifier()) {
+			if(metricType == metric.getType()) {
 				return metric;
 			}
 		}
@@ -323,7 +327,7 @@ public class Cover {
 	public String toString() {
 		String coverString = "Cover: " + getName() + "\n";
 		coverString += "Graph: " + getGraph().getName() + "\n";
-		coverString += "Algorithm: " + getAlgorithm().getIdentifier().toString() + "\n" + "params:" + "\n";
+		coverString += "Algorithm: " + getAlgorithm().getType().toString() + "\n" + "params:" + "\n";
 		for(Map.Entry<String, String> entry : getAlgorithm().getParameters().entrySet()) {
 			coverString += entry.getKey() + " = " + entry.getValue() + "\n";
 		}
@@ -331,7 +335,7 @@ public class Cover {
 		MetricLog metric;
 		for(int i=0; i<metrics.size(); i++) {
 			metric = metrics.get(i);
-			coverString += metric.getIdentifier().toString() + " = ";
+			coverString += metric.getType().toString() + " = ";
 			coverString += metric.getValue() + "\n" + "params:" + "\n";
 			for(Map.Entry<String, String> entry : metric.getParameters().entrySet()) {
 				coverString += entry.getKey() + " = " + entry.getValue() + "\n";

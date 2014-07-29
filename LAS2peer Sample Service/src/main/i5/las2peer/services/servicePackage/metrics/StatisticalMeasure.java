@@ -14,6 +14,6 @@ public interface StatisticalMeasure {
 	 * @param cover The cover which is evaluated. It must also contain the corresponding graph.
 	 * @return The metric value.
 	 */
-	public void measure(Cover cover);
+	public void measure(Cover cover) throws MetricException;
 	
 }

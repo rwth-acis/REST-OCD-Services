@@ -9,6 +9,6 @@ public interface KnowledgeDrivenMeasure {
 	 * @param groundTruth The ground truth cover on whose bases the metric value is calculated.
 	 * It must contain the same graph as the output cover.
 	 */
-	public void measure(Cover cover, Cover groundTruth);
+	public void measure(Cover cover, Cover groundTruth) throws MetricException;
 	
 }

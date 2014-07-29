@@ -3,7 +3,7 @@ package i5.las2peer.services.servicePackage.adapters.coverInput;
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.Adapters;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 
@@ -78,7 +78,7 @@ public class NodeCommunityListInputAdapter extends AbstractCoverInputAdapter {
 			}
 			nodes.next();
 		}
-		return new Cover(graph, memberships, new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>()));
+		return new Cover(graph, memberships, new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>()));
 	}
 	
 }

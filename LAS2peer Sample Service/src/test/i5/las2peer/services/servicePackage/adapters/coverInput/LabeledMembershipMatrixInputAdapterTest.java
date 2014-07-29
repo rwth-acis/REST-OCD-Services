@@ -3,7 +3,7 @@ package i5.las2peer.services.servicePackage.adapters.coverInput;
 import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestConstants;
@@ -25,7 +25,7 @@ public class LabeledMembershipMatrixInputAdapterTest {
 		Cover cover;
 		CoverInputAdapter adapter = new LabeledMembershipMatrixInputAdapter(new FileReader(OcdTestConstants.sawmillArbitraryLabeledMembershipMatrixInputPath));
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		AlgorithmLog algorithm = new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>());
+		AlgorithmLog algorithm = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>());
 		cover = adapter.readCover(graph, algorithm);
 		assertEquals(4, cover.communityCount());
 		assertEquals(algorithm, cover.getAlgorithm());

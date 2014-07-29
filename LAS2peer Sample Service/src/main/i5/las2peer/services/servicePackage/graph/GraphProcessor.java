@@ -1,7 +1,7 @@
 package i5.las2peer.services.servicePackage.graph;
 
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -121,7 +121,7 @@ public class GraphProcessor {
 		}
 		Matrix memberships = new CCSMatrix(graph.nodeCount(), totalCommunityCount);
 		Cover currentCover = null;
-		AlgorithmLog algo = new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>());
+		AlgorithmLog algo = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>());
 		Iterator<Cover> it = componentCovers.keySet().iterator();
 		if(it.hasNext()) {
 			algo = it.next().getAlgorithm();
@@ -143,7 +143,7 @@ public class GraphProcessor {
 			}
 			currentCoverFirstCommunityIndex += currentCover.communityCount();
 			if(!currentCover.getAlgorithm().equals(algo)) {
-				algo = new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>());
+				algo = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>());
 			}
 		}
 		return new Cover(graph, memberships, currentCover.getAlgorithm());

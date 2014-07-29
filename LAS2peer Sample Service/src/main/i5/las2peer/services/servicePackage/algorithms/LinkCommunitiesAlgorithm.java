@@ -38,7 +38,7 @@ public class LinkCommunitiesAlgorithm implements
 	
 	@Override
 	public AlgorithmLog getAlgorithm() {
-		return new AlgorithmLog(AlgorithmIdentifier.LINK_COMMUNITIES_ALGORITHM, new HashMap<String, String>());
+		return new AlgorithmLog(AlgorithmType.LINK_COMMUNITIES_ALGORITHM, new HashMap<String, String>());
 	}
 	
 	@Override

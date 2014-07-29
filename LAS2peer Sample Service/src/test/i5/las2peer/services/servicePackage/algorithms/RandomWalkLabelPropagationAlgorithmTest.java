@@ -7,6 +7,7 @@ import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmExceptio
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.metrics.ExtendedModularity;
+import i5.las2peer.services.servicePackage.metrics.MetricException;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
@@ -82,7 +83,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	}
 	
 	@Test
-	public void testProfitabilityDelta() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
+	public void testProfitabilityDelta() throws OcdAlgorithmException, AdapterException, FileNotFoundException, MetricException {
 		System.out.println();
 		System.out.println();
 		System.out.println("Test Profitability Delta");

@@ -44,6 +44,13 @@ public class Community {
 	@ElementCollection
 	private Map<CustomNode, Double> memberships = new HashMap<CustomNode, Double>();
 	/**
+	 * Getter for id.
+	 * @return The id.
+	 */
+	public long getId() {
+		return id;
+	}
+	/**
 	 * Getter for name.
 	 * @return The name.
 	 */

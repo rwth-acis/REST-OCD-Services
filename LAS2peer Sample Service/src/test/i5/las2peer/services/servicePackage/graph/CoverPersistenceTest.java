@@ -1,9 +1,9 @@
 package i5.las2peer.services.servicePackage.graph;
 
 import static org.junit.Assert.*;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
-import i5.las2peer.services.servicePackage.metrics.MetricIdentifier;
+import i5.las2peer.services.servicePackage.metrics.MetricType;
 import i5.las2peer.services.servicePackage.metrics.MetricLog;
 
 import java.awt.Color;
@@ -67,12 +67,12 @@ public class CoverPersistenceTest {
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put("param1", "val1");
 		params.put("param2", "val2");
-		AlgorithmLog algo = new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, params);
+		AlgorithmLog algo = new AlgorithmLog(AlgorithmType.UNDEFINED, params);
 		Cover cover = new Cover(graph, memberships, algo);
 		cover.setName(coverName);
 		cover.setCommunityColor(1, Color.BLUE);
 		cover.setCommunityName(1, "Community1");
-		MetricLog metric = new MetricLog(MetricIdentifier.EXECUTION_TIME, 3.55, params);
+		MetricLog metric = new MetricLog(MetricType.EXECUTION_TIME, 3.55, params);
 		cover.setMetric(metric);
 		tx = em.getTransaction();
 		try {
@@ -93,7 +93,7 @@ public class CoverPersistenceTest {
 		Cover persistedCover = queryResults.get(0);
 		System.out.println("Name: " + persistedCover.getName());
 		System.out.println("Community Count: " + persistedCover.communityCount());
-		System.out.println("Algo: " + persistedCover.getAlgorithm().getIdentifier().toString());
+		System.out.println("Algo: " + persistedCover.getAlgorithm().getType().toString());
 		System.out.println("Metrics Count: " + persistedCover.getMetrics().size());
 		for(int i=0; i<cover.communityCount(); i++) {
 			System.out.println("Com: " + i);
@@ -103,16 +103,17 @@ public class CoverPersistenceTest {
 			System.out.println("Color covP: " + persistedCover.getCommunityColor(i));
 		}
 		assertEquals(coverName, persistedCover.getName());
+		assertEquals(graphName, persistedCover.getGraph().getName());
 		assertEquals(cover.communityCount(), persistedCover.communityCount());
 		for(int i=0; i<cover.communityCount(); i++) {
 			assertEquals(cover.getCommunityColor(i), persistedCover.getCommunityColor(i));
 			assertEquals(cover.getCommunityName(i), persistedCover.getCommunityName(i));
 			assertEquals(cover.getCommunitySize(i), persistedCover.getCommunitySize(i));
 		}
-		assertEquals(cover.getAlgorithm().getIdentifier(), persistedCover.getAlgorithm().getIdentifier());
+		assertEquals(cover.getAlgorithm().getType(), persistedCover.getAlgorithm().getType());
 		assertEquals(cover.getMetrics().size(), persistedCover.getMetrics().size());
 		for(int i=0; i<cover.getMetrics().size(); i++) {
-			assertEquals(cover.getMetrics().get(i).getIdentifier(), persistedCover.getMetrics().get(i).getIdentifier());
+			assertEquals(cover.getMetrics().get(i).getType(), persistedCover.getMetrics().get(i).getType());
 			assertEquals(cover.getMetrics().get(i).getValue(), persistedCover.getMetrics().get(i).getValue(), 0);
 		}
 		em = emf.createEntityManager();

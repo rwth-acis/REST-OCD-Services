@@ -5,7 +5,7 @@ import i5.las2peer.services.servicePackage.adapters.coverInput.NodeCommunityList
 import i5.las2peer.services.servicePackage.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.WeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.utils.GlobalVariables;
@@ -219,7 +219,7 @@ public class LfrModel implements GroundTruthBenchmarkModel {
 				GraphInputAdapter graphAdapter = new WeightedEdgeListGraphInputAdapter(new FileReader(graphFilename));
 				CustomGraph graph = graphAdapter.readGraph();
 				CoverInputAdapter coverAdapter = new NodeCommunityListInputAdapter(new FileReader(coverFilename));
-				return coverAdapter.readCover(graph, new AlgorithmLog(AlgorithmIdentifier.GROUND_TRUTH, new HashMap<String, String>()));
+				return coverAdapter.readCover(graph, new AlgorithmLog(AlgorithmType.GROUND_TRUTH, new HashMap<String, String>()));
 			}
 			catch (Exception e) {
 				e.printStackTrace();

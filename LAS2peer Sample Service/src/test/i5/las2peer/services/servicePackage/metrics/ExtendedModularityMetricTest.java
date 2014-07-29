@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
@@ -71,10 +71,10 @@ public class ExtendedModularityMetricTest {
 		memberships.set(10, 0, 0.4);
 		memberships.set(10, 1, 0.4);
 		memberships.set(10, 2, 0.2);
-		Cover cover = new Cover(graph, memberships, new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>()));
+		Cover cover = new Cover(graph, memberships, new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>()));
 		ExtendedModularity metric = new ExtendedModularity();
 		metric.measure(cover);
-		assertEquals(0.581, cover.getMetric(MetricIdentifier.EXTENDED_MODULARITY_METRIC).getValue(), 0.01);
+		assertEquals(0.581, cover.getMetric(MetricType.EXTENDED_MODULARITY_METRIC).getValue(), 0.01);
 		System.out.println(cover);
 	}
 

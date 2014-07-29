@@ -6,11 +6,13 @@ import java.util.Map;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Transient;
 
 @Entity
 public class MetricLog {
@@ -19,7 +21,7 @@ public class MetricLog {
 	 * Database column name definitions.
 	 */
 	private static final String idColumnName = "ID";
-	private static final String identifierColumnName = "IDENTIFIER";
+	private static final String typeColumnName = "TYPE";
 	private static final String parametersColumnName = "PARAMETERS";
 	private static final String valueColumnName = "VALUE";
 	
@@ -30,27 +32,27 @@ public class MetricLog {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
 	private long id;
-	@Enumerated(EnumType.STRING)
-	@Column(name = identifierColumnName)
-	private MetricIdentifier identifier;
+	@Transient
+	private MetricType type;
 	@ElementCollection
 	@Column(name = parametersColumnName)
 	private Map<String, String> parameters;
 	@Column(name = valueColumnName)
 	private double value;
-	
+	@Column(name = typeColumnName)
+	private int typeId;
 	/*
 	 * Only provided for persistence. 
 	 */
 	protected MetricLog() {
 	}
 	
-	public MetricLog(MetricIdentifier identifier, double value, Map<String, String> parameters) {
-		if(identifier != null) {
-			this.identifier = identifier;
+	public MetricLog(MetricType type, double value, Map<String, String> parameters) {
+		if(type != null) {
+			this.type = type;
 		}
 		else {
-			this.identifier = MetricIdentifier.UNDEFINED;
+			this.type = MetricType.UNDEFINED;
 		}
 		if(parameters != null) {
 			this.parameters = parameters;
@@ -61,8 +63,12 @@ public class MetricLog {
 		this.value = value;
 	}
 
-	public MetricIdentifier getIdentifier() {
-		return identifier;
+	public long getId() {
+		return id;
+	}
+
+	public MetricType getType() {
+		return type;
 	}
 
 	public Map<String, String> getParameters() {
@@ -71,6 +77,17 @@ public class MetricLog {
 
 	public double getValue() {
 		return value;
+	}
+	
+	@PrePersist
+	@PreUpdate
+	private void prePersist() {
+		this.typeId = this.type.getId();
+	}
+	
+	@PostLoad
+	private void postLoad() {
+		this.type = MetricType.lookupType(this.typeId);
 	}
 	
 }

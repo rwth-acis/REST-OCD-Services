@@ -13,5 +13,5 @@ public class GlobalVariables {
 	 * Name of the persistence context in the persistence.xml
 	 */
 	public static final String persistenceEntityName = "ocd";
-	
+
 }

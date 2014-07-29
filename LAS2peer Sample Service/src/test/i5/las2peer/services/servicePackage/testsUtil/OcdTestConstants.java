@@ -14,5 +14,5 @@ public class OcdTestConstants {
 	public static final String sawmillGroundTruthLabeledMembershipMatrixInputPath = inputFolderPath + "SawmillGroundTruthLabeledMembershipMatrix.txt";
 	
 	public static final String sawmillLabeledMembershipMatrixOutputPath = outputFolderPath + "SawmillLabeledMembershipMatrix.txt";
-
+	public static final String testXmlCoverOutputPath = outputFolderPath + "TestXmlCover";
 }

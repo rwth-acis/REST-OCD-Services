@@ -51,7 +51,7 @@ public class CustomNode {
 	protected CustomNode(){
 	}
 
-	protected int getId() {
+	public int getId() {
 		return this.id;
 	}	
 	

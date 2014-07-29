@@ -4,8 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmIdentifier;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.metrics.ExtendedModularity;
+import i5.las2peer.services.servicePackage.metrics.MetricException;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
@@ -71,7 +72,7 @@ public class CoverTest {
 	 * Tests membership filtering.
 	 */
 	@Test
-	public void testFilterMemberships() {
+	public void testFilterMemberships() throws MetricException {
 		cover.normalizeMemberships();
 		StatisticalMeasure metric = new ExtendedModularity();
 		metric.measure(cover);
@@ -132,7 +133,7 @@ public class CoverTest {
 		memberships.set(0, 4, 4);
 		CustomGraph graph = new CustomGraph();
 		graph.createNode();
-		Cover cover = new Cover(graph, memberships, new AlgorithmLog(AlgorithmIdentifier.UNDEFINED, new HashMap<String, String>()));
+		Cover cover = new Cover(graph, memberships, new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>()));
 		cover.setRowEntriesBelowThresholdToZero(memberships, 0, 3d);
 		assertEquals(0, memberships.get(0, 0), 0);
 		assertEquals(0, memberships.get(0, 1), 0);

@@ -1,24 +1,31 @@
 package i5.las2peer.services.servicePackage.adapters;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import i5.las2peer.services.servicePackage.utils.AbstractCustomException;
 
-public class AdapterException extends Exception {
+public class AdapterException extends AbstractCustomException {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -7785040553039784645L;
 	
+	private static final String errorMessage = "File could not be read or written correctly.";
+	
 	public AdapterException(Exception e) {
-		super("File could not be read or written correctly." + "\nInternal Exception:\n" + AdapterException.getInternalExceptionString(e));
+		super(errorMessage + "\nInternal Exception:\n" + getInternalExceptionString(e));
 	}
 	
-	private static String getInternalExceptionString(Exception e) {
-		StringWriter exceptionWriter = new StringWriter();
-		PrintWriter exceptionPrinter = new PrintWriter (exceptionWriter);
-		e.printStackTrace(exceptionPrinter);
-		return exceptionWriter.toString();
+	public AdapterException(String s) {
+		super(errorMessage + "\n" + s);
 	}
+	
+	public AdapterException() {
+		super(errorMessage);
+	}
+	
+	public AdapterException(Exception e, String s) {
+		super(errorMessage + "\n" + s + "\nInternal Exception:\n" + getInternalExceptionString(e));
+	}
+	
 	
 }

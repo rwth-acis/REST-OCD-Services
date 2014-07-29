@@ -50,7 +50,7 @@ public class CustomEdge {
 	protected CustomEdge() {
 	}
 
-	protected int getId() {
+	public int getId() {
 		return id;
 	}
 
