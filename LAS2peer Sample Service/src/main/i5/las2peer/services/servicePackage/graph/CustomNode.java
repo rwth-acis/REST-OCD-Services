@@ -33,6 +33,10 @@ public class CustomNode {
 	@Column(name = nameColumnName)
 	private String name;
 	
+	/*
+	 * Attributes from y.base.Node
+	 * Only for persistence.
+	 */
 	@Column(name = xColumnName)
 	private double x;
 	
@@ -50,7 +54,11 @@ public class CustomNode {
 	
 	protected CustomNode(){
 	}
-
+	
+	protected CustomNode(CustomNode customNode) {
+		this.name = customNode.name;
+	}
+	
 	public int getId() {
 		return this.id;
 	}	

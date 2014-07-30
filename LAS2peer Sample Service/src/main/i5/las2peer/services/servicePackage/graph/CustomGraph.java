@@ -13,8 +13,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -82,8 +80,7 @@ public class CustomGraph extends Graph2D {
 	@Column(name = lastUpdateColumnName)
 	private Timestamp lastUpdate;
 	@ElementCollection
-	@Enumerated(EnumType.STRING)
-	private Set<GraphType> types = new HashSet<GraphType>();
+	private Set<Integer> types = new HashSet<Integer>();
 	
 	///////////////////// THE FOLLOWING ATTRIBUTES ARE MAINTAINED AUTOMATICALLY AND ONLY OF INTERNAL USE
 	
@@ -111,6 +108,11 @@ public class CustomGraph extends Graph2D {
 	 */
 	@Transient
 	private Map<Node, Integer> nodeIds = new HashMap<Node, Integer>();
+	/*
+	 * Mapping from custom nodes to nodes.
+	 */
+	@Transient
+	private Map<CustomNode, Node> reverseNodeMap = new HashMap<CustomNode, Node>();
 	/*
 	 * A counter for assigning runtime edge indices. 
 	 */
@@ -145,24 +147,22 @@ public class CustomGraph extends Graph2D {
 		}
 		edgeCounter = this.edgeCount();
 		this.addGraphListener(new CustomGraphListener());
-		
 	}
 	
 	public CustomGraph(CustomGraph graph) {
 		super(graph);
-		this.nodeIds = new HashMap<Node, Integer>(graph.nodeIds);
-		this.edgeIds = new HashMap<Edge, Integer>(graph.edgeIds);
-		this.customNodes = new HashMap<Integer, CustomNode>(graph.customNodes);
-		this.customEdges = new HashMap<Integer, CustomEdge>(graph.customEdges);
+		this.customNodes = new HashMap<Integer, CustomNode>();
+		copyMappings(graph.customNodes, graph.customEdges, graph.nodeIds, graph.edgeIds);
 		this.userName = new String(graph.userName);
 		this.name = new String(graph.name);
 		this.id = graph.id;
 		this.description = new String(graph.description);
-		this.lastUpdate.setTime(graph.lastUpdate.getTime());
+		if(graph.lastUpdate != null) {
+			this.lastUpdate.setTime(graph.lastUpdate.getTime());
+		}
 		nodeCounter = graph.nodeCounter;
 		edgeCounter = graph.edgeCounter;
-		this.addGraphListener(new CustomGraphListener());
-		this.types = new HashSet<GraphType>(graph.types);
+		this.types = new HashSet<Integer>(graph.types);
 	}
 
 	public long getId() {
@@ -198,24 +198,39 @@ public class CustomGraph extends Graph2D {
 	}
 	
 	public boolean isOfType(GraphType type) {
-		return this.types.contains(type);
+		return this.types.contains(type.getId());
 	}
 	
 	public void addType(GraphType type) {
-		this.types.add(type);
+		this.types.add(type.getId());
 	}
 	
 	public void removeType(GraphType type) {
-		this.types.remove(type);
+		this.types.remove(type.getId());
+	}
+	
+	public void clearTypes() {
+		this.types.clear();
+	}
+	
+	public Set<GraphType> getTypes() {
+		Set<GraphType> types = new HashSet<GraphType>();
+		for(int id : this.types) {
+			types.add(GraphType.lookupType(id));
+		}
+		return types;
 	}
 
 	public double getEdgeWeight(Edge edge) {
-		
 		return getCustomEdge(edge).getWeight();
 	}
 	
 	public void setEdgeWeight(Edge edge, double weight) {
 		getCustomEdge(edge).setWeight(weight);
+	}
+	
+	public long getEdgeId(Edge edge) {
+		return getCustomEdge(edge).getId();
 	}
 	
 	public String getNodeName(Node node) {
@@ -226,6 +241,10 @@ public class CustomGraph extends Graph2D {
 		getCustomNode(node).setName(name);
 	}
 
+	public long getNodeId(Node node) {
+		return getCustomNode(node).getId();
+	}
+	
 	public double getWeightedInDegree(Node node) {
 		double inDegree = 0;
 		EdgeCursor inEdges = node.inEdges();
@@ -289,7 +308,35 @@ public class CustomGraph extends Graph2D {
 	}
 	
 	////////////////// THE FOLLOWING METHODS ARE ONLY OF INTERNAL PACKAGE USE
-	
+	/*
+	 * Initializes all node and edge mappings for the copy constructor.
+	 * @param customNodes The custom node mapping of the copied custom graph.
+	 * @param customEdges The custom edge mapping of the copied custom graph.
+	 * @param nodeIds The node id mapping of the copied custom graph.
+	 * @param edgeIds The edge id mapping of the copied custom graph.
+	 */
+	protected void copyMappings(Map<Integer, CustomNode> customNodes, Map<Integer, CustomEdge> customEdges,
+			Map<Node, Integer> nodeIds, Map<Edge, Integer> edgeIds) {
+		for(Map.Entry<Integer, CustomNode> entry : customNodes.entrySet()) {
+			this.customNodes.put(entry.getKey(), new CustomNode(entry.getValue()));
+		}
+		for(Map.Entry<Integer, CustomEdge> entry : customEdges.entrySet()) {
+			this.customEdges.put(entry.getKey(), new CustomEdge(entry.getValue()));
+		}
+		Node[] nodeArr = this.getNodeArray();
+		for(Map.Entry<Node, Integer> entry : nodeIds.entrySet()) {
+			this.nodeIds.put(nodeArr[entry.getKey().index()], entry.getValue());
+		}
+		NodeCursor nodes = this.nodes();
+		while(nodes.ok()) {
+			this.reverseNodeMap.put(this.getCustomNode(nodes.node()), nodes.node());
+			nodes.next();
+		}
+		Edge [] edgeArr = this.getEdgeArray();
+		for(Map.Entry<Edge, Integer> entry : edgeIds.entrySet()) {
+			this.edgeIds.put(edgeArr[entry.getKey().index()], entry.getValue());
+		}
+	}
 	/*
 	 * Returns the custom edge object corresponding to an edge.
 	 * @param edge An edge which must belong to this graph.
@@ -309,6 +356,14 @@ public class CustomGraph extends Graph2D {
 		return customNodes.get(index);	
 	}
 	/*
+	 * Returns the node object corresponding to a custom node.
+	 * @param customNode A customNode which must belong to this graph.
+	 * @return The corresponding node object.
+	 */
+	protected Node getNode(CustomNode customNode) {
+		return reverseNodeMap.get(customNode);
+	}
+	/*
 	 * Creates a new custom node object and maps the node to it.
 	 * @param node The node.
 	 */
@@ -316,16 +371,19 @@ public class CustomGraph extends Graph2D {
 		CustomNode customNode = new CustomNode();
 		this.nodeIds.put(node, this.nodeCounter);
 		this.customNodes.put(nodeCounter, customNode);
+		this.reverseNodeMap.put(customNode,  node);
 		nodeCounter++;
 	}
 	/*
-	 * Removes the mapping from a node to its custom node object.
+	 * Removes the mappings between a node and its custom node object.
 	 * @param node
 	 */
 	protected void removeCustomNode(Node node) {
+		CustomNode customNode = this.getCustomNode(node);
 		int id = this.nodeIds.get(node);
 		this.nodeIds.remove(node);
 		this.customNodes.remove(id);
+		this.reverseNodeMap.remove(customNode);
 	}
 	/*
 	 * Creates a new custom edge object and maps the edge to it.
@@ -354,20 +412,19 @@ public class CustomGraph extends Graph2D {
 	@PostLoad
 	private void postLoad() {
 		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
-		Map<CustomNode, Node> reverseNodeMap = new HashMap<CustomNode, Node>();
 		this.nodeIds.clear();
 		this.customNodes.clear();
 		for(CustomNode customNode : nodes) {
 			Node node = customNode.createNode(this);
 			this.nodeIds.put(node, node.index());
 			this.customNodes.put(node.index(), customNode);
-			reverseNodeMap.put(customNode, node);
+			this.reverseNodeMap.put(customNode, node);
 		}
 		List<CustomEdge> edges = new ArrayList<CustomEdge>(this.customEdges.values());
 		this.edgeIds.clear();
 		this.customEdges.clear();
 		for(CustomEdge customEdge : edges) {
-			Edge edge = customEdge.createEdge(this, reverseNodeMap.get(customEdge.getSource()), reverseNodeMap.get(customEdge.getTarget()));
+			Edge edge = customEdge.createEdge(this, reverseNodeMap.get(customEdge.getSource()), this.reverseNodeMap.get(customEdge.getTarget()));
 			this.edgeIds.put(edge, edge.index());
 			this.customEdges.put(edge.index(), customEdge);
 		}

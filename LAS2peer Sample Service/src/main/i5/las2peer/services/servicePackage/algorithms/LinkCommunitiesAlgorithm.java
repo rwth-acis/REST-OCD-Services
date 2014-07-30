@@ -38,11 +38,10 @@ public class LinkCommunitiesAlgorithm implements
 	
 	@Override
 	public AlgorithmLog getAlgorithm() {
-		return new AlgorithmLog(AlgorithmType.LINK_COMMUNITIES_ALGORITHM, new HashMap<String, String>());
+		return new AlgorithmLog(AlgorithmType.LINK_COMMUNITIES_ALGORITHM, new HashMap<String, String>(), compatibleGraphTypes());
 	}
 	
-	@Override
-	public Set<GraphType> compatibleGraphTypes() {
+	private Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.WEIGHTED);
 		return compatibilities;

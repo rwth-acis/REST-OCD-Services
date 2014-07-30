@@ -71,8 +71,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		this.membershipsPrecisionFactor = membershipsPrecisionFactor;
 	}
 	
-	@Override
-	public Set<GraphType> compatibleGraphTypes() {
+	private Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.WEIGHTED);
 		compatibilities.add(GraphType.DIRECTED);
@@ -95,7 +94,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		parameters.put("influenceFactor", Double.toString(influenceFactor));
 		parameters.put("membershipsIterationBound", Integer.toString(membershipsIterationBound));
 		parameters.put("membershipsPrecisionFactor", Double.toString(membershipsPrecisionFactor));
-		return new AlgorithmLog(AlgorithmType.CLIZZ_ALGORITHM, parameters);
+		return new AlgorithmLog(AlgorithmType.CLIZZ_ALGORITHM, parameters, compatibleGraphTypes());
 	}
 	
 	/*

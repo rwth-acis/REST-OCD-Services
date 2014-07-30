@@ -12,6 +12,7 @@ import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Before;
@@ -133,7 +134,7 @@ public class CoverTest {
 		memberships.set(0, 4, 4);
 		CustomGraph graph = new CustomGraph();
 		graph.createNode();
-		Cover cover = new Cover(graph, memberships, new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>()));
+		Cover cover = new Cover(graph, memberships, new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>()));
 		cover.setRowEntriesBelowThresholdToZero(memberships, 0, 3d);
 		assertEquals(0, memberships.get(0, 0), 0);
 		assertEquals(0, memberships.get(0, 1), 0);

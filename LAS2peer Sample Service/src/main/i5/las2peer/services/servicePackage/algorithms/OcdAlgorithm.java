@@ -4,9 +4,6 @@ package i5.las2peer.services.servicePackage.algorithms;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
-import i5.las2peer.services.servicePackage.graph.GraphType;
-
-import java.util.Set;
 
 /**
  * The common interface for all Overlapping Community Detection Algorithms.
@@ -14,12 +11,6 @@ import java.util.Set;
  *
  */
 public interface OcdAlgorithm {
-	
-	/**
-	 * Returns the compatible graph types for the algorithm.
-	 * 
-	 */	
-	public Set<GraphType> compatibleGraphTypes();
 	
 	/**
 	 * Executes the algorithm on a connected graph.
@@ -31,7 +22,7 @@ public interface OcdAlgorithm {
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException;
 	
 	/**
-	 * Returns a log representing the concrete algorithm.
+	 * Returns a log representing the concrete algorithm execution.
 	 * @return The log.
 	 */
 	public AlgorithmLog getAlgorithm();

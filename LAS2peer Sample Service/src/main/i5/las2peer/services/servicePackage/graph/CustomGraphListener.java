@@ -5,6 +5,13 @@ import y.base.GraphEvent;
 import y.base.GraphListener;
 import y.base.Node;
 
+/**
+ * Listener for Custom Graph Events.
+ * Is automatically integrated into custom graph and hence should
+ * not be readded or added to other types of Graphs.
+ * @author Sebastian
+ *
+ */
 public class CustomGraphListener implements GraphListener {
 	
 	@Override

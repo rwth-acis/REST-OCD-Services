@@ -5,6 +5,7 @@ import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
+import i5.las2peer.services.servicePackage.graph.GraphType;
 import i5.las2peer.services.servicePackage.metrics.MetricType;
 import i5.las2peer.services.servicePackage.metrics.MetricLog;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestConstants;
@@ -13,6 +14,7 @@ import java.awt.Color;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
@@ -51,7 +53,7 @@ public class XmlCoverOutputAdapterTest {
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put("param1", "val1");
 		params.put("param2", "val2");
-		AlgorithmLog algo = new AlgorithmLog(AlgorithmType.UNDEFINED, params);
+		AlgorithmLog algo = new AlgorithmLog(AlgorithmType.UNDEFINED, params, new HashSet<GraphType>());
 		Cover cover = new Cover(graph, memberships, algo);
 		cover.setName(coverName);
 		cover.setCommunityColor(1, Color.BLUE);

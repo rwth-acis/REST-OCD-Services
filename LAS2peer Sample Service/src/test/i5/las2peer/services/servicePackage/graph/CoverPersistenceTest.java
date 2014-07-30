@@ -8,6 +8,7 @@ import i5.las2peer.services.servicePackage.metrics.MetricLog;
 
 import java.awt.Color;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -67,7 +68,7 @@ public class CoverPersistenceTest {
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put("param1", "val1");
 		params.put("param2", "val2");
-		AlgorithmLog algo = new AlgorithmLog(AlgorithmType.UNDEFINED, params);
+		AlgorithmLog algo = new AlgorithmLog(AlgorithmType.UNDEFINED, params, new HashSet<GraphType>());
 		Cover cover = new Cover(graph, memberships, algo);
 		cover.setName(coverName);
 		cover.setCommunityColor(1, Color.BLUE);

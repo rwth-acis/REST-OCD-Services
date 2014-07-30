@@ -26,7 +26,7 @@ public enum AlgorithmType {
 	public int getId() {
 		return id;
 	}
-
+	
 	public static AlgorithmType lookupType(int id) {
         for (AlgorithmType type : AlgorithmType.values()) {
             if (id == type.getId()) {

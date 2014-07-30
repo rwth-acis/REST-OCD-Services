@@ -3,7 +3,6 @@ package i5.las2peer.services.servicePackage.adapters.coverOutput;
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.graph.Community;
 import i5.las2peer.services.servicePackage.graph.Cover;
-import i5.las2peer.services.servicePackage.graph.CustomNode;
 import i5.las2peer.services.servicePackage.metrics.MetricLog;
 
 import java.text.SimpleDateFormat;
@@ -19,6 +18,8 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import y.base.Node;
 
 
 public class XmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
@@ -150,10 +151,10 @@ public class XmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 				 * Community Memberships
 				 */
 				Element membershipsElt = doc.createElement("Memberships");
-				for(Map.Entry<CustomNode, Double> entry : com.getMemberships().entrySet()) {
+				for(Map.Entry<Node, Double> entry : com.getMemberships(cover.getGraph()).entrySet()) {
 					Element membershipElt = doc.createElement("Membership");
 					Element memberIdElt = doc.createElement("Id");
-					memberIdElt.appendChild(doc.createTextNode(Long.toString(entry.getKey().getId())));
+					memberIdElt.appendChild(doc.createTextNode(Long.toString(cover.getGraph().getNodeId(entry.getKey()))));
 					membershipElt.appendChild(memberIdElt);
 					Element belongingFactorElt = doc.createElement("BelongingFactor");
 					belongingFactorElt.appendChild(doc.createTextNode(Double.toString(entry.getValue())));

@@ -1,8 +1,7 @@
 package i5.las2peer.services.servicePackage.adapters.coverInput;
 
-import i5.las2peer.services.servicePackage.adapters.InputAdapter;
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
+import i5.las2peer.services.servicePackage.adapters.InputAdapter;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 
@@ -14,6 +13,6 @@ public interface CoverInputAdapter extends InputAdapter {
 	 * @return The read cover.
 	 * @throws AdapterException
 	 */
-	public Cover readCover(CustomGraph graph, AlgorithmLog algorithm) throws AdapterException;
+	public Cover readCover(CustomGraph graph) throws AdapterException;
 	
 }

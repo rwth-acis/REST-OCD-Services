@@ -87,11 +87,10 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		parameters.put("probabilityThreshold", Double.toString(probabilityThreshold));
 		parameters.put("listenerRule", listenerRule.toString());
 		parameters.put("speakerRule", speakerRule.toString());
-		return new AlgorithmLog(AlgorithmType.SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM, parameters);
+		return new AlgorithmLog(AlgorithmType.SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM, parameters, compatibleGraphTypes());
 	}
 	
-	@Override
-	public Set<GraphType> compatibleGraphTypes() {
+	private Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.WEIGHTED);
 		compatibilities.add(GraphType.DIRECTED);

@@ -5,8 +5,10 @@ import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
 import i5.las2peer.services.servicePackage.metrics.ExecutionTime;
+import i5.las2peer.services.servicePackage.utils.Pair;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.la4j.matrix.Matrix;
@@ -18,8 +20,8 @@ public class OcdAlgorithmExecutor {
 
 	public Cover execute(CustomGraph graph, OcdAlgorithm algorithm, int componentNodeCountFilter) throws OcdAlgorithmException {
 		GraphProcessor processor = new GraphProcessor();
-		Map<CustomGraph, Map<Node, Node>> components;
-		Map<Cover, Map<Node, Node>> componentCovers;
+		List<Pair<CustomGraph, Map<Node, Node>>> components;
+		List<Pair<Cover, Map<Node, Node>>> componentCovers;
 		components = processor.divideIntoConnectedComponents(graph);
 		ExecutionTime executionTime = new ExecutionTime();
 		componentCovers = calculateComponentCovers(components, algorithm, componentNodeCountFilter, executionTime);
@@ -28,13 +30,13 @@ public class OcdAlgorithmExecutor {
 		return cover;
 	}
 	
-	private Map<Cover, Map<Node, Node>> calculateComponentCovers(Map<CustomGraph, Map<Node, Node>> components,
+	private List<Pair<Cover, Map<Node, Node>>> calculateComponentCovers(List<Pair<CustomGraph, Map<Node, Node>>> components,
 			OcdAlgorithm algorithm, int componentNodeCountFilter, ExecutionTime executionTime) throws OcdAlgorithmException {
-		Map<Cover, Map<Node, Node>> componentCovers = new HashMap<Cover, Map<Node, Node>>();
+		List<Pair<Cover, Map<Node, Node>>> componentCovers = new ArrayList<Pair<Cover, Map<Node, Node>>>();
 		CustomGraph component;
 		Cover componentCover;
-		for(Map.Entry<CustomGraph, Map<Node, Node>> entry : components.entrySet()) {
-			component = entry.getKey();
+		for(Pair<CustomGraph, Map<Node, Node>> pair : components) {
+			component = pair.getFirst();
 			if(component.nodeCount() < componentNodeCountFilter) {
 				componentCover = computeSingleCommunityCover(component, algorithm.getAlgorithm());
 			}
@@ -43,7 +45,7 @@ public class OcdAlgorithmExecutor {
 				componentCover = algorithm.detectOverlappingCommunities(component);
 				executionTime.stop();
 			}
-			componentCovers.put(componentCover, entry.getValue());
+			componentCovers.add(new Pair<Cover, Map<Node, Node>>(componentCover, pair.getSecond()));
 		}
 		return componentCovers;
 	}

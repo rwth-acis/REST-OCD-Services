@@ -1,7 +1,11 @@
 package i5.las2peer.services.servicePackage.algorithms;
 
+import i5.las2peer.services.servicePackage.graph.GraphType;
+
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -9,13 +13,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.PostLoad;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.Transient;
 
 /**
- * A log representation for any OcdAlgorithm.
+ * A log representation for any OcdAlgorithm execution.
  * @author Sebastian
  *
  */
@@ -27,7 +27,6 @@ public class AlgorithmLog {
 	 */
 	private static final String idColumnName = "ID";
 	private static final String typeColumnName = "TYPE";
-	private static final String parametersColumnName = "PARAMETERS";
 	
 	/**
 	 * System generated persistence id.
@@ -36,26 +35,31 @@ public class AlgorithmLog {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
 	private long id;
-	@Transient
-	private AlgorithmType type;
 	@ElementCollection
-	@Column(name = parametersColumnName)
 	private Map<String, String> parameters;
 	@Column(name = typeColumnName)
 	private int typeId;
+	@ElementCollection
+	private Set<Integer> compatibleGraphTypes = new HashSet<Integer>();
 	
 	/*
 	 * Only provided for persistence.
 	 */
-	public AlgorithmLog() {
+	protected AlgorithmLog() {
 	}
 	
-	public AlgorithmLog(AlgorithmType type, Map<String, String> parameters) {
+	/**
+	 * Creates an instance of algorithm log.
+	 * @param type The type of the algorithm.
+	 * @param parameters The concrete parameters of the algorithm execution.
+	 * @param compatibleGraphTypes The graph types which are compatible with the algorithm.
+	 */
+	public AlgorithmLog(AlgorithmType type, Map<String, String> parameters, Set<GraphType> compatibleGraphTypes) {
 		if(type != null) {
-			this.type = type;
+			this.typeId = type.getId();
 		}
 		else {
-			this.type = AlgorithmType.UNDEFINED;
+			this.typeId = AlgorithmType.UNDEFINED.getId();
 		}
 		if(parameters != null) {
 			this.parameters = parameters;
@@ -63,10 +67,15 @@ public class AlgorithmLog {
 		else {
 			this.parameters = new HashMap<String, String>();
 		}
+		if(compatibleGraphTypes != null) {
+			for(GraphType graphType : compatibleGraphTypes) {
+				this.compatibleGraphTypes.add(graphType.getId());
+			}
+		}
 	}
 
 	public AlgorithmType getType() {
-		return type;
+		return AlgorithmType.lookupType(typeId);
 	}
 
 	public Map<String, String> getParameters() {
@@ -76,16 +85,13 @@ public class AlgorithmLog {
 	public long getId() {
 		return id;
 	}
-	
-	@PrePersist
-	@PreUpdate
-	private void prePersist() {
-		this.typeId = this.type.getId();
+
+	public Set<GraphType> getCompatibleGraphTypes() {
+		Set<GraphType> compatibleGraphTypes = new HashSet<GraphType>();
+		for(int id : this.compatibleGraphTypes) {
+			compatibleGraphTypes.add(GraphType.lookupType(id));
+		}
+		return compatibleGraphTypes;
 	}
 	
-	@PostLoad
-	private void postLoad() {
-		this.type = AlgorithmType.lookupType(this.typeId);
-	}
-		
 }

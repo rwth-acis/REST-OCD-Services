@@ -29,6 +29,7 @@ public class Pair<F, S> {
         return second;
     }
     
+    @Override
     public String toString() {
     	String firstString = "NULL";
     	String secondString = "NULL";
@@ -38,7 +39,20 @@ public class Pair<F, S> {
     	if(second != null) {
     		secondString = second.toString();
     	}
-    	return "[F=" + firstString + ", S=" + secondString + "]";
+    	return "[ " + firstString + ", " + secondString + " ]";
     }
     
+    @Override
+    public boolean equals(Object o) {
+    	if(o instanceof Pair<?, ?>) {
+    		Pair<?, ?> p = (Pair<?, ?>) o;
+    		return (this.first.equals(p.first) && this.second.equals(p.second));
+    	}
+    	else return false;
+    }
+    
+    @Override
+    public int hashCode() {
+    	return first.hashCode() + second.hashCode();
+    }
 }

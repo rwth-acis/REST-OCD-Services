@@ -33,6 +33,13 @@ public class CustomEdge {
 	@Column(name = idColumnName)
 	private int id;
 	
+	@Column(name = weightColumnName)
+	private double weight = 1;
+	
+	/*
+	 * Attributes from y.base.Edge
+	 * Only for persistence.
+	 */
 	@ManyToOne(cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
 	@JoinColumn(name = sourceIndexColumnName, referencedColumnName = CustomNode.idColumnName)
 	private CustomNode source;
@@ -41,15 +48,16 @@ public class CustomEdge {
 	@JoinColumn(name = targetIndexColumnName, referencedColumnName = CustomNode.idColumnName)
 	private CustomNode target;
 	
-	@Column(name = weightColumnName)
-	private double weight;
-	
 	@ElementCollection
 	private List<PointEntity> points;
 	
 	protected CustomEdge() {
 	}
-
+	
+	protected CustomEdge(CustomEdge customEdge) {
+		this.weight = customEdge.weight;
+	}
+	
 	public int getId() {
 		return id;
 	}

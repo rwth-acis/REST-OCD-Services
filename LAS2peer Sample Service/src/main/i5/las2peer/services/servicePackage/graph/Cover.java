@@ -1,15 +1,16 @@
 package i5.las2peer.services.servicePackage.graph;
 
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
-import i5.las2peer.services.servicePackage.metrics.MetricType;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.metrics.MetricLog;
+import i5.las2peer.services.servicePackage.metrics.MetricType;
 import i5.las2peer.services.servicePackage.utils.NonZeroEntriesVectorProcedure;
 
 import java.awt.Color;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +87,7 @@ public class Cover {
 	 */
 	@OneToOne(orphanRemoval = true, cascade={CascadeType.ALL})
 	@JoinColumn(name = algorithmColumnName)
-	private AlgorithmLog algorithm = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>());
+	private AlgorithmLog algorithm = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
 	@OneToMany(orphanRemoval = true, cascade={CascadeType.ALL})
 	@JoinColumn(name=idJoinColumnName, referencedColumnName = idColumnName)
 	private List<Community> communities = new ArrayList<Community>();
@@ -123,17 +124,17 @@ public class Cover {
 
 	public Matrix getMemberships() {
 		Matrix memberships = new CCSMatrix(graph.nodeCount(), communities.size());
-		Map<CustomNode, Integer> customNodeIds = new HashMap<CustomNode, Integer>();
+		Map<CustomNode, Node> reverseNodeMap = new HashMap<CustomNode, Node>();
 		NodeCursor nodes = graph.nodes();
 		while(nodes.ok()) {
 			Node node = nodes.node();
-			customNodeIds.put(graph.getCustomNode(node), node.index());
+			reverseNodeMap.put(graph.getCustomNode(node), node);
 			nodes.next();
 		}
 		for(int i=0; i<communities.size(); i++) {
 			Community community = communities.get(i);
-			for(Map.Entry<CustomNode, Double> membership : community.getMemberships().entrySet()) {
-				memberships.set(customNodeIds.get(membership.getKey()), i, membership.getValue());
+			for(Map.Entry<Node, Double> membership : community.getMemberships(this.graph).entrySet()) {
+				memberships.set(membership.getKey().index(), i, membership.getValue());
 			}
 		}
 		return memberships;
@@ -152,7 +153,7 @@ public class Cover {
 			List<Integer> nonZeroEntries = procedure.getNonZeroEntries();
 			for(int j : nonZeroEntries) {
 				Community community = communities.get(j);
-				community.setBelongingFactor(graph.getCustomNode(nodes[i]), memberships.get(i, j));
+				community.setBelongingFactor(graph, nodes[i], memberships.get(i, j));
 			}
 			
 		}
@@ -200,7 +201,7 @@ public class Cover {
 			this.algorithm = algorithm;
 		}
 		else {
-			this.algorithm = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>());
+			this.algorithm = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), null);
 		}
 	}
 
@@ -243,7 +244,7 @@ public class Cover {
 	public List<Integer> getCommunityIndices(Node node) {
 		List<Integer> communityIndices = new ArrayList<Integer>();
 		for(int j=0; j < communities.size(); j++) {
-			if(this.communities.get(j).getBelongingFactor(graph.getCustomNode(node)) > 0) {
+			if(this.communities.get(j).getBelongingFactor(graph, node) > 0) {
 				communityIndices.add(j);
 			}
 		}
@@ -251,11 +252,11 @@ public class Cover {
 	}
 	
 	public double getBelongingFactor(Node node, int communityIndex) {
-		return communities.get(communityIndex).getBelongingFactor(graph.getCustomNode(node));
+		return communities.get(communityIndex).getBelongingFactor(graph, node);
 	}
 	
 	public void setBelongingFactor(Node node, int communityIndex, double belongingFactor) {
-		communities.get(communityIndex).setBelongingFactor(graph.getCustomNode(node), belongingFactor);
+		communities.get(communityIndex).setBelongingFactor(graph, node, belongingFactor);
 	}
 	
 	public String getCommunityName(int communityIndex) {

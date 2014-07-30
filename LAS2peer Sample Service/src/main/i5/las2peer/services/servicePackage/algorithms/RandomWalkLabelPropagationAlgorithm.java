@@ -81,11 +81,10 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		parameters.put("profitabilityDelta", Double.toString(profitabilityDelta));
 		parameters.put("leadershipIterationBound", Integer.toString(leadershipIterationBound));
 		parameters.put("leadershipPrecisionFactor", Double.toString(leadershipPrecisionFactor));
-		return new AlgorithmLog(AlgorithmType.RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM, parameters);
+		return new AlgorithmLog(AlgorithmType.RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM, parameters, compatibleGraphTypes());
 	}
 
-	@Override
-	public Set<GraphType> compatibleGraphTypes() {
+	private Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.WEIGHTED);
 		compatibilities.add(GraphType.DIRECTED);

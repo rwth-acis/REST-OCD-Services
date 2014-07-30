@@ -9,10 +9,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.PostLoad;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.Transient;
 
 @Entity
 public class MetricLog {
@@ -22,7 +18,6 @@ public class MetricLog {
 	 */
 	private static final String idColumnName = "ID";
 	private static final String typeColumnName = "TYPE";
-	private static final String parametersColumnName = "PARAMETERS";
 	private static final String valueColumnName = "VALUE";
 	
 	/**
@@ -32,10 +27,7 @@ public class MetricLog {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
 	private long id;
-	@Transient
-	private MetricType type;
 	@ElementCollection
-	@Column(name = parametersColumnName)
 	private Map<String, String> parameters;
 	@Column(name = valueColumnName)
 	private double value;
@@ -49,10 +41,10 @@ public class MetricLog {
 	
 	public MetricLog(MetricType type, double value, Map<String, String> parameters) {
 		if(type != null) {
-			this.type = type;
+			this.typeId = type.getId();
 		}
 		else {
-			this.type = MetricType.UNDEFINED;
+			this.typeId = MetricType.UNDEFINED.getId();
 		}
 		if(parameters != null) {
 			this.parameters = parameters;
@@ -68,7 +60,7 @@ public class MetricLog {
 	}
 
 	public MetricType getType() {
-		return type;
+		return MetricType.lookupType(this.typeId);
 	}
 
 	public Map<String, String> getParameters() {
@@ -77,17 +69,6 @@ public class MetricLog {
 
 	public double getValue() {
 		return value;
-	}
-	
-	@PrePersist
-	@PreUpdate
-	private void prePersist() {
-		this.typeId = this.type.getId();
-	}
-	
-	@PostLoad
-	private void postLoad() {
-		this.type = MetricType.lookupType(this.typeId);
 	}
 	
 }

@@ -1,13 +1,15 @@
 package i5.las2peer.services.servicePackage.benchmarkModels;
 
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
+import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
+import i5.las2peer.services.servicePackage.graph.GraphType;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -84,7 +86,7 @@ public class NewmanModel implements GroundTruthBenchmarkModel {
 				redesignExternalEdges(graph, groupMap, nodeOrder, unsatisfiedNodes, nodeA, rand);
 			}
 		}
-		Cover cover = new Cover(graph, membershipMatrix, new AlgorithmLog(AlgorithmType.GROUND_TRUTH, new HashMap<String, String>()));
+		Cover cover = new Cover(graph, membershipMatrix, new AlgorithmLog(AlgorithmType.GROUND_TRUTH, new HashMap<String, String>(), new HashSet<GraphType>()));
 		return cover;
 	}
 	

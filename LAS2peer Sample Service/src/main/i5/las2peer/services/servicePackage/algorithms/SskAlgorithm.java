@@ -85,11 +85,10 @@ public class SskAlgorithm implements OcdAlgorithm {
 		parameters.put("leadershipPrecisionFactor", Double.toString(leadershipPrecisionFactor));
 		parameters.put("membershipsIterationBound", Integer.toString(membershipsIterationBound));
 		parameters.put("membershipsPrecisionFactor", Double.toString(membershipsPrecisionFactor));
-		return new AlgorithmLog(AlgorithmType.SSK_ALGORITHM, parameters);
+		return new AlgorithmLog(AlgorithmType.SSK_ALGORITHM, parameters, compatibleGraphTypes());
 	}
 	
-	@Override
-	public Set<GraphType> compatibleGraphTypes() {
+	private Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> types = new HashSet<GraphType>();
 		types.add(GraphType.DIRECTED);
 		types.add(GraphType.WEIGHTED);

@@ -6,10 +6,12 @@ import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
+import i5.las2peer.services.servicePackage.graph.GraphType;
 
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +28,7 @@ public class NodeCommunityListInputAdapter extends AbstractCoverInputAdapter {
 	}
 	
 	@Override
-	public Cover readCover(CustomGraph graph, AlgorithmLog algorithm)
+	public Cover readCover(CustomGraph graph)
 			throws AdapterException {
 		String nodeName;
 		Map<String, List<Integer>> nodeCommunities = new HashMap<String,  List<Integer>>();;
@@ -78,7 +80,7 @@ public class NodeCommunityListInputAdapter extends AbstractCoverInputAdapter {
 			}
 			nodes.next();
 		}
-		return new Cover(graph, memberships, new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>()));
+		return new Cover(graph, memberships, new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>()));
 	}
 	
 }
