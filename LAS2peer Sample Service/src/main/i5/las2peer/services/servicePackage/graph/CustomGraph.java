@@ -13,10 +13,11 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
+import javax.persistence.IdClass;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.PostLoad;
@@ -32,6 +33,7 @@ import y.base.NodeCursor;
 import y.view.Graph2D;
 
 @Entity
+@IdClass(CustomGraphId.class)
 public class CustomGraph extends Graph2D {
 	
 	/////////////////// DATABASE COLUMN NAMES
@@ -40,17 +42,14 @@ public class CustomGraph extends Graph2D {
 	 * Database column name definitions.
 	 */
 	protected static final String idColumnName = "ID";
-	private static final String idJoinColumnName = "GRAPH_ID";
-	private static final String userColumnName = "USER_NAME";
+	protected static final String userColumnName = "USER_NAME";
 	private static final String nameColumnName = "NAME";
 	private static final String descriptionColumnName = "DESCRIPTION";
 	private static final String lastUpdateColumnName = "LAST_UPDATE";
-	private static final String idEdgeMapColumnName = "id";
-	private static final String idNodeMapColumnName = "id";
 	private static final String idEdgeMapKeyColumnName = "RUNTIME_ID";
 	private static final String idNodeMapKeyColumnName = "RUNTIME_ID";
-	/////////////////////////// ATTRIBUTES
 	
+	/////////////////////////// ATTRIBUTES	
 	/**
 	 * System generated persistence id.
 	 */
@@ -61,6 +60,7 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * The name of the user owning the graph.
 	 */
+	@Id
 	@Column(name = userColumnName)
 	private String userName = "";
 	/**
@@ -82,22 +82,22 @@ public class CustomGraph extends Graph2D {
 	@ElementCollection
 	private Set<Integer> types = new HashSet<Integer>();
 	
-	///////////////////// THE FOLLOWING ATTRIBUTES ARE MAINTAINED AUTOMATICALLY AND ONLY OF INTERNAL USE
-	
 	/*
 	 * Mapping from fix node ids to custom nodes for additional node data and persistence.
 	 */
-	@OneToMany(orphanRemoval = true, cascade={CascadeType.ALL})
-	@JoinColumn(name=idJoinColumnName, referencedColumnName = idNodeMapColumnName)
+	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade={CascadeType.ALL}, fetch=FetchType.LAZY)
 	@MapKeyColumn(name = idNodeMapKeyColumnName)
 	private Map<Integer, CustomNode> customNodes = new HashMap<Integer, CustomNode>();
 	/*
 	 * Mapping from fix edge ids to custom nodes for additional edge data and persistence.
 	 */
-	@OneToMany(orphanRemoval = true, cascade={CascadeType.ALL})
-	@JoinColumn(name=idJoinColumnName, referencedColumnName = idEdgeMapColumnName)
+	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade={CascadeType.ALL}, fetch=FetchType.LAZY)
 	@MapKeyColumn(name = idEdgeMapKeyColumnName)
 	private Map<Integer, CustomEdge> customEdges = new HashMap<Integer, CustomEdge>();
+	
+	
+	///////////////////// THE FOLLOWING ATTRIBUTES ARE MAINTAINED AUTOMATICALLY AND ONLY OF INTERNAL USE
+	
 	/*
 	 * Mapping from edges to fix edge ids.
 	 */
@@ -114,15 +114,15 @@ public class CustomGraph extends Graph2D {
 	@Transient
 	private Map<CustomNode, Node> reverseNodeMap = new HashMap<CustomNode, Node>();
 	/*
-	 * A counter for assigning runtime edge indices. 
+	 * Used for assigning runtime edge indices. 
 	 */
 	@Transient
-	private int edgeCounter = 0;
+	private int edgeIndexer = 0;
 	/*
-	 * A counter for assigning runtime node indices.
+	 * Used for assigning runtime node indices.
 	 */
 	@Transient
-	private int nodeCounter = 0;
+	private int nodeIndexer = 0;
 	
 	///////////////////////////// METHODS AND CONSTRUCTORS
 	
@@ -138,14 +138,12 @@ public class CustomGraph extends Graph2D {
 			this.addCustomNode(node);
 			nodes.next();
 		}
-		nodeCounter = this.nodeCount();
 		EdgeCursor edges = this.edges();
 		while(edges.ok()) {
 			Edge edge = edges.edge();
 			this.addCustomEdge(edge);
 			edges.next();
 		}
-		edgeCounter = this.edgeCount();
 		this.addGraphListener(new CustomGraphListener());
 	}
 	
@@ -160,8 +158,8 @@ public class CustomGraph extends Graph2D {
 		if(graph.lastUpdate != null) {
 			this.lastUpdate.setTime(graph.lastUpdate.getTime());
 		}
-		nodeCounter = graph.nodeCounter;
-		edgeCounter = graph.edgeCounter;
+		nodeIndexer = graph.nodeIndexer;
+		edgeIndexer = graph.edgeIndexer;
 		this.types = new HashSet<Integer>(graph.types);
 	}
 
@@ -241,7 +239,7 @@ public class CustomGraph extends Graph2D {
 		getCustomNode(node).setName(name);
 	}
 
-	public long getNodeId(Node node) {
+	public int getNodeId(Node node) {
 		return getCustomNode(node).getId();
 	}
 	
@@ -369,10 +367,10 @@ public class CustomGraph extends Graph2D {
 	 */
 	protected void addCustomNode(Node node) {
 		CustomNode customNode = new CustomNode();
-		this.nodeIds.put(node, this.nodeCounter);
-		this.customNodes.put(nodeCounter, customNode);
+		this.nodeIds.put(node, this.nodeIndexer);
+		this.customNodes.put(nodeIndexer, customNode);
 		this.reverseNodeMap.put(customNode,  node);
-		nodeCounter++;
+		nodeIndexer++;
 	}
 	/*
 	 * Removes the mappings between a node and its custom node object.
@@ -391,9 +389,9 @@ public class CustomGraph extends Graph2D {
 	 */
 	protected void addCustomEdge(Edge edge) {
 		CustomEdge customEdge = new CustomEdge();
-		this.edgeIds.put(edge, this.edgeCounter);
-		this.customEdges.put(edgeCounter, customEdge);
-		edgeCounter++;
+		this.edgeIds.put(edge, this.edgeIndexer);
+		this.customEdges.put(edgeIndexer, customEdge);
+		edgeIndexer++;
 	}
 	/*
 	 * Removes the mapping from an edge to its custom edge.
@@ -428,8 +426,8 @@ public class CustomGraph extends Graph2D {
 			this.edgeIds.put(edge, edge.index());
 			this.customEdges.put(edge.index(), customEdge);
 		}
-		nodeCounter = this.nodeCount();
-		edgeCounter = this.edgeCount();
+		nodeIndexer = this.nodeCount();
+		edgeIndexer = this.edgeCount();
 		this.addGraphListener(new CustomGraphListener());
 	}
 	

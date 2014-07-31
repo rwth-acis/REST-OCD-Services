@@ -8,7 +8,7 @@ import java.util.HashSet;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
-import i5.las2peer.services.servicePackage.algorithms.RandomWalkLabelPropagationAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.ExtendedRandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
@@ -28,7 +28,7 @@ public class ExtendedNormalizedMutualInformationTest {
 	@Test
 	public void testOnSawmillRawLpa() throws Exception {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		OcdAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
+		OcdAlgorithm algo = new ExtendedRandomWalkLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		cover.filterMembershipsbyThreshold(0.15);
 		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformation();

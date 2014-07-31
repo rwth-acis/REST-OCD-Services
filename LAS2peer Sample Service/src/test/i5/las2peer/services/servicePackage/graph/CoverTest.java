@@ -49,20 +49,13 @@ public class CoverTest {
 	public void testNormalizeMemberships() {
 		cover.normalizeMemberships();
 		Matrix memberships = cover.getMemberships();
-		/*
-		 * First row must remain unchanged and sum up to zero precisely.
-		 */
-		double rowSum = 0;
-		for(int j=0; j<memberships.columns(); j++) {
-			rowSum += memberships.get(0, j);
-		}
-		assertEquals(0.0, rowSum, 0.0);
-		/*
-		 * Other rows must sum up to one.
-		 */
-		for(int i=1; i<memberships.rows(); i++) {
+		double rowSum;
+		for(int i=0; i<memberships.rows(); i++) {
 			rowSum = 0;
 			for(int j=0; j<memberships.columns(); j++) {
+				//////////// TODO test
+				System.out.println("(" + i + ", " + j + ") = " + memberships.get(i, j));
+				/////////
 				rowSum += memberships.get(i, j);
 			}
 			assertEquals(1.0, rowSum, 0.00001);
@@ -84,7 +77,7 @@ public class CoverTest {
 		cover.filterMembershipsbyThreshold(0.25);
 		System.out.println(cover.toString());
 		assertEquals(0, cover.getMetrics().size());
-		assertEquals(2, cover.communityCount());
+		assertEquals(3, cover.communityCount());
 	}
 	
 	/*

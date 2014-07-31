@@ -79,7 +79,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	}
 	
 	@Override
-	public AlgorithmLog getAlgorithm() {
+	public AlgorithmLog getAlgorithmLog() {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("leadershipIterationBound", Integer.toString(leadershipIterationBound));
 		parameters.put("leadershipPrecisionFactor", Double.toString(leadershipPrecisionFactor));
@@ -101,7 +101,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		Vector totalInfluences = executeRandomWalk(transitionMatrix);
 		Map<Node, Integer> leaders = determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
 		Matrix memberships = calculateMemberships(graph, leaders);
-		return new Cover(graph, memberships, getAlgorithm());
+		return new Cover(graph, memberships, getAlgorithmLog());
 	}
 	
 	/*

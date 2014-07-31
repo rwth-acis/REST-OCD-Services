@@ -7,10 +7,13 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 
 import y.base.Edge;
@@ -18,6 +21,7 @@ import y.base.Node;
 import y.view.EdgeRealizer;
 
 @Entity
+@IdClass(CustomEdgeId.class)
 public class CustomEdge {
 	
 	/*
@@ -26,12 +30,23 @@ public class CustomEdge {
 	private static final String idColumnName = "ID";
 	private static final String sourceIndexColumnName = "SOURCE_INDEX";
 	private static final String targetIndexColumnName = "TARGET_INDEX";
+	protected static final String graphIdColumnName = "GRAPH_ID";
+	protected static final String graphUserColumnName = "USER_NAME";
+	
 	private static final String weightColumnName = "WEIGHT";	
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name = idColumnName)
 	private int id;
+	
+	@Id
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumns({
+		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
+		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
+	})
+	private CustomGraph graph;
 	
 	@Column(name = weightColumnName)
 	private double weight = 1;
@@ -41,11 +56,20 @@ public class CustomEdge {
 	 * Only for persistence.
 	 */
 	@ManyToOne(cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
-	@JoinColumn(name = sourceIndexColumnName, referencedColumnName = CustomNode.idColumnName)
+	@JoinColumns( {
+		@JoinColumn(name = sourceIndexColumnName, referencedColumnName = CustomNode.idColumnName),
+		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomNode.graphIdColumnName, insertable=false, updatable=false),
+		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomNode.graphUserColumnName, insertable=false, updatable=false)
+	} )
 	private CustomNode source;
 	
 	@ManyToOne(cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
-	@JoinColumn(name = targetIndexColumnName, referencedColumnName = CustomNode.idColumnName)
+	@JoinColumns( {
+		@JoinColumn(name = targetIndexColumnName, referencedColumnName = CustomNode.idColumnName),
+		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomNode.graphIdColumnName, insertable=false, updatable=false),
+		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomNode.graphUserColumnName, insertable=false, updatable=false)
+	} )
+	
 	private CustomNode target;
 	
 	@ElementCollection
@@ -104,6 +128,7 @@ public class CustomEdge {
 		for(int i=0; i<eRealizer.pointCount(); i++) {
 			this.points.add(new PointEntity(eRealizer.getPoint(i)));
 		}
+		this.graph = graph;
 	}
 
 	protected Edge createEdge(CustomGraph graph, Node source, Node target) {

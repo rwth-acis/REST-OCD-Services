@@ -25,6 +25,6 @@ public interface OcdAlgorithm {
 	 * Returns a log representing the concrete algorithm execution.
 	 * @return The log.
 	 */
-	public AlgorithmLog getAlgorithm();
+	public AlgorithmLog getAlgorithmLog();
 
 }

@@ -18,7 +18,7 @@ public class ExecutionTime {
 	}
 	
 	public void setCoverExecutionTime(Cover cover) {
-		MetricLog metric = new MetricLog(MetricType.EXECUTION_TIME, (double)totalTime / 1000d, new HashMap<String, String>());
+		MetricLog metric = new MetricLog(MetricType.EXECUTION_TIME, (double)totalTime / 1000d, new HashMap<String, String>(), cover);
 		cover.setMetric(metric);
 	}
 }

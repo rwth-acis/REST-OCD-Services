@@ -26,11 +26,12 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
- * Implements an extended version of the Random Walk Label Propagation
- * Algorithm. This version also works on directed and weighted graphs. For
- * unweighted, undirected graphs, it behaves the same as the original.
+ * Implements a custom extended version of the Random Walk Label Propagation
+ * Algorithm.
+ * Handles directed and weighted graphs. For unweighted, undirected graphs,
+ * it behaves the same as the original.
  */
-public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
+public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 
 	/**
 	 * The iteration bound for the leadership calculation phase. The default
@@ -54,7 +55,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * Creates a standard instance of the algorithm. All attributes are assigned
 	 * there default values.
 	 */
-	public RandomWalkLabelPropagationAlgorithm() {
+	public ExtendedRandomWalkLabelPropagationAlgorithm() {
 	}
 
 	/**
@@ -68,7 +69,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 *            Sets the randomWalkPrecisionFactor. Must be greater than 0 and
 	 *            smaller than infinity. Recommended are values close to 0.
 	 */
-	public RandomWalkLabelPropagationAlgorithm(double profitabilityDelta,
+	public ExtendedRandomWalkLabelPropagationAlgorithm(double profitabilityDelta,
 			int leadershipIterationBound, double leadershipPrecisionFactor) {
 		this.profitabilityDelta = profitabilityDelta;
 		this.leadershipIterationBound = leadershipIterationBound;
@@ -76,12 +77,12 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	}
 
 	@Override
-	public AlgorithmLog getAlgorithm() {
+	public AlgorithmLog getAlgorithmLog() {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("profitabilityDelta", Double.toString(profitabilityDelta));
 		parameters.put("leadershipIterationBound", Integer.toString(leadershipIterationBound));
 		parameters.put("leadershipPrecisionFactor", Double.toString(leadershipPrecisionFactor));
-		return new AlgorithmLog(AlgorithmType.RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM, parameters, compatibleGraphTypes());
+		return new AlgorithmLog(AlgorithmType.EXTENDED_RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM, parameters, compatibleGraphTypes());
 	}
 
 	private Set<GraphType> compatibleGraphTypes() {
@@ -267,6 +268,9 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		double followerDegree;
 		while (nodes.ok()) {
 			node = nodes.node();
+			if(!followerMap.containsKey(node)) {
+				followerMap.put(node, 0d);
+			}
 			successors = node.successors();
 			maxInfluence = Double.NEGATIVE_INFINITY;
 			leaders.clear();
@@ -538,7 +542,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 			}
 			communityIndex++;
 		}
-		Cover cover = new Cover(graph, membershipMatrix, getAlgorithm());
+		Cover cover = new Cover(graph, membershipMatrix, getAlgorithmLog());
 		return cover;
 	}
 }

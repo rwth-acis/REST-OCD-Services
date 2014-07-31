@@ -18,14 +18,27 @@ import y.base.Node;
 
 public class OcdAlgorithmExecutor {
 
+	/**
+	 * Calculates a cover by executing an ocd algorithm on a graph.
+	 * The algorithm is run on each weakly connected component seperately.
+	 * Small components are automatically considered to be one community.
+	 * @param graph The graph.
+	 * @param algorithm The algorithm.
+	 * @param componentNodeCountFilter Weakly connected components of a size
+	 * lower than the filter will automatically be considered a single community.
+	 * @return A cover of the graph calculated by the algorithm.
+	 * @throws OcdAlgorithmException
+	 */
 	public Cover execute(CustomGraph graph, OcdAlgorithm algorithm, int componentNodeCountFilter) throws OcdAlgorithmException {
+		CustomGraph graphCopy = new CustomGraph(graph);
 		GraphProcessor processor = new GraphProcessor();
+		processor.makeCompatible(graph, algorithm.getAlgorithmLog().getCompatibleGraphTypes());
 		List<Pair<CustomGraph, Map<Node, Node>>> components;
 		List<Pair<Cover, Map<Node, Node>>> componentCovers;
-		components = processor.divideIntoConnectedComponents(graph);
+		components = processor.divideIntoConnectedComponents(graphCopy);
 		ExecutionTime executionTime = new ExecutionTime();
 		componentCovers = calculateComponentCovers(components, algorithm, componentNodeCountFilter, executionTime);
-		Cover cover = processor.mergeComponentCovers(graph, componentCovers);
+		Cover cover = processor.mergeComponentCovers(graphCopy, componentCovers);
 		executionTime.setCoverExecutionTime(cover);
 		return cover;
 	}
@@ -38,7 +51,7 @@ public class OcdAlgorithmExecutor {
 		for(Pair<CustomGraph, Map<Node, Node>> pair : components) {
 			component = pair.getFirst();
 			if(component.nodeCount() < componentNodeCountFilter) {
-				componentCover = computeSingleCommunityCover(component, algorithm.getAlgorithm());
+				componentCover = computeSingleCommunityCover(component, algorithm.getAlgorithmLog());
 			}
 			else {
 				executionTime.start();

@@ -4,20 +4,28 @@ import java.awt.Color;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
 
 import y.base.Node;
 import y.view.NodeRealizer;
 
 @Entity
+@IdClass(CustomNodeId.class)
 public class CustomNode {
 
 	/*
 	 * Database column name definitions.
 	 */
 	protected static final String idColumnName = "INDEX";
+	protected static final String graphIdColumnName = "GRAPH_ID";
+	protected static final String graphUserColumnName = "USER_NAME";
 	private static final String nameColumnName = "NAME";
 	private static final String xColumnName = "X";
 	private static final String yColumnName = "Y";
@@ -29,6 +37,14 @@ public class CustomNode {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name = idColumnName)
 	private int id;
+
+	@Id
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumns({
+		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
+		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
+	})
+	private CustomGraph graph;
 	
 	@Column(name = nameColumnName)
 	private String name;
@@ -118,6 +134,7 @@ public class CustomNode {
 		this.height = nRealizer.getHeight();
 		this.width = nRealizer.getWidth();
 		this.color = nRealizer.getFillColor().getRGB();
+		this.graph = graph;
 	}
 	
 	protected Node createNode(CustomGraph graph) {

@@ -3,7 +3,7 @@ package i5.las2peer.services.servicePackage.evaluation;
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithmExecutor;
-import i5.las2peer.services.servicePackage.algorithms.RandomWalkLabelPropagationAlgorithm;
+import i5.las2peer.services.servicePackage.algorithms.ExtendedRandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
@@ -40,7 +40,7 @@ public class RawLpaProfitabilityDeltaEvaluationTest {
 		profitabilityDeltas[9] = 0.275;
 		profitabilityDeltas[10] = 0.300;
 		for(int i=0; i<profitabilityDeltas.length; i++) {
-			OcdAlgorithm algorithm = new RandomWalkLabelPropagationAlgorithm(profitabilityDeltas[i], 1000, 0.001);
+			OcdAlgorithm algorithm = new ExtendedRandomWalkLabelPropagationAlgorithm(profitabilityDeltas[i], 1000, 0.001);
 			Cover cover = algoExecutor.execute(graph, algorithm, 8);
 			/* TODO let metric run
 			OcdMetricExecutor metricExecutor = new OcdMetricExecutor();

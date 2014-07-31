@@ -10,10 +10,15 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
 
 import y.base.Node;
 
 @Entity
+@IdClass(CommunityId.class)
 public class Community {
 	
 	/*
@@ -22,6 +27,9 @@ public class Community {
 	private static final String idColumnName = "ID";
 	private static final String nameColumnName = "NAME";
 	private static final String colorColumnName = "COLOR";
+	public static final String coverIdColumnName = "COVER_ID";
+	public static final String graphIdColumnName = "GRAPH_ID";
+	public static final String graphUserColumnName = "USER_NAME";
 	
 	/**
 	 * System generated persistence id.
@@ -30,6 +38,14 @@ public class Community {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
 	private long id;
+	@Id
+	@ManyToOne
+	@JoinColumns({
+		@JoinColumn(name=graphIdColumnName, referencedColumnName=Cover.graphIdColumnName),
+		@JoinColumn(name=graphUserColumnName, referencedColumnName=Cover.graphUserColumnName),
+		@JoinColumn(name=coverIdColumnName, referencedColumnName=Cover.idColumnName)
+	})
+	private Cover cover;
 	@Column(name = nameColumnName)
 	/**
 	 * The community name.
@@ -42,9 +58,22 @@ public class Community {
 	private int color = Color.WHITE.getRGB();
 	/**
 	 * A mapping from the custom nodes to their belonging factors.
+	 * Belonging factors must be non-negative.
 	 */
 	@ElementCollection
 	private Map<CustomNode, Double> memberships = new HashMap<CustomNode, Double>();
+	
+	public Community(Cover cover) {
+		this.cover = cover;
+	}
+	
+	/*
+	 * Required for persistence.
+	 * Must not be used.
+	 */
+	protected Community() {
+	}
+	
 	/**
 	 * Getter for id.
 	 * @return The id.

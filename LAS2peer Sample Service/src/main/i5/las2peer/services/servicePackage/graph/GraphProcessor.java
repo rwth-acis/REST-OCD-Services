@@ -133,9 +133,6 @@ public class GraphProcessor {
 		EdgeCursor edges = graph.edges();
 		while(edges.ok()) {
 			Edge edge = edges.edge();
-			////
-			System.out.println(edge.index());			
-			////
 			double edgeWeight = graph.getEdgeWeight(edge);
 			if(noNegativeWeights && edgeWeight < 0) {
 				graph.removeEdge(edge);
@@ -241,7 +238,7 @@ public class GraphProcessor {
 				algo = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
 			}
 		}
-		return new Cover(graph, memberships, currentCover.getAlgorithm());
+		return new Cover(graph, memberships, algo);
 	}
 
 	/**

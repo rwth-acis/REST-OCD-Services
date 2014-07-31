@@ -43,7 +43,7 @@ public class ExtendedModularity implements StatisticalMeasure {
 		if(graph.edgeCount() > 0) {
 			metricValue /= graph.edgeCount();
 		}
-		MetricLog metric = new MetricLog(MetricType.EXTENDED_MODULARITY_METRIC, metricValue, new HashMap<String, String>());
+		MetricLog metric = new MetricLog(MetricType.EXTENDED_MODULARITY_METRIC, metricValue, new HashMap<String, String>(), cover);
 		cover.setMetric(metric);
 	}
 	

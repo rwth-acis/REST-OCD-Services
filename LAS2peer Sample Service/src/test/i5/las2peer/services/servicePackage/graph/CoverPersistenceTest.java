@@ -73,7 +73,7 @@ public class CoverPersistenceTest {
 		cover.setName(coverName);
 		cover.setCommunityColor(1, Color.BLUE);
 		cover.setCommunityName(1, "Community1");
-		MetricLog metric = new MetricLog(MetricType.EXECUTION_TIME, 3.55, params);
+		MetricLog metric = new MetricLog(MetricType.EXECUTION_TIME, 3.55, params, cover);
 		cover.setMetric(metric);
 		tx = em.getTransaction();
 		try {

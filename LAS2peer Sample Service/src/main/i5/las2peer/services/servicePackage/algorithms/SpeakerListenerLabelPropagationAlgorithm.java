@@ -27,9 +27,7 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
- * Implements an extended version of the Speaker Listener Label Propagation Algorithm.
- * This version also works on directed and weighted graphs. For unweighted, undirected graphs,
- * it behaves the same as the original.
+ * Implements the standard version of the Speaker Listener Label Propagation Algorithm.
  */
 public class SpeakerListenerLabelPropagationAlgorithm implements
 		OcdAlgorithm {
@@ -81,7 +79,7 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	}
 	
 	@Override
-	public AlgorithmLog getAlgorithm() {
+	public AlgorithmLog getAlgorithmLog() {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("memorySize", Integer.toString(memorySize));
 		parameters.put("probabilityThreshold", Double.toString(probabilityThreshold));
@@ -92,8 +90,6 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	
 	private Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
-		compatibilities.add(GraphType.WEIGHTED);
-		compatibilities.add(GraphType.DIRECTED);
 		return compatibilities;
 	}
 	
@@ -181,7 +177,7 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		    }
 		    membershipMatrix.setRow(i, nodeMembershipDegrees);
 		}
-		return new Cover(graph, membershipMatrix, getAlgorithm());
+		return new Cover(graph, membershipMatrix, getAlgorithmLog());
 	}
 	
 	/*

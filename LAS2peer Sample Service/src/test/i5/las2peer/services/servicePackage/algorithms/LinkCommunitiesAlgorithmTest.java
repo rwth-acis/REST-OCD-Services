@@ -16,7 +16,7 @@ public class LinkCommunitiesAlgorithmTest {
 	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException {
 		CustomGraph graph = OcdTestGraphFactory
 				.getAperiodicTwoCommunitiesGraph();
-		OcdAlgorithm algo = new LinkCommunitiesAlgorithm();
+		OcdAlgorithm algo = new WeightedLinkCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
@@ -37,7 +37,7 @@ public class LinkCommunitiesAlgorithmTest {
 			}
 			edges.next();
 		}
-		OcdAlgorithm algo = new LinkCommunitiesAlgorithm();
+		OcdAlgorithm algo = new WeightedLinkCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}

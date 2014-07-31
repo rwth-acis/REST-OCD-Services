@@ -24,8 +24,9 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
-/*
- * The Link Communities Algorithm.
+/**
+ * The original standard version of the Link Communities Algorithm.
+ * Handles only undirected, unweighted graphs.
  */
 public class LinkCommunitiesAlgorithm implements
 		OcdAlgorithm {
@@ -37,13 +38,12 @@ public class LinkCommunitiesAlgorithm implements
 	}
 	
 	@Override
-	public AlgorithmLog getAlgorithm() {
+	public AlgorithmLog getAlgorithmLog() {
 		return new AlgorithmLog(AlgorithmType.LINK_COMMUNITIES_ALGORITHM, new HashMap<String, String>(), compatibleGraphTypes());
 	}
 	
 	private Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
-		compatibilities.add(GraphType.WEIGHTED);
 		return compatibilities;
 	}
 
@@ -66,31 +66,19 @@ public class LinkCommunitiesAlgorithm implements
 		double newLinkDensity;
 		int firstCommunity;
 		int secondCommunity;
-		List<Set<Edge>> densestPartition = new ArrayList<Set<Edge>>();
 		/*
 		 * Initializes the dendrogram construction
 		 */
 		List<Vector> linkageDegrees = calculateLinkageDegrees(graph);
 		Matrix similarities = calculateEdgeSimilarities(graph, linkageDegrees);
 		initDendrogramCreation(graph, communityEdges, communityNodes, communityLinkDensities);
+		List<Set<Edge>> densestPartition = communityEdges;
 		/*
 		 * Constructs the dendrogram and determines the edge partition
 		 * with the highest partition density.
 		 */
 		while(similarities.columns() > 1) {
 			mostSimilarPairs = determineMostSimilarCommunityPairs(similarities);
-			//////////////////////////////// TODO TEST
-			//System.out.println();
-			System.out.println("Simil Cols: " + similarities.columns());
-			/*System.out.println("Edge Comms: " + communityEdges.size());
-			System.out.println("Node Comms: " + communityNodes.size());
-			System.out.println("Part Size: " + densestPartition.size());*/
-			System.out.println("Part Dens: " + currentPartitionDensity);
-			System.out.println("Similarities:");
-			System.out.println(similarities);
-			System.out.println("Pairs: " + mostSimilarPairs);
-			System.out.println();
-			/////////////////////////////////////
 			for(int i=0; i<mostSimilarPairs.size(); i++) {
 				mostSimilarPair = mostSimilarPairs.get(i);
 				firstCommunity = mostSimilarPair.getFirst();
@@ -117,130 +105,27 @@ public class LinkCommunitiesAlgorithm implements
 			if(currentPartitionDensity >= maxPartitionDensity) {
 				maxPartitionDensity = currentPartitionDensity;
 				densestPartition = new ArrayList<Set<Edge>>(communityEdges);
-				//////////////////////////////// TODO TEST
-				System.out.println();
-				System.out.println();
-				System.out.println("New Max Partition: " + communityEdges);
-				System.out.println("Size: " + communityEdges.size());
-				System.out.println("Density: " + maxPartitionDensity);
-				System.out.println();
-				System.out.println();
-				/////////////////////////////////////
 			}
 		}
-		//////////////////////////////// TODO TEST
-		System.out.println();
-		System.out.println();
-		System.out.println("Final Partition: " + densestPartition);
-		System.out.println("Size: " + densestPartition.size());
-		System.out.println("Density: " + maxPartitionDensity);
-		System.out.println();
-		System.out.println();
-		/////////////////////////////////////
 		return calculatePartitionCover(graph, densestPartition);
 	}
 
-// TODO remove when undirected unweighted version not needed anymore
-//private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkageDegrees) {
-//		Matrix similarities = new CCSMatrix(graph.edgeCount(), graph.edgeCount());
-//		EdgeCursor rowEdges = graph.edges();
-//		Edge rowEdge;
-//		Node source;
-//		Node target;
-//		List<Integer> edgeIndices = new ArrayList<Integer>();
-//		EdgeCursor columnEdges;
-//		Edge columnEdge;
-//		Edge reverseRowEdge;
-//		Edge reverseColumnEdge;
-//		double similarity;
-//		while(rowEdges.ok()) {
-//			rowEdge = rowEdges.edge();
-//			source = rowEdge.source();
-//			target = rowEdge.target();
-//			reverseRowEdge = target.getEdgeTo(source);
-//			/*
-//			 * Sets similarities only if they have not been set already for the reverse Edge.
-//			 */
-//			if(reverseRowEdge == null || rowEdge.index() < reverseRowEdge.index()) {
-//				/*
-//				 * Sets similarities for in and out edges of the row edge target node.
-//				 */
-//				edgeIndices.add(rowEdge.index());
-//				columnEdges = target.edges();
-//				while(columnEdges.ok()) {
-//					columnEdge = columnEdges.edge();
-//					if(columnEdge.index() < rowEdge.index()) {
-//						reverseColumnEdge = columnEdge.target().getEdgeTo(columnEdge.source());
-//						if(reverseColumnEdge == null || columnEdge.index() < reverseColumnEdge.index()) {
-//							similarity = getSimpleSimilarity(source, columnEdge.opposite(target));
-//							similarities.set(rowEdge.index(), columnEdge.index(), similarity);
-//						}
-//					}
-//					columnEdges.next();
-//				}
-//				/*
-//				 * Sets similarities for in edges of the row edge source node.
-//				 * If a reverse edge of the row edge exists, it is set for the out edges also.
-//				 */
-//				columnEdges = source.edges();
-//				while(columnEdges.ok()) {
-//					columnEdge = columnEdges.edge();
-//					if(columnEdge.index() < rowEdge.index() && columnEdge.source() != target) {
-//						reverseColumnEdge = columnEdge.target().getEdgeTo(columnEdge.source());
-//						if(reverseColumnEdge == null || columnEdge.index() < reverseColumnEdge.index()) {
-//							similarity = getSimpleSimilarity(target, columnEdge.opposite(source));
-//							similarities.set(rowEdge.index(), columnEdge.index(), similarity);
-//						}
-//					}
-//					columnEdges.next();
-//				}
-//			}
-//			rowEdges.next();
-//		}
-//		int[] indices = new int[edgeIndices.size()];
-//		for(int i=0; i<edgeIndices.size(); i++) {
-//			indices[i] = edgeIndices.get(i);
-//		}
-//		return similarities.select(indices, indices);
-//	}
-
-	
-	/*
-	 * Calculates an edge similarity.
-	 * This is a lower triangle matrix containing a similarity value for each edge pair. 
-	 * @param linkageDegrees The linkage degree vectors calculated for each node.
-	 * @return A similarity matrix S containing the edge similarity for two edges e_i, e_j with indices i and j and i>j in 
-	 * the entry S_ij.
-	 */
-	private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkageDegrees) {
+private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkageDegrees) {
 		Matrix similarities = new CCSMatrix(graph.edgeCount(), graph.edgeCount());
-		List<Double> squaredNorms = new ArrayList<Double>();
-		double norm;
-		Vector vec;
-		for(int i=0; i<linkageDegrees.size(); i++) {
-			vec = linkageDegrees.get(i);
-			norm = vec.fold(Vectors.mkEuclideanNormAccumulator());
-			squaredNorms.add(Math.pow(norm, 2));
-		}
 		EdgeCursor rowEdges = graph.edges();
 		Edge rowEdge;
 		Node source;
 		Node target;
-		Vector rowEdgeVec;
+		List<Integer> edgeIndices = new ArrayList<Integer>();
 		EdgeCursor columnEdges;
 		Edge columnEdge;
 		Edge reverseRowEdge;
 		Edge reverseColumnEdge;
-		List<Integer> edgeIndices = new ArrayList<Integer>();
-		Vector columnEdgeVec;
-		double innerProduct;
 		double similarity;
-		int columnEdgeNodeIndex;
 		while(rowEdges.ok()) {
 			rowEdge = rowEdges.edge();
 			source = rowEdge.source();
 			target = rowEdge.target();
-			rowEdgeVec = linkageDegrees.get(source.index());
 			reverseRowEdge = target.getEdgeTo(source);
 			/*
 			 * Sets similarities only if they have not been set already for the reverse Edge.
@@ -256,11 +141,7 @@ public class LinkCommunitiesAlgorithm implements
 					if(columnEdge.index() < rowEdge.index()) {
 						reverseColumnEdge = columnEdge.target().getEdgeTo(columnEdge.source());
 						if(reverseColumnEdge == null || columnEdge.index() < reverseColumnEdge.index()) {
-							columnEdgeNodeIndex = columnEdge.opposite(target).index();
-							columnEdgeVec = linkageDegrees.get(columnEdgeNodeIndex);
-							innerProduct = rowEdgeVec.innerProduct(columnEdgeVec);
-							similarity = innerProduct / (squaredNorms.get(source.index()) 
-									+ squaredNorms.get(columnEdgeNodeIndex) - innerProduct);
+							similarity = getSimpleSimilarity(source, columnEdge.opposite(target));
 							similarities.set(rowEdge.index(), columnEdge.index(), similarity);
 						}
 					}
@@ -276,11 +157,7 @@ public class LinkCommunitiesAlgorithm implements
 					if(columnEdge.index() < rowEdge.index() && columnEdge.source() != target) {
 						reverseColumnEdge = columnEdge.target().getEdgeTo(columnEdge.source());
 						if(reverseColumnEdge == null || columnEdge.index() < reverseColumnEdge.index()) {
-							columnEdgeNodeIndex = columnEdge.opposite(source).index();
-							columnEdgeVec = linkageDegrees.get(columnEdgeNodeIndex);
-							innerProduct = rowEdgeVec.innerProduct(columnEdgeVec);
-							similarity = innerProduct / (squaredNorms.get(target.index())
-									+ squaredNorms.get(columnEdgeNodeIndex) - innerProduct);
+							similarity = getSimpleSimilarity(target, columnEdge.opposite(source));
 							similarities.set(rowEdge.index(), columnEdge.index(), similarity);
 						}
 					}
@@ -293,9 +170,13 @@ public class LinkCommunitiesAlgorithm implements
 		for(int i=0; i<edgeIndices.size(); i++) {
 			indices[i] = edgeIndices.get(i);
 		}
-		return similarities.select(indices, indices);
+		if(indices.length > 0) {
+			return similarities.select(indices, indices);
+		}
+		else {
+			return new CCSMatrix(0, 0);
+		}
 	}
-	
 	
 	/*
 	 * Calculates the linkage degree vectors for all nodes.
@@ -404,9 +285,6 @@ public class LinkCommunitiesAlgorithm implements
 			}
 			mergedCommunities.remove(lastPair.getKey());
 		}
-		/////////////////////////////////TEST
-		System.out.println("MaxSimilarity: " + maxSimilarity);
-		//////////////////
 		return mostSimilarPairs;
 	}
 
@@ -511,44 +389,42 @@ public class LinkCommunitiesAlgorithm implements
 				memberships.set(edge.source().index(), i, belongingFactor);
 			}
 		}
-		Cover cover = new Cover(graph, memberships, getAlgorithm());
+		Cover cover = new Cover(graph, memberships, getAlgorithmLog());
 		cover.normalizeMemberships();
 		return cover;
 	}
 	
-//	//////////////// TODO remove this unweighted version (in combination with the 
-//	corresponding variation of calculateEdgeSimilarities) or write comment
-//	private double getSimpleSimilarity(Node nodeA, Node nodeB) {
-//		Set<Node> commonNeighbors = new HashSet<Node>();
-//		Set<Node> totalNeighbors = new HashSet<Node>();
-//		if(nodeB.getEdgeTo(nodeA) != null) {
-//			commonNeighbors.add(nodeA);
-//			commonNeighbors.add(nodeB);
-//		}
-//		totalNeighbors.add(nodeA);
-//		totalNeighbors.add(nodeB);
-//		/*
-//		 * Check nodeA neighbors.
-//		 */
-//		NodeCursor neighbors = nodeA.neighbors();
-//		Node neighbor;
-//		while(neighbors.ok()) {
-//			neighbor = neighbors.node();
-//			if(neighbor.getEdge(nodeB) != null) {
-//				commonNeighbors.add(neighbor);
-//			}
-//			totalNeighbors.add(neighbor);
-//			neighbors.next();
-//		}
-//		/*
-//		 * Checks nodeB neighbors.
-//		 */
-//		neighbors = nodeB.neighbors();
-//		while(neighbors.ok()) {
-//			totalNeighbors.add(neighbors.node());
-//			neighbors.next();
-//		}
-//		return (double)commonNeighbors.size() / (double)totalNeighbors.size();
-//	}
+	private double getSimpleSimilarity(Node nodeA, Node nodeB) {
+		Set<Node> commonNeighbors = new HashSet<Node>();
+		Set<Node> totalNeighbors = new HashSet<Node>();
+		if(nodeB.getEdgeTo(nodeA) != null) {
+			commonNeighbors.add(nodeA);
+			commonNeighbors.add(nodeB);
+		}
+		totalNeighbors.add(nodeA);
+		totalNeighbors.add(nodeB);
+		/*
+		 * Check nodeA neighbors.
+		 */
+		NodeCursor neighbors = nodeA.neighbors();
+		Node neighbor;
+		while(neighbors.ok()) {
+			neighbor = neighbors.node();
+			if(neighbor.getEdge(nodeB) != null) {
+				commonNeighbors.add(neighbor);
+			}
+			totalNeighbors.add(neighbor);
+			neighbors.next();
+		}
+		/*
+		 * Checks nodeB neighbors.
+		 */
+		neighbors = nodeB.neighbors();
+		while(neighbors.ok()) {
+			totalNeighbors.add(neighbors.node());
+			neighbors.next();
+		}
+		return (double)commonNeighbors.size() / (double)totalNeighbors.size();
+	}
 	
 }

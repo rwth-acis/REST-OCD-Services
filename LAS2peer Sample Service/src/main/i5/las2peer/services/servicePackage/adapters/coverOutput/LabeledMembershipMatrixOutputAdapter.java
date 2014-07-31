@@ -28,7 +28,7 @@ public class LabeledMembershipMatrixOutputAdapter extends AbstractCoverOutputAda
 				}
 				writer.write(nodeName + " ");
 				for(int i=0; i<cover.communityCount(); i++) {
-					writer.write(String.format("%.3f ", cover.getBelongingFactor(node, i)));
+					writer.write(String.format("%.4f ", cover.getBelongingFactor(node, i)));
 				}
 				writer.write("\n");
 				nodes.next();

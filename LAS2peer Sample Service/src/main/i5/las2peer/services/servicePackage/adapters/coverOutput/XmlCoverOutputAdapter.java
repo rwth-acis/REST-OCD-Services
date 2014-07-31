@@ -154,7 +154,7 @@ public class XmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 				for(Map.Entry<Node, Double> entry : com.getMemberships(cover.getGraph()).entrySet()) {
 					Element membershipElt = doc.createElement("Membership");
 					Element memberIdElt = doc.createElement("Id");
-					memberIdElt.appendChild(doc.createTextNode(Long.toString(cover.getGraph().getNodeId(entry.getKey()))));
+					memberIdElt.appendChild(doc.createTextNode(Integer.toString(cover.getGraph().getNodeId(entry.getKey()))));
 					membershipElt.appendChild(memberIdElt);
 					Element belongingFactorElt = doc.createElement("BelongingFactor");
 					belongingFactorElt.appendChild(doc.createTextNode(Double.toString(entry.getValue())));

@@ -15,7 +15,8 @@ public enum GraphType {
 	WEIGHTED(0),
 	/**
 	 * Indicates that a graph is directed.
-	 * I.e. there may be edges without a reverse edge leading the opposite way.
+	 * I.e. there may be edges without a reverse edge leading the opposite way
+	 * or with a reverse edge of different weight.
 	 */
 	DIRECTED(1),
 	/**

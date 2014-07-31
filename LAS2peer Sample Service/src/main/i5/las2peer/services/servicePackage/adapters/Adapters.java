@@ -5,8 +5,18 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Provides general functionalities for adapters.
+ * @author Sebastian
+ *
+ */
 public class Adapters {
 
+	/**
+	 * Checks whether a character is a line break.
+	 * @param character The character.
+	 * @return True if the character is a line break, otherwise false.
+	 */
 	public static boolean isLineBreak(int character) {
 		switch (character) {
 			case '\r':
@@ -18,14 +28,10 @@ public class Adapters {
 		}
 	}
 	
-	/*
-	 * Reads in the next line and returns it as a list of strings. Strings are
-	 * separated according to white space.
-	 * 
-	 * @param reader - The reader from which the next line is read.
-	 * 
-	 * @return A list of all strings in the line.
-	 * 
+	/**
+	 * Reads in the next line from a reader.
+	 * @param reader The reader from which the next line is read.
+	 * @return The line as a list of strings which were separated by white space.
 	 * @throws IOException
 	 */
 	public static List<String> readLine(Reader reader) throws IOException {

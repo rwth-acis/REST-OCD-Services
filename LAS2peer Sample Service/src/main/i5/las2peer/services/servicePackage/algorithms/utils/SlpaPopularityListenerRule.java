@@ -13,7 +13,8 @@ import y.base.Node;
 
 /**
  * Implements a concrete Listener Rule for the Speaker Listener
- * Label Propagation Algorithm. The most frequent label is selected.
+ * Label Propagation Algorithm. The most influential label is selected.
+ * For an unweighted graph this is simply the most frequent label.
  * @author Sebastian
  *
  */

@@ -18,10 +18,13 @@ import java.util.Map;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -37,6 +40,7 @@ import y.base.NodeCursor;
 
 
 @Entity
+@IdClass(CoverId.class)
 public class Cover {
 
 	/////////////////// DATABASE COLUMN NAMES
@@ -44,11 +48,11 @@ public class Cover {
 	/*
 	 * Database column name definitions.
 	 */
-	private static final String graphIdColumnName = "GRAPH_ID";
+	public static final String graphIdColumnName = "GRAPH_ID";
+	public static final String graphUserColumnName = "USER_NAME";
 	private static final String nameColumnName = "NAME";
 	private static final String descriptionColumnName = "DESCRIPTION";
-	private static final String idColumnName = "ID";
-	private static final String idJoinColumnName = "COVER_ID";
+	public static final String idColumnName = "ID";
 	private static final String lastUpdateColumnName = "LAST_UPDATE";
 	private static final String algorithmColumnName = "ALGORITHM";
 	
@@ -63,8 +67,12 @@ public class Cover {
 	/**
 	 * The graph that the cover is based on.
 	 */
+	@Id
 	@ManyToOne
-	@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName)
+	@JoinColumns( {
+		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
+		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
+	})
 	private CustomGraph graph = new CustomGraph();	
 	/**
 	 * The name of the cover.
@@ -88,11 +96,9 @@ public class Cover {
 	@OneToOne(orphanRemoval = true, cascade={CascadeType.ALL})
 	@JoinColumn(name = algorithmColumnName)
 	private AlgorithmLog algorithm = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
-	@OneToMany(orphanRemoval = true, cascade={CascadeType.ALL})
-	@JoinColumn(name=idJoinColumnName, referencedColumnName = idColumnName)
+	@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade={CascadeType.ALL}, fetch=FetchType.LAZY)
 	private List<Community> communities = new ArrayList<Community>();
-	@OneToMany(orphanRemoval = true, cascade={CascadeType.ALL})
-	@JoinColumn(name=idJoinColumnName, referencedColumnName = idColumnName)
+	@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade={CascadeType.ALL})
 	private List<MetricLog> metrics = new ArrayList<MetricLog>();
 	
 	/////////////////////////////////////////// METHODS AND CONSTRUCTORS
@@ -109,7 +115,6 @@ public class Cover {
 		setAlgorithm(algorithm);
 	}
 
-	
 	public long getId() {
 		return id;
 	}
@@ -144,7 +149,7 @@ public class Cover {
 		communities.clear();
 		Node[] nodes = graph.getNodeArray();
 		for(int j=0; j<memberships.columns(); j++) {
-			Community community = new Community();
+			Community community = new Community(this);
 			communities.add(community);
 		}
 		for(int i=0; i<memberships.rows(); i++) {
@@ -276,9 +281,10 @@ public class Cover {
 	}
 	
 	/**
-	 * Normalizes each row of the membership matrix using the one norm.
-	 * All matrix results are removed.
-	 * Note that a row stays equal to 0 if all values are 0 already.
+	 * Normalizes the memberships so that for each node the belonging factors sum up to 1.
+	 * All metric logs are removed from the cover.
+	 * Note that a unit vector column is added for each row that is equal
+	 * to zero, so that the corresponding node will have a separate community.
 	 */
 	public void normalizeMemberships() {
 		normalizeMemberships(this.getMemberships());
@@ -288,10 +294,12 @@ public class Cover {
 	 * Overload for internal reuse and performance.
 	 * Normalizes each row of the membership matrix using the one norm.
 	 * All matrix results are removed.
-	 * Note that a row stays equal to 0 if all values are 0 already.
+	 * Note that a unit vector column is added for each row that is equal
+	 * to zero, so that the corresponding node will have a separate community.
 	 * @param memberships The memberships matrix to be normalized and set.
 	 */
 	protected void normalizeMemberships(Matrix memberships) {
+		List<Integer> zeroRowIndices = new ArrayList<Integer>();
 		for(int i=0; i<memberships.rows(); i++) {
 			Vector row = memberships.getRow(i);
 			double norm = row.fold(Vectors.mkManhattanNormAccumulator());
@@ -299,6 +307,16 @@ public class Cover {
 				row = row.divide(norm);
 				memberships.setRow(i, row);
 			}
+			else {
+				zeroRowIndices.add(i);
+			}
+		}
+		/*
+		 * Resizing also rows is required in case there are zero columns.
+		 */
+		memberships = memberships.resize(graph.nodeCount(), memberships.columns() + zeroRowIndices.size());
+		for(int i = 0; i < zeroRowIndices.size(); i++) {
+			memberships.set(zeroRowIndices.get(i), memberships.columns() - zeroRowIndices.size() + i, 1d);
 		}
 		this.setMemberships(memberships);
 		metrics.clear();
@@ -384,5 +402,6 @@ public class Cover {
 			}
 		}
 	}
+
 	
 }

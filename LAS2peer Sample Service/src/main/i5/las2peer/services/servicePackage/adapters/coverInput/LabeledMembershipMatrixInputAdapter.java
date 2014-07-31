@@ -16,6 +16,7 @@ import java.util.List;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
+
 public class LabeledMembershipMatrixInputAdapter extends AbstractCoverInputAdapter {
 
 	public LabeledMembershipMatrixInputAdapter(Reader reader) {

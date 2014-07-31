@@ -24,8 +24,9 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /*
- * The overlapping community detection algorithm introduced in 2012
+ * The original version of the overlapping community detection algorithm introduced in 2012
  * by H.J. Li, J. Zhang, Z.P. Liu, L. Chen and X.S. Zhang.
+ * Handles weighted and directed graphs.
  */
 public class ClizzAlgorithm implements OcdAlgorithm {
 
@@ -85,11 +86,11 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		Map<Node, Double> leadershipValues = calculateLeadershipValues(graph, distances);
 		Map<Node, Integer> leaders = determineCommunityLeaders(graph, distances, leadershipValues);
 		Matrix memberships = calculateMemberships(graph, leaders);
-		return new Cover(graph, memberships, this.getAlgorithm());
+		return new Cover(graph, memberships, this.getAlgorithmLog());
 	}
 
 	@Override
-	public AlgorithmLog getAlgorithm() {
+	public AlgorithmLog getAlgorithmLog() {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("influenceFactor", Double.toString(influenceFactor));
 		parameters.put("membershipsIterationBound", Integer.toString(membershipsIterationBound));

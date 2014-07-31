@@ -58,7 +58,7 @@ public class XmlCoverOutputAdapterTest {
 		cover.setName(coverName);
 		cover.setCommunityColor(1, Color.BLUE);
 		cover.setCommunityName(1, "Community1");
-		MetricLog metric = new MetricLog(MetricType.EXECUTION_TIME, 3.55, params);
+		MetricLog metric = new MetricLog(MetricType.EXECUTION_TIME, 3.55, params, cover);
 		cover.setMetric(metric);
 		CoverOutputAdapter adapter = new XmlCoverOutputAdapter();
 		adapter.setWriter(new FileWriter(OcdTestConstants.testXmlCoverOutputPath));
