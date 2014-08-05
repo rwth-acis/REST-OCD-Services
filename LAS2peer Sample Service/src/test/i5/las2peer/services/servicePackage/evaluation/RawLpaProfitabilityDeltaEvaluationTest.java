@@ -7,6 +7,7 @@ import i5.las2peer.services.servicePackage.algorithms.RandomWalkLabelPropagation
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
+import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import java.io.IOException;
 
@@ -25,7 +26,7 @@ public class RawLpaProfitabilityDeltaEvaluationTest {
 	@Test
 	public void testRawLpaOnSiamDm() throws IOException, OcdAlgorithmException, AdapterException
 	{
-		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
+		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
 		OcdAlgorithmExecutor algoExecutor = new OcdAlgorithmExecutor();
 		double[] profitabilityDeltas = new double[11];
 		profitabilityDeltas[0] = 0.050;

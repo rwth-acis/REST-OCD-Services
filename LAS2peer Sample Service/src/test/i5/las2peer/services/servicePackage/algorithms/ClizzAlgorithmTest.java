@@ -81,7 +81,7 @@ public class ClizzAlgorithmTest {
 		System.out.println(memberships);
 		Cover cover = new Cover(graph, memberships);
 		cover.setAlgorithm(new AlgorithmLog(algo.getAlgorithmType(), algo.getParameters(), algo.compatibleGraphTypes()));
-		assertEquals(cover.communityCount(), 2);
+		assertEquals(2, cover.communityCount());
 		for(int i=0; i<graph.nodeCount(); i++) {
 			double belongingFac;
 			switch(i) {

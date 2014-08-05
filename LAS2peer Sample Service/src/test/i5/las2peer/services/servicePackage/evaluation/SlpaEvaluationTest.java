@@ -38,135 +38,15 @@ public class SlpaEvaluationTest {
 	 */
 	@Ignore
 	@Test
-	public void testOnAcmSigmod() throws IOException, OcdAlgorithmException, AdapterException, MetricException
+	public void testOnAercs() throws IOException, OcdAlgorithmException, AdapterException, MetricException
 	{
-		CustomGraph graph = EvaluationGraphFactory.getAcmSigmodGraph();
+		CustomGraph graph = EvaluationGraphFactory.getAercsGraph();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
 		Cover cover = executor.execute(graph, algo, 5);
 		cover.filterMembershipsbyThreshold(0.15);
 		StatisticalMeasure metric = new ExtendedModularity();
 		metric.measure(cover);
-		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter(new FileWriter(EvaluationConstants.slpaAcmSigmodLabeledMembershipMatrixOutputPath));
-		adapter.writeCover(cover);
-	}
-	
-	/*
-	 * Evaluates on CIKM
-	 */
-	@Ignore
-	@Test
-	public void testOnCikm() throws IOException, OcdAlgorithmException, AdapterException, MetricException
-	{
-		CustomGraph graph = EvaluationGraphFactory.getCikmGraph();
-		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
-		Cover cover = executor.execute(graph, algo, 5);
-		cover.filterMembershipsbyThreshold(0.15);
-		StatisticalMeasure metric = new ExtendedModularity();
-		metric.measure(cover);
-		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter(new FileWriter(EvaluationConstants.slpaCikmLabeledMembershipMatrixOutputPath));
-		adapter.writeCover(cover);
-	}
-	
-	/*
-	 * Evaluates on ICDE
-	 */
-	@Ignore
-	@Test
-	public void testOnIcde() throws IOException, OcdAlgorithmException, AdapterException, MetricException
-	{
-		CustomGraph graph = EvaluationGraphFactory.getIcdeGraph();
-		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
-		Cover cover = executor.execute(graph, algo, 5);
-		cover.filterMembershipsbyThreshold(0.15);
-		StatisticalMeasure metric = new ExtendedModularity();
-		metric.measure(cover);
-		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter(new FileWriter(EvaluationConstants.slpaIcdeLabeledMembershipMatrixOutputPath));
-		adapter.writeCover(cover);
-	}
-	
-	/*
-	 * Evaluates on ICDM
-	 */
-	@Ignore
-	@Test
-	public void testOnIcdm() throws IOException, OcdAlgorithmException, AdapterException, MetricException
-	{
-		CustomGraph graph = EvaluationGraphFactory.getIcdmGraph();
-		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
-		Cover cover = executor.execute(graph, algo, 5);
-		cover.filterMembershipsbyThreshold(0.15);
-		StatisticalMeasure metric = new ExtendedModularity();
-		metric.measure(cover);
-		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter(new FileWriter(EvaluationConstants.slpaIcdmLabeledMembershipMatrixOutputPath));
-		adapter.writeCover(cover);
-	}
-	
-	/*
-	 * Evaluates on KDD
-	 */
-	@Ignore
-	@Test
-	public void testOnKdd() throws IOException, OcdAlgorithmException, AdapterException, MetricException
-	{
-		CustomGraph graph = EvaluationGraphFactory.getKddGraph();
-		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
-		Cover cover = executor.execute(graph, algo, 5);
-		cover.filterMembershipsbyThreshold(0.15);
-		StatisticalMeasure metric = new ExtendedModularity();
-		metric.measure(cover);
-		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter(new FileWriter(EvaluationConstants.slpaKddLabeledMembershipMatrixOutputPath));
-		adapter.writeCover(cover);
-	}
-	
-	/*
-	 * Evaluates on PODS
-	 */
-	@Ignore
-	@Test
-	public void testOnPods() throws IOException, OcdAlgorithmException, AdapterException, MetricException
-	{
-		CustomGraph graph = EvaluationGraphFactory.getPodsGraph();
-		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
-		Cover cover = executor.execute(graph, algo, 5);
-		cover.filterMembershipsbyThreshold(0.15);
-		StatisticalMeasure metric = new ExtendedModularity();
-		metric.measure(cover);
-		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter(new FileWriter(EvaluationConstants.slpaPodsLabeledMembershipMatrixOutputPath));
-		adapter.writeCover(cover);
-	}
-	
-	/*
-	 * Evaluates on SIAM DM
-	 */
-	@Ignore
-	@Test
-	public void testOnSiamDm() throws IOException, OcdAlgorithmException, AdapterException, MetricException
-	{
-		CustomGraph graph = EvaluationGraphFactory.getSiamDmGraph();
-		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
-		Cover cover = executor.execute(graph, algo, 5);
-		cover.filterMembershipsbyThreshold(0.15);
-		StatisticalMeasure metric = new ExtendedModularity();
-		metric.measure(cover);
-		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter(new FileWriter(EvaluationConstants.slpaSiamDmLabeledMembershipMatrixOutputPath));
-		adapter.writeCover(cover);
-	}
-	
-	
-	/*
-	 * Evaluates on VLDB
-	 */
-	@Ignore
-	@Test
-	public void testOnVldb() throws IOException, OcdAlgorithmException, AdapterException, MetricException
-	{
-		CustomGraph graph = EvaluationGraphFactory.getVldbGraph();
-		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
-		Cover cover = executor.execute(graph, algo, 5);
-		cover.filterMembershipsbyThreshold(0.15);
-		StatisticalMeasure metric = new ExtendedModularity();
-		metric.measure(cover);
-		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter(new FileWriter(EvaluationConstants.slpaVldbLabeledMembershipMatrixOutputPath));
+		CoverOutputAdapter adapter = new LabeledMembershipMatrixOutputAdapter(new FileWriter(EvaluationConstants.aercsCoverOutputPath + algo.getAlgorithmType().name()));
 		adapter.writeCover(cover);
 	}
 	

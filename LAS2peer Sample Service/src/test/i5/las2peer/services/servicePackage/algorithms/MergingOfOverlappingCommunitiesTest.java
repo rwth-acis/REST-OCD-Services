@@ -5,9 +5,11 @@ import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmExceptio
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
+import i5.las2peer.services.servicePackage.graph.GraphType;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
+import java.util.HashSet;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -49,7 +51,8 @@ public class MergingOfOverlappingCommunitiesTest {
 		graph.createEdge(node3, node4);
 		graph.createEdge(node3, node5);
 		GraphProcessor processor = new GraphProcessor();
-		processor.makeUndirected(graph);
+		graph.addType(GraphType.DIRECTED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
 		OcdAlgorithm algo = new MergingOfOverlappingCommunities();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());

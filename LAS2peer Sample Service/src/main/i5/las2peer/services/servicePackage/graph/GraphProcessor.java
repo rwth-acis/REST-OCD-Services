@@ -60,14 +60,14 @@ public class GraphProcessor {
 		}
 	}
 	
-	/**
+	/*
 	 * Transforms a graph into an undirected Graph.
 	 * For each edge a reverse edge leading the opposite way is added, if missing.
 	 * The reverse edge is assigned the same weight as the original one. If edges in both
 	 * ways do already exist, they are assigned the sum of both weights.
 	 * @param graph The graph to be transformed.
 	 */
-	public void makeUndirected(CustomGraph graph) {
+	protected void makeUndirected(CustomGraph graph) {
 		EdgeCursor edges = graph.edges();
 		while(edges.ok()) {
 			Edge edge = edges.edge();
@@ -90,13 +90,13 @@ public class GraphProcessor {
 		graph.removeType(GraphType.DIRECTED);
 	}
 	
-	/**
+	/*
 	 * Removes multi edges from a graph. Each set of parallel edges is replaced
 	 * by an edge whose weight is the sum of the original edge weights. Other edge
 	 * attributes correspond to a random original edge.
 	 * @param graph The graph to be transformed.
 	 */
-	public void removeMultiEdges(CustomGraph graph) {
+	protected void removeMultiEdges(CustomGraph graph) {
 		EdgeCursor edges = graph.edges();
 		Map<Pair<Integer, Integer>, Double> nodePairWeights = new HashMap<Pair<Integer, Integer>, Double>();
 		while(edges.ok()) {
@@ -122,7 +122,7 @@ public class GraphProcessor {
 		}
 	}
 		
-	/**
+	/*
 	 * Redefines the edges of a graph according to certain criteria.
 	 * @param graph The graph to be transformed
 	 * @param noNegativeWeights If true edges with negative weight are removed from the graph.
@@ -130,7 +130,7 @@ public class GraphProcessor {
 	 * @param noSelfLoops If true self loops will be removed from the graph.
 	 * @param setToOne If true the weight of remaining edges will be set to 1.
 	 */
-	public void redefineEdges(CustomGraph graph, boolean noNegativeWeights, boolean noZeroWeights, boolean noSelfLoops, boolean setToOne) {
+	protected void redefineEdges(CustomGraph graph, boolean noNegativeWeights, boolean noZeroWeights, boolean noSelfLoops, boolean setToOne) {
 		EdgeCursor edges = graph.edges();
 		while(edges.ok()) {
 			Edge edge = edges.edge();
@@ -273,6 +273,7 @@ public class GraphProcessor {
 		 * edge weights might balance each other out in the resulting undirected edge. This
 		 * way more information from the original graph is maintained.
 		 */
+		removeMultiEdges(graph);
 		if(graph.isOfType(GraphType.DIRECTED) && ! compatibleTypes.contains(GraphType.DIRECTED)) {
 			this.makeUndirected(graph);
 		}

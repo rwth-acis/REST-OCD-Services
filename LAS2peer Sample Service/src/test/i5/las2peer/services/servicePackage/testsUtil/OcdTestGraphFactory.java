@@ -4,13 +4,13 @@ import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.NodeWeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
-import i5.las2peer.services.servicePackage.evaluation.EvaluationConstants;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
 import i5.las2peer.services.servicePackage.graph.GraphType;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.HashSet;
 
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -87,7 +87,8 @@ public class OcdTestGraphFactory {
 			edges.next();
 		}
 		GraphProcessor processor = new GraphProcessor();
-		processor.makeUndirected(graph);
+		graph.addType(GraphType.DIRECTED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
 		return graph;
 	}
 	
@@ -192,7 +193,8 @@ public class OcdTestGraphFactory {
 			edges.next();
 		}
 		GraphProcessor processor = new GraphProcessor();
-		processor.makeUndirected(graph);
+		graph.addType(GraphType.DIRECTED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
 		return graph;
 	}
 	
@@ -200,7 +202,8 @@ public class OcdTestGraphFactory {
 		GraphInputAdapter adapter = new NodeWeightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath));
 		CustomGraph graph = adapter.readGraph();
 		GraphProcessor processor = new GraphProcessor();
-		processor.makeUndirected(graph);
+		graph.addType(GraphType.DIRECTED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
 		return graph;
 	}
 	
@@ -212,10 +215,11 @@ public class OcdTestGraphFactory {
 	}
 	
 	public static CustomGraph getSiamDmGraph() throws AdapterException, FileNotFoundException {
-		GraphInputAdapter adapter = new UnweightedEdgeListGraphInputAdapter(new FileReader(EvaluationConstants.siamDmUnweightedEdgeListInputPath));
+		GraphInputAdapter adapter = new UnweightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.siamDmUnweightedEdgeListInputPath));
 		CustomGraph graph = adapter.readGraph();
 		GraphProcessor processor = new GraphProcessor();
-		processor.makeUndirected(graph);
+		graph.addType(GraphType.DIRECTED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
 		return graph;
 	}
 	
