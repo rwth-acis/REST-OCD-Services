@@ -27,11 +27,12 @@ import org.junit.Test;
 public class MoncStatisticalMeasuresTest {
 
 	private OcdAlgorithm algo;
-	private final String algoFileNameExtension = algo.getAlgorithmType().name();
+	private String algoFileNameExtension;
 	
 	@Before
 	public void before() {
 		algo = new MergingOfOverlappingCommunitiesAlgorithm();
+		algoFileNameExtension = algo.getAlgorithmType().name();
 	}
 	
 	@Test

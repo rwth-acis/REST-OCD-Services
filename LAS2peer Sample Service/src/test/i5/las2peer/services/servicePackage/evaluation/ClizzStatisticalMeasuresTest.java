@@ -27,11 +27,12 @@ import org.junit.Test;
 public class ClizzStatisticalMeasuresTest {
 
 	private OcdAlgorithm algo;
-	private final String algoFileNameExtension = algo.getAlgorithmType().name();
+	private String algoFileNameExtension;
 	
 	@Before
 	public void before() {
 		algo = new ClizzAlgorithm();
+		algoFileNameExtension = algo.getAlgorithmType().name();
 	}
 	
 	@Test

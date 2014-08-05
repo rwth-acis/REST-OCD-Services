@@ -27,11 +27,12 @@ import org.junit.Test;
 public class RawLpa05StatisticalMeasuresTest {
 
 	private OcdAlgorithm algo;
-	private final String algoFileNameExtension = algo.getAlgorithmType().name() + "05";
+	private String algoFileNameExtension;
 	
 	@Before
 	public void before() {
 		algo = new RandomWalkLabelPropagationAlgorithm(0.05, 1000, 0.001);
+		algoFileNameExtension = algo.getAlgorithmType().name() + "05";
 	}
 	
 	@Test

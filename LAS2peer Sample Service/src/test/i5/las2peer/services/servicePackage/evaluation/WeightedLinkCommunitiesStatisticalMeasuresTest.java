@@ -27,11 +27,12 @@ import org.junit.Test;
 public class WeightedLinkCommunitiesStatisticalMeasuresTest {
 
 	private OcdAlgorithm algo;
-	private final String algoFileNameExtension = algo.getAlgorithmType().name();
+	private String algoFileNameExtension;
 	
 	@Before
 	public void before() {
 		algo = new WeightedLinkCommunitiesAlgorithm();
+		algoFileNameExtension = algo.getAlgorithmType().name();
 	}
 	
 	@Test

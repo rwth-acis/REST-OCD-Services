@@ -27,11 +27,12 @@ import org.junit.Test;
 public class SlpaStatisticalMeasuresTest {
 
 	private OcdAlgorithm algo;
-	private final String algoFileNameExtension = algo.getAlgorithmType().name();
+	private String algoFileNameExtension;
 	
 	@Before
 	public void before() {
 		algo = new SpeakerListenerLabelPropagationAlgorithm();
+		algoFileNameExtension = algo.getAlgorithmType().name();
 	}
 	
 	@Test
