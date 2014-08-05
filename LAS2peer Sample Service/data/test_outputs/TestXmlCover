@@ -71,11 +71,11 @@
 <Memberships>
 <Membership>
 <Id>0</Id>
-<BelongingFactor>1.0</BelongingFactor>
+<BelongingFactor>0.5</BelongingFactor>
 </Membership>
 <Membership>
 <Id>0</Id>
-<BelongingFactor>0.5</BelongingFactor>
+<BelongingFactor>1.0</BelongingFactor>
 </Membership>
 </Memberships>
 </Community>

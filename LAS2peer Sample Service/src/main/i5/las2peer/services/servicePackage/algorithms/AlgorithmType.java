@@ -40,6 +40,10 @@ public enum AlgorithmType {
 				return new LinkCommunitiesAlgorithm();
 			case CLIZZ_ALGORITHM:
 				return new ClizzAlgorithm();
+			case MERGING_OF_OVERLAPPING_COMMUNITIES_ALGORITHM:
+				return new MergingOfOverlappingCommunitiesAlgorithm();
+			case BINARY_SEARCH_RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM:
+				return new BinarySearchRandomWalkLabelPropagationAlgorithm();
 			default:
 				return null;
 		}

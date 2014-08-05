@@ -22,7 +22,7 @@ public class MergingOfOverlappingCommunitiesTest {
 	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException {
 		CustomGraph graph = OcdTestGraphFactory
 				.getAperiodicTwoCommunitiesGraph();
-		OcdAlgorithm algo = new MergingOfOverlappingCommunities();
+		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
@@ -30,7 +30,7 @@ public class MergingOfOverlappingCommunitiesTest {
 	@Test
 	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		OcdAlgorithm algo = new MergingOfOverlappingCommunities();
+		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
@@ -53,7 +53,7 @@ public class MergingOfOverlappingCommunitiesTest {
 		GraphProcessor processor = new GraphProcessor();
 		graph.addType(GraphType.DIRECTED);
 		processor.makeCompatible(graph, new HashSet<GraphType>());
-		OcdAlgorithm algo = new MergingOfOverlappingCommunities();
+		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
@@ -62,7 +62,7 @@ public class MergingOfOverlappingCommunitiesTest {
 	@Test
 	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
-		OcdAlgorithm algo = new MergingOfOverlappingCommunities();
+		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
 		Cover cover = executor.execute(graph, algo, 0);
 		System.out.println(cover.toString());

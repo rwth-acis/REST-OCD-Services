@@ -17,7 +17,7 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import y.base.Node;
 import y.base.NodeCursor;
 
-public class MergingOfOverlappingCommunities implements OcdAlgorithm {
+public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 
 	@Override
 	public Map<String, String> getParameters() {
@@ -102,6 +102,16 @@ public class MergingOfOverlappingCommunities implements OcdAlgorithm {
 		return new Cover(graph, memberships);
 	}
 	
+	/*
+	 * Calculates the membership matrix for the output cover. 
+	 * @param graph The graph being analyzed.
+	 * @param unactiveCommunities The detected (unactivated) communities.
+	 * @param deactivatedBy A mapping from the id of each community to the id of the community that it was deactivated by.
+	 * Note that the mapping returns NULL for the community that was deactivated last. 
+	 * @param inclusionAlphas A mapping from all community members to their inclusion alphas.
+	 * @param resolutionAlpha The resolution alpha.
+	 * @return The membership matrix.
+	 */
 	private Matrix determineMembershipMatrix(CustomGraph graph, Map<Node, Set<Node>> unactiveCommunities, Map<Node, Node> deactivatedBy, Map<Node, Map<Node, Double>> inclusionAlphas, double resolutionAlpha) {
 		Map<Node, Integer> originalCommunitySizes = new HashMap<Node, Integer>();
 		for(Map.Entry<Node, Set<Node>> entry : unactiveCommunities.entrySet()) {
@@ -135,6 +145,16 @@ public class MergingOfOverlappingCommunities implements OcdAlgorithm {
 		return memberships;
 	}
 	
+	/*
+	 * Returns the resolution alpha, i.e. the alpha with the most stable plateau of 1/alpha.
+	 * @param graph The graph being analyzed.
+	 * @param inclusionAlphas A mapping from all community members to their inclusion alphas.
+	 * @param deactivatedBy A mapping from the id of each community to the id of the community that it was deactivated by.
+	 * Note that the mapping returns NULL for the community that was deactivated last. 
+	 * @param mainCommunities The ids of a selection of communities that form the main branches of the community dendrogram.
+	 * I.e. communities which were deactivated latest.
+	 * @return The resolution alpha.
+	 */
 	private double determineResolutionAlpha(CustomGraph graph, Map<Node, Map<Node, Double>> inclusionAlphas,
 			Map<Node, Node> deactivatedBy, Set<Node> mainCommunities) {	
 		TreeSet<Double> alphaSequence = determineUnitAlphaSequence(inclusionAlphas);
@@ -150,6 +170,11 @@ public class MergingOfOverlappingCommunities implements OcdAlgorithm {
 		return resolutionAlpha / normalizationCoefficient;
 	}
 	
+	/*
+	 * Calculates the resolution alpha for a given alpha sequence. 
+	 * @param alphaSequence An ordered sequence of alpha values.
+	 * @return The resolution alpha.
+	 */
 	private double calculateSingleSequenceResolutionAlpha(TreeSet<Double> alphaSequence) {
 		double resolutionAlpha;
 		if(alphaSequence.size() <= 2) {
@@ -177,6 +202,11 @@ public class MergingOfOverlappingCommunities implements OcdAlgorithm {
 		return resolutionAlpha;
 	}
 	
+	/*
+	 * Determines the joined alpha sequence of all communities. 
+	 * @param inclusionAlphas A mapping from all community members to their inclusion alphas.
+	 * @return The joined alpha sequence.
+	 */
 	private TreeSet<Double> determineUnitAlphaSequence(Map<Node, Map<Node, Double>> inclusionAlphas) {
 		TreeSet<Double> alphaSequence = new TreeSet<Double>();
 		for(Map<Node, Double> alphaMap : inclusionAlphas.values()) {
@@ -187,6 +217,15 @@ public class MergingOfOverlappingCommunities implements OcdAlgorithm {
 		return alphaSequence;
 	}
 	
+	/*
+	 * Determines the alpha sequence of a single community. 
+	 * @param graph The graph being analyzed.
+	 * @param inclusionAlphas A mapping from all community members to their inclusion alphas.
+	 * @param deactivatedBy A mapping from the id of each community to the id of the community that it was deactivated by.
+	 * Note that the mapping returns NULL for the community that was deactivated last.
+	 * @param communityId The community id.
+	 * @return The community's alpha sequence.
+	 */
 	private TreeSet<Double> determineCommunityAlphaSequence(CustomGraph graph, Map<Node, Map<Node, Double>> inclusionAlphas,
 			Map<Node, Node> deactivatedBy, Node communityId) {
 		TreeSet<Double> alphaSequence = new TreeSet<Double>();
@@ -205,6 +244,17 @@ public class MergingOfOverlappingCommunities implements OcdAlgorithm {
 		return alphaSequence;
 	}
 	
+	/*
+	 * Deactivates a community if it contains all graph nodes or if it equals another community.
+	 * Note that it is not yet removed from the active communities due to concurrency issues.
+	 * @param graph The graph to be analyzed.
+	 * @param communityId The community id.
+	 * @param activeCommunities A mapping from the ids of active communities to their community members.
+	 * @param unactiveCommunities A mapping from the ids of unactive communities to their community members.
+	 * @param deactivatedBy A mapping from the id of each community to the id of the community that it was deactivated by.
+	 * Note that the mapping returns NULL for the community that was deactivated last.
+	 * @return TRUE if the community was deactivated, else FALSE.
+	 */
 	private boolean didDeactivate(CustomGraph graph, Node communityId, Map<Node, Set<Node>> activeCommunities,
 			Map<Node, Set<Node>> unactiveCommunities, Map<Node, Node> deactivatedBy) {
 		Set<Node> community = activeCommunities.get(communityId);
@@ -232,6 +282,14 @@ public class MergingOfOverlappingCommunities implements OcdAlgorithm {
 		}
 	}
 	
+	/*
+	 * Calculates the inclusion alpha for a new candidate community member. 
+	 * @param internalCommunityDegree The weighted internal community degree.
+	 * @param totalCommunityDegree The weighted total community degree.
+	 * @param internalNeighborDegree The weighted internal neighbor degree.
+	 * @param totalNeighborDegree The weighted total neighbor degree.
+	 * @return The inclusion alpha.
+	 */
 	private double calculateInclusionAlpha(double internalCommunityDegree, double totalCommunityDegree, double internalNeighborDegree, double totalNeighborDegree) {
 		double alpha = Math.log10(internalCommunityDegree + 2*internalNeighborDegree + 1) - Math.log10(internalCommunityDegree + 1);
 		alpha /= Math.log10(totalCommunityDegree + totalNeighborDegree) - Math.log10(totalCommunityDegree);

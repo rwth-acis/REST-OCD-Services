@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-Tue Aug 05 09:31:08 CEST 2014:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.8.2.2 - (1181258): instance a816c00e-0147-a514-297c-000003aaacd0 
+Tue Aug 05 12:08:37 CEST 2014:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.8.2.2 - (1181258): instance a816c00e-0147-a5a4-5989-00000398ad38 
 on database directory C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\LAS2peer Sample Service\etc\derbyDB  with class loader sun.misc.Launcher$AppClassLoader@6ff3c5b5 
 Loaded from file:/C:/Users/Sebastian/Documents/GitHub/REST-OCD-Services/LAS2peer%20Sample%20Service/lib/derby-10.8.2.2.jar
 java.vendor=Oracle Corporation
