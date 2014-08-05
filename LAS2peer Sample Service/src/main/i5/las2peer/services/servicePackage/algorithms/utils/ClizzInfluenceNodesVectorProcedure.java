@@ -10,10 +10,9 @@ public class ClizzInfluenceNodesVectorProcedure implements VectorProcedure {
 	private Set<Integer> influencingNodeIndices = new HashSet<Integer>();
 	
 	/**
-	 * Returns for a node the indices of the nodes influencing it. 
+	 * Returns for a node the indices of the nodes influencing it.
+	 * The procedure must before have run on the node's distance vector (only).
 	 * @return The indices of the influencing nodes.
-	 * @precondition The vector procedure was run on the node's
-	 * distance vector (only).
 	 */
 	public Set<Integer> getInfluencingNodeIndices() {
 		return influencingNodeIndices;

@@ -7,6 +7,7 @@ import i5.las2peer.services.servicePackage.adapters.graphInput.UnweightedEdgeLis
 import i5.las2peer.services.servicePackage.evaluation.EvaluationConstants;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
+import i5.las2peer.services.servicePackage.graph.GraphType;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -120,6 +121,7 @@ public class OcdTestGraphFactory {
 			graph.setEdgeWeight(edge, 1);
 			edges.next();
 		}
+		graph.addType(GraphType.DIRECTED);
 		return graph;
 	}
 	
@@ -152,6 +154,7 @@ public class OcdTestGraphFactory {
 			graph.setEdgeWeight(edge, 1);
 			edges.next();
 		}
+		graph.addType(GraphType.DIRECTED);
 		return graph;
 	}
 	
@@ -203,7 +206,9 @@ public class OcdTestGraphFactory {
 	
 	public static CustomGraph getDirectedSawmillGraph() throws AdapterException, FileNotFoundException {
 		GraphInputAdapter adapter = new NodeWeightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath));
-		return adapter.readGraph();
+		CustomGraph graph = adapter.readGraph();
+		graph.addType(GraphType.DIRECTED);
+		return graph;
 	}
 	
 	public static CustomGraph getSiamDmGraph() throws AdapterException, FileNotFoundException {

@@ -79,16 +79,22 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	}
 	
 	@Override
-	public AlgorithmLog getAlgorithmLog() {
+	public AlgorithmType getAlgorithmType() {
+		return AlgorithmType.SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM;
+	}
+	
+	@Override
+	public Map<String, String> getParameters() {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("memorySize", Integer.toString(memorySize));
 		parameters.put("probabilityThreshold", Double.toString(probabilityThreshold));
 		parameters.put("listenerRule", listenerRule.toString());
 		parameters.put("speakerRule", speakerRule.toString());
-		return new AlgorithmLog(AlgorithmType.SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM, parameters, compatibleGraphTypes());
+		return parameters;
 	}
 	
-	private Set<GraphType> compatibleGraphTypes() {
+	@Override
+	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		return compatibilities;
 	}
@@ -119,9 +125,7 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		/*
 		 * Returns the cover based on the node memories.
 		 */
-		Cover cover = calculateMembershipDegrees(graph, memories);
-		cover.normalizeMemberships();
-		return cover;
+		return calculateMembershipDegrees(graph, memories);
 	}
 	
 	protected void initializeCommunityDetection(CustomGraph graph, List<List<Integer>> memories, List<Node> nodeOrder) {
@@ -177,7 +181,7 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		    }
 		    membershipMatrix.setRow(i, nodeMembershipDegrees);
 		}
-		return new Cover(graph, membershipMatrix, getAlgorithmLog());
+		return new Cover(graph, membershipMatrix);
 	}
 	
 	/*

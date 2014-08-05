@@ -1,8 +1,11 @@
 package i5.las2peer.services.servicePackage.metrics;
 
 import i5.las2peer.services.servicePackage.graph.Cover;
+import i5.las2peer.services.servicePackage.graph.GraphType;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.la4j.vector.Vectors;
 
@@ -19,6 +22,14 @@ public class ExtendedModularity implements StatisticalMeasure {
 	public ExtendedModularity() {
 	}
 	
+	@Override
+	public Set<GraphType> compatibleGraphTypes() {
+		Set<GraphType> compatibleTypes = new HashSet<GraphType>();
+		compatibleTypes.add(GraphType.DIRECTED);
+		compatibleTypes.add(GraphType.ZERO_WEIGHTS);
+		return compatibleTypes;
+	}
+	
 	public void measure(Cover cover) {
 		double metricValue = 0;
 		Graph graph = cover.getGraph();
@@ -27,9 +38,9 @@ public class ExtendedModularity implements StatisticalMeasure {
 		Node nodeA;
 		Node nodeB;
 		while(nodesA.ok()) {
+			nodeA = nodesA.node();
 			nodesB.toFirst();
 			while(nodesB.ok()) {
-				nodeA = nodesA.node();
 				nodeB = nodesB.node();
 				if(nodeB.index() > nodeA.index()) {
 					break;
@@ -43,7 +54,7 @@ public class ExtendedModularity implements StatisticalMeasure {
 		if(graph.edgeCount() > 0) {
 			metricValue /= graph.edgeCount();
 		}
-		MetricLog metric = new MetricLog(MetricType.EXTENDED_MODULARITY_METRIC, metricValue, new HashMap<String, String>(), cover);
+		MetricLog metric = new MetricLog(MetricType.EXTENDED_MODULARITY, metricValue, new HashMap<String, String>(), cover);
 		cover.setMetric(metric);
 	}
 	
@@ -106,4 +117,5 @@ public class ExtendedModularity implements StatisticalMeasure {
 		}
 		return edgeContribution;
 	}
+
 }

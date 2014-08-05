@@ -19,7 +19,7 @@ public class AlgorithmsBoundaryTest {
 	public void testAlgorithmsBoundaries() throws OcdAlgorithmException {
 		List<OcdAlgorithm> algos = new ArrayList<OcdAlgorithm>();
 		algos.add(new ClizzAlgorithm());
-		algos.add(new ExtendedRandomWalkLabelPropagationAlgorithm());
+		algos.add(new RandomWalkLabelPropagationAlgorithm());
 		algos.add(new ExtendedSpeakerListenerLabelPropagationAlgorithm());
 		algos.add(new LinkCommunitiesAlgorithm());
 		algos.add(new SpeakerListenerLabelPropagationAlgorithm());
@@ -42,7 +42,7 @@ public class AlgorithmsBoundaryTest {
 		for(OcdAlgorithm currentAlgo : algos) {
 			for(CustomGraph currentGraph : graphs) {
 				Cover cover = executor.execute(currentGraph, currentAlgo, 0);
-				System.out.println("Algo: " + currentAlgo.getAlgorithmLog().getType().name() 
+				System.out.println("Algo: " + currentAlgo.getAlgorithmType().name() 
 						+ ", Node Count: " + currentGraph.nodeCount());
 				System.out.println(cover + "\n");
 			}

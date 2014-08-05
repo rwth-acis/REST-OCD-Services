@@ -25,7 +25,7 @@
 <Metric>
 <Id>0</Id>
 <Type>
-<Id>3</Id>
+<Id>1</Id>
 <Name>EXECUTION_TIME</Name>
 </Type>
 <Parameters>

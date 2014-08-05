@@ -10,7 +10,7 @@ import org.junit.Test;
 import y.base.Edge;
 import y.base.EdgeCursor;
 
-public class LinkCommunitiesAlgorithmTest {
+public class WeightedLinkCommunitiesAlgorithmTest {
 
 	@Test
 	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException {

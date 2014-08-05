@@ -32,7 +32,7 @@ public class OcdAlgorithmExecutor {
 	public Cover execute(CustomGraph graph, OcdAlgorithm algorithm, int componentNodeCountFilter) throws OcdAlgorithmException {
 		CustomGraph graphCopy = new CustomGraph(graph);
 		GraphProcessor processor = new GraphProcessor();
-		processor.makeCompatible(graph, algorithm.getAlgorithmLog().getCompatibleGraphTypes());
+		processor.makeCompatible(graph, algorithm.compatibleGraphTypes());
 		List<Pair<CustomGraph, Map<Node, Node>>> components;
 		List<Pair<Cover, Map<Node, Node>>> componentCovers;
 		components = processor.divideIntoConnectedComponents(graphCopy);
@@ -51,11 +51,12 @@ public class OcdAlgorithmExecutor {
 		for(Pair<CustomGraph, Map<Node, Node>> pair : components) {
 			component = pair.getFirst();
 			if(component.nodeCount() < componentNodeCountFilter) {
-				componentCover = computeSingleCommunityCover(component, algorithm.getAlgorithmLog());
+				componentCover = computeSingleCommunityCover(component, algorithm);
 			}
 			else {
 				executionTime.start();
 				componentCover = algorithm.detectOverlappingCommunities(component);
+				componentCover.setAlgorithm(new AlgorithmLog(algorithm.getAlgorithmType(), algorithm.getParameters(), algorithm.compatibleGraphTypes()));
 				executionTime.stop();
 			}
 			componentCovers.add(new Pair<Cover, Map<Node, Node>>(componentCover, pair.getSecond()));
@@ -63,10 +64,12 @@ public class OcdAlgorithmExecutor {
 		return componentCovers;
 	}
 	
-	private Cover computeSingleCommunityCover(CustomGraph graph, AlgorithmLog algorithm) {
+	private Cover computeSingleCommunityCover(CustomGraph graph, OcdAlgorithm algorithm) {
 		Matrix memberships = new CCSMatrix(graph.nodeCount(), 1);
 		memberships.assign(1);
-		return new Cover(graph, memberships, algorithm);
+		Cover cover = new Cover (graph, memberships);
+		cover.setAlgorithm(new AlgorithmLog(algorithm.getAlgorithmType(), algorithm.getParameters(), algorithm.compatibleGraphTypes()));
+		return cover;
 	}
 	
 }

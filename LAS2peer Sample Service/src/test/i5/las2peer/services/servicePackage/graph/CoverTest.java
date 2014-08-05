@@ -3,16 +3,12 @@ package i5.las2peer.services.servicePackage.graph;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.metrics.ExtendedModularity;
 import i5.las2peer.services.servicePackage.metrics.MetricException;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Before;
@@ -39,15 +35,15 @@ public class CoverTest {
 				memberships.set(i, j, i*j);
 			}
 		}
-		cover = new Cover(graph, memberships, null);
+		cover = new Cover(graph, memberships);
+		System.out.println(cover);
 	}
 	
 	/*
 	 * Tests cover normalization.
 	 */
 	@Test
-	public void testNormalizeMemberships() {
-		cover.normalizeMemberships();
+	public void testMembershipNormalization() {
 		Matrix memberships = cover.getMemberships();
 		double rowSum;
 		for(int i=0; i<memberships.rows(); i++) {
@@ -67,7 +63,6 @@ public class CoverTest {
 	 */
 	@Test
 	public void testFilterMemberships() throws MetricException {
-		cover.normalizeMemberships();
 		StatisticalMeasure metric = new ExtendedModularity();
 		metric.measure(cover);
 		/*
@@ -88,8 +83,23 @@ public class CoverTest {
 		CustomGraph graph = cover.getGraph();
 		Node[] nodes = graph.getNodeArray();
 		for(int i=0; i<graph.nodeCount(); i++) {
+			double rowSum = 0;
+			for(int j=0; j<cover.communityCount() - 1; j++) {
+				rowSum += i*j;
+			}
+			if(rowSum == 0) {
+				rowSum = 1;
+			}
 			for(int j=0; j<cover.communityCount(); j++) {
-				assertEquals(cover.getBelongingFactor(nodes[i], j), i*j, 0.0);
+				if(j<cover.communityCount() - 1) {
+					assertEquals(i*j / rowSum, cover.getBelongingFactor(nodes[i], j), 0.001);
+				}
+				else if (i>0) {
+					assertEquals(0, cover.getBelongingFactor(nodes[i], j), 0.001);
+				}
+				else {
+					assertEquals(1, cover.getBelongingFactor(nodes[i], j), 0.001);
+				}
 			}
 		}
 	}
@@ -99,7 +109,7 @@ public class CoverTest {
 	 */
 	@Test
 	public void testCommunityCount() {
-		assertEquals(cover.communityCount(), 5);
+		assertEquals(cover.communityCount(), 6);
 	}
 	
 	/*
@@ -110,9 +120,10 @@ public class CoverTest {
 		CustomGraph graph = cover.getGraph();
 		Node[] nodes = graph.getNodeArray();
 		List<Integer> indices = cover.getCommunityIndices(nodes[0]);
-		assertTrue(indices.isEmpty());
+		assertEquals(1, indices.size());
+		assertEquals(5, (int)indices.get(0));
 		indices = cover.getCommunityIndices(nodes[1]);
-		assertTrue(indices.size() == 4);
+		assertEquals(4, indices.size());
 		for(int i=1; i<= 4; i++) {
 			assertTrue(indices.contains(i));
 		}
@@ -124,16 +135,17 @@ public class CoverTest {
 		memberships.set(0, 1, 1);
 		memberships.set(0, 2, 2);
 		memberships.set(0, 3, 3);
-		memberships.set(0, 4, 4);
+		memberships.set(0, 4, 3);
 		CustomGraph graph = new CustomGraph();
 		graph.createNode();
-		Cover cover = new Cover(graph, memberships, new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>()));
-		cover.setRowEntriesBelowThresholdToZero(memberships, 0, 3d);
+		Cover cover = new Cover(graph, memberships);
+		System.out.println(cover);
+		cover.setRowEntriesBelowThresholdToZero(memberships, 0, 0.3);
 		assertEquals(0, memberships.get(0, 0), 0);
 		assertEquals(0, memberships.get(0, 1), 0);
 		assertEquals(0, memberships.get(0, 2), 0);
-		assertEquals(3, memberships.get(0, 3), 0);
-		assertEquals(4, memberships.get(0, 4), 0);
+		assertEquals(0.3333, memberships.get(0, 3), 0.001);
+		assertEquals(0.3333, memberships.get(0, 4), 0.001);
 		System.out.println(memberships);
 	}
 

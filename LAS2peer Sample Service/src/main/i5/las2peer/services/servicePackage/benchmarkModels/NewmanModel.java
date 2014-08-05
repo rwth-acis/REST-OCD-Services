@@ -86,7 +86,8 @@ public class NewmanModel implements GroundTruthBenchmarkModel {
 				redesignExternalEdges(graph, groupMap, nodeOrder, unsatisfiedNodes, nodeA, rand);
 			}
 		}
-		Cover cover = new Cover(graph, membershipMatrix, new AlgorithmLog(AlgorithmType.GROUND_TRUTH, new HashMap<String, String>(), new HashSet<GraphType>()));
+		Cover cover = new Cover(graph, membershipMatrix);
+		cover.setAlgorithm(new AlgorithmLog(AlgorithmType.GROUND_TRUTH, new HashMap<String, String>(), new HashSet<GraphType>()));
 		return cover;
 	}
 	

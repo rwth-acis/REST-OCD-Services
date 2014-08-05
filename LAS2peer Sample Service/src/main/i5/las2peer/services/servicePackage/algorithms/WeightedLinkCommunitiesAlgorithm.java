@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
@@ -38,11 +39,17 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	}
 	
 	@Override
-	public AlgorithmLog getAlgorithmLog() {
-		return new AlgorithmLog(AlgorithmType.WEIGHTED_LINK_COMMUNITIES_ALGORITHM, new HashMap<String, String>(), compatibleGraphTypes());
+	public AlgorithmType getAlgorithmType() {
+		return AlgorithmType.WEIGHTED_LINK_COMMUNITIES_ALGORITHM;
 	}
 	
-	private Set<GraphType> compatibleGraphTypes() {
+	@Override
+	public Map<String, String> getParameters() {
+		return new HashMap<String, String>();
+	}
+	
+	@Override
+	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.WEIGHTED);
 		return compatibilities;
@@ -419,9 +426,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 				memberships.set(edge.source().index(), i, belongingFactor);
 			}
 		}
-		Cover cover = new Cover(graph, memberships, getAlgorithmLog());
-		cover.normalizeMemberships();
-		return cover;
+		return new Cover(graph, memberships);
 	}
 	
 }

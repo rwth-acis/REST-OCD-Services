@@ -3,6 +3,7 @@ package i5.las2peer.services.servicePackage.algorithms;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
+import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
@@ -222,4 +223,13 @@ public class SSKAlgorithmTest {
 		System.out.println(cover.toString());
 	}
 	
+	@Ignore
+	@Test
+	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
+		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
+		OcdAlgorithm algo = new SskAlgorithm();
+		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
+		Cover cover = executor.execute(graph, algo, 0);
+		System.out.println(cover.toString());
+	}
 }

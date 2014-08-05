@@ -15,6 +15,7 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import y.base.Edge;
@@ -99,6 +100,51 @@ public class CustomGraphPersistenceTest {
 		query.setParameter("name", invalidGraphName);
 		queryResults = query.getResultList();
 		assertEquals(0, queryResults.size());
+	}
+	
+	/*
+	 * Tests whether two instances of the same object obtained by a single entity manager
+	 * are indeed identical (i.e. the comparison == results in TRUE).
+	 */
+	@Ignore
+	@Test
+	public void testIdentity() {
+		EntityManager em = emf.createEntityManager();
+		CustomGraph graph = new CustomGraph();
+		graph.setUserName(userName1);
+		graph.setName(graphName1);
+		Node nodeA = graph.createNode();
+		Node nodeB = graph.createNode();
+		Node nodeC = graph.createNode();
+		graph.setNodeName(nodeA, "A");
+		graph.setNodeName(nodeB, "B");
+		graph.setNodeName(nodeC, "C");
+		EntityTransaction tx = em.getTransaction();
+		try {
+			tx.begin();
+			em.persist(graph);
+			tx.commit();
+		} catch( RuntimeException ex ) {
+			if( tx != null && tx.isActive() ) tx.rollback();
+			throw ex;
+		}
+		em.close();
+		em = emf.createEntityManager();
+		TypedQuery<CustomGraph> query = em.createQuery("Select g from CustomGraph g where g.name = :name", CustomGraph.class);
+		query.setParameter("name", graphName1);
+		List<CustomGraph> queryResults1 = query.getResultList();
+		assertEquals(1, queryResults1.size());
+	    CustomGraph persistedGraph1 = queryResults1.get(0);
+	    List<CustomGraph> queryResults2 = query.getResultList();
+		assertEquals(1, queryResults2.size());
+		CustomGraph persistedGraph2 = queryResults2.get(0);
+		assertTrue(persistedGraph1 == persistedGraph2);
+		Node node = persistedGraph1.getNodeArray()[0];
+		String name1 = persistedGraph1.getNodeName(node);
+		String name2 = persistedGraph2.getNodeName(node);
+		System.out.println("name1: " + name1);
+		System.out.println("name2: " + name2);
+		assertEquals(name1, name2);
 	}
 	
 	@After

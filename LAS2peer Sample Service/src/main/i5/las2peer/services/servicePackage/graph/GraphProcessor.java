@@ -87,6 +87,7 @@ public class GraphProcessor {
 			}
 			edges.next();
 		}
+		graph.removeType(GraphType.DIRECTED);
 	}
 	
 	/**
@@ -147,6 +148,18 @@ public class GraphProcessor {
 				graph.setEdgeWeight(edge, 1);
 			}
 			edges.next();
+		}
+		if(noSelfLoops) {
+			graph.removeType(GraphType.SELF_LOOPS);
+		}
+		if(setToOne) {
+			graph.removeType(GraphType.WEIGHTED);
+		}
+		if(noNegativeWeights) {
+			graph.removeType(GraphType.NEGATIVE_WEIGHTS);
+		}
+		if(noZeroWeights) {
+			graph.removeType(GraphType.ZERO_WEIGHTS);
 		}
 	}
 	
@@ -238,7 +251,9 @@ public class GraphProcessor {
 				algo = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
 			}
 		}
-		return new Cover(graph, memberships, algo);
+		Cover cover = new Cover(graph, memberships);
+		cover.setAlgorithm(algo);
+		return cover;
 	}
 
 	/**
@@ -260,7 +275,6 @@ public class GraphProcessor {
 		 */
 		if(graph.isOfType(GraphType.DIRECTED) && ! compatibleTypes.contains(GraphType.DIRECTED)) {
 			this.makeUndirected(graph);
-			graph.removeType(GraphType.DIRECTED);
 		}
 		boolean noSelfLoops = false;
 		boolean noNegativeWeights = false;
@@ -268,21 +282,17 @@ public class GraphProcessor {
 		boolean setToOne = false;
 		if(graph.isOfType(GraphType.SELF_LOOPS) && ! compatibleTypes.contains(GraphType.SELF_LOOPS)) {
 			noSelfLoops = true;
-			graph.removeType(GraphType.SELF_LOOPS);
 		}
 		if(graph.isOfType(GraphType.WEIGHTED) && ! compatibleTypes.contains(GraphType.WEIGHTED)) {
 			setToOne = true;
 			noNegativeWeights = true;
 			noZeroWeights = true;
-			graph.removeType(GraphType.WEIGHTED);
 		}
 		if(graph.isOfType(GraphType.NEGATIVE_WEIGHTS) && ! compatibleTypes.contains(GraphType.NEGATIVE_WEIGHTS)) {
 			noNegativeWeights = true;
-			graph.removeType(GraphType.NEGATIVE_WEIGHTS);
 		}
 		if(graph.isOfType(GraphType.ZERO_WEIGHTS) && ! compatibleTypes.contains(GraphType.ZERO_WEIGHTS)) {
 			noZeroWeights = true;
-			graph.removeType(GraphType.ZERO_WEIGHTS);
 		}
 		this.redefineEdges(graph, noNegativeWeights, noZeroWeights, noSelfLoops, setToOne);
 	}

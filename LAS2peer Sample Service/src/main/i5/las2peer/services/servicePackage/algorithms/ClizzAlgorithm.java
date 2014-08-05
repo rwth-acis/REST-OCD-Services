@@ -23,10 +23,12 @@ import org.la4j.vector.functor.VectorAccumulator;
 import y.base.Node;
 import y.base.NodeCursor;
 
-/*
+/**
  * The original version of the overlapping community detection algorithm introduced in 2012
  * by H.J. Li, J. Zhang, Z.P. Liu, L. Chen and X.S. Zhang.
- * Handles weighted and directed graphs.
+ * Handles weighted and directed graphs. Edge weights are transformed to obtain a distance based interpretation 
+ * from an influence based interpretation. The new weight w'(e) of an edge e is defined as w_max(G) + w_min(G) - w(e),
+ * where w_max(G) and w_min(G) are the maximum and minimum edge weight of the graph an w(e) the edge's original weight.
  */
 public class ClizzAlgorithm implements OcdAlgorithm {
 
@@ -37,7 +39,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * less than 3 / SQRT(2) times the influence factor.
 	 * The default value is 1.
 	 */
-	private double influenceFactor = 0.9;
+	private double influenceFactor = 1;
 	/**
 	 * The iteration bound for the membership calculation phase.
 	 * The default value is 1000.
@@ -51,12 +53,18 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * The default value is 0.001.
 	 */
 	private double membershipsPrecisionFactor = 0.001;
+	/*
+	 * The distanceBound corresponding to the influenceFactor.
+	 */
+	private double distanceBound;
 	
 	/**
 	 * Creates a standard instance of the algorithm.
 	 * All attributes are assigned their default values.
 	 */
 	public ClizzAlgorithm() {
+		distanceBound = 3d * influenceFactor / Math.sqrt(2d);
+		distanceBound = Math.floor(distanceBound);
 	}
 	
 	/**
@@ -70,9 +78,12 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		this.influenceFactor = influenceFactor;
 		this.membershipsIterationBound = membershipsIterationBound;
 		this.membershipsPrecisionFactor = membershipsPrecisionFactor;
+		distanceBound = 3d * influenceFactor / Math.sqrt(2d);
+		distanceBound = Math.floor(distanceBound);
 	}
 	
-	private Set<GraphType> compatibleGraphTypes() {
+	@Override
+	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.WEIGHTED);
 		compatibilities.add(GraphType.DIRECTED);
@@ -86,16 +97,21 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		Map<Node, Double> leadershipValues = calculateLeadershipValues(graph, distances);
 		Map<Node, Integer> leaders = determineCommunityLeaders(graph, distances, leadershipValues);
 		Matrix memberships = calculateMemberships(graph, leaders);
-		return new Cover(graph, memberships, this.getAlgorithmLog());
+		return new Cover(graph, memberships);
 	}
-
+	
 	@Override
-	public AlgorithmLog getAlgorithmLog() {
+	public Map<String, String> getParameters() {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("influenceFactor", Double.toString(influenceFactor));
 		parameters.put("membershipsIterationBound", Integer.toString(membershipsIterationBound));
 		parameters.put("membershipsPrecisionFactor", Double.toString(membershipsPrecisionFactor));
-		return new AlgorithmLog(AlgorithmType.CLIZZ_ALGORITHM, parameters, compatibleGraphTypes());
+		return parameters;
+	}
+
+	@Override
+	public AlgorithmType getAlgorithmType() {
+		return AlgorithmType.CLIZZ_ALGORITHM;
 	}
 	
 	/*
@@ -200,7 +216,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @return A mapping from the leader nodes to their community indices. Note that multiple
 	 * leaders may have the same community index.
 	 */
-	private Map<Node, Integer> determineCommunityLeaders(CustomGraph graph, Matrix distances, Map<Node, Double> leadershipValues) {
+	protected Map<Node, Integer> determineCommunityLeaders(CustomGraph graph, Matrix distances, Map<Node, Double> leadershipValues) {
 		Node[] nodeArray = graph.getNodeArray();
 		Map<Node, Integer> communityLeaders = new HashMap<Node, Integer>();
 		int communityCount = 0;
@@ -235,7 +251,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @param leadershipValues The nodes' leadership values.
 	 * @return The nodes which are community leaders.
 	 */
-	private Set<Node> determineLeaders(CustomGraph graph, Matrix distances, Map<Node, Double> leadershipValues) {
+	protected Set<Node> determineLeaders(CustomGraph graph, Matrix distances, Map<Node, Double> leadershipValues) {
 		Set<Node> leaders = new HashSet<Node>();
 		NodeCursor nodes = graph.nodes();
 		Node[] nodeArray = graph.getNodeArray();
@@ -269,7 +285,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * their distance is 0 but to be interpreted as infinity.
 	 * @return The leadership indices of all nodes.
 	 */
-	private Map<Node, Double> calculateLeadershipValues(CustomGraph graph, Matrix distances) {
+	protected Map<Node, Double> calculateLeadershipValues(CustomGraph graph, Matrix distances) {
 		NodeCursor nodes = graph.nodes();
 		Node node;
 		Map<Node, Double> leadershipValues = new HashMap<Node, Double>();
@@ -289,7 +305,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @return A matrix d containing the distance from node i to node j in the entry d_ij, 
 	 * where i and j are node indices.
 	 */
-	private Matrix calculateNodeDistances(CustomGraph graph) {
+	protected Matrix calculateNodeDistances(CustomGraph graph) {
 		NodeCursor nodes = graph.nodes();
 		Node node;
 		NodeCursor predecessors;
@@ -303,7 +319,6 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		Node closestCandidate;
 		double closestCandidateDistance;
 		double updatedDistance;
-		double distanceBound = 3d * influenceFactor / Math.sqrt(2d);
 		while(nodes.ok()) {
 			/*
 			 * Initializes node distances.
@@ -376,7 +391,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * Contains in entry i the length of the path from node with index i.
 	 * @return The node's leadership value.
 	 */
-	private double getLeadershipValue(Vector nodeInDistances) {
+	protected double getLeadershipValue(Vector nodeInDistances) {
 		ClizzLeadershipVectorProcedure leadershipProcedure = new ClizzLeadershipVectorProcedure(influenceFactor);
 		nodeInDistances.eachNonZero(leadershipProcedure);
 		return leadershipProcedure.getLeadershipIndex();
@@ -395,7 +410,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * node.
 	 * @return The indices of all influencing nodes.
 	 */
-	private Set<Integer> getInfluenceNodes(Vector nodeOutDistances, Vector nodeInDistances) {
+	protected Set<Integer> getInfluenceNodes(Vector nodeOutDistances, Vector nodeInDistances) {
 		ClizzInfluenceNodesVectorProcedure influenceNodesProcedure = new ClizzInfluenceNodesVectorProcedure();
 		nodeOutDistances.eachNonZero(influenceNodesProcedure);
 		/*
@@ -414,7 +429,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @param minWeight The smallest edge weight greater 0 of the examined graph.
 	 * @param maxWeight The maximum edge weight of the examined graph.
 	 */
-	private double getEdgeLength(double edgeWeight, double minEdgeWeight, double maxEdgeWeight) {
+	protected double getEdgeLength(double edgeWeight, double minEdgeWeight, double maxEdgeWeight) {
 		return maxEdgeWeight + minEdgeWeight - edgeWeight;
 	}
 

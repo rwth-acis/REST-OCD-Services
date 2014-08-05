@@ -26,12 +26,11 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
- * Implements a custom extended version of the Random Walk Label Propagation
- * Algorithm.
- * Handles directed and weighted graphs. For unweighted, undirected graphs,
- * it behaves the same as the original.
+ * Implements a custom extended version of the Random Walk Label Propagation Algorithm.
+ * Handles directed and weighted graphs.
+ * For unweighted, undirected graphs, it behaves the same as the original.
  */
-public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
+public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 
 	/**
 	 * The iteration bound for the leadership calculation phase. The default
@@ -55,7 +54,7 @@ public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm
 	 * Creates a standard instance of the algorithm. All attributes are assigned
 	 * there default values.
 	 */
-	public ExtendedRandomWalkLabelPropagationAlgorithm() {
+	public RandomWalkLabelPropagationAlgorithm() {
 	}
 
 	/**
@@ -69,7 +68,7 @@ public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm
 	 *            Sets the randomWalkPrecisionFactor. Must be greater than 0 and
 	 *            smaller than infinity. Recommended are values close to 0.
 	 */
-	public ExtendedRandomWalkLabelPropagationAlgorithm(double profitabilityDelta,
+	public RandomWalkLabelPropagationAlgorithm(double profitabilityDelta,
 			int leadershipIterationBound, double leadershipPrecisionFactor) {
 		this.profitabilityDelta = profitabilityDelta;
 		this.leadershipIterationBound = leadershipIterationBound;
@@ -77,15 +76,20 @@ public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm
 	}
 
 	@Override
-	public AlgorithmLog getAlgorithmLog() {
+	public AlgorithmType getAlgorithmType() {
+		return AlgorithmType.RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM;
+	}
+	
+	public Map<String, String> getParameters() {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("profitabilityDelta", Double.toString(profitabilityDelta));
 		parameters.put("leadershipIterationBound", Integer.toString(leadershipIterationBound));
 		parameters.put("leadershipPrecisionFactor", Double.toString(leadershipPrecisionFactor));
-		return new AlgorithmLog(AlgorithmType.EXTENDED_RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM, parameters, compatibleGraphTypes());
+		return parameters;
 	}
 
-	private Set<GraphType> compatibleGraphTypes() {
+	@Override
+	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.WEIGHTED);
 		compatibilities.add(GraphType.DIRECTED);
@@ -96,14 +100,7 @@ public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm
 	public Cover detectOverlappingCommunities(CustomGraph graph)
 			throws OcdAlgorithmException {
 		List<Node> leaders = randomWalkPhase(graph);
-		// /////////////////////////////////////TEST
-		// TODO
-		System.out.println("Leaders:");
-		System.out.println(leaders);
-		// ///////////////
-		Cover cover = labelPropagationPhase(graph, leaders);
-		cover.normalizeMemberships();
-		return cover;
+		return labelPropagationPhase(graph, leaders);
 	}
 
 	/*
@@ -190,9 +187,6 @@ public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm
 				&& iteration < leadershipIterationBound; iteration++) {
 			vec2 = new BasicVector(vec1);
 			vec1 = disassortativityMatrix.multiply(vec1);
-			// ////////////////////////////////////////// TODO TEST
-			// System.out.println("vec1 updated: " + vec1.toString());
-			// /////////////////////
 		}
 		if (iteration >= leadershipIterationBound) {
 			throw new OcdAlgorithmException(
@@ -221,19 +215,12 @@ public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm
 		double leadershipValue;
 		while (nodes.ok()) {
 			node = nodes.node();
+			/*
+			 * Note: degree normalization is left out since it
+			 * does not influence the outcome.
+			 */
 			leadershipValue = graph.getWeightedInDegree(node)
 					* disassortativityVector.get(node.index());
-			// /////////////////////////////////////////////////// TEST
-			// TODO
-			// System.out.println("Node: " + node.index());
-			// System.out.println("Name: " + graph.getNodeName(node));
-			// System.out.println("Disassortativity: " +
-			// disassortativityVector.get(node.index()));
-			// System.out.println("Weigted Deg: " +
-			// graph.getWeightedInDegree(node));
-			// System.out.println("Leadership Val: " + leadershipValue);
-			// System.out.println();
-			// ///////////////////////////////////
 			leadershipVector.set(node.index(), leadershipValue);
 			nodes.next();
 		}
@@ -268,9 +255,6 @@ public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm
 		double followerDegree;
 		while (nodes.ok()) {
 			node = nodes.node();
-			if(!followerMap.containsKey(node)) {
-				followerMap.put(node, 0d);
-			}
 			successors = node.successors();
 			maxInfluence = Double.NEGATIVE_INFINITY;
 			leaders.clear();
@@ -308,8 +292,6 @@ public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm
 					if (followerMap.containsKey(leader)) {
 						followerDegree = followerMap.get(leader);
 					}
-					// ////////////////////////////// TEST
-					// TODO better with maxInfluence instead of 1d
 					followerMap.put(leader,
 							followerDegree += 1d / leaders.size());
 				}
@@ -419,17 +401,17 @@ public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm
 				nodeSuccessors = node.successors();
 				while (nodeSuccessors.ok()) {
 					nodeSuccessor = nodeSuccessors.node();
-					if (nodeSuccessor.equals(leader)
-							|| memberships.containsKey(nodeSuccessor)) {
+					Integer joinIteration = memberships.get(nodeSuccessor);
+					if (nodeSuccessor.equals(leader) || 
+							( joinIteration != null && joinIteration < iterationCount)) {
 						profitability++;
 					}
 					nodeSuccessors.next();
 				}
-				if (profitability / nodeSuccessors.size() > profitabilityThreshold) {
+				if (profitability / (double) nodeSuccessors.size() > profitabilityThreshold) {
 					memberships.put(node, iterationCount);
 				}
 			}
-
 		} while (memberships.size() > previousMemberCount);
 		return memberships;
 	}
@@ -542,7 +524,7 @@ public class ExtendedRandomWalkLabelPropagationAlgorithm implements OcdAlgorithm
 			}
 			communityIndex++;
 		}
-		Cover cover = new Cover(graph, membershipMatrix, getAlgorithmLog());
+		Cover cover = new Cover(graph, membershipMatrix);
 		return cover;
 	}
 }

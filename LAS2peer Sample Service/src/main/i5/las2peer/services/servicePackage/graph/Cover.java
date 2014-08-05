@@ -109,10 +109,15 @@ public class Cover {
 	protected Cover() {
 	}
 	
-	public Cover(CustomGraph graph, Matrix memberships, AlgorithmLog algorithm) {
-		setGraph(graph);
+	/**
+	 * Creates an instance of a cover.
+	 * Note that the membership matrix will automatically be row normalized.
+	 * @param graph The corresponding graph.
+	 * @param memberships A membership matrix, with non negative entries.
+	 */
+	public Cover(CustomGraph graph, Matrix memberships) {
+		this.graph = graph;
 		setMemberships(memberships);
-		setAlgorithm(algorithm);
 	}
 
 	public long getId() {
@@ -121,10 +126,6 @@ public class Cover {
 	
 	public CustomGraph getGraph() {
 		return graph;
-	}
-
-	public void setGraph(CustomGraph graph) {
-		this.graph = graph;
 	}
 
 	public Matrix getMemberships() {
@@ -138,15 +139,17 @@ public class Cover {
 		}
 		for(int i=0; i<communities.size(); i++) {
 			Community community = communities.get(i);
-			for(Map.Entry<Node, Double> membership : community.getMemberships(this.graph).entrySet()) {
+			for(Map.Entry<Node, Double> membership : community.getMemberships().entrySet()) {
 				memberships.set(membership.getKey().index(), i, membership.getValue());
 			}
 		}
 		return memberships;
 	}
 
-	public void setMemberships(Matrix memberships) {
+	protected void setMemberships(Matrix memberships) {
 		communities.clear();
+		metrics.clear();
+		memberships = this.normalizeMembershipMatrix(memberships);
 		Node[] nodes = graph.getNodeArray();
 		for(int j=0; j<memberships.columns(); j++) {
 			Community community = new Community(this);
@@ -158,7 +161,7 @@ public class Cover {
 			List<Integer> nonZeroEntries = procedure.getNonZeroEntries();
 			for(int j : nonZeroEntries) {
 				Community community = communities.get(j);
-				community.setBelongingFactor(graph, nodes[i], memberships.get(i, j));
+				community.setBelongingFactor(nodes[i], memberships.get(i, j));
 			}
 			
 		}
@@ -186,15 +189,6 @@ public class Cover {
 
 	public List<Community> getCommunities() {
 		return communities;
-	}
-
-	public void setCommunities(List<Community> communities) {
-		if(communities != null) {
-			this.communities = communities;
-		}
-		else {
-			this.communities = new ArrayList<Community>();
-		}
 	}
 
 	public AlgorithmLog getAlgorithm() {
@@ -249,7 +243,7 @@ public class Cover {
 	public List<Integer> getCommunityIndices(Node node) {
 		List<Integer> communityIndices = new ArrayList<Integer>();
 		for(int j=0; j < communities.size(); j++) {
-			if(this.communities.get(j).getBelongingFactor(graph, node) > 0) {
+			if(this.communities.get(j).getBelongingFactor(node) > 0) {
 				communityIndices.add(j);
 			}
 		}
@@ -257,11 +251,7 @@ public class Cover {
 	}
 	
 	public double getBelongingFactor(Node node, int communityIndex) {
-		return communities.get(communityIndex).getBelongingFactor(graph, node);
-	}
-	
-	public void setBelongingFactor(Node node, int communityIndex, double belongingFactor) {
-		communities.get(communityIndex).setBelongingFactor(graph, node, belongingFactor);
+		return communities.get(communityIndex).getBelongingFactor(node);
 	}
 	
 	public String getCommunityName(int communityIndex) {
@@ -280,32 +270,22 @@ public class Cover {
 		communities.get(communityIndex).setColor(color);
 	}
 	
-	/**
-	 * Normalizes the memberships so that for each node the belonging factors sum up to 1.
-	 * All metric logs are removed from the cover.
-	 * Note that a unit vector column is added for each row that is equal
-	 * to zero, so that the corresponding node will have a separate community.
-	 */
-	public void normalizeMemberships() {
-		normalizeMemberships(this.getMemberships());
-	}
-	
 	/*
 	 * Overload for internal reuse and performance.
-	 * Normalizes each row of the membership matrix using the one norm.
-	 * All matrix results are removed.
+	 * Normalizes each row of a matrix using the one norm.
 	 * Note that a unit vector column is added for each row that is equal
-	 * to zero, so that the corresponding node will have a separate community.
-	 * @param memberships The memberships matrix to be normalized and set.
+	 * to zero to create a separate node community.
+	 * @param matrix The memberships matrix to be normalized and set.
+	 * @return The normalized membership matrix.
 	 */
-	protected void normalizeMemberships(Matrix memberships) {
+	protected Matrix normalizeMembershipMatrix(Matrix matrix) {
 		List<Integer> zeroRowIndices = new ArrayList<Integer>();
-		for(int i=0; i<memberships.rows(); i++) {
-			Vector row = memberships.getRow(i);
+		for(int i=0; i<matrix.rows(); i++) {
+			Vector row = matrix.getRow(i);
 			double norm = row.fold(Vectors.mkManhattanNormAccumulator());
 			if(norm != 0) {
 				row = row.divide(norm);
-				memberships.setRow(i, row);
+				matrix.setRow(i, row);
 			}
 			else {
 				zeroRowIndices.add(i);
@@ -314,12 +294,11 @@ public class Cover {
 		/*
 		 * Resizing also rows is required in case there are zero columns.
 		 */
-		memberships = memberships.resize(graph.nodeCount(), memberships.columns() + zeroRowIndices.size());
+		matrix = matrix.resize(graph.nodeCount(), matrix.columns() + zeroRowIndices.size());
 		for(int i = 0; i < zeroRowIndices.size(); i++) {
-			memberships.set(zeroRowIndices.get(i), memberships.columns() - zeroRowIndices.size() + i, 1d);
+			matrix.set(zeroRowIndices.get(i), matrix.columns() - zeroRowIndices.size() + i, 1d);
 		}
-		this.setMemberships(memberships);
-		metrics.clear();
+		return matrix;
 	}
 	
 	/**
@@ -336,10 +315,8 @@ public class Cover {
 		for(int i=0; i<memberships.rows(); i++) {
 			setRowEntriesBelowThresholdToZero(memberships, i, threshold);
 		}
-		normalizeMemberships(memberships);
 		this.setMemberships(memberships);
 		removeEmptyCommunities();
-		metrics.clear();
 	}
 
 	@Override

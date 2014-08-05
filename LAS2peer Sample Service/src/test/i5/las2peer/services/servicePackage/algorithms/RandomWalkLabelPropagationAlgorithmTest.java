@@ -1,7 +1,5 @@
 package i5.las2peer.services.servicePackage.algorithms;
 
-import java.io.FileNotFoundException;
-
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
@@ -11,11 +9,17 @@ import i5.las2peer.services.servicePackage.metrics.MetricException;
 import i5.las2peer.services.servicePackage.metrics.StatisticalMeasure;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
+import java.io.FileNotFoundException;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.vector.Vector;
+
+import y.base.Node;
 
 /*
 LDAV=ones(1,num_vertices(SparseGraph));
@@ -50,17 +54,38 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		transitionMatrix.set(1, 1, 0.5);
 		System.out.println("Transition Matrix:");
 		System.out.println(transitionMatrix.transpose());
-		ExtendedRandomWalkLabelPropagationAlgorithm algo = new ExtendedRandomWalkLabelPropagationAlgorithm(0.05, 1000, 0.001);
+		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.05, 1000, 0.001);
 		Vector vec = algo.executeRandomWalk(transitionMatrix);
 		System.out.println("Steady State Vector:");
 		System.out.println(vec);
+	}
+	
+	@Test
+	public void testWithKnownResults() throws OcdAlgorithmException {
+		System.out.println("Known Result Test");
+		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
+		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.1, 1000, 0.001);
+		Matrix disassortativityMatrix = algo.getTransposedDisassortativityMatrix(graph);
+		System.out.println("DA M:\n" + disassortativityMatrix);
+		Vector disassortativityVector = algo.executeRandomWalk(disassortativityMatrix);
+		System.out.println("DA Vec:\n" + disassortativityVector);
+		Vector leadershipVector = algo.getLeadershipValues(graph,
+				disassortativityVector);
+		System.out.println("LS Vec:\n" + leadershipVector);
+		Map<Node, Double> followerMap = algo.getFollowerDegrees(graph,
+				leadershipVector);
+		System.out.println("Follower Degs:\n" + followerMap);
+		List<Node> leaders = algo.getGlobalLeaders(followerMap);
+		System.out.println("Leaders:\n" + leaders);
+		Cover cover = algo.labelPropagationPhase(graph, leaders);
+		System.out.println(cover);
 	}
 	
 	@Ignore
 	@Test
 	public void testOnTwoCommunities() throws OcdAlgorithmException {
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
-		ExtendedRandomWalkLabelPropagationAlgorithm algo = new ExtendedRandomWalkLabelPropagationAlgorithm(0.2, 1000, 0.001);
+		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2, 1000, 0.001);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
@@ -69,7 +94,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	@Test
 	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
-		ExtendedRandomWalkLabelPropagationAlgorithm algo = new ExtendedRandomWalkLabelPropagationAlgorithm(0.2, 1000, 0.001);
+		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2, 1000, 0.001);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
@@ -77,7 +102,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	@Test
 	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		ExtendedRandomWalkLabelPropagationAlgorithm algo = new ExtendedRandomWalkLabelPropagationAlgorithm(0.2, 1000, 0.001);
+		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2, 1000, 0.001);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());	
 	}
@@ -103,7 +128,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		for(int i=0; i < profitabililtyDeltas.length; i++) {
 			System.out.println("Delta: " + profitabililtyDeltas[i]);
-			ExtendedRandomWalkLabelPropagationAlgorithm algo = new ExtendedRandomWalkLabelPropagationAlgorithm(profitabililtyDeltas[i], 1000, 0.001);
+			RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(profitabililtyDeltas[i], 1000, 0.001);
 			Cover cover = algo.detectOverlappingCommunities(graph);
 			metric.measure(cover);
 			System.out.println(cover.toString());

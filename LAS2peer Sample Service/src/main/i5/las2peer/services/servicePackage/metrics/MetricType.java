@@ -5,9 +5,10 @@ import java.util.Locale;
 public enum MetricType {
 
 	UNDEFINED (0),
-	EXTENDED_MODULARITY_METRIC (1),
-	EXTENDED_NORMALIZED_MUTUAL_INFORMATION (2),
-	EXECUTION_TIME (3);
+	EXECUTION_TIME (1),
+	EXTENDED_MODULARITY (2),
+	EXTENDED_NORMALIZED_MUTUAL_INFORMATION (3),
+	OMEGA_INDEX (4);
 	
 	private int id;
 	
@@ -27,6 +28,47 @@ public enum MetricType {
         }
         return null;
 	}
+	
+	public boolean isStatisticalMeasure() {
+		switch (this) {
+		case EXTENDED_MODULARITY:
+			return true;
+		default:
+			return false;
+		}
+	}
+	
+	public boolean isKnowledgeDrivenMeasure() {
+		switch (this) {
+		case EXTENDED_NORMALIZED_MUTUAL_INFORMATION:
+			return true;
+		case OMEGA_INDEX:
+			return true;
+		default:
+			return false;
+		}
+	}
+	
+	public KnowledgeDrivenMeasure getKnowledgeDrivenMeasureInstance() {
+		switch (this) {
+		case EXTENDED_NORMALIZED_MUTUAL_INFORMATION:
+			return new ExtendedNormalizedMutualInformation();
+		case OMEGA_INDEX:
+			return new OmegaIndex();
+		default:
+			return null;
+		}
+	}
+	
+	public StatisticalMeasure getStatisticalMeasureInstance() {
+		switch (this) {
+		case EXTENDED_MODULARITY:
+			return new ExtendedModularity();
+		default:
+			return null;
+		}
+	}
+
 
 	@Override
 	public String toString() {

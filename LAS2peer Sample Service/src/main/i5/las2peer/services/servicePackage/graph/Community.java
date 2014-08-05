@@ -111,39 +111,24 @@ public class Community {
 	}
 	/**
 	 * Getter for memberships.
-	 * @param graph The graph of the corresponding cover.
 	 * @param reverseNodeMap A reverse node mapping from the corresponding graph's custom nodes
 	 * to the actual nodes.
 	 * @return The memberships.
 	 */
-	public Map<Node, Double> getMemberships(CustomGraph graph) {
+	public Map<Node, Double> getMemberships() {
 		Map<Node, Double> memberships = new HashMap<Node, Double> ();
 		for(Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {
-			memberships.put(graph.getNode(entry.getKey()), entry.getValue());
+			memberships.put(this.cover.getGraph().getNode(entry.getKey()), entry.getValue());
 		}
 		return memberships;
 	}
 	/**
-	 * Setter for memberships.
-	 * @param graph The graph of the corresponding cover.
-	 * @param memberships The memberships.
-	 */
-	public void setMemberships(CustomGraph graph, Map<Node, Double> memberships) {
-		this.memberships = new HashMap<CustomNode, Double>();
-		if(memberships != null) {
-			for(Map.Entry<Node, Double> entry : memberships.entrySet()) {
-				this.memberships.put(graph.getCustomNode(entry.getKey()), entry.getValue());
-			}
-		}
-	}
-	/**
 	 * Setter for a membership entry.
-	 * @param graph The graph of the corresponding cover.
 	 * @param customNode The member custom node.
 	 * @param belongingFactor The belonging factor.
 	 */
-	public void setBelongingFactor(CustomGraph graph, Node node, double belongingFactor) {
-		CustomNode customNode = graph.getCustomNode(node);
+	protected void setBelongingFactor(Node node, double belongingFactor) {
+		CustomNode customNode = this.cover.getGraph().getCustomNode(node);
 		if(belongingFactor != 0) {
 			this.memberships.put(customNode, belongingFactor);
 		}
@@ -152,13 +137,12 @@ public class Community {
 	}
 	/**
 	 * Getter for the belonging factor of a certain node.
-	 * @param graph The graph of the corresponding cover.
 	 * @param customNode The member custom node.
 	 * @return The belonging factor, i.e. the corresponding value from the
 	 * memberships map.
 	 */
-	public double getBelongingFactor(CustomGraph graph, Node node) {
-		CustomNode customNode = graph.getCustomNode(node);
+	public double getBelongingFactor(Node node) {
+		CustomNode customNode = this.cover.getGraph().getCustomNode(node);
 		Double belongingFactor = this.memberships.get(customNode);
 		if(belongingFactor == null) {
 			belongingFactor = 0d;

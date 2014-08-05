@@ -2,7 +2,6 @@ package i5.las2peer.services.servicePackage.graph;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -243,6 +242,11 @@ public class CustomGraph extends Graph2D {
 		return getCustomNode(node).getId();
 	}
 	
+	/**
+	 * Returns the sum of the weights of all incoming edges of a node.
+	 * @param node The node.
+	 * @return
+	 */
 	public double getWeightedInDegree(Node node) {
 		double inDegree = 0;
 		EdgeCursor inEdges = node.inEdges();
@@ -254,6 +258,11 @@ public class CustomGraph extends Graph2D {
 		return inDegree;
 	}
 	
+	/**
+	 * Returns the sum of the weights of all outgoing edges of a node.
+	 * @param node The node.
+	 * @return
+	 */
 	public double getWeightedOutDegree(Node node) {
 		double outDegree = 0;
 		EdgeCursor outEdges = node.outEdges();
@@ -277,30 +286,39 @@ public class CustomGraph extends Graph2D {
 	}
 	
 	/**
-	 * Returns the maximum edge weight.
-	 * @return The maximum edge weight.
+	 * Returns the maximum edge weight of the graph.
+	 * @return The maximum edge weight or negative infinity, if there are no edges in the graph.
 	 */
 	public double getMaxEdgeWeight() {
-		double maxWeight = 0;
-		if(!edgeIds.isEmpty()) {
-			maxWeight = Collections.max(edgeIds.values());
+		double maxWeight = Double.NEGATIVE_INFINITY;
+		double edgeWeight;
+		EdgeCursor edges = this.edges();
+		while(edges.ok()) {
+			Edge edge = edges.edge();
+			edgeWeight = getCustomEdge(edge).getWeight();
+			if(edgeWeight > maxWeight) {
+				maxWeight = edgeWeight;
+			}
+			edges.next();
 		}
-		return maxWeight;		
+		return maxWeight;
 	}
 	
 	/**
-	 * Returns the smallest edge weight greater 0.
-	 * @return The smallest edge weight.
+	 * Returns the minimum edge weight of the graph.
+	 * @return The minimum edge weight or positive infinity, if there are no edges in the graph.
 	 */
 	public double getMinEdgeWeight() {
 		double minWeight = Double.POSITIVE_INFINITY;
-		for(double edgeWeight : edgeIds.values()) {
-			if(edgeWeight < minWeight && edgeWeight > 0) {
+		double edgeWeight;
+		EdgeCursor edges = this.edges();
+		while(edges.ok()) {
+			Edge edge = edges.edge();
+			edgeWeight = getCustomEdge(edge).getWeight();
+			if(edgeWeight < minWeight) {
 				minWeight = edgeWeight;
 			}
-		}
-		if(minWeight == Double.POSITIVE_INFINITY) {
-			minWeight = 0;
+			edges.next();
 		}
 		return minWeight;
 	}

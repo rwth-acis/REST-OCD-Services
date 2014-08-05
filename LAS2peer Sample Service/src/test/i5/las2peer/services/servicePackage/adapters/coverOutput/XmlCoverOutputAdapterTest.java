@@ -54,7 +54,8 @@ public class XmlCoverOutputAdapterTest {
 		params.put("param1", "val1");
 		params.put("param2", "val2");
 		AlgorithmLog algo = new AlgorithmLog(AlgorithmType.UNDEFINED, params, new HashSet<GraphType>());
-		Cover cover = new Cover(graph, memberships, algo);
+		Cover cover = new Cover(graph, memberships);
+		cover.setAlgorithm(algo);
 		cover.setName(coverName);
 		cover.setCommunityColor(1, Color.BLUE);
 		cover.setCommunityName(1, "Community1");

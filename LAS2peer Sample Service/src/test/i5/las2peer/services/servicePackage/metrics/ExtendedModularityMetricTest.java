@@ -2,19 +2,14 @@ package i5.las2peer.services.servicePackage.metrics;
 
 import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.servicePackage.adapters.AdapterException;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
-import i5.las2peer.services.servicePackage.algorithms.AlgorithmType;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.SpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.servicePackage.graph.Cover;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
-import i5.las2peer.services.servicePackage.graph.GraphType;
 import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.HashSet;
 
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
@@ -33,7 +28,7 @@ public class ExtendedModularityMetricTest {
 		for(int i=0; i<memberships.rows(); i++) {
 			memberships.set(i, 0, 1);
 		}
-		Cover cover = new Cover(graph, memberships, null);
+		Cover cover = new Cover(graph, memberships);
 		ExtendedModularity metric = new ExtendedModularity();
 		metric.measure(cover);
 		System.out.println("1 Community");
@@ -72,10 +67,10 @@ public class ExtendedModularityMetricTest {
 		memberships.set(10, 0, 0.4);
 		memberships.set(10, 1, 0.4);
 		memberships.set(10, 2, 0.2);
-		Cover cover = new Cover(graph, memberships, new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>()));
+		Cover cover = new Cover(graph, memberships);
 		ExtendedModularity metric = new ExtendedModularity();
 		metric.measure(cover);
-		assertEquals(0.581, cover.getMetric(MetricType.EXTENDED_MODULARITY_METRIC).getValue(), 0.01);
+		assertEquals(0.581, cover.getMetric(MetricType.EXTENDED_MODULARITY).getValue(), 0.01);
 		System.out.println(cover);
 	}
 

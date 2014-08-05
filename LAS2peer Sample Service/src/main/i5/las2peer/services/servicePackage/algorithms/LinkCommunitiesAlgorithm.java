@@ -38,11 +38,17 @@ public class LinkCommunitiesAlgorithm implements
 	}
 	
 	@Override
-	public AlgorithmLog getAlgorithmLog() {
-		return new AlgorithmLog(AlgorithmType.LINK_COMMUNITIES_ALGORITHM, new HashMap<String, String>(), compatibleGraphTypes());
+	public AlgorithmType getAlgorithmType() {
+		return AlgorithmType.LINK_COMMUNITIES_ALGORITHM;
 	}
 	
-	private Set<GraphType> compatibleGraphTypes() {
+	@Override
+	public HashMap<String, String> getParameters() {
+		return new HashMap<String, String>();
+	}
+	
+	@Override
+	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		return compatibilities;
 	}
@@ -389,9 +395,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 				memberships.set(edge.source().index(), i, belongingFactor);
 			}
 		}
-		Cover cover = new Cover(graph, memberships, getAlgorithmLog());
-		cover.normalizeMemberships();
-		return cover;
+		return new Cover(graph, memberships);
 	}
 	
 	private double getSimpleSimilarity(Node nodeA, Node nodeB) {
