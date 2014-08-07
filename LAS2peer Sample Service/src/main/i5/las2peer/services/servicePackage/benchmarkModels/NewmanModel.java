@@ -51,6 +51,7 @@ public class NewmanModel implements GroundTruthBenchmarkModel {
 		List<Node> nodeOrder = new ArrayList<Node>();
 		for(int i=0; i<128; i++) {
 			Node node = graph.createNode();
+			graph.setNodeName(node, Integer.toString(node.index()));
 			nodeOrder.add(node);
 		}
 		Collections.shuffle(nodeOrder);
@@ -77,13 +78,15 @@ public class NewmanModel implements GroundTruthBenchmarkModel {
 				}
 			}
 		}
-		List<Node> unsatisfiedNodes = new ArrayList<Node>(nodeOrder);
-		while(!unsatisfiedNodes.isEmpty()) {
-			int nodeAListIndex = rand.nextInt(unsatisfiedNodes.size());
-			Node nodeA = unsatisfiedNodes.get(nodeAListIndex);
-			boolean edgeCreated = generateRandomExternalEdge(graph, groupMap, unsatisfiedNodes, nodeA, rand);
-			if(!edgeCreated) {
-				redesignExternalEdges(graph, groupMap, nodeOrder, unsatisfiedNodes, nodeA, rand);
+		if(externalEdges > 0) {
+			List<Node> unsatisfiedNodes = new ArrayList<Node>(nodeOrder);
+			while(!unsatisfiedNodes.isEmpty()) {
+				int nodeAListIndex = rand.nextInt(unsatisfiedNodes.size());
+				Node nodeA = unsatisfiedNodes.get(nodeAListIndex);
+				boolean edgeCreated = generateRandomExternalEdge(graph, groupMap, unsatisfiedNodes, nodeA, rand);
+				if(!edgeCreated) {
+					redesignExternalEdges(graph, groupMap, nodeOrder, unsatisfiedNodes, nodeA, rand);
+				}
 			}
 		}
 		Cover cover = new Cover(graph, membershipMatrix);

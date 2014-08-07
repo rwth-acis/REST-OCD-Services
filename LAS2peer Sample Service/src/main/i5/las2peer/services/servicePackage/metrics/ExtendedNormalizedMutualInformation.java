@@ -19,7 +19,7 @@ public class ExtendedNormalizedMutualInformation implements KnowledgeDrivenMeasu
 		metricValue -= 0.5 * calculateArbitraryConditionalEntropy(cover, groundTruth, coverCommunitySizes, groundTruthCommunitySizes);
 		metricValue -= 0.5 * calculateArbitraryConditionalEntropy(groundTruth, cover, groundTruthCommunitySizes, coverCommunitySizes);
 		MetricLog metric = new MetricLog(MetricType.EXTENDED_NORMALIZED_MUTUAL_INFORMATION, metricValue, new HashMap<String, String>(), cover);
-		cover.setMetric(metric);
+		cover.addMetric(metric);
 	}
 
 	/*
@@ -59,7 +59,12 @@ public class ExtendedNormalizedMutualInformation implements KnowledgeDrivenMeasu
 				if(probability_x1 > 0) {
 					communityEntropy -= probability_x1 * Math.log(probability_x1) / Math.log(2);
 				}
-				minParticularConditionalEntropy /= communityEntropy;
+				if(communityEntropy > 0) {
+					minParticularConditionalEntropy /= communityEntropy;
+				}
+				else {
+					minParticularConditionalEntropy = 1;
+				}
 			}
 			else {
 				minParticularConditionalEntropy = 1;

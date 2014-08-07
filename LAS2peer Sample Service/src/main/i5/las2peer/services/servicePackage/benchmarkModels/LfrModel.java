@@ -1,7 +1,7 @@
 package i5.las2peer.services.servicePackage.benchmarkModels;
 
 import i5.las2peer.services.servicePackage.adapters.coverInput.CoverInputAdapter;
-import i5.las2peer.services.servicePackage.adapters.coverInput.NodeCommunityListInputAdapter;
+import i5.las2peer.services.servicePackage.adapters.coverInput.NodeCommunityListsInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.WeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.servicePackage.algorithms.AlgorithmLog;
@@ -107,25 +107,25 @@ public class LfrModel implements GroundTruthBenchmarkModel {
 	/**
 	 * Creates a partially standardized instance of the benchmark model.
 	 * The constructor is designed mainly for the creation of four sets of standard benchmark graphs
-	 * Each set is obtained by setting mu and minc to a combination of the suggested standard values and
+	 * Each set is obtained by setting mu and k to a combination of the suggested standard values and
 	 * continuously increasing the fraction of overlapping nodes.
-	 * The unspecified values are set to n=1000, k=20, maxk=50, maxc=5*minc, om=2, t1=-2, t2=-1 and beta=1.5.
-	 * @param minc Sets minc.
-	 * Is typically either 10 or 20.
+	 * The unspecified values are set to n=1000, maxk=50, minc=10, maxc=50, om=2, t1=-2, t2=-1 and beta=1.5.
+	 * @param k Sets k.
+	 * Is typically either 12 or 24.
 	 * @param mu Sets mut and muw.
 	 * Is typically either 0.1 or 0.3.
 	 * @param overlappingNodesFraction Determines the percentage of overlapping nodes and hence on.
-	 * Is typically increased from 0 to 0.5 in intervals of 0.05.
+	 * Is typically increased from 0 by intervals of 0.05 or 0.1 up to 0.5 or 1.
 	 */
-	public LfrModel(int minc, double mu, double overlappingNodeFraction) {
-		this.minc = minc;
+	public LfrModel(int k, double mu, double overlappingNodeFraction) {
+		this.minc = 10;
 		this.mut = mu;
 		this.muw = mu;
 		this.n = 1000;
-		this.k = 20;
+		this.k = k;
 		this.maxk = 50;
 		this.on = (int) Math.round((n * overlappingNodeFraction));
-		this.maxc = 5 * this.minc;
+		this.maxc = 50;
 		this.om = 2;
 		this.t1 = -2;
 		this.t2 = -1;
@@ -222,7 +222,7 @@ public class LfrModel implements GroundTruthBenchmarkModel {
 				CustomGraph graph = graphAdapter.readGraph();
 				graph.addType(GraphType.DIRECTED);
 				graph.addType(GraphType.WEIGHTED);
-				CoverInputAdapter coverAdapter = new NodeCommunityListInputAdapter(new FileReader(coverFilename));
+				CoverInputAdapter coverAdapter = new NodeCommunityListsInputAdapter(new FileReader(coverFilename));
 				Cover cover = coverAdapter.readCover(graph);
 				cover.setAlgorithm(new AlgorithmLog(AlgorithmType.GROUND_TRUTH, new HashMap<String, String>(), new HashSet<GraphType>()));
 				return cover;

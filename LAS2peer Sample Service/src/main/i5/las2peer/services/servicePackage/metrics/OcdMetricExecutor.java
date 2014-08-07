@@ -12,7 +12,7 @@ public class OcdMetricExecutor {
 		Cover coverCopy = new Cover(graphCopy, cover.getMemberships());
 		Cover groundTruthCopy = new Cover(graphCopy, groundTruth.getMemberships());
 		metric.measure(coverCopy, groundTruthCopy);
-		cover.setMetric(coverCopy.getMetrics().get(0));
+		cover.addMetric(coverCopy.getMetrics().get(0));
 	}
 	
 	public void executeStatisticalMeasure(Cover cover, StatisticalMeasure metric) throws MetricException {
@@ -22,7 +22,7 @@ public class OcdMetricExecutor {
 		processor.makeCompatible(graphCopy, metric.compatibleGraphTypes());
 		Cover coverCopy = new Cover(graphCopy, cover.getMemberships());
 		metric.measure(coverCopy);
-		cover.setMetric(coverCopy.getMetrics().get(0));
+		cover.addMetric(coverCopy.getMetrics().get(0));
 	}
 
 }

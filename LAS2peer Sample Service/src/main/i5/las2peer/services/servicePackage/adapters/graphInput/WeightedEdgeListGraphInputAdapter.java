@@ -13,7 +13,7 @@ import y.base.Edge;
 import y.base.Node;
 
 /**
- * A graph input adapter for edge list .txt files.
+ * A graph input adapter for the weighted edge list format.
  * 
  * @author Sebastian
  * 
@@ -21,10 +21,8 @@ import y.base.Node;
 public class WeightedEdgeListGraphInputAdapter extends AbstractGraphInputAdapter {
 
 	/**
-	 * Creates a new instance of the adapter. This constructor is protected and only
-	 * to be used by the AdapterFactory.
-	 * @param filename
-	 *            The name of the .txt file containing the graph.
+	 * Creates a new instance of the adapter.
+	 * @param reader The reader the graph will be read from.
 	 */
 	public WeightedEdgeListGraphInputAdapter(Reader reader) {
 		this.setReader(reader);

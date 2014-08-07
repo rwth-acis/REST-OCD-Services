@@ -148,7 +148,11 @@ public class Cover {
 
 	protected void setMemberships(Matrix memberships) {
 		communities.clear();
+		MetricLog executionTime = getMetric(MetricType.EXECUTION_TIME);
 		metrics.clear();
+		if(executionTime != null) {
+			metrics.add(executionTime);
+		}
 		memberships = this.normalizeMembershipMatrix(memberships);
 		Node[] nodes = graph.getNodeArray();
 		for(int j=0; j<memberships.columns(); j++) {
@@ -230,7 +234,7 @@ public class Cover {
 		return null;
 	}
 	
-	public void setMetric(MetricLog metric) {
+	public void addMetric(MetricLog metric) {
 		if(metric != null) {
 			this.metrics.add(metric);
 		}
@@ -304,7 +308,7 @@ public class Cover {
 	/**
 	 * Filters the cover membership matrix by removing insignificant membership values.
 	 * The cover is then normalized and empty communities are removed. All metric results
-	 * are removed as well.
+	 * besides the execution time are removed as well.
 	 * All entries below the threshold will be set to 0, unless they are the maximum 
 	 * belonging factor of the node.
 	 * @param threshold 

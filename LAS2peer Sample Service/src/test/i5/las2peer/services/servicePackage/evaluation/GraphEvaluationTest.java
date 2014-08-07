@@ -9,10 +9,12 @@ import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import y.base.Node;
 
+@Ignore
 public class GraphEvaluationTest {
 
 	@Test

@@ -22,4 +22,36 @@ public class OcdTestCoverFactory {
 		return cover;
 	}
 	
+	public static Cover getNewmanClizzGroundTruth() throws Exception {
+		CoverInputAdapter adapter = new LabeledMembershipMatrixInputAdapter(new FileReader(OcdTestConstants.newmanClizzGroundTruthLabeledMembershipMatrixInputPath));
+		CustomGraph graph = OcdTestGraphFactory.getNewmanClizzGraph();
+		Cover cover = adapter.readCover(graph);
+		cover.setAlgorithm(new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>()));
+		return cover;
+	}
+	
+	public static Cover getNewmanLinkGroundTruth() throws Exception {
+		CoverInputAdapter adapter = new LabeledMembershipMatrixInputAdapter(new FileReader(OcdTestConstants.newmanLinkGroundTruthLabeledMembershipMatrixInputPath));
+		CustomGraph graph = OcdTestGraphFactory.getNewmanLinkGraph();
+		Cover cover = adapter.readCover(graph);
+		cover.setAlgorithm(new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>()));
+		return cover;
+	}
+	
+	public static Cover getNewmanLinkCover() throws Exception {
+		CoverInputAdapter adapter = new LabeledMembershipMatrixInputAdapter(new FileReader(OcdTestConstants.newmanLinkCoverLabeledMembershipMatrixInputPath));
+		CustomGraph graph = OcdTestGraphFactory.getNewmanLinkGraph();
+		Cover cover = adapter.readCover(graph);
+		cover.setAlgorithm(new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>()));
+		return cover;
+	}
+	
+	public static Cover getNewmanClizzCover() throws Exception {
+		CoverInputAdapter adapter = new LabeledMembershipMatrixInputAdapter(new FileReader(OcdTestConstants.newmanClizzCoverLabeledMembershipMatrixInputPath));
+		CustomGraph graph = OcdTestGraphFactory.getNewmanLinkGraph();
+		Cover cover = adapter.readCover(graph);
+		cover.setAlgorithm(new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>()));
+		return cover;
+	}
+	
 }

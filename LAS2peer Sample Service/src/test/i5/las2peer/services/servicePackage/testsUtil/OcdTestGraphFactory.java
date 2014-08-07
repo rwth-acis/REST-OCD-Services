@@ -4,6 +4,7 @@ import i5.las2peer.services.servicePackage.adapters.AdapterException;
 import i5.las2peer.services.servicePackage.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.NodeWeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.servicePackage.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
+import i5.las2peer.services.servicePackage.adapters.graphInput.WeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.servicePackage.graph.CustomGraph;
 import i5.las2peer.services.servicePackage.graph.GraphProcessor;
 import i5.las2peer.services.servicePackage.graph.GraphType;
@@ -219,6 +220,31 @@ public class OcdTestGraphFactory {
 		CustomGraph graph = adapter.readGraph();
 		GraphProcessor processor = new GraphProcessor();
 		graph.addType(GraphType.DIRECTED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
+		return graph;
+	}
+	
+	public static CustomGraph getFacebookGraph() throws AdapterException, FileNotFoundException {
+		GraphInputAdapter adapter = new UnweightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.facebookUnweightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		GraphProcessor processor = new GraphProcessor();
+		graph.addType(GraphType.DIRECTED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
+		return graph;
+	}
+	
+	public static CustomGraph getNewmanClizzGraph() throws AdapterException, FileNotFoundException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.newmanClizzGraphWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		GraphProcessor processor = new GraphProcessor();
+		processor.makeCompatible(graph, new HashSet<GraphType>());
+		return graph;
+	}
+	
+	public static CustomGraph getNewmanLinkGraph() throws AdapterException, FileNotFoundException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.newmanLinkGraphWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		GraphProcessor processor = new GraphProcessor();
 		processor.makeCompatible(graph, new HashSet<GraphType>());
 		return graph;
 	}

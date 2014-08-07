@@ -79,7 +79,7 @@ public class OmegaIndex implements KnowledgeDrivenMeasure {
 		double expectedIndex = calculateExpectedIndex(sharedCommunityCountsAlgo, sharedCommunityCountsTruth, pairsCount);
 		double metricValue = (unadjustedIndex - expectedIndex) / (1 - expectedIndex);
 		MetricLog metric = new MetricLog(MetricType.OMEGA_INDEX, metricValue, new HashMap<String, String>(), cover);
-		cover.setMetric(metric);
+		cover.addMetric(metric);
 	}
 	
 	/*

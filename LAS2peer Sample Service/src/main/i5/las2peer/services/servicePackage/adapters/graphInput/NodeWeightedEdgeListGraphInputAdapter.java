@@ -13,7 +13,7 @@ import y.base.Edge;
 import y.base.Node;
 
 /**
- * A graph input adapter for edge list .txt files.
+ * A graph input adapter for the node list and weighted edge list format.
  * 
  * @author Sebastian
  * 
@@ -21,10 +21,8 @@ import y.base.Node;
 public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAdapter {
 
 	/**
-	 * Creates a new instance of the adapter. This constructor is protected and only
-	 * to be used by the AdapterFactory.
-	 * @param filename
-	 *            The name of the .txt file containing the graph.
+	 * Creates a new instance of the adapter.
+	 * @param reader The reader the graph will be read from.
 	 */
 	public NodeWeightedEdgeListGraphInputAdapter(Reader reader) {
 		this.setReader(reader);
@@ -42,8 +40,13 @@ public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAda
 			while(line.size() == 1) {
 				Node node = graph.createNode();
 				String nodeName = line.get(0);
-				graph.setNodeName(node, nodeName);
-				reverseNodeNames.put(nodeName, node);
+				if(!reverseNodeNames.containsKey(nodeName)) {
+					graph.setNodeName(node, nodeName);
+					reverseNodeNames.put(nodeName, node);
+				}
+				else {
+					throw new AdapterException("Node name not unique: " + nodeName);
+				}
 				line = Adapters.readLine(reader);
 			}
 			/*
@@ -55,8 +58,11 @@ public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAda
 				String targetNodeName = line.get(1);
 				Node targetNode = reverseNodeNames.get(targetNodeName);
 				double edgeWeight = Double.parseDouble(line.get(2));
-				if(targetNode == null || sourceNode == null) {
-					throw new IllegalArgumentException("Node not specified");
+				if(sourceNode == null) {
+					throw new AdapterException("Node not specified: " + sourceNodeName);
+				}
+				if(targetNode == null) {
+					throw new AdapterException("Node not specified: " + targetNodeName);
 				}
 				Edge edge = graph.createEdge(sourceNode, targetNode);
 				graph.setEdgeWeight(edge, edgeWeight);

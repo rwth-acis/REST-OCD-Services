@@ -1,6 +1,6 @@
 package i5.las2peer.services.servicePackage.metrics;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import i5.las2peer.services.servicePackage.algorithms.OcdAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.RandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.servicePackage.algorithms.utils.OcdAlgorithmException;
@@ -89,5 +89,27 @@ public class ExtendedNormalizedMutualInformationTest {
 	assertEquals(0.29, cover.getMetric(MetricType.EXTENDED_NORMALIZED_MUTUAL_INFORMATION).getValue(), 0.01);
 	System.out.println("Known Result");
 	System.out.println(cover);
+	}
+	
+	@Test
+	public void testOnNewmanClizz() throws Exception {
+		Cover cover = OcdTestCoverFactory.getNewmanClizzCover();
+		Cover groundTruth = OcdTestCoverFactory.getNewmanClizzGroundTruth();
+		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformation();
+		metric.measure(cover, groundTruth);
+		assertEquals(0, cover.getMetric(MetricType.EXTENDED_NORMALIZED_MUTUAL_INFORMATION).getValue(), 0.01);
+		System.out.println("Newman Clizz");
+		System.out.println(cover);
+	}
+	
+	@Test
+	public void testOnNewmanLink() throws Exception {
+		Cover cover = OcdTestCoverFactory.getNewmanLinkCover();
+		Cover groundTruth = OcdTestCoverFactory.getNewmanLinkGroundTruth();
+		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformation();
+		metric.measure(cover, groundTruth);
+		assertTrue(cover.getMetric(MetricType.EXTENDED_NORMALIZED_MUTUAL_INFORMATION).getValue() != Double.NaN);
+		System.out.println("Newman Link");
+		System.out.println(cover);
 	}
 }

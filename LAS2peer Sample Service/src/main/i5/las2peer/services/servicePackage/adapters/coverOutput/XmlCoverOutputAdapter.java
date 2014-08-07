@@ -127,8 +127,8 @@ public class XmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 			for(int i=0; i<cover.getCommunities().size(); i++) {
 				Community com = cover.getCommunities().get(i);
 				Element communityElt = doc.createElement("Community");
-				Element communityIdElt = doc.createElement("Id");
-				communityIdElt.appendChild(doc.createTextNode(Long.toString(com.getId())));
+				Element communityIdElt = doc.createElement("Index");
+				communityIdElt.appendChild(doc.createTextNode(Integer.toString(i)));
 				communityElt.appendChild(communityIdElt);
 				Element communityNameElt = doc.createElement("Name");
 				communityNameElt.appendChild(doc.createTextNode(com.getName()));
@@ -153,11 +153,11 @@ public class XmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 				Element membershipsElt = doc.createElement("Memberships");
 				for(Map.Entry<Node, Double> entry : com.getMemberships().entrySet()) {
 					Element membershipElt = doc.createElement("Membership");
-					Element memberIdElt = doc.createElement("Id");
+					Element memberIdElt = doc.createElement("Name");
 					memberIdElt.appendChild(doc.createTextNode(Integer.toString(cover.getGraph().getNodeId(entry.getKey()))));
 					membershipElt.appendChild(memberIdElt);
 					Element belongingFactorElt = doc.createElement("BelongingFactor");
-					belongingFactorElt.appendChild(doc.createTextNode(Double.toString(entry.getValue())));
+					belongingFactorElt.appendChild(doc.createTextNode(String.format("%.5f\n", entry.getValue())));
 					membershipElt.appendChild(belongingFactorElt);
 					membershipsElt.appendChild(membershipElt);
 				}
