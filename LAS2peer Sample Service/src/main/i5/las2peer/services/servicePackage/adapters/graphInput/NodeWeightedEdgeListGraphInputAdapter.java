@@ -21,11 +21,17 @@ import y.base.Node;
 public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAdapter {
 
 	/**
-	 * Creates a new instance of the adapter.
+	 * Creates a new instance.
 	 * @param reader The reader the graph will be read from.
 	 */
 	public NodeWeightedEdgeListGraphInputAdapter(Reader reader) {
 		this.setReader(reader);
+	}
+	
+	/**
+	 * Creates a new instance.
+	 */
+	public NodeWeightedEdgeListGraphInputAdapter() {
 	}
 
 	@Override

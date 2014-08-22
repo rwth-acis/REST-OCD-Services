@@ -27,6 +27,12 @@ public class WeightedEdgeListGraphInputAdapter extends AbstractGraphInputAdapter
 	public WeightedEdgeListGraphInputAdapter(Reader reader) {
 		this.setReader(reader);
 	}
+	
+	/**
+	 * Creates a new instance.
+	 */
+	public WeightedEdgeListGraphInputAdapter() {
+	}
 
 	@Override
 	public CustomGraph readGraph() throws AdapterException {

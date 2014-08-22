@@ -37,9 +37,9 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * Determines the distance in which a node has influence on other nodes and can become their leader.
 	 * A node A will have influence on a node B if the shortest distance from B to A is
 	 * less than 3 / SQRT(2) times the influence factor.
-	 * The default value is 1.
+	 * The default value is 0.9.
 	 */
-	private double influenceFactor = 1;
+	private double influenceFactor = 0.9;
 	/**
 	 * The iteration bound for the membership calculation phase.
 	 * The default value is 1000.

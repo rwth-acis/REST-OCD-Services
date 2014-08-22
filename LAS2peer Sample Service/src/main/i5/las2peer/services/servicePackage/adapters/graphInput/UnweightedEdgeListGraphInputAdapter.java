@@ -28,6 +28,12 @@ public class UnweightedEdgeListGraphInputAdapter extends
 	public UnweightedEdgeListGraphInputAdapter(Reader reader) {
 		this.setReader(reader);
 	}
+	
+	/**
+	 * Creates a new instance.
+	 */
+	public UnweightedEdgeListGraphInputAdapter() {
+	}
 
 	@Override
 	public CustomGraph readGraph() throws AdapterException {

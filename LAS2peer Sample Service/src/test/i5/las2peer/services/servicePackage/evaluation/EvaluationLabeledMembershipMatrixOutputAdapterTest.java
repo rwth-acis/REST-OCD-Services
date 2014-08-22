@@ -15,10 +15,12 @@ import i5.las2peer.services.servicePackage.testsUtil.OcdTestGraphFactory;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class EvaluationLabeledMembershipMatrixOutputAdapterTest {
 
+	@Ignore
 	@Test
 	public void test() throws OcdAlgorithmException, IOException, AdapterException, MetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();

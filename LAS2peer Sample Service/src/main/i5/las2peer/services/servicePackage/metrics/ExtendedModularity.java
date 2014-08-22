@@ -82,7 +82,12 @@ public class ExtendedModularity implements StatisticalMeasure {
 	private double getNullModelContribution(Cover cover, Node nodeA, Node nodeB, int communityIndex) {
 		double coeff = cover.getBelongingFactor(nodeA, communityIndex);
 		coeff *= cover.getBelongingFactor(nodeB, communityIndex);
-		coeff *= nodeA.outDegree() * nodeB.inDegree() + nodeA.inDegree() * nodeB.outDegree();
+		if(nodeA.index() != nodeB.index()) {
+			coeff *= nodeA.outDegree() * nodeB.inDegree() + nodeA.inDegree() * nodeB.outDegree();
+		}
+		else {
+			coeff *= nodeA.outDegree() * nodeB.inDegree();
+		}
 		if(coeff != 0) {
 			coeff /= Math.pow(cover.getGraph().nodeCount(), 2);
 			/*

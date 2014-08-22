@@ -17,13 +17,19 @@ import y.base.EdgeCursor;
 public class WeightedEdgeListGraphOutputAdapter extends AbstractGraphOutputAdapter {
 
 	/**
-	 * Creates a new instance of the adapter.
+	 * Creates a new instance.
 	 * @param writer The writer the graph will be written by.
 	 */
 	public WeightedEdgeListGraphOutputAdapter(Writer writer) {
 		this.setWriter(writer);
 	}
 
+	/**
+	 * Creates a new instance.
+	 */
+	public WeightedEdgeListGraphOutputAdapter() {
+	}
+	
 	@Override
 	public void writeGraph(CustomGraph graph) throws AdapterException {
 		try {

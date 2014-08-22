@@ -39,6 +39,7 @@ import org.junit.Test;
  * Lfr Model Evaluation
  */
 
+@Ignore
 public class LfrBenchmarkRunTest {
 
 	@Ignore
