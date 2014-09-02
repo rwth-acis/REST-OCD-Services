@@ -4,16 +4,18 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://java.sun.com/xml/ns/persistence
                         http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
-  <persistence-unit name="ocd" transaction-type="RESOURCE_LOCAL">
+  <persistence-unit name="test" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
     <properties>
-      <property name="javax.persistence.jdbc.driver"   value="org.apache.derby.jdbc.EmbeddedDriver" />
-      <property name="javax.persistence.jdbc.url"      value="jdbc:derby:etc/derbyDB;create=true" />
-      <property name="javax.persistence.jdbc.user"     value="" />
-      <property name="javax.persistence.jdbc.password" value="" />
+      <property name="javax.persistence.jdbc.driver"   value="org.apache.derby.jdbc.ClientDriver" />
+      <property name="javax.persistence.jdbc.url"      value="jdbc:derby://localhost:1527/derby/db;create=true;securityMechanism=8" />
+      <property name="javax.persistence.jdbc.user"     value="ocdUser" />
+      <property name="javax.persistence.jdbc.password" value="ocdPw" />
       <property name="eclipselink.ddl-generation.output-mode" value="both"/>
       <property name="eclipselink.ddl-generation"      value="drop-and-create-tables" />
+      <property name="eclipselink.create-ddl-jdbc-file-name" value="ocd/eclipselink/testCreateDDL.jdbc"/>
+      <property name="eclipselink.drop-ddl-jdbc-file-name" value="ocd/eclipselink/testDropDDL.jdbc"/>
     </properties>
   </persistence-unit>
 </persistence>

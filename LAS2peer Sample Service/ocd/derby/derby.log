@@ -1,0 +1,128 @@
+Tue Sep 02 22:10:39 CEST 2014 : Apache Derby Network Server 10.10.2.0 - (1582446) wurde gestartet und ist bereit, Verbindungen auf Port 1527 zu akzeptieren.
+----------------------------------------------------------------
+Tue Sep 02 22:10:44 CEST 2014:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.10.2.0 - (1582446): instance a816c00e-0148-37fd-9622-000037f4157d 
+on database directory C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\LAS2peer Sample Service\ocd\derby\derby\db with class loader sun.misc.Launcher$AppClassLoader@14ae5a5 
+Loaded from file:/C:/Users/Sebastian/Documents/GitHub/REST-OCD-Services/LAS2peer%20Sample%20Service/lib/derby.jar
+java.vendor=Oracle Corporation
+java.runtime.version=1.8.0_05-b13
+user.dir=C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\LAS2peer Sample Service\ocd\derby
+os.name=Windows 7
+os.arch=amd64
+os.version=6.1
+derby.system.home=C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\LAS2peer Sample Service\ocd\derby
+Database Class Loader started - derby.database.classpath=''
+Tue Sep 02 22:10:45 CEST 2014 Thread[DRDAConnThread_2,5,main] (XID = 30617), (SESSIONID = 0), (DATABASE = derby/db), (DRDAID = null), Cleanup action starting
+java.sql.SQLNonTransientConnectionException: Connection authentication failure occurred.  Reason: Invalid authentication..
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.generateCsSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.newSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.checkUserCredentials(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.<init>(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection40.<init>(Unknown Source)
+	at org.apache.derby.jdbc.Driver40.getNewEmbedConnection(Unknown Source)
+	at org.apache.derby.jdbc.InternalDriver.connect(Unknown Source)
+	at org.apache.derby.jdbc.Driver20.connect(Unknown Source)
+	at org.apache.derby.jdbc.EmbeddedDriver.connect(Unknown Source)
+	at org.apache.derby.impl.drda.Database.makeDummyConnection(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.validateSecMecUSRSSBPWD(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.parseACCSEC(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.processCommands(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.run(Unknown Source)
+Caused by: java.sql.SQLException: Connection authentication failure occurred.  Reason: Invalid authentication..
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.wrapArgsForTransportAcrossDRDA(Unknown Source)
+	... 17 more
+============= begin nested exception, level (1) ===========
+java.sql.SQLException: Connection authentication failure occurred.  Reason: Invalid authentication..
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.wrapArgsForTransportAcrossDRDA(Unknown Source)
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.generateCsSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.newSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.checkUserCredentials(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.<init>(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection40.<init>(Unknown Source)
+	at org.apache.derby.jdbc.Driver40.getNewEmbedConnection(Unknown Source)
+	at org.apache.derby.jdbc.InternalDriver.connect(Unknown Source)
+	at org.apache.derby.jdbc.Driver20.connect(Unknown Source)
+	at org.apache.derby.jdbc.EmbeddedDriver.connect(Unknown Source)
+	at org.apache.derby.impl.drda.Database.makeDummyConnection(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.validateSecMecUSRSSBPWD(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.parseACCSEC(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.processCommands(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.run(Unknown Source)
+============= end nested exception, level (1) ===========
+Cleanup action completed
+----------------------------------------------------------------
+Tue Sep 02 22:11:09 CEST 2014:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.10.2.0 - (1582446): instance 59834d4a-0148-37fd-9622-000037f4157d 
+on database directory C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\LAS2peer Sample Service\ocd\derby\ocd with class loader sun.misc.Launcher$AppClassLoader@14ae5a5 
+Loaded from file:/C:/Users/Sebastian/Documents/GitHub/REST-OCD-Services/LAS2peer%20Sample%20Service/lib/derby.jar
+java.vendor=Oracle Corporation
+java.runtime.version=1.8.0_05-b13
+user.dir=C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\LAS2peer Sample Service\ocd\derby
+os.name=Windows 7
+os.arch=amd64
+os.version=6.1
+derby.system.home=C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\LAS2peer Sample Service\ocd\derby
+Database Class Loader started - derby.database.classpath=''
+Tue Sep 02 22:11:09 CEST 2014 Thread[DRDAConnThread_2,5,main] (XID = 12979), (SESSIONID = 0), (DATABASE = ocd), (DRDAID = null), Cleanup action starting
+java.sql.SQLNonTransientConnectionException: Connection authentication failure occurred.  Reason: Invalid authentication..
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.generateCsSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.newSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.checkUserCredentials(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.<init>(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection40.<init>(Unknown Source)
+	at org.apache.derby.jdbc.Driver40.getNewEmbedConnection(Unknown Source)
+	at org.apache.derby.jdbc.InternalDriver.connect(Unknown Source)
+	at org.apache.derby.jdbc.Driver20.connect(Unknown Source)
+	at org.apache.derby.jdbc.EmbeddedDriver.connect(Unknown Source)
+	at org.apache.derby.impl.drda.Database.makeDummyConnection(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.validateSecMecUSRSSBPWD(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.parseACCSEC(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.processCommands(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.run(Unknown Source)
+Caused by: java.sql.SQLException: Connection authentication failure occurred.  Reason: Invalid authentication..
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.wrapArgsForTransportAcrossDRDA(Unknown Source)
+	... 17 more
+============= begin nested exception, level (1) ===========
+java.sql.SQLException: Connection authentication failure occurred.  Reason: Invalid authentication..
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.wrapArgsForTransportAcrossDRDA(Unknown Source)
+	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.getSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.Util.generateCsSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.newSQLException(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.checkUserCredentials(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection.<init>(Unknown Source)
+	at org.apache.derby.impl.jdbc.EmbedConnection40.<init>(Unknown Source)
+	at org.apache.derby.jdbc.Driver40.getNewEmbedConnection(Unknown Source)
+	at org.apache.derby.jdbc.InternalDriver.connect(Unknown Source)
+	at org.apache.derby.jdbc.Driver20.connect(Unknown Source)
+	at org.apache.derby.jdbc.EmbeddedDriver.connect(Unknown Source)
+	at org.apache.derby.impl.drda.Database.makeDummyConnection(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.validateSecMecUSRSSBPWD(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.parseACCSEC(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.processCommands(Unknown Source)
+	at org.apache.derby.impl.drda.DRDAConnThread.run(Unknown Source)
+============= end nested exception, level (1) ===========
+Cleanup action completed
+----------------------------------------------------------------
+Tue Sep 02 22:13:57 CEST 2014: Shutting down Derby engine
+----------------------------------------------------------------
+Tue Sep 02 22:14:01 CEST 2014:
+Shutting down instance 59834d4a-0148-37fd-9622-000037f4157d on database directory C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\LAS2peer Sample Service\ocd\derby\ocd with class loader sun.misc.Launcher$AppClassLoader@14ae5a5 
+----------------------------------------------------------------
+Tue Sep 02 22:14:12 CEST 2014:
+Shutting down instance a816c00e-0148-37fd-9622-000037f4157d on database directory C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\LAS2peer Sample Service\ocd\derby\derby\db with class loader sun.misc.Launcher$AppClassLoader@14ae5a5 
+----------------------------------------------------------------
