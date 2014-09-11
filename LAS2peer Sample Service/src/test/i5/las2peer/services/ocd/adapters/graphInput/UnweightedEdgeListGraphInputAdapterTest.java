@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 
 import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtil.OcdTestConstants;
 
 import java.io.FileNotFoundException;

@@ -1,9 +1,9 @@
 package i5.las2peer.services.ocd.algorithms;
 
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,22 +33,33 @@ import y.base.NodeCursor;
 public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 
 	/**
-	 * The iteration bound for the leadership calculation phase. The default
-	 * value is 1000.
+	 * The iteration bound for the random walk phase. The default
+	 * value is 1000. Must be greater than 0.
 	 */
-	private int leadershipIterationBound = 1000;
+	private int randomWalkIterationBound = 1000;
 	/**
-	 * The precision factor for the leadership calculation phase. The phase ends
+	 * The precision factor for the random walk phase. The phase ends
 	 * when the infinity norm of the difference between the updated vector and
-	 * the previous one is smaller than this factor divided by the vector length
-	 * (i.e. the node count of the graph). The default value is 0.001.
+	 * the previous one is smaller than this factor.
+	 * The default value is 0.001. Must be greater than 0 and smaller than infinity.
+	 * Recommended are values close to 0.
 	 */
-	private double leadershipPrecisionFactor = 0.001;
+	private double randomWalkPrecisionFactor = 0.001;
 	/**
 	 * The profitability step size for the label propagation phase. The default
-	 * value is 0.1.
+	 * value is 0.1.  Must be in (0, 1).
 	 */
 	private double profitabilityDelta = 0.1;
+	
+	/*
+	 * PARAMETER NAMES
+	 */
+	
+	protected static final String PROFITABILITY_DELTA_NAME = "profitabilityDelta";
+			
+	protected static final String LEADERSHIP_PRECISION_FACTOR_NAME = "leadershipIterationBound";
+	
+	protected static final String LEADERSHIP_ITERATION_BOUND_NAME = "leadershipPrecisionFactor";
 
 	/**
 	 * Creates a standard instance of the algorithm. All attributes are assigned
@@ -57,35 +68,46 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	public RandomWalkLabelPropagationAlgorithm() {
 	}
 
-	/**
-	 * Creates a customized instance of the algorithm.
-	 * 
-	 * @param profitabilityDelta
-	 *            Sets the profitabilityDelta. Must be in (0, 1).
-	 * @param leadershipIterationBound
-	 *            Sets the randomWalkIterationBound. Must be greater than 0.
-	 * @param leadershipPrecisionFactor
-	 *            Sets the randomWalkPrecisionFactor. Must be greater than 0 and
-	 *            smaller than infinity. Recommended are values close to 0.
-	 */
-	public RandomWalkLabelPropagationAlgorithm(double profitabilityDelta,
-			int leadershipIterationBound, double leadershipPrecisionFactor) {
-		this.profitabilityDelta = profitabilityDelta;
-		this.leadershipIterationBound = leadershipIterationBound;
-		this.leadershipPrecisionFactor = leadershipPrecisionFactor;
-	}
-
 	@Override
 	public AlgorithmType getAlgorithmType() {
 		return AlgorithmType.RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM;
 	}
 	
+	@Override
 	public Map<String, String> getParameters() {
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put("profitabilityDelta", Double.toString(profitabilityDelta));
-		parameters.put("leadershipIterationBound", Integer.toString(leadershipIterationBound));
-		parameters.put("leadershipPrecisionFactor", Double.toString(leadershipPrecisionFactor));
+		parameters.put(PROFITABILITY_DELTA_NAME, Double.toString(profitabilityDelta));
+		parameters.put(LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(randomWalkIterationBound));
+		parameters.put(LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(randomWalkPrecisionFactor));
 		return parameters;
+	}
+	
+	@Override
+	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
+		if(parameters.containsKey(PROFITABILITY_DELTA_NAME)) {
+			profitabilityDelta = Double.parseDouble(parameters.get(PROFITABILITY_DELTA_NAME));
+			if(profitabilityDelta <= 0 || profitabilityDelta >= 1) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(PROFITABILITY_DELTA_NAME);
+		}
+		if(parameters.containsKey(LEADERSHIP_ITERATION_BOUND_NAME)) {
+			randomWalkIterationBound = Integer.parseInt(parameters.get(LEADERSHIP_ITERATION_BOUND_NAME));
+			if(randomWalkIterationBound <= 0) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(LEADERSHIP_ITERATION_BOUND_NAME);
+		}
+		if(parameters.containsKey(LEADERSHIP_PRECISION_FACTOR_NAME)) {
+			randomWalkPrecisionFactor = Double.parseDouble(parameters.get(LEADERSHIP_PRECISION_FACTOR_NAME));
+			parameters.remove(LEADERSHIP_PRECISION_FACTOR_NAME);
+			if(randomWalkPrecisionFactor <= 0 || randomWalkPrecisionFactor == Double.POSITIVE_INFINITY) {
+				throw new IllegalArgumentException();
+			}
+		}
+		if(parameters.size() > 0) {
+			throw new IllegalArgumentException();
+		}
 	}
 
 	@Override
@@ -98,7 +120,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph)
-			throws OcdAlgorithmException {
+			throws OcdAlgorithmException, InterruptedException {
 		List<Node> leaders = randomWalkPhase(graph);
 		return labelPropagationPhase(graph, leaders);
 	}
@@ -112,7 +134,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * @return A list containing all nodes which are global leaders.
 	 */
 	protected List<Node> randomWalkPhase(CustomGraph graph)
-			throws OcdAlgorithmException {
+			throws OcdAlgorithmException, InterruptedException {
 		Matrix disassortativityMatrix = getTransposedDisassortativityMatrix(graph);
 		Vector disassortativityVector = executeRandomWalk(disassortativityMatrix);
 		Vector leadershipVector = getLeadershipValues(graph,
@@ -130,7 +152,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * 
 	 * @return The transposed normalized disassortativity matrix.
 	 */
-	protected Matrix getTransposedDisassortativityMatrix(CustomGraph graph) {
+	protected Matrix getTransposedDisassortativityMatrix(CustomGraph graph) throws InterruptedException {
 		/*
 		 * Calculates transposed disassortativity matrix in a special sparse
 		 * matrix format.
@@ -141,6 +163,9 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		double disassortativity;
 		Edge edge;
 		while (edges.ok()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			edge = edges.edge();
 			disassortativity = Math
 					.abs(graph.getWeightedInDegree(edge.target())
@@ -155,6 +180,9 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		double norm;
 		Vector column;
 		for (int i = 0; i < disassortativities.columns(); i++) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			column = disassortativities.getColumn(i);
 			norm = column.fold(Vectors.mkManhattanNormAccumulator());
 			if (norm > 0) {
@@ -174,7 +202,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * @return The resulting disassortativity vector.
 	 */
 	protected Vector executeRandomWalk(Matrix disassortativityMatrix)
-			throws OcdAlgorithmException {
+			throws OcdAlgorithmException, InterruptedException {
 		Vector vec1 = new BasicVector(disassortativityMatrix.columns());
 		for (int i = 0; i < vec1.length(); i++) {
 			vec1.set(i, 1.0 / vec1.length());
@@ -182,13 +210,15 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		Vector vec2 = new BasicVector(vec1.length());
 		int iteration;
 		for (iteration = 0; vec1.subtract(vec2).fold(
-				Vectors.mkInfinityNormAccumulator()) > leadershipPrecisionFactor
-				/ (double) vec1.length()
-				&& iteration < leadershipIterationBound; iteration++) {
+				Vectors.mkInfinityNormAccumulator()) > randomWalkPrecisionFactor
+				&& iteration < randomWalkIterationBound; iteration++) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			vec2 = new BasicVector(vec1);
 			vec1 = disassortativityMatrix.multiply(vec1);
 		}
-		if (iteration >= leadershipIterationBound) {
+		if (iteration >= randomWalkIterationBound) {
 			throw new OcdAlgorithmException(
 					"Random walk iteration bound exceeded: iteration "
 							+ iteration);
@@ -208,12 +238,15 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * entry given by the node index.
 	 */
 	protected Vector getLeadershipValues(CustomGraph graph,
-			Vector disassortativityVector) {
+			Vector disassortativityVector) throws InterruptedException {
 		Vector leadershipVector = new BasicVector(graph.nodeCount());
 		NodeCursor nodes = graph.nodes();
 		Node node;
 		double leadershipValue;
 		while (nodes.ok()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			node = nodes.node();
 			/*
 			 * Note: degree normalization is left out since it
@@ -238,7 +271,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * @return A mapping from the nodes to the corresponding follower degrees.
 	 */
 	protected Map<Node, Double> getFollowerDegrees(CustomGraph graph,
-			Vector leadershipVector) {
+			Vector leadershipVector) throws InterruptedException {
 		Map<Node, Double> followerMap = new HashMap<Node, Double>();
 		NodeCursor nodes = graph.nodes();
 		/*
@@ -254,6 +287,9 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		Edge nodeEdge;
 		double followerDegree;
 		while (nodes.ok()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			node = nodes.node();
 			successors = node.successors();
 			maxInfluence = Double.NEGATIVE_INFINITY;
@@ -310,14 +346,20 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * @return A list containing all nodes which are considered to be global
 	 * leaders.
 	 */
-	protected List<Node> getGlobalLeaders(Map<Node, Double> followerMap) {
+	protected List<Node> getGlobalLeaders(Map<Node, Double> followerMap) throws InterruptedException {
 		double averageFollowerDegree = 0;
 		for (Double followerDegree : followerMap.values()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			averageFollowerDegree += followerDegree;
 		}
 		averageFollowerDegree /= followerMap.size();
 		List<Node> globalLeaders = new ArrayList<Node>();
 		for (Map.Entry<Node, Double> entry : followerMap.entrySet()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			if (entry.getValue() >= averageFollowerDegree) {
 				globalLeaders.add(entry.getKey());
 			}
@@ -335,7 +377,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * 
 	 * @return A cover containing the detected communities.
 	 */
-	protected Cover labelPropagationPhase(CustomGraph graph, List<Node> leaders) {
+	protected Cover labelPropagationPhase(CustomGraph graph, List<Node> leaders) throws InterruptedException {
 		/*
 		 * Executes the label propagation until all nodes are assigned to at
 		 * least one community
@@ -373,7 +415,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * corresponding node has joint the community.
 	 */
 	protected Map<Node, Integer> executeLabelPropagation(CustomGraph graph,
-			Node leader, double profitabilityThreshold) {
+			Node leader, double profitabilityThreshold) throws InterruptedException {
 		Map<Node, Integer> memberships = new HashMap<Node, Integer>();
 		int previousMemberCount;
 		int iterationCount = 0;
@@ -396,6 +438,9 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 			 * it assumes the new behavior.
 			 */
 			while (nodeIt.hasNext()) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				node = nodeIt.next();
 				profitability = 0;
 				nodeSuccessors = node.successors();
@@ -433,7 +478,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * behavior, but are predecessors of a node with leader behavior.
 	 */
 	protected Set<Node> getBehaviorPredecessors(CustomGraph graph,
-			Map<Node, Integer> memberships, Node leader) {
+			Map<Node, Integer> memberships, Node leader) throws InterruptedException {
 		Set<Node> neighbors = new HashSet<Node>();
 		NodeCursor leaderPredecessors = leader.predecessors();
 		Node leaderPredecessor;
@@ -447,6 +492,9 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		NodeCursor memberPredecessors;
 		Node memberPredecessor;
 		for (Node member : memberships.keySet()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			memberPredecessors = member.predecessors();
 			while (memberPredecessors.ok()) {
 				memberPredecessor = memberPredecessors.node();
@@ -473,12 +521,15 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * and FALSE otherwise.
 	 */
 	protected boolean areAllNodesAssigned(CustomGraph graph,
-			Map<Node, Map<Node, Integer>> communities) {
+			Map<Node, Map<Node, Integer>> communities) throws InterruptedException {
 		boolean allNodesAreAssigned = true;
 		NodeCursor nodes = graph.nodes();
 		boolean nodeIsAssigned;
 		Node node;
 		while (nodes.ok()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			nodeIsAssigned = false;
 			node = nodes.node();
 			for (Map.Entry<Node, Map<Node, Integer>> entry : communities
@@ -509,7 +560,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * @return A cover containing each nodes membership degree
 	 */
 	protected Cover getMembershipDegrees(CustomGraph graph,
-			Map<Node, Map<Node, Integer>> communities) {
+			Map<Node, Map<Node, Integer>> communities) throws InterruptedException {
 		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),
 				communities.size());
 		int communityIndex = 0;
@@ -518,6 +569,9 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 			membershipMatrix.set(leader.index(), communityIndex, 1.0);
 			for (Map.Entry<Node, Integer> entry : communities.get(leader)
 					.entrySet()) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				membershipDegree = 1.0 / Math.pow(entry.getValue(), 2);
 				membershipMatrix.set(entry.getKey().index(), communityIndex,
 						membershipDegree);

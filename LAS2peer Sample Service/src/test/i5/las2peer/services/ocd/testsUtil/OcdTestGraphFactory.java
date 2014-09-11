@@ -6,9 +6,9 @@ import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.NodeWeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.WeightedEdgeListGraphInputAdapter;
-import i5.las2peer.services.ocd.graph.CustomGraph;
-import i5.las2peer.services.ocd.graph.GraphProcessor;
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphProcessor;
+import i5.las2peer.services.ocd.graphs.GraphType;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;

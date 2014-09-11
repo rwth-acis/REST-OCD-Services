@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.adapters.coverOutput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.OutputAdapter;
-import i5.las2peer.services.ocd.graph.Cover;
+import i5.las2peer.services.ocd.graphs.Cover;
 
 
 public interface CoverOutputAdapter extends OutputAdapter {

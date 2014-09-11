@@ -1,13 +1,12 @@
 package i5.las2peer.services.ocd;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import i5.las2peer.p2p.LocalNode;
 import i5.las2peer.security.ServiceAgent;
 import i5.las2peer.security.UserAgent;
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.RequestHandler;
 import i5.las2peer.testing.MockAgentFactory;
@@ -189,35 +188,6 @@ public class ServiceTest {
 		
     }
 	
-	
-//	/**
-//	 * 
-//	 * Test the example method that consumes one path parameter
-//	 * which we give the value "testInput" in this test.
-//	 * 
-//	 */
-//	@Test
-//	public void testExampleMethod()
-//	{
-//		MiniClient c = new MiniClient();
-//		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
-//		
-//		try
-//		{
-//			c.setLogin(Long.toString(testAgent.getId()), testPass);
-//            ClientResponse result=c.sendRequest("POST", mainPath +"myMethodPath/testInput", ""); //testInput is the pathParam
-//            assertEquals(200, result.getHttpCode());
-//            assertTrue(result.getResponse().trim().contains("testInput")); //"testInput" name is part of response
-//			System.out.println("Result of 'testExampleMethod': " + result.getResponse().trim());
-//		}
-//		catch(Exception e)
-//		{
-//			e.printStackTrace();
-//			fail ( "Exception: " + e );
-//		}
-//		
-//    }
-	
 	@Test
 	public void testGetGraph() throws AdapterException, FileNotFoundException
 	{
@@ -226,13 +196,13 @@ public class ServiceTest {
 		try
 		{
 			c.setLogin(Long.toString(testAgent.getId()), testPass);
-			ClientResponse result=c.sendRequest("GET", mainPath +"graph/" + SawmillGraphId + "/format/2", "");
+			ClientResponse result=c.sendRequest("GET", mainPath +"graph/" + SawmillGraphId + "/outputFormat/META_XML", "");
             assertEquals(200, result.getHttpCode());
 			System.out.println("Result of 'testGetGraphs' on Sawmill: " + result.getResponse().trim());
-			result=c.sendRequest("GET", mainPath +"graph/" + DolphinsGraphId + "/format/2", "");
+			result=c.sendRequest("GET", mainPath +"graph/" + DolphinsGraphId + "/outputFormat/META_XML", "");
             assertEquals(200, result.getHttpCode());
 			System.out.println("Result of 'testGetGraphs' on Dolphins: " + result.getResponse().trim());
-			result=c.sendRequest("GET", mainPath +"graph/" + AperiodicTwoCommunitiesGraphId + "/format/2", "");
+			result=c.sendRequest("GET", mainPath +"graph/" + AperiodicTwoCommunitiesGraphId + "/outputFormat/META_XML", "");
             assertEquals(200, result.getHttpCode());
 			System.out.println("Result of 'testGetGraphs' on AperiodicTwoCommunities: " + result.getResponse().trim());
 		}
@@ -242,6 +212,5 @@ public class ServiceTest {
 			fail ( "Exception: " + e );
 		}
     }
-	
-	
+
 }

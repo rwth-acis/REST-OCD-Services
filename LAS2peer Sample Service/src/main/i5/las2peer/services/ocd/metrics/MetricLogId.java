@@ -1,6 +1,6 @@
 package i5.las2peer.services.ocd.metrics;
 
-import i5.las2peer.services.ocd.graph.CoverId;
+import i5.las2peer.services.ocd.graphs.CoverId;
 
 public class MetricLogId {
 

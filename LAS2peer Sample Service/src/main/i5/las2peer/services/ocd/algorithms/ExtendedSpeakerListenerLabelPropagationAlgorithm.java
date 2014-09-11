@@ -5,9 +5,9 @@ import i5.las2peer.services.ocd.algorithms.utils.SlpaListenerRuleCommand;
 import i5.las2peer.services.ocd.algorithms.utils.SlpaPopularityListenerRule;
 import i5.las2peer.services.ocd.algorithms.utils.SlpaSpeakerRuleCommand;
 import i5.las2peer.services.ocd.algorithms.utils.SlpaUniformSpeakerRule;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,57 +27,52 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
- * Implements a custom extended version of the Speaker Listener Label Propagation Algorithm.
+ * Implements a custom extended version of the original Speaker Listener Label Propagation Algorithm
+ * using the Uniform Speaker Rule and the Popularity Listener Rule.
  * Handles directed and unweighted graphs. For unweighted and undirected graphs,
- * it behaves the same as the original.
+ * it behaves the same as the original algorithm.
  */
 public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 		OcdAlgorithm {
 	
 	/**
 	 * The size of the node memories and the number of iterations.
-	 * The default value is 100.
+	 * The default value is 100. Must be greater than 0.
 	 */
 	private int memorySize = 100;
 	/**
 	 * The lower bound for the relative label occurrence.
 	 * Labels received by a node with a relative occurrence lower than this threshold will be ignored
 	 * and do not have any influence on that nodes community memberships.
-	 * The default value is 0.15.
+	 * The default value is 0.15. Must be at least 0 and at most 1.
+	 * Recommended are values between 0.02 and 0.1.
 	 */
 	private double probabilityThreshold = 0.15;
-	/**
+	/*
 	 * The speaker rule according to which a speaker decides which label to send.
-	 * The default rule is the UniformSpeakerRule.
+	 * Currently only the UniformSpeakerRule is implemented.
 	 */
 	private SlpaSpeakerRuleCommand speakerRule = new SlpaUniformSpeakerRule();
-	/**
+	/*
 	 * The listener rule according to which a listener decides which label to accept.
-	 * The default rule is the popularity listener rule.
+	 * Currently only the popularity listener rule is implemented.
 	 */
 	private SlpaListenerRuleCommand listenerRule = new SlpaPopularityListenerRule();
+	
+	
+	/*
+	 * PARAMETER NAMES
+	 */
+	
+	protected static final String PROBABILITY_THRESHOLD_NAME = "probabilityThreshold";
+	
+	protected static final String MEMORY_SIZE_NAME = "memorySize";
 	
 	/**
 	 * Creates a standard instance of the algorithm.
 	 * All attributes are assigned their default values.
 	 */
 	public ExtendedSpeakerListenerLabelPropagationAlgorithm() {
-	}
-	
-	/**
-	 * Creates a customized instance of the algorithm.
-	 * @param memorySize Sets the memorySize. Must be greater than 0.
-	 * @param probabilityThreshold  Sets the probabilityThreshold. Must be at least 0 and at most 1.
-	 * Recommended are values between 0.02 and 0.1.
-	 * @param speakerRule The speaker rule according to which a speaker decides which label to send.
-	 * @param listenerRule The listener rule according to which a listener decides which label to accept.
-	 */
-	public ExtendedSpeakerListenerLabelPropagationAlgorithm(int memorySize, double probabilityThreshold,
-			SlpaSpeakerRuleCommand speakerRule, SlpaListenerRuleCommand listenerRule) {
-		this.memorySize = memorySize;
-		this.speakerRule = speakerRule;
-		this.listenerRule = listenerRule;
-		this.probabilityThreshold = probabilityThreshold;
 	}
 	
 	@Override
@@ -88,11 +83,30 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 	@Override
 	public Map<String, String> getParameters() {
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put("memorySize", Integer.toString(memorySize));
-		parameters.put("probabilityThreshold", Double.toString(probabilityThreshold));
-		parameters.put("listenerRule", listenerRule.toString());
-		parameters.put("speakerRule", speakerRule.toString());
+		parameters.put(MEMORY_SIZE_NAME, Integer.toString(memorySize));
+		parameters.put(PROBABILITY_THRESHOLD_NAME, Double.toString(probabilityThreshold));
 		return parameters;
+	}
+	
+	@Override
+	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
+		if(parameters.containsKey(MEMORY_SIZE_NAME)) {
+			memorySize = Integer.parseInt(parameters.get(MEMORY_SIZE_NAME));
+			if(memorySize <= 0) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(MEMORY_SIZE_NAME);
+		}
+		if(parameters.containsKey(PROBABILITY_THRESHOLD_NAME)) {
+			probabilityThreshold = Double.parseDouble(parameters.get(PROBABILITY_THRESHOLD_NAME));
+			if(probabilityThreshold < 0 || probabilityThreshold > 1) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(PROBABILITY_THRESHOLD_NAME);
+		}
+		if(parameters.size() > 0) {
+			throw new IllegalArgumentException();
+		}
 	}
 	
 	@Override
@@ -105,7 +119,7 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 	
 	@Override
 	public Cover detectOverlappingCommunities(
-			CustomGraph graph) {
+			CustomGraph graph) throws InterruptedException {
 		/*
 		 * Initializes node memories and node order
 		 */
@@ -121,6 +135,9 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 		for(int t=0; t+1<memorySize; t++) {
 			Collections.shuffle(nodeOrder);
 			for(int i=0; i<graph.nodeCount(); i++) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				listener = nodeOrder.get(i);
 				memory = memories.get(listener.index());
 				memory.add(getNextLabel(graph, memories, listener));
@@ -132,9 +149,12 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 		return calculateMembershipDegrees(graph, memories);
 	}
 	
-	protected void initializeCommunityDetection(CustomGraph graph, List<List<Integer>> memories, List<Node> nodeOrder) {
+	protected void initializeCommunityDetection(CustomGraph graph, List<List<Integer>> memories, List<Node> nodeOrder) throws InterruptedException {
 		List<Integer> memory;
 		for(int i=0; i<graph.nodeCount(); i++) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			memory = new ArrayList<Integer>();
 			memory.add(i);
 			memories.add(memory);
@@ -161,7 +181,7 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 	/*
 	 * Calculates a cover with the membership degrees for all nodes based on the node memories.
 	 */
-	protected Cover calculateMembershipDegrees(CustomGraph graph, List<List<Integer>> memories) {
+	protected Cover calculateMembershipDegrees(CustomGraph graph, List<List<Integer>> memories) throws InterruptedException {
 		Matrix membershipMatrix = new Basic2DMatrix();
 		List<Integer> communities = new ArrayList<Integer>();
 		/*
@@ -173,6 +193,9 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 		Map<Integer, Integer> histogram;
 		Vector nodeMembershipDegrees;
 		for(int i=0; i<memories.size(); i++) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			memory = memories.get(i);
 			labelCount = memorySize;
 			histogram = getNodeHistogram(memory, labelCount);

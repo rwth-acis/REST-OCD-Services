@@ -10,9 +10,9 @@ import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgori
 import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ import y.base.Node;
 public class AlgorithmsBoundaryTest {
 
 	@Test
-	public void testAlgorithmsBoundaries() throws OcdAlgorithmException {
+	public void testAlgorithmsBoundaries() throws OcdAlgorithmException, InterruptedException {
 		List<OcdAlgorithm> algos = new ArrayList<OcdAlgorithm>();
 		algos.add(new ClizzAlgorithm());
 		algos.add(new RandomWalkLabelPropagationAlgorithm());

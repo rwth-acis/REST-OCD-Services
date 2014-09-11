@@ -1,7 +1,7 @@
 package i5.las2peer.services.ocd.metrics;
 
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.GraphType;
 
 import java.util.HashMap;
 import java.util.HashSet;

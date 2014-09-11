@@ -1,8 +1,8 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphType;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +25,13 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	}
 	
 	@Override
+	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
+		if(parameters.size() > 0) {
+			throw new IllegalArgumentException();
+		}
+	}
+	
+	@Override
 	public AlgorithmType getAlgorithmType() {
 		return AlgorithmType.MERGING_OF_OVERLAPPING_COMMUNITIES_ALGORITHM;
 	}
@@ -37,7 +44,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	}
 	
 	@Override
-	public Cover detectOverlappingCommunities(CustomGraph graph) {
+	public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException {
 		Map<Node, Set<Node>> activeCommunities = new HashMap<Node, Set<Node>>();
 		Map<Node, Set<Node>> unactiveCommunities = new HashMap<Node, Set<Node>>();
 		Map<Node, Node> deactivatedBy = new HashMap<Node, Node>();
@@ -60,12 +67,18 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		while(!activeCommunities.isEmpty()) {
 			minCommunitySize = Integer.MAX_VALUE;
 			for(Set<Node> community : activeCommunities.values()) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				if(community.size() < minCommunitySize) {
 					minCommunitySize = community.size();
 				}
 			}
 			deactivatedCommunities.clear();
 			for(Map.Entry<Node, Set<Node>> entry : activeCommunities.entrySet()) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				if(entry.getValue().size() == minCommunitySize) {
 					maxAlpha = 0;
 					inclusionNodes.clear();
@@ -94,6 +107,9 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 				}
 			}
 			for(Node deactivedId : deactivatedCommunities) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				activeCommunities.remove(deactivedId);
 			}
 		}
@@ -112,12 +128,15 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 * @param resolutionAlpha The resolution alpha.
 	 * @return The membership matrix.
 	 */
-	private Matrix determineMembershipMatrix(CustomGraph graph, Map<Node, Set<Node>> unactiveCommunities, Map<Node, Node> deactivatedBy, Map<Node, Map<Node, Double>> inclusionAlphas, double resolutionAlpha) {
+	private Matrix determineMembershipMatrix(CustomGraph graph, Map<Node, Set<Node>> unactiveCommunities, Map<Node, Node> deactivatedBy, Map<Node, Map<Node, Double>> inclusionAlphas, double resolutionAlpha) throws InterruptedException {
 		Map<Node, Integer> originalCommunitySizes = new HashMap<Node, Integer>();
 		for(Map.Entry<Node, Set<Node>> entry : unactiveCommunities.entrySet()) {
 			originalCommunitySizes.put(entry.getKey(), entry.getValue().size());
 			Iterator<Node> memberIt = entry.getValue().iterator();
 			while(memberIt.hasNext()) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				if(resolutionAlpha > inclusionAlphas.get(entry.getKey()).get(memberIt.next())) {
 					memberIt.remove();
 				}
@@ -127,6 +146,9 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		Map.Entry<Node, Set<Node>> entry;
 		Node deactivatorId;
 		while(entryIt.hasNext()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			entry = entryIt.next();
 			deactivatorId = deactivatedBy.get(entry.getKey());
 			if(deactivatorId != null && ( unactiveCommunities.get(deactivatorId) == null  ||
@@ -138,6 +160,9 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		int communityIndex = 0;
 		for(Set<Node> community : unactiveCommunities.values()) {
 			for(Node member : community) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				memberships.set(member.index(), communityIndex, 1);
 			}
 			communityIndex++;
@@ -156,7 +181,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 * @return The resolution alpha.
 	 */
 	private double determineResolutionAlpha(CustomGraph graph, Map<Node, Map<Node, Double>> inclusionAlphas,
-			Map<Node, Node> deactivatedBy, Set<Node> mainCommunities) {	
+			Map<Node, Node> deactivatedBy, Set<Node> mainCommunities) throws InterruptedException {	
 		TreeSet<Double> alphaSequence = determineUnitAlphaSequence(inclusionAlphas);
 		double resolutionAlpha = 3 * calculateSingleSequenceResolutionAlpha(alphaSequence);
 		for(Node communityId : mainCommunities) {
@@ -175,7 +200,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 * @param alphaSequence An ordered sequence of alpha values.
 	 * @return The resolution alpha.
 	 */
-	private double calculateSingleSequenceResolutionAlpha(TreeSet<Double> alphaSequence) {
+	private double calculateSingleSequenceResolutionAlpha(TreeSet<Double> alphaSequence) throws InterruptedException {
 		double resolutionAlpha;
 		if(alphaSequence.size() <= 2) {
 			resolutionAlpha = alphaSequence.first();
@@ -190,6 +215,9 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 			lastAlpha = it.next();
 			resolutionAlpha = lastAlpha;
 			while(it.hasNext()) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				alpha = it.next();
 				plateauSize = 1/alpha - 1/lastAlpha;
 				if(plateauSize > maxPlateauSize) {
@@ -207,10 +235,13 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 * @param inclusionAlphas A mapping from all community members to their inclusion alphas.
 	 * @return The joined alpha sequence.
 	 */
-	private TreeSet<Double> determineUnitAlphaSequence(Map<Node, Map<Node, Double>> inclusionAlphas) {
+	private TreeSet<Double> determineUnitAlphaSequence(Map<Node, Map<Node, Double>> inclusionAlphas) throws InterruptedException {
 		TreeSet<Double> alphaSequence = new TreeSet<Double>();
 		for(Map<Node, Double> alphaMap : inclusionAlphas.values()) {
 			for(Double alpha : alphaMap.values()) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				alphaSequence.add(alpha);
 			}
 		}
@@ -227,12 +258,15 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 * @return The community's alpha sequence.
 	 */
 	private TreeSet<Double> determineCommunityAlphaSequence(CustomGraph graph, Map<Node, Map<Node, Double>> inclusionAlphas,
-			Map<Node, Node> deactivatedBy, Node communityId) {
+			Map<Node, Node> deactivatedBy, Node communityId) throws InterruptedException {
 		TreeSet<Double> alphaSequence = new TreeSet<Double>();
 		NodeCursor nodes = graph.nodes();
 		Node node;
 		Node currentCommunityId;
 		while(nodes.ok()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			node = nodes.node();
 			currentCommunityId = communityId;
 			while(!inclusionAlphas.get(currentCommunityId).containsKey(node)) {
@@ -256,12 +290,15 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 * @return TRUE if the community was deactivated, else FALSE.
 	 */
 	private boolean didDeactivate(CustomGraph graph, Node communityId, Map<Node, Set<Node>> activeCommunities,
-			Map<Node, Set<Node>> unactiveCommunities, Map<Node, Node> deactivatedBy) {
+			Map<Node, Set<Node>> unactiveCommunities, Map<Node, Node> deactivatedBy) throws InterruptedException {
 		Set<Node> community = activeCommunities.get(communityId);
 		Iterator<Map.Entry<Node, Set<Node>>> entryIt = activeCommunities.entrySet().iterator();
 		Map.Entry<Node, Set<Node>> entry;
 		Node deactivatorId = null;
 		while(entryIt.hasNext()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			entry = entryIt.next();
 			if(entry.getKey() != communityId) {
 				if(!deactivatedBy.containsKey(entry.getKey()) && entry.getValue().equals(community)) {
@@ -313,7 +350,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 */
 	private void updateCommunity(CustomGraph graph, Node communityId, Set<Node> inclusionNodes, double inclusionAlpha, Map<Node, Set<Node>> communities,
 			Map<Node, Set<Node>> communityNeighbors, Map<Node, Double> nodeDegrees, Map<Node, Map<Node, Double>> internalNeighborDegrees,
-			Map<Node, Double> communityDegrees, Map<Node, Double> internalCommunityDegrees, Map<Node, Map<Node, Double>> inclusionAlphas, Map<Node, Double> alphaBounds) {
+			Map<Node, Double> communityDegrees, Map<Node, Double> internalCommunityDegrees, Map<Node, Map<Node, Double>> inclusionAlphas, Map<Node, Double> alphaBounds) throws InterruptedException {
 		double internalCommunityDegree;
 		double totalCommunityDegree;
 		NodeCursor successors;
@@ -326,9 +363,13 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 			alphaBounds.put(communityId, inclusionAlpha);
 		}
 		for(Node inclusionNode : inclusionNodes) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			/*
 			 * Update of community values.
 			 */
+			
 			communityNeighbors.get(communityId).remove(inclusionNode);
 			internalCommunityDegree = internalCommunityDegrees.get(communityId);
 			internalCommunityDegree += 2 * internalNeighborDegrees.get(communityId).get(inclusionNode);
@@ -376,7 +417,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	private void init(CustomGraph graph, Map<Node, Set<Node>> communities, Map<Node, Map<Node, Double>> inclusionAlphas,
 			Map<Node, Double> alphaBounds, Map<Node, Set<Node>> communityNeighbors, Map<Node, Double> weightedNodeDegrees,
 			Map<Node, Map<Node, Double>> internalWeightedNeighborDegrees, Map<Node, Double> weightedCommunityDegrees,
-			Map<Node, Double> internalWeightedCommunityDegrees) {
+			Map<Node, Double> internalWeightedCommunityDegrees) throws InterruptedException {
 		NodeCursor nodes = graph.nodes();
 		NodeCursor successors;
 		Node node;
@@ -388,6 +429,9 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		Map<Node, Double> communityAlphas;
 		double weightedDegree;
 		while(nodes.ok()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			node = nodes.node();
 			weightedDegree = 0;
 			successors = node.successors();

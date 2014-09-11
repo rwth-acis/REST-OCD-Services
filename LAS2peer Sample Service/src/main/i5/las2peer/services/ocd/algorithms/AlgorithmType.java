@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.algorithms;
 
 import java.security.InvalidParameterException;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -24,11 +25,11 @@ public enum AlgorithmType {
 	MERGING_OF_OVERLAPPING_COMMUNITIES_ALGORITHM(9),
 	BINARY_SEARCH_RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM(10);
 	
-	public OcdAlgorithm getAlgorithmInstance() {
+	private OcdAlgorithm getAlgorithmInstance() {
 		switch (this) {
 			case UNDEFINED:
 			case GROUND_TRUTH:
-				return null;
+				throw new IllegalStateException("This is not an actual algorithm.");
 			case RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM:
 				return new RandomWalkLabelPropagationAlgorithm();
 			case SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM:
@@ -40,7 +41,7 @@ public enum AlgorithmType {
 			case LINK_COMMUNITIES_ALGORITHM:
 				return new LinkCommunitiesAlgorithm();
 			case WEIGHTED_LINK_COMMUNITIES_ALGORITHM:
-				return new LinkCommunitiesAlgorithm();
+				return new WeightedLinkCommunitiesAlgorithm();
 			case CLIZZ_ALGORITHM:
 				return new ClizzAlgorithm();
 			case MERGING_OF_OVERLAPPING_COMMUNITIES_ALGORITHM:
@@ -50,6 +51,12 @@ public enum AlgorithmType {
 			default:
 				throw new NotImplementedException("Ocd algorithm not registered.");
 		}
+	}
+	
+	public OcdAlgorithm getAlgorithmInstance(Map<String, String> parameters) {
+		OcdAlgorithm algorithm = getAlgorithmInstance();
+		algorithm.setParameters(parameters);
+		return algorithm;
 	}
 	
 	private final int id;

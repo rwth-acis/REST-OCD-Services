@@ -2,8 +2,8 @@ package i5.las2peer.services.ocd.adapters.coverInput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.InputAdapter;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 /**
  * The common interface of all cover input adapters.

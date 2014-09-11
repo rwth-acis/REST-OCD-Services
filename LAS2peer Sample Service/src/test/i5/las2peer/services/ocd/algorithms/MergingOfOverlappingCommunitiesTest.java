@@ -5,10 +5,10 @@ import i5.las2peer.services.ocd.algorithms.MergingOfOverlappingCommunitiesAlgori
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmExecutor;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
-import i5.las2peer.services.ocd.graph.GraphProcessor;
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphProcessor;
+import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
@@ -22,7 +22,7 @@ import y.base.Node;
 public class MergingOfOverlappingCommunitiesTest {
 
 	@Test
-	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException {
+	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory
 				.getAperiodicTwoCommunitiesGraph();
 		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
@@ -31,7 +31,7 @@ public class MergingOfOverlappingCommunitiesTest {
 	}
 	
 	@Test
-	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
+	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
@@ -39,7 +39,7 @@ public class MergingOfOverlappingCommunitiesTest {
 	}
 
 	@Test
-	public void testOnKnowResultGraph() throws OcdAlgorithmException {
+	public void testOnKnowResultGraph() throws OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = new CustomGraph();
 		Node node0 = graph.createNode();
 		Node node1 = graph.createNode();
@@ -63,7 +63,7 @@ public class MergingOfOverlappingCommunitiesTest {
 	
 	@Ignore
 	@Test
-	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
+	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
 		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();

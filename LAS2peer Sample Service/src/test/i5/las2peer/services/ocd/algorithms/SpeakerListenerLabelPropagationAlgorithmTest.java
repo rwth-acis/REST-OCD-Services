@@ -4,8 +4,8 @@ import java.io.FileNotFoundException;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
 
 import org.junit.Test;
@@ -17,9 +17,10 @@ public class SpeakerListenerLabelPropagationAlgorithmTest {
 
 	/**
 	 * Test the SLPA Algorithm on a simple Graph
+	 * @throws InterruptedException 
 	 */
 	@Test
-	public void testOnTwoCommunities()
+	public void testOnTwoCommunities() throws InterruptedException
 	{
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
 		SpeakerListenerLabelPropagationAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
@@ -28,7 +29,7 @@ public class SpeakerListenerLabelPropagationAlgorithmTest {
 	}
 	
 	@Test
-	public void testOnSawmill() throws AdapterException, FileNotFoundException
+	public void testOnSawmill() throws AdapterException, FileNotFoundException, InterruptedException
 	{
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SpeakerListenerLabelPropagationAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();

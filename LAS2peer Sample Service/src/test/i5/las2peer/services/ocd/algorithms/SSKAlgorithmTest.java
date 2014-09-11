@@ -7,8 +7,8 @@ import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmExecutor;
 import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
@@ -29,7 +29,7 @@ public class SSKAlgorithmTest {
 	 */
 	@Ignore
 	@Test
-	public void testCalculateTransitionMatrixOnDirectedAperiodicTwoCommunities() {
+	public void testCalculateTransitionMatrixOnDirectedAperiodicTwoCommunities() throws InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
@@ -42,7 +42,7 @@ public class SSKAlgorithmTest {
 	 */
 	@Ignore
 	@Test
-	public void testCalculateTransitionMatrixOnAperiodicTwoCommunities() {
+	public void testCalculateTransitionMatrixOnAperiodicTwoCommunities() throws InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
@@ -55,7 +55,7 @@ public class SSKAlgorithmTest {
 	 */
 	@Ignore
 	@Test
-	public void testExecuteRandomWalkOnSawmill() throws AdapterException, FileNotFoundException {
+	public void testExecuteRandomWalkOnSawmill() throws AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
@@ -68,7 +68,7 @@ public class SSKAlgorithmTest {
 	 * Tests the influence calculation random walk on directed aperiodic two communities.
 	 */
 	@Test
-	public void testExecuteRandomWalkOnDirectedAperiodicTwoCommunities() {
+	public void testExecuteRandomWalkOnDirectedAperiodicTwoCommunities() throws InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
@@ -82,7 +82,7 @@ public class SSKAlgorithmTest {
 	 * Node 0 is the only leader detected.
 	 */
 	@Test
-	public void testDetermineGlobalLeadersOnAperiodicTwoCommunities() {
+	public void testDetermineGlobalLeadersOnAperiodicTwoCommunities() throws InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
@@ -99,7 +99,7 @@ public class SSKAlgorithmTest {
 	 * Tests the global leader detection on aperiodic two communities.
 	 */
 	@Test
-	public void testDetermineGlobalLeadersOnSawmill() throws AdapterException, FileNotFoundException {
+	public void testDetermineGlobalLeadersOnSawmill() throws AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
@@ -120,7 +120,7 @@ public class SSKAlgorithmTest {
 	 * Tests the global leader detection on directed aperiodic two communities.
 	 */
 	@Test
-	public void testDetermineGlobalLeadersOnDirectedAperiodicTwoCommunities() {
+	public void testDetermineGlobalLeadersOnDirectedAperiodicTwoCommunities() throws InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
@@ -144,7 +144,7 @@ public class SSKAlgorithmTest {
 	 * Tests the membership matrix initialization on directed aperiodic two communities.
 	 */
 	@Test
-	public void testInitMembershipMatrixOnDirectedAperiodicTwoCommunities() {
+	public void testInitMembershipMatrixOnDirectedAperiodicTwoCommunities() throws InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
@@ -177,7 +177,7 @@ public class SSKAlgorithmTest {
 	 * Tests the membership calculation coefficient matrix initialization on directed aperiodic two communities.
 	 */
 	@Test
-	public void testInitMembershipCoefficientMatrixOnDirectedAperiodicTwoCommunities() {
+	public void testInitMembershipCoefficientMatrixOnDirectedAperiodicTwoCommunities() throws InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
@@ -208,7 +208,7 @@ public class SSKAlgorithmTest {
 	 * Test the community detection on aperiodic two communities.
 	 */
 	@Test
-	public void testSSKALgorithmOnDirectedAperiodicTwoCommunitiesGraph() {
+	public void testSSKALgorithmOnDirectedAperiodicTwoCommunitiesGraph() throws InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
@@ -219,7 +219,7 @@ public class SSKAlgorithmTest {
 	 * Test the community detection on sawmill.
 	 */
 	@Test
-	public void testSSKALgorithmOnSawmill() throws AdapterException, FileNotFoundException {
+	public void testSSKALgorithmOnSawmill() throws AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SskAlgorithm algo = new SskAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
@@ -228,7 +228,7 @@ public class SSKAlgorithmTest {
 	
 	@Ignore
 	@Test
-	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
+	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
 		OcdAlgorithm algo = new SskAlgorithm();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();

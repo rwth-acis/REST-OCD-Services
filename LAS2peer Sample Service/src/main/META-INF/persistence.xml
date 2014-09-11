@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- This file defines only the persistence unit used for jUnit testing.
+To configure the actual service use the persistence.xml in the META-INF directory of the las2peer-0.0.4.1.jar -->
 <persistence version="1.0"
     xmlns="http://java.sun.com/xml/ns/persistence"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -9,7 +11,7 @@
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
     <properties>
       <property name="javax.persistence.jdbc.driver"   value="org.apache.derby.jdbc.ClientDriver" />
-      <property name="javax.persistence.jdbc.url"      value="jdbc:derby://localhost:1527/derby/db;create=true;securityMechanism=8" />
+      <property name="javax.persistence.jdbc.url"      value="jdbc:derby://localhost:1527/db;create=true;securityMechanism=8" />
       <property name="javax.persistence.jdbc.user"     value="ocdUser" />
       <property name="javax.persistence.jdbc.password" value="ocdPw" />
       <property name="eclipselink.ddl-generation.output-mode" value="both"/>

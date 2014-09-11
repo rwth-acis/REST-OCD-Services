@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.Adapters;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import java.io.Reader;
 import java.util.HashMap;

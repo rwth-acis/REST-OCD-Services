@@ -1,6 +1,6 @@
 package i5.las2peer.services.ocd.metrics;
 
-import i5.las2peer.services.ocd.graph.Cover;
+import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.utils.NonZeroEntriesVectorProcedure;
 
 import java.util.HashMap;

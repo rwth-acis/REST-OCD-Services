@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +28,9 @@ public class AlgorithmLog {
 	 */
 	private static final String idColumnName = "ID";
 	private static final String typeColumnName = "TYPE";
+	private static final String statusIdColumnName = "STATUS";
+	
+	public static final String STATUS_ID_FIELD_NAME = "statusId";
 	
 	/**
 	 * System generated persistence id.
@@ -39,6 +43,8 @@ public class AlgorithmLog {
 	private Map<String, String> parameters;
 	@Column(name = typeColumnName)
 	private int typeId;
+	@Column(name = statusIdColumnName)
+	private int statusId = ExecutionStatus.WAITING.getId();
 	@ElementCollection
 	private Set<Integer> compatibleGraphTypes = new HashSet<Integer>();
 	
@@ -92,6 +98,14 @@ public class AlgorithmLog {
 			compatibleGraphTypes.add(GraphType.lookupType(id));
 		}
 		return compatibleGraphTypes;
+	}
+	
+	public ExecutionStatus getStatus() {
+		return ExecutionStatus.lookupStatus(statusId);
+	}
+	
+	public void setStatus(ExecutionStatus status) {
+		this.statusId = status.getId();
 	}
 	
 }

@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.metrics;
 
-import i5.las2peer.services.ocd.graph.Cover;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 import java.util.HashMap;
 
@@ -19,6 +20,7 @@ public class ExecutionTime {
 	
 	public void setCoverExecutionTime(Cover cover) {
 		MetricLog metric = new MetricLog(MetricType.EXECUTION_TIME, (double)totalTime / 1000d, new HashMap<String, String>(), cover);
+		metric.setStatus(ExecutionStatus.COMPLETED);
 		cover.addMetric(metric);
 	}
 }

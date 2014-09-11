@@ -3,8 +3,8 @@ package i5.las2peer.services.ocd.adapters.graphOutput;
 import java.text.SimpleDateFormat;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.graph.CustomGraph;
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphType;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -51,13 +51,27 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 				lastUpdateElt.appendChild(doc.createTextNode(dateFormat.format(graph.getLastUpdate())));
 				graphElt.appendChild(lastUpdateElt);
 			}
+			/*
+			 * Graph Types
+			 */
 			Element typesElt = doc.createElement("Types");
 			for(GraphType type : graph.getTypes()) {
 				Element typeElt = doc.createElement("Type");
-				typeElt.appendChild(doc.createTextNode(Integer.toString(type.getId())));
+				typeElt.appendChild(doc.createTextNode(type.name()));
 				typesElt.appendChild(typeElt);
 			}
 			graphElt.appendChild(typesElt);
+			/*
+			 * Algorithm
+			 */
+			Element benchmarkElt = doc.createElement("Benchmark");
+			Element benchmarkTypeElt = doc.createElement("Type");
+			benchmarkTypeElt.appendChild(doc.createTextNode(graph.getBenchmark().getType().name()));
+			benchmarkElt.appendChild(benchmarkTypeElt);
+			Element benchmarkStatus = doc.createElement("Status");
+			benchmarkStatus.appendChild(doc.createTextNode(graph.getBenchmark().getStatus().name()));
+			benchmarkElt.appendChild(benchmarkStatus);
+			graphElt.appendChild(benchmarkElt);
 			/*
 			 * XML output
 			 */

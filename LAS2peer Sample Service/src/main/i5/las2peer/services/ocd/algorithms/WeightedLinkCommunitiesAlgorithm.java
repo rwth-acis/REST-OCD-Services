@@ -1,8 +1,8 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.utils.Pair;
 
 import java.util.ArrayList;
@@ -49,6 +49,13 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	}
 	
 	@Override
+	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
+		if(parameters.size() > 0) {
+			throw new IllegalArgumentException();
+		}
+	}
+	
+	@Override
 	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.WEIGHTED);
@@ -56,7 +63,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	}
 
 	@Override
-	public Cover detectOverlappingCommunities(CustomGraph graph) {
+	public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException {
 		/*
 		 * Initializes the variables.
 		 */
@@ -88,6 +95,9 @@ public class WeightedLinkCommunitiesAlgorithm implements
 		while(similarities.columns() > 1) {
 			mostSimilarPairs = determineMostSimilarCommunityPairs(similarities);
 			for(int i=0; i<mostSimilarPairs.size(); i++) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				mostSimilarPair = mostSimilarPairs.get(i);
 				firstCommunity = mostSimilarPair.getFirst();
 				secondCommunity = mostSimilarPair.getSecond();
@@ -105,6 +115,9 @@ public class WeightedLinkCommunitiesAlgorithm implements
 				currentPartitionDensity += newLinkDensity - firstLinkDensity - secondLinkDensity;
 			}
 			for(int i=0; i<mostSimilarPairs.size(); i++) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				secondCommunity = mostSimilarPairs.get(i).getSecond();
 				communityEdges.remove(secondCommunity);
 				communityNodes.remove(secondCommunity);
@@ -125,7 +138,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	 * @return A similarity matrix S containing the edge similarity for two edges e_i, e_j with indices i and j and i>j in 
 	 * the entry S_ij.
 	 */
-	private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkageDegrees) {
+	private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkageDegrees) throws InterruptedException {
 		Matrix similarities = new CCSMatrix(graph.edgeCount(), graph.edgeCount());
 		List<Double> squaredNorms = new ArrayList<Double>();
 		double norm;
@@ -150,6 +163,9 @@ public class WeightedLinkCommunitiesAlgorithm implements
 		double similarity;
 		int columnEdgeNodeIndex;
 		while(rowEdges.ok()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			rowEdge = rowEdges.edge();
 			source = rowEdge.source();
 			target = rowEdge.target();
@@ -223,7 +239,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	 * @return The linkage degree vector of each node, accessible via the list index that
 	 * corresponds to the node index.
 	 */
-	private List<Vector> calculateLinkageDegrees(CustomGraph graph) {
+	private List<Vector> calculateLinkageDegrees(CustomGraph graph) throws InterruptedException {
 		List<Vector> linkageDegrees = new ArrayList<Vector>();
 		NodeCursor nodes = graph.nodes();
 		Vector degreeVector;
@@ -239,6 +255,9 @@ public class WeightedLinkCommunitiesAlgorithm implements
 			node = nodes.node();
 			edges = node.edges();
 			while(edges.ok()) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				edge = edges.edge();
 				neighbor = edges.edge().opposite(node);
 				linkageDegree = degreeVector.get(neighbor.index());
@@ -267,7 +286,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	 * be the lowest index of the corresponding old communities. I.e. all old communities will be projected
 	 * on the same new one with the lowest community index.
 	 */
-	private List<Pair<Integer, Integer>> determineMostSimilarCommunityPairs(Matrix similarities) {
+	private List<Pair<Integer, Integer>> determineMostSimilarCommunityPairs(Matrix similarities) throws InterruptedException {
 		double maxSimilarity = Double.NEGATIVE_INFINITY;
 		double currentSimilarity;
 		TreeMap<Integer, Integer> mergedCommunities = new TreeMap<Integer, Integer>();
@@ -276,6 +295,9 @@ public class WeightedLinkCommunitiesAlgorithm implements
 		int newCommunity;
 		for(int j=0; j<similarities.columns() - 1; j++) {
 			for(int i=j+1; i<similarities.rows(); i++) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				currentSimilarity = similarities.get(i, j);
 				if(currentSimilarity >= maxSimilarity) {
 					if(currentSimilarity > maxSimilarity) {
@@ -316,6 +338,9 @@ public class WeightedLinkCommunitiesAlgorithm implements
 		List<Pair<Integer, Integer>> mostSimilarPairs = new ArrayList<Pair<Integer, Integer>>();
 		Entry<Integer, Integer> lastPair;
 		while(mergedCommunities.size() > 0) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			lastPair = mergedCommunities.lastEntry();
 			if(lastPair.getKey() != lastPair.getValue()) {
 				mostSimilarPairs.add(new Pair<Integer, Integer>(lastPair.getValue(), lastPair.getKey()));
@@ -331,12 +356,15 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	 * @param mostSimilarPair A pair containing the indices of the communities that are merged.
 	 * @return The updated similarity matrix.
 	 */
-	private Matrix updateSimilarities(Matrix similarities, Pair<Integer, Integer> mostSimilarPair) {
+	private Matrix updateSimilarities(Matrix similarities, Pair<Integer, Integer> mostSimilarPair) throws InterruptedException {
 		int first = mostSimilarPair.getFirst();
 		int second = mostSimilarPair.getSecond();
 		int[] newIndices = new int[similarities.rows() - 1];
 		double maxSimilarity;
 		for(int i=0; i<similarities.columns(); i++) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			if(i != second) {
 				if(i <= first) {
 					if(i < first) {
@@ -370,13 +398,16 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	 * @param communityLinkDensities The link densities of all edge communities.
 	 */
 	private void initDendrogramCreation(CustomGraph graph, List<Set<Edge>> communityEdges,
-			List<Set<Node>> communityNodes, List<Double> communityLinkDensities) {
+			List<Set<Node>> communityNodes, List<Double> communityLinkDensities) throws InterruptedException {
 		EdgeCursor edges = graph.edges();
 		Set<Edge> initEdgeSet;
 		Set<Node> initNodeSet;
 		Edge edge;
 		Edge reverseEdge;
 		while(edges.ok()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			edge = edges.edge();
 			reverseEdge = edge.target().getEdgeTo(edge.source());
 			if(reverseEdge == null || edge.index() < reverseEdge.index()) {
@@ -413,12 +444,15 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	 * @param partition The edge partition from which the cover will be derived.
 	 * @return A normalized cover of the graph.
 	 */
-	private Cover calculatePartitionCover(CustomGraph graph, List<Set<Edge>> partition) {
+	private Cover calculatePartitionCover(CustomGraph graph, List<Set<Edge>> partition) throws InterruptedException {
 		Matrix memberships = new CCSMatrix(graph.nodeCount(), partition.size());
 		double belongingFactor;
 		double edgeWeight;
 		for(int i=0; i<partition.size(); i++) {
 			for(Edge edge : partition.get(i)) {
+				if(Thread.interrupted()) {
+					throw new InterruptedException();
+				}
 				edgeWeight = graph.getEdgeWeight(edge);
 				belongingFactor = memberships.get(edge.target().index(), i) + edgeWeight;
 				memberships.set(edge.target().index(), i, belongingFactor);

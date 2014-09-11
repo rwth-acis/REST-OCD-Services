@@ -1,7 +1,7 @@
 package i5.las2peer.services.ocd.metrics;
 
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.GraphType;
 
 import java.util.Set;
 
@@ -13,7 +13,7 @@ import java.util.Set;
 public interface StatisticalMeasure {
 
 	/**
-	 * Calculates the metric value of a cover.
+	 * Measures a cover adds the resulting metric log to it.
 	 * @param cover The cover which is evaluated. It must also contain the corresponding graph.
 	 * @return The metric value.
 	 */

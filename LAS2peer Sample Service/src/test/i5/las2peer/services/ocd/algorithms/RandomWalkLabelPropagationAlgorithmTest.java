@@ -3,14 +3,15 @@ package i5.las2peer.services.ocd.algorithms;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.ExtendedModularity;
 import i5.las2peer.services.ocd.metrics.MetricException;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
 import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +48,7 @@ LDAV DA vector
 public class RandomWalkLabelPropagationAlgorithmTest {
 
 	@Test
-	public void testRandomWalkExecution() throws OcdAlgorithmException {
+	public void testRandomWalkExecution() throws OcdAlgorithmException, InterruptedException {
 		Matrix transitionMatrix = new Basic2DMatrix(2, 2);
 		transitionMatrix.set(0, 0, 0.9);
 		transitionMatrix.set(0, 1, 0.5);
@@ -55,17 +56,27 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		transitionMatrix.set(1, 1, 0.5);
 		System.out.println("Transition Matrix:");
 		System.out.println(transitionMatrix.transpose());
-		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.05, 1000, 0.001);
+		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(0.05));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Vector vec = algo.executeRandomWalk(transitionMatrix);
 		System.out.println("Steady State Vector:");
 		System.out.println(vec);
 	}
 	
 	@Test
-	public void testWithKnownResults() throws OcdAlgorithmException {
+	public void testWithKnownResults() throws OcdAlgorithmException, InterruptedException {
 		System.out.println("Known Result Test");
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
-		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.1, 1000, 0.001);
+		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(0.1));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Matrix disassortativityMatrix = algo.getTransposedDisassortativityMatrix(graph);
 		System.out.println("DA M:\n" + disassortativityMatrix);
 		Vector disassortativityVector = algo.executeRandomWalk(disassortativityMatrix);
@@ -84,32 +95,47 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	
 	@Ignore
 	@Test
-	public void testOnTwoCommunities() throws OcdAlgorithmException {
+	public void testOnTwoCommunities() throws OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
-		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2, 1000, 0.001);
+		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(0.2));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
 	
 	@Ignore
 	@Test
-	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException {
+	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
-		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2, 1000, 0.001);
+		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(0.2));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
 	
 	@Test
-	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
+	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(0.2, 1000, 0.001);
+		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(0.2));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());	
 	}
 	
 	@Test
-	public void testProfitabilityDelta() throws OcdAlgorithmException, AdapterException, FileNotFoundException, MetricException {
+	public void testProfitabilityDelta() throws OcdAlgorithmException, AdapterException, FileNotFoundException, MetricException, InterruptedException {
 		System.out.println();
 		System.out.println();
 		System.out.println("Test Profitability Delta");
@@ -129,7 +155,12 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		for(int i=0; i < profitabililtyDeltas.length; i++) {
 			System.out.println("Delta: " + profitabililtyDeltas[i]);
-			RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm(profitabililtyDeltas[i], 1000, 0.001);
+			RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
+			Map<String, String> parameters = new HashMap<String, String>();
+			parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(profitabililtyDeltas[i]));
+			parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
+			parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+			algo.setParameters(parameters);
 			Cover cover = algo.detectOverlappingCommunities(graph);
 			metric.measure(cover);
 			System.out.println(cover.toString());

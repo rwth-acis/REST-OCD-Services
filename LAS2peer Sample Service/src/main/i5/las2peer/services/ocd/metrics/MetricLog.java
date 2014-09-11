@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.metrics;
 
-import i5.las2peer.services.ocd.graph.Cover;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +30,7 @@ public class MetricLog {
 	public static final String coverIdColumnName = "COVER_ID";
 	public static final String graphIdColumnName = "GRAPH_ID";
 	public static final String graphUserColumnName = "USER_NAME";
+	private static final String statusIdColumnName = "STATUS";
 	
 	/**
 	 * System generated persistence id.
@@ -51,6 +53,8 @@ public class MetricLog {
 	private double value;
 	@Column(name = typeColumnName)
 	private int typeId;
+	@Column(name = statusIdColumnName)
+	private int statusId = ExecutionStatus.WAITING.getId();
 	/*
 	 * Only provided for persistence. 
 	 */
@@ -88,6 +92,14 @@ public class MetricLog {
 
 	public double getValue() {
 		return value;
+	}
+	
+	public ExecutionStatus getStatus() {
+		return ExecutionStatus.lookupStatus(statusId);
+	}
+	
+	public void setStatus(ExecutionStatus status) {
+		this.statusId = status.getId();
 	}
 	
 }

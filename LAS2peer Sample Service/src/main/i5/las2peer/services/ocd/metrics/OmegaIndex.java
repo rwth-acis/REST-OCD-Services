@@ -1,11 +1,9 @@
 package i5.las2peer.services.ocd.metrics;
 
-import i5.las2peer.services.ocd.graph.Community;
-import i5.las2peer.services.ocd.graph.Cover;
+import i5.las2peer.services.ocd.graphs.Cover;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,7 +11,7 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 public class OmegaIndex implements KnowledgeDrivenMeasure {
-
+	
 	@Override
 	public void measure(Cover cover, Cover groundTruth) throws MetricException {
 		Map<Set<Node>, Integer> sharedCommunitiesAlgo = getSharedCommunities(cover);
@@ -90,26 +88,26 @@ public class OmegaIndex implements KnowledgeDrivenMeasure {
 	private Map<Set<Node>, Integer> getSharedCommunities(Cover cover) {
 		Map<Set<Node>, Integer> sharedCommunityCounts = new HashMap<Set<Node>, Integer>();
 		Integer count;
-		Iterator<Map.Entry<Node, Double>> itA;
-		Iterator<Map.Entry<Node, Double>> itB;
-		Map.Entry<Node, Double> entryA;
-		Map.Entry<Node, Double> entryB;
-		int iterationA;
-		int iterationB;
-		for(Community community : cover.getCommunities()) {
-			itA = community.getMemberships().entrySet().iterator();
-			iterationA = 0;
-			while(itA.hasNext()) {
-				entryA = itA.next();
-				if(entryA.getValue() > 0) {
-					itB = community.getMemberships().entrySet().iterator();
-					iterationB = 0;
-					while(itB.hasNext() && iterationA > iterationB) {	
-						entryB = itB.next();
-						if(entryB.getValue() > 0) {
+		Node nodeA;
+		Node nodeB;
+		NodeCursor nodesA = cover.getGraph().nodes();
+		NodeCursor nodesB = cover.getGraph().nodes();
+		for(int i = 0; i<cover.communityCount(); i++) {
+			while(nodesA.ok()) {
+				nodeA = nodesA.node();
+				if(cover.getBelongingFactor(nodeA, i) > 0) {
+					while(nodesB.ok()) {
+						nodeB = nodesB.node();
+						/*
+						 * Pairs are regarded only once.
+						 */
+						if(nodeA.index() <= nodeB.index()) {
+							break;
+						}
+						if(cover.getBelongingFactor(nodeB, i) > 0) {
 							Set<Node> pair = new HashSet<Node>();
-							pair.add(entryA.getKey());
-							pair.add(entryB.getKey());
+							pair.add(nodeA);
+							pair.add(nodeB);
 							count = sharedCommunityCounts.get(pair);
 							if(count == null) {
 								count = 1;
@@ -119,11 +117,13 @@ public class OmegaIndex implements KnowledgeDrivenMeasure {
 							}
 							sharedCommunityCounts.put(pair, count);
 						}
-						iterationB++;
+						nodesB.next();
 					}
 				}
-				iterationA++;
+				nodesB.toFirst();
+				nodesA.next();
 			}
+			nodesA.toFirst();
 		}
 		return sharedCommunityCounts;
 	}
@@ -139,5 +139,5 @@ public class OmegaIndex implements KnowledgeDrivenMeasure {
 		expectedIndex /= Math.pow(pairsCount, 2);
 		return expectedIndex;
 	}
-
+	
 }

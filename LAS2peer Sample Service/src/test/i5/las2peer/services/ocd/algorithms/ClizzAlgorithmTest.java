@@ -3,11 +3,12 @@ package i5.las2peer.services.ocd.algorithms;
 import static org.junit.Assert.*;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Ignore;
@@ -22,7 +23,7 @@ public class ClizzAlgorithmTest {
 	 * Tests the algorithm on the sawmill graph
 	 */
 	@Test
-	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
+	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new ClizzAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
@@ -30,9 +31,14 @@ public class ClizzAlgorithmTest {
 	}
 	
 	@Test
-	public void testOnSawmillbyFunctions() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
+	public void testOnSawmillbyFunctions() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		ClizzAlgorithm algo = new ClizzAlgorithm(0.9, 1000, 0.001);
+		ClizzAlgorithm algo = new ClizzAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(ClizzAlgorithm.INFLUENCE_FACTOR_NAME, Double.toString(0.9));
+		parameters.put(ClizzAlgorithm.MEMBERSHIPS_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(ClizzAlgorithm.MEMBERSHIPS_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Matrix distances = algo.calculateNodeDistances(graph);
 		System.out.println("Distances:");
 		System.out.println(distances);
@@ -55,18 +61,28 @@ public class ClizzAlgorithmTest {
 	
 	@Ignore
 	@Test
-	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
+	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
-		OcdAlgorithm algo = new ClizzAlgorithm(0.9, 1000, 0.001);
+		ClizzAlgorithm algo = new ClizzAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(ClizzAlgorithm.INFLUENCE_FACTOR_NAME, Double.toString(0.9));
+		parameters.put(ClizzAlgorithm.MEMBERSHIPS_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(ClizzAlgorithm.MEMBERSHIPS_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
 		Cover cover = executor.execute(graph, algo, 0);
 		System.out.println(cover.toString());
 	}
 	
 	@Test
-	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
+	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
-		ClizzAlgorithm algo = new ClizzAlgorithm(0.9, 1000, 0.001);
+		ClizzAlgorithm algo = new ClizzAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(ClizzAlgorithm.INFLUENCE_FACTOR_NAME, Double.toString(0.9));
+		parameters.put(ClizzAlgorithm.MEMBERSHIPS_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(ClizzAlgorithm.MEMBERSHIPS_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Matrix distances = algo.calculateNodeDistances(graph);
 		System.out.println("Distances:");
 		System.out.println(distances);

@@ -26,7 +26,7 @@ public enum GraphOutputFormat {
 		return id;
 	}
 	
-	public static GraphOutputFormat lookupType(int id) {
+	public static GraphOutputFormat lookupFormat(int id) {
         for (GraphOutputFormat format : GraphOutputFormat.values()) {
             if (id == format.getId()) {
                 return format;

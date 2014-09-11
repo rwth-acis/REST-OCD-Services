@@ -2,12 +2,12 @@ package i5.las2peer.services.ocd.adapters.coverOutput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputAdapter;
-import i5.las2peer.services.ocd.adapters.coverOutput.XmlCoverOutputAdapter;
+import i5.las2peer.services.ocd.adapters.coverOutput.DefaultXmlCoverOutputAdapter;
 import i5.las2peer.services.ocd.algorithms.AlgorithmLog;
 import i5.las2peer.services.ocd.algorithms.AlgorithmType;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
-import i5.las2peer.services.ocd.graph.GraphType;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.MetricLog;
 import i5.las2peer.services.ocd.metrics.MetricType;
 import i5.las2peer.services.ocd.testsUtil.OcdTestConstants;
@@ -63,7 +63,7 @@ public class XmlCoverOutputAdapterTest {
 		cover.setCommunityName(1, "Community1");
 		MetricLog metric = new MetricLog(MetricType.EXECUTION_TIME, 3.55, params, cover);
 		cover.addMetric(metric);
-		CoverOutputAdapter adapter = new XmlCoverOutputAdapter();
+		CoverOutputAdapter adapter = new DefaultXmlCoverOutputAdapter();
 		adapter.setWriter(new FileWriter(OcdTestConstants.testXmlCoverOutputPath));
 		adapter.writeCover(cover);
 	}

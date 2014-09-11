@@ -29,7 +29,7 @@ public enum GraphInputFormat {
 		return id;
 	}
 	
-	public static GraphInputFormat lookupType(int id) {
+	public static GraphInputFormat lookupFormat(int id) {
         for (GraphInputFormat format : GraphInputFormat.values()) {
             if (id == format.getId()) {
                 return format;

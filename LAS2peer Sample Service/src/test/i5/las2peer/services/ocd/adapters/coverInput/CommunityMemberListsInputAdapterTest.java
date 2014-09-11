@@ -2,10 +2,10 @@ package i5.las2peer.services.ocd.adapters.coverInput;
 
 import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.adapters.coverInput.CommunityMemberListsInputAdapter;
+import i5.las2peer.services.ocd.adapters.coverInput.CommunityMemberListsCoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtil.OcdTestConstants;
 import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
 
@@ -21,7 +21,7 @@ public class CommunityMemberListsInputAdapterTest {
 	public void testOnSawmill() throws AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		Cover cover;
-		CoverInputAdapter adapter = new CommunityMemberListsInputAdapter(new FileReader(OcdTestConstants.sawmillGroundTruthCommunityMemberListxInputPath));
+		CoverInputAdapter adapter = new CommunityMemberListsCoverInputAdapter(new FileReader(OcdTestConstants.sawmillGroundTruthCommunityMemberListxInputPath));
 		cover = adapter.readCover(graph);
 		assertEquals(3, cover.communityCount());
 		System.out.println(cover);
@@ -34,7 +34,7 @@ public class CommunityMemberListsInputAdapterTest {
 		System.out.println("Nodes: " + graph.nodeCount());
 		System.out.println("Edges: " + graph.edgeCount());
 		Cover cover;
-		CoverInputAdapter adapter = new CommunityMemberListsInputAdapter(new FileReader(OcdTestConstants.facebookGroundTruthCommunityMemberListxInputPath));
+		CoverInputAdapter adapter = new CommunityMemberListsCoverInputAdapter(new FileReader(OcdTestConstants.facebookGroundTruthCommunityMemberListxInputPath));
 		cover = adapter.readCover(graph);
 		assertEquals(193, cover.communityCount());
 	}

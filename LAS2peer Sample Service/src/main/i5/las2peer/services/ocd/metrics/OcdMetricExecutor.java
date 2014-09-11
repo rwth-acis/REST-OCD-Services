@@ -1,8 +1,9 @@
 package i5.las2peer.services.ocd.metrics;
 
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
-import i5.las2peer.services.ocd.graph.GraphProcessor;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphProcessor;
+import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 public class OcdMetricExecutor {
 	
@@ -12,7 +13,10 @@ public class OcdMetricExecutor {
 		Cover coverCopy = new Cover(graphCopy, cover.getMemberships());
 		Cover groundTruthCopy = new Cover(graphCopy, groundTruth.getMemberships());
 		metric.measure(coverCopy, groundTruthCopy);
-		cover.addMetric(coverCopy.getMetrics().get(0));
+		MetricLog calculatedLog = coverCopy.getMetrics().get(0);
+		MetricLog log = new MetricLog(calculatedLog.getType(), calculatedLog.getValue(), calculatedLog.getParameters(), cover);
+		log.setStatus(ExecutionStatus.COMPLETED);
+		cover.addMetric(log);
 	}
 	
 	public void executeStatisticalMeasure(Cover cover, StatisticalMeasure metric) throws MetricException {
@@ -22,7 +26,10 @@ public class OcdMetricExecutor {
 		processor.makeCompatible(graphCopy, metric.compatibleGraphTypes());
 		Cover coverCopy = new Cover(graphCopy, cover.getMemberships());
 		metric.measure(coverCopy);
-		cover.addMetric(coverCopy.getMetrics().get(0));
+		MetricLog calculatedLog = coverCopy.getMetrics().get(0);
+		MetricLog log = new MetricLog(calculatedLog.getType(), calculatedLog.getValue(), calculatedLog.getParameters(), cover);
+		log.setStatus(ExecutionStatus.COMPLETED);
+		cover.addMetric(log);
 	}
 
 }

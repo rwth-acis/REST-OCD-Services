@@ -3,8 +3,6 @@ package i5.las2peer.services.ocd.metrics;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 public enum MetricType {
 
 	UNDEFINED (0),
@@ -59,7 +57,7 @@ public enum MetricType {
 		case OMEGA_INDEX:
 			return new OmegaIndex();
 		default:
-			throw new NotImplementedException("Metric not registered.");
+			throw new IllegalStateException("Not registered as a knowledge driven measure.");
 		}
 	}
 	
@@ -68,7 +66,7 @@ public enum MetricType {
 		case EXTENDED_MODULARITY:
 			return new ExtendedModularity();
 		default:
-			return null;
+			throw new IllegalStateException("Not registered as a statistical measure.");
 		}
 	}
 

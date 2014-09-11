@@ -1,12 +1,14 @@
 package i5.las2peer.services.ocd.adapters.graphInput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -36,21 +38,53 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 		core.addInputDataAcceptor("weight", edgeWeights, KeyScope.EDGE, KeyType.DOUBLE);
 		try {
 			ioh.read(graph, is);
+			/*
+			 * Checks whether node names are unique.
+			 */
 			NodeCursor nodes = graph.nodes();
 			Node node;
+			String name;
+			Set<String> names = new HashSet<String>();
 			while(nodes.ok()) {
-				node = nodes.node();
-				graph.setNodeName(node, (String)nodeNames.get(node));
+				name = (String)nodeNames.get(nodes.node());
+				if(name.isEmpty()) {
+					break;
+				}
+				names.add(name);
 				nodes.next();
+			}
+			nodes.toFirst();
+			/*
+			 * Sets unique node names.
+			 */
+			if(names.size() == graph.nodeCount()) {
+				while(nodes.ok()) {
+					node = nodes.node();
+					graph.setNodeName(node, (String)nodeNames.get(node));
+					nodes.next();
+				}
+			}
+			/*
+			 * If names not unique sets indices instead.
+			 */
+			else {
+				while(nodes.ok()) {
+					node = nodes.node();
+					graph.setNodeName(node, Integer.toString(node.index()));
+					nodes.next();
+				}
 			}
 			EdgeCursor edges = graph.edges();
 			Edge edge;
 			while(edges.ok()) {
 				edge = edges.edge();
-				graph.setEdgeWeight(edge, (Double)edgeWeights.get(edge));
+				Double weight = (Double)edgeWeights.get(edge);
+				if(weight != null) {
+					graph.setEdgeWeight(edge, weight);
+				}
 				edges.next();
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new AdapterException(e);
 		} finally {
 			graph.disposeNodeMap(nodeNames);

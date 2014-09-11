@@ -3,7 +3,7 @@ package i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationHelpe
 import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.ocd.algorithms.utils.SlpaListenerRuleCommand;
 import i5.las2peer.services.ocd.algorithms.utils.SlpaPopularityListenerRule;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
 
 import java.util.HashMap;

@@ -1,13 +1,13 @@
 package i5.las2peer.services.ocd.algorithms;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.algorithms.BinarySearchRandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +44,7 @@ LDAV DA vector
 public class BinarySearchRandomWalkLabelPropagationAlgorithmTest {
 
 	@Test
-	public void testRandomWalkExecution() throws OcdAlgorithmException {
+	public void testRandomWalkExecution() throws OcdAlgorithmException, InterruptedException {
 		Matrix transitionMatrix = new Basic2DMatrix(2, 2);
 		transitionMatrix.set(0, 0, 0.9);
 		transitionMatrix.set(0, 1, 0.5);
@@ -52,17 +52,25 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest {
 		transitionMatrix.set(1, 1, 0.5);
 		System.out.println("Transition Matrix:");
 		System.out.println(transitionMatrix.transpose());
-		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm(1000, 0.001);
+		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Vector vec = algo.executeRandomWalk(transitionMatrix);
 		System.out.println("Steady State Vector:");
 		System.out.println(vec);
 	}
 	
 	@Test
-	public void testWithKnownResults() throws OcdAlgorithmException {
+	public void testWithKnownResults() throws OcdAlgorithmException, InterruptedException {
 		System.out.println("Known Result Test");
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
-		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm(1000, 0.001);
+		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Matrix disassortativityMatrix = algo.getTransposedDisassortativityMatrix(graph);
 		System.out.println("DA M:\n" + disassortativityMatrix);
 		Vector disassortativityVector = algo.executeRandomWalk(disassortativityMatrix);
@@ -81,26 +89,38 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest {
 	
 	@Ignore
 	@Test
-	public void testOnTwoCommunities() throws OcdAlgorithmException {
+	public void testOnTwoCommunities() throws OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
-		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm(1000, 0.001);
+		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
 	
 	@Ignore
 	@Test
-	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException {
+	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
-		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm(1000, 0.001);
+		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
 	
 	@Test
-	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException {
+	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm(1000, 0.001);
+		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());	
 	}

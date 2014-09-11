@@ -2,8 +2,8 @@ package i5.las2peer.services.ocd.metrics;
 
 import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.graph.Cover;
-import i5.las2peer.services.ocd.graph.CustomGraph;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.ExtendedModularity;
 import i5.las2peer.services.ocd.metrics.MetricException;
 import i5.las2peer.services.ocd.metrics.MetricType;
