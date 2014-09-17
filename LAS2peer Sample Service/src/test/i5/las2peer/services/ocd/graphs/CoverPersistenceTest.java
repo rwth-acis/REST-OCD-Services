@@ -1,20 +1,16 @@
 package i5.las2peer.services.ocd.graphs;
 
 import static org.junit.Assert.assertEquals;
-import i5.las2peer.services.ocd.algorithms.AlgorithmLog;
-import i5.las2peer.services.ocd.algorithms.AlgorithmType;
-import i5.las2peer.services.ocd.benchmarks.BenchmarkException;
-import i5.las2peer.services.ocd.benchmarks.BenchmarkLog;
-import i5.las2peer.services.ocd.benchmarks.BenchmarkType;
-import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmarkModel;
+import i5.las2peer.services.ocd.algorithms.CoverCreationLog;
+import i5.las2peer.services.ocd.algorithms.CoverCreationType;
+import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkException;
+import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkExecutor;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverId;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
-import i5.las2peer.services.ocd.graphs.GraphType;
-import i5.las2peer.services.ocd.metrics.MetricLog;
-import i5.las2peer.services.ocd.metrics.MetricType;
+import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
+import i5.las2peer.services.ocd.benchmarks.GraphCreationLog;
+import i5.las2peer.services.ocd.benchmarks.GraphCreationType;
+import i5.las2peer.services.ocd.metrics.OcdMetricLog;
+import i5.las2peer.services.ocd.metrics.OcdMetricType;
 
 import java.awt.Color;
 import java.util.HashMap;
@@ -80,13 +76,13 @@ public class CoverPersistenceTest {
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put("param1", "val1");
 		params.put("param2", "val2");
-		AlgorithmLog algo = new AlgorithmLog(AlgorithmType.UNDEFINED, params, new HashSet<GraphType>());
+		CoverCreationLog algo = new CoverCreationLog(CoverCreationType.UNDEFINED, params, new HashSet<GraphType>());
 		Cover cover = new Cover(graph, memberships);
-		cover.setAlgorithm(algo);
+		cover.setCreationMethod(algo);
 		cover.setName(coverName);
 		cover.setCommunityColor(1, Color.BLUE);
 		cover.setCommunityName(1, "Community1");
-		MetricLog metric = new MetricLog(MetricType.EXECUTION_TIME, 3.55, params, cover);
+		OcdMetricLog metric = new OcdMetricLog(OcdMetricType.EXECUTION_TIME, 3.55, params, cover);
 		cover.addMetric(metric);
 		tx = em.getTransaction();
 		try {
@@ -108,7 +104,7 @@ public class CoverPersistenceTest {
 		Cover persistedCover = queryResults.get(0);
 		System.out.println("Name: " + persistedCover.getName());
 		System.out.println("Community Count: " + persistedCover.communityCount());
-		System.out.println("Algo: " + persistedCover.getAlgorithm().getType().toString());
+		System.out.println("Algo: " + persistedCover.getCreationMethod().getType().toString());
 		System.out.println("Metrics Count: " + persistedCover.getMetrics().size());
 		for(int i=0; i<cover.communityCount(); i++) {
 			System.out.println("Com: " + i);
@@ -125,7 +121,7 @@ public class CoverPersistenceTest {
 			assertEquals(cover.getCommunityName(i), persistedCover.getCommunityName(i));
 			assertEquals(cover.getCommunitySize(i), persistedCover.getCommunitySize(i));
 		}
-		assertEquals(cover.getAlgorithm().getType(), persistedCover.getAlgorithm().getType());
+		assertEquals(cover.getCreationMethod().getType(), persistedCover.getCreationMethod().getType());
 		assertEquals(cover.getMetrics().size(), persistedCover.getMetrics().size());
 		for(int i=0; i<cover.getMetrics().size(); i++) {
 			assertEquals(cover.getMetrics().get(i).getType(), persistedCover.getMetrics().get(i).getType());
@@ -154,15 +150,16 @@ public class CoverPersistenceTest {
 	}
 	
 	@Test
-	public void testMergeCover() throws BenchmarkException {
+	public void testMergeCover() throws OcdBenchmarkException, InstantiationException, IllegalAccessException, InterruptedException {
 		String graphNameStr = "newman01graph";
 		String coverNameStr = "newman01cover";
-		BenchmarkType benchmarkType = BenchmarkType.NEWMAN;
+		GraphCreationType benchmarkType = GraphCreationType.NEWMAN;
 		Map<String, String> parameters = new HashMap<String, String>();
 		CustomGraph graph = new CustomGraph();
-		GroundTruthBenchmarkModel benchmark = benchmarkType.getGroundTruthBenchmarkInstance(parameters);
-		BenchmarkLog log = new BenchmarkLog(benchmarkType, parameters);
-    	graph.setBenchmark(log);
+		OcdBenchmarkFactory benchmarkFactory = new OcdBenchmarkFactory();
+		GroundTruthBenchmark benchmark = (GroundTruthBenchmark)benchmarkFactory.getInstance(benchmarkType, parameters);
+		GraphCreationLog log = new GraphCreationLog(benchmarkType, parameters);
+    	graph.setCreationMethod(log);
     	graph.setName(graphNameStr);
     	Cover cover = new Cover(graph, new CCSMatrix());
     	cover.setName(coverNameStr);

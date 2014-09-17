@@ -7,8 +7,8 @@ import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.testsUtil.OcdTestConstants;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -33,7 +33,7 @@ public class LabeledMembershipMatrixOutputAdapterTest {
 		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
-		CoverOutputAdapter adapter = new LabeledMembershipMatrixCoverOutputAdapter(new FileWriter(OcdTestConstants.sawmillLabeledMembershipMatrixOutputPath + "Dolphinswhat"));
+		CoverOutputAdapter adapter = new LabeledMembershipMatrixCoverOutputAdapter(new FileWriter(OcdTestConstants.dolphinsLabeledMembershipMatrixOutputPath));
 		adapter.writeCover(cover);
 	}
 

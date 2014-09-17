@@ -46,7 +46,7 @@ public class AlgorithmRunnable implements Runnable {
 				requestHandler.log(Level.SEVERE, "Cover deleted while algorithm running.");
 				throw new IllegalStateException();
 			}
-			cover.getAlgorithm().setStatus(ExecutionStatus.RUNNING);
+			cover.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
 			tx.commit();
 		} catch( RuntimeException e ) {
 			if( tx != null && tx.isActive() ) {

@@ -3,23 +3,33 @@ package i5.las2peer.services.ocd.adapters.coverInput;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 /**
- * Representation of Graph Input Formats.
+ * CoverInputAdapter registry.
+ * Used for factory instantiation, persistence or other context.
  * @author Sebastian
  *
  */
 public enum CoverInputFormat {
 
-	COMMUNITY_MEMBERS_LISTS (0),
-	NODE_COMMUNITY_LISTS (1),
-	LABELED_MEMBERSHIP_MATRIX (2);
+	/*
+	 * Each enum constant is instantiated with a corresponding CoverInputAdapter class object and a UNIQUE id.
+	 * Once the framework is in use ids must not be changed to avoid corrupting the persisted data.
+	 */
+	COMMUNITY_MEMBERS_LISTS (CommunityMemberListsCoverInputAdapter.class, 0),
+	NODE_COMMUNITY_LISTS (NodeCommunityListsCoverInputAdapter.class, 1),
+	LABELED_MEMBERSHIP_MATRIX (LabeledMembershipMatrixCoverInputAdapter.class, 2);
 	
 	private final int id;
 	
-	private CoverInputFormat(int id) {
+	private final Class<? extends CoverInputAdapter> adapterClass;
+	
+	private CoverInputFormat(Class<? extends CoverInputAdapter> adapterClass, int id) {
 		this.id = id;
+		this.adapterClass = adapterClass;
+	}
+	
+	protected Class<? extends CoverInputAdapter> getAdapterClass() {
+		return this.adapterClass;
 	}
 	
 	public int getId() {
@@ -33,19 +43,6 @@ public enum CoverInputFormat {
             }
         }
         throw new InvalidParameterException();
-	}
-	
-	public CoverInputAdapter getAdapterInstance() {
-		switch (this) {
-			case COMMUNITY_MEMBERS_LISTS:
-				return new CommunityMemberListsCoverInputAdapter();
-			case NODE_COMMUNITY_LISTS:
-				return new NodeCommunityListsCoverInputAdapter();
-			case LABELED_MEMBERSHIP_MATRIX:
-				return new LabeledMembershipMatrixCoverInputAdapter();
-			default:
-				throw new NotImplementedException("Cover input adapter not registered.");
-		}
 	}
 
 	@Override

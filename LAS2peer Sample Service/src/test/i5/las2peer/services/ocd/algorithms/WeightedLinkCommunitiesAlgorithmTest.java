@@ -5,7 +5,7 @@ import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import org.junit.Test;
 

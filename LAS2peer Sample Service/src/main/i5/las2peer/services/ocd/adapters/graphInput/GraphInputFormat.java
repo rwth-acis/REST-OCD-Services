@@ -3,26 +3,35 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 /**
- * Representation of Graph Input Formats.
+ * GraphInputAdapter registry.
+ * Used for factory instantiation, persistence or other context.
  * @author Sebastian
  *
  */
 public enum GraphInputFormat {
 
-	GRAPH_ML (0),
-	WEIGHTED_EDGE_LIST (1),
-	UNWEIGHTED_EDGE_LIST (2),
-	NODE_WEIGHTED_EDGE_LIST (3),
-	GML (4);
+	/*
+	 * Each enum constant is instantiated with a corresponding GraphInputAdapter class object and a UNIQUE id.
+	 * Once the framework is in use ids must not be changed to avoid corrupting the persisted data.
+	 */
+	GRAPH_ML (GraphMlGraphInputAdapter.class, 0),
+	WEIGHTED_EDGE_LIST (WeightedEdgeListGraphInputAdapter.class, 1),
+	UNWEIGHTED_EDGE_LIST (UnweightedEdgeListGraphInputAdapter.class, 2),
+	NODE_WEIGHTED_EDGE_LIST (NodeWeightedEdgeListGraphInputAdapter.class, 3),
+	GML (GmlGraphInputAdapter.class, 4);
 
+	private final Class<? extends GraphInputAdapter> adapterClass;
 	
 	private final int id;
 	
-	private GraphInputFormat(int id) {
+	private GraphInputFormat(Class<? extends GraphInputAdapter> adapterClass, int id) {
 		this.id = id;
+		this.adapterClass = adapterClass;
+	}
+	
+	protected Class<? extends GraphInputAdapter> getAdapterClass() {
+		return this.adapterClass;
 	}
 	
 	public int getId() {
@@ -36,23 +45,6 @@ public enum GraphInputFormat {
             }
         }
         throw new InvalidParameterException();
-	}
-	
-	public GraphInputAdapter getAdapterInstance() {
-		switch (this) {
-			case GRAPH_ML:
-				return new GraphMlGraphInputAdapter();
-			case NODE_WEIGHTED_EDGE_LIST:
-				return new NodeWeightedEdgeListGraphInputAdapter();
-			case UNWEIGHTED_EDGE_LIST:
-				return new UnweightedEdgeListGraphInputAdapter();
-			case WEIGHTED_EDGE_LIST:
-				return new WeightedEdgeListGraphInputAdapter();
-			case GML:
-				return new GmlGraphInputAdapter();
-			default:
-				throw new NotImplementedException("Graph input adapter not registered.");
-		}
 	}
 
 	@Override

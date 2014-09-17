@@ -42,8 +42,8 @@ public class OcdAlgorithmExecutor {
 		componentCovers = calculateComponentCovers(components, algorithm, componentNodeCountFilter, executionTime);
 		Cover coverCopy = processor.mergeComponentCovers(graphCopy, componentCovers);
 		Cover cover = new Cover(graph, coverCopy.getMemberships());
-		cover.setAlgorithm(coverCopy.getAlgorithm());
-		cover.getAlgorithm().setStatus(ExecutionStatus.COMPLETED);
+		cover.setCreationMethod(coverCopy.getCreationMethod());
+		cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
 		executionTime.setCoverExecutionTime(cover);
 		return cover;
 	}
@@ -61,8 +61,8 @@ public class OcdAlgorithmExecutor {
 			else {
 				executionTime.start();
 				componentCover = algorithm.detectOverlappingCommunities(component);
-				componentCover.setAlgorithm(new AlgorithmLog(algorithm.getAlgorithmType(), algorithm.getParameters(), algorithm.compatibleGraphTypes()));
-				componentCover.getAlgorithm().setStatus(ExecutionStatus.COMPLETED);
+				componentCover.setCreationMethod(new CoverCreationLog(algorithm.getAlgorithmType(), algorithm.getParameters(), algorithm.compatibleGraphTypes()));
+				componentCover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
 				executionTime.stop();
 			}
 			componentCovers.add(new Pair<Cover, Map<Node, Node>>(componentCover, pair.getSecond()));
@@ -74,8 +74,8 @@ public class OcdAlgorithmExecutor {
 		Matrix memberships = new CCSMatrix(graph.nodeCount(), 1);
 		memberships.assign(1);
 		Cover cover = new Cover (graph, memberships);
-		cover.setAlgorithm(new AlgorithmLog(algorithm.getAlgorithmType(), algorithm.getParameters(), algorithm.compatibleGraphTypes()));
-		cover.getAlgorithm().setStatus(ExecutionStatus.COMPLETED);
+		cover.setCreationMethod(new CoverCreationLog(algorithm.getAlgorithmType(), algorithm.getParameters(), algorithm.compatibleGraphTypes()));
+		cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
 		return cover;
 	}
 	

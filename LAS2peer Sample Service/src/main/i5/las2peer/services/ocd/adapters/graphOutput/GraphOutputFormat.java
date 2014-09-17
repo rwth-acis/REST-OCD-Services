@@ -3,23 +3,33 @@ package i5.las2peer.services.ocd.adapters.graphOutput;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 /**
- * Representation of Graph Output Formats.
+ * GraphOutputAdapter registry.
+ * Used for factory instantiation, persistence or other context.
  * @author Sebastian
  *
  */
 public enum GraphOutputFormat {
 
-	GRAPH_ML (0),
-	WEIGHTED_EDGE_LIST (1),
-	META_XML (2);
+	/*
+	 * Each enum constant is instantiated with a corresponding GraphOutputAdapter class object and a UNIQUE id.
+	 * Once the framework is in use ids must not be changed to avoid corrupting the persisted data.
+	 */
+	GRAPH_ML (GraphMlGraphOutputAdapter.class, 0),
+	WEIGHTED_EDGE_LIST (WeightedEdgeListGraphOutputAdapter.class, 1),
+	META_XML (MetaXmlGraphOutputAdapter.class, 2);
+	
+	private final Class<? extends GraphOutputAdapter> adapterClass;
 	
 	private final int id;
 	
-	private GraphOutputFormat(int id) {
+	private GraphOutputFormat(Class<? extends GraphOutputAdapter> adapterClass, int id) {
+		this.adapterClass = adapterClass;
 		this.id = id;
+	}
+	
+	protected Class<? extends GraphOutputAdapter> getAdapterClass() {
+		return this.adapterClass;
 	}
 	
 	public int getId() {
@@ -33,19 +43,6 @@ public enum GraphOutputFormat {
             }
         }
         throw new InvalidParameterException();
-	}
-	
-	public GraphOutputAdapter getAdapterInstance() {
-		switch (this) {
-			case GRAPH_ML:
-				return new GraphMlGraphOutputAdapter();
-			case WEIGHTED_EDGE_LIST:
-				return new WeightedEdgeListGraphOutputAdapter();
-			case META_XML:
-				return new MetaXmlGraphOutputAdapter();
-			default:
-				throw new NotImplementedException("Graph output adapter not registered.");
-		}
 	}
 
 	@Override

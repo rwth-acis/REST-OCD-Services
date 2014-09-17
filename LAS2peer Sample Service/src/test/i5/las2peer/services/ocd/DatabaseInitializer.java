@@ -10,12 +10,11 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverId;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.CustomGraphId;
-import i5.las2peer.services.ocd.metrics.ExtendedModularity;
-import i5.las2peer.services.ocd.metrics.MetricException;
+import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
+import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.metrics.OcdMetricExecutor;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
-import i5.las2peer.services.ocd.utils.RequestHandler;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 import java.text.DecimalFormat;
@@ -23,7 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
+import javax.persistence.Persistence;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Test;
@@ -33,18 +34,14 @@ import org.junit.Test;
  * All tests will be executed when running the 'database' target of the ant build file.
  */
 public class DatabaseInitializer {
-
-	private RequestHandler requestHandler = new RequestHandler();
 	
-	public DatabaseInitializer() {
-		RequestHandler.setPersistenceUnit("test");
-	}
+	EntityManagerFactory emf = Persistence.createEntityManagerFactory("test");
 	
 	private final String username = "User";
 	
 	public CustomGraphId createGraph(CustomGraph graph) throws AdapterException, FileNotFoundException, ParserConfigurationException {
 		graph.setUserName(username);
-		EntityManager em = requestHandler.getEntityManager();
+		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
 		try {
 			tx.begin();
@@ -60,8 +57,8 @@ public class DatabaseInitializer {
 		return new CustomGraphId(graph.getId(), username);
 	}
 	
-	public CoverId createRealWorldCover(OcdAlgorithm algorithm, CustomGraphId gId, String name, List<StatisticalMeasure> statMetrics) throws OcdAlgorithmException, InterruptedException, MetricException {
-		EntityManager em = requestHandler.getEntityManager();
+	public CoverId createRealWorldCover(OcdAlgorithm algorithm, CustomGraphId gId, String name, List<StatisticalMeasure> statMetrics) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
+		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
 		CustomGraph graph;
 		Cover cover;
@@ -88,15 +85,15 @@ public class DatabaseInitializer {
 	}
 	
 	@Test
-	public void initDatabase() throws AdapterException, FileNotFoundException, ParserConfigurationException, OcdAlgorithmException, MetricException, InterruptedException {
+	public void initDatabase() throws AdapterException, FileNotFoundException, ParserConfigurationException, OcdAlgorithmException, OcdMetricException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		CustomGraphId aperiodicId = createGraph(graph);
 		graph = OcdTestGraphFactory.getSawmillGraph();
 		CustomGraphId sawmillId = createGraph(graph);
 		graph = OcdTestGraphFactory.getDolphinsGraph();
-		CustomGraphId dolphinsId = createGraph(graph);
+		createGraph(graph);
 		graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
-		CustomGraphId directedAperiodicId = createGraph(graph);
+		createGraph(graph);
 		DecimalFormat df = new DecimalFormat("00");
 		for(int i=0; i<10; i++) {
 			graph = OcdTestGraphFactory.getMiniServiceTestGraph();
@@ -104,10 +101,10 @@ public class DatabaseInitializer {
 			createGraph(graph);
 		}
 		List<StatisticalMeasure> statMetrics = new ArrayList<StatisticalMeasure>();
-		statMetrics.add(new ExtendedModularity());
-		CoverId slpaAperiodicId = createRealWorldCover(new SpeakerListenerLabelPropagationAlgorithm(), aperiodicId, "SLPA on ATC", statMetrics);
-		CoverId slpaSawmill = createRealWorldCover(new SpeakerListenerLabelPropagationAlgorithm(), sawmillId, "SLPA on Sawmill", new ArrayList<StatisticalMeasure>());
-		CoverId rawlpaSawmill = createRealWorldCover(new BinarySearchRandomWalkLabelPropagationAlgorithm(), sawmillId, "RAW LPA on Sawmill", statMetrics);
+		statMetrics.add(new ExtendedModularityMetric());
+		createRealWorldCover(new SpeakerListenerLabelPropagationAlgorithm(), aperiodicId, "SLPA on ATC", statMetrics);
+		createRealWorldCover(new SpeakerListenerLabelPropagationAlgorithm(), sawmillId, "SLPA on Sawmill", new ArrayList<StatisticalMeasure>());
+		createRealWorldCover(new BinarySearchRandomWalkLabelPropagationAlgorithm(), sawmillId, "RAW LPA on Sawmill", statMetrics);
 	}
 
 }

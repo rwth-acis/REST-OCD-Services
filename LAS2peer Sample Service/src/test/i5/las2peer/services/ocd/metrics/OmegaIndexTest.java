@@ -6,13 +6,9 @@ import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
-import i5.las2peer.services.ocd.metrics.MetricException;
-import i5.las2peer.services.ocd.metrics.MetricType;
-import i5.las2peer.services.ocd.metrics.OcdMetricExecutor;
-import i5.las2peer.services.ocd.metrics.OmegaIndex;
-import i5.las2peer.services.ocd.testsUtil.OcdTestCoverFactory;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestCoverFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
@@ -23,6 +19,7 @@ public class OmegaIndexTest {
 	/*
 	 * Tests SLPA result on sawmill.
 	 */
+	@Ignore
 	@Test
 	public void testOnSawmillRawLpa() throws Exception {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
@@ -44,17 +41,17 @@ public class OmegaIndexTest {
 	public void testOnSawmillGroundTruth() throws Exception {
 		KnowledgeDrivenMeasure metric = new OmegaIndex();
 		Cover cover = OcdTestCoverFactory.getSawmillGroundTruth();
-		metric.measure(cover, cover);
+		double value = metric.measure(cover, cover);
 		System.out.println("Sawmill Ground Truth");
-		System.out.println(cover);
-		assertEquals(1.0, cover.getMetric(MetricType.OMEGA_INDEX).getValue(), 0.001);
+		System.out.println(value);
+		assertEquals(1.0, value, 0.001);
 	}
 
 	/*
 	 * Tests for two covers with a known result.
 	 */
 	@Test
-	public void testWithKnownResult() throws OcdAlgorithmException, MetricException {
+	public void testWithKnownResult() throws OcdAlgorithmException, OcdMetricException {
 		CustomGraph graph = new CustomGraph();
 		for(int i=0; i<11; i++) {
 			graph.createNode();
@@ -92,10 +89,10 @@ public class OmegaIndexTest {
 		memberships2.set(10, 1, 1);
 		Cover groundTruth = new Cover(graph, memberships2);
 		KnowledgeDrivenMeasure metric = new OmegaIndex();
-		metric.measure(cover, groundTruth);
-		assertEquals(0.313, cover.getMetric(MetricType.OMEGA_INDEX).getValue(), 0.01);
+		double value = metric.measure(cover, groundTruth);
+		assertEquals(0.313, value, 0.01);
 		System.out.println("Known Result");
-		System.out.println(cover);
+		System.out.println(value);
 	}
 	
 }

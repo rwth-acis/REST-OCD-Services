@@ -32,8 +32,8 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	}
 	
 	@Override
-	public AlgorithmType getAlgorithmType() {
-		return AlgorithmType.MERGING_OF_OVERLAPPING_COMMUNITIES_ALGORITHM;
+	public CoverCreationType getAlgorithmType() {
+		return CoverCreationType.MERGING_OF_OVERLAPPING_COMMUNITIES_ALGORITHM;
 	}
 	
 	@Override

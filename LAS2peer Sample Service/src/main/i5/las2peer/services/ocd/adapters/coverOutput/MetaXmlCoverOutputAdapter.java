@@ -2,9 +2,7 @@ package i5.las2peer.services.ocd.adapters.coverOutput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.metrics.MetricLog;
-
-import java.text.SimpleDateFormat;
+import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -50,30 +48,33 @@ public class MetaXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 			graphNameElt.appendChild(doc.createTextNode(cover.getGraph().getName()));
 			graphElt.appendChild(graphNameElt);
 			coverElt.appendChild(graphElt);
-			Element lastUpdateElt = doc.createElement("LastUpdate");
-			if(cover.getLastUpdate() != null) {
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd hh:mm:ss");
-				lastUpdateElt.appendChild(doc.createTextNode(dateFormat.format(cover.getLastUpdate())));
-				coverElt.appendChild(lastUpdateElt);
-			}
+//			Element lastUpdateElt = doc.createElement("LastUpdate");
+//			if(cover.getLastUpdate() != null) {
+//				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd hh:mm:ss");
+//				lastUpdateElt.appendChild(doc.createTextNode(dateFormat.format(cover.getLastUpdate())));
+//				coverElt.appendChild(lastUpdateElt);
+//			}
 			/*
-			 * Algorithm
+			 * Creation Method
 			 */
-			Element algorithmElt = doc.createElement("Algorithm");
-			Element algoTypeElt = doc.createElement("Type");
-			algoTypeElt.appendChild(doc.createTextNode(cover.getAlgorithm().getType().name()));
-			algorithmElt.appendChild(algoTypeElt);
-			Element algoStatusElt = doc.createElement("Status");
-			algoStatusElt.appendChild(doc.createTextNode(cover.getAlgorithm().getStatus().name()));
-			algorithmElt.appendChild(algoStatusElt);
-			coverElt.appendChild(algorithmElt);
+			Element creationMethodElt = doc.createElement("CreationMethod");
+			Element creationMethodTypeElt = doc.createElement("Type");
+			creationMethodTypeElt.appendChild(doc.createTextNode(cover.getCreationMethod().getType().name()));
+			creationMethodElt.appendChild(creationMethodTypeElt);
+			Element creationMethodStatusElt = doc.createElement("Status");
+			creationMethodStatusElt.appendChild(doc.createTextNode(cover.getCreationMethod().getStatus().name()));
+			creationMethodElt.appendChild(creationMethodStatusElt);
+			coverElt.appendChild(creationMethodElt);
 			/*
 			 * Metrics
 			 */
 			Element metricsElt = doc.createElement("Metrics");
 			for(int i=0; i<cover.getMetrics().size(); i++) {
-				MetricLog metric = cover.getMetrics().get(i);
+				OcdMetricLog metric = cover.getMetrics().get(i);
 				Element metricElt = doc.createElement("Metric");
+				Element metricIdElt = doc.createElement("Id");
+				metricIdElt.appendChild(doc.createTextNode(Long.toString(metric.getId())));
+				metricElt.appendChild(metricIdElt);
 				Element metricTypeElt = doc.createElement("Type");
 				metricTypeElt.appendChild(doc.createTextNode(metric.getType().name()));
 				metricElt.appendChild(metricTypeElt);

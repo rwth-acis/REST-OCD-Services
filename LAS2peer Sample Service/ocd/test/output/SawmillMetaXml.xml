@@ -6,4 +6,8 @@
 <NodeCount>36</NodeCount>
 <EdgeCount>124</EdgeCount>
 <Types/>
+<CreationMethod>
+<Type>REAL_WORLD</Type>
+<Status>COMPLETED</Status>
+</CreationMethod>
 </Graph>

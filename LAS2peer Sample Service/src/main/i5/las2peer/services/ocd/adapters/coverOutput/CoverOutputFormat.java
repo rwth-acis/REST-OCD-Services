@@ -3,23 +3,33 @@ package i5.las2peer.services.ocd.adapters.coverOutput;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 /**
- * Representation of Graph Input Formats.
+ * CoverOutputAdapter registry.
+ * Used for factory instantiation, persistence or other context.
  * @author Sebastian
  *
  */
 public enum CoverOutputFormat {
 
-	META_XML (0),
-	DEFAULT_XML (1),
-	LABELED_MEMBERSHIP_MATRIX (2);
+	/*
+	 * Each enum constant is instantiated with a corresponding CoverOutputAdapter class object and a UNIQUE id.
+	 * Once the framework is in use ids must not be changed to avoid corrupting the persisted data.
+	 */
+	META_XML (MetaXmlCoverOutputAdapter.class, 0),
+	DEFAULT_XML (DefaultXmlCoverOutputAdapter.class, 1),
+	LABELED_MEMBERSHIP_MATRIX (LabeledMembershipMatrixCoverOutputAdapter.class, 2);
+	
+	private final Class<? extends CoverOutputAdapter> adapterClass;
 	
 	private final int id;
 	
-	private CoverOutputFormat(int id) {
+	private CoverOutputFormat(Class<? extends CoverOutputAdapter> adapterClass, int id) {
+		this.adapterClass = adapterClass;
 		this.id = id;
+	}
+	
+	protected final Class<? extends CoverOutputAdapter> getAdapterClass() {
+		return this.adapterClass;
 	}
 	
 	public int getId() {
@@ -33,19 +43,6 @@ public enum CoverOutputFormat {
             }
         }
         throw new InvalidParameterException();
-	}
-	
-	public CoverOutputAdapter getAdapterInstance() {
-		switch (this) {
-			case META_XML:
-				return new MetaXmlCoverOutputAdapter();
-			case DEFAULT_XML:
-				return new DefaultXmlCoverOutputAdapter();
-			case LABELED_MEMBERSHIP_MATRIX:
-				return new LabeledMembershipMatrixCoverOutputAdapter();
-			default:
-				throw new NotImplementedException("Cover output adapter not registered.");
-		}
 	}
 
 	@Override

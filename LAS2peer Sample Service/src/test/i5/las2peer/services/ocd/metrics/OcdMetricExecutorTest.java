@@ -4,11 +4,11 @@ import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.metrics.ExtendedModularity;
-import i5.las2peer.services.ocd.metrics.MetricException;
-import i5.las2peer.services.ocd.metrics.MetricType;
+import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
+import i5.las2peer.services.ocd.metrics.OcdMetricException;
+import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.OcdMetricExecutor;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
@@ -17,7 +17,7 @@ import org.la4j.matrix.sparse.CCSMatrix;
 public class OcdMetricExecutorTest {
 
 	@Test
-	public void testExtendedModularityOnDirectedAperiodicTwoCommunities() throws OcdAlgorithmException, MetricException {
+	public void testExtendedModularityOnDirectedAperiodicTwoCommunities() throws OcdAlgorithmException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
 		Matrix memberships = new CCSMatrix(graph.nodeCount(), 3);
 		memberships.set(0, 0, 1);
@@ -38,10 +38,10 @@ public class OcdMetricExecutorTest {
 		memberships.set(10, 1, 0.4);
 		memberships.set(10, 2, 0.2);
 		Cover cover = new Cover(graph, memberships);
-		ExtendedModularity metric = new ExtendedModularity();
+		ExtendedModularityMetric metric = new ExtendedModularityMetric();
 		OcdMetricExecutor executor = new OcdMetricExecutor();
 		executor.executeStatisticalMeasure(cover, metric);
-		assertEquals(0.581, cover.getMetric(MetricType.EXTENDED_MODULARITY).getValue(), 0.01);
+		assertEquals(0.581, cover.getMetric(OcdMetricType.EXTENDED_MODULARITY).getValue(), 0.01);
 		System.out.println(cover);
 	}
 

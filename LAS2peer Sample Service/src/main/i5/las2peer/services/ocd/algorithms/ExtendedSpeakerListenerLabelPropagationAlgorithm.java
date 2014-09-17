@@ -76,8 +76,8 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 	}
 	
 	@Override
-	public AlgorithmType getAlgorithmType() {
-		return AlgorithmType.EXTENDED_SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM;
+	public CoverCreationType getAlgorithmType() {
+		return CoverCreationType.EXTENDED_SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM;
 	}
 	
 	@Override

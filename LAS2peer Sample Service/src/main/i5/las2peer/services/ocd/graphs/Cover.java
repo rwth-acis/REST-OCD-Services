@@ -1,13 +1,12 @@
 package i5.las2peer.services.ocd.graphs;
 
-import i5.las2peer.services.ocd.algorithms.AlgorithmLog;
-import i5.las2peer.services.ocd.algorithms.AlgorithmType;
-import i5.las2peer.services.ocd.metrics.MetricLog;
-import i5.las2peer.services.ocd.metrics.MetricType;
+import i5.las2peer.services.ocd.algorithms.CoverCreationLog;
+import i5.las2peer.services.ocd.algorithms.CoverCreationType;
+import i5.las2peer.services.ocd.metrics.OcdMetricLog;
+import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.utils.NonZeroEntriesVectorProcedure;
 
 import java.awt.Color;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,17 +17,14 @@ import java.util.Map;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import javax.persistence.Version;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -53,15 +49,17 @@ public class Cover {
 	private static final String nameColumnName = "NAME";
 	private static final String descriptionColumnName = "DESCRIPTION";
 	public static final String idColumnName = "ID";
-	private static final String lastUpdateColumnName = "LAST_UPDATE";
-	private static final String algorithmColumnName = "ALGORITHM";
+//	private static final String lastUpdateColumnName = "LAST_UPDATE";
+	private static final String creationMethodColumnName = "CREATION_METHOD";
 	
 	/*
 	 * Field name definitions for JPQL queries.
 	 */
 	
 	public static final String GRAPH_FIELD_NAME = "graph";
-	public static final String ALGORITHM_FIELD_NAME  = "algorithm";
+	public static final String CREATION_METHOD_FIELD_NAME  = "creationMethod";
+	public static final String METRICS_FIELD_NAME = "metrics";
+	public static final String ID_FIELD_NAME = "id";
 	
 	///////////////////////// ATTRIBUTES
 	/**
@@ -75,7 +73,7 @@ public class Cover {
 	 * The graph that the cover is based on.
 	 */
 	@Id
-	@ManyToOne(fetch=FetchType.LAZY)
+	//@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumns( {
 		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
 		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
@@ -91,22 +89,22 @@ public class Cover {
 	 */
 	@Column(name = descriptionColumnName)
 	private String description = "";
-	/**
-	 * Last time of modification.
-	 */
-	@Version
-	@Column(name = lastUpdateColumnName)
-	private Timestamp lastUpdate;
+//	/**
+//	 * Last time of modification.
+//	 */
+//	@Version
+//	@Column(name = lastUpdateColumnName)
+//	private Timestamp lastUpdate;
 	/**
 	 * Logged data about the algorithm that created the cover.
 	 */
 	@OneToOne(orphanRemoval = true, cascade={CascadeType.ALL})
-	@JoinColumn(name = algorithmColumnName)
-	private AlgorithmLog algorithm = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
-	@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade={CascadeType.ALL}, fetch=FetchType.LAZY)
+	@JoinColumn(name = creationMethodColumnName)
+	private CoverCreationLog creationMethod = new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
+	@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade={CascadeType.ALL} /*, fetch=FetchType.LAZY */)
 	private List<Community> communities = new ArrayList<Community>();
 	@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade={CascadeType.ALL})
-	private List<MetricLog> metrics = new ArrayList<MetricLog>();
+	private List<OcdMetricLog> metrics = new ArrayList<OcdMetricLog>();
 	
 	/////////////////////////////////////////// METHODS AND CONSTRUCTORS
 	
@@ -176,7 +174,7 @@ public class Cover {
 			throw new IllegalArgumentException("The row number of the membership matrix must correspond to the graph node count.");
 		}
 		communities.clear();
-		MetricLog executionTime = getMetric(MetricType.EXECUTION_TIME);
+		OcdMetricLog executionTime = getMetric(OcdMetricType.EXECUTION_TIME);
 		metrics.clear();
 		if(executionTime != null && keepExecutionTime) {
 			metrics.add(executionTime);
@@ -226,30 +224,30 @@ public class Cover {
 		this.description = description;
 	}
 
-	public Timestamp getLastUpdate() {
-		return lastUpdate;
+//	public Timestamp getLastUpdate() {
+//		return lastUpdate;
+//	}
+
+	public CoverCreationLog getCreationMethod() {
+		return creationMethod;
 	}
 
-	public AlgorithmLog getAlgorithm() {
-		return algorithm;
-	}
-
-	public void setAlgorithm(AlgorithmLog algorithm) {
-		if(algorithm != null) {
-			this.algorithm = algorithm;
+	public void setCreationMethod(CoverCreationLog creationMethod) {
+		if(creationMethod != null) {
+			this.creationMethod = creationMethod;
 		}
 		else {
-			this.algorithm = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
+			this.creationMethod = new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
 		}
 	}
 
-	public List<MetricLog> getMetrics() {
+	public List<OcdMetricLog> getMetrics() {
 		return metrics;
 	}
 
-	public void setMetrics(List<MetricLog> metrics) {
+	public void setMetrics(List<OcdMetricLog> metrics) {
 		this.metrics.clear();
-		for(MetricLog metric : metrics) {
+		for(OcdMetricLog metric : metrics) {
 			if(metric != null)
 				this.metrics.add(metric);
 		}
@@ -260,8 +258,8 @@ public class Cover {
 	 * @param metricType
 	 * @return The metric. Null if no such metric exists.
 	 */
-	public MetricLog getMetric(MetricType metricType) {
-		for(MetricLog metric : this.metrics){
+	public OcdMetricLog getMetric(OcdMetricType metricType) {
+		for(OcdMetricLog metric : this.metrics){
 			if(metricType == metric.getType()) {
 				return metric;
 			}
@@ -269,10 +267,14 @@ public class Cover {
 		return null;
 	}
 	
-	public void addMetric(MetricLog metric) {
+	public void addMetric(OcdMetricLog metric) {
 		if(metric != null) {
 			this.metrics.add(metric);
 		}
+	}
+	
+	public void removeMetric(OcdMetricLog metric) {
+		this.metrics.remove(metric);
 	}
 	
 	public int communityCount() {
@@ -362,12 +364,12 @@ public class Cover {
 	public String toString() {
 		String coverString = "Cover: " + getName() + "\n";
 		coverString += "Graph: " + getGraph().getName() + "\n";
-		coverString += "Algorithm: " + getAlgorithm().getType().toString() + "\n" + "params:" + "\n";
-		for(Map.Entry<String, String> entry : getAlgorithm().getParameters().entrySet()) {
+		coverString += "Algorithm: " + getCreationMethod().getType().toString() + "\n" + "params:" + "\n";
+		for(Map.Entry<String, String> entry : getCreationMethod().getParameters().entrySet()) {
 			coverString += entry.getKey() + " = " + entry.getValue() + "\n";
 		}
 		coverString += "Community Count: " + communityCount() + "\n";
-		MetricLog metric;
+		OcdMetricLog metric;
 		for(int i=0; i<metrics.size(); i++) {
 			metric = metrics.get(i);
 			coverString += metric.getType().toString() + " = ";

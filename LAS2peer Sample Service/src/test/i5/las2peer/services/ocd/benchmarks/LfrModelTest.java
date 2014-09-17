@@ -1,8 +1,8 @@
 package i5.las2peer.services.ocd.benchmarks;
 
 import static org.junit.Assert.assertEquals;
-import i5.las2peer.services.ocd.benchmarks.BenchmarkException;
-import i5.las2peer.services.ocd.benchmarks.LfrModel;
+import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkException;
+import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
@@ -14,8 +14,8 @@ import y.base.NodeCursor;
 public class LfrModelTest {
 	
 	@Test
-	public void test() throws BenchmarkException {
-		LfrModel model = new LfrModel(12, 0.1, 0.5);
+	public void test() throws OcdBenchmarkException, InterruptedException {
+		LfrBenchmark model = new LfrBenchmark(12, 0.1, 0.5);
 		Cover cover = model.createGroundTruthCover();
 		CustomGraph graph = cover.getGraph();
 		assertEquals(1000, graph.nodeCount());
@@ -23,8 +23,8 @@ public class LfrModelTest {
 	}
 	
 	@Test
-	public void testLowerBound() throws BenchmarkException {
-		LfrModel model = new LfrModel(24, 0.3, 0);
+	public void testLowerBound() throws OcdBenchmarkException, InterruptedException {
+		LfrBenchmark model = new LfrBenchmark(24, 0.3, 0);
 		Cover cover = model.createGroundTruthCover();
 		CustomGraph graph = cover.getGraph();
 		assertEquals(1000, graph.nodeCount());
@@ -32,8 +32,8 @@ public class LfrModelTest {
 	}
 	
 	@Test
-	public void testUpperBound() throws BenchmarkException {
-		LfrModel model = new LfrModel(24, 0.3, 1);
+	public void testUpperBound() throws OcdBenchmarkException, InterruptedException {
+		LfrBenchmark model = new LfrBenchmark(24, 0.3, 1);
 		Cover cover = model.createGroundTruthCover();
 		CustomGraph graph = cover.getGraph();
 		assertEquals(1000, graph.nodeCount());
@@ -41,8 +41,8 @@ public class LfrModelTest {
 	}
 	
 	@Test
-	public void testMembershipCounts() throws BenchmarkException {
-		LfrModel model = new LfrModel(24, 0.3, 0.5);
+	public void testMembershipCounts() throws OcdBenchmarkException, InterruptedException {
+		LfrBenchmark model = new LfrBenchmark(24, 0.3, 0.5);
 		Cover cover = model.createGroundTruthCover();
 		CustomGraph graph = cover.getGraph();
 		assertEquals(1000, graph.nodeCount());

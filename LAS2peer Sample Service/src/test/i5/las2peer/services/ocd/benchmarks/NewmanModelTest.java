@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import i5.las2peer.services.ocd.benchmarks.NewmanModel;
+import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
@@ -16,9 +16,9 @@ import y.base.NodeCursor;
 public class NewmanModelTest {
 
 	@Test
-	public void testCreateGroundTruthCover() {
+	public void testCreateGroundTruthCover() throws InterruptedException {
 		for(int i = 0; i<9; i++) {
-			NewmanModel model = new NewmanModel(i);
+			NewmanBenchmark model = new NewmanBenchmark(i);
 			Cover cover = model.createGroundTruthCover();
 			assertNotNull(cover);
 			CustomGraph graph = cover.getGraph();

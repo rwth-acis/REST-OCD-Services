@@ -134,8 +134,8 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	}
 	
 	@Override
-	public AlgorithmType getAlgorithmType() {
-		return AlgorithmType.CLIZZ_ALGORITHM;
+	public CoverCreationType getAlgorithmType() {
+		return CoverCreationType.CLIZZ_ALGORITHM;
 	}
 	
 	/*

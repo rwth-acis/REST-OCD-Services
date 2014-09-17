@@ -39,8 +39,8 @@ public class LinkCommunitiesAlgorithm implements
 	}
 	
 	@Override
-	public AlgorithmType getAlgorithmType() {
-		return AlgorithmType.LINK_COMMUNITIES_ALGORITHM;
+	public CoverCreationType getAlgorithmType() {
+		return CoverCreationType.LINK_COMMUNITIES_ALGORITHM;
 	}
 	
 	@Override

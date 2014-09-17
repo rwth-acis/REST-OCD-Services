@@ -7,7 +7,7 @@ import i5.las2peer.security.ServiceAgent;
 import i5.las2peer.security.UserAgent;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.RequestHandler;
 import i5.las2peer.testing.MockAgentFactory;
 import i5.las2peer.webConnector.WebConnector;
@@ -106,6 +106,9 @@ public class ServiceTest {
 	 *  Sets up the database environment for testing.
 	 */
 	private static void setupDatabase() throws AdapterException, FileNotFoundException, ParserConfigurationException {
+		/*
+		 * Set db content
+		 */
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		createGraph(graph);
 		AperiodicTwoCommunitiesGraphId = graph.getId();
@@ -133,7 +136,7 @@ public class ServiceTest {
 			throw e;
 		}
 		em.close();
-		System.out.println(requestHandler.getId(graph));
+		System.out.println(requestHandler.writeId(graph));
 	}
 	
 	/**
@@ -177,7 +180,6 @@ public class ServiceTest {
 			c.setLogin(Long.toString(testAgent.getId()), testPass);
             ClientResponse result=c.sendRequest("GET", mainPath +"validate", "");
             assertEquals(200, result.getHttpCode());
-//            assertTrue(result.getResponse().trim().contains("adam")); //login name is part of response
 			System.out.println("Result of 'testValidateLogin': " + result.getResponse().trim());
 		}
 		catch(Exception e)

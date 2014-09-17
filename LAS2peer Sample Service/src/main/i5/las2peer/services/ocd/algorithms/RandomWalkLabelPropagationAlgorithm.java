@@ -69,8 +69,8 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	}
 
 	@Override
-	public AlgorithmType getAlgorithmType() {
-		return AlgorithmType.RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM;
+	public CoverCreationType getAlgorithmType() {
+		return CoverCreationType.RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM;
 	}
 	
 	@Override

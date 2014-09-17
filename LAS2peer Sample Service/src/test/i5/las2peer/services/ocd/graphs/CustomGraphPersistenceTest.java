@@ -3,8 +3,11 @@ package i5.las2peer.services.ocd.graphs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
+import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -146,6 +149,25 @@ public class CustomGraphPersistenceTest {
 		System.out.println("name1: " + name1);
 		System.out.println("name2: " + name2);
 		assertEquals(name1, name2);
+	}
+	
+	@Ignore
+	@Test
+	public void testEfficiency() throws AdapterException, FileNotFoundException {
+		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		try {
+			tx.begin();
+			em.persist(graph);
+			System.out.println("Commit graph");
+			tx.commit();
+			System.out.println("Commited graph");
+		} catch( RuntimeException ex ) {
+			if( tx != null && tx.isActive() ) tx.rollback();
+			throw ex;
+		}
+		em.close();
 	}
 	
 	@After

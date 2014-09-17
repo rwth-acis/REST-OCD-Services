@@ -5,9 +5,9 @@
 <Graph>
 <Name>coverPersistenceGraph</Name>
 </Graph>
-<Algorithm>
+<CreationMethod>
 <Type>UNDEFINED</Type>
-<Status>RUNNING</Status>
+<Status>WAITING</Status>
 <Parameters>
 <Parameter>
 <Name>param1</Name>
@@ -18,11 +18,12 @@
 <Value>val2</Value>
 </Parameter>
 </Parameters>
-</Algorithm>
+</CreationMethod>
 <Metrics>
 <Metric>
+<Id>0</Id>
 <Type>EXECUTION_TIME</Type>
-<Status>RUNNING</Status>
+<Status>WAITING</Status>
 <Value>3.55</Value>
 <Parameters>
 <Parameter>

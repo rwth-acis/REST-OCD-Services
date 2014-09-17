@@ -7,7 +7,7 @@ import java.io.Writer;
  * @author Sebastian
  *
  */
-public interface OutputAdapter {
+public interface OutputAdapter extends Adapter {
 	
 	/**
 	 * Returns the writer used by the adapter.

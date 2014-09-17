@@ -5,10 +5,10 @@ import static org.junit.Assert.assertTrue;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.metrics.ExtendedModularity;
-import i5.las2peer.services.ocd.metrics.MetricException;
+import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
+import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 import java.util.List;
@@ -64,8 +64,8 @@ public class CoverTest {
 	 * Tests membership filtering.
 	 */
 	@Test
-	public void testFilterMemberships() throws MetricException {
-		StatisticalMeasure metric = new ExtendedModularity();
+	public void testFilterMemberships() throws OcdMetricException {
+		StatisticalMeasure metric = new ExtendedModularityMetric();
 		metric.measure(cover);
 		/*
 		 * First row must remain unchanged and sum up to zero precisely.

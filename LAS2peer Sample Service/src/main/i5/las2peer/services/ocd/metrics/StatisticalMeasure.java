@@ -10,14 +10,17 @@ import java.util.Set;
  * @author Sebastian
  *
  */
-public interface StatisticalMeasure {
+public interface StatisticalMeasure extends OcdMetric {
 
 	/**
 	 * Measures a cover adds the resulting metric log to it.
+	 * Implementations of this method must allow to be interrupted.
+	 * I.e. they must periodically check the thread for interrupts
+	 * and throw an InterruptedException if an interrupt was detected.
 	 * @param cover The cover which is evaluated. It must also contain the corresponding graph.
-	 * @return The metric value.
+	 * @return The calculated metric value.
 	 */
-	public void measure(Cover cover) throws MetricException;
+	public double measure(Cover cover) throws OcdMetricException;
 	
 	/**
 	 * Returns the graph types which are compatible for a metric.

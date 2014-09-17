@@ -5,10 +5,10 @@ import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.metrics.ExtendedModularity;
-import i5.las2peer.services.ocd.metrics.MetricException;
+import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
+import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
@@ -135,7 +135,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 	}
 	
 	@Test
-	public void testProfitabilityDelta() throws OcdAlgorithmException, AdapterException, FileNotFoundException, MetricException, InterruptedException {
+	public void testProfitabilityDelta() throws OcdAlgorithmException, AdapterException, FileNotFoundException, OcdMetricException, InterruptedException {
 		System.out.println();
 		System.out.println();
 		System.out.println("Test Profitability Delta");
@@ -151,7 +151,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		profitabililtyDeltas[8] = 0.250;
 		profitabililtyDeltas[9] = 0.275;
 		profitabililtyDeltas[10] = 0.300;
-		StatisticalMeasure metric = new ExtendedModularity();
+		StatisticalMeasure metric = new ExtendedModularityMetric();
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		for(int i=0; i < profitabililtyDeltas.length; i++) {
 			System.out.println("Delta: " + profitabililtyDeltas[i]);

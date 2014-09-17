@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.ocd.algorithms.utils.SlpaListenerRuleCommand;
 import i5.las2peer.services.ocd.algorithms.utils.SlpaPopularityListenerRule;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.util.HashMap;
 import java.util.Map;

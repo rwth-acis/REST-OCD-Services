@@ -39,8 +39,8 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	}
 	
 	@Override
-	public AlgorithmType getAlgorithmType() {
-		return AlgorithmType.WEIGHTED_LINK_COMMUNITIES_ALGORITHM;
+	public CoverCreationType getAlgorithmType() {
+		return CoverCreationType.WEIGHTED_LINK_COMMUNITIES_ALGORITHM;
 	}
 	
 	@Override

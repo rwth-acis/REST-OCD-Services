@@ -1,7 +1,7 @@
 package i5.las2peer.services.ocd.graphs;
 
-import i5.las2peer.services.ocd.algorithms.AlgorithmLog;
-import i5.las2peer.services.ocd.algorithms.AlgorithmType;
+import i5.las2peer.services.ocd.algorithms.CoverCreationLog;
+import i5.las2peer.services.ocd.algorithms.CoverCreationType;
 import i5.las2peer.services.ocd.utils.Pair;
 
 import java.util.ArrayList;
@@ -227,9 +227,9 @@ public class GraphProcessor {
 		}
 		Matrix memberships = new CCSMatrix(graph.nodeCount(), totalCommunityCount);
 		Cover currentCover = null;
-		AlgorithmLog algo = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
+		CoverCreationLog algo = new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
 		if(!componentCovers.isEmpty()) {
-			algo = componentCovers.get(0).getFirst().getAlgorithm();
+			algo = componentCovers.get(0).getFirst().getCreationMethod();
 		}
 		NodeCursor currentNodes;
 		Node node;
@@ -247,12 +247,12 @@ public class GraphProcessor {
 				currentNodes.next();
 			}
 			currentCoverFirstCommunityIndex += currentCover.communityCount();
-			if(!currentCover.getAlgorithm().equals(algo)) {
-				algo = new AlgorithmLog(AlgorithmType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
+			if(!currentCover.getCreationMethod().equals(algo)) {
+				algo = new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
 			}
 		}
 		Cover cover = new Cover(graph, memberships);
-		cover.setAlgorithm(algo);
+		cover.setCreationMethod(algo);
 		return cover;
 	}
 

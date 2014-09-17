@@ -18,7 +18,7 @@ public enum ExecutionStatus {
 	 */
 	RUNNING(1),
 	/**
-	 * Has completed its execution.
+	 * Has successfully completed its execution.
 	 */
 	COMPLETED(2),
 	/**

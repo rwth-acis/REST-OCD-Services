@@ -1,6 +1,6 @@
 package i5.las2peer.services.ocd.utils;
 
-import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmarkModel;
+import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkExecutor;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverId;
@@ -20,13 +20,13 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 	/**
 	 * The benchmark used for calculating a ground truth cover.
 	 */
-	private GroundTruthBenchmarkModel benchmark;
+	private GroundTruthBenchmark benchmark;
 	/**
 	 * The thread handler in charge of the calculation.
 	 */
 	private ThreadHandler threadHandler;
 	
-	public GroundTruthBenchmarkRunnable(CoverId coverId, GroundTruthBenchmarkModel benchmark, ThreadHandler threadHandler) {
+	public GroundTruthBenchmarkRunnable(CoverId coverId, GroundTruthBenchmark benchmark, ThreadHandler threadHandler) {
 		this.coverId = coverId;
 		this.benchmark = benchmark;
 		this.threadHandler = threadHandler;
@@ -52,8 +52,8 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 				throw new IllegalStateException();
 			}
 			CustomGraph graph = cover.getGraph();
-			cover.getAlgorithm().setStatus(ExecutionStatus.RUNNING);
-			graph.getBenchmark().setStatus(ExecutionStatus.RUNNING);
+			cover.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
+			graph.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
 			tx.commit();
 		}  catch( RuntimeException e ) {
 			if( tx != null && tx.isActive() ) {
@@ -72,6 +72,9 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 	        	}
 			}
 	        catch (InterruptedException e) {
+	        	////////// TODO remove
+	        	System.out.println("KILLED");
+	        	/////////////
 	        	return;
 	        }
 			catch (Exception e) {

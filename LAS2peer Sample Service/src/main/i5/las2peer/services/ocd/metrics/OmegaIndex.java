@@ -13,7 +13,16 @@ import y.base.NodeCursor;
 public class OmegaIndex implements KnowledgeDrivenMeasure {
 	
 	@Override
-	public void measure(Cover cover, Cover groundTruth) throws MetricException {
+	public void setParameters(Map<String, String> parameters) {
+	}
+
+	@Override
+	public Map<String, String> getParameters() {
+		return new HashMap<String, String>();
+	}
+	
+	@Override
+	public double measure(Cover cover, Cover groundTruth) throws OcdMetricException {
 		Map<Set<Node>, Integer> sharedCommunitiesAlgo = getSharedCommunities(cover);
 		Map<Set<Node>, Integer> sharedCommunitiesTruth = getSharedCommunities(groundTruth);
 		int pairsInAgreementCount = 0;
@@ -76,8 +85,7 @@ public class OmegaIndex implements KnowledgeDrivenMeasure {
 		double unadjustedIndex = 1d / (double) pairsCount * (double) pairsInAgreementCount;
 		double expectedIndex = calculateExpectedIndex(sharedCommunityCountsAlgo, sharedCommunityCountsTruth, pairsCount);
 		double metricValue = (unadjustedIndex - expectedIndex) / (1 - expectedIndex);
-		MetricLog metric = new MetricLog(MetricType.OMEGA_INDEX, metricValue, new HashMap<String, String>(), cover);
-		cover.addMetric(metric);
+		return metricValue;
 	}
 	
 	/*

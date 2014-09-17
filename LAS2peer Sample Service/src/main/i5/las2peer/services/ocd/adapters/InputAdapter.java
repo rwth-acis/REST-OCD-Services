@@ -7,7 +7,7 @@ import java.io.Reader;
  * @author Sebastian
  *
  */
-public interface InputAdapter {
+public interface InputAdapter extends Adapter {
 
 	/**
 	 * Returns the reader used by the adapter.

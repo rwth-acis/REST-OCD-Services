@@ -3,11 +3,9 @@ package i5.las2peer.services.ocd.graphs;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -41,7 +39,7 @@ public class CustomEdge {
 	private int id;
 	
 	@Id
-	@ManyToOne(fetch=FetchType.LAZY)
+	@ManyToOne//(fetch=FetchType.LAZY)
 	@JoinColumns({
 		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
 		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
@@ -55,7 +53,7 @@ public class CustomEdge {
 	 * Attributes from y.base.Edge
 	 * Only for persistence.
 	 */
-	@ManyToOne(cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+	@ManyToOne//(cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
 	@JoinColumns( {
 		@JoinColumn(name = sourceIndexColumnName, referencedColumnName = CustomNode.idColumnName),
 		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomNode.graphIdColumnName, insertable=false, updatable=false),
@@ -63,7 +61,7 @@ public class CustomEdge {
 	} )
 	private CustomNode source;
 	
-	@ManyToOne(cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+	@ManyToOne//(cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
 	@JoinColumns( {
 		@JoinColumn(name = targetIndexColumnName, referencedColumnName = CustomNode.idColumnName),
 		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomNode.graphIdColumnName, insertable=false, updatable=false),

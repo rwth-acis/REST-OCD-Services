@@ -33,8 +33,10 @@ public class LabeledMembershipMatrixCoverOutputAdapter extends AbstractCoverOutp
 				for(int i=0; i<cover.communityCount(); i++) {
 					writer.write(String.format("%.4f ", cover.getBelongingFactor(node, i)));
 				}
-				writer.write("\n");
 				nodes.next();
+				if(nodes.ok()) {
+					writer.write("\n");
+				}
 			}
 		}
 		catch (Exception e) {

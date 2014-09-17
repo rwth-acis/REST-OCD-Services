@@ -9,12 +9,12 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import i5.las2peer.services.ocd.metrics.ExtendedModularity;
-import i5.las2peer.services.ocd.metrics.MetricType;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 import java.util.HashSet;
+
+import jdk.nashorn.internal.ir.annotations.Ignore;
 
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
@@ -36,22 +36,23 @@ public class ExtendedModularityMetricTest {
 			memberships.set(i, 0, 1);
 		}
 		Cover cover = new Cover(graph, memberships);
-		ExtendedModularity metric = new ExtendedModularity();
-		metric.measure(cover);
-		assertEquals(0, cover.getMetric(MetricType.EXTENDED_MODULARITY).getValue(), 0.0001);
+		ExtendedModularityMetric metric = new ExtendedModularityMetric();
+		double value = metric.measure(cover);
+		assertEquals(0, value, 0.0001);
 		System.out.println("1 Community");
-		System.out.println(cover.toString());
+		System.out.println(value);
 	}
 	
+	@Ignore
 	@Test
 	public void testExtendedModularityOnSawmillSLPA() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		ExtendedModularity metric = new ExtendedModularity();
-		metric.measure(cover);
+		ExtendedModularityMetric metric = new ExtendedModularityMetric();
+		double value = metric.measure(cover);
 		System.out.println("Sawmill SLPA");
-		System.out.println(cover.toString());
+		System.out.println(value);
 	}
 	
 	@Test
@@ -76,10 +77,10 @@ public class ExtendedModularityMetricTest {
 		memberships.set(10, 1, 0.4);
 		memberships.set(10, 2, 0.2);
 		Cover cover = new Cover(graph, memberships);
-		ExtendedModularity metric = new ExtendedModularity();
-		metric.measure(cover);
-		assertEquals(0.581, cover.getMetric(MetricType.EXTENDED_MODULARITY).getValue(), 0.01);
-		System.out.println(cover);
+		ExtendedModularityMetric metric = new ExtendedModularityMetric();
+		double value = metric.measure(cover);
+		assertEquals(0.581, value, 0.01);
+		System.out.println(value);
 	}
 	
 	@Test
@@ -104,10 +105,10 @@ public class ExtendedModularityMetricTest {
 			GraphProcessor processor = new GraphProcessor();
 			processor.makeCompatible(graph, new HashSet<GraphType>());
 			Cover cover = new Cover(graph, memberships);
-			ExtendedModularity metric = new ExtendedModularity();
-			metric.measure(cover);
-			assertEquals(0, cover.getMetric(MetricType.EXTENDED_MODULARITY).getValue(), 0.0001);
-			System.out.println("m'=" + m_prime +": " + cover.getMetric(MetricType.EXTENDED_MODULARITY).getValue());
+			ExtendedModularityMetric metric = new ExtendedModularityMetric();
+			double value = metric.measure(cover);
+			assertEquals(0, value, 0.0001);
+			System.out.println("m'=" + m_prime +": " + value);
 		}
 	}
 

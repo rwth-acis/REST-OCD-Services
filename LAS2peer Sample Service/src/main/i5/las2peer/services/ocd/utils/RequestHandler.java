@@ -1,14 +1,24 @@
 package i5.las2peer.services.ocd.utils;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
+import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
+import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapterFactory;
+import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputAdapter;
+import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
+import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
+import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapterFactory;
+import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapter;
+import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
-import i5.las2peer.services.ocd.benchmarks.BenchmarkType;
+import i5.las2peer.services.ocd.algorithms.CoverCreationType;
+import i5.las2peer.services.ocd.benchmarks.GraphCreationType;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.metrics.MetricType;
+import i5.las2peer.services.ocd.metrics.OcdMetricLog;
+import i5.las2peer.services.ocd.metrics.OcdMetricType;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -19,10 +29,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -42,8 +50,6 @@ import org.xml.sax.SAXException;
 
 public class RequestHandler {
 	
-	private static final String serviceLogFilename = "ocd\\log\\OcdServiceLog";
-	
 	private static final String defaultPersistenceUnitName = "ocd";
 	
 	private static EntityManagerFactory emf = Persistence.createEntityManagerFactory(defaultPersistenceUnitName);
@@ -51,6 +57,14 @@ public class RequestHandler {
 	private static final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 	
 	private static final Logger log = Logger.getLogger("Service API");
+	
+	private static CoverOutputAdapterFactory coverOutputAdapterFactory = new CoverOutputAdapterFactory();
+	
+	private static GraphOutputAdapterFactory graphOutputAdapterFactory = new GraphOutputAdapterFactory();
+	
+	private CoverInputAdapterFactory coverInputAdapterFactory = new CoverInputAdapterFactory();
+	
+	private GraphInputAdapterFactory graphInputAdapterFactory = new GraphInputAdapterFactory();
 	
 	/**
 	 * Sets the persistence unit for all request handlers.
@@ -66,15 +80,6 @@ public class RequestHandler {
 		 */		
 		EntityManager em = emf.createEntityManager();
 		em.close();
-		/*
-		 * Init log
-		 */
-		try {
-			FileHandler fh = new FileHandler(serviceLogFilename, true);
-			fh.setFormatter(new SimpleFormatter());
-			log.addHandler(fh);
-		} catch (SecurityException | IOException e) {
-		}
 	}
 	
 	public synchronized void log(Level level, String message, Exception e) {
@@ -98,7 +103,7 @@ public class RequestHandler {
 	/*
 	 * Note that this xml is created manually in order to omit any additional exceptions.
 	 */
-	public String getError(Error error, String errorMessage) {
+	public String writeError(Error error, String errorMessage) {
 		if(errorMessage == null) {
 			errorMessage = "";
 		}
@@ -118,9 +123,9 @@ public class RequestHandler {
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 */
-	public Map<String, String> readParameters(String content) throws SAXException, IOException, ParserConfigurationException {
+	public Map<String, String> parseParameters(String content) throws SAXException, IOException, ParserConfigurationException {
 		Map<String, String> parameters = new HashMap<String, String>();
-		Document doc = this.getDocumentFromString(content);
+		Document doc = this.parseDocument(content);
 		NodeList parameterElts = doc.getElementsByTagName("Parameter");
 		for(int i=0; i<parameterElts.getLength(); i++) {
 			Node node = parameterElts.item(i);
@@ -154,87 +159,107 @@ public class RequestHandler {
 			paramsElt.appendChild(paramElt);
 		}
 		doc.appendChild(paramsElt);
-		return this.getDocAsString(doc);
+		return this.writeDoc(doc);
 	}
 	
-	public String getConfirmationXml() throws ParserConfigurationException {
+	public String writeConfirmationXml() throws ParserConfigurationException {
 		Document doc = getDocument();
 		doc.appendChild(doc.createElement("Confirmation"));
-		return getDocAsString(doc);
+		return writeDoc(doc);
 	}
 	
-	public String getGraphIds(List<CustomGraph> graphs) throws ParserConfigurationException {
+	public String writeGraphIds(List<CustomGraph> graphs) throws ParserConfigurationException {
 		Document doc = getDocument();
 		Element graphsElt = doc.createElement("Graphs");
 		for(int i=0; i<graphs.size(); i++) {
 			graphsElt.appendChild(getIdElt(graphs.get(i), doc));
 		}
 		doc.appendChild(graphsElt);
-		return getDocAsString(doc);
+		return writeDoc(doc);
 	}
 	
-	public String getCoverIds(List<Cover> covers) throws ParserConfigurationException {
+	public String writeCoverIds(List<Cover> covers) throws ParserConfigurationException {
 		Document doc = getDocument();
 		Element coversElt = doc.createElement("Covers");
 		for(int i=0; i<covers.size(); i++) {
 			coversElt.appendChild(getIdElt(covers.get(i), doc));
 		}
 		doc.appendChild(coversElt);
-		return getDocAsString(doc);
+		return writeDoc(doc);
 	}
 	
-	public String getGraphMetas(List<CustomGraph> graphs) throws AdapterException, ParserConfigurationException, IOException, SAXException {
-		GraphOutputAdapter adapter = GraphOutputFormat.META_XML.getAdapterInstance();
+	public String writeGraphMetas(List<CustomGraph> graphs) throws AdapterException, ParserConfigurationException, IOException, SAXException, InstantiationException, IllegalAccessException {
 		Document doc = getDocument();
 		Element graphsElt = doc.createElement("Graphs");
 		for(CustomGraph graph : graphs) {
-			String metaDocStr = getGraph(graph, adapter);
-			Node metaDocNode = getDocumentFromStringAsNode(metaDocStr);
+			String metaDocStr = writeGraph(graph, GraphOutputFormat.META_XML);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
 			Node importNode = doc.importNode(metaDocNode, true);
 			graphsElt.appendChild(importNode);
 		}
 		doc.appendChild(graphsElt);
-		return getDocAsString(doc);
+		return writeDoc(doc);
 	}
 	
-	public String getCoverMetas(List<Cover> covers) throws AdapterException, ParserConfigurationException, IOException, SAXException {
-		CoverOutputAdapter adapter = CoverOutputFormat.META_XML.getAdapterInstance();
+	public String writeCoverMetas(List<Cover> covers) throws AdapterException, ParserConfigurationException, IOException, SAXException, InstantiationException, IllegalAccessException {
 		Document doc = getDocument();
 		Element coversElt = doc.createElement("Covers");
 		for(Cover cover : covers) {
-			String metaDocStr = getCover(cover, adapter);
-			Node metaDocNode = getDocumentFromStringAsNode(metaDocStr);
+			String metaDocStr = writeCover(cover, CoverOutputFormat.META_XML);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
 			Node importNode = doc.importNode(metaDocNode, true);
 			coversElt.appendChild(importNode);
 		}
 		doc.appendChild(coversElt);
-		return getDocAsString(doc);
+		return writeDoc(doc);
 	}
 	
-	public String getId(CustomGraph graph) throws ParserConfigurationException {
+	public String writeId(CustomGraph graph) throws ParserConfigurationException {
 		Document doc = getDocument();
 		doc.appendChild(getIdElt(graph, doc));
-		return getDocAsString(doc);
+		return writeDoc(doc);
 	}
 	
-	public String getId(Cover cover) throws ParserConfigurationException {
+	public String writeId(Cover cover) throws ParserConfigurationException {
 		Document doc = getDocument();
 		doc.appendChild(getIdElt(cover, doc));
-		return getDocAsString(doc);
+		return writeDoc(doc);
 	}
 	
-	public String getGraph(CustomGraph graph, GraphOutputAdapter adapter) throws AdapterException {
+	public String writeId(OcdMetricLog metricLog) throws ParserConfigurationException {
+		Document doc = getDocument();
+		doc.appendChild(getIdElt(metricLog, doc));
+		return writeDoc(doc);
+	}
+	
+	public String writeGraph(CustomGraph graph, GraphOutputFormat outputFormat) throws AdapterException, InstantiationException, IllegalAccessException {
+		GraphOutputAdapter adapter = graphOutputAdapterFactory.getInstance(outputFormat);
     	Writer writer = new StringWriter();
     	adapter.setWriter(writer);
 		adapter.writeGraph(graph);
 		return writer.toString();
 	}
 	
-	public String getCover(Cover cover, CoverOutputAdapter adapter) throws AdapterException {
+	public String writeCover(Cover cover, CoverOutputFormat outputFormat) throws AdapterException, InstantiationException, IllegalAccessException {
 		Writer writer = new StringWriter();
+		CoverOutputAdapter adapter = coverOutputAdapterFactory.getInstance(outputFormat);
     	adapter.setWriter(writer);
 		adapter.writeCover(cover);
 		return writer.toString();
+	}
+	
+	public CustomGraph parseGraph(String contentStr, GraphInputFormat inputFormat) throws AdapterException, InstantiationException, IllegalAccessException {
+		GraphInputAdapter adapter = graphInputAdapterFactory.getInstance(inputFormat);
+	    Reader reader = new StringReader(contentStr);
+	    adapter.setReader(reader);
+		return adapter.readGraph();
+	}
+	
+	public Cover parseCover(String contentStr, CustomGraph graph, CoverInputFormat inputFormat) throws AdapterException, InstantiationException, IllegalAccessException {
+		CoverInputAdapter adapter = coverInputAdapterFactory.getInstance(inputFormat);
+	    Reader reader = new StringReader(contentStr);
+	    adapter.setReader(reader);
+		return adapter.readCover(graph);
 	}
 	
 	private Node getIdElt(CustomGraph graph, Document doc) {
@@ -258,7 +283,23 @@ public class RequestHandler {
 		return coverElt;
 	}
 	
-	private String getDocAsString(Document doc) {
+	private Node getIdElt(OcdMetricLog metricLog, Document doc) {
+		Element metricElt = doc.createElement("Metric");
+		Element idElt = doc.createElement("Id");
+		Element metricIdElt = doc.createElement("MetricId");
+		metricIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getId())));
+		idElt.appendChild(metricIdElt);
+		Element coverIdElt = doc.createElement("CoverId");
+		coverIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getCover().getId())));
+		idElt.appendChild(coverIdElt);
+		Element graphIdElt = doc.createElement("GraphId");
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getCover().getGraph().getId())));
+		idElt.appendChild(graphIdElt);
+		metricElt.appendChild(idElt);
+		return metricElt;
+	}
+	
+	private String writeDoc(Document doc) {
 		DOMImplementationLS domImplementation = (DOMImplementationLS) doc.getImplementation();
 	    LSSerializer lsSerializer = domImplementation.createLSSerializer();
 	    return lsSerializer.writeToString(doc);
@@ -269,12 +310,12 @@ public class RequestHandler {
 		return builder.newDocument();
 	}
 	
-	private Node getDocumentFromStringAsNode(String docString) throws ParserConfigurationException, IOException, SAXException {
-		Document doc = getDocumentFromString(docString);
+	private Node parseDocumentToNode(String docString) throws ParserConfigurationException, IOException, SAXException {
+		Document doc = parseDocument(docString);
 		return doc.getDocumentElement();
 	}
 	
-	private Document getDocumentFromString(String docString) throws SAXException, IOException, ParserConfigurationException {
+	private Document parseDocument(String docString) throws SAXException, IOException, ParserConfigurationException {
 		DocumentBuilder builder = builderFactory.newDocumentBuilder();
 		Reader reader = new StringReader(docString);
 		Document doc = builder.parse(new InputSource(reader));
@@ -291,7 +332,7 @@ public class RequestHandler {
 		return value;
 	}
 	
-	public <E extends Enum<E>> String getEnumNames(final Class<E> enumClass) throws ParserConfigurationException {
+	public <E extends Enum<E>> String writeEnumNames(final Class<E> enumClass) throws ParserConfigurationException {
 		Document doc = getDocument();
 		Element namesElt = doc.createElement("Names");
 		for(E e : enumClass.getEnumConstants()) {
@@ -300,52 +341,66 @@ public class RequestHandler {
 			namesElt.appendChild(nameElt);
 		}
 		doc.appendChild(namesElt);
-		return getDocAsString(doc);
+		return writeDoc(doc);
 	}
 	
-	public String getStatisticalMeasureNames() throws ParserConfigurationException {
+	public String writeStatisticalMeasureNames() throws ParserConfigurationException {
 		Document doc = getDocument();
 		Element namesElt = doc.createElement("Names");
-		for(MetricType e : MetricType.class.getEnumConstants()) {
-			if(e.isStatisticalMeasure()) {
+		for(OcdMetricType e : OcdMetricType.class.getEnumConstants()) {
+			if(e.correspondsStatisticalMeasure()) {
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
 				namesElt.appendChild(nameElt);
 			}
 		}
 		doc.appendChild(namesElt);
-		return getDocAsString(doc);
+		return writeDoc(doc);
 	}
 	
-	public String getKnowledgeDrivenMeasureNames() throws ParserConfigurationException {
+	public String writeKnowledgeDrivenMeasureNames() throws ParserConfigurationException {
 		Document doc = getDocument();
 		Element namesElt = doc.createElement("Names");
-		for(MetricType e : MetricType.class.getEnumConstants()) {
-			if(e.isKnowledgeDrivenMeasure()) {
+		for(OcdMetricType e : OcdMetricType.class.getEnumConstants()) {
+			if(e.correspondsKnowledgeDrivenMeasure()) {
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
 				namesElt.appendChild(nameElt);
 			}
 		}
 		doc.appendChild(namesElt);
-		return getDocAsString(doc);
+		return writeDoc(doc);
 	}
 	
-	public String getGroundTruthBenchmarkNames() throws ParserConfigurationException {
+	public String writeGroundTruthBenchmarkNames() throws ParserConfigurationException {
 		Document doc = getDocument();
 		Element namesElt = doc.createElement("Names");
-		for(BenchmarkType e : BenchmarkType.class.getEnumConstants()) {
-			if(e.isGroundTruthBenchmark()) {
+		for(GraphCreationType e : GraphCreationType.class.getEnumConstants()) {
+			if(e.correspondsGroundTruthBenchmark()) {
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
 				namesElt.appendChild(nameElt);
 			}
 		}
 		doc.appendChild(namesElt);
-		return getDocAsString(doc);
+		return writeDoc(doc);
 	}
 	
-	public List<String> getQueryMultiParam(String paramStr) {
+	public String writeAlgorithmNames() throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element namesElt = doc.createElement("Names");
+		for(CoverCreationType e : CoverCreationType.class.getEnumConstants()) {
+			if(e.isAlgorithm()) {
+				Element nameElt = doc.createElement("Name");
+				nameElt.appendChild(doc.createTextNode(e.name()));
+				namesElt.appendChild(nameElt);
+			}
+		}
+		doc.appendChild(namesElt);
+		return writeDoc(doc);
+	}
+	
+	public List<String> parseQueryMultiParam(String paramStr) {
 		return Arrays.asList(paramStr.split("-"));
 	}
 	

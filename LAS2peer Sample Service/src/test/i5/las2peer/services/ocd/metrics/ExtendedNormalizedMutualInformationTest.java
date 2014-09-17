@@ -1,17 +1,15 @@
 package i5.las2peer.services.ocd.metrics;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.metrics.ExtendedNormalizedMutualInformation;
-import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
-import i5.las2peer.services.ocd.metrics.MetricException;
-import i5.las2peer.services.ocd.metrics.MetricType;
-import i5.las2peer.services.ocd.testsUtil.OcdTestCoverFactory;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestCoverFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
@@ -22,36 +20,38 @@ public class ExtendedNormalizedMutualInformationTest {
 	/*
 	 * Tests SLPA result on sawmill.
 	 */
+	@Ignore
 	@Test
 	public void testOnSawmillRawLpa() throws Exception {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		cover.filterMembershipsbyThreshold(0.15);
-		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformation();
+		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformationMetric();
 		Cover groundTruth = OcdTestCoverFactory.getSawmillGroundTruth();
-		metric.measure(cover, groundTruth);
+		double value = metric.measure(cover, groundTruth);
 		System.out.println("Sawmill SLPA");
-		System.out.println(cover);
+		System.out.println(value);
 	}
 	
 	/*
 	 * Tests ground truth as output cover on sawmill.
 	 */
+	@Ignore
 	@Test
 	public void testOnSawmillGroundTruth() throws Exception {
-		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformation();
+		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformationMetric();
 		Cover cover = OcdTestCoverFactory.getSawmillGroundTruth();
-		metric.measure(cover, cover);
+		double value = metric.measure(cover, cover);
 		System.out.println("Sawmill Ground Truth");
-		System.out.println(cover);
+		System.out.println(value);
 	}
 	
 	/*
 	 * Tests for two covers with a known result.
 	 */
 	@Test
-	public void testWithKnownResult() throws OcdAlgorithmException, MetricException {
+	public void testWithKnownResult() throws OcdAlgorithmException, OcdMetricException {
 	CustomGraph graph = new CustomGraph();
 	for(int i=0; i<11; i++) {
 		graph.createNode();
@@ -88,32 +88,32 @@ public class ExtendedNormalizedMutualInformationTest {
 	memberships2.set(9, 1, 1);
 	memberships2.set(10, 1, 1);
 	Cover groundTruth = new Cover(graph, memberships2);
-	KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformation();
-	metric.measure(cover, groundTruth);
-	assertEquals(0.29, cover.getMetric(MetricType.EXTENDED_NORMALIZED_MUTUAL_INFORMATION).getValue(), 0.01);
+	KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformationMetric();
+	double value = metric.measure(cover, groundTruth);
+	assertEquals(0.29, value, 0.01);
 	System.out.println("Known Result");
-	System.out.println(cover);
+	System.out.println(value);
 	}
 	
 	@Test
 	public void testOnNewmanClizz() throws Exception {
 		Cover cover = OcdTestCoverFactory.getNewmanClizzCover();
 		Cover groundTruth = OcdTestCoverFactory.getNewmanClizzGroundTruth();
-		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformation();
-		metric.measure(cover, groundTruth);
-		assertEquals(0, cover.getMetric(MetricType.EXTENDED_NORMALIZED_MUTUAL_INFORMATION).getValue(), 0.01);
+		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformationMetric();
+		double value = metric.measure(cover, groundTruth);
+		assertEquals(0, value, 0.01);
 		System.out.println("Newman Clizz");
-		System.out.println(cover);
+		System.out.println(value);
 	}
 	
 	@Test
 	public void testOnNewmanLink() throws Exception {
 		Cover cover = OcdTestCoverFactory.getNewmanLinkCover();
 		Cover groundTruth = OcdTestCoverFactory.getNewmanLinkGroundTruth();
-		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformation();
-		metric.measure(cover, groundTruth);
-		assertTrue(cover.getMetric(MetricType.EXTENDED_NORMALIZED_MUTUAL_INFORMATION).getValue() != Double.NaN);
+		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformationMetric();
+		double value = metric.measure(cover, groundTruth);
+		assertTrue(value != Double.NaN);
 		System.out.println("Newman Link");
-		System.out.println(cover);
+		System.out.println(value);
 	}
 }

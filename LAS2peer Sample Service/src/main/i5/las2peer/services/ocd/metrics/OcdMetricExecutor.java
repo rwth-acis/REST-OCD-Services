@@ -7,29 +7,29 @@ import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 public class OcdMetricExecutor {
 	
-	public void executeKnowledgeDrivenMeasure(Cover cover, Cover groundTruth, KnowledgeDrivenMeasure metric) throws MetricException {
+	public OcdMetricLog executeKnowledgeDrivenMeasure(Cover cover, Cover groundTruth, KnowledgeDrivenMeasure metric) throws OcdMetricException {
 		CustomGraph graph = cover.getGraph();
 		CustomGraph graphCopy = new CustomGraph(graph);
 		Cover coverCopy = new Cover(graphCopy, cover.getMemberships());
 		Cover groundTruthCopy = new Cover(graphCopy, groundTruth.getMemberships());
-		metric.measure(coverCopy, groundTruthCopy);
-		MetricLog calculatedLog = coverCopy.getMetrics().get(0);
-		MetricLog log = new MetricLog(calculatedLog.getType(), calculatedLog.getValue(), calculatedLog.getParameters(), cover);
+		double value = metric.measure(coverCopy, groundTruthCopy);
+		OcdMetricLog log = new OcdMetricLog(OcdMetricType.lookupType(metric.getClass()), value, metric.getParameters(), cover);
 		log.setStatus(ExecutionStatus.COMPLETED);
 		cover.addMetric(log);
+		return log;
 	}
 	
-	public void executeStatisticalMeasure(Cover cover, StatisticalMeasure metric) throws MetricException {
+	public OcdMetricLog executeStatisticalMeasure(Cover cover, StatisticalMeasure metric) throws OcdMetricException {
 		GraphProcessor processor = new GraphProcessor();
 		CustomGraph graph = cover.getGraph();
 		CustomGraph graphCopy = new CustomGraph(graph);
 		processor.makeCompatible(graphCopy, metric.compatibleGraphTypes());
 		Cover coverCopy = new Cover(graphCopy, cover.getMemberships());
-		metric.measure(coverCopy);
-		MetricLog calculatedLog = coverCopy.getMetrics().get(0);
-		MetricLog log = new MetricLog(calculatedLog.getType(), calculatedLog.getValue(), calculatedLog.getParameters(), cover);
+		double value = metric.measure(coverCopy);
+		OcdMetricLog log = new OcdMetricLog(OcdMetricType.lookupType(metric.getClass()), value, metric.getParameters(), cover);
 		log.setStatus(ExecutionStatus.COMPLETED);
 		cover.addMetric(log);
+		return log;
 	}
 
 }

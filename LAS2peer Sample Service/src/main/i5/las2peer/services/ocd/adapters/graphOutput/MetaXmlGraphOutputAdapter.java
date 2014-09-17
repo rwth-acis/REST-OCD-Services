@@ -1,7 +1,5 @@
 package i5.las2peer.services.ocd.adapters.graphOutput;
 
-import java.text.SimpleDateFormat;
-
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
@@ -45,12 +43,12 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 			Element graphEdgeCountElt = doc.createElement("EdgeCount");
 			graphEdgeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.edgeCount())));
 			graphElt.appendChild(graphEdgeCountElt);
-			Element lastUpdateElt = doc.createElement("LastUpdate");
-			if(graph.getLastUpdate() != null) {
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd hh:mm:ss");
-				lastUpdateElt.appendChild(doc.createTextNode(dateFormat.format(graph.getLastUpdate())));
-				graphElt.appendChild(lastUpdateElt);
-			}
+//			Element lastUpdateElt = doc.createElement("LastUpdate");
+//			if(graph.getLastUpdate() != null) {
+//				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd hh:mm:ss");
+//				lastUpdateElt.appendChild(doc.createTextNode(dateFormat.format(graph.getLastUpdate())));
+//				graphElt.appendChild(lastUpdateElt);
+//			}
 			/*
 			 * Graph Types
 			 */
@@ -62,16 +60,16 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 			}
 			graphElt.appendChild(typesElt);
 			/*
-			 * Algorithm
+			 * Creation Method
 			 */
-			Element benchmarkElt = doc.createElement("Benchmark");
-			Element benchmarkTypeElt = doc.createElement("Type");
-			benchmarkTypeElt.appendChild(doc.createTextNode(graph.getBenchmark().getType().name()));
-			benchmarkElt.appendChild(benchmarkTypeElt);
-			Element benchmarkStatus = doc.createElement("Status");
-			benchmarkStatus.appendChild(doc.createTextNode(graph.getBenchmark().getStatus().name()));
-			benchmarkElt.appendChild(benchmarkStatus);
-			graphElt.appendChild(benchmarkElt);
+			Element creationMethodElt = doc.createElement("CreationMethod");
+			Element creationMethodTypeElt = doc.createElement("Type");
+			creationMethodTypeElt.appendChild(doc.createTextNode(graph.getCreationMethod().getType().name()));
+			creationMethodElt.appendChild(creationMethodTypeElt);
+			Element creationMethodStatus = doc.createElement("Status");
+			creationMethodStatus.appendChild(doc.createTextNode(graph.getCreationMethod().getStatus().name()));
+			creationMethodElt.appendChild(creationMethodStatus);
+			graphElt.appendChild(creationMethodElt);
 			/*
 			 * XML output
 			 */

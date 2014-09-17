@@ -86,10 +86,9 @@
 	</target>
 
 
-	<!-- Initialization (Folder Creation)-->
-	<target name="init_ocd">
+	<!-- Initialization -->
+	<target name="init_ocd" depends="clean_before_build">
 		<mkdir dir="${ocd.derby}" />
-		<mkdir dir="${ocd.derby.db}" />
 		<mkdir dir="${ocd.eclipselink}" />
 		<mkdir dir="${ocd.lfr}" />
 		<mkdir dir="${ocd.log}" />
@@ -183,7 +182,8 @@
 		<delete dir="${tmp.junit}" />
 	</target>
 
-	<target name="junit_tests" depends="init_junit, compile_all">
+	<target name="junit_tests" depends="init_junit, compile_all, jar">
+		<delete dir="${ocd.derby.db}" />
 		<parallel>
 			<antcall target="launch_database_server">
 			</antcall>
@@ -212,6 +212,7 @@
 	</target>
 
 	<!-- Database Server Control -->
+	
 	<target name="launch_database_server">
 		<echo>Trying to start database server.
 May fail if the server is already running or the port is otherwise occupied.</echo>
@@ -237,7 +238,8 @@ May fail if the server is not running.</echo>
 	</target>
 	
 	<!-- Database Initialization -->
-	<target name="init_database" depends="init_junit, compile_all">
+	<target name="setup_database" depends="init_junit, compile_all">
+		<delete dir="${ocd.derby.db}" />
 		<parallel>
 			<antcall target="launch_database_server">
 			</antcall>
@@ -286,7 +288,7 @@ agent-user-${las2peer_user.name}.xml;${las2peer_user.password}
 </echo>
 	</target>
 
-	<target name="database" depends="generate_configs, init_database" />
+	<target name="database" depends="generate_configs, setup_database" />
 
 	<!-- General Cleanup -->
 	<target name="clean_before_build" depends="shutdown_database_server">

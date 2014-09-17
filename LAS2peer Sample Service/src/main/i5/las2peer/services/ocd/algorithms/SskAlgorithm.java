@@ -74,9 +74,9 @@ public class SskAlgorithm implements OcdAlgorithm {
 	}
 	
 	@Override
-	public AlgorithmType getAlgorithmType() {
+	public CoverCreationType getAlgorithmType() {
 
-		return AlgorithmType.SSK_ALGORITHM;
+		return CoverCreationType.SSK_ALGORITHM;
 	}
 	
 	@Override

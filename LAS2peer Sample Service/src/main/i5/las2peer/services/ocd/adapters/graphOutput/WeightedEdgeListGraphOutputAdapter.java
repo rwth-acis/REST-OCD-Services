@@ -41,16 +41,13 @@ public class WeightedEdgeListGraphOutputAdapter extends AbstractGraphOutputAdapt
 				while(edges.ok()) {
 					writer.write(graph.getNodeName(edge.source()) + " ");
 					writer.write(graph.getNodeName(edge.target()) + " ");
-					writer.write(String.format("%.2f\n", graph.getEdgeWeight(edge)));
+					writer.write(String.format("%.2f", graph.getEdgeWeight(edge)));
 					edge = edges.edge();
 					edges.next();
+					if(edges.ok()) {
+						writer.write("\n");
+					}
 				}
-				/*
-				 * Write last edge without line break
-				 */
-				writer.write(graph.getNodeName(edge.source()) + " ");
-				writer.write(graph.getNodeName(edge.target()) + " ");
-				writer.write(String.format("%.2f", graph.getEdgeWeight(edge)));
 			}
 
 		}

@@ -5,7 +5,7 @@ import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.testsUtil.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
@@ -55,7 +55,7 @@ public class ClizzAlgorithmTest {
 		System.out.println("Memberships:");
 		System.out.println(memberships);
 		Cover cover = new Cover(graph, memberships);
-		cover.setAlgorithm(new AlgorithmLog(algo.getAlgorithmType(), algo.getParameters(), algo.compatibleGraphTypes()));
+		cover.setCreationMethod(new CoverCreationLog(algo.getAlgorithmType(), algo.getParameters(), algo.compatibleGraphTypes()));
 		System.out.println(cover);
 	}
 	
@@ -96,7 +96,7 @@ public class ClizzAlgorithmTest {
 		System.out.println("Memberships:");
 		System.out.println(memberships);
 		Cover cover = new Cover(graph, memberships);
-		cover.setAlgorithm(new AlgorithmLog(algo.getAlgorithmType(), algo.getParameters(), algo.compatibleGraphTypes()));
+		cover.setCreationMethod(new CoverCreationLog(algo.getAlgorithmType(), algo.getParameters(), algo.compatibleGraphTypes()));
 		assertEquals(2, cover.communityCount());
 		for(int i=0; i<graph.nodeCount(); i++) {
 			double belongingFac;
@@ -138,8 +138,8 @@ public class ClizzAlgorithmTest {
 					belongingFac = -1;
 					break;
 			}
-			assertTrue(Math.abs(belongingFac - cover.getBelongingFactor(graph.getNodeArray()[i], 0)) < 0.001
-					|| Math.abs(belongingFac - cover.getBelongingFactor(graph.getNodeArray()[i], 1)) < 0.001);
+			assertTrue(Math.abs(belongingFac - cover.getBelongingFactor(graph.getNodeArray()[i], 0)) < 0.003
+					|| Math.abs(belongingFac - cover.getBelongingFactor(graph.getNodeArray()[i], 1)) < 0.003);
 			System.out.println(cover);
 		}
 		

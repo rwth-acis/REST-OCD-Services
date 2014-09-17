@@ -1,9 +1,8 @@
 package i5.las2peer.services.ocd.graphs;
 
-import i5.las2peer.services.ocd.benchmarks.BenchmarkLog;
-import i5.las2peer.services.ocd.benchmarks.BenchmarkType;
+import i5.las2peer.services.ocd.benchmarks.GraphCreationLog;
+import i5.las2peer.services.ocd.benchmarks.GraphCreationType;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,7 +15,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -29,7 +27,6 @@ import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
-import javax.persistence.Version;
 
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -51,17 +48,17 @@ public class CustomGraph extends Graph2D {
 	protected static final String userColumnName = "USER_NAME";
 	private static final String nameColumnName = "NAME";
 	private static final String descriptionColumnName = "DESCRIPTION";
-	private static final String lastUpdateColumnName = "LAST_UPDATE";
+//	private static final String lastUpdateColumnName = "LAST_UPDATE";
 	private static final String idEdgeMapKeyColumnName = "RUNTIME_ID";
 	private static final String idNodeMapKeyColumnName = "RUNTIME_ID";
-	private static final String benchmarkColumnName = "BENCHMARK_ID";
+	private static final String creationMethodColumnName = "CREATION_METHOD";
 	
 	/*
 	 * Field name definitions for JPQL queries.
 	 */
 	public static final String USER_NAME_FIELD_NAME = "userName";
 	public static final String ID_FIELD_NAME = "id";
-	public static final String BENCHMARK_FIELD_NAME = "benchmark";
+	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
 	
 	/////////////////////////// ATTRIBUTES	
 	/**
@@ -87,12 +84,12 @@ public class CustomGraph extends Graph2D {
 	 */
 	@Column(name = descriptionColumnName)
 	private String description = "";
-	/**
-	 * Last time of modification.
-	 */
-	@Version
-	@Column(name = lastUpdateColumnName)
-	private Timestamp lastUpdate;
+//	/**
+//	 * Last time of modification.
+//	 */
+//	@Version
+//	@Column(name = lastUpdateColumnName)
+//	private Timestamp lastUpdate;
 	/**
 	 * The graph's types.
 	 */
@@ -102,23 +99,23 @@ public class CustomGraph extends Graph2D {
 	 * The log for the benchmark model the graph was created by.
 	 */
 	@OneToOne(orphanRemoval = true, cascade={CascadeType.ALL})
-	@JoinColumn(name = benchmarkColumnName)
-	private BenchmarkLog benchmark = new BenchmarkLog(BenchmarkType.REAL_WORLD, new HashMap<String, String>());
+	@JoinColumn(name = creationMethodColumnName)
+	private GraphCreationLog creationMethod = new GraphCreationLog(GraphCreationType.REAL_WORLD, new HashMap<String, String>());
 	
 	/*
 	 * Mapping from fix node ids to custom nodes for additional node data and persistence.
 	 */
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade={CascadeType.ALL}, fetch=FetchType.LAZY)
+	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade={CascadeType.ALL} /*, fetch=FetchType.LAZY */)
 	@MapKeyColumn(name = idNodeMapKeyColumnName)
 	private Map<Integer, CustomNode> customNodes = new HashMap<Integer, CustomNode>();
 	/*
 	 * Mapping from fix edge ids to custom nodes for additional edge data and persistence.
 	 */
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade={CascadeType.ALL}, fetch=FetchType.LAZY)
+	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade={CascadeType.ALL} /*, fetch=FetchType.LAZY */)
 	@MapKeyColumn(name = idEdgeMapKeyColumnName)
 	private Map<Integer, CustomEdge> customEdges = new HashMap<Integer, CustomEdge>();
 	
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade={CascadeType.ALL}, fetch=FetchType.LAZY)
+	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade={CascadeType.ALL} /*, fetch=FetchType.LAZY */)
 	private List<Cover> covers = new ArrayList<Cover>();
 	
 	///////////////////// THE FOLLOWING ATTRIBUTES ARE MAINTAINED AUTOMATICALLY AND ONLY OF INTERNAL USE
@@ -176,6 +173,11 @@ public class CustomGraph extends Graph2D {
 			this.addCustomEdge(edge);
 			edges.next();
 		}
+		Iterator<?> listenerIt = this.getGraphListeners();
+		while(listenerIt.hasNext()) {
+			this.removeGraphListener((GraphListener)listenerIt.next());
+			listenerIt.remove();
+		}
 		this.addGraphListener(new CustomGraphListener());
 	}
 	
@@ -185,21 +187,20 @@ public class CustomGraph extends Graph2D {
 	 */
 	public CustomGraph(CustomGraph graph) {
 		super(graph);
-		this.benchmark = new BenchmarkLog(graph.benchmark.getType(), graph.benchmark.getParameters());
-		this.benchmark.setStatus(graph.benchmark.getStatus());
+		this.creationMethod = new GraphCreationLog(graph.creationMethod.getType(), graph.creationMethod.getParameters());
+		this.creationMethod.setStatus(graph.creationMethod.getStatus());
 		this.customNodes = new HashMap<Integer, CustomNode>();
 		copyMappings(graph.customNodes, graph.customEdges, graph.nodeIds, graph.edgeIds);
 		this.userName = new String(graph.userName);
 		this.name = new String(graph.name);
 		this.id = graph.id;
 		this.description = new String(graph.description);
-		if(graph.lastUpdate != null) {
-			this.lastUpdate = new Timestamp(graph.lastUpdate.getTime());
-		}
+//		if(graph.lastUpdate != null) {
+//			this.lastUpdate = new Timestamp(graph.lastUpdate.getTime());
+//		}
 		nodeIndexer = graph.nodeIndexer;
 		edgeIndexer = graph.edgeIndexer;
 		this.types = new HashSet<Integer>(graph.types);
-		this.addGraphListener(new CustomGraphListener());
 	}
 	
 	/**
@@ -279,20 +280,20 @@ public class CustomGraph extends Graph2D {
 		return description;
 	}
 	
-	public Timestamp getLastUpdate() {
-		return lastUpdate;
-	}
+//	public Timestamp getLastUpdate() {
+//		return lastUpdate;
+//	}
 
 	public void setDescription(String description) {
 		this.description = description;
 	}
 	
-	public void setBenchmark(BenchmarkLog benchmark) {
-		this.benchmark = benchmark;
+	public void setCreationMethod(GraphCreationLog creationMethod) {
+		this.creationMethod = creationMethod;
 	}
 	
-	public BenchmarkLog getBenchmark() {
-		return this.benchmark;
+	public GraphCreationLog getCreationMethod() {
+		return this.creationMethod;
 	}
 	
 	public boolean isOfType(GraphType type) {

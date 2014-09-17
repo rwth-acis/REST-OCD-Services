@@ -62,8 +62,8 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	}
 
 	@Override
-	public AlgorithmType getAlgorithmType() {
-		return AlgorithmType.BINARY_SEARCH_RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM;
+	public CoverCreationType getAlgorithmType() {
+		return CoverCreationType.BINARY_SEARCH_RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM;
 	}
 
 	@Override
