@@ -20,6 +20,7 @@ public class OcdTestConstants {
 	public static final String newmanClizzGraphWeightedEdgeListInputPath = inputFolderPath + "newmanClizzGraphWeightedEdgeList.txt";
 	public static final String newmanLinkGraphWeightedEdgeListInputPath = inputFolderPath + "newmanLinkGraphWeightedEdgeList.txt";
 	public static final String dolphinsGmlInputPath = inputFolderPath + "dolphins.gml";
+	public static final String zacharyGmlInputPath = inputFolderPath + "karate.gml";
 	
 	/*
 	 * Cover input filenames

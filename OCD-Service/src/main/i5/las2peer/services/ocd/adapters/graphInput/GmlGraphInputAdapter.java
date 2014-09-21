@@ -65,7 +65,7 @@ public class GmlGraphInputAdapter extends AbstractGraphInputAdapter {
 		/*
 		 * Node labels are unique.
 		 */
-		if(nodenames.values().size() == graph.nodeCount()) {
+		if(nodenames.size() == graph.nodeCount()) {
 			while(nodes.ok()) {
 				node = nodes.node();
 				graph.setNodeName(node, nodenames.get(node));
@@ -78,7 +78,7 @@ public class GmlGraphInputAdapter extends AbstractGraphInputAdapter {
 		else {
 			while(nodes.ok()) {
 				node = nodes.node();
-				graph.setNodeName(node, nodenames.get(node));
+				graph.setNodeName(node, Integer.toString(node.index()));
 				nodes.next();
 			}
 		}
@@ -95,6 +95,9 @@ public class GmlGraphInputAdapter extends AbstractGraphInputAdapter {
 				Double weight = Double.parseDouble(weightStr);
 				if(weight != null) {
 					edgeweights.put(edge, weight);
+				}
+				else {
+					break;
 				}
 				edges.next();
 			}

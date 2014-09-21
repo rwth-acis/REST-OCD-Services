@@ -89,6 +89,9 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 				if(weight != null) {
 					graph.setEdgeWeight(edge, weight);
 				}
+				else {
+					break;
+				}
 				edges.next();
 			}
 		} catch (Exception e) {
