@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.benchmarks;
 
+import i5.las2peer.services.ocd.graphs.GraphCreationType;
 import i5.las2peer.services.ocd.utils.ConditionalParameterizableFactory;
 
 import java.util.Map;

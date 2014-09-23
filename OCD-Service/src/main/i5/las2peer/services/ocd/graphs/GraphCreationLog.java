@@ -1,12 +1,9 @@
-package i5.las2peer.services.ocd.algorithms;
+package i5.las2peer.services.ocd.graphs;
 
-import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -16,13 +13,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 /**
- * A log representation for a cover creation method, i.e. typically an OcdAlgorithm or OcdBenchmark execution.
+ * A log representation for a graph creation method, i.e. typically a OcdBenchmark execution.
  * @author Sebastian
  *
  */
 @Entity
-public class CoverCreationLog {
-	
+public class GraphCreationLog {
+
 	/*
 	 * Database column name definitions.
 	 */
@@ -31,8 +28,8 @@ public class CoverCreationLog {
 	private static final String statusIdColumnName = "STATUS";
 	
 	/*
-	 * Field names.
-	 */
+	 * Field names
+	 */	
 	public static final String STATUS_ID_FIELD_NAME = "statusId";
 	
 	/**
@@ -48,7 +45,7 @@ public class CoverCreationLog {
 	@ElementCollection
 	private Map<String, String> parameters;
 	/**
-	 * Id of the creation methods corresponding cover creation type.
+	 * Id of the creation methods corresponding graph creation type.
 	 */
 	@Column(name = typeColumnName)
 	private int typeId;
@@ -56,60 +53,28 @@ public class CoverCreationLog {
 	 * The status of the corresponding execution.
 	 */
 	@Column(name = statusIdColumnName)
-	private int statusId = ExecutionStatus.WAITING.getId();
-	/**
-	 * The graph types the creation method is compatible with.
-	 */
-	@ElementCollection
-	private Set<Integer> compatibleGraphTypes = new HashSet<Integer>();
+	private int statusId = ExecutionStatus.COMPLETED.getId();
 	
 	/**
 	 * Creates a new instance.
-	 * Only provided for persistence.
+	 * Only provided for persistence. 
 	 */
-	protected CoverCreationLog() {
+	protected GraphCreationLog() {
 	}
 	
 	/**
 	 * Creates a new instance.
-	 * @param type The type of creation method.
+	 * @param type The type of the corresponding creation method.
 	 * @param parameters The parameters used by the creation method.
-	 * @param compatibleGraphTypes The graph types which are compatible with the creation method.
 	 */
-	public CoverCreationLog(CoverCreationType type, Map<String, String> parameters, Set<GraphType> compatibleGraphTypes) {
-		if(type != null) {
-			this.typeId = type.getId();
-		}
-		else {
-			this.typeId = CoverCreationType.UNDEFINED.getId();
-		}
+	public GraphCreationLog(GraphCreationType type, Map<String, String> parameters) {
+		this.typeId = type.getId();
 		if(parameters != null) {
 			this.parameters = parameters;
 		}
 		else {
 			this.parameters = new HashMap<String, String>();
 		}
-		if(compatibleGraphTypes != null) {
-			for(GraphType graphType : compatibleGraphTypes) {
-				this.compatibleGraphTypes.add(graphType.getId());
-			}
-		}
-	}
-
-	/**
-	 * Returns the type of the corresponding creation method.
-	 * @return The type.
-	 */
-	public CoverCreationType getType() {
-		return CoverCreationType.lookupType(typeId);
-	}
-
-	/**
-	 * Returns the parameters used by the corresponding creation method.
-	 * @return A mapping from each parameter name to the parameter value in String format.
-	 */
-	public Map<String, String> getParameters() {
-		return parameters;
 	}
 
 	/**
@@ -121,15 +86,19 @@ public class CoverCreationLog {
 	}
 
 	/**
-	 * Returns the graph types the corresponding creation method is compatible with.
-	 * @return The graph types.
+	 * Returns the type of the corresponding creation method.
+	 * @return The type.
 	 */
-	public Set<GraphType> getCompatibleGraphTypes() {
-		Set<GraphType> compatibleGraphTypes = new HashSet<GraphType>();
-		for(int id : this.compatibleGraphTypes) {
-			compatibleGraphTypes.add(GraphType.lookupType(id));
-		}
-		return compatibleGraphTypes;
+	public GraphCreationType getType() {
+		return GraphCreationType.lookupType(this.typeId);
+	}
+
+	/**
+	 * Returns the parameters used by the corresponding creation method.
+	 * @return A mapping from each parameter name to the corresponding value in String format.
+	 */
+	public Map<String, String> getParameters() {
+		return parameters;
 	}
 	
 	/**

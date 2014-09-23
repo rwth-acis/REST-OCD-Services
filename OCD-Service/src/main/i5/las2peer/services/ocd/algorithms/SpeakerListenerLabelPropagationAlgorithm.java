@@ -6,6 +6,7 @@ import i5.las2peer.services.ocd.algorithms.utils.SlpaPopularityListenerRule;
 import i5.las2peer.services.ocd.algorithms.utils.SlpaSpeakerRuleCommand;
 import i5.las2peer.services.ocd.algorithms.utils.SlpaUniformSpeakerRule;
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 

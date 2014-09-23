@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.algorithms;
 
+import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.utils.ConditionalParameterizableFactory;
 
 import java.util.Map;
@@ -23,7 +24,7 @@ public class OcdAlgorithmFactory implements ConditionalParameterizableFactory<Oc
 	
 	@Override
 	public boolean isInstantiatable(CoverCreationType creationType) {
-		if(creationType.isAlgorithm()) {
+		if(creationType.correspondsAlgorithm()) {
 			return true;
 		}
 		else {

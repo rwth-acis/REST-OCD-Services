@@ -1,4 +1,9 @@
-package i5.las2peer.services.ocd.benchmarks;
+package i5.las2peer.services.ocd.graphs;
+
+import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
+import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
+import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
+import i5.las2peer.services.ocd.benchmarks.OcdBenchmark;
 
 import java.security.InvalidParameterException;
 import java.util.Locale;
@@ -68,7 +73,7 @@ public enum GraphCreationType {
 	 * Returns the GraphCreationMethod subclass corresponding to the type.
 	 * @return The corresponding class.
 	 */
-	protected Class<? extends GraphCreationMethod> getCreationMethodClass() {
+	public Class<? extends GraphCreationMethod> getCreationMethodClass() {
 		return this.creationMethodClass;
 	}
 	

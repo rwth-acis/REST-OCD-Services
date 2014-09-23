@@ -2,9 +2,9 @@ package i5.las2peer.services.ocd.testsUtils;
 
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.coverInput.LabeledMembershipMatrixCoverInputAdapter;
-import i5.las2peer.services.ocd.algorithms.CoverCreationLog;
-import i5.las2peer.services.ocd.algorithms.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CoverCreationLog;
+import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 

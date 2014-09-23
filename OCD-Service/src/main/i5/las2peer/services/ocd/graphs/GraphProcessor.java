@@ -1,7 +1,5 @@
 package i5.las2peer.services.ocd.graphs;
 
-import i5.las2peer.services.ocd.algorithms.CoverCreationLog;
-import i5.las2peer.services.ocd.algorithms.CoverCreationType;
 import i5.las2peer.services.ocd.utils.Pair;
 
 import java.util.ArrayList;

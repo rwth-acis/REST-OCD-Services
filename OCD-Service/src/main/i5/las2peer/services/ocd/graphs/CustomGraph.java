@@ -1,8 +1,5 @@
 package i5.las2peer.services.ocd.graphs;
 
-import i5.las2peer.services.ocd.benchmarks.GraphCreationLog;
-import i5.las2peer.services.ocd.benchmarks.GraphCreationType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

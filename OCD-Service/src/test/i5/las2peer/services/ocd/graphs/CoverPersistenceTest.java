@@ -1,14 +1,10 @@
 package i5.las2peer.services.ocd.graphs;
 
 import static org.junit.Assert.assertEquals;
-import i5.las2peer.services.ocd.algorithms.CoverCreationLog;
-import i5.las2peer.services.ocd.algorithms.CoverCreationType;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkException;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkExecutor;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
-import i5.las2peer.services.ocd.benchmarks.GraphCreationLog;
-import i5.las2peer.services.ocd.benchmarks.GraphCreationType;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 

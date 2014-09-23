@@ -1,5 +1,15 @@
-package i5.las2peer.services.ocd.algorithms;
+package i5.las2peer.services.ocd.graphs;
 
+import i5.las2peer.services.ocd.algorithms.BinarySearchRandomWalkLabelPropagationAlgorithm;
+import i5.las2peer.services.ocd.algorithms.ClizzAlgorithm;
+import i5.las2peer.services.ocd.algorithms.ExtendedSpeakerListenerLabelPropagationAlgorithm;
+import i5.las2peer.services.ocd.algorithms.LinkCommunitiesAlgorithm;
+import i5.las2peer.services.ocd.algorithms.MergingOfOverlappingCommunitiesAlgorithm;
+import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
+import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
+import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
+import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
+import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
@@ -102,7 +112,7 @@ public enum CoverCreationType {
 	 * Returns the CoverCreationMethod subclass corresponding to the type.
 	 * @return The corresponding class.
 	 */
-	protected Class<? extends CoverCreationMethod> getCreationMethodClass() {
+	public Class<? extends CoverCreationMethod> getCreationMethodClass() {
 		return this.creationMethodClass;
 	}
 	
@@ -132,7 +142,7 @@ public enum CoverCreationType {
 	 * States whether the corresponding creation method class is actually an OcdAlgorithm.
 	 * @return TRUE if the class is an OcdAlgorithm, otherwise FALSE.
 	 */
-	public boolean isAlgorithm() {
+	public boolean correspondsAlgorithm() {
 		if(OcdAlgorithm.class.isAssignableFrom(this.getCreationMethodClass())) {
 			return true;
 		}

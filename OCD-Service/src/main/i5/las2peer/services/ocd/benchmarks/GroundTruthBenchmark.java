@@ -1,7 +1,7 @@
 package i5.las2peer.services.ocd.benchmarks;
 
-import i5.las2peer.services.ocd.algorithms.CoverCreationMethod;
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CoverCreationMethod;
 
 /**
  * A common interface for all ground truth benchmark models (which provide a graph including a corresponding ground truth cover).

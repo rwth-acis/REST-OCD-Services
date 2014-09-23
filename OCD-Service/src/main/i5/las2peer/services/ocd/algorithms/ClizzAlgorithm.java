@@ -4,6 +4,7 @@ import i5.las2peer.services.ocd.algorithms.utils.ClizzInfluenceNodesVectorProced
 import i5.las2peer.services.ocd.algorithms.utils.ClizzLeadershipVectorProcedure;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 

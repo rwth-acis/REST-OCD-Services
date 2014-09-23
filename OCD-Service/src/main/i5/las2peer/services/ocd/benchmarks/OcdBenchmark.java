@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.benchmarks;
 
+import i5.las2peer.services.ocd.graphs.GraphCreationMethod;
 import i5.las2peer.services.ocd.utils.Parameterizable;
 
 /**

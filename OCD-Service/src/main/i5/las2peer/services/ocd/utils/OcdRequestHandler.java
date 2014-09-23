@@ -1,7 +1,7 @@
 package i5.las2peer.services.ocd.utils;
 
-import i5.las2peer.services.ocd.algorithms.CoverCreationType;
-import i5.las2peer.services.ocd.benchmarks.GraphCreationType;
+import i5.las2peer.services.ocd.graphs.CoverCreationType;
+import i5.las2peer.services.ocd.graphs.GraphCreationType;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -83,7 +83,7 @@ public class OcdRequestHandler extends RequestHandler {
 		Document doc = getDocument();
 		Element namesElt = doc.createElement("Names");
 		for(CoverCreationType e : CoverCreationType.class.getEnumConstants()) {
-			if(e.isAlgorithm()) {
+			if(e.correspondsAlgorithm()) {
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
 				namesElt.appendChild(nameElt);
