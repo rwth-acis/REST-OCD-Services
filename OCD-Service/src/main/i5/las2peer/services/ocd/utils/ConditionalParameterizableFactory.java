@@ -10,7 +10,7 @@ import java.util.Map;
  * @param <T> The common superclass type implementing the Parameterizable interface of the classes to instantiate.
  * @param <D> The type of the descriptor objects which define the subclass to instantiate.
  */
-public interface ConditionalParameterizableFactory<T, D> {
+public interface ConditionalParameterizableFactory<T extends Parameterizable, D> {
 	
 	/**
 	 * States whether a descriptor object defines an instantiatable subclass of T.
