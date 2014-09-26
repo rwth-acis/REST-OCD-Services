@@ -51,9 +51,9 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * PARAMETER NAMES
 	 */
 	
-	protected static final String LEADERSHIP_PRECISION_FACTOR_NAME = "leadershipIterationBound";
+	protected static final String LEADERSHIP_PRECISION_FACTOR_NAME = "leadershipPrecisionFactor";
 	
-	protected static final String LEADERSHIP_ITERATION_BOUND_NAME = "leadershipPrecisionFactor";
+	protected static final String LEADERSHIP_ITERATION_BOUND_NAME = "leadershipIterationBound";
 	
 	/**
 	 * Creates a standard instance of the algorithm. All attributes are assigned

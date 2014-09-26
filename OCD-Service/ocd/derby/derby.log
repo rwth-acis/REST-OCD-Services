@@ -1,5 +1,5 @@
-Tue Sep 23 16:30:31 CEST 2014 : Apache Derby Network Server 10.10.2.0 - (1582446) wurde gestartet und ist bereit, Verbindungen auf Port 1527 zu akzeptieren.
-Tue Sep 23 16:30:37 CEST 2014 Thread[DRDAConnThread_3,5,main] Cleanup action starting
+Fri Sep 26 23:28:29 CEST 2014 : Apache Derby Network Server 10.10.2.0 - (1582446) wurde gestartet und ist bereit, Verbindungen auf Port 1527 zu akzeptieren.
+Fri Sep 26 23:28:35 CEST 2014 Thread[DRDAConnThread_3,5,main] Cleanup action starting
 java.sql.SQLNonTransientConnectionException: Connection authentication failure occurred.  Reason: Invalid authentication..
 	at org.apache.derby.impl.jdbc.SQLExceptionFactory40.getSQLException(Unknown Source)
 	at org.apache.derby.impl.jdbc.Util.newEmbedSQLException(Unknown Source)
@@ -46,8 +46,8 @@ java.sql.SQLException: Connection authentication failure occurred.  Reason: Inva
 ============= end nested exception, level (1) ===========
 Cleanup action completed
 ----------------------------------------------------------------
-Tue Sep 23 16:30:37 CEST 2014:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.10.2.0 - (1582446): instance a816c00e-0148-a2eb-bb6c-000054b315ac 
+Fri Sep 26 23:28:35 CEST 2014:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.10.2.0 - (1582446): instance a816c00e-0148-b3dd-7a87-000054b315ac 
 on database directory C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\OCD-Service\ocd\derby\db with class loader sun.misc.Launcher$AppClassLoader@14ae5a5 
 Loaded from file:/C:/Users/Sebastian/Documents/GitHub/REST-OCD-Services/OCD-Service/lib/derby.jar
 java.vendor=Oracle Corporation
@@ -59,8 +59,8 @@ os.version=6.1
 derby.system.home=C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\OCD-Service\ocd\derby
 Database Class Loader started - derby.database.classpath=''
 ----------------------------------------------------------------
-Tue Sep 23 16:34:20 CEST 2014: Shutting down Derby engine
+Fri Sep 26 23:32:33 CEST 2014: Shutting down Derby engine
 ----------------------------------------------------------------
-Tue Sep 23 16:34:21 CEST 2014:
-Shutting down instance a816c00e-0148-a2eb-bb6c-000054b315ac on database directory C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\OCD-Service\ocd\derby\db with class loader sun.misc.Launcher$AppClassLoader@14ae5a5 
+Fri Sep 26 23:32:35 CEST 2014:
+Shutting down instance a816c00e-0148-b3dd-7a87-000054b315ac on database directory C:\Users\Sebastian\Documents\GitHub\REST-OCD-Services\OCD-Service\ocd\derby\db with class loader sun.misc.Launcher$AppClassLoader@14ae5a5 
 ----------------------------------------------------------------

@@ -58,9 +58,9 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	
 	protected static final String PROFITABILITY_DELTA_NAME = "profitabilityDelta";
 			
-	protected static final String LEADERSHIP_PRECISION_FACTOR_NAME = "leadershipIterationBound";
+	protected static final String LEADERSHIP_PRECISION_FACTOR_NAME = "leadershipPrecisionFactor";
 	
-	protected static final String LEADERSHIP_ITERATION_BOUND_NAME = "leadershipPrecisionFactor";
+	protected static final String LEADERSHIP_ITERATION_BOUND_NAME = "leadershipIterationBound";
 
 	/**
 	 * Creates a standard instance of the algorithm. All attributes are assigned
