@@ -376,12 +376,12 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		double lowerProfitabilityBound = 0;
 		for(int i=0; i<10; i++) {
 			double profitabilityThreshold = (upperProfitabilityBound + lowerProfitabilityBound) / 2d;
-			communities.clear();
+			communities = new HashMap<Node, Map<Node, Integer>>();
 			for (Node leader : leaders) {
 				communityMemberships = executeLabelPropagation(graph, leader, profitabilityThreshold);
 				communities.put(leader, communityMemberships);
 			}
-			if(areAllNodesAssigned(graph, communities)) {
+			if(areAllNodesAssigned(graph, communities)) {				
 				bestValidSolution = communities;
 				lowerProfitabilityBound = profitabilityThreshold;
 			}
@@ -393,9 +393,10 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 			for (Node leader : leaders) {
 				communityMemberships = executeLabelPropagation(graph, leader, 0);
 				communities.put(leader, communityMemberships);
+				bestValidSolution = communities;
 			}
 		}
-		return getMembershipDegrees(graph, communities);
+		return getMembershipDegrees(graph, bestValidSolution);
 	}
 
 	/*

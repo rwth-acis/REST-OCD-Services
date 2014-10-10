@@ -63,7 +63,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest {
 	}
 	
 	@Test
-	public void testWithKnownResults() throws OcdAlgorithmException, InterruptedException {
+	public void testEntireAlgorithm() throws OcdAlgorithmException, InterruptedException {
 		System.out.println("Known Result Test");
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
