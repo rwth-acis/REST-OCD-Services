@@ -38,7 +38,7 @@
 	</path>
 
 	<property name="lib.junit" location="${lib}/junit-4.11.jar" />
-
+	
 	<!-- ocd properties -->
 	<property name="ocd" location="ocd" />
 	<property name="ocd.bin" location="${ocd}/bin" />
@@ -55,6 +55,15 @@
 	<property name="database.port" value="1527" />
 	<property name="database.user" value="admin" />
 	<property name="database.password" value="adminPw" />
+	
+	<!-- yGuard obfuscation -->
+	<property name="lib.y" location="${lib}/y.jar" />
+	<property name="export.obfuscated.y" location="${export.obfuscated}/y.jar" />
+	<property name="ocd.yGuard" location="${ocd}/yGuard" />
+	<property name="ocd.yGuard.log" location="${ocd.yGuard}/log.xml" />
+	<property name="yguard.jar" location="${lib}/yguard.jar" />
+	<property name="lib.yGuard" location="${lib}/yguard.jar" />
+	<property name="export.obfuscated" location="${export}/obfuscated" />
 
 	<!-- Ivy Installation (Tool to fetch Libraries) -->
 	<property name="ivy.install.version" value="2.3.0" />
@@ -91,6 +100,8 @@
 		<mkdir dir="${ocd.derby}" />
 		<mkdir dir="${ocd.eclipselink}" />
 		<mkdir dir="${ocd.lfr}" />
+		<mkdir dir="${ocd.yGuard}" />
+		<mkdir dir="${export.obfuscated}" />
 		<!--<mkdir dir="${ocd.log}" />-->
 		<mkdir dir="${ocd.test}" />
 		<mkdir dir="${ocd.test.input}" />
@@ -310,5 +321,38 @@ agent-user-${las2peer_user.name}.xml;${las2peer_user.password}
 	</target>
 
 	<target name="all" depends="clean_before_build, generate_configs, junit, java_doc, clean_after_build" />
+	
+    <!-- Obfuscates the yFiles part of the application (i.e., y.jar) and adjusts -->  
+    <!-- the non-yFiles part given by the application's Jar file accordingly. -->  
+    <target name="obfuscate" depends="jar">  
+      <!-- yGuard Ant task. -->  
+      <taskdef name="yguard"   
+               classname="com.yworks.yguard.YGuardTask"   
+               classpath="${lib.yGuard}"/>  
+      <!-- Integrated obfuscation and name adjustment... -->  
+      <yguard>  
+        <!-- Obfuscate the yFiles Jar. -->  
+        <inoutpair in="${lib.y}" out="${export.obfuscated}/y.jar"/>  
+        <!-- While obfuscating, adjust the names of yFiles features in the -->  
+        <!-- application's Jar file. -->  
+        <inoutpair in="${export.jars}/${service.name}-${service.version}.jar" out="${export.obfuscated}/${service.name}-${service.version}.jar"/>  
+          
+        <!-- ...using the yGuard 'rename' task. -->  
+        <rename logfile="${ocd.yGuard.log}" replaceClassNameStrings="true">  
+          <property name="obfuscation-prefix" value="yguard"/>
+          <keep>  
+            <class classes="private" methods="private" fields="private">  
+              <patternset>
+              	<!-- define classes/methods/fields not to be renamed -->
+                <include name="i5.**"/>
+              	<!-- exlude custom classes extending/implementing yFiles classes -->
+              	<exclude name="i5.las2peer.services.ocd.graphs.CustomGraph"/>
+              	<exclude name="i5.las2peer.services.ocd.graphs.CustomGraphListener"/>
+              </patternset>
+            </class>  
+          </keep>          
+        </rename>  
+      </yguard>  
+    </target>  
 
 </project>
