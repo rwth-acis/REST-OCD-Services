@@ -1,7 +1,16 @@
 <ivy-module version="2.0">
     <info organisation="i5" module="las2peer-service"/>
+    <publications>
+		<artifact type="pom" ext="pom" conf="default"/>
+		<artifact type="jar" ext="jar" conf="default"/>
+	</publications>
     <dependencies>
-        <dependency org="i5" name="las2peer" rev="0.0.4.1" />
-        <dependency org="i5" name="i5-WebConnector" rev="0.0.6"/>
+        <dependency org="i5" name="las2peer" rev="0.3-SNAPSHOT" changing="true" />
+        <dependency org="i5" name="las2peer-web-connector" rev="0.3-SNAPSHOT" changing="true" />
+        
+        <dependency org="junit" name="junit" rev="4.11"/>
+		<dependency org="mysql" name="mysql-connector-java" rev="5.1.6" />
+		<dependency org="org.apache.commons" name="commons-pool2" rev="2.2"/>
+		<dependency org="org.apache.commons" name="commons-dbcp2" rev="2.0"/>	
     </dependencies>
 </ivy-module>

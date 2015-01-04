@@ -1,0 +1,232 @@
+<project name="OCD-Service-Project" default="all" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<property name="las2peer.build.path" location="build.xml"/>
+	<!-- alias "las2peer" must be hardcoded in the targets' "depends" because properties will be loaded after resolving dependencies -->
+	<include file="${las2peer.build.path}" as="las2peer"/>
+    
+    <presetdef name="javac">
+        <javac includeantruntime="false" />
+    </presetdef>
+	
+    <property name="src.main" location="src/main" />
+    <property name="src.junit" location="src/test" />
+	
+    <property name="tmp" location="tmp" />
+    <property name="service" location="service" />
+	
+    <property name="tmp.classes" location="${tmp}/classes" />
+    <property name="tmp.junit" location="${tmp}/test" />
+	
+    <property name="export" location="export" />
+    <property name="export.doc" location="${export}/doc" />
+    <property name="export.jars" location="${export}/jars" />
+    <property name="junit.report" location="${export}/test_reports" />
+
+    <property name="lib" location="lib" />
+
+    <path id="libraries">
+        <fileset dir="${lib}">
+            <include name="**/*.jar"/>
+            <exclude name="junit-*.jar"/>
+        </fileset>
+    </path>
+	
+    <property name="lib.junit" location="${lib}/junit-4.11.jar" />
+	
+	<!-- ocd properties -->
+	<property name="src.main.metainf" location = "${src.main}/META-INF" />
+	<property name="src.main.metainf.persistence" location = "${src.main.metainf}/persistence.xml" />
+	<property name="ocd" location="ocd" />
+	<property name="ocd.ivy" location="${ocd}/ivy" />
+	<property name="ocd.ivy.dep" location="${ocd.ivy}/ocd_ivy.xml" />	
+	<property name="ocd.bin" location="${ocd}/bin" />
+	<property name="ocd.derby" location="${ocd}/derby" />
+	<property name="ocd.derby.db" location="${ocd.derby}/db" />
+	<property name="ocd.eclipselink" location="${ocd}/eclipselink" />
+	<property name="ocd.lfr" location="${ocd}/lfr" />
+	<property name="ocd.test" location="${ocd}/test" />
+	<property name="ocd.test.input" location="${ocd.test}/input" />
+	<property name="ocd.test.output" location="${ocd.test}/output" />
+	<property name="database.server" value="127.0.0.1" />
+	<property name="database.port" value="1527" />
+	<property name="database.user" value="admin" />
+	<property name="database.password" value="adminPw" />
+	
+	<!-- yGuard obfuscation -->
+	<property name="lib.y" location="${lib}/y.jar" />
+	<property name="export.obfuscated.y" location="${export.obfuscated}/y.jar" />
+	<property name="ocd.yGuard" location="${ocd}/yGuard" />
+	<property name="ocd.yGuard.log" location="${ocd.yGuard}/log.xml" />
+	<property name="yguard.jar" location="${lib}/yguard.jar" />
+	<property name="lib.yGuard" location="${lib}/yguard.jar" />
+	<property name="export.obfuscated" location="${export}/obfuscated" />
+	
+	<target name="get_deps" depends="las2peer.get_deps" description="--> resolve dependencies">
+        <ivy:settings>
+            <credentials host="role.dbis.rwth-aachen.de:9911/archiva"  realm="Repository internal"/>
+        </ivy:settings>
+        <ivy:resolve file="${ocd.ivy.dep}" type="jar" />
+        <ivy:retrieve pattern="${lib}/[artifact].[ext]"/>
+	</target>
+	
+	<!-- Initialization (Folder Creation)-->
+	<target name="init" depends="las2peer.init_general, las2peer.init_compile, las2peer.init_jars, las2peer.init_doc, get_deps, clean_before_build">
+		<!--<jar destfile="lib/las2peer-0.3-SNAPSHOT.jar" filesetmanifest="merge" update="true" flattenAttributes="true" mergeClassPathAttributes="true">
+			<manifest>
+				<attribute name="Class-Path" value="../service/i5.las2peer.services.ocd-0.1.jar"/>
+			</manifest>
+		</jar>-->
+		<mkdir dir="${ocd.derby}" />
+		<mkdir dir="${ocd.eclipselink}" />
+		<mkdir dir="${ocd.lfr}" />
+		<mkdir dir="${ocd.yGuard}" />
+		<mkdir dir="${export.obfuscated}" />
+		<mkdir dir="${ocd.test}" />
+		<mkdir dir="${ocd.test.input}" />
+		<mkdir dir="${ocd.test.output}" />
+	</target>
+	
+    <!-- Compilation -->
+    <target name="compile" depends="las2peer.compile_all, init" description="--> compile all classes"/>
+    
+    <!-- Generate Service Jars -->
+    <target name="jar" depends="las2peer.jar, compile" description="--> generate service jars">
+		<jar destfile="${export.jars}/${service.name}-${service.version}.jar" update="true">
+			<zipfileset dir="ocd/eclipselink" includes="persistence.xml" prefix="META-INF"/>
+		</jar>
+	    <jar destfile="${service}/${service.name}-${service.version}.jar" update="true">
+	    	<zipfileset dir="ocd/eclipselink" includes="persistence.xml" prefix="META-INF"/>
+	    </jar>
+	</target>
+	
+    <!-- JUnit Testing -->
+    <target name="junit" depends="junit_tests, las2peer.junit_clean" description="--> execute all junit tests"/>
+	
+    <target name="junit_tests" depends="las2peer.init_junit, compile, jar">
+		<delete dir="${ocd.derby.db}" />
+		<parallel>
+			<antcall target="launch_database_server">
+			</antcall>
+			<sequential>
+				<waitfor maxwait="5" maxwaitunit="second">
+					<socket server="${database.server}" port="${database.port}" />
+				</waitfor>
+				<junit fork="yes" haltonerror="yes" haltonfailure="yes" printsummary="yes">
+					<classpath>
+						<pathelement path="${tmp.classes}" />
+						<pathelement path="${tmp.junit}" />
+						<pathelement path="${lib.junit}" />
+						<path refid="libraries" />
+					</classpath>
+					<formatter type="plain" />
+					<batchtest fork="yes" todir="${junit.report}">
+						<fileset dir="${tmp.junit}">
+							<include name="**/*Test.class" />
+						</fileset>
+					</batchtest>
+				</junit>
+			</sequential>
+		</parallel>
+		<antcall target="shutdown_database_server">
+		</antcall>
+    </target>
+	
+	<!-- Database Server Control -->
+	<target name="launch_database_server" >
+		<echo>Trying to start database server.
+May fail if the server is already running or the port is otherwise occupied.</echo>
+		<java classname="org.apache.derby.drda.NetworkServerControl" classpathref="libraries" dir="${ocd.derby}" fork="true" spawn="true">
+			<arg line="'start' '-h' '${database.server}' '-p' '${database.port}'" />
+		</java>
+		<waitfor maxwait="5" maxwaitunit="second">
+			<socket server="${database.server}" port="${database.port}" />
+		</waitfor>
+	</target>
+
+	<target name="shutdown_database_server">
+			<echo>Trying to shutdown database server.
+May fail if the server is not running.</echo>
+			<java classname="org.apache.derby.drda.NetworkServerControl" classpathref="libraries">
+				<arg line="'shutdown' '-h' '${database.server}' '-p' '${database.port}' '-user' '${database.user}' '-password' '${database.password}'" />
+			</java>
+			<waitfor maxwait="5" maxwaitunit="second">
+				<not>
+					<socket server="${database.server}" port="${database.port}" />
+				</not>
+			</waitfor>
+	</target>
+	
+	<!-- Database Initialization -->
+	<target name="setup_database" depends="las2peer.init_junit, compile" description="--> execute DatabaseInitializer">
+		<delete dir="${ocd.derby.db}" />
+		<parallel>
+			<antcall target="launch_database_server">
+			</antcall>
+			<sequential>
+				<waitfor maxwait="5" maxwaitunit="second">
+					<socket server="${database.server}" port="${database.port}" />
+				</waitfor>
+				<junit fork="yes" haltonerror="yes" haltonfailure="yes" printsummary="yes">
+					<classpath>
+						<pathelement path="${tmp.classes}" />
+						<pathelement path="${tmp.junit}" />
+						<pathelement path="${lib.junit}" />
+						<path refid="libraries" />
+					</classpath>
+					<formatter type="plain" />
+					<batchtest fork="yes" todir="${junit.report}">
+						<fileset dir="${tmp.junit}">
+							<include name="**/DatabaseInitializer.class" />
+						</fileset>
+					</batchtest>
+				</junit>
+			</sequential>
+		</parallel>
+		<antcall target="shutdown_database_server">
+		</antcall>
+	</target>
+	
+	<!-- Obfuscates yFiles (i.e., y.jar) -->
+	    <target name="obfuscate" depends="las2peer.jar" description="--> obfuscate yFiles">  
+	      <!-- yGuard Ant task. -->  
+	      <taskdef name="yguard"   
+	               classname="com.yworks.yguard.YGuardTask"   
+	               classpath="${lib.yGuard}"/>  
+	      <!-- Integrated obfuscation and name adjustment... -->  
+	      <yguard>  
+	        <!-- Obfuscate the yFiles Jar. -->  
+	        <inoutpair in="${lib.y}" out="${export.obfuscated}/y.jar"/>  
+	        <!-- While obfuscating, adjust the names of yFiles features in the -->  
+	        <!-- application's Jar file. -->  
+	        <inoutpair in="${export.jars}/${service.name}-${service.version}.jar" out="${export.obfuscated}/${service.name}-${service.version}.jar"/>  
+	          
+	        <!-- ...using the yGuard 'rename' task. -->  
+	        <rename logfile="${ocd.yGuard.log}" replaceClassNameStrings="true">  
+	          <property name="obfuscation-prefix" value="yguard"/>
+	          <keep>  
+	            <class classes="private" methods="private" fields="private">  
+	              <patternset>
+	              	<!-- define classes/methods/fields not to be renamed -->
+	                <include name="i5.**"/>
+	              	<!-- exlude custom classes extending/implementing yFiles classes -->
+	              	<exclude name="i5.las2peer.services.ocd.graphs.CustomGraph"/>
+	              	<exclude name="i5.las2peer.services.ocd.graphs.CustomGraphListener"/>
+	              </patternset>
+	            </class>
+	          	<!-- keep custom field names required for persistence -->
+	          	<field class="i5.las2peer.services.ocd.graphs.CustomGraph" name="id"/>
+	          	<field class="i5.las2peer.services.ocd.graphs.CustomGraph" name="userName"/>
+	          	<field class="i5.las2peer.services.ocd.graphs.CustomGraph" name="creationMethod"/>
+	          </keep>          
+	        </rename>  
+	      </yguard>  
+	    </target>  
+	
+    <!-- Cleanup -->
+	<target name="clean_before_build" depends="las2peer.clean_before_build, shutdown_database_server" />
+	
+    <target name="clean_all" depends="las2peer.clean_all, clean_before_build" />
+	
+    <target name="all" depends="clean_before_build, las2peer.generate_configs, junit, las2peer.java_doc, las2peer.clean_after_build, obfuscate" />
+	
+</project>

@@ -2,22 +2,40 @@
 <classpath>
 	<classpathentry kind="src" path="src/main"/>
 	<classpathentry kind="src" output="tmp/test" path="src/test"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/hamcrest-core-1.3.jar"/>
 	<classpathentry kind="lib" path="lib/junit-4.11.jar"/>
-	<classpathentry kind="lib" path="lib/i5-WebConnector-0.0.6.jar"/>
-	<classpathentry kind="lib" path="lib/i5-restMapper-0.0.6.jar"/>
-	<classpathentry kind="lib" path="lib/la4j-0.4.9.jar"/>
+	<classpathentry kind="lib" path="lib/las2peer-web-connector-0.3-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/las2peer-0.3-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/commons-dbcp2-2.0.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.1.3.jar"/>
+	<classpathentry kind="lib" path="lib/commons-pool2-2.2.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang3-3.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-codec-1.9.jar"/>
+	<classpathentry kind="lib" path="lib/activation-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/asm-4.0.jar"/>
+	<classpathentry kind="lib" path="lib/asm-tree-4.0.jar"/>
+	<classpathentry kind="lib" path="lib/asm-util-4.0.jar"/>
+	<classpathentry kind="lib" path="lib/bcprov-jdk15on-1.50.jar"/>
+	<classpathentry kind="lib" path="lib/cglib-3.0.jar"/>
+	<classpathentry kind="lib" path="lib/geronimo-jta_1.1_spec-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/jcip-annotations-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/json-smart-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/lang-tag-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/mail-1.4.7.jar"/>
+	<classpathentry kind="lib" path="lib/nimbus-jose-jwt-2.26.jar"/>
+	<classpathentry kind="lib" path="lib/oauth2-oidc-sdk-3.3.jar"/>
+	<classpathentry kind="lib" path="lib/las2peer-rest-mapper-0.3-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/y.jar"/>
 	<classpathentry kind="lib" path="lib/derby.jar"/>
 	<classpathentry kind="lib" path="lib/derbyclient.jar"/>
-	<classpathentry kind="lib" path="lib/guava-18.0.jar"/>
-	<classpathentry kind="lib" path="lib/ObfuscationAnnotation.jar"/>
-	<classpathentry kind="lib" path="lib/yguard.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/eclipselink.jar"/>
-	<classpathentry kind="lib" path="lib/geronimo-jpa_2.0_spec-1.1.jar"/>
-	<classpathentry kind="lib" path="lib/commons-exec-1.2.jar"/>
-	<classpathentry kind="lib" path="lib/commons-lang3-3.3.2.jar"/>
-	<classpathentry kind="lib" path="lib/las2peer-0.0.4.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-exec.jar"/>
+	<classpathentry kind="lib" path="lib/la4j.jar"/>
+	<classpathentry kind="lib" path="lib/derbynet.jar"/>
+	<classpathentry kind="lib" path="lib/derbytools.jar"/>
+	<classpathentry kind="lib" path="lib/yguard.jar"/>
+	<classpathentry kind="lib" path="lib/javax.persistence.jar"/>
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

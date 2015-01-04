@@ -38,8 +38,7 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
 import javax.xml.parsers.ParserConfigurationException;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
-
+import org.junit.Ignore;
 import org.junit.Test;
 import org.la4j.matrix.sparse.CCSMatrix;
 import org.w3c.dom.DOMException;

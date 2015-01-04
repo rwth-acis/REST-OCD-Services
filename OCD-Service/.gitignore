@@ -1,9 +1,14 @@
 /export
 /tmp
 /.las2peer
+/node-storage
 /startup
 /log
 /lib
 etc/ivy/ivy.jar
 /service
 /etc/startup
+*.iml
+/.idea
+restMapping.xml
+/out
