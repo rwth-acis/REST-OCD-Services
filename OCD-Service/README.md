@@ -6,7 +6,7 @@ For Linux:
 The system was mainly tested on Windows so far. For Linux there is still a small issue with the Ant Build. In case you receive an exception that the database ("db") could not be created, please do manually remove the directory "db" from the ocd/derby directory before the build.
 
 File Structure:
-Any service specific files (aside from the source and test code and the META-INF/persistence.xml for testing purposes) are located in the ocd directory, which is subdivided as follows:
+Any service specific files (aside from the source and test code and the src/META-INF/persistence.xml for testing purposes) are located in the ocd directory, which is subdivided as follows:
 - bin:
 	Includes scripts for launching / shutting down the database server of the derby database and to launch the ij tool for derby database monitoring.
 - derby:
@@ -36,11 +36,9 @@ User Configuration:
 The service's user management is based on the users of the LAS2peer network. Simply add/remove users to/from the network.
 
 Configuring the database:
-- adapt the file lib/las2peer-0.0.4.1.jar/META-INF/persistence.xml
-	Note that the actual name of the las2peer jar might differ according to the version being used.
-	The jar can easily be manipulated like a zip file, e.g. using the 7-zip File Manager.
+- adapt the file ocd/eclipselink/persistence.xml
 - also adapt the file src/META-INF/persistence.xml accordingly (for build/testing purposes)
 	Note that the property "eclipselink.ddl-generation" should maintain the value "drop-and-create-tables" as opposed to the persistence.xml in the actual service jar which is set to "create-tables".
-- make sure to also adapt the according targets in the ant build file.
+- make sure to also adapt the according targets in the build file ocd_build.xml if necessary.
 	
 This service is based on the LAS2peer framework. For any information on LAS2peer please refer to the LAS2peer project wiki.
