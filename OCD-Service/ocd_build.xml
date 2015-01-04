@@ -100,7 +100,10 @@
 	</target>
 	
     <!-- JUnit Testing -->
-    <target name="junit" depends="junit_tests, las2peer.junit_clean" description="--> execute all junit tests"/>
+    <target name="junit" depends="junit_tests" description="--> execute all junit tests">
+    	<antcall target="las2peer.junit_clean">
+    	</antcall>
+    </target>
 	
     <target name="junit_tests" depends="las2peer.init_junit, compile, jar">
 		<delete dir="${ocd.derby.db}" />

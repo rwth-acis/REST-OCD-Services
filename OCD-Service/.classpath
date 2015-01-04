@@ -37,5 +37,9 @@
 	<classpathentry kind="lib" path="lib/derbytools.jar"/>
 	<classpathentry kind="lib" path="lib/yguard.jar"/>
 	<classpathentry kind="lib" path="lib/javax.persistence.jar"/>
+	<classpathentry kind="lib" path="lib/org.osgi.compendium.jar"/>
+	<classpathentry kind="lib" path="lib/org.osgi.core.jar"/>
+	<classpathentry kind="lib" path="lib/jsr305.jar"/>
+	<classpathentry kind="lib" path="lib/commonj.sdo.jar"/>
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

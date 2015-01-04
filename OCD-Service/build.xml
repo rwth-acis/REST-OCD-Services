@@ -73,7 +73,7 @@
 	
 	
 	<!-- Initialization (Folder Creation)-->
-    <target name="init_general">
+    <target name="init_general" depends="clean_before_build">
         <tstamp/>
         <mkdir dir="${tmp}" />
         <mkdir dir="${export}" />
