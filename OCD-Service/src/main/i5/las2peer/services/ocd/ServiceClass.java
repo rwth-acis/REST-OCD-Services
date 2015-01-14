@@ -1,6 +1,8 @@
 package i5.las2peer.services.ocd;
 
 import i5.las2peer.api.Service;
+import i5.las2peer.restMapper.HttpResponse;
+import i5.las2peer.restMapper.MediaType;
 import i5.las2peer.restMapper.RESTMapper;
 import i5.las2peer.restMapper.annotations.ContentParam;
 import i5.las2peer.restMapper.annotations.DELETE;
@@ -11,6 +13,9 @@ import i5.las2peer.restMapper.annotations.PathParam;
 import i5.las2peer.restMapper.annotations.Produces;
 import i5.las2peer.restMapper.annotations.QueryParam;
 import i5.las2peer.restMapper.annotations.Version;
+import i5.las2peer.restMapper.annotations.swagger.ApiInfo;
+import i5.las2peer.restMapper.annotations.swagger.ResourceListApi;
+import i5.las2peer.restMapper.annotations.swagger.Summary;
 import i5.las2peer.security.UserAgent;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
@@ -72,6 +77,15 @@ import org.la4j.matrix.sparse.CCSMatrix;
 @Produces("text/xml")
 @Path("ocd")
 @Version("0.1")
+@ApiInfo(
+		  title="OCD",
+		  description="A RESTful service for overlapping community detection.",
+		  /* TODO add tos url */
+		  termsOfServiceUrl="sample-tos.io",
+		  contact="contact@contact.io",
+		  license="Apache License 2",
+		  licenseUrl="http://www.apache.org/licenses/LICENSE-2.0"
+		)
 public class ServiceClass extends Service {
 		
 	/*
@@ -147,6 +161,8 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("validate")
+    @ResourceListApi(description = "User validation")
+    @Summary("Simple function to validate a user login.")
     public String validateLogin()
     {
     	try {
@@ -156,6 +172,24 @@ public class ServiceClass extends Service {
     		requestHandler.log(Level.SEVERE, "", e);
     		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
     	}
+    }
+    
+//////////////////////////////////////////////////////////////////
+///////// SWAGGER
+//////////////////////////////////////////////////////////////////
+    
+    @GET
+    @Path("api-docs")
+    @Produces(MediaType.APPLICATION_JSON)
+    public HttpResponse getSwaggerResourceListing(){
+      return RESTMapper.getSwaggerResourceListing(this.getClass());
+    }
+
+    @GET
+    @Path("api-docs/{tlr}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public HttpResponse getSwaggerApiDeclaration(@PathParam("tlr") String tlr){
+      return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr, "http://localhost:8080/ocd/");
     }
 
 //////////////////////////////////////////////////////////////////////////
@@ -173,7 +207,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @POST
-    @Path("graph/name/{name}/creationmethod/{GraphCreationType}/inputFormat/{GraphInputFormat}")
+    @Path("graphs/name/{name}/creationmethod/{GraphCreationType}/inputFormat/{GraphInputFormat}")
+    @Summary("Imports a graph.")
     public String createGraph(
     		@PathParam("name") String nameStr,
     		@PathParam("GraphCreationType") String creationTypeStr,
@@ -260,8 +295,11 @@ public class ServiceClass extends Service {
      * @return The graphs.
      * Or an error xml.
      */
+    
     @GET
     @Path("graphs")
+    @ResourceListApi(description = "Manage graphs")
+    @Summary("Returns the ids or meta information of multiple graphs.")
     public String getGraphs(
     		@QueryParam(name="firstIndex", defaultValue = "0") String firstIndexStr,
     		@QueryParam(name="length", defaultValue = "") String lengthStr,
@@ -350,7 +388,8 @@ public class ServiceClass extends Service {
      */
     @GET
     @Produces("text/plain")
-    @Path("graph/{graphId}/outputFormat/{GraphOutputFormat}")
+    @Path("graphs/{graphId}/outputFormat/{GraphOutputFormat}")
+    @Summary("Returns a graph in a specified output format.")
     public String getGraph(
     		@PathParam("graphId") String graphIdStr,
     		@PathParam("GraphOutputFormat") String graphOuputFormatStr)
@@ -412,7 +451,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @DELETE
-    @Path("graph/{graphId}")
+    @Path("graphs/{graphId}")
+    @Summary("Deletes a graph.")
     public String deleteGraph(
     		@PathParam("graphId") String graphIdStr)
     {
@@ -506,7 +546,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @POST
-    @Path("cover/graph/{graphId}/name/{name}/creationmethod/{CoverCreationType}/inputFormat/{CoverInputFormat}")
+    @Path("covers/graph/{graphId}/name/{name}/creationmethod/{CoverCreationType}/inputFormat/{CoverInputFormat}")
+    @Summary("Imports a cover for an existing graph.")
     public String createCover(
     		@PathParam("graphId") String graphIdStr,
     		@PathParam("name") String nameStr,
@@ -606,6 +647,8 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("covers")
+    @ResourceListApi(description = "Manage covers")
+    @Summary("Returns the ids (or meta information) of multiple covers.")
     public String getCovers(
     		@QueryParam(name="firstIndex", defaultValue = "0") String firstIndexStr,
     		@QueryParam(name="length", defaultValue = "") String lengthStr,
@@ -741,7 +784,8 @@ public class ServiceClass extends Service {
      */
     @GET
     @Produces("text/plain")
-    @Path("cover/{coverId}/graph/{graphId}/outputFormat/{CoverOutputFormat}")
+    @Path("covers/{coverId}/graph/{graphId}/outputFormat/{CoverOutputFormat}")
+    @Summary("Returns a cover in a specified format.")
     public String getCover(
     		@PathParam("graphId") String graphIdStr,
     		@PathParam("coverId") String coverIdStr,
@@ -816,7 +860,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @DELETE
-    @Path("cover/{coverId}/graph/{graphId}")
+    @Path("covers/{coverId}/graph/{graphId}")
+    @Summary("Deletes a cover.")
     public String deleteCover(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr)
@@ -930,7 +975,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @POST
-    @Path("cover/graph/{graphId}/name/{name}/algorithm/{CoverCreationType}")
+    @Path("algorithms/{CoverCreationType}/graph/{graphId}/name/{name}")
+    @Summary("Creates a new cover by running an algorithm on an existing graph.")
     public String runAlgorithm(
     		@PathParam("graphId") String graphIdStr,
     		@PathParam("name") String nameStr,
@@ -1038,7 +1084,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @POST
-    @Path("cover/name/{coverName}/graphname/{graphName}/benchmark/{GraphCreationType}")
+    @Path("benchmarks/{GraphCreationType}/graph/{graphName}/cover/{coverName}")
+    @Summary("Creates a ground truth benchmark cover.")
     public String runGroundTruthBenchmark(
     		@PathParam("coverName") String coverNameStr,
     		@PathParam("graphName") String graphNameStr,
@@ -1132,7 +1179,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @POST
-    @Path("cover/{coverId}/graph/{graphId}/metric/{OcdMetricType}")
+    @Path("metrics/{OcdMetricType}/graph/{graphId}/cover/{coverId}")
+    @Summary("Runs a statistical measure on a cover and creates the corresponding log.")
     public String runStatisticalMeasure(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr,
@@ -1241,7 +1289,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @POST
-    @Path("cover/{coverId}/graph/{graphId}/metric/{OcdMetricType}/groundtruth/{groundTruthCoverId}")
+    @Path("metrics/{OcdMetricType}/graph/{graphId}/cover/{coverId}/groundtruth/{groundTruthCoverId}")
+    @Summary("Runs a knowledge-driven measure on a cover and creates the corresponding log.")
     public String runKnowledgeDrivenMeasure(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr,
@@ -1371,7 +1420,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @DELETE
-    @Path("cover/{coverId}/graph/{graphId}/metric/{metricId}")
+    @Path("metrics/{metricId}/graph/{graphId}/cover/{coverId}")
+    @Summary("Deletes a metric.")
     public String deleteMetric(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr,
@@ -1470,7 +1520,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("algorithm/{CoverCreationType}/parameters/default")
+    @Path("algorithms/{CoverCreationType}/parameters/default")
+    @Summary("Returns the default parameters of an algorithm.")
     public String getAlgorithmDefaultParams(
     		@PathParam("CoverCreationType") String coverCreationTypeStr)
     {
@@ -1506,7 +1557,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("benchmark/{GraphCreationType}/parameters/default")
+    @Path("benchmarks/{GraphCreationType}/parameters/default")
+    @Summary("Returns the default parameters of a benchmark.")
     public String getBenchmarkDefaultParams(
     		@PathParam("GraphCreationType") String graphCreationTypeStr)
     {
@@ -1546,7 +1598,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("metric/{OcdMetricType}/parameters/default")
+    @Path("metrics/{OcdMetricType}/parameters/default")
+    @Summary("Returns the default parameters of a metric.")
     public String getMetricDefaultParameters(
     		@PathParam("OcdMetricType") String ocdMetricTypeStr)
     {
@@ -1594,7 +1647,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("covers/creationmethods/names")
+    @Path("covers/creationmethods")
+    @Summary("Returns all cover creation type names.")
     public String getCoverCreationMethodNames()
     {
     	try {
@@ -1612,7 +1666,9 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("algorithms/names")
+    @Path("algorithms")
+    @ResourceListApi(description = "Algorithms information")
+    @Summary("Returns all algorithm type names.")
     public String getAlgorithmNames()
     {
     	try {
@@ -1630,7 +1686,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("benchmarks/groundtruth/names")
+    @Path("benchmarks")
+    @Summary("Returns all ground truth benchmark type names.")
     public String getGroundTruthBenchmarkNames()
     {
     	try {
@@ -1648,7 +1705,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("graphs/creationmethods/names")
+    @Path("graphs/creationmethods")
+    @Summary("Returns all graph creation type names.")
     public String getGraphCreationMethodNames()
     {
     	try {
@@ -1666,7 +1724,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("graphs/formats/input/names")
+    @Path("graphs/formats/input")
+    @Summary("Returns all graph input format names.")
     public String getGraphInputFormatNames()
     {
     	try {
@@ -1684,7 +1743,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("graphs/formats/output/names")
+    @Path("graphs/formats/output")
+    @Summary("Returns all graph output format names.")
     public String getGraphOutputFormatNames()
     {
     	try {
@@ -1702,7 +1762,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("covers/formats/output/names")
+    @Path("covers/formats/output")
+    @Summary("Returns all cover creation type names.")
     public String getCoverOutputFormatNames()
     {
     	try {
@@ -1720,7 +1781,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("covers/formats/input/names")
+    @Path("covers/formats/input")
+    @Summary("Returns all cover creation type names.")
     public String getCoverInputFormatNames()
     {
     	try {
@@ -1738,7 +1800,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("metrics/statistical/names")
+    @Path("metrics/statistical")
+    @Summary("Returns all statistical measure type names.")
     public String getStatisticalMeasureNames()
     {
     	try {
@@ -1756,7 +1819,8 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("metrics/knowledgedriven/names")
+    @Path("metrics/knowledgedriven")
+    @Summary("Returns all knowledge-driven measure type names.")
     public String getKnowledgeDrivenMeasureNames()
     {
     	try {
@@ -1774,7 +1838,9 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("metrics/names")
+    @Path("metrics")
+    @ResourceListApi(description = "Metrics information")
+    @Summary("Returns all metric type names.")
     public String getMetricNames()
     {
     	try {
