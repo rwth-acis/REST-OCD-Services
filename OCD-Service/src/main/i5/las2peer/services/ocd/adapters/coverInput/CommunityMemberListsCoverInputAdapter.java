@@ -19,17 +19,25 @@ import y.base.NodeCursor;
 
 /**
  * A cover input adapter for the community member list format.
- * Each line of input contains first the name of a community and then the names of the member nodes, using the space character (' ') as a delimiter.
+ * Each line of input contains first the name of a community (optional) and then the names of the member nodes, using the space character (' ') as a delimiter.
  * Nodes will be considered to have an equal membership degree for each community they are associated with.
  * @author Sebastian
  *
  */
 public class CommunityMemberListsCoverInputAdapter extends AbstractCoverInputAdapter {
 
-	/**
-	 * Creates a new instance.
+	
+	 /**
+	 * States whether only the member node names or also the community names are given.
+	 * @param areCommunityNamesDefined If false, each line of input is considered to only contain the names of the member nodes without a community name in the beginning.
+	 * If true, each line must first contain the community name.
 	 */
-	CommunityMemberListsCoverInputAdapter() {
+	private boolean communityNamesDefined = false;
+	
+	/**
+	 * Creates a new standard instance.
+	 */
+	CommunityMemberListsCoverInputAdapter(){
 	}
 	
 	/**
@@ -40,6 +48,14 @@ public class CommunityMemberListsCoverInputAdapter extends AbstractCoverInputAda
 		this.reader = reader;
 	}
 	
+	public boolean areCommunityNamesDefined() {
+		return communityNamesDefined;
+	}
+
+	public void setCommunityNamesDefined(boolean communityNamesDefined) {
+		this.communityNamesDefined = communityNamesDefined;
+	}
+
 	@Override
 	public Cover readCover(CustomGraph graph) throws AdapterException {
 		String nodeName;
@@ -53,10 +69,14 @@ public class CommunityMemberListsCoverInputAdapter extends AbstractCoverInputAda
 			/*
 			 * Reads edges
 			 */
-			while (line.size() >= 2) {
-				communityName = line.get(0);
-				communityNames.put(communityCount, communityName);
-				for(int i=1; i<line.size(); i++) {
+			while (line.size() >= 1) {
+				int i=0;
+				if(communityNamesDefined) {
+					communityName = line.get(0);
+					communityNames.put(communityCount, communityName);
+					i++;
+				}
+				for(; i<line.size(); i++) {
 					nodeName = line.get(i);
 					if (!nodeCommunities.containsKey(nodeName)) {
 						communityIndices = new ArrayList<Integer>();
@@ -93,8 +113,10 @@ public class CommunityMemberListsCoverInputAdapter extends AbstractCoverInputAda
 			nodes.next();
 		}
 		Cover cover = new Cover(graph, memberships);
-		for(int i : communityNames.keySet()) {
-			cover.setCommunityName(i, communityNames.get(i));
+		if(communityNamesDefined) {
+			for(int i : communityNames.keySet()) {
+				cover.setCommunityName(i, communityNames.get(i));
+			}
 		}
 		return cover;
 	}

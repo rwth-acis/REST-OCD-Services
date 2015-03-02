@@ -346,9 +346,7 @@ public class LfrBenchmark implements GroundTruthBenchmark {
 				executor.execute(cmdLine, resultHandler);
 				resultHandler.waitFor();
 				if(resultHandler.getExitValue() != 0) {
-					////// TODO remove
 					System.out.println(resultHandler.getException());
-					//////////
 					throw new OcdBenchmarkException("LFR Process exit value: " + resultHandler.getExitValue());
 				}
 				GraphInputAdapter graphAdapter = new WeightedEdgeListGraphInputAdapter(new FileReader(graphPath));

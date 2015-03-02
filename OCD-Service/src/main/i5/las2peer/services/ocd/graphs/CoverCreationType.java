@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.algorithms.BinarySearchRandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.ClizzAlgorithm;
+import i5.las2peer.services.ocd.algorithms.DetectingOverlappingCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.ExtendedSpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.MergingOfOverlappingCommunitiesAlgorithm;
@@ -85,8 +86,12 @@ public enum CoverCreationType {
 	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
 	 * Cannot be used for algorithm instantiation.
 	 */
-	NEWMAN(NewmanBenchmark.class, 12);
-	
+	NEWMAN(NewmanBenchmark.class, 12),
+	/**
+	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
+	 * Cannot be used for algorithm instantiation.
+	 */
+	DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 13);
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
 	 * Abstract types correspond to the CoverCreationMethod interface itself.

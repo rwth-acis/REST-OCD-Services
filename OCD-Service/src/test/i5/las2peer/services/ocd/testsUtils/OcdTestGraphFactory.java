@@ -341,4 +341,20 @@ public class OcdTestGraphFactory {
 		graph.setCreationMethod(log);
 		return graph;
 	}
+	
+	public static CustomGraph getDocaTestGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new UnweightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.docaTestUnweightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.docaTestGraphName);
+		GraphProcessor processor = new GraphProcessor();
+		graph.addType(GraphType.DIRECTED);
+		graph.addType(GraphType.SELF_LOOPS);
+		graph.addType(GraphType.WEIGHTED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
 }

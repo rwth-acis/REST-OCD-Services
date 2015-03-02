@@ -199,7 +199,7 @@ public class ServiceClass extends Service {
     /**
      * Imports a graph.
      * @param nameStr The name for the graph.
-     * @param creationTypeStr The type of the creation method used to create the graph.
+     * @param creationTypeStr The creation type the graph was created by.
      * @param graphInputFormatStr The name of the graph input format.
      * @param doMakeUndirectedStr Optional query parameter. Defines whether directed edges shall be turned into undirected edges (TRUE) or not.
      * @param contentStr The graph input.
@@ -207,12 +207,12 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @POST
-    @Path("graphs/name/{name}/creationmethod/{GraphCreationType}/inputFormat/{GraphInputFormat}")
+    @Path("graphs")
     @Summary("Imports a graph.")
     public String createGraph(
-    		@PathParam("name") String nameStr,
-    		@PathParam("GraphCreationType") String creationTypeStr,
-    		@PathParam("GraphInputFormat") String graphInputFormatStr,
+    		@QueryParam(name="name", defaultValue="unnamed") String nameStr,
+    		@QueryParam(name="creationType", defaultValue="UNDEFINED") String creationTypeStr,
+    		@QueryParam(name="inputFormat", defaultValue="GRAPH_ML") String graphInputFormatStr,
     		@QueryParam(name="doMakeUndirected", defaultValue = "FALSE") String doMakeUndirectedStr,
     		@ContentParam String contentStr)
     {
@@ -310,7 +310,7 @@ public class ServiceClass extends Service {
 			String username = ((UserAgent) getActiveAgent()).getLoginName();
 			List<CustomGraph> queryResults;
 			List<Integer> executionStatusIds = new ArrayList<Integer>();
-			if(executionStatusesStr != "") {
+			if(!executionStatusesStr.equals("")) {
 	    		try {
 	    			List<String> executionStatusesStrList = requestHandler.parseQueryMultiParam(executionStatusesStr);
 	    			for(String executionStatusStr : executionStatusesStrList) {
@@ -343,7 +343,7 @@ public class ServiceClass extends Service {
 				return requestHandler.writeError(Error.PARAMETER_INVALID, "First index is not valid.");
 			}
 			try {
-				if(lengthStr != "") {
+				if(!lengthStr.equals("")) {
 					int length = Integer.parseInt(lengthStr);
 					query.setMaxResults(length);
 				}
@@ -388,11 +388,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Produces("text/plain")
-    @Path("graphs/{graphId}/outputFormat/{GraphOutputFormat}")
+    @Path("graphs/{graphId}")
     @Summary("Returns a graph in a specified output format.")
     public String getGraph(
-    		@PathParam("graphId") String graphIdStr,
-    		@PathParam("GraphOutputFormat") String graphOuputFormatStr)
+    		@QueryParam(name="outputFormat", defaultValue="GRAPH_ML") String graphOutputFormatStr,
+    		@PathParam("graphId") String graphIdStr)
     {
     	try {
     		long graphId;
@@ -406,7 +406,7 @@ public class ServiceClass extends Service {
 				return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
     		}
     		try {
-		    	format = GraphOutputFormat.valueOf(graphOuputFormatStr);
+		    	format = GraphOutputFormat.valueOf(graphOutputFormatStr);
     		}
 	    	catch (Exception e) {
 	    		requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -539,20 +539,20 @@ public class ServiceClass extends Service {
      * Imports a cover for an existing graph.
      * @param graphIdStr The id of the graph that the cover is based on.
      * @param nameStr A name for the cover.
-     * @param creationTypeStr The name of the creation method the cover was created by.
+     * @param creationTypeStr The creation type the cover was created by.
      * @param coverInputFormatStr The name of the input format.
      * @param contentStr The cover input.
      * @return A cover id xml.
      * Or an error xml.
      */
     @POST
-    @Path("covers/graph/{graphId}/name/{name}/creationmethod/{CoverCreationType}/inputFormat/{CoverInputFormat}")
+    @Path("covers/graphs/{graphId}")
     @Summary("Imports a cover for an existing graph.")
     public String createCover(
     		@PathParam("graphId") String graphIdStr,
-    		@PathParam("name") String nameStr,
-    		@PathParam("CoverCreationType") String creationTypeStr,
-    		@PathParam("CoverInputFormat") String coverInputFormatStr,
+    		@QueryParam(name="name", defaultValue="unnamed") String nameStr,
+    		@QueryParam(name="creationType", defaultValue="UNDEFINED") String creationTypeStr,
+    		@QueryParam(name="inputFormat", defaultValue="LABELED_MEMBERSHIP_MATRIX") String coverInputFormatStr,
     		@ContentParam String contentStr)
     {
     	try {
@@ -629,7 +629,7 @@ public class ServiceClass extends Service {
     		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
     	}
     }
-    
+   
     /**
      * Returns the ids (or meta information) of multiple covers.
      * @param firstIndexStr Optional query parameter. The result list index of the first id to return. Defaults to 0.
@@ -660,7 +660,7 @@ public class ServiceClass extends Service {
     	try {
 			String username = ((UserAgent) getActiveAgent()).getLoginName();
 			long graphId = 0;
-			if(graphIdStr != "") {
+			if(!graphIdStr.equals("")) {
 	    		try {
 	    			graphId = Long.parseLong(graphIdStr);
 	    		}
@@ -670,7 +670,7 @@ public class ServiceClass extends Service {
 	    		}
 			}
 			List<Integer> executionStatusIds = new ArrayList<Integer>();
-			if(executionStatusesStr != "") {
+			if(!executionStatusesStr.equals("")) {
 	    		try {
 	    			List<String> executionStatusesStrList = requestHandler.parseQueryMultiParam(executionStatusesStr);
 	    			for(String executionStatusStr : executionStatusesStrList) {
@@ -689,7 +689,7 @@ public class ServiceClass extends Service {
 				}
 			}
 			List<Integer> metricExecutionStatusIds = new ArrayList<Integer>();
-			if(metricExecutionStatusesStr != "") {
+			if(!metricExecutionStatusesStr.equals("")) {
 	    		try {
 	    			List<String> metricExecutionStatusesStrList = requestHandler.parseQueryMultiParam(metricExecutionStatusesStr);
 	    			for(String executionStatusStr : metricExecutionStatusesStrList) {
@@ -710,15 +710,15 @@ public class ServiceClass extends Service {
 			String queryStr = "SELECT c from Cover c"
 					+ " JOIN c." + Cover.GRAPH_FIELD_NAME + " g"
 					+ " JOIN c." + Cover.CREATION_METHOD_FIELD_NAME + " a";
-			if(metricExecutionStatusesStr != "") {
+			if(!metricExecutionStatusesStr.equals("")) {
 					queryStr += " JOIN c." + Cover.METRICS_FIELD_NAME + " m";
 			}
 			queryStr += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username"
 					+ " AND a." + CoverCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
-			if(metricExecutionStatusesStr != "") {
+			if(!metricExecutionStatusesStr.equals("")) {
 					queryStr += " AND m." + OcdMetricLog.STATUS_ID_FIELD_NAME + " IN :metricExecStatusIds";
 			}
-			if(graphIdStr != "") {
+			if(!graphIdStr.equals("")) {
 				queryStr += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
 			}
 			/*
@@ -735,7 +735,7 @@ public class ServiceClass extends Service {
 				return requestHandler.writeError(Error.PARAMETER_INVALID, "First index is not valid.");
 			}
 			try {
-				if(lengthStr != "") {
+				if(!lengthStr.equals("")) {
 					int length = Integer.parseInt(lengthStr);
 					query.setMaxResults(length);
 				}
@@ -754,7 +754,7 @@ public class ServiceClass extends Service {
 	    	}
 			query.setParameter("username", username);
 			query.setParameter("execStatusIds", executionStatusIds);
-			if(metricExecutionStatusesStr != "") {
+			if(!metricExecutionStatusesStr.equals("")) {
 				query.setParameter("metricExecStatusIds", metricExecutionStatusIds);
 			}
 			queryResults = query.getResultList();
@@ -784,12 +784,12 @@ public class ServiceClass extends Service {
      */
     @GET
     @Produces("text/plain")
-    @Path("covers/{coverId}/graph/{graphId}/outputFormat/{CoverOutputFormat}")
+    @Path("covers/{coverId}/graphs/{graphId}")
     @Summary("Returns a cover in a specified format.")
     public String getCover(
     		@PathParam("graphId") String graphIdStr,
     		@PathParam("coverId") String coverIdStr,
-    		@PathParam("CoverOutputFormat") String coverOutputFormatStr)
+    		@QueryParam(name="outputFormat", defaultValue="LABELED_MEMBERSHIP_MATRIX") String coverOutputFormatStr)
     {
     	try {
     		String username = ((UserAgent) getActiveAgent()).getLoginName();
@@ -860,7 +860,7 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @DELETE
-    @Path("covers/{coverId}/graph/{graphId}")
+    @Path("covers/{coverId}/graphs/{graphId}")
     @Summary("Deletes a cover.")
     public String deleteCover(
     		@PathParam("coverId") String coverIdStr,
@@ -975,12 +975,12 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @POST
-    @Path("algorithms/{CoverCreationType}/graph/{graphId}/name/{name}")
+    @Path("covers/graphs/{graphId}/algorithms")
     @Summary("Creates a new cover by running an algorithm on an existing graph.")
     public String runAlgorithm(
     		@PathParam("graphId") String graphIdStr,
-    		@PathParam("name") String nameStr,
-    		@PathParam("CoverCreationType") String creationTypeStr,
+    		@QueryParam(name="name", defaultValue="unnamed") String nameStr,
+    		@QueryParam(name="algorithm", defaultValue="SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM") String creationTypeStr,
     		@ContentParam String content,
     		@QueryParam(name = "componentNodeCountFilter", defaultValue = "0") String componentNodeCountFilterStr)
     {
@@ -1068,11 +1068,11 @@ public class ServiceClass extends Service {
     		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
     	}
     }
-    
-//////////////////////////////////////////////////////////////////////////
-//////////// BENCHMARKS
-//////////////////////////////////////////////////////////////////////////
-    
+   
+////////////////////////////////////////////////////////////////////////////
+////////////// BENCHMARKS
+////////////////////////////////////////////////////////////////////////////
+   
     /**
      * Creates a ground truth benchmark cover.
      * @param coverNameStr The name for the cover.
@@ -1084,12 +1084,12 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @POST
-    @Path("benchmarks/{GraphCreationType}/graph/{graphName}/cover/{coverName}")
+    @Path("graphs/benchmarks")
     @Summary("Creates a ground truth benchmark cover.")
     public String runGroundTruthBenchmark(
-    		@PathParam("coverName") String coverNameStr,
-    		@PathParam("graphName") String graphNameStr,
-    		@PathParam("GraphCreationType") String creationTypeStr,
+    		@QueryParam(name="coverName", defaultValue="unnamed") String coverNameStr,
+    		@QueryParam(name="graphName", defaultValue="unnamed") String graphNameStr,
+    		@QueryParam(name="benchmark", defaultValue="LFR") String creationTypeStr,
     		@ContentParam String contentStr)
     {
     	try {
@@ -1172,19 +1172,19 @@ public class ServiceClass extends Service {
      * Runs a statistical measure on a cover and creates the corresponding log.
      * @param coverIdStr The id of the cover, must have the creation method status completed.
      * @param graphIdStr The id of the graph corresponding to the cover.
-     * @param metricTypeStr The name of an OcdMetricType corresponding to a statistical measure.
+     * @param metricTypeStr A metric type corresponding to a statistical measure.
      * @param contentStr A parameter xml defining any non-default parameters passed to the metric.
      * @return The id of the metric log being calculated which is reserved for the metric result
      * (contains also the corresponding cover and graph id).
      * Or an error xml.
      */
     @POST
-    @Path("metrics/{OcdMetricType}/graph/{graphId}/cover/{coverId}")
+    @Path("covers/{coverId}/graphs/{graphId}/metrics/statistical")
     @Summary("Runs a statistical measure on a cover and creates the corresponding log.")
     public String runStatisticalMeasure(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr,
-    		@PathParam("OcdMetricType") String metricTypeStr,
+    		@QueryParam(name="metricType", defaultValue="EXTENDED_MODULARITY") String metricTypeStr,
     		@ContentParam String contentStr)
     {
     	try {
@@ -1279,7 +1279,7 @@ public class ServiceClass extends Service {
      * Runs a knowledge-driven measure on a cover and creates the corresponding log.
      * @param coverIdStr The id of the cover, must have the creation method status completed.
      * @param graphIdStr The id of the graph corresponding to the cover.
-     * @param metricTypeStr An OcdMetricType corresponding to a statistical measure.
+     * @param metricTypeStr A metric type corresponding to a knowledge-driven measure.
      * @param groundTruthCoverIdStr The id of the ground truth cover used by the metric, must have the creation method status completed.
      * The ground truth cover's corresponding graph must be the same as the one corresponding 
      * to the first cover.
@@ -1289,12 +1289,12 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @POST
-    @Path("metrics/{OcdMetricType}/graph/{graphId}/cover/{coverId}/groundtruth/{groundTruthCoverId}")
+    @Path("covers/{coverId}/graphs/{graphId}/metrics/knowledgedriven/{groundTruthCoverId}")
     @Summary("Runs a knowledge-driven measure on a cover and creates the corresponding log.")
     public String runKnowledgeDrivenMeasure(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr,
-    		@PathParam("OcdMetricType") String metricTypeStr,
+    		@QueryParam(name="metricType", defaultValue="EXTENDED_NORMALIZED_MUTUAL_INFORMATION") String metricTypeStr,
     		@PathParam("groundTruthCoverId") String groundTruthCoverIdStr,
     		@ContentParam String contentStr)
     {
@@ -1420,7 +1420,7 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @DELETE
-    @Path("metrics/{metricId}/graph/{graphId}/cover/{coverId}")
+    @Path("covers/{coverId}/graphs/{graphId}/metrics/{metricId}")
     @Summary("Deletes a metric.")
     public String deleteMetric(
     		@PathParam("coverId") String coverIdStr,
@@ -1515,7 +1515,7 @@ public class ServiceClass extends Service {
     
     /**
      * Returns the default parameters of an algorithm.
-     * @param coverCreationTypeStr The name of a cover creation type corresponding to an ocd algorithm.
+     * @param coverCreationTypeStr A cover creation type corresponding to an ocd algorithm.
      * @return A parameter xml.
      * Or an error xml.
      */
@@ -1552,7 +1552,7 @@ public class ServiceClass extends Service {
     
     /**
      * Returns the default parameters of a benchmark.
-     * @param graphCreationTypeStr The name of a graph creation type corresponding to an ocd benchmark.
+     * @param graphCreationTypeStr A graph creation type corresponding to an ocd benchmark.
      * @return A parameter xml.
      * Or an error xml.
      */
@@ -1647,7 +1647,7 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("covers/creationmethods")
+    @Path("covers/creationtypes")
     @Summary("Returns all cover creation type names.")
     public String getCoverCreationMethodNames()
     {
@@ -1705,7 +1705,7 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Path("graphs/creationmethods")
+    @Path("graphs/creationtypes")
     @Summary("Returns all graph creation type names.")
     public String getGraphCreationMethodNames()
     {
@@ -1812,7 +1812,7 @@ public class ServiceClass extends Service {
     		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
     	}
     }
-    
+
     /**
      * Returns all knowledge-driven measure type names.
      * @return The types in a names xml.

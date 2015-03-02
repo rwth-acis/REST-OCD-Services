@@ -203,18 +203,18 @@ public class ServiceTest {
 		try {
 			c.setLogin(Long.toString(testAgent.getId()), testPass);
 			ClientResponse result = c.sendRequest("GET", mainPath + "graphs/"
-					+ SawmillGraphId + "/outputFormat/META_XML", "");
+					+ SawmillGraphId + "?outputFormat=META_XML", "");
 			assertEquals(200, result.getHttpCode());
 			System.out.println("Result of 'testGetGraphs' on Sawmill: "
 					+ result.getResponse().trim());
 			result = c.sendRequest("GET", mainPath + "graphs/" + DolphinsGraphId
-					+ "/outputFormat/META_XML", "");
+					+ "?outputFormat=META_XML", "");
 			assertEquals(200, result.getHttpCode());
 			System.out.println("Result of 'testGetGraphs' on Dolphins: "
 					+ result.getResponse().trim());
 			result = c.sendRequest("GET",
 					mainPath + "graphs/" + AperiodicTwoCommunitiesGraphId
-							+ "/outputFormat/META_XML", "");
+							+ "?outputFormat=META_XML", "");
 			assertEquals(200, result.getHttpCode());
 			System.out
 					.println("Result of 'testGetGraphs' on AperiodicTwoCommunities: "

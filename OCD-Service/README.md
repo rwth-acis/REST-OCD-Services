@@ -2,9 +2,6 @@ OCD Service
 
 This is a RESTful web service for overlapping community detection.
 
-For Linux:
-The system was mainly tested on Windows so far. For Linux there is still a small issue with the Ant Build. In case you receive an exception that the database ("db") could not be created, please do manually remove the directory "db" from the ocd/derby directory before the build.
-
 File Structure:
 Any service specific files (aside from the source and test code and the src/META-INF/persistence.xml for testing purposes) are located in the ocd directory, which is subdivided as follows:
 - bin:
@@ -20,12 +17,19 @@ Any service specific files (aside from the source and test code and the src/META
 - test:
 	Includes two folders input and output containing data files required for testing purposes.
 
-First set up:
-- Use only the ocd_build.xml for building purposes, not the build.xml. Note that Eclipse might illustrate errors for the build file because aparrently it is not able to resolve the external target dependencies correctly. This should not cause an issue.
+Use only the ocd_build.xml for building purposes, not the build.xml. Note that Eclipse might illustrate errors for the build file because aparrently it is not able to resolve the external target dependencies correctly. This should not cause an issue.	
+
+For Linux:
+The system was mainly tested on Windows so far. For Linux there is still a small issue with the Ant Build. In case you receive an exception that the database ("db") could not be created, please do manually remove the directory "db" from the ocd/derby directory before the build.
+
+First build:
 - Run the target "get_deps" in order to obtain all dependencies.
+
+General build:
 - Open the MANIFEST.MF in the META-INF folder of the las2peer jar which should be located in the lib folder (e.g. las2peer-0.3-SNAPSHOT.jar). You can get access to the jar file with any zip tool.
 - Add now the path of the service jar to the Class-Path attribute of the manifest. The path should be "../service/i5.las2peer.services.ocd-0.1.jar".
 - Finally run the target "all".
+- In case there are any issues, e.g. because a file could not be deleted, make sure that the database server is not running. To do so, you may run the shutdown_derby_server.bat (for Windows) or shutdown_derby_server.sh (for Linux) in the ocd/bin directory.
 	
 Running the service:
 - First the derby database server must be started. Simply execute the script start_derby_server.bat for Windows or start_derby_server.sh for Linux, located in the ocd/bin directory.
