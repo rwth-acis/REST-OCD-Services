@@ -4,6 +4,7 @@ import i5.las2peer.api.Service;
 import i5.las2peer.restMapper.HttpResponse;
 import i5.las2peer.restMapper.MediaType;
 import i5.las2peer.restMapper.RESTMapper;
+import i5.las2peer.restMapper.annotations.Consumes;
 import i5.las2peer.restMapper.annotations.ContentParam;
 import i5.las2peer.restMapper.annotations.DELETE;
 import i5.las2peer.restMapper.annotations.GET;
@@ -14,6 +15,8 @@ import i5.las2peer.restMapper.annotations.Produces;
 import i5.las2peer.restMapper.annotations.QueryParam;
 import i5.las2peer.restMapper.annotations.Version;
 import i5.las2peer.restMapper.annotations.swagger.ApiInfo;
+import i5.las2peer.restMapper.annotations.swagger.ApiResponse;
+import i5.las2peer.restMapper.annotations.swagger.ApiResponses;
 import i5.las2peer.restMapper.annotations.swagger.ResourceListApi;
 import i5.las2peer.restMapper.annotations.swagger.Summary;
 import i5.las2peer.security.UserAgent;
@@ -74,7 +77,7 @@ import org.la4j.matrix.sparse.CCSMatrix;
  * @author Sebastian
  *
  */
-@Produces("text/xml")
+@Produces(MediaType.TEXT_XML)
 @Path("ocd")
 @Version("0.1")
 @ApiInfo(
@@ -82,7 +85,7 @@ import org.la4j.matrix.sparse.CCSMatrix;
 		  description="A RESTful service for overlapping community detection.",
 		  /* TODO add tos url */
 		  termsOfServiceUrl="sample-tos.io",
-		  contact="contact@contact.io",
+		  contact="sebastian.krott@rwth-aachen.de",
 		  license="Apache License 2",
 		  licenseUrl="http://www.apache.org/licenses/LICENSE-2.0"
 		)
@@ -161,7 +164,12 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("validate")
+    @Produces(MediaType.TEXT_XML)
     @ResourceListApi(description = "User validation")
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Simple function to validate a user login.")
     public String validateLogin()
     {
@@ -189,7 +197,8 @@ public class ServiceClass extends Service {
     @Path("api-docs/{tlr}")
     @Produces(MediaType.APPLICATION_JSON)
     public HttpResponse getSwaggerApiDeclaration(@PathParam("tlr") String tlr){
-      return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr, "http://localhost:8080/ocd/");
+      //return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr, "http://127.0.0.1:8080/ocd/");
+      return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr, "https://api.learning-layers.eu/ocd/");
     }
 
 //////////////////////////////////////////////////////////////////////////
@@ -208,6 +217,12 @@ public class ServiceClass extends Service {
      */
     @POST
     @Path("graphs")
+    @Produces(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_PLAIN)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Imports a graph.")
     public String createGraph(
     		@QueryParam(name="name", defaultValue="unnamed") String nameStr,
@@ -298,6 +313,11 @@ public class ServiceClass extends Service {
     
     @GET
     @Path("graphs")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @ResourceListApi(description = "Manage graphs")
     @Summary("Returns the ids or meta information of multiple graphs.")
     public String getGraphs(
@@ -387,7 +407,11 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Produces("text/plain")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Path("graphs/{graphId}")
     @Summary("Returns a graph in a specified output format.")
     public String getGraph(
@@ -452,6 +476,11 @@ public class ServiceClass extends Service {
      */
     @DELETE
     @Path("graphs/{graphId}")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Deletes a graph.")
     public String deleteGraph(
     		@PathParam("graphId") String graphIdStr)
@@ -547,6 +576,12 @@ public class ServiceClass extends Service {
      */
     @POST
     @Path("covers/graphs/{graphId}")
+    @Produces(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_PLAIN)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Imports a cover for an existing graph.")
     public String createCover(
     		@PathParam("graphId") String graphIdStr,
@@ -647,6 +682,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("covers")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @ResourceListApi(description = "Manage covers")
     @Summary("Returns the ids (or meta information) of multiple covers.")
     public String getCovers(
@@ -783,7 +823,11 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @GET
-    @Produces("text/plain")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Path("covers/{coverId}/graphs/{graphId}")
     @Summary("Returns a cover in a specified format.")
     public String getCover(
@@ -861,6 +905,11 @@ public class ServiceClass extends Service {
      */
     @DELETE
     @Path("covers/{coverId}/graphs/{graphId}")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Deletes a cover.")
     public String deleteCover(
     		@PathParam("coverId") String coverIdStr,
@@ -976,6 +1025,12 @@ public class ServiceClass extends Service {
      */
     @POST
     @Path("covers/graphs/{graphId}/algorithms")
+    @Produces(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Creates a new cover by running an algorithm on an existing graph.")
     public String runAlgorithm(
     		@PathParam("graphId") String graphIdStr,
@@ -1085,6 +1140,12 @@ public class ServiceClass extends Service {
      */
     @POST
     @Path("graphs/benchmarks")
+    @Produces(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Creates a ground truth benchmark cover.")
     public String runGroundTruthBenchmark(
     		@QueryParam(name="coverName", defaultValue="unnamed") String coverNameStr,
@@ -1180,6 +1241,12 @@ public class ServiceClass extends Service {
      */
     @POST
     @Path("covers/{coverId}/graphs/{graphId}/metrics/statistical")
+    @Produces(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Runs a statistical measure on a cover and creates the corresponding log.")
     public String runStatisticalMeasure(
     		@PathParam("coverId") String coverIdStr,
@@ -1289,7 +1356,13 @@ public class ServiceClass extends Service {
      * Or an error xml.
      */
     @POST
-    @Path("covers/{coverId}/graphs/{graphId}/metrics/knowledgedriven/{groundTruthCoverId}")
+    @Path("covers/{coverId}/graphs/{graphId}/metrics/knowledgedriven/groundtruth/{groundTruthCoverId}")
+    @Produces(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Runs a knowledge-driven measure on a cover and creates the corresponding log.")
     public String runKnowledgeDrivenMeasure(
     		@PathParam("coverId") String coverIdStr,
@@ -1421,6 +1494,11 @@ public class ServiceClass extends Service {
      */
     @DELETE
     @Path("covers/{coverId}/graphs/{graphId}/metrics/{metricId}")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Deletes a metric.")
     public String deleteMetric(
     		@PathParam("coverId") String coverIdStr,
@@ -1521,6 +1599,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("algorithms/{CoverCreationType}/parameters/default")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns the default parameters of an algorithm.")
     public String getAlgorithmDefaultParams(
     		@PathParam("CoverCreationType") String coverCreationTypeStr)
@@ -1558,6 +1641,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("benchmarks/{GraphCreationType}/parameters/default")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns the default parameters of a benchmark.")
     public String getBenchmarkDefaultParams(
     		@PathParam("GraphCreationType") String graphCreationTypeStr)
@@ -1599,6 +1687,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("metrics/{OcdMetricType}/parameters/default")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns the default parameters of a metric.")
     public String getMetricDefaultParameters(
     		@PathParam("OcdMetricType") String ocdMetricTypeStr)
@@ -1648,6 +1741,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("covers/creationtypes")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns all cover creation type names.")
     public String getCoverCreationMethodNames()
     {
@@ -1667,6 +1765,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("algorithms")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @ResourceListApi(description = "Algorithms information")
     @Summary("Returns all algorithm type names.")
     public String getAlgorithmNames()
@@ -1687,6 +1790,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("benchmarks")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns all ground truth benchmark type names.")
     public String getGroundTruthBenchmarkNames()
     {
@@ -1706,6 +1814,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("graphs/creationtypes")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns all graph creation type names.")
     public String getGraphCreationMethodNames()
     {
@@ -1725,6 +1838,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("graphs/formats/input")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns all graph input format names.")
     public String getGraphInputFormatNames()
     {
@@ -1744,6 +1862,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("graphs/formats/output")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns all graph output format names.")
     public String getGraphOutputFormatNames()
     {
@@ -1763,6 +1886,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("covers/formats/output")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns all cover creation type names.")
     public String getCoverOutputFormatNames()
     {
@@ -1782,6 +1910,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("covers/formats/input")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns all cover creation type names.")
     public String getCoverInputFormatNames()
     {
@@ -1801,6 +1934,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("metrics/statistical")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns all statistical measure type names.")
     public String getStatisticalMeasureNames()
     {
@@ -1820,6 +1958,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("metrics/knowledgedriven")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @Summary("Returns all knowledge-driven measure type names.")
     public String getKnowledgeDrivenMeasureNames()
     {
@@ -1839,6 +1982,11 @@ public class ServiceClass extends Service {
      */
     @GET
     @Path("metrics")
+    @Produces(MediaType.TEXT_XML)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
     @ResourceListApi(description = "Metrics information")
     @Summary("Returns all metric type names.")
     public String getMetricNames()
