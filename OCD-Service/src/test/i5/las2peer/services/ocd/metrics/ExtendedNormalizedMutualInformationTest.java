@@ -9,8 +9,8 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestCoverFactory;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;

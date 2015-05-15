@@ -42,5 +42,8 @@
 	<classpathentry kind="lib" path="lib/jsr305.jar"/>
 	<classpathentry kind="lib" path="lib/commonj.sdo.jar"/>
 	<classpathentry kind="lib" path="lib/json-simple-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/commons-jxpath-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/sbbi-upnplib-1.0.4.jar"/>
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

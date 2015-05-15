@@ -15,6 +15,7 @@ public class OcdTestConstants {
 	public static final String sawmillNodeWeightedEdgeListInputPath = inputFolderPath + "SawmillNodeEdgeList.txt";
 	public static final String sawmillUnweightedEdgeListInputPath = inputFolderPath + "SawmillUnweightedEdgeList.txt";
 	public static final String sawmillGraphMlInputPath = inputFolderPath + "SawmillGraphMl.xml";
+	public static final String fitnessGraphMlInputPath = inputFolderPath + "fitness_graph_jung.graphml";
 	public static final String siamDmUnweightedEdgeListInputPath = inputFolderPath + "SIAM_DM.txt";
 	public static final String facebookUnweightedEdgeListInputPath = inputFolderPath + "FacebookUnweightedEdgeList.txt";
 	public static final String newmanClizzGraphWeightedEdgeListInputPath = inputFolderPath + "newmanClizzGraphWeightedEdgeList.txt";
@@ -22,6 +23,7 @@ public class OcdTestConstants {
 	public static final String dolphinsGmlInputPath = inputFolderPath + "dolphins.gml";
 	public static final String zacharyGmlInputPath = inputFolderPath + "karate.gml";
 	public static final String docaTestUnweightedEdgeListInputPath = inputFolderPath + "docaTestUnweightedEdgeList.txt";
+	
 	
 	/*
 	 * Cover input filenames

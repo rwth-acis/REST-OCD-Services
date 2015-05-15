@@ -23,7 +23,7 @@ import y.io.graphml.KeyType;
 
 /**
  * A graph input adapter for GraphML format, based on the GraphMLIOHandler of the yFiles library..
- * In case each node has a "name" element containing a CDATA section with a unique value node names will be derived from there. Otherwise node names will be set as indices.
+ * In case each node has a "name" element containing a CDATA section with a unique value node names will be derived from there. Otherwise node names will be set according to the ids.
  * In case each edge has a "weight" element with a numeric value edge weights will be derived from there.
  * @author Sebastian
  *
@@ -44,7 +44,7 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 		core.addInputDataAcceptor("name", nodeNames, KeyScope.NODE, KeyType.STRING);
 		core.addInputDataAcceptor("weight", edgeWeights, KeyScope.EDGE, KeyType.DOUBLE);
 		try {
-			ioh.read(graph, is);
+			ioh.read(graph, is);				
 			/*
 			 * Checks whether node names are unique.
 			 */
@@ -54,7 +54,7 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 			Set<String> names = new HashSet<String>();
 			while(nodes.ok()) {
 				name = (String)nodeNames.get(nodes.node());
-				if(name.isEmpty()) {
+				if(name == null || name.isEmpty()) {
 					break;
 				}
 				names.add(name);

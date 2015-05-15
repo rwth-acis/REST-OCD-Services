@@ -14,15 +14,13 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import java.io.FileNotFoundException;
 import java.util.HashSet;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
-
+import org.junit.Ignore;
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import y.base.Node;
-
 public class ExtendedModularityMetricTest {
 
 	/*

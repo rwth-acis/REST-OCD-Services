@@ -1026,7 +1026,7 @@ public class ServiceClass extends Service {
     @POST
     @Path("covers/graphs/{graphId}/algorithms")
     @Produces(MediaType.TEXT_XML)
-    @Consumes(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
@@ -1141,7 +1141,7 @@ public class ServiceClass extends Service {
     @POST
     @Path("graphs/benchmarks")
     @Produces(MediaType.TEXT_XML)
-    @Consumes(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
@@ -1242,7 +1242,7 @@ public class ServiceClass extends Service {
     @POST
     @Path("covers/{coverId}/graphs/{graphId}/metrics/statistical")
     @Produces(MediaType.TEXT_XML)
-    @Consumes(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
@@ -1358,7 +1358,7 @@ public class ServiceClass extends Service {
     @POST
     @Path("covers/{coverId}/graphs/{graphId}/metrics/knowledgedriven/groundtruth/{groundTruthCoverId}")
     @Produces(MediaType.TEXT_XML)
-    @Consumes(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")

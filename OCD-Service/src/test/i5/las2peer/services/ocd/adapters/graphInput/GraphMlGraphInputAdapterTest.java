@@ -24,5 +24,12 @@ public class GraphMlGraphInputAdapterTest {
 		assertEquals(2, graph.getEdgeWeight(graph.getEdgeArray()[0]), 0);
 		assertEquals("1", graph.getNodeName(graph.getNodeArray()[0]));
 	}
+	
+	@Test
+	public void testOnJungOutput() throws AdapterException, FileNotFoundException {
+		GraphInputAdapter inputAdapter = new GraphMlGraphInputAdapter();
+		inputAdapter.setReader(new FileReader(OcdTestConstants.fitnessGraphMlInputPath));
+		CustomGraph graph = inputAdapter.readGraph();
+	}
 
 }
