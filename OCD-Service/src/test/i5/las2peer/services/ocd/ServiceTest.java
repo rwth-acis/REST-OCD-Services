@@ -29,6 +29,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -38,6 +39,7 @@ import org.junit.Test;
  * 
  */
 
+@Ignore
 public class ServiceTest {
 
 	private static final String HTTP_ADDRESS = "http://127.0.0.1";

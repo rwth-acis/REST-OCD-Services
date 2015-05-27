@@ -12,9 +12,11 @@
     <property name="src.junit" location="src/test" />
 	
     <property name="tmp" location="tmp" />
-    <property name="service" location="service" />
+    <property name="service" location="service" relative="true" />
+	<property name="service.relativepath" value="service" />
 	
     <property name="tmp.classes" location="${tmp}/classes" />
+    <property name="tmp.classes.metainf" location="${tmp.classes}/META-INF" />
     <property name="tmp.junit" location="${tmp}/test" />
 	
     <property name="export" location="export" />
@@ -22,6 +24,8 @@
     <property name="export.jars" location="${export}/jars" />
     <property name="junit.report" location="${export}/test_reports" />
 
+
+	<!-- libraries -->
     <property name="lib" location="lib" />
 
     <path id="libraries">
@@ -32,6 +36,7 @@
     </path>
 	
     <property name="lib.junit" location="${lib}/junit-4.11.jar" />
+    <property name="lib.las2peer" location="${lib}/las2peer-0.3-SNAPSHOT.jar" />
 	
 	<!-- ocd properties -->
 	<property name="src.main.metainf" location = "${src.main}/META-INF" />
@@ -43,6 +48,7 @@
 	<property name="ocd.derby" location="${ocd}/derby" />
 	<property name="ocd.derby.db" location="${ocd.derby}/db" />
 	<property name="ocd.eclipselink" location="${ocd}/eclipselink" />
+	<property name="ocd.eclipselink.persistence" location="${ocd.eclipselink}/persistence.xml" />
 	<property name="ocd.lfr" location="${ocd}/lfr" />
 	<property name="ocd.test" location="${ocd}/test" />
 	<property name="ocd.test.input" location="${ocd.test}/input" />
@@ -66,16 +72,12 @@
             <credentials host="role.dbis.rwth-aachen.de:9911/archiva"  realm="Repository internal"/>
         </ivy:settings>
         <ivy:resolve file="${ocd.ivy.dep}" type="jar" />
-        <ivy:retrieve pattern="${lib}/[artifact].[ext]"/>
+        <ivy:retrieve pattern="${lib}/[artifact]-[revision].[ext]" conf="standard"/>
+        <ivy:retrieve pattern="${lib}/[artifact].[ext]" conf="derby"/>
 	</target>
 	
 	<!-- Initialization (Folder Creation)-->
 	<target name="init" depends="las2peer.init_general, las2peer.init_compile, las2peer.init_jars, las2peer.init_doc, get_deps, clean_before_build">
-		<!--<jar destfile="lib/las2peer-0.3-SNAPSHOT.jar" filesetmanifest="merge" update="true" flattenAttributes="true" mergeClassPathAttributes="true">
-			<manifest>
-				<attribute name="Class-Path" value="../service/i5.las2peer.services.ocd-0.1.jar"/>
-			</manifest>
-		</jar>-->
 		<mkdir dir="${ocd.derby}" />
 		<mkdir dir="${ocd.eclipselink}" />
 		<mkdir dir="${ocd.lfr}" />
@@ -92,61 +94,61 @@
     <!-- Generate Service Jars -->
     <target name="jar" depends="las2peer.jar, compile" description="--> generate service jars">
 		<jar destfile="${export.jars}/${service.name}-${service.version}.jar" update="true">
-			<zipfileset dir="ocd/eclipselink" includes="persistence.xml" prefix="META-INF"/>
+			<zipfileset dir="${ocd.eclipselink}" includes="persistence.xml" prefix="META-INF"/>
 		</jar>
 	    <jar destfile="${service}/${service.name}-${service.version}.jar" update="true">
-	    	<zipfileset dir="ocd/eclipselink" includes="persistence.xml" prefix="META-INF"/>
+	    	<zipfileset dir="${ocd.eclipselink}" includes="persistence.xml" prefix="META-INF"/>
 	    </jar>
 	</target>
 	
     <!-- JUnit Testing -->
     <target name="junit" depends="junit_tests" description="--> execute all junit tests">
+    	<shutdown_database_server/>
     	<antcall target="las2peer.junit_clean">
     	</antcall>
     </target>
 	
-    <target name="junit_tests" depends="las2peer.init_junit, compile, jar">
+	<target name="init_junit" depends="las2peer.init_junit, compile">
 		<delete dir="${ocd.derby.db}" />
-		<parallel>
-			<antcall target="launch_database_server">
-			</antcall>
-			<sequential>
-				<waitfor maxwait="5" maxwaitunit="second">
-					<socket server="${database.server}" port="${database.port}" />
-				</waitfor>
-				<junit fork="yes" haltonerror="yes" haltonfailure="yes" printsummary="yes">
-					<classpath>
-						<pathelement path="${tmp.classes}" />
-						<pathelement path="${tmp.junit}" />
-						<pathelement path="${lib.junit}" />
-						<path refid="libraries" />
-					</classpath>
-					<formatter type="plain" />
-					<batchtest fork="yes" todir="${junit.report}">
-						<fileset dir="${tmp.junit}">
-							<include name="**/*Test.class" />
-						</fileset>
-					</batchtest>
-				</junit>
-			</sequential>
-		</parallel>
-		<antcall target="shutdown_database_server">
-		</antcall>
+		<launch_database_server/>
+	</target>
+    
+    <target name="junit_tests" depends="init_junit">
+		<junit fork="no" haltonerror="yes" haltonfailure="yes" printsummary="yes">
+			<classpath>
+				<pathelement path="${tmp.junit}" />
+				<pathelement path="${tmp.classes}" />
+				<pathelement path="${lib.junit}" />
+				<path refid="libraries" />
+			</classpath>
+			<formatter type="plain" />
+			<batchtest fork="no" todir="${junit.report}">
+				<fileset dir="${tmp.junit}">
+					<include name="**/*Test.class" />
+					<!-- Do not initialize database
+					(just in case anybody adds anything) -->
+					<exclude name="**/DatabaseInitializer.class" />
+				</fileset>
+			</batchtest>
+		</junit>
     </target>
 	
 	<!-- Database Server Control -->
-	<target name="launch_database_server" >
-		<echo>Trying to start database server.
+	<macrodef name="launch_database_server" >
+		<sequential>
+			<echo>Trying to start database server.
 May fail if the server is already running or the port is otherwise occupied.</echo>
-		<java classname="org.apache.derby.drda.NetworkServerControl" classpathref="libraries" dir="${ocd.derby}" fork="true" spawn="true">
-			<arg line="'start' '-h' '${database.server}' '-p' '${database.port}'" />
-		</java>
-		<waitfor maxwait="5" maxwaitunit="second">
-			<socket server="${database.server}" port="${database.port}" />
-		</waitfor>
-	</target>
+			<java classname="org.apache.derby.drda.NetworkServerControl" classpathref="libraries" dir="${ocd.derby}" fork="true" spawn="true">
+				<arg line="'start' '-h' '${database.server}' '-p' '${database.port}'" />
+			</java>
+			<waitfor maxwait="5" maxwaitunit="second">
+				<socket server="${database.server}" port="${database.port}" />
+			</waitfor>
+		</sequential>
+	</macrodef>
 
-	<target name="shutdown_database_server">
+	<macrodef name="shutdown_database_server">
+		<sequential>
 			<echo>Trying to shutdown database server.
 May fail if the server is not running.</echo>
 			<java classname="org.apache.derby.drda.NetworkServerControl" classpathref="libraries">
@@ -157,14 +159,14 @@ May fail if the server is not running.</echo>
 					<socket server="${database.server}" port="${database.port}" />
 				</not>
 			</waitfor>
-	</target>
+		</sequential>
+	</macrodef>
 	
 	<!-- Database Initialization -->
 	<target name="setup_database" depends="las2peer.init_junit, compile" description="--> execute DatabaseInitializer">
 		<delete dir="${ocd.derby.db}" />
 		<parallel>
-			<antcall target="launch_database_server">
-			</antcall>
+			<launch_database_server/>
 			<sequential>
 				<waitfor maxwait="5" maxwaitunit="second">
 					<socket server="${database.server}" port="${database.port}" />
@@ -185,12 +187,11 @@ May fail if the server is not running.</echo>
 				</junit>
 			</sequential>
 		</parallel>
-		<antcall target="shutdown_database_server">
-		</antcall>
+		<shutdown_database_server/>
 	</target>
 	
 	<!-- Obfuscates yFiles (i.e., y.jar) -->
-	    <target name="obfuscate" depends="las2peer.jar" description="--> obfuscate yFiles">  
+	    <target name="obfuscate" depends="jar" description="--> obfuscate yFiles">  
 	      <!-- yGuard Ant task. -->  
 	      <taskdef name="yguard"   
 	               classname="com.yworks.yguard.YGuardTask"   
@@ -224,12 +225,20 @@ May fail if the server is not running.</echo>
 	        </rename>  
 	      </yguard>  
 	    </target>  
+	    
+	<!-- Agent generation -->
+	<target name="generate_configs" depends="las2peer.generate_configs"/>
+	
+	<!-- Javadoc generation-->
+	<target name="java_doc" depends="las2peer.java_doc"/>
 	
     <!-- Cleanup -->
-	<target name="clean_before_build" depends="las2peer.clean_before_build, shutdown_database_server" />
+	<target name="clean_before_build" depends="las2peer.clean_before_build">
+		<shutdown_database_server/>
+	</target>
 	
     <target name="clean_all" depends="las2peer.clean_all, clean_before_build" />
 	
-    <target name="all" depends="clean_before_build, las2peer.generate_configs, junit, las2peer.java_doc, las2peer.clean_after_build, obfuscate" />
+    <target name="all" depends="generate_configs, junit, jar, java_doc, obfuscate, clean_all"/>
 	
 </project>

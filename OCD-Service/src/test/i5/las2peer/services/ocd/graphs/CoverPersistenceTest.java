@@ -34,7 +34,7 @@ public class CoverPersistenceTest {
 	private static final String coverName = "coverPersistenceCover";
 	private static final String invalidCoverName = "invalidCoverName";
 	
-	EntityManagerFactory emf = Persistence.createEntityManagerFactory("test");
+	EntityManagerFactory emf = Persistence.createEntityManagerFactory("ocd");
 	
 	@Test
 	public void testPersist() {

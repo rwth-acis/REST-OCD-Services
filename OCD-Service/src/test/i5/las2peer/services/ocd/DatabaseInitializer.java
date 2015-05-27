@@ -26,15 +26,17 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * This class is designed for database initialization through jUnit tests.
  * All tests will be executed when running the 'database' target of the ant build file.
  */
+@Ignore
 public class DatabaseInitializer {
 
-	EntityManagerFactory emf = Persistence.createEntityManagerFactory("test");
+	EntityManagerFactory emf = Persistence.createEntityManagerFactory("ocd");
 	
 	private final String username = "User";
 	

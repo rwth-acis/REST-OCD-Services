@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- This file defines only the persistence unit used for running the service.
+To configure the test environment use the persistence.xml in the META-INF directory under src/main -->
 <persistence version="1.0"
     xmlns="http://java.sun.com/xml/ns/persistence"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://java.sun.com/xml/ns/persistence
                         http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
-  <persistence-unit name="ocd" transaction-type="RESOURCE_LOCAL">
-    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-	<jar-file>../service/i5.las2peer.services.ocd-0.1.jar</jar-file>
-    <properties>
-      <property name="javax.persistence.jdbc.driver"   value="org.apache.derby.jdbc.ClientDriver" />
-      <property name="javax.persistence.jdbc.url"      value="jdbc:derby://localhost:1527/db;create=true;securityMechanism=8" />
-      <property name="javax.persistence.jdbc.user"     value="ocdUser" />
-      <property name="javax.persistence.jdbc.password" value="ocdPw" />
-      <property name="eclipselink.ddl-generation.output-mode" value="both"/>
-      <property name="eclipselink.ddl-generation"      value="create-tables" />
-	  <property name="eclipselink.create-ddl-jdbc-file-name" value="ocd/eclipselink/serviceCreateDDL.jdbc"/>
-      <property name="eclipselink.drop-ddl-jdbc-file-name" value="ocd/eclipselink/serviceDropDDL.jdbc"/>
-    </properties>
-  </persistence-unit>
+    <persistence-unit name="ocd" transaction-type="RESOURCE_LOCAL">
+    	<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		<jar-file>../service/i5.las2peer.services.ocd-0.1.jar</jar-file>
+    	<properties>
+	      	<property name="javax.persistence.jdbc.driver"   value="org.apache.derby.jdbc.ClientDriver" />
+    	  	<property name="javax.persistence.jdbc.url"      value="jdbc:derby://localhost:1527/db;create=true;securityMechanism=8" />
+	      	<property name="javax.persistence.jdbc.user"     value="ocdUser" />
+			<property name="javax.persistence.jdbc.password" value="ocdPw" />
+    	  	<property name="eclipselink.ddl-generation.output-mode" value="both"/>
+	      	<property name="eclipselink.ddl-generation"      value="create-tables" />
+		  	<property name="eclipselink.create-ddl-jdbc-file-name" value="ocd/eclipselink/serviceCreateDDL.jdbc"/>
+	      	<property name="eclipselink.drop-ddl-jdbc-file-name" value="ocd/eclipselink/serviceDropDDL.jdbc"/>
+	    </properties>
+  	</persistence-unit>
 </persistence>

@@ -31,7 +31,7 @@ public class CustomGraphPersistenceTest {
 	private static final String graphName1 = "persistenceTestGraph1";
 	private static final String invalidGraphName = "invalidGraphName";
 	
-	EntityManagerFactory emf = Persistence.createEntityManagerFactory("test");
+	EntityManagerFactory emf = Persistence.createEntityManagerFactory("ocd");
 	
 	@Test
 	public void testPersist() {

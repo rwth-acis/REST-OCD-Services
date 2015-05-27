@@ -12,3 +12,14 @@ etc/ivy/ivy.jar
 /.idea
 restMapping.xml
 /out
+/ocd/derby/db
+/ocd/derby/derby.log
+/ocd/doca/cover.txt
+/ocd/doca/network.txt
+/ocd/eclipselink/serviceCreateDLL.jdbc
+/ocd/lfr/network.dat
+/ocd/lfr/statistics.dat
+/ocd/lfr/time_seed.dat
+/ocd/lfr/community.dat
+/ocd/test/output
+/ocd/yGuard
