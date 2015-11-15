@@ -21,6 +21,7 @@ import java.util.HashSet;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Node;
+import y.base.NodeCursor;
 
 /**
  * Provides graphs for testing purposes.
@@ -351,6 +352,33 @@ public class OcdTestGraphFactory {
 		graph.addType(GraphType.DIRECTED);
 		graph.addType(GraphType.SELF_LOOPS);
 		graph.addType(GraphType.WEIGHTED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+	
+	public static CustomGraph getContentTestGraph() {
+		// Creates new graph
+		CustomGraph graph = new CustomGraph();
+		graph.setName(OcdTestConstants.contentTestName);
+		// Creates nodes
+		
+		Node n[] = new Node[5];  
+		for (int i = 0; i < 5; i++) {
+			n[i] = graph.createNode();
+			graph.setNodeName(n[i], Integer.toString(i));
+		}
+				
+		graph.setNodeContent(n[0],"John likes movies theatre test case" );
+		graph.setNodeContent(n[1], "Marie likes books theatre case");
+		graph.setNodeContent(n[2], "John likes movies theatre test case");
+		graph.setNodeContent(n[3], "Marie likes movies theatre case");
+		graph.setNodeContent(n[4], "node unconnected");
+		
+		GraphProcessor processor = new GraphProcessor();
+		graph.addType(GraphType.CONTENT_UNLINKED);
 		processor.makeCompatible(graph, new HashSet<GraphType>());
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);

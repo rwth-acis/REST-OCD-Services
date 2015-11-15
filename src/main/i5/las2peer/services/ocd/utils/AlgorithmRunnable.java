@@ -1,15 +1,15 @@
 package i5.las2peer.services.ocd.utils;
 
+import java.util.logging.Level;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmExecutor;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverId;
 import i5.las2peer.services.ocd.graphs.CustomGraphId;
-
-import java.util.logging.Level;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 
 /**
  * Runnable for the execution of ocd algorithms.

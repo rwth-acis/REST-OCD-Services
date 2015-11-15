@@ -70,4 +70,45 @@ public class Adapters {
 		return line;
 	}
 	
+	/**
+	 * Reads in the next line from a reader.
+	 * @param reader The reader from which the next line is read.
+	 * @return The line as a list of strings which were separated by tab stop.
+	 * @throws IOException
+	 */
+	public static List<String> readLineTab(Reader reader) throws IOException {
+		List<String> line = new ArrayList<String>();
+		int nextChar = reader.read();
+		/*
+		 * Skips potential additional line break characters.
+		 */
+		while (Adapters.isLineBreak(nextChar)) {
+			nextChar = reader.read();
+		}
+		/*
+		 * Extracts all strings from the line, separated by whitespace
+		 */
+		while (!Adapters.isLineBreak(nextChar)  && nextChar != -1 && reader.ready()) {
+			String str = "";
+			/*
+			 * Skips white space other than line separators
+			 */
+			while (nextChar == '\t'
+					&& !Adapters.isLineBreak(nextChar)) {
+				nextChar = reader.read();
+			}
+			/*
+			 * Reads string until next whitespace or EOF
+			 */
+			while (nextChar != -1 && !(nextChar == '\t')
+					&& !Adapters.isLineBreak(nextChar)) {
+				str += (char) nextChar;
+				nextChar = reader.read();
+			}
+			if (!str.equals("")) {
+				line.add(str);
+			}
+		}
+		return line;
+	}
 }

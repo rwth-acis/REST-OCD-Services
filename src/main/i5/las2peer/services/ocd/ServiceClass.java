@@ -20,12 +20,16 @@ import i5.las2peer.restMapper.annotations.swagger.ApiResponses;
 import i5.las2peer.restMapper.annotations.swagger.ResourceListApi;
 import i5.las2peer.restMapper.annotations.swagger.Summary;
 import i5.las2peer.security.UserAgent;
+import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
+import i5.las2peer.services.ocd.algorithms.CostFunctionOptimizationClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
+import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
+import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
 import i5.las2peer.services.ocd.graphs.Cover;
@@ -44,12 +48,14 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.OcdRequestHandler;
 import i5.las2peer.services.ocd.utils.RequestHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
 
+import java.io.FileNotFoundException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -402,7 +408,7 @@ public class ServiceClass extends Service {
     /**
      * Returns a graph in a specified output format.
      * @param graphIdStr The graph id.
-     * @param graphOuputFormatStr The name of the graph output format.
+     * @param graphOutputFormatStr The name of the graph output format.
      * @return The graph output.
      * Or an error xml.
      */
@@ -1999,5 +2005,16 @@ public class ServiceClass extends Service {
     		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
     	}
     }
+    
+    public static void main(String[] args) throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException{
+    	CustomGraph graph = OcdTestGraphFactory.getContentTestGraph();
+    	CostFunctionOptimizationClusteringAlgorithm algo = new CostFunctionOptimizationClusteringAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(CostFunctionOptimizationClusteringAlgorithm.MAXIMUM_K_NAME, Integer.toString(3));
+		algo.setParameters(parameters);
+		Cover cover = algo.detectOverlappingCommunities(graph);
+		System.out.println(cover.toString());
+		
+   }
     
 }

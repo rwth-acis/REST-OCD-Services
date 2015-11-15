@@ -35,6 +35,7 @@ public class CustomNode {
 	protected static final String graphIdColumnName = "GRAPH_ID";
 	protected static final String graphUserColumnName = "USER_NAME";
 	protected static final String nameColumnName = "NAME";
+	protected static final String contentColumnName = "CONTENT";
 //	private static final String xColumnName = "X";
 //	private static final String yColumnName = "Y";
 //	private static final String widthColumnName = "WIDTH";
@@ -65,6 +66,12 @@ public class CustomNode {
 	 */
 	@Column(name = nameColumnName)
 	private String name;
+	
+	/**
+	 * The content of the node.
+	 */
+	@Column(name = contentColumnName)
+	private String content;
 	
 	/////////////////////////////////////////////////////////////////////////////////////////
 	/////////// The following attributes are only of internal use for persistence purposes.
@@ -121,6 +128,7 @@ public class CustomNode {
 	 */
 	protected CustomNode(CustomNode customNode) {
 		this.name = customNode.name;
+		this.content = customNode.content;
 	}
 	
 	/**
@@ -146,6 +154,24 @@ public class CustomNode {
 	protected void setName(String name) {
 		this.name = name;
 	}
+	
+	/**
+	 * Getter for the node content.
+	 * @return The node content.
+	 */
+	protected String getContent(){
+		return content;
+	}
+	
+	/**
+	 * Setter for the node content.
+	 * @param content The node content.
+	 */
+	
+	protected void setContent(String content){
+		this.content = content;
+	}
+	
 
 	/////////////////////////////////////////////////////////////////////////////////////////
 	/////////// The following attributes are only of internal use for persistence purposes.
@@ -217,7 +243,7 @@ public class CustomNode {
 	}
 	
 	/*
-	 * Creates a corresponding node after the custom node was loaded from persistence.
+ 	 * Creates a corresponding node after the custom node was loaded from persistence.
 	 * Only for persistence purposes.
 	 * @param graph The graph that the (custom) node is part of.
 	 * @return The created node.

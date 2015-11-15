@@ -416,6 +416,24 @@ public class CustomGraph extends Graph2D {
 	public void setNodeName(Node node, String name) {
 		getCustomNode(node).setName(name);
 	}
+	
+	/**
+	 * Getter for the node content of a certain node.
+	 * @param node The node.
+	 * @return The node content. 
+	 */
+	public String getNodeContent(Node node){
+		return getCustomNode(node).getContent();
+	}
+	
+	/**
+	 * Setter for the node content of a certain node.
+	 * @param node The node.
+	 * @param content The node content.
+	 */
+	public void setNodeContent(Node node, String content){
+		getCustomNode(node).setContent(content);
+	}
 
 //	public int getNodeId(Node node) {
 //		return getCustomNode(node).getId();

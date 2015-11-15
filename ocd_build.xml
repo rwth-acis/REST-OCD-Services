@@ -115,6 +115,9 @@
     
     <target name="junit_tests" depends="init_junit">
 		<junit fork="no" haltonerror="yes" haltonfailure="yes" printsummary="yes">
+			<jvmarg value="-Xdebug" />
+			<jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5432" />
+
 			<classpath>
 				<pathelement path="${tmp.junit}" />
 				<pathelement path="${tmp.classes}" />
@@ -237,7 +240,7 @@ May fail if the server is not running.</echo>
 		<shutdown_database_server/>
 	</target>
 	
-    <target name="clean_all" depends="las2peer.clean_all, clean_before_build" />
+    <target name="clean_all" depends="las2peer.clean_after_build, clean_before_build" />
 	
     <target name="all" depends="generate_configs, junit, jar, java_doc, obfuscate, clean_all"/>
 	

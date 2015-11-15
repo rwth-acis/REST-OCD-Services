@@ -23,7 +23,7 @@ public class OcdTestConstants {
 	public static final String dolphinsGmlInputPath = inputFolderPath + "dolphins.gml";
 	public static final String zacharyGmlInputPath = inputFolderPath + "karate.gml";
 	public static final String docaTestUnweightedEdgeListInputPath = inputFolderPath + "docaTestUnweightedEdgeList.txt";
-	
+	public static final String urchEdgeListInputPath = inputFolderPath + "UrchTest.txt";
 	
 	/*
 	 * Cover input filenames
@@ -68,4 +68,6 @@ public class OcdTestConstants {
 	public static final String newmanLinkName = "Newman Link";
 	public static final String miniServiceTestGraphName = "Mini Service Test Graph";
 	public static final String docaTestGraphName = "Doca Test Graph";
+	public static final String contentTestName = "Content Test Graph";
+	
 }
