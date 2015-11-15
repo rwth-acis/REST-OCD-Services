@@ -117,7 +117,7 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 				opt = temp;
 			}
 		}
-		opt = overlappCommunities(opt);
+		//opt = overlappCommunities(opt);
 		Matrix membershipMatrix = opt.createMembershipMatrix(graph);
 		Cover res = new Cover(graph,membershipMatrix);
 		return res;
@@ -213,7 +213,8 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 		for(Iterator<Cluster> it = clust.iterator(); it.hasNext();){
 			Cluster curr = it.next();
 			ArrayRealVector cent = curr.getCentroid();
-			cent = cent.add(costFunc.derivativeValue(curr));
+			cent = cent.subtract(costFunc.derivativeValue(curr));
+			//cent = cent.add(costFunc.derivativeValue(curr));
 			curr.setCentroid(cent);
 		}
 		

@@ -2011,6 +2011,7 @@ public class ServiceClass extends Service {
     	CostFunctionOptimizationClusteringAlgorithm algo = new CostFunctionOptimizationClusteringAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(CostFunctionOptimizationClusteringAlgorithm.MAXIMUM_K_NAME, Integer.toString(3));
+		parameters.put(CostFunctionOptimizationClusteringAlgorithm.OVERLAPPING_THRESHOLD_NAME, Double.toString(0.3));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());

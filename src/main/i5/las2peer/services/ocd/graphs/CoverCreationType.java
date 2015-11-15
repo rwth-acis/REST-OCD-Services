@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.algorithms.BinarySearchRandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.ClizzAlgorithm;
+import i5.las2peer.services.ocd.algorithms.ContentBasedWeightingAlgorithm;
 import i5.las2peer.services.ocd.algorithms.ExtendedSpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.CostFunctionOptimizationClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LinkCommunitiesAlgorithm;
@@ -96,7 +97,9 @@ public enum CoverCreationType {
 	/**
 	 * Type corresponding to the cost function optimization clustering algrithm using svd for feature reduction.
 	 */
-	SVD_COST_FUNC_OPT_CLUSTERING_ALGORITHM(SVDCostFuncOptClusteringAlgorithm.class, 14);
+	SVD_COST_FUNC_OPT_CLUSTERING_ALGORITHM(SVDCostFuncOptClusteringAlgorithm.class, 14), 
+	
+	CONTENT_BASED_WEIGHTING_ALGORITHM(ContentBasedWeightingAlgorithm.class, 15);
 	/**
 	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
 	 * Cannot be used for algorithm instantiation.
