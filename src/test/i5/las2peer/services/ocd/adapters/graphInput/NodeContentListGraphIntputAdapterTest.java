@@ -16,7 +16,7 @@ public class NodeContentListGraphIntputAdapterTest {
 	@Test
 	public void testOnUrch() throws AdapterException, FileNotFoundException {
 		GraphInputAdapter inputAdapter =
-				new NodeContentListGraphIntputAdapter(new FileReader(OcdTestConstants.urchEdgeListInputPath));
+				new NodeContentListGraphInputAdapter(new FileReader(OcdTestConstants.urchEdgeListInputPath));
 		CustomGraph graph = inputAdapter.readGraph();
 		assertEquals(5, graph.nodeCount());;
 	}
