@@ -44,7 +44,7 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 	 * because its distance to that community centroid is smaller that the given threshold.
 	 * Default value 0.5.
 	 */
-	private double beta = 0.5;
+	private double beta = 0.7;
 	
 	////////////////////////
 	//// Parameter Names////
@@ -117,7 +117,7 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 				opt = temp;
 			}
 		}
-		//opt = overlappCommunities(opt);
+		opt = overlappCommunities(opt);
 		Matrix membershipMatrix = opt.createMembershipMatrix(graph);
 		Cover res = new Cover(graph,membershipMatrix);
 		return res;
@@ -127,7 +127,7 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 
 	protected Clustering gradDescClustering(Termmatrix termMat, int k){
 		Clustering clustering = new Clustering();
-		Clustering temp = new Clustering();
+		//Clustering temp = new Clustering();
 		CostFunction costFunc = new CostFunction();
 		Random randGen = new Random();
 		int vectorLength = termMat.getMatrix().getColumnDimension();
@@ -138,40 +138,40 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 		for(int i = 0; i < k; i++){
 			Cluster c = new Cluster();
 			ArrayRealVector cent = new ArrayRealVector(vectorLength);
-			for(int j = 0; j < vectorLength; j++){
-				cent.setEntry(j, randGen.nextDouble());
-			}
+			int index = randGen.nextInt(termMat.getNodeIdList().size()-1);
+			cent = (ArrayRealVector) termMat.getMatrix().getRowVector(index);
 			c.setCentroid(cent);
 			clustering.addCluster(c);
 		}
 		
 		//assign nodes and update centroids
-		clustering.setClustering(assignCluster(clustering.getClustering(),termMat.getMatrix(), termMat.getNodeIdList()));
-		clustering.setCosts(costFunc.valueNode(clustering.getClustering(), termMat.getNodeIdList().size()));
+		//clustering.setClustering(assignCluster(clustering.getClustering(),termMat.getMatrix(), termMat.getNodeIdList()));
+		//clustering.setCosts(costFunc.valueNode(clustering.getClustering(), termMat.getNodeIdList().size()));
 		
-		//assign nodes and update centroids until costs don't change
-		//while(change){
-		while(true){
-			temp.setClustering(updateCentroids(clustering.getClustering()));
-			temp.clearCluster();
-			temp.setClustering(assignCluster(temp.getClustering(),termMat.getMatrix(), termMat.getNodeIdList()));
-			temp.setCosts(costFunc.valueNode(temp.getClustering(), termMat.getNodeIdList().size()));
-			//LinkedList<ArrayRealVector> centroids = getCentroids(clustering.getClustering());
-			//clustering.setClustering(updateCentroids(clustering.getClustering()));
-			//change = different(centroids,getCentroids(clustering.getClustering()));
-			//costs = costFunc.value(clustering.getClustering(), termMat.getNodeIdList().size());
-			//clustering.setCosts(costs);
-			if(clustering.getCosts() == temp.getCosts()){
+		//assign nodes and update centroids until centroids don't change anymore
+		while(change){
+		//while(true){
+			//temp.setClustering(updateCentroids(clustering.getClustering()));
+			//temp.clearCluster();
+			//temp.setClustering(assignCluster(temp.getClustering(),termMat.getMatrix(), termMat.getNodeIdList()));
+			//temp.setCosts(costFunc.valueNode(temp.getClustering(), termMat.getNodeIdList().size()));
+			clustering.setClustering(assignCluster(clustering.getClustering(),termMat.getMatrix(), termMat.getNodeIdList()));
+			LinkedList<ArrayRealVector> centroids = getCentroids(clustering.getClustering());
+			clustering.setClustering(updateCentroids(clustering.getClustering()));
+			change = different(centroids,getCentroids(clustering.getClustering()));
+			
+			/*if(clustering.getCosts() == temp.getCosts()){
 				break;
 			}
 			if(clustering.getCosts() > temp.getCosts()){
 				clustering.setClustering(temp.getClustering());
 				clustering.setCosts(temp.getCosts());
-			}
+			}*/
 		}
 		
 		//k++;
-		
+		costs = costFunc.value(clustering.getClustering(), termMat.getNodeIdList().size());
+		clustering.setCosts(costs);
 		
 		
 		return clustering;
@@ -213,8 +213,8 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 		for(Iterator<Cluster> it = clust.iterator(); it.hasNext();){
 			Cluster curr = it.next();
 			ArrayRealVector cent = curr.getCentroid();
-			cent = cent.subtract(costFunc.derivativeValue(curr));
-			//cent = cent.add(costFunc.derivativeValue(curr));
+			//cent = cent.subtract(costFunc.derivativeValue(curr));
+			cent = cent.add(costFunc.derivativeValue(curr));
 			curr.setCentroid(cent);
 		}
 		
@@ -231,10 +231,15 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 	
 	private boolean different(LinkedList<ArrayRealVector> a, LinkedList<ArrayRealVector> b){
 		for(int i = 0; i < a.size(); i++){
-			if(!a.get(i).equals(b.get(i))){
+			ArrayRealVector vectorA = a.get(i);
+			ArrayRealVector vectorB = b.get(i);
+			double dif = vectorA.subtract(vectorB).getNorm();
+			dif = Math.abs(dif);
+			if(dif >= 0.001){
 				return true;
 			}
 		}
+		
 		return false;
 	}
 	
