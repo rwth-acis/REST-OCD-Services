@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.math3.analysis.function.Abs;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.la4j.matrix.Matrix;
@@ -110,8 +111,8 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 		if(maximumK > termMat.getNodeIdList().size()){
 			return null;
 		}
-		opt = gradDescClustering(termMat, 1);
-		for(int i = 2; i <= maximumK; i++){
+		opt = gradDescClustering(termMat, 2);
+		for(int i = 3; i <= maximumK; i++){
 			temp = gradDescClustering(termMat, i);
 			if(opt.getCosts() > temp.getCosts() && !temp.containsEmpty()){
 				opt = temp;
@@ -213,8 +214,8 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 		for(Iterator<Cluster> it = clust.iterator(); it.hasNext();){
 			Cluster curr = it.next();
 			ArrayRealVector cent = curr.getCentroid();
-			//cent = cent.subtract(costFunc.derivativeValue(curr));
-			cent = cent.add(costFunc.derivativeValue(curr));
+			cent = cent.subtract(costFunc.derivativeValue(curr));
+			//cent = cent.add(costFunc.derivativeValue(curr));
 			curr.setCentroid(cent);
 		}
 		
@@ -235,7 +236,7 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 			ArrayRealVector vectorB = b.get(i);
 			double dif = vectorA.subtract(vectorB).getNorm();
 			dif = Math.abs(dif);
-			if(dif >= 0.001){
+			if(dif >= 0.0002){
 				return true;
 			}
 		}

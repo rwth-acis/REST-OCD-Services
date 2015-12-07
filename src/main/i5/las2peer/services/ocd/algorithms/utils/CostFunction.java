@@ -55,7 +55,7 @@ public class CostFunction {
 	
 	public ArrayRealVector derivativeValue(Cluster c){
 		Pow p = new Pow();
-		double alpha = 0.0000000001;
+		double alpha = 0.0001;
 		ArrayRealVector cent = c.getCentroid();
 		RealVector tempRes = new ArrayRealVector(cent.getDimension());
 		RealVector res = new ArrayRealVector(cent.getDimension());

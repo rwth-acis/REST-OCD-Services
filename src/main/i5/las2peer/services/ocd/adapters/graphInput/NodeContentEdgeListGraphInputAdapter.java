@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -12,6 +13,7 @@ import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.Adapters;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.preprocessing.TextProcessor;
+import i5.las2peer.services.ocd.utils.DocIndexer;
 import y.base.Edge;
 import y.base.Node;
 
@@ -47,6 +49,7 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 			int senderIndex = -1;
 			int receiverIndex = -1;
 			int threadIndex = -1;
+			int dateIndex = -1;
 			int index = 0;
 			
 			if(line.size() <= 0){
@@ -72,6 +75,9 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 					case "THREADID":
 						threadIndex = index;
 						break;
+					case "DATE":
+						dateIndex = index;
+						break;
 						
 				}
 				
@@ -91,7 +97,7 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 				
 					throw new AdapterException("No attribute to generate links");
 				}else{
-					graph = readSenderReceiverGraph(senderIndex, receiverIndex, contentIndex);
+					graph = readSenderReceiverGraph(senderIndex, receiverIndex, contentIndex, line.size());
 				}
 			}else{
 				graph = readThreadGraph(nameIndex, contentIndex, threadIndex);
@@ -111,16 +117,18 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 		return graph;
 	}
 
-	private CustomGraph readSenderReceiverGraph(int senderIndex, int receiverIndex, int contentIndex) throws IOException, AdapterException {
+	private CustomGraph readSenderReceiverGraph(int senderIndex, int receiverIndex, int contentIndex, int lineLength) throws IOException, AdapterException {
 		
 		TextProcessor textProc = new TextProcessor();
 		Map<String, Node> nodeNames = new HashMap<String, Node>();
+		Map<String, String> nodeContents = new HashMap<String, String>();
 		CustomGraph graph = new CustomGraph();
 		Map<Node,HashMap<String,Integer>> links = new HashMap<Node, HashMap<String,Integer>>();
 		
 		try{
-		List<String> line = Adapters.readLineTab(reader);
-		
+		// read first content line
+		List<String> line = Adapters.readLineTabIgnoreLineBreak(reader,lineLength);
+		graph.setPath("C:\\indexes\\pgsql");
 		// create nodes
 		while(line.size() > 0){
 			
@@ -128,40 +136,53 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 			String customNodeName = line.get(senderIndex);
 			String customNodeContent = textProc.preprocText(line.get(contentIndex));
 			String customNodeReceiver = line.get(receiverIndex);
+			// node does not yet exist
 			if(!nodeNames.containsKey(customNodeName)){
-				node = graph.createNode();
+				node = graph.createNode();						//create new node and add attributes
 				graph.setNodeName(node , customNodeName);
-				graph.setNodeContent(node, customNodeContent);
+				nodeContents.put(customNodeName, customNodeContent);
+				//graph.setNodeContent(node, customNodeContent);
 				HashMap<String,Integer> temp = new HashMap<String,Integer>();
-				temp.put(customNodeReceiver,1);
-				links.put(node, temp);
+				temp.put(customNodeReceiver,1);					// initialize structural weights (number of connections between two nodes)
+				links.put(node, temp);							// temporarly save nodes connections to other nodes
 				nodeNames.put(customNodeName, node);
+			// node is already create, so content has to be added
 			}else{
-				node = nodeNames.get(customNodeName);
-				customNodeContent = customNodeContent + " " + graph.getNodeContent(node);
-				graph.setNodeContent(node, customNodeContent);
-				HashMap<String,Integer> temp = links.get(node);
+				node = nodeNames.get(customNodeName);		// get respective node
+				//customNodeContent = customNodeContent + " " + graph.getNodeContent(node);	//add further content to the nodes attribute
+				nodeContents.merge(customNodeName, " " + customNodeContent, String::concat);
+				//graph.setNodeContent(node, customNodeContent);
+				HashMap<String,Integer> temp = links.get(node); // get connections of the node
 				if (temp.containsKey(customNodeReceiver)) {
-					int r = temp.get(customNodeReceiver);
+					int r = temp.get(customNodeReceiver);		// increase weight if link already exists
 					r++;
 					temp.put(customNodeReceiver,r);
 				}else{
-					temp.put(customNodeReceiver, 1);
+					temp.put(customNodeReceiver, 1);			// add new link and initialize weight
 				}
 				links.put(node, temp);
 			}
 			
-			line = Adapters.readLineTab(reader);
+			//read next content line
+			line = Adapters.readLineTabIgnoreLineBreak(reader,lineLength);
 			
 		}
 		
-		//create edges
+		DocIndexer di = new DocIndexer(graph.getPath());
+		//create lucene index for content
+		for(Entry<String,String> e : nodeContents.entrySet()){
+			di.indexDoc(e.getKey(), e.getValue());	
+		}
+		
+		//create edges for each entry in the temporary edge list
 		for(Entry<Node, HashMap<String,Integer>> entry : links.entrySet()){
 			Node curr = entry.getKey();
 			HashMap<String,Integer> list = entry.getValue();
 			for(Entry<String,Integer> e : list.entrySet()){
-				Edge edge = graph.createEdge(curr, nodeNames.get(e.getKey()));
-				graph.setEdgeWeight(edge, e.getValue());
+				if(nodeNames.containsKey(e.getKey())){
+					Edge edge = graph.createEdge(curr, nodeNames.get(e.getKey()));
+					graph.setEdgeWeight(edge, e.getValue());
+				}
 			}
 		
 		}
@@ -183,27 +204,62 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 		
 		TextProcessor textProc = new TextProcessor();
 		Map<String, Node> nodeNames = new HashMap<String, Node>();
+		Map<String,String> nodeContents = new HashMap<String,String>();
+		Map<Node, LinkedList<String>> nodeThreads = new HashMap<Node, LinkedList<String>>();
 		CustomGraph graph = new CustomGraph();
 		
 		try{
 		List<String> line = Adapters.readLineTab(reader);
+		graph.setPath("C:\\indexes");
+		
+		// create nodes
 		while(line.size() > 0){
 			
 			Node node; 
 			String customNodeName = line.get(nameIndex);
 			String customNodeContent = textProc.preprocText(line.get(contentIndex));
+			String customNodeThread = line.get(threadIndex);
 			if(!nodeNames.containsKey(customNodeName)){
 				node = graph.createNode();
 				graph.setNodeName(node , customNodeName);
-				graph.setNodeContent(node, customNodeContent);
+				nodeContents.put(customNodeName, customNodeContent);
+				//graph.setNodeContent(node, customNodeContent);
 				nodeNames.put(customNodeName, node);
+				LinkedList<String> th = new LinkedList<String>();
+				th.add(customNodeThread);
+				nodeThreads.put(node, th);
 			}else{
 				node = nodeNames.get(customNodeName);
-				customNodeContent = customNodeContent + " " + graph.getNodeContent(node);
-				graph.setNodeContent(node, customNodeContent);
+				//customNodeContent = customNodeContent + " " + graph.getNodeContent(node);
+				//graph.setNodeContent(node, customNodeContent);
+				nodeContents.merge(customNodeName, " " + customNodeContent, String::concat);
+				LinkedList<String> thr = nodeThreads.get(node);
+				thr.add(customNodeThread);
+				nodeThreads.put(node, thr);
 			}
 			
 			line = Adapters.readLineTab(reader);
+			
+			DocIndexer di = new DocIndexer(graph.getPath());
+			//create lucene index for content
+			for(Entry<String,String> e : nodeContents.entrySet()){
+				di.indexDoc(e.getKey(), e.getValue());	
+			}
+			
+			//create edges for each entry in the temporary edge list
+			for(Entry<Node, LinkedList<String>> entry : nodeThreads.entrySet()){
+				Node curr = entry.getKey();
+				LinkedList<String> list = entry.getValue();
+				for(String str:list){
+					for(Entry<Node, LinkedList<String>> reciever : nodeThreads.entrySet()){
+						if(curr != reciever.getKey() && reciever.getValue().contains(str)){
+						graph.createEdge(curr, reciever.getKey());
+						//graph.setEdgeWeight(edge, reciever.getValue());
+						}
+					}
+				}
+			
+			}
 			
 		}
 		

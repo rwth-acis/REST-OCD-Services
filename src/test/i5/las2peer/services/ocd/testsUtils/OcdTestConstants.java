@@ -24,6 +24,9 @@ public class OcdTestConstants {
 	public static final String zacharyGmlInputPath = inputFolderPath + "karate.gml";
 	public static final String docaTestUnweightedEdgeListInputPath = inputFolderPath + "docaTestUnweightedEdgeList.txt";
 	public static final String urchEdgeListInputPath = inputFolderPath + "UrchTest.txt";
+	public static final String bioJavaEdgeListInputPath = inputFolderPath + "BioJava.txt";
+	public static final String urchPostsEdgeListInputPath = inputFolderPath + "URCH_POSTS.txt";
+	public static final String pgsql200EdgeListInputPath = inputFolderPath + "PGSQL_200.txt";
 	
 	/*
 	 * Cover input filenames

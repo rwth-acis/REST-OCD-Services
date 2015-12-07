@@ -23,7 +23,10 @@ import i5.las2peer.security.UserAgent;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
+import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
+import i5.las2peer.services.ocd.adapters.graphInput.NodeContentEdgeListGraphInputAdapter;
+import i5.las2peer.services.ocd.adapters.graphInput.NodeContentListGraphIntputAdapter;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
 import i5.las2peer.services.ocd.algorithms.CostFunctionOptimizationClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
@@ -48,6 +51,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
+import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
@@ -56,6 +60,7 @@ import i5.las2peer.services.ocd.utils.RequestHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
 
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -2004,13 +2009,29 @@ public class ServiceClass extends Service {
     		requestHandler.log(Level.SEVERE, "", e);
     		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
     	}
+    	
     }
     
     public static void main(String[] args) throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException{
-    	CustomGraph graph = OcdTestGraphFactory.getContentTestGraph();
-    	CostFunctionOptimizationClusteringAlgorithm algo = new CostFunctionOptimizationClusteringAlgorithm();
+    	/*GraphInputAdapter inputAdapter =
+				new NodeContentListGraphIntputAdapter(new FileReader(OcdTestConstants.urchPostsEdgeListInputPath));
+		CustomGraph graph = inputAdapter.readGraph();
+		System.out.println(graph.nodeCount());
+    	//CustomGraph graph = OcdTestGraphFactory.getContentTestGraph();
+		CostFunctionOptimizationClusteringAlgorithm algo = new CostFunctionOptimizationClusteringAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(CostFunctionOptimizationClusteringAlgorithm.MAXIMUM_K_NAME, Integer.toString(3));
+		parameters.put(CostFunctionOptimizationClusteringAlgorithm.MAXIMUM_K_NAME, Integer.toString(50));
+		parameters.put(CostFunctionOptimizationClusteringAlgorithm.OVERLAPPING_THRESHOLD_NAME, Double.toString(0.3));
+		algo.setParameters(parameters);
+		Cover cover = algo.detectOverlappingCommunities(graph);
+		System.out.println(cover.toString());*/
+    	
+    	GraphInputAdapter inputAdapter =
+				new NodeContentEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.pgsql200EdgeListInputPath));
+		CustomGraph graph = inputAdapter.readGraph();
+		CostFunctionOptimizationClusteringAlgorithm algo = new CostFunctionOptimizationClusteringAlgorithm();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(CostFunctionOptimizationClusteringAlgorithm.MAXIMUM_K_NAME, Integer.toString(5));
 		parameters.put(CostFunctionOptimizationClusteringAlgorithm.OVERLAPPING_THRESHOLD_NAME, Double.toString(0.3));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);

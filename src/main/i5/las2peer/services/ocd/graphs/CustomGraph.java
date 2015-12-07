@@ -54,6 +54,7 @@ public class CustomGraph extends Graph2D {
 	private static final String idEdgeMapKeyColumnName = "RUNTIME_ID";
 	private static final String idNodeMapKeyColumnName = "RUNTIME_ID";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
+	private static final String pathColumnName = "INDEX_PATH";
 	
 	/*
 	 * Field name definitions for JPQL queries.
@@ -84,6 +85,11 @@ public class CustomGraph extends Graph2D {
 	@Column(name = nameColumnName)
 	private String name = "";
 	
+	/**
+	 * The path to the index for the content of each node belonging to the graph.
+	 */
+	@Column(name = pathColumnName)
+	private String path = "";
 //	/**
 //	 * The description of the graph.
 //	 */
@@ -303,6 +309,22 @@ public class CustomGraph extends Graph2D {
 	 */
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	/**
+	 * Getter for the graphs path to the index for the node content.
+	 * @return The index path.
+	 */
+	public String getPath() {
+		return path;
+	}
+
+	/**
+	 * Setter for the graphs path to the index for the node content.
+	 * @param path The index path.
+	 */
+	public void setPath(String path) {
+		this.path = path;
 	}
 
 //	public String getDescription() {

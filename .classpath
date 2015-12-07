@@ -47,5 +47,7 @@
 	<classpathentry kind="lib" path="lib/derbytools.jar"/>
 	<classpathentry kind="lib" path="lib/commons-math3-3.5.jar"/>
 	<classpathentry kind="lib" path="lib/org.json-20120521.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-core-5.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-analyzers-common-5.3.1.jar"/>
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

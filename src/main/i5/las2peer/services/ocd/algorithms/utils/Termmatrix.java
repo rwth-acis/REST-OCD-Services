@@ -1,15 +1,30 @@
 package i5.las2peer.services.ocd.algorithms.utils;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.apache.commons.math3.analysis.function.Log;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
-import org.apache.commons.math3.linear.RealMatrix;
+//import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 //import org.json.JSONArray;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.PostingsEnum;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.search.DocIdSetIterator;
+import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.util.BytesRef;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.preprocessing.StringConverter;
@@ -23,7 +38,7 @@ public class Termmatrix {
 	private Array2DRowRealMatrix matrix;
 	private LinkedList<String> wordlist;
 	private LinkedList<Node> nodelist;
-	
+	//private HashMap<Node,ArrayRealVector> tfidfMap;
 	///////////////////
 	////Constructor////
 	///////////////////
@@ -32,25 +47,50 @@ public class Termmatrix {
 	}
 	
 	public  Termmatrix(CustomGraph graph) throws OcdAlgorithmException{
+		
 		NodeCursor nodes = graph.nodes();
 		Node node; 
-		LinkedList<String> wordlist = new LinkedList<String>();
-		StringConverter conv = new StringConverter();
-		String threads = "";
+		this.wordlist = new LinkedList<String>();
+		this.matrix = new Array2DRowRealMatrix();
+		//StringConverter conv = new StringConverter();
+		//wordlist = conv.StringToList(threads);
+		//this.setWordlist(wordlist);
+		
+		String name = "";
+		String key = "";
+		int index = 0;
+		int row = 0;
+		/*String threads = "";
 		String word = null;
 		int column = 0;
 		int row = 0;
-		Log log = new Log();
+		Log log = new Log();*/
 		LinkedList<Node> nodeList = new LinkedList<Node>();
 		//Termmatrix res = new Termmatrix();
 		this.setNodelist(nodeList);
+		HashMap<String,HashMap<String,Double>> indexMap = computeTFIDF(graph);
+		HashMap<String,Double> valueMap;
+		ArrayRealVector vector = new ArrayRealVector(wordlist.size());
 		
 		while(nodes.ok()){
 			node = nodes.node();
 			this.addNode(node);
+			name = graph.getNodeName(node);
+			valueMap = indexMap.get(name);
+			for(Map.Entry<String,Double> entry : valueMap.entrySet()){
+				key = entry.getKey();
+				index = wordlist.indexOf(key);
+				vector.setEntry(index, entry.getValue());
+			}
+			this.matrix.setRowVector(row, vector);
+			row++;
+		}
+		/*while(nodes.ok()){
+			node = nodes.node();
+			this.addNode(node);
 			threads = graph.getNodeContent(node) + " " + threads;
 			nodes.next();
-		}
+		}*/
 		//for(Iterator<Node> it = nodes.iterator(); it.hasNext();){ 
 		//	Node currNode = it.next();
 		//	threads = currNode.getContent()+ " " + threads;      // compute all concatenated threads
@@ -69,7 +109,7 @@ public class Termmatrix {
 		
 		
 		//int nodesSize = tempList.size();
-		int nodesSize = nodes.size();
+		/*int nodesSize = nodes.size();
 		
 		if(threads == null || threads.isEmpty()){
 			throw new OcdAlgorithmException("no content received");
@@ -109,7 +149,7 @@ public class Termmatrix {
 			row++;
 		}
 		
-		this.setMatrix(matrix);//json = converter.matrixToJson(matrix, wordlist);
+		this.setMatrix(matrix);*///json = converter.matrixToJson(matrix, wordlist);
 		
 		//return json;
 	
@@ -148,7 +188,7 @@ public class Termmatrix {
 	////////////////////////
 	
 	public void addNode(Node node){
-		this.nodelist.add(node);
+		//this.tfidfMap.
 	}
 	
 	public void addWord(String word){
@@ -278,4 +318,61 @@ public class Termmatrix {
 		SingularValueDecomposition svd = new SingularValueDecomposition(matrix);
 		this.matrix = (Array2DRowRealMatrix) svd.getU();
 	}
+	
+	private HashMap<String,HashMap<String,Double>> computeTFIDF(CustomGraph graph){
+		HashMap<String,HashMap<String,Double>> res = new HashMap<String,HashMap<String,Double>>();
+		int noOfDocs = graph.nodes().size();
+		String indexPath = graph.getPath();
+		NodeCursor nodes = graph.nodes();
+		TermsEnum termEnum = null;
+		TermsEnum idEnum = null;
+		PostingsEnum docsEnum = null;
+		try {
+
+			
+			Path f = new File(indexPath).toPath();
+			IndexReader re = DirectoryReader.open(SimpleFSDirectory.open(f)) ;
+			
+			for(int k = 0; k < noOfDocs; k++){	
+				Terms contentTerms = re.getTermVector(k, "doccontent");
+				Terms idTerms = re.getTermVector(k, "docid");
+				idEnum = idTerms.iterator();
+				BytesRef idBytes = idEnum.next(); //should be only one
+				String docName = idBytes.utf8ToString();
+				HashMap<String,Double> termMap = new HashMap<String,Double>();
+				if(contentTerms == null){
+					res.put(docName,termMap);
+				}else{
+					termEnum = contentTerms.iterator();
+					
+					long noOfTerms = contentTerms.size();
+					//ArrayRealVector tfidf = new ArrayRealVector((int) noOfTerms);
+					DefaultSimilarity sim = new DefaultSimilarity();
+		            for (int i = 0; i < noOfTerms; i++) {
+		            	BytesRef termBytes = termEnum.next();
+		            	String termStr = termBytes.utf8ToString();
+		            	if(!wordlist.contains(termStr)){
+		            		wordlist.add(termStr);
+		            	}
+		            	//Term term = new Term("doccontent", termBytes);
+		            	docsEnum = termEnum.postings(null); // enumerate through documents, in this case only one
+		                    int docIdEnum;
+		                    while ((docIdEnum = docsEnum.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS) {
+		                      int tf = docsEnum.freq(); //get the term frequency in the document
+		                      float idf = sim.idf(termEnum.docFreq(), re.numDocs());
+		                      termMap.put(termStr, (double) (tf * idf));
+		                      
+		                    }
+		              res.put(docName, termMap);
+		            }
+				}
+			}
+			
+			return res;
+		}catch(IOException e) {
+	        e.printStackTrace();
+	        return null;
+	    }
+	}
+	
 }
