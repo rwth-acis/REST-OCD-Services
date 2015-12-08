@@ -402,7 +402,7 @@ public class ServiceClass extends Service {
     /**
      * Returns a graph in a specified output format.
      * @param graphIdStr The graph id.
-     * @param graphOuputFormatStr The name of the graph output format.
+     * @param graphOutputFormatStr The name of the graph output format.
      * @return The graph output.
      * Or an error xml.
      */
