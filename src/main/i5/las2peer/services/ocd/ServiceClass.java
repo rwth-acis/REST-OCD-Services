@@ -1,24 +1,10 @@
 package i5.las2peer.services.ocd;
 
 import i5.las2peer.api.Service;
-import i5.las2peer.restMapper.HttpResponse;
 import i5.las2peer.restMapper.MediaType;
 import i5.las2peer.restMapper.RESTMapper;
-import i5.las2peer.restMapper.annotations.Consumes;
 import i5.las2peer.restMapper.annotations.ContentParam;
-import i5.las2peer.restMapper.annotations.DELETE;
-import i5.las2peer.restMapper.annotations.GET;
-import i5.las2peer.restMapper.annotations.POST;
-import i5.las2peer.restMapper.annotations.Path;
-import i5.las2peer.restMapper.annotations.PathParam;
-import i5.las2peer.restMapper.annotations.Produces;
-import i5.las2peer.restMapper.annotations.QueryParam;
 import i5.las2peer.restMapper.annotations.Version;
-import i5.las2peer.restMapper.annotations.swagger.ApiInfo;
-import i5.las2peer.restMapper.annotations.swagger.ApiResponse;
-import i5.las2peer.restMapper.annotations.swagger.ApiResponses;
-import i5.las2peer.restMapper.annotations.swagger.ResourceListApi;
-import i5.las2peer.restMapper.annotations.swagger.Summary;
 import i5.las2peer.security.UserAgent;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
@@ -49,6 +35,14 @@ import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.OcdRequestHandler;
 import i5.las2peer.services.ocd.utils.RequestHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Contact;
+import io.swagger.annotations.Info;
+import io.swagger.annotations.License;
+import io.swagger.annotations.SwaggerDefinition;
 
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -62,6 +56,15 @@ import java.util.logging.Level;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -80,15 +83,22 @@ import org.la4j.matrix.sparse.CCSMatrix;
 @Produces(MediaType.TEXT_XML)
 @Path("ocd")
 @Version("0.1")
-@ApiInfo(
-		  title="OCD",
-		  description="A RESTful service for overlapping community detection.",
-		  /* TODO add tos url */
-		  termsOfServiceUrl="sample-tos.io",
-		  contact="sebastian.krott@rwth-aachen.de",
-		  license="Apache License 2",
-		  licenseUrl="http://www.apache.org/licenses/LICENSE-2.0"
-		)
+@Api
+@SwaggerDefinition(
+		info = @Info(
+				title = "OCD",
+				version = "0.1",
+				description = "A RESTful service for overlapping community detection.",
+				termsOfService = "sample-tos.io",
+				contact = @Contact(
+						name = "Sebastian Krott",
+						email = "sebastian.krott@rwth-aachen.de"
+				),
+				license = @License(
+						name = "Apache License 2",
+						url = "http://www.apache.org/licenses/LICENSE-2.0"
+				)
+		))
 public class ServiceClass extends Service {
 		
 	/*
@@ -165,12 +175,12 @@ public class ServiceClass extends Service {
     @GET
     @Path("validate")
     @Produces(MediaType.TEXT_XML)
-    @ResourceListApi(description = "User validation")
     @ApiResponses(value = {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Simple function to validate a user login.")
+	@ApiOperation(value = "User validation",
+		notes = "Simple function to validate a user login.")
     public String validateLogin()
     {
     	try {
@@ -182,24 +192,6 @@ public class ServiceClass extends Service {
     	}
     }
     
-//////////////////////////////////////////////////////////////////
-///////// SWAGGER
-//////////////////////////////////////////////////////////////////
-    
-    @GET
-    @Path("api-docs")
-    @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse getSwaggerResourceListing(){
-      return RESTMapper.getSwaggerResourceListing(this.getClass());
-    }
-
-    @GET
-    @Path("api-docs/{tlr}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse getSwaggerApiDeclaration(@PathParam("tlr") String tlr){
-      //return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr, "http://127.0.0.1:8080/ocd/");
-      return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr, "https://api.learning-layers.eu/ocd/");
-    }
 
 //////////////////////////////////////////////////////////////////////////
 //////////// GRAPHS
@@ -223,12 +215,13 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Imports a graph.")
+	@ApiOperation(value = "User validation",
+		notes = "Imports a graph.")
     public String createGraph(
-    		@QueryParam(name="name", defaultValue="unnamed") String nameStr,
-    		@QueryParam(name="creationType", defaultValue="UNDEFINED") String creationTypeStr,
-    		@QueryParam(name="inputFormat", defaultValue="GRAPH_ML") String graphInputFormatStr,
-    		@QueryParam(name="doMakeUndirected", defaultValue = "FALSE") String doMakeUndirectedStr,
+    		@DefaultValue("unnamed") @QueryParam("name") String nameStr,
+    		@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
+    		@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
+    		@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
     		@ContentParam String contentStr)
     {
     	try {
@@ -318,13 +311,13 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @ResourceListApi(description = "Manage graphs")
-    @Summary("Returns the ids or meta information of multiple graphs.")
+	@ApiOperation(value = "Manage graphs",
+		notes = "Returns the ids or meta information of multiple graphs.")
     public String getGraphs(
-    		@QueryParam(name="firstIndex", defaultValue = "0") String firstIndexStr,
-    		@QueryParam(name="length", defaultValue = "") String lengthStr,
-    		@QueryParam(name="includeMeta", defaultValue = "FALSE") String includeMetaStr,
-    		@QueryParam(name="executionStatuses", defaultValue ="") String executionStatusesStr)
+    		@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
+    		@DefaultValue("") @QueryParam("length") String lengthStr,
+    		@DefaultValue("FALSE") @QueryParam("includeMeta") String includeMetaStr,
+    		@DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr)
     {
     	try {
 			String username = ((UserAgent) getActiveAgent()).getLoginName();
@@ -402,7 +395,7 @@ public class ServiceClass extends Service {
     /**
      * Returns a graph in a specified output format.
      * @param graphIdStr The graph id.
-     * @param graphOuputFormatStr The name of the graph output format.
+     * @param graphOutputFormatStr The name of the graph output format.
      * @return The graph output.
      * Or an error xml.
      */
@@ -413,9 +406,10 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
     @Path("graphs/{graphId}")
-    @Summary("Returns a graph in a specified output format.")
+	@ApiOperation(value = "",
+		notes = "Returns a graph in a specified output format.")
     public String getGraph(
-    		@QueryParam(name="outputFormat", defaultValue="GRAPH_ML") String graphOutputFormatStr,
+    		@DefaultValue("GRAPH_ML") @QueryParam("outputFormat") String graphOutputFormatStr,
     		@PathParam("graphId") String graphIdStr)
     {
     	try {
@@ -481,7 +475,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Deletes a graph.")
+	@ApiOperation(value = "",
+		notes = "Deletes a graph.")
     public String deleteGraph(
     		@PathParam("graphId") String graphIdStr)
     {
@@ -582,12 +577,13 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Imports a cover for an existing graph.")
+	@ApiOperation(value = "",
+		notes = "Imports a cover for an existing graph.")
     public String createCover(
     		@PathParam("graphId") String graphIdStr,
-    		@QueryParam(name="name", defaultValue="unnamed") String nameStr,
-    		@QueryParam(name="creationType", defaultValue="UNDEFINED") String creationTypeStr,
-    		@QueryParam(name="inputFormat", defaultValue="LABELED_MEMBERSHIP_MATRIX") String coverInputFormatStr,
+    		@DefaultValue("unnamed") @QueryParam("name") String nameStr,
+    		@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
+    		@DefaultValue("LABELED_MEMBERSHIP_MATRIX") @QueryParam("inputFormat") String coverInputFormatStr,
     		@ContentParam String contentStr)
     {
     	try {
@@ -687,15 +683,15 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @ResourceListApi(description = "Manage covers")
-    @Summary("Returns the ids (or meta information) of multiple covers.")
+	@ApiOperation(value = "Manage covers",
+		notes = "Returns the ids (or meta information) of multiple covers.")
     public String getCovers(
-    		@QueryParam(name="firstIndex", defaultValue = "0") String firstIndexStr,
-    		@QueryParam(name="length", defaultValue = "") String lengthStr,
-    		@QueryParam(name="includeMeta", defaultValue = "FALSE") String includeMetaStr,
-    		@QueryParam(name="executionStatuses", defaultValue = "") String executionStatusesStr,
-    		@QueryParam(name="metricExecutionStatuses", defaultValue = "") String metricExecutionStatusesStr,
-    		@QueryParam(name="graphId", defaultValue = "") String graphIdStr)
+    		@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
+    		@DefaultValue("") @QueryParam("length") String lengthStr,
+    		@DefaultValue("FALSE") @QueryParam("includeMeta") String includeMetaStr,
+    		@DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr,
+    		@DefaultValue("") @QueryParam("metricExecutionStatuses") String metricExecutionStatusesStr,
+    		@DefaultValue("") @QueryParam("graphId") String graphIdStr)
     {
     	try {
 			String username = ((UserAgent) getActiveAgent()).getLoginName();
@@ -829,11 +825,12 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
     @Path("covers/{coverId}/graphs/{graphId}")
-    @Summary("Returns a cover in a specified format.")
+	@ApiOperation(value = "",
+		notes = "Returns a cover in a specified format.")
     public String getCover(
     		@PathParam("graphId") String graphIdStr,
     		@PathParam("coverId") String coverIdStr,
-    		@QueryParam(name="outputFormat", defaultValue="LABELED_MEMBERSHIP_MATRIX") String coverOutputFormatStr)
+    		@DefaultValue("LABELED_MEMBERSHIP_MATRIX") @QueryParam("outputFormat") String coverOutputFormatStr)
     {
     	try {
     		String username = ((UserAgent) getActiveAgent()).getLoginName();
@@ -910,7 +907,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Deletes a cover.")
+	@ApiOperation(value = "",
+		notes = "Deletes a cover.")
     public String deleteCover(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr)
@@ -1031,13 +1029,14 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Creates a new cover by running an algorithm on an existing graph.")
+	@ApiOperation(value = "",
+		notes = "Creates a new cover by running an algorithm on an existing graph.")
     public String runAlgorithm(
     		@PathParam("graphId") String graphIdStr,
-    		@QueryParam(name="name", defaultValue="unnamed") String nameStr,
-    		@QueryParam(name="algorithm", defaultValue="SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM") String creationTypeStr,
+    		@DefaultValue("unnamed") @QueryParam("name") String nameStr,
+    		@DefaultValue("SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM") @QueryParam("algorithm") String creationTypeStr,
     		@ContentParam String content,
-    		@QueryParam(name = "componentNodeCountFilter", defaultValue = "0") String componentNodeCountFilterStr)
+    		@DefaultValue("0") @QueryParam("componentNodeCountFilter") String componentNodeCountFilterStr)
     {
     	try {
     		int componentNodeCountFilter;
@@ -1146,11 +1145,12 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Creates a ground truth benchmark cover.")
+	@ApiOperation(value = "",
+		notes = "Creates a ground truth benchmark cover.")
     public String runGroundTruthBenchmark(
-    		@QueryParam(name="coverName", defaultValue="unnamed") String coverNameStr,
-    		@QueryParam(name="graphName", defaultValue="unnamed") String graphNameStr,
-    		@QueryParam(name="benchmark", defaultValue="LFR") String creationTypeStr,
+    		@DefaultValue("unnamed") @QueryParam("coverName") String coverNameStr,
+    		@DefaultValue("unnamed") @QueryParam("graphName") String graphNameStr,
+    		@DefaultValue("LFR") @QueryParam("benchmark") String creationTypeStr,
     		@ContentParam String contentStr)
     {
     	try {
@@ -1247,11 +1247,12 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Runs a statistical measure on a cover and creates the corresponding log.")
+	@ApiOperation(value = "",
+		notes = "Runs a statistical measure on a cover and creates the corresponding log.")
     public String runStatisticalMeasure(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr,
-    		@QueryParam(name="metricType", defaultValue="EXTENDED_MODULARITY") String metricTypeStr,
+    		@DefaultValue("EXTENDED_MODULARITY") @QueryParam("metricType") String metricTypeStr,
     		@ContentParam String contentStr)
     {
     	try {
@@ -1363,11 +1364,12 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Runs a knowledge-driven measure on a cover and creates the corresponding log.")
+	@ApiOperation(value = "",
+		notes = "Runs a knowledge-driven measure on a cover and creates the corresponding log.")
     public String runKnowledgeDrivenMeasure(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr,
-    		@QueryParam(name="metricType", defaultValue="EXTENDED_NORMALIZED_MUTUAL_INFORMATION") String metricTypeStr,
+    		@DefaultValue("EXTENDED_NORMALIZED_MUTUAL_INFORMATION") @QueryParam("metricType") String metricTypeStr,
     		@PathParam("groundTruthCoverId") String groundTruthCoverIdStr,
     		@ContentParam String contentStr)
     {
@@ -1499,7 +1501,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Deletes a metric.")
+	@ApiOperation(value = "",
+		notes = "Deletes a metric.")
     public String deleteMetric(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr,
@@ -1604,7 +1607,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns the default parameters of an algorithm.")
+	@ApiOperation(value = "",
+		notes = "Returns the default parameters of an algorithm.")
     public String getAlgorithmDefaultParams(
     		@PathParam("CoverCreationType") String coverCreationTypeStr)
     {
@@ -1646,7 +1650,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns the default parameters of a benchmark.")
+	@ApiOperation(value = "",
+		notes = "Returns the default parameters of a benchmark.")
     public String getBenchmarkDefaultParams(
     		@PathParam("GraphCreationType") String graphCreationTypeStr)
     {
@@ -1692,7 +1697,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns the default parameters of a metric.")
+	@ApiOperation(value = "",
+		notes = "Returns the default parameters of a metric.")
     public String getMetricDefaultParameters(
     		@PathParam("OcdMetricType") String ocdMetricTypeStr)
     {
@@ -1746,7 +1752,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns all cover creation type names.")
+	@ApiOperation(value = "",
+		notes = "Returns all cover creation type names.")
     public String getCoverCreationMethodNames()
     {
     	try {
@@ -1770,8 +1777,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @ResourceListApi(description = "Algorithms information")
-    @Summary("Returns all algorithm type names.")
+	@ApiOperation(value = "Algorithms information",
+		notes = "Returns all algorithm type names.")
     public String getAlgorithmNames()
     {
     	try {
@@ -1795,7 +1802,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns all ground truth benchmark type names.")
+	@ApiOperation(value = "Algorithms information",
+		notes = "Returns all ground truth benchmark type names.")
     public String getGroundTruthBenchmarkNames()
     {
     	try {
@@ -1819,7 +1827,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns all graph creation type names.")
+	@ApiOperation(value = "",
+		notes = "Returns all graph creation type names.")
     public String getGraphCreationMethodNames()
     {
     	try {
@@ -1843,7 +1852,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns all graph input format names.")
+	@ApiOperation(value = "",
+		notes = "Returns all graph input format names.")
     public String getGraphInputFormatNames()
     {
     	try {
@@ -1867,7 +1877,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns all graph output format names.")
+	@ApiOperation(value = "",
+		notes = "Returns all graph output format names.")
     public String getGraphOutputFormatNames()
     {
     	try {
@@ -1891,7 +1902,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns all cover creation type names.")
+	@ApiOperation(value = "",
+		notes = "Returns all cover creation type names.")
     public String getCoverOutputFormatNames()
     {
     	try {
@@ -1915,7 +1927,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns all cover creation type names.")
+	@ApiOperation(value = "",
+		notes = "Returns all cover creation type names.")
     public String getCoverInputFormatNames()
     {
     	try {
@@ -1939,7 +1952,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns all statistical measure type names.")
+	@ApiOperation(value = "",
+		notes = "Returns all statistical measure type names.")
     public String getStatisticalMeasureNames()
     {
     	try {
@@ -1963,7 +1977,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @Summary("Returns all knowledge-driven measure type names.")
+	@ApiOperation(value = "",
+		notes = "Returns all knowledge-driven measure type names.")
     public String getKnowledgeDrivenMeasureNames()
     {
     	try {
@@ -1987,8 +2002,8 @@ public class ServiceClass extends Service {
     		@ApiResponse(code = 200, message = "Success"),
     		@ApiResponse(code = 401, message = "Unauthorized")
     })
-    @ResourceListApi(description = "Metrics information")
-    @Summary("Returns all metric type names.")
+	@ApiOperation(value = "Metrics information",
+		notes = "Returns all metric type names.")
     public String getMetricNames()
     {
     	try {
