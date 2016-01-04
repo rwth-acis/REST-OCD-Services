@@ -13,6 +13,7 @@ import i5.las2peer.services.ocd.algorithms.SVDCostFuncOptClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
+import i5.las2peer.services.ocd.algorithms.WordClusteringRefinementAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
@@ -99,7 +100,9 @@ public enum CoverCreationType {
 	 */
 	SVD_COST_FUNC_OPT_CLUSTERING_ALGORITHM(SVDCostFuncOptClusteringAlgorithm.class, 14), 
 	
-	CONTENT_BASED_WEIGHTING_ALGORITHM(ContentBasedWeightingAlgorithm.class, 15);
+	
+	WORD_CLUSTERING_REF_ALGORITHM(WordClusteringRefinementAlgorithm.class, 16);
+	
 	/**
 	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
 	 * Cannot be used for algorithm instantiation.

@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.commons.math3.analysis.function.Abs;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.la4j.matrix.Matrix;
 
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
@@ -37,7 +38,6 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 	 * The upper bound for the number of clusters possible. Computing Clusterings between
 	 * 1 and the bound, to find the number of clusters with the smallest costs. Default value 50.
 	 */
-	
 	private int maximumK = 50;
 	
 	/**
@@ -47,12 +47,19 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 	 */
 	private double beta = 0.7;
 	
+	/**
+	 * Boolean variable if the svd version of the algorithm should be used.
+	 */
+	
+	private boolean svd = false;
+	
 	////////////////////////
 	//// Parameter Names////
 	////////////////////////
 	
 	public static final String MAXIMUM_K_NAME = "maximumK";
 	public static final String OVERLAPPING_THRESHOLD_NAME = "overlappingThreshold";
+	public static final String SVD_NAME = "svd";
 	
 	////////////////////
 	//// Constructor////
@@ -79,6 +86,7 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(MAXIMUM_K_NAME, Integer.toString(maximumK));
 		parameters.put(OVERLAPPING_THRESHOLD_NAME, Double.toString(beta));
+		parameters.put(SVD_NAME, Boolean.toString(svd));
 		return parameters;
 	}
 	
@@ -98,6 +106,10 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 			}
 			parameters.remove(OVERLAPPING_THRESHOLD_NAME);
 		}
+		if(parameters.containsKey(SVD_NAME)){
+			svd = Boolean.parseBoolean(parameters.get(SVD_NAME));
+			parameters.remove(SVD_NAME);
+		}
 		if(parameters.size() > 0) {
 			throw new IllegalArgumentException();
 		}
@@ -106,6 +118,22 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException,InterruptedException {
 		Termmatrix termMat = new Termmatrix(graph);
+		
+		if(svd){
+			double min = 0;
+			Array2DRowRealMatrix m = new  Array2DRowRealMatrix(termMat.SVD().getData());
+			for(int ind = 0; ind < m.getRowDimension(); ind++){
+				double temp = m.getRowVector(ind).getMinValue();
+				if(temp < min){
+					min = temp;
+				}
+			}
+			for(int j = 0; j < m.getRowDimension(); j++){
+				m.setRowVector(j,(ArrayRealVector) m.getRowVector(j).mapAdd(min));
+				m.setRowVector(j,(ArrayRealVector) m.getRowVector(j).mapMultiply(1000));
+			}
+			termMat.setMatrix((Array2DRowRealMatrix) m);
+		}
 		Clustering opt = new Clustering();
 		Clustering temp = new Clustering();
 		if(maximumK > termMat.getNodeIdList().size()){
@@ -278,7 +306,7 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 			}
 			
 		}
-		opt.setCosts(f.valueNode(opt.getClustering(), numbNode));
+		opt.setCosts(f.value(opt.getClustering(), numbNode));
 		
 		return opt;
 	}

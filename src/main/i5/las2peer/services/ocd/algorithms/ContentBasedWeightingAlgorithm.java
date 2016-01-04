@@ -14,11 +14,12 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Node;
 
-public class ContentBasedWeightingAlgorithm implements OcdAlgorithm{
+public class ContentBasedWeightingAlgorithm{
 	
 	///////////////////
 	////Constructor////
@@ -28,33 +29,34 @@ public class ContentBasedWeightingAlgorithm implements OcdAlgorithm{
 		
 	}
 	
-	@Override
-	public CoverCreationType getAlgorithmType() {
-		return CoverCreationType.CONTENT_BASED_WEIGHTING_ALGORITHM;
-	}
 	
-	@Override
+	/*public CoverCreationType getAlgorithmType() {
+		return CoverCreationType.CONTENT_BASED_WEIGHTING_ALGORITHM;
+	}*/
+	
+
 	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.CONTENT_LINKED);
 		return compatibilities;
 	}
 	
-	@Override
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
 		if(parameters.size() > 0) {
 			throw new IllegalArgumentException();
 		}
 	}
 	
-	@Override
+
 	public Map<String, String> getParameters() {
 		return new HashMap<String, String>();
 	}
 	
-	@Override
-	public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException, OcdAlgorithmException {
+	
+	public CustomGraph detectOverlappingCommunities(CustomGraph graph, ExecutionTime et) throws InterruptedException, OcdAlgorithmException {
+		et.start();
 		Termmatrix tm = new Termmatrix(graph);
+		et.stop();
 		Similarities sim = new Similarities();
 		//normalize weights
 		EdgeCursor edges = graph.edges();
@@ -72,7 +74,9 @@ public class ContentBasedWeightingAlgorithm implements OcdAlgorithm{
 						max = temp;
 					}
 				}
+				comp.next();
 			}
+			comp.toFirst();
 			graph.setEdgeWeight(edge, graph.getEdgeWeight(edge)/max);
 			edges.next();
 		}
@@ -86,11 +90,12 @@ public class ContentBasedWeightingAlgorithm implements OcdAlgorithm{
 			ArrayRealVector v = (ArrayRealVector) tm.getMatrix().getRowVector(tm.getNodeIdList().indexOf(source));
 			ArrayRealVector u = (ArrayRealVector) tm.getMatrix().getRowVector(tm.getNodeIdList().indexOf(target));
 			double s = sim.cosineSim(v, u);
-			s = s * graph.getEdgeWeight(edge);
+			s = (s + graph.getEdgeWeight(edge))/2;
 			graph.setEdgeWeight(edge, s);
+			edges.next();
 		}
 		
-		return null;
+		return graph;
 		
 	}
 

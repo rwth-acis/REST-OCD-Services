@@ -2,6 +2,9 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -29,12 +32,36 @@ import y.base.Node;
 
 public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdapter{
 	
+	/////////////////
+	////Variables////
+	/////////////////
+	/**
+	 * Variable for the beginning of the date interval, the posts have to be issued in
+	 */
+	private Date startDate = null;
+	
+	/**
+	 * Variable for the beginning of the date interval, the posts have to be issued in
+	 */
+	private Date endDate = null;
+	
 	public NodeContentEdgeListGraphInputAdapter(){
 		
 	}
 	
 	public NodeContentEdgeListGraphInputAdapter(Reader reader){
 		this.reader = reader;
+	}
+	
+	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
+		SimpleDateFormat df = new SimpleDateFormat ("yyyy-MM-dd");
+		
+		if(param.containsKey("startDate")){
+			startDate = df.parse(param.get("startDate"));
+		}
+		if(param.containsKey("endDate")){
+			endDate = df.parse(param.get("endDate"));
+		}
 	}
 	
 	@Override
@@ -97,10 +124,10 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 				
 					throw new AdapterException("No attribute to generate links");
 				}else{
-					graph = readSenderReceiverGraph(senderIndex, receiverIndex, contentIndex, line.size());
+					graph = readSenderReceiverGraph(senderIndex, receiverIndex, contentIndex, dateIndex, line.size());
 				}
 			}else{
-				graph = readThreadGraph(nameIndex, contentIndex, threadIndex);
+				graph = readThreadGraph(nameIndex, contentIndex, dateIndex, threadIndex);
 			}
 
 			
@@ -117,13 +144,14 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 		return graph;
 	}
 
-	private CustomGraph readSenderReceiverGraph(int senderIndex, int receiverIndex, int contentIndex, int lineLength) throws IOException, AdapterException {
+	private CustomGraph readSenderReceiverGraph(int senderIndex, int receiverIndex, int contentIndex, int dateIndex, int lineLength) throws IOException, AdapterException {
 		
 		TextProcessor textProc = new TextProcessor();
 		Map<String, Node> nodeNames = new HashMap<String, Node>();
 		Map<String, String> nodeContents = new HashMap<String, String>();
 		CustomGraph graph = new CustomGraph();
 		Map<Node,HashMap<String,Integer>> links = new HashMap<Node, HashMap<String,Integer>>();
+		SimpleDateFormat df = new SimpleDateFormat ("yyyy-MM-dd");
 		
 		try{
 		// read first content line
@@ -132,37 +160,44 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 		// create nodes
 		while(line.size() > 0){
 			
-			Node node; 
-			String customNodeName = line.get(senderIndex);
-			String customNodeContent = textProc.preprocText(line.get(contentIndex));
-			String customNodeReceiver = line.get(receiverIndex);
-			// node does not yet exist
-			if(!nodeNames.containsKey(customNodeName)){
-				node = graph.createNode();						//create new node and add attributes
-				graph.setNodeName(node , customNodeName);
-				nodeContents.put(customNodeName, customNodeContent);
-				//graph.setNodeContent(node, customNodeContent);
-				HashMap<String,Integer> temp = new HashMap<String,Integer>();
-				temp.put(customNodeReceiver,1);					// initialize structural weights (number of connections between two nodes)
-				links.put(node, temp);							// temporarly save nodes connections to other nodes
-				nodeNames.put(customNodeName, node);
-			// node is already create, so content has to be added
-			}else{
-				node = nodeNames.get(customNodeName);		// get respective node
-				//customNodeContent = customNodeContent + " " + graph.getNodeContent(node);	//add further content to the nodes attribute
-				nodeContents.merge(customNodeName, " " + customNodeContent, String::concat);
-				//graph.setNodeContent(node, customNodeContent);
-				HashMap<String,Integer> temp = links.get(node); // get connections of the node
-				if (temp.containsKey(customNodeReceiver)) {
-					int r = temp.get(customNodeReceiver);		// increase weight if link already exists
-					r++;
-					temp.put(customNodeReceiver,r);
-				}else{
-					temp.put(customNodeReceiver, 1);			// add new link and initialize weight
+			Date d = df.parse(line.get(dateIndex));
+			/*if(startDate != null || endDate != null){
+				if(d.after(endDate)){			//assuming that we have a dataset sorted according to date
+					break;
 				}
-				links.put(node, temp);
+			}*/
+			if(!((startDate != null && d.before(startDate)) || (endDate != null && d.after(endDate)))){
+				Node node; 
+				String customNodeName = line.get(senderIndex);
+				String customNodeContent = textProc.preprocText(line.get(contentIndex));
+				String customNodeReceiver = line.get(receiverIndex);
+				// node does not yet exist
+				if(!nodeNames.containsKey(customNodeName)){
+					node = graph.createNode();						//create new node and add attributes
+					graph.setNodeName(node , customNodeName);
+					nodeContents.put(customNodeName, customNodeContent);
+					//graph.setNodeContent(node, customNodeContent);
+					HashMap<String,Integer> temp = new HashMap<String,Integer>();
+					temp.put(customNodeReceiver,1);					// initialize structural weights (number of connections between two nodes)
+					links.put(node, temp);							// temporarly save nodes connections to other nodes
+					nodeNames.put(customNodeName, node);
+				// node is already create, so content has to be added
+				}else{
+					node = nodeNames.get(customNodeName);		// get respective node
+					//customNodeContent = customNodeContent + " " + graph.getNodeContent(node);	//add further content to the nodes attribute
+					nodeContents.merge(customNodeName, " " + customNodeContent, String::concat);
+					//graph.setNodeContent(node, customNodeContent);
+					HashMap<String,Integer> temp = links.get(node); // get connections of the node
+					if (temp.containsKey(customNodeReceiver)) {
+						int r = temp.get(customNodeReceiver);		// increase weight if link already exists
+						r++;
+						temp.put(customNodeReceiver,r);
+					}else{
+						temp.put(customNodeReceiver, 1);			// add new link and initialize weight
+					}
+					links.put(node, temp);
+				}
 			}
-			
 			//read next content line
 			line = Adapters.readLineTabIgnoreLineBreak(reader,lineLength);
 			
@@ -200,7 +235,7 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 		return graph;
 	}
 
-	private CustomGraph readThreadGraph(int nameIndex, int contentIndex, int threadIndex) throws IOException, AdapterException {
+	private CustomGraph readThreadGraph(int nameIndex, int contentIndex, int dateIndex, int threadIndex) throws IOException, AdapterException {
 		
 		TextProcessor textProc = new TextProcessor();
 		Map<String, Node> nodeNames = new HashMap<String, Node>();

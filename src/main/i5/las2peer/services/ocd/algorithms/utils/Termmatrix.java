@@ -11,6 +11,8 @@ import java.util.Map;
 import org.apache.commons.math3.analysis.function.Log;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
+import org.apache.commons.math3.linear.BlockRealMatrix;
+import org.apache.commons.math3.linear.RealMatrix;
 //import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 //import org.json.JSONArray;
@@ -51,7 +53,7 @@ public class Termmatrix {
 		NodeCursor nodes = graph.nodes();
 		Node node; 
 		this.wordlist = new LinkedList<String>();
-		this.matrix = new Array2DRowRealMatrix();
+		
 		//StringConverter conv = new StringConverter();
 		//wordlist = conv.StringToList(threads);
 		//this.setWordlist(wordlist);
@@ -71,6 +73,7 @@ public class Termmatrix {
 		HashMap<String,HashMap<String,Double>> indexMap = computeTFIDF(graph);
 		HashMap<String,Double> valueMap;
 		ArrayRealVector vector = new ArrayRealVector(wordlist.size());
+		this.matrix = new Array2DRowRealMatrix(indexMap.size(),wordlist.size() );
 		
 		while(nodes.ok()){
 			node = nodes.node();
@@ -84,6 +87,7 @@ public class Termmatrix {
 			}
 			this.matrix.setRowVector(row, vector);
 			row++;
+			nodes.next();
 		}
 		/*while(nodes.ok()){
 			node = nodes.node();
@@ -188,7 +192,7 @@ public class Termmatrix {
 	////////////////////////
 	
 	public void addNode(Node node){
-		//this.tfidfMap.
+		nodelist.add(node);
 	}
 	
 	public void addWord(String word){
@@ -314,16 +318,16 @@ public class Termmatrix {
 		return res;
 	}
 	
-	public void SVD(){
+	public RealMatrix SVD(){
 		SingularValueDecomposition svd = new SingularValueDecomposition(matrix);
-		this.matrix = (Array2DRowRealMatrix) svd.getU();
+		return (RealMatrix) svd.getU();
 	}
 	
 	private HashMap<String,HashMap<String,Double>> computeTFIDF(CustomGraph graph){
 		HashMap<String,HashMap<String,Double>> res = new HashMap<String,HashMap<String,Double>>();
 		int noOfDocs = graph.nodes().size();
 		String indexPath = graph.getPath();
-		NodeCursor nodes = graph.nodes();
+		//NodeCursor nodes = graph.nodes();
 		TermsEnum termEnum = null;
 		TermsEnum idEnum = null;
 		PostingsEnum docsEnum = null;
@@ -333,34 +337,41 @@ public class Termmatrix {
 			Path f = new File(indexPath).toPath();
 			IndexReader re = DirectoryReader.open(SimpleFSDirectory.open(f)) ;
 			
-			for(int k = 0; k < noOfDocs; k++){	
+			
+			for(int k = 0; k < noOfDocs; k++){
+				//compute termvector for each document for content and name field
 				Terms contentTerms = re.getTermVector(k, "doccontent");
 				Terms idTerms = re.getTermVector(k, "docid");
+				//compute document/node name
 				idEnum = idTerms.iterator();
 				BytesRef idBytes = idEnum.next(); //should be only one
 				String docName = idBytes.utf8ToString();
 				HashMap<String,Double> termMap = new HashMap<String,Double>();
+				//check if content termvector is empty
 				if(contentTerms == null){
 					res.put(docName,termMap);
 				}else{
+					//iterate through content term vector
 					termEnum = contentTerms.iterator();
 					
 					long noOfTerms = contentTerms.size();
-					//ArrayRealVector tfidf = new ArrayRealVector((int) noOfTerms);
 					DefaultSimilarity sim = new DefaultSimilarity();
 		            for (int i = 0; i < noOfTerms; i++) {
+		            	//compute string for each term in the termvector and add to the wordlist of the term matrix
 		            	BytesRef termBytes = termEnum.next();
 		            	String termStr = termBytes.utf8ToString();
 		            	if(!wordlist.contains(termStr)){
 		            		wordlist.add(termStr);
 		            	}
-		            	//Term term = new Term("doccontent", termBytes);
-		            	docsEnum = termEnum.postings(null); // enumerate through documents, in this case only one
+		            	// enumerate through documents, in this case only one
+		            	docsEnum = termEnum.postings(null); 
 		                    int docIdEnum;
 		                    while ((docIdEnum = docsEnum.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS) {
-		                      int tf = docsEnum.freq(); //get the term frequency in the document
-		                      float idf = sim.idf(termEnum.docFreq(), re.numDocs());
-		                      termMap.put(termStr, (double) (tf * idf));
+		                    	//get the term frequency in the document
+		                    	int tf = docsEnum.freq(); 
+		                    	//compute inverse document frequency
+		                    	float idf = sim.idf(termEnum.docFreq(), re.numDocs());
+		                    	termMap.put(termStr, (double) (tf * idf));
 		                      
 		                    }
 		              res.put(docName, termMap);
