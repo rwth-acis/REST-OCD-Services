@@ -16,9 +16,7 @@
         <dependency org="org.apache.geronimo.specs" name="geronimo-jpa_2.0_spec" rev="1.1"/>
         <dependency org="commons-jxpath" name="commons-jxpath" rev="1.1"/>
         <dependency org="commons-logging" name="commons-logging" rev="1.2"/>
-        
-        <dependency org="com.j256.ormlite" name="ormlite-core" rev="4.48"/>
-    	<dependency org="com.j256.ormlite" name="ormlite-jdbc" rev="4.48"/>
+        <dependency org="org.bouncycastle" name="bcprov-jdk15on" rev="1.50"/>
         
     </dependencies>
 </ivy-module>
