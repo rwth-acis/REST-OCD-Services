@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.graphs;
 import i5.las2peer.services.ocd.algorithms.BinarySearchRandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.ClizzAlgorithm;
 import i5.las2peer.services.ocd.algorithms.ExtendedSpeakerListenerLabelPropagationAlgorithm;
+import i5.las2peer.services.ocd.algorithms.CostFunctionOptimizationClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.MergingOfOverlappingCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
@@ -10,6 +11,7 @@ import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
+import i5.las2peer.services.ocd.algorithms.WordClusteringRefinementAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
@@ -85,7 +87,17 @@ public enum CoverCreationType {
 	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
 	 * Cannot be used for algorithm instantiation.
 	 */
-	NEWMAN(NewmanBenchmark.class, 12);
+	NEWMAN(NewmanBenchmark.class, 12),
+	/**
+	 * Type corresponding to the k-means-gradient-descent-clustering-algorithm.
+	 */
+	COST_FUNC_OPT_CLUSTERING_ALGORITHM(CostFunctionOptimizationClusteringAlgorithm.class, 13),
+	
+	/**
+	 * Type corresponding to the wordclustering algorithm with refinement.	
+	 */
+	WORD_CLUSTERING_REF_ALGORITHM(WordClusteringRefinementAlgorithm.class, 16);
+	
 	/**
 	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
 	 * Cannot be used for algorithm instantiation.

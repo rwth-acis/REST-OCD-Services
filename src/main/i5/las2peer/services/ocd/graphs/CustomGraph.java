@@ -25,6 +25,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
+import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.GraphListener;
@@ -54,6 +55,7 @@ public class CustomGraph extends Graph2D {
 	private static final String idEdgeMapKeyColumnName = "RUNTIME_ID";
 	private static final String idNodeMapKeyColumnName = "RUNTIME_ID";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
+	private static final String pathColumnName = "INDEX_PATH";
 	
 	/*
 	 * Field name definitions for JPQL queries.
@@ -83,6 +85,13 @@ public class CustomGraph extends Graph2D {
 	 */
 	@Column(name = nameColumnName)
 	private String name = "";
+	
+	/**
+	 * The path to the index for the content of each node belonging to the graph.
+	 */
+	@Column(name = pathColumnName)
+	private String path = "";
+	
 	
 //	/**
 //	 * The description of the graph.
@@ -154,6 +163,10 @@ public class CustomGraph extends Graph2D {
 	 */
 	@Transient
 	private int nodeIndexer = 0;
+	
+	
+	@Transient
+	private Termmatrix termMatrix = new Termmatrix();
 	
 	///////////////////////////// METHODS AND CONSTRUCTORS
 	
@@ -303,6 +316,30 @@ public class CustomGraph extends Graph2D {
 	 */
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	/**
+	 * Getter for the graphs path to the index for the node content.
+	 * @return The index path.
+	 */
+	public String getPath() {
+		return path;
+	}
+
+	/**
+	 * Setter for the graphs path to the index for the node content.
+	 * @param path The index path.
+	 */
+	public void setPath(String path) {
+		this.path = path;
+	}
+	
+	public Termmatrix getTermMatrix(){
+		return termMatrix;
+	}
+	
+	public void setTermMatrix(Termmatrix t){
+		this.termMatrix = t;
 	}
 
 //	public String getDescription() {

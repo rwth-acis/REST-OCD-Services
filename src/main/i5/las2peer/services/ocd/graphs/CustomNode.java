@@ -66,6 +66,7 @@ public class CustomNode {
 	@Column(name = nameColumnName)
 	private String name;
 	
+			
 	/////////////////////////////////////////////////////////////////////////////////////////
 	/////////// The following attributes are only of internal use for persistence purposes.
 	/////////////////////////////////////////////////////////////////////////////////////////
@@ -146,7 +147,7 @@ public class CustomNode {
 	protected void setName(String name) {
 		this.name = name;
 	}
-
+	
 	/////////////////////////////////////////////////////////////////////////////////////////
 	/////////// The following attributes are only of internal use for persistence purposes.
 	/////////////////////////////////////////////////////////////////////////////////////////
@@ -217,7 +218,7 @@ public class CustomNode {
 	}
 	
 	/*
-	 * Creates a corresponding node after the custom node was loaded from persistence.
+ 	 * Creates a corresponding node after the custom node was loaded from persistence.
 	 * Only for persistence purposes.
 	 * @param graph The graph that the (custom) node is part of.
 	 * @return The created node.

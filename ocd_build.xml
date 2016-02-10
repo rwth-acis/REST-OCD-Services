@@ -115,6 +115,9 @@
     
     <target name="junit_tests" depends="init_junit">
 		<junit fork="no" haltonerror="yes" haltonfailure="yes" printsummary="yes">
+			<jvmarg value="-Xdebug" />
+			<jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5432" />
+
 			<classpath>
 				<pathelement path="${tmp.junit}" />
 				<pathelement path="${tmp.classes}" />

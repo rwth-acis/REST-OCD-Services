@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.testsUtils;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.graphInput.GmlGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
+import i5.las2peer.services.ocd.adapters.graphInput.NodeContentEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.NodeWeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.WeightedEdgeListGraphInputAdapter;
@@ -15,12 +16,15 @@ import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Node;
+import y.base.NodeCursor;
 
 /**
  * Provides graphs for testing purposes.
@@ -351,6 +355,52 @@ public class OcdTestGraphFactory {
 		graph.addType(GraphType.DIRECTED);
 		graph.addType(GraphType.SELF_LOOPS);
 		graph.addType(GraphType.WEIGHTED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+	
+	/*public static CustomGraph getContentTestGraph() {
+		// Creates new graph
+		CustomGraph graph = new CustomGraph();
+		graph.setName(OcdTestConstants.contentTestName);
+		// Creates nodes
+		
+		Node n[] = new Node[5];  
+		for (int i = 0; i < 5; i++) {
+			n[i] = graph.createNode();
+			graph.setNodeName(n[i], Integer.toString(i));
+		}
+				
+		graph.setNodeContent(n[0],"John likes movies theatre test case" );
+		graph.setNodeContent(n[1], "Marie likes books theatre case");
+		graph.setNodeContent(n[2], "John likes movies theatre test case");
+		graph.setNodeContent(n[3], "Marie likes movies theatre case");
+		graph.setNodeContent(n[4], "node unconnected");
+		
+		GraphProcessor processor = new GraphProcessor();
+		graph.addType(GraphType.CONTENT_UNLINKED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}*/
+	
+	public static CustomGraph getJmolTestGraph() throws AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
+		
+		NodeContentEdgeListGraphInputAdapter adapter = new NodeContentEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.jmolEdgeListInputPath));
+		Map<String, String> adapterParam = new HashMap<String, String>();
+		adapterParam.put("startDate", "2006-04-01");
+		adapterParam.put("endDate", "2006-04-30");
+		adapterParam.put("path", "C:\\indexes\\jmol2004");
+		adapter.setParameter(adapterParam);
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.jmolName);
+		graph.addType(GraphType.CONTENT_LINKED);
+		GraphProcessor processor = new GraphProcessor();
 		processor.makeCompatible(graph, new HashSet<GraphType>());
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);

@@ -34,7 +34,16 @@ public enum GraphInputFormat {
 	/**
 	 * Format corresponding to the GmlGraphInputAdapter.
 	 */
-	GML (GmlGraphInputAdapter.class, 4);
+	GML (GmlGraphInputAdapter.class, 4),
+	/**
+	 * Format corresponding to the NodeContentListGraphInputAdapter.
+	 */
+	NODE_CONTENT_EDGE_LIST (NodeContentEdgeListGraphInputAdapter.class,5),
+	
+	/**
+	 * Format corresponding to the XMLGraphInputAdapter.
+	 */
+	XML (XMLGraphInputAdapter.class, 6);
 
 	/**
 	 * The adapter class corresponding to the format.

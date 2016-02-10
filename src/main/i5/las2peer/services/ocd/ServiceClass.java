@@ -10,6 +10,7 @@ import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
+import i5.las2peer.services.ocd.algorithms.ContentBasedWeightingAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
@@ -24,6 +25,7 @@ import i5.las2peer.services.ocd.graphs.GraphCreationLog;
 import i5.las2peer.services.ocd.graphs.GraphCreationType;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
 import i5.las2peer.services.ocd.metrics.OcdMetricFactory;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
@@ -1018,6 +1020,7 @@ public class ServiceClass extends Service {
      * Defines the algorithm to execute.
      * @param content A parameter xml defining any non-default parameters passed to the algorithm.
      * @param componentNodeCountFilterStr Option query parameter. The component node count filter applied by the OcdAlgorithmExecutor.
+     * @param contentWeighting The boolean value to enable content-based weighting
      * @return The id of the cover being calculated which is reserved for the algorithm result.
      * Or an error xml.
      */
@@ -1036,6 +1039,7 @@ public class ServiceClass extends Service {
     		@DefaultValue("unnamed") @QueryParam("name") String nameStr,
     		@DefaultValue("SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM") @QueryParam("algorithm") String creationTypeStr,
     		@ContentParam String content,
+    		@DefaultValue("false") @QueryParam("contentWeighting") String contentWeighting,
     		@DefaultValue("0") @QueryParam("componentNodeCountFilter") String componentNodeCountFilterStr)
     {
     	try {
@@ -1095,6 +1099,15 @@ public class ServiceClass extends Service {
 			    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
 			    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for metric execution: " + graph.getCreationMethod().getStatus().name());
 						return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for metric execution: " + graph.getCreationMethod().getStatus().name());
+			    	}
+			    	boolean weight = Boolean.parseBoolean(contentWeighting);
+			    	if(weight && (algorithm.getAlgorithmType() == CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM || algorithm.getAlgorithmType() == CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM)){
+			    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid algorihtm in combination of weighting requested: " + algorithm.getAlgorithmType().toString());
+						return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid algorihtm in combination of weighting requested:" + algorithm.getAlgorithmType().toString());
+			    	}
+			    	if(weight){
+			    		ContentBasedWeightingAlgorithm weightAlgo = new ContentBasedWeightingAlgorithm();
+			    		graph = weightAlgo.detectOverlappingCommunities(graph, new ExecutionTime());
 			    	}
 			    	cover = new Cover(graph, new CCSMatrix(graph.nodeCount(), 0));
 			    	log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
@@ -2013,6 +2026,7 @@ public class ServiceClass extends Service {
     		requestHandler.log(Level.SEVERE, "", e);
     		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
     	}
+    	
     }
     
-}
+}   

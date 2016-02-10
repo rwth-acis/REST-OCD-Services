@@ -34,7 +34,18 @@ public enum GraphType {
 	 * Indicates that a graph has self loops.
 	 * I.e. there may be edges with identical source and target node.
 	 */
-	SELF_LOOPS(4);
+	SELF_LOOPS(4),
+	
+	/**
+	 * Indicates that a graph contains the content attribute for each node.
+	 */	
+	CONTENT_UNLINKED(5),
+	
+	/**
+	 * Indicates that a graph contains the content attribute for each node and
+	 *  that there can be identified a sender and receiver for link creation.
+	 */
+	CONTENT_LINKED(6);
 	
 	/**
 	 * For persistence and other purposes.

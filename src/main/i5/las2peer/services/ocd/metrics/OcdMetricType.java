@@ -35,7 +35,17 @@ public enum OcdMetricType {
 	/**
 	 * Type corresponding to the OmegaIndex, a knowledge-driven measure.
 	 */
-	OMEGA_INDEX (OmegaIndex.class, 4);
+	OMEGA_INDEX (OmegaIndex.class, 4),
+	
+	/**
+	 * Type corresponding to the Combined Newman Modularity, a statistical measure.
+	 */
+	COMBINED_MODULARITY (NewmanModularityCombined.class, 5),
+	
+	/**
+	 * Type corresponding to the ExtendedModularity using co memberships, a statistical measure.
+	 */
+	CO_MEMBERSHIP_MODULARITY (ExtendedModularityMetricCoMembership.class, 6);
 	
 	/**
 	 * For persistence and other purposes.

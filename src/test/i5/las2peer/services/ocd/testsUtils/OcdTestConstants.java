@@ -23,7 +23,12 @@ public class OcdTestConstants {
 	public static final String dolphinsGmlInputPath = inputFolderPath + "dolphins.gml";
 	public static final String zacharyGmlInputPath = inputFolderPath + "karate.gml";
 	public static final String docaTestUnweightedEdgeListInputPath = inputFolderPath + "docaTestUnweightedEdgeList.txt";
-	
+	public static final String urchEdgeListInputPath = inputFolderPath + "UrchTest.txt";
+	public static final String bioJavaEdgeListInputPath = inputFolderPath + "BioJava.txt";
+	public static final String urchPostsEdgeListInputPath = inputFolderPath + "URCH_POSTS.txt";
+	public static final String pgsql200EdgeListInputPath = inputFolderPath + "PGSQL_200.txt";
+	public static final String jmolEdgeListInputPath = inputFolderPath + "JMOL.txt";
+	public static final String academiaXMLInputPath = inputFolderPath + "stackexAcademia.xml";
 	
 	/*
 	 * Cover input filenames
@@ -68,4 +73,7 @@ public class OcdTestConstants {
 	public static final String newmanLinkName = "Newman Link";
 	public static final String miniServiceTestGraphName = "Mini Service Test Graph";
 	public static final String docaTestGraphName = "Doca Test Graph";
+	public static final String contentTestName = "Content Test Graph";
+	public static final String jmolName = "Jmol Test Graph";
+	
 }
