@@ -49,5 +49,10 @@
 	<classpathentry kind="lib" path="lib/org.json-20120521.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-core-5.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-analyzers-common-5.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/poi-3.13.jar"/>
+	<classpathentry kind="lib" path="lib/poi-ooxml-3.13.jar"/>
+	<classpathentry kind="lib" path="lib/poi-ooxml-schemas-3.13.jar"/>
+	<classpathentry kind="lib" path="lib/xmlbeans-2.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/ejml-0.7.jar"/>
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

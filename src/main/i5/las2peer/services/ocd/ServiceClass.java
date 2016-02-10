@@ -20,24 +20,13 @@ import i5.las2peer.restMapper.annotations.swagger.ApiResponses;
 import i5.las2peer.restMapper.annotations.swagger.ResourceListApi;
 import i5.las2peer.restMapper.annotations.swagger.Summary;
 import i5.las2peer.security.UserAgent;
-import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
-import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
-import i5.las2peer.services.ocd.adapters.graphInput.NodeContentEdgeListGraphInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.NodeContentListGraphIntputAdapter;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
-import i5.las2peer.services.ocd.algorithms.BinarySearchRandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.ContentBasedWeightingAlgorithm;
-import i5.las2peer.services.ocd.algorithms.CostFunctionOptimizationClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
-import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.WordClusteringRefinementAlgorithm;
-import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
 import i5.las2peer.services.ocd.graphs.Cover;
@@ -51,25 +40,19 @@ import i5.las2peer.services.ocd.graphs.GraphCreationType;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
-import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
 import i5.las2peer.services.ocd.metrics.OcdMetricFactory;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
-import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.OcdRequestHandler;
 import i5.las2peer.services.ocd.utils.RequestHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.net.URLDecoder;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1039,6 +1022,7 @@ public class ServiceClass extends Service {
      * Defines the algorithm to execute.
      * @param content A parameter xml defining any non-default parameters passed to the algorithm.
      * @param componentNodeCountFilterStr Option query parameter. The component node count filter applied by the OcdAlgorithmExecutor.
+     * @param contentWeighting The boolean value to enable content-based weighting
      * @return The id of the cover being calculated which is reserved for the algorithm result.
      * Or an error xml.
      */
@@ -1056,7 +1040,8 @@ public class ServiceClass extends Service {
     		@QueryParam(name="name", defaultValue="unnamed") String nameStr,
     		@QueryParam(name="algorithm", defaultValue="SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM") String creationTypeStr,
     		@ContentParam String content,
-    		@QueryParam(name = "componentNodeCountFilter", defaultValue = "0") String componentNodeCountFilterStr)
+    		@QueryParam(name = "componentNodeCountFilter", defaultValue = "0") String componentNodeCountFilterStr,
+    		@QueryParam(name = "contentWeighting", defaultValue = "false") String contentWeighting)
     {
     	try {
     		int componentNodeCountFilter;
@@ -1115,6 +1100,15 @@ public class ServiceClass extends Service {
 			    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
 			    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for metric execution: " + graph.getCreationMethod().getStatus().name());
 						return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for metric execution: " + graph.getCreationMethod().getStatus().name());
+			    	}
+			    	boolean weight = Boolean.parseBoolean(contentWeighting);
+			    	if(weight && (algorithm.getAlgorithmType() == CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM || algorithm.getAlgorithmType() == CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM)){
+			    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid algorihtm in combination of weighting requested: " + algorithm.getAlgorithmType().toString());
+						return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid algorihtm in combination of weighting requested:" + algorithm.getAlgorithmType().toString());
+			    	}
+			    	if(weight){
+			    		ContentBasedWeightingAlgorithm weightAlgo = new ContentBasedWeightingAlgorithm();
+			    		graph = weightAlgo.detectOverlappingCommunities(graph, new ExecutionTime());
 			    	}
 			    	cover = new Cover(graph, new CCSMatrix(graph.nodeCount(), 0));
 			    	log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
@@ -2020,122 +2014,4 @@ public class ServiceClass extends Service {
     	
     }
     
-    public static void main(String[] args) throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException{
-    	/*GraphInputAdapter inputAdapter =
-				new NodeContentListGraphIntputAdapter(new FileReader(OcdTestConstants.urchPostsEdgeListInputPath));
-		CustomGraph graph = inputAdapter.readGraph();
-		System.out.println(graph.nodeCount());
-    	//CustomGraph graph = OcdTestGraphFactory.getContentTestGraph();
-		*/
-    	Map<String, String> adapterParam = new HashMap<String, String>();
-		adapterParam.put("startDate", "2004-01-01");
-		adapterParam.put("endDate", "2004-1-31");
-		ExecutionTime etAdapter = new ExecutionTime();
-		etAdapter.start();
-		NodeContentEdgeListGraphInputAdapter inputAdapter =
-				new NodeContentEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.pgsql200EdgeListInputPath));
-    	inputAdapter.setParameter(adapterParam);
-		CustomGraph graph = inputAdapter.readGraph();
-		etAdapter.stop();
-		System.out.println(graph.toString());
-		//System.out.println(cover4.toString());
-		ExecutionTime etWordClust = new ExecutionTime();
-		etWordClust.start();
-		WordClusteringRefinementAlgorithm algo3 = new WordClusteringRefinementAlgorithm();
-		Map<String,String> parameters3 = new HashMap<String, String>();
-		parameters3.put(WordClusteringRefinementAlgorithm.OVERLAPP_COEF_NAME, Double.toString(0.6));
-		algo3.setParameters(parameters3);
-		Cover cover3 = algo3.detectOverlappingCommunities(graph);
-		etWordClust.stop();
-		etAdapter.setCoverExecutionTime(cover3);
-		//System.out.println("ExecTime adapter:" + cover3.getMetric(OcdMetricType.EXECUTION_TIME).getValue());
-		etWordClust.setCoverExecutionTime(cover3);
-		System.out.println(cover3.toString());
-		ExtendedModularityMetric metric3 = new ExtendedModularityMetric();
-		double value3 = metric3.measure(cover3);
-		System.out.println("Modularity Wordclustering " + value3);
-		/*ExecutionTime etWordClustSVD = new ExecutionTime();
-		etWordClustSVD.start();
-		WordClusteringRefinementAlgorithm algo4 = new WordClusteringRefinementAlgorithm();
-		Map<String,String> parameters4 = new HashMap<String, String>();
-		parameters4.put(WordClusteringRefinementAlgorithm.OVERLAPP_COEF_NAME, Double.toString(0.6));
-		parameters4.put(WordClusteringRefinementAlgorithm.SVD_NAME, Boolean.toString(true));
-		algo4.setParameters(parameters4);
-		Cover cover4 = algo4.detectOverlappingCommunities(graph);
-		etWordClustSVD.stop();
-		etWordClustSVD.setCoverExecutionTime(cover4);
-		System.out.println(cover4.toString());
-		ExtendedModularityMetric metric4 = new ExtendedModularityMetric();
-		double value4 = metric4.measure(cover4);
-		System.out.println("Modularity Wordclustering SVD " + value4);*/
-		//System.out.println(cover3.toString());
-		/*ExecutionTime etOptFuncClust = new ExecutionTime();
-		etOptFuncClust.start();
-		CostFunctionOptimizationClusteringAlgorithm algo1 = new CostFunctionOptimizationClusteringAlgorithm();
-		Map<String, String> parameters1 = new HashMap<String, String>();
-		parameters1.put(CostFunctionOptimizationClusteringAlgorithm.MAXIMUM_K_NAME, Integer.toString(30));
-		parameters1.put(CostFunctionOptimizationClusteringAlgorithm.OVERLAPPING_THRESHOLD_NAME, Double.toString(0.4));
-		algo1.setParameters(parameters1);
-		Cover cover1 = algo1.detectOverlappingCommunities(graph);
-		etOptFuncClust.stop();
-		etOptFuncClust.setCoverExecutionTime(cover1);
-		System.out.println(cover1.toString());
-		ExtendedModularityMetric metric1 = new ExtendedModularityMetric();
-		double value1 = metric1.measure(cover1);
-		System.out.println("Modularity cost function optimization clustering " + value1);
-		/*ExecutionTime etOptFuncClustSVD = new ExecutionTime();
-		etOptFuncClustSVD.start();
-		CostFunctionOptimizationClusteringAlgorithm algo2 = new CostFunctionOptimizationClusteringAlgorithm();
-		Map<String, String> parameters2 = new HashMap<String, String>();
-		parameters2.put(CostFunctionOptimizationClusteringAlgorithm.MAXIMUM_K_NAME, Integer.toString(5));
-		parameters2.put(CostFunctionOptimizationClusteringAlgorithm.OVERLAPPING_THRESHOLD_NAME, Double.toString(0.4));
-		parameters2.put(CostFunctionOptimizationClusteringAlgorithm.SVD_NAME,  Boolean.toString(true));
-		algo2.setParameters(parameters2);
-		Cover cover2 = algo2.detectOverlappingCommunities(graph);
-		etOptFuncClustSVD.stop();
-		etOptFuncClustSVD.setCoverExecutionTime(cover2);
-		System.out.println(cover2.toString());
-		ExtendedModularityMetric metric2 = new ExtendedModularityMetric();
-		double value2 = metric2.measure(cover2);
-		System.out.println("Modularity cost function optimization clustering SVD" + value2);*/
-
-		//System.out.println(cover.toString());
-		/*ExecutionTime etDMID = new ExecutionTime();
-		etDMID.start();
-		RandomWalkLabelPropagationAlgorithm algo1 = new RandomWalkLabelPropagationAlgorithm();
-		Cover cover1 = algo1.detectOverlappingCommunities(graph);
-		cover1.setGraph(graph);
-		etDMID.stop();
-		etDMID.setCoverExecutionTime(cover1);
-		System.out.println(cover1.toString());
-		ExtendedModularityMetric metric = new ExtendedModularityMetric();
-		double value = metric.measure(cover1);
-		System.out.println(value);
-		ExecutionTime etSLPA = new ExecutionTime();
-		etSLPA.start();
-		SpeakerListenerLabelPropagationAlgorithm algo7 = new SpeakerListenerLabelPropagationAlgorithm();
-		Cover cover7 = algo7.detectOverlappingCommunities(graph);
-		cover7.setGraph(graph);
-		etSLPA.stop();
-		etSLPA.setCoverExecutionTime(cover7);
-		System.out.println(cover7.toString());
-		ExtendedModularityMetric metric7 = new ExtendedModularityMetric();
-		double value7 = metric7.measure(cover7);
-		System.out.println(value7);*/
-		/*ExecutionTime etWeightDMID = new ExecutionTime();
-		//etWeightDMID.start();
-		ContentBasedWeightingAlgorithm weighting = new ContentBasedWeightingAlgorithm();
-		graph = weighting.detectOverlappingCommunities(graph, etWeightDMID);
-		//System.out.println(graph.toString());
-		BinarySearchRandomWalkLabelPropagationAlgorithm algo5 = new BinarySearchRandomWalkLabelPropagationAlgorithm();
-		Cover cover5 = algo5.detectOverlappingCommunities(graph);
-		cover5.setGraph(graph);
-		//etWeightDMID.stop();
-		etWeightDMID.setCoverExecutionTime(cover5);
-		System.out.println(cover5.toString());
-		ExtendedModularityMetric metric5 = new ExtendedModularityMetric();
-		double value5 = metric5.measure(cover5);
-		System.out.println("Modularity Weighting DMID" + value5);*/
-   }
-    
-}
+}   

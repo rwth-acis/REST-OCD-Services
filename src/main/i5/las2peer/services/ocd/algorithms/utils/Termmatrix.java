@@ -27,6 +27,7 @@ import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.similarities.DefaultSimilarity;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
+import org.ejml.data.SimpleMatrix;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.preprocessing.StringConverter;
@@ -284,7 +285,7 @@ public class Termmatrix {
 		return res;
 	}
 	
-	public int countDoc(String word, CustomGraph graph){
+	/*public int countDoc(String word, CustomGraph graph){
 		int res = 0;
 		Node node;
 		//Node node = new Node();
@@ -302,7 +303,7 @@ public class Termmatrix {
 			nodes.next();
 		}
 		return res;
-	}
+	}*/
 	
 	public String toString(CustomGraph graph){
 		String res = null;
@@ -320,6 +321,9 @@ public class Termmatrix {
 	
 	public RealMatrix SVD(){
 		SingularValueDecomposition svd = new SingularValueDecomposition(matrix);
+		/*RealMatrix u = svd.getU();
+		RealMatrix s = svd.getS();
+		RealMatrix v = svd.getV();*/
 		return (RealMatrix) svd.getU();
 	}
 	
@@ -342,42 +346,44 @@ public class Termmatrix {
 				//compute termvector for each document for content and name field
 				Terms contentTerms = re.getTermVector(k, "doccontent");
 				Terms idTerms = re.getTermVector(k, "docid");
-				//compute document/node name
-				idEnum = idTerms.iterator();
-				BytesRef idBytes = idEnum.next(); //should be only one
-				String docName = idBytes.utf8ToString();
-				HashMap<String,Double> termMap = new HashMap<String,Double>();
-				//check if content termvector is empty
-				if(contentTerms == null){
-					res.put(docName,termMap);
-				}else{
-					//iterate through content term vector
-					termEnum = contentTerms.iterator();
-					
-					long noOfTerms = contentTerms.size();
-					DefaultSimilarity sim = new DefaultSimilarity();
-		            for (int i = 0; i < noOfTerms; i++) {
-		            	//compute string for each term in the termvector and add to the wordlist of the term matrix
-		            	BytesRef termBytes = termEnum.next();
-		            	String termStr = termBytes.utf8ToString();
-		            	if(!wordlist.contains(termStr)){
-		            		wordlist.add(termStr);
-		            	}
-		            	// enumerate through documents, in this case only one
-		            	docsEnum = termEnum.postings(null); 
-		                    int docIdEnum;
-		                    while ((docIdEnum = docsEnum.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS) {
-		                    	//get the term frequency in the document
-		                    	int tf = docsEnum.freq(); 
-		                    	//compute inverse document frequency
-		                    	float idf = sim.idf(termEnum.docFreq(), re.numDocs());
-		                    	termMap.put(termStr, (double) (tf * idf));
-		                      
-		                    }
-		              res.put(docName, termMap);
-		            }
+				//if(idTerms != null){
+					//compute document/node name
+					idEnum = idTerms.iterator();
+					BytesRef idBytes = idEnum.next(); //should be only one
+					String docName = idBytes.utf8ToString();
+					HashMap<String,Double> termMap = new HashMap<String,Double>();
+					//check if content termvector is empty
+					if(contentTerms == null){
+						res.put(docName,termMap);
+					}else{
+						//iterate through content term vector
+						termEnum = contentTerms.iterator();
+						
+						long noOfTerms = contentTerms.size();
+						DefaultSimilarity sim = new DefaultSimilarity();
+			            for (int i = 0; i < noOfTerms; i++) {
+			            	//compute string for each term in the termvector and add to the wordlist of the term matrix
+			            	BytesRef termBytes = termEnum.next();
+			            	String termStr = termBytes.utf8ToString();
+			            	if(!wordlist.contains(termStr)){
+			            		wordlist.add(termStr);
+			            	}
+			            	// enumerate through documents, in this case only one
+			            	docsEnum = termEnum.postings(null); 
+			                    int docIdEnum;
+			                    while ((docIdEnum = docsEnum.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS) {
+			                    	//get the term frequency in the document
+			                    	int tf = docsEnum.freq(); 
+			                    	//compute inverse document frequency
+			                    	float idf = sim.idf(termEnum.docFreq(), re.numDocs());
+			                    	termMap.put(termStr, (double) (tf * idf));
+			                      
+			                    }
+			              res.put(docName, termMap);
+			            }
+					}
 				}
-			}
+			//}
 			
 			return res;
 		}catch(IOException e) {

@@ -54,9 +54,11 @@ public class ContentBasedWeightingAlgorithm{
 	
 	
 	public CustomGraph detectOverlappingCommunities(CustomGraph graph, ExecutionTime et) throws InterruptedException, OcdAlgorithmException {
-		et.start();
-		Termmatrix tm = new Termmatrix(graph);
+		//et.start();
 		et.stop();
+		Termmatrix tm = new Termmatrix(graph);
+		et.start();
+		//et.stop();
 		Similarities sim = new Similarities();
 		//normalize weights
 		EdgeCursor edges = graph.edges();

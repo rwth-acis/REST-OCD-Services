@@ -25,6 +25,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
+import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.GraphListener;
@@ -90,6 +91,8 @@ public class CustomGraph extends Graph2D {
 	 */
 	@Column(name = pathColumnName)
 	private String path = "";
+	
+	
 //	/**
 //	 * The description of the graph.
 //	 */
@@ -160,6 +163,10 @@ public class CustomGraph extends Graph2D {
 	 */
 	@Transient
 	private int nodeIndexer = 0;
+	
+	
+	@Transient
+	private Termmatrix termMatrix = new Termmatrix();
 	
 	///////////////////////////// METHODS AND CONSTRUCTORS
 	
@@ -326,6 +333,14 @@ public class CustomGraph extends Graph2D {
 	public void setPath(String path) {
 		this.path = path;
 	}
+	
+	public Termmatrix getTermMatrix(){
+		return termMatrix;
+	}
+	
+	public void setTermMatrix(Termmatrix t){
+		this.termMatrix = t;
+	}
 
 //	public String getDescription() {
 //		return description;
@@ -437,24 +452,6 @@ public class CustomGraph extends Graph2D {
 	 */
 	public void setNodeName(Node node, String name) {
 		getCustomNode(node).setName(name);
-	}
-	
-	/**
-	 * Getter for the node content of a certain node.
-	 * @param node The node.
-	 * @return The node content. 
-	 */
-	public String getNodeContent(Node node){
-		return getCustomNode(node).getContent();
-	}
-	
-	/**
-	 * Setter for the node content of a certain node.
-	 * @param node The node.
-	 * @param content The node content.
-	 */
-	public void setNodeContent(Node node, String content){
-		getCustomNode(node).setContent(content);
 	}
 
 //	public int getNodeId(Node node) {

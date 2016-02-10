@@ -53,6 +53,7 @@ public class Cover {
 	public static final String idColumnName = "ID";
 //	private static final String lastUpdateColumnName = "LAST_UPDATE";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
+	public static final String simCostsColumnName = "SIMILARITYCOSTS";
 	
 	/*
 	 * Field name definitions for JPQL queries.
@@ -112,6 +113,9 @@ public class Cover {
 	 */
 	@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade={CascadeType.ALL})
 	private List<OcdMetricLog> metrics = new ArrayList<OcdMetricLog>();
+	
+	@Column(name = simCostsColumnName)
+	private double simCosts;
 	
 	/////////////////////////////////////////// METHODS AND CONSTRUCTORS
 	
@@ -527,6 +531,14 @@ public class Cover {
 				it.remove();
 			}
 		}
+	}
+	
+	public void setSimCosts(double costs){
+		this.simCosts = costs;
+	}
+	
+	public double getSimCosts(){
+		return this.simCosts;
 	}
 
 	

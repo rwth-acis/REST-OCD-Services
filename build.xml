@@ -159,7 +159,7 @@
             author="true"
             version="true"
             use="true"
-            source="1.7"
+            source="1.8"
             windowtitle="Service Documentation"
             failonerror="yes"
             encoding="utf8"

@@ -19,6 +19,7 @@ import i5.las2peer.services.ocd.preprocessing.TextProcessor;
 import i5.las2peer.services.ocd.utils.DocIndexer;
 import y.base.Edge;
 import y.base.Node;
+import y.base.NodeCursor;
 
 /**
  * A graph input adapter for a node list which includes a content attribute for each node and edges in form of a 
@@ -45,6 +46,8 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 	 */
 	private Date endDate = null;
 	
+	private String path = "C:\\indexes\\pgsql";
+	
 	public NodeContentEdgeListGraphInputAdapter(){
 		
 	}
@@ -61,6 +64,9 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 		}
 		if(param.containsKey("endDate")){
 			endDate = df.parse(param.get("endDate"));
+		}
+		if(param.containsKey("path")){
+			path = param.get("path");
 		}
 	}
 	
@@ -93,13 +99,13 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 					case "CONTENT":
 						contentIndex = index;
 						break;
-					case "SENDER":
+					case "SENT_BY":
 						senderIndex = index;
 						break;
-					case "RECEIVER":
+					case "REPLIES_TO":
 						receiverIndex = index;
 						break;
-					case "THREADID":
+					case "THREAD_ID":
 						threadIndex = index;
 						break;
 					case "DATE":
@@ -119,15 +125,15 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 				throw new AdapterException("No content attribute");
 			}
 			
-			if(threadIndex == -1){
-				if(receiverIndex == -1){
-				
+			
+			if(receiverIndex == -1){
+				if(threadIndex == -1){
 					throw new AdapterException("No attribute to generate links");
 				}else{
-					graph = readSenderReceiverGraph(senderIndex, receiverIndex, contentIndex, dateIndex, line.size());
+					graph = readThreadGraph(nameIndex, contentIndex, dateIndex, threadIndex);
 				}
 			}else{
-				graph = readThreadGraph(nameIndex, contentIndex, dateIndex, threadIndex);
+				graph = readSenderReceiverGraph(senderIndex, receiverIndex, contentIndex, dateIndex, line.size());
 			}
 
 			
@@ -156,10 +162,10 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 		try{
 		// read first content line
 		List<String> line = Adapters.readLineTabIgnoreLineBreak(reader,lineLength);
-		graph.setPath("C:\\indexes\\pgsql");
+		graph.setPath(path);
 		// create nodes
 		while(line.size() > 0){
-			
+	
 			Date d = df.parse(line.get(dateIndex));
 			/*if(startDate != null || endDate != null){
 				if(d.after(endDate)){			//assuming that we have a dataset sorted according to date
@@ -206,7 +212,8 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 		DocIndexer di = new DocIndexer(graph.getPath());
 		//create lucene index for content
 		for(Entry<String,String> e : nodeContents.entrySet()){
-			di.indexDoc(e.getKey(), e.getValue());	
+			
+			di.indexDocPerField(e.getKey(), e.getValue());	
 		}
 		
 		//create edges for each entry in the temporary edge list
@@ -242,45 +249,52 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 		Map<String,String> nodeContents = new HashMap<String,String>();
 		Map<Node, LinkedList<String>> nodeThreads = new HashMap<Node, LinkedList<String>>();
 		CustomGraph graph = new CustomGraph();
+		SimpleDateFormat df = new SimpleDateFormat ("yyyy-MM-dd");
 		
 		try{
 		List<String> line = Adapters.readLineTab(reader);
-		graph.setPath("C:\\indexes");
-		
+		graph.setPath(path);
 		// create nodes
 		while(line.size() > 0){
 			
-			Node node; 
-			String customNodeName = line.get(nameIndex);
-			String customNodeContent = textProc.preprocText(line.get(contentIndex));
-			String customNodeThread = line.get(threadIndex);
-			if(!nodeNames.containsKey(customNodeName)){
-				node = graph.createNode();
-				graph.setNodeName(node , customNodeName);
-				nodeContents.put(customNodeName, customNodeContent);
-				//graph.setNodeContent(node, customNodeContent);
-				nodeNames.put(customNodeName, node);
-				LinkedList<String> th = new LinkedList<String>();
-				th.add(customNodeThread);
-				nodeThreads.put(node, th);
-			}else{
-				node = nodeNames.get(customNodeName);
-				//customNodeContent = customNodeContent + " " + graph.getNodeContent(node);
-				//graph.setNodeContent(node, customNodeContent);
-				nodeContents.merge(customNodeName, " " + customNodeContent, String::concat);
-				LinkedList<String> thr = nodeThreads.get(node);
-				thr.add(customNodeThread);
-				nodeThreads.put(node, thr);
+			Date d = df.parse(line.get(dateIndex));
+			
+			if(!((startDate != null && d.before(startDate)) || (endDate != null && d.after(endDate)))){
+			
+				Node node; 
+				String customNodeName = textProc.deletWhiteSpace(line.get(nameIndex));
+				String customNodeContent = textProc.preprocText(line.get(contentIndex));
+				String customNodeThread = line.get(threadIndex);
+				if(!nodeNames.containsKey(customNodeName)){
+					node = graph.createNode();
+					graph.setNodeName(node , customNodeName);
+					nodeContents.put(customNodeName, customNodeContent);
+					//graph.setNodeContent(node, customNodeContent);
+					nodeNames.put(customNodeName, node);
+					LinkedList<String> th = new LinkedList<String>();
+					th.add(customNodeThread);
+					nodeThreads.put(node, th);
+				}else{
+					node = nodeNames.get(customNodeName);
+					
+					//customNodeContent = customNodeContent + " " + graph.getNodeContent(node);
+					//graph.setNodeContent(node, customNodeContent);
+					nodeContents.merge(customNodeName, " " + customNodeContent, String::concat);
+					LinkedList<String> thr = nodeThreads.get(node);
+					thr.add(customNodeThread);
+					nodeThreads.put(node, thr);
+				}
 			}
 			
 			line = Adapters.readLineTab(reader);
-			
+		}
+		
 			DocIndexer di = new DocIndexer(graph.getPath());
 			//create lucene index for content
 			for(Entry<String,String> e : nodeContents.entrySet()){
-				di.indexDoc(e.getKey(), e.getValue());	
+				di.indexDocPerField(e.getKey(), e.getValue());	
 			}
-			
+						
 			//create edges for each entry in the temporary edge list
 			for(Entry<Node, LinkedList<String>> entry : nodeThreads.entrySet()){
 				Node curr = entry.getKey();
@@ -296,7 +310,7 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 			
 			}
 			
-		}
+		
 		
 		}catch(Exception e){
 			throw new AdapterException(e);

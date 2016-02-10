@@ -14,6 +14,10 @@ public class TextProcessor {
 		
 	}
 	
+	public String deletWhiteSpace(String thread){
+		return thread.replaceAll("\\s", "");
+	}
+	
 	private String deleteNonWords(String thread){
 		String result = null;
 		

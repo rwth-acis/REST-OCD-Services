@@ -2,14 +2,12 @@ package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.algorithms.BinarySearchRandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.ClizzAlgorithm;
-import i5.las2peer.services.ocd.algorithms.ContentBasedWeightingAlgorithm;
 import i5.las2peer.services.ocd.algorithms.ExtendedSpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.CostFunctionOptimizationClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.MergingOfOverlappingCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.SVDCostFuncOptClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
@@ -96,11 +94,8 @@ public enum CoverCreationType {
 	COST_FUNC_OPT_CLUSTERING_ALGORITHM(CostFunctionOptimizationClusteringAlgorithm.class, 13),
 	
 	/**
-	 * Type corresponding to the cost function optimization clustering algrithm using svd for feature reduction.
+	 * Type corresponding to the wordclustering algorithm with refinement.	
 	 */
-	SVD_COST_FUNC_OPT_CLUSTERING_ALGORITHM(SVDCostFuncOptClusteringAlgorithm.class, 14), 
-	
-	
 	WORD_CLUSTERING_REF_ALGORITHM(WordClusteringRefinementAlgorithm.class, 16);
 	
 	/**

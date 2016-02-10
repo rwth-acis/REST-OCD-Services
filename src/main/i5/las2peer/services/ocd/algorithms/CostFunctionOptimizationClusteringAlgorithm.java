@@ -20,6 +20,7 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import i5.las2peer.services.ocd.algorithms.utils.Similarities;
 import i5.las2peer.services.ocd.algorithms.utils.Point;
 import y.base.Node;
@@ -118,6 +119,9 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException,InterruptedException {
 		Termmatrix termMat = new Termmatrix(graph);
+		graph.setTermMatrix(termMat);
+		ExecutionTime time = new ExecutionTime();
+		time.start();
 		
 		if(svd){
 			double min = 0;
@@ -146,9 +150,12 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 				opt = temp;
 			}
 		}
-		opt = overlappCommunities(opt);
+		opt = overlappCommunities(opt, termMat.getNodeIdList());
 		Matrix membershipMatrix = opt.createMembershipMatrix(graph);
 		Cover res = new Cover(graph,membershipMatrix);
+		res.setSimCosts(opt.getCosts());
+		time.stop();
+		time.setCoverExecutionTime(res);
 		return res;
 	}
 	
@@ -281,34 +288,37 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 		return dist;
 	}
 	
-	private Clustering overlappCommunities(Clustering c) {
-		Clustering opt = c;
+	private Clustering overlappCommunities(Clustering c, LinkedList<Node> nodes) {
+		//Clustering opt = c;
+		LinkedList<Point> points = new LinkedList<Point>();
 		LinkedList<Cluster> clusters = c.getClustering();
-		LinkedList<Cluster> optC = opt.getClustering();
+		//LinkedList<Cluster> optC = opt.getClustering();
 		CostFunction f = new CostFunction();
-		int numbNode = 0;
 		double dist = 2;
+		
+		
 		for(Iterator<Cluster> it = clusters.iterator(); it.hasNext();){
 			Cluster curr = it.next();
-			numbNode += curr.getPoints().size();
-			for(Iterator<Point> it1 = curr.getPoints().iterator(); it1.hasNext(); ){
+			points.addAll(curr.getPoints());
+		}
+		
+		for(Iterator<Point> it1 = points.iterator(); it1.hasNext(); ){
 				Point p = it1.next();
-				for(Iterator<Cluster> it2 = optC.iterator(); it2.hasNext();){
+				for(Iterator<Cluster> it2 = clusters.iterator(); it2.hasNext();){
 					Cluster clust = it2.next();
-					if(!clust.equals(curr)){
-					dist = distanceCosSim(clust.getCentroid(),p.getCoordinates());
-					}
-					if(dist <= beta){
-						clust.assignPoint(p);
+					if(!clust.getPoints().contains(p)){
+						dist = distanceCosSim(clust.getCentroid(),p.getCoordinates());
+						if(dist <= beta){
+							clust.assignPoint(p);
+							
+						}
 						dist = 2;
 					}
 				}
 			}
-			
-		}
-		opt.setCosts(f.value(opt.getClustering(), numbNode));
+		c.setCosts(f.value(c.getClustering(), nodes.size()));
 		
-		return opt;
+		return c;
 	}
 
 }

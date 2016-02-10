@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.testsUtils;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.graphInput.GmlGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
+import i5.las2peer.services.ocd.adapters.graphInput.NodeContentEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.NodeWeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.WeightedEdgeListGraphInputAdapter;
@@ -15,8 +16,10 @@ import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -359,7 +362,7 @@ public class OcdTestGraphFactory {
 		return graph;
 	}
 	
-	public static CustomGraph getContentTestGraph() {
+	/*public static CustomGraph getContentTestGraph() {
 		// Creates new graph
 		CustomGraph graph = new CustomGraph();
 		graph.setName(OcdTestConstants.contentTestName);
@@ -379,6 +382,25 @@ public class OcdTestGraphFactory {
 		
 		GraphProcessor processor = new GraphProcessor();
 		graph.addType(GraphType.CONTENT_UNLINKED);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}*/
+	
+	public static CustomGraph getJmolTestGraph() throws AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
+		
+		NodeContentEdgeListGraphInputAdapter adapter = new NodeContentEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.jmolEdgeListInputPath));
+		Map<String, String> adapterParam = new HashMap<String, String>();
+		adapterParam.put("startDate", "2006-04-01");
+		adapterParam.put("endDate", "2006-04-30");
+		adapterParam.put("path", "C:\\indexes\\jmol2004");
+		adapter.setParameter(adapterParam);
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.jmolName);
+		graph.addType(GraphType.CONTENT_LINKED);
+		GraphProcessor processor = new GraphProcessor();
 		processor.makeCompatible(graph, new HashSet<GraphType>());
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);

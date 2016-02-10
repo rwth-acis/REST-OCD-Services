@@ -27,6 +27,8 @@ public class OcdTestConstants {
 	public static final String bioJavaEdgeListInputPath = inputFolderPath + "BioJava.txt";
 	public static final String urchPostsEdgeListInputPath = inputFolderPath + "URCH_POSTS.txt";
 	public static final String pgsql200EdgeListInputPath = inputFolderPath + "PGSQL_200.txt";
+	public static final String jmolEdgeListInputPath = inputFolderPath + "JMOL.txt";
+	public static final String academiaXMLInputPath = inputFolderPath + "stackexAcademia.xml";
 	
 	/*
 	 * Cover input filenames
@@ -72,5 +74,6 @@ public class OcdTestConstants {
 	public static final String miniServiceTestGraphName = "Mini Service Test Graph";
 	public static final String docaTestGraphName = "Doca Test Graph";
 	public static final String contentTestName = "Content Test Graph";
+	public static final String jmolName = "Jmol Test Graph";
 	
 }
