@@ -39,7 +39,7 @@ import org.junit.Test;
  * 
  */
 
-@Ignore
+
 public class ServiceTest {
 
 	private static final String HTTP_ADDRESS = "http://127.0.0.1";
@@ -76,7 +76,7 @@ public class ServiceTest {
 		node.storeAgent(MockAgentFactory.getAdam());
 		node.launch();
 
-		ServiceAgent testService = ServiceAgent.generateNewAgent(
+		ServiceAgent testService = ServiceAgent.createServiceAgent(
 				testServiceClass, "a pass");
 		testService.unlockPrivateKey("a pass");
 
@@ -86,7 +86,6 @@ public class ServiceTest {
 		logStream = new ByteArrayOutputStream();
 
 		connector = new WebConnector(true, HTTP_PORT, false, 1000);
-		connector.setSocketTimeout(10000);
 		connector.setLogStream(new PrintStream(logStream));
 		connector.start(node);
 		Thread.sleep(1000); // wait a second for the connector to become ready

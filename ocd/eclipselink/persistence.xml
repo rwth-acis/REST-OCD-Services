@@ -8,7 +8,7 @@ To configure the test environment use the persistence.xml in the META-INF direct
                         http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
     <persistence-unit name="ocd" transaction-type="RESOURCE_LOCAL">
     	<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-		<jar-file>../service/i5.las2peer.services.ocd-0.1.jar</jar-file>
+		<jar-file>../service/i5.las2peer.services.ocd-1.0.jar</jar-file>
     	<properties>
 	      	<property name="javax.persistence.jdbc.driver"   value="org.apache.derby.jdbc.ClientDriver" />
     	  	<property name="javax.persistence.jdbc.url"      value="jdbc:derby://localhost:1527/db;create=true;securityMechanism=8" />
