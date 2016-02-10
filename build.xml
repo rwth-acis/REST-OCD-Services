@@ -101,8 +101,6 @@
         <javac srcdir="${src.main}"
             destdir="${tmp.classes}"
             classpathref="libraries"
-            source="1.7"
-            target="1.7"
             debug="on"
             encoding="UTF-8"
             />
@@ -118,8 +116,6 @@
             destdir="${tmp.junit}"
             classpath="${tmp.classes}:${lib.junit}"
             classpathref="libraries"
-            source="1.7"
-            target="1.7"
             debug="on"
             encoding="UTF-8"
             />
