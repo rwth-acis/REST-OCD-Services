@@ -35,8 +35,8 @@
         </fileset>
     </path>
 	
-    <property name="lib.junit" location="${lib}/junit-4.11.jar" />
-    <property name="lib.las2peer" location="${lib}/las2peer-0.3-SNAPSHOT.jar" />
+    <property name="lib.junit" location="${lib}/junit-4.12.jar" />
+    <property name="lib.las2peer" location="${lib}/las2peer-0.5-SNAPSHOT.jar" />
 	
 	<!-- ocd properties -->
 	<property name="src.main.metainf" location = "${src.main}/META-INF" />
@@ -115,9 +115,6 @@
     
     <target name="junit_tests" depends="init_junit">
 		<junit fork="no" haltonerror="yes" haltonfailure="yes" printsummary="yes">
-			<jvmarg value="-Xdebug" />
-			<jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5432" />
-
 			<classpath>
 				<pathelement path="${tmp.junit}" />
 				<pathelement path="${tmp.classes}" />

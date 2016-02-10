@@ -38,7 +38,7 @@
         </fileset>
     </path>
 	
-    <property name="lib.junit" location="${lib}/junit-4.11.jar" />
+    <property name="lib.junit" location="${lib}/junit-4.12.jar" />
 	
 	
     <!-- Ivy Installation (Tool to fetch Libraries) -->
