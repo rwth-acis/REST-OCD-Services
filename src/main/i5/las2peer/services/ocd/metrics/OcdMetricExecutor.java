@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.metrics;
 
+import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
@@ -40,8 +41,9 @@ public class OcdMetricExecutor {
 	 * @return The metric log of the execution.
 	 * @throws OcdMetricException In case of a metric failure.
 	 * @throws InterruptedException In case of a metric interrupt.
+	 * @throws OcdAlgorithmException 
 	 */
-	public OcdMetricLog executeStatisticalMeasure(Cover cover, StatisticalMeasure metric) throws OcdMetricException, InterruptedException {
+	public OcdMetricLog executeStatisticalMeasure(Cover cover, StatisticalMeasure metric) throws OcdMetricException, InterruptedException, OcdAlgorithmException {
 		GraphProcessor processor = new GraphProcessor();
 		CustomGraph graph = cover.getGraph();
 		CustomGraph graphCopy = new CustomGraph(graph);

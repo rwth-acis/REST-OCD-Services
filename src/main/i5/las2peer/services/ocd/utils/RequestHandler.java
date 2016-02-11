@@ -22,6 +22,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -382,6 +383,25 @@ public class RequestHandler {
 		GraphInputAdapter adapter = graphInputAdapterFactory.getInstance(inputFormat);
 	    Reader reader = new StringReader(contentStr);
 	    adapter.setReader(reader);
+		return adapter.readGraph();
+	}
+	/**
+	 * Parses a graph input using a specified format.
+	 * @param contentStr The graph input.
+	 * @param inputFormat The format.
+	 * @param param Parametes that are passed to the adapters.
+	 * @return The graph.
+	 * @throws AdapterException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws ParseException 
+	 * @throws IllegalArgumentException 
+	 */
+	public CustomGraph parseGraph(String contentStr, GraphInputFormat inputFormat, Map<String, String> param) throws AdapterException, InstantiationException, IllegalAccessException, IllegalArgumentException, ParseException {
+		GraphInputAdapter adapter = graphInputAdapterFactory.getInstance(inputFormat);
+	    Reader reader = new StringReader(contentStr);
+	    adapter.setReader(reader);
+	    adapter.setParameter(param);
 		return adapter.readGraph();
 	}
 	

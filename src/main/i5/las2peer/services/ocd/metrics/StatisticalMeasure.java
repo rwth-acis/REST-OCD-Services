@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.metrics;
 
+import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.GraphType;
 
@@ -21,8 +22,9 @@ public interface StatisticalMeasure extends OcdMetric {
 	 * @return The calculated metric value.
 	 * @throws OcdMetricException If the execution failed.
 	 * @throws InterruptedException If the executing thread was interrupted.
+	 * @throws OcdAlgorithmException 
 	 */
-	public double measure(Cover cover) throws OcdMetricException, InterruptedException;
+	public double measure(Cover cover) throws OcdMetricException, InterruptedException, OcdAlgorithmException;
 	
 	/**
 	 * Returns the graph types which are compatible for a metric.

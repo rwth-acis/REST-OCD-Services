@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.graphs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import i5.las2peer.services.ocd.adapters.AdapterException;
+import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
@@ -64,7 +65,7 @@ public class CoverTest {
 	 * Tests membership filtering.
 	 */
 	@Test
-	public void testFilterMemberships() throws OcdMetricException, InterruptedException {
+	public void testFilterMemberships() throws OcdMetricException, InterruptedException, OcdAlgorithmException {
 		StatisticalMeasure metric = new ExtendedModularityMetric();
 		metric.measure(cover);
 		/*

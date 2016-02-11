@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.adapters.Adapters;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import java.io.Reader;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,10 @@ public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAda
 	 * Creates a new instance.
 	 */
 	public NodeWeightedEdgeListGraphInputAdapter() {
+	}
+	
+	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
+		
 	}
 
 	@Override

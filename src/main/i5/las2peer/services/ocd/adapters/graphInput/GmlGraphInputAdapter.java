@@ -6,7 +6,9 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 import y.base.Edge;
@@ -23,6 +25,10 @@ import y.io.GMLIOHandler;
  *
  */
 public class GmlGraphInputAdapter extends AbstractGraphInputAdapter {
+	
+	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
+		
+	}
 	
 	@Override
 	public CustomGraph readGraph() throws AdapterException {

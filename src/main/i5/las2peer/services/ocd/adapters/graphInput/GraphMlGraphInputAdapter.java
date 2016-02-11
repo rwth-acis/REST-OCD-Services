@@ -6,7 +6,9 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -30,6 +32,10 @@ import y.io.graphml.KeyType;
  */
 public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 
+	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
+		
+	}
+	
 	@Override
 	public CustomGraph readGraph() throws AdapterException {
 		Scanner scanner = new Scanner(reader);

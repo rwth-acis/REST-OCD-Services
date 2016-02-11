@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 
+import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.algorithms.utils.Similarities;
 import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import i5.las2peer.services.ocd.graphs.Cover;
@@ -63,11 +64,11 @@ public class NewmanModularityCombined implements StatisticalMeasure {
 	}
 	
 	@Override
-	public double measure(Cover cover) throws InterruptedException {
+	public double measure(Cover cover) throws InterruptedException, OcdAlgorithmException {
 		double metricValue = 0;
 		Similarities sim = new Similarities();
 		CustomGraph graph = cover.getGraph();
-		Termmatrix t = graph.getTermMatrix();
+		Termmatrix t = new Termmatrix(graph);
 		NodeCursor nodesA = graph.nodes();
 		NodeCursor nodesB = graph.nodes();
 		Node nodeA;

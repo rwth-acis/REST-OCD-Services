@@ -224,6 +224,10 @@ public class ServiceClass extends Service {
     		@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
     		@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
     		@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
+    		@DefaultValue("2004-01-01") @QueryParam("startDate") String startDateStr,
+    		@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
+    		@DefaultValue("C:\\indexes") @QueryParam("indexPath") String indexPathStr,
+    		@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
     		@ContentParam String contentStr)
     {
     	try {
@@ -246,7 +250,19 @@ public class ServiceClass extends Service {
 	    		return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified input format does not exist.");
 	    	}
 	    	try {
-	    		graph = requestHandler.parseGraph(contentStr, format);
+	    		Map<String,String> param = new HashMap<String,String>();
+	    		if(format == GraphInputFormat.NODE_CONTENT_EDGE_LIST || format == GraphInputFormat.XML){
+		    		param.put("startDate", startDateStr);
+		    		param.put("endDate", endDateStr);
+		    		if(format == GraphInputFormat.XML){
+		    			param.put("indexPath", indexPathStr);
+		    			param.put("filePath", filePathStr);
+		    		}else{
+		    			param.put("path", indexPathStr);
+		    		}
+	    		}
+	    		graph = requestHandler.parseGraph(contentStr, format, param);
+	    		
 	    	}
 	    	catch (Exception e) {
 	    		requestHandler.log(Level.WARNING, "user: " + username, e);
