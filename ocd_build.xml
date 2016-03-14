@@ -267,6 +267,6 @@ May fail if the server is not running.</echo>
 	
     <target name="clean_all" depends="las2peer.clean_all, clean_before_build" />
 	
-    <target name="all" depends="clean_before_build, generate_configs, junit, jar, java_doc, obfuscate, las2peer.clean_after_build"/>
+    <target name="all" depends="clean_before_build, generate_configs, startscripts, junit, jar, java_doc, obfuscate, las2peer.clean_after_build"/>
 	
 </project>
