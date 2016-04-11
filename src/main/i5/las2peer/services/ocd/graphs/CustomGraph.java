@@ -216,6 +216,7 @@ public class CustomGraph extends Graph2D {
 		this.userName = new String(graph.userName);
 		this.name = new String(graph.name);
 		this.id = graph.id;
+		this.path = graph.path;
 //		this.description = new String(graph.description);
 //		if(graph.lastUpdate != null) {
 //			this.lastUpdate = new Timestamp(graph.lastUpdate.getTime());

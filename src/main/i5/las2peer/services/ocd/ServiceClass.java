@@ -46,6 +46,7 @@ import io.swagger.annotations.Info;
 import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
 
+import java.io.File;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -226,7 +227,7 @@ public class ServiceClass extends Service {
     		@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
     		@DefaultValue("2004-01-01") @QueryParam("startDate") String startDateStr,
     		@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
-    		@DefaultValue("C:\\indexes") @QueryParam("indexPath") String indexPathStr,
+    		@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
     		@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
     		@ContentParam String contentStr)
     {
@@ -249,6 +250,23 @@ public class ServiceClass extends Service {
 	    		requestHandler.log(Level.WARNING, "user: " + username, e);
 	    		return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified input format does not exist.");
 	    	}
+	    	try {
+	    		int subDirName = 0;
+	    		File indexPathDir = new File(indexPathStr);
+	    		
+	    		if (indexPathDir.exists()) {
+					for (String subDir : indexPathDir.list()) {
+						if (Integer.parseInt(subDir) == subDirName) {
+							subDirName++;
+						}
+					} 
+				}
+				indexPathStr = indexPathStr + File.separator + String.valueOf(subDirName);
+	    		
+			} catch (Exception e) {
+	    		requestHandler.log(Level.WARNING, "user: " + username, e);
+	    		return requestHandler.writeError(Error.INTERNAL, "Index path exception.");
+			}
 	    	try {
 	    		Map<String,String> param = new HashMap<String,String>();
 	    		if(format == GraphInputFormat.NODE_CONTENT_EDGE_LIST || format == GraphInputFormat.XML){

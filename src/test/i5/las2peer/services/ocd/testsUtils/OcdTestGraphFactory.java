@@ -393,8 +393,8 @@ public class OcdTestGraphFactory {
 		
 		NodeContentEdgeListGraphInputAdapter adapter = new NodeContentEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.jmolEdgeListInputPath));
 		Map<String, String> adapterParam = new HashMap<String, String>();
-		adapterParam.put("startDate", "2006-04-01");
-		adapterParam.put("endDate", "2006-04-30");
+		adapterParam.put("startDate", "2002-04-14");
+		adapterParam.put("endDate", "2003-11-21");
 		adapterParam.put("path", "C:\\indexes\\jmol2004");
 		adapter.setParameter(adapterParam);
 		CustomGraph graph = adapter.readGraph();

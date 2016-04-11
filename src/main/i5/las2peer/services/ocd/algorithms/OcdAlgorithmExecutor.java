@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.algorithms;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationLog;
+import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
@@ -41,17 +42,26 @@ public class OcdAlgorithmExecutor {
 		CustomGraph graphCopy = new CustomGraph(graph);
 		GraphProcessor processor = new GraphProcessor();
 		processor.makeCompatible(graphCopy, algorithm.compatibleGraphTypes());
-		List<Pair<CustomGraph, Map<Node, Node>>> components;
-		List<Pair<Cover, Map<Node, Node>>> componentCovers;
-		components = processor.divideIntoConnectedComponents(graphCopy);
-		ExecutionTime executionTime = new ExecutionTime();
-		componentCovers = calculateComponentCovers(components, algorithm, componentNodeCountFilter, executionTime);
-		Cover coverCopy = processor.mergeComponentCovers(graphCopy, componentCovers);
-		Cover cover = new Cover(graph, coverCopy.getMemberships());
-		cover.setCreationMethod(coverCopy.getCreationMethod());
-		cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
-		executionTime.setCoverExecutionTime(cover);
-		return cover;
+		if(algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM.toString())||algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM.toString())){
+			ExecutionTime executionTime = new ExecutionTime();
+			Cover cover = algorithm.detectOverlappingCommunities(graph);
+			cover.setCreationMethod(new CoverCreationLog(algorithm.getAlgorithmType(), algorithm.getParameters(), algorithm.compatibleGraphTypes()));
+			cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+			executionTime.setCoverExecutionTime(cover);
+			return cover;
+		}else{
+			List<Pair<CustomGraph, Map<Node, Node>>> components;
+			List<Pair<Cover, Map<Node, Node>>> componentCovers;
+			components = processor.divideIntoConnectedComponents(graphCopy);
+			ExecutionTime executionTime = new ExecutionTime();
+			componentCovers = calculateComponentCovers(components, algorithm, componentNodeCountFilter, executionTime);
+			Cover coverCopy = processor.mergeComponentCovers(graphCopy, componentCovers);
+			Cover cover = new Cover(graph, coverCopy.getMemberships());
+			cover.setCreationMethod(coverCopy.getCreationMethod());
+			cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+			executionTime.setCoverExecutionTime(cover);
+			return cover;
+		}
 	}
 	
 	/*
