@@ -27,6 +27,9 @@
 
 	<!-- libraries -->
     <property name="lib" location="lib" />
+	<property name="db" location="ocd/derby/db" />
+	<property name="indexes" location="indexes" />
+		
 
     <path id="libraries">
         <fileset dir="${lib}">
@@ -77,7 +80,7 @@
 	</target>
 	
 	<!-- Initialization (Folder Creation)-->
-	<target name="init" depends="las2peer.init_general, las2peer.init_compile, las2peer.init_jars, las2peer.init_doc, get_deps, clean_before_build">
+	<target name="init" depends="las2peer.init_general, las2peer.init_compile, las2peer.init_jars, las2peer.init_doc, get_deps">
 		<mkdir dir="${ocd.derby}" />
 		<mkdir dir="${ocd.eclipselink}" />
 		<mkdir dir="${ocd.lfr}" />
@@ -255,18 +258,33 @@ May fail if the server is not running.</echo>
 	    </target>  
 	    
 	<!-- Agent generation -->
-	<target name="generate_configs" depends="las2peer.generate_configs"/>
+	<target name="generate_configs" depends="las2peer.generate_agents"/>
 	
 	<!-- Javadoc generation-->
-	<target name="java_doc" depends="las2peer.java_doc"/>
+	<target name="java_doc" depends="las2peer.javadoc"/>
 	
-    <!-- Cleanup -->
-	<target name="clean_before_build" depends="las2peer.clean_before_build">
-		<shutdown_database_server/>
-	</target>
+	<!-- General Cleanup -->
+		<target name="clean_before_build">
+	        <delete dir="${export}"/>
+			<delete file="${service}/${service.name}-${service.version}.jar"/>
+			<delete dir="${indexes}"/>
+			<delete dir="${db}"/>
+		</target>
+		
+	    <target name="clean_after_build">
+	        <delete dir="${tmp}"/>
+			<delete dir=".las2peer"/>
+	    </target>
+		
+	    <target name="clean_deps">
+	        <delete dir="${lib}"/>
+	    </target>
+		
+	    <target name="clean_all" depends="clean_after_build, clean_before_build, clean_deps">
+			<delete dir="${log}"/>
+	    </target>
 	
-    <target name="clean_all" depends="las2peer.clean_all, clean_before_build" />
 	
-    <target name="all" depends="clean_before_build, generate_configs, startscripts, junit, jar, java_doc, obfuscate, las2peer.clean_after_build"/>
+    <target name="all" depends="clean_before_build, generate_configs, startscripts, junit, jar, obfuscate, clean_after_build "/>
 	
 </project>
