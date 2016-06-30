@@ -10,8 +10,8 @@ To configure the actual service use the persistence.xml in ocd/eclipselink -->
     	<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 		<exclude-unlisted-classes>false</exclude-unlisted-classes>
     	<properties>
-	      	<property name="javax.persistence.jdbc.driver"   value="org.apache.derby.jdbc.ClientDriver" />
-    	  	<property name="javax.persistence.jdbc.url"      value="jdbc:derby://localhost:1527/db;create=true;securityMechanism=8" />
+	      	<property name="javax.persistence.jdbc.driver"   value="org.hsqldb.jdbcDriver" />
+    	  	<property name="javax.persistence.jdbc.url"      value="jdbc:hsqldb:file:ocd/db/db;shutdown=true" />
 	      	<property name="javax.persistence.jdbc.user"     value="ocdUser" />
 			<property name="javax.persistence.jdbc.password" value="ocdPw" />
     	  	<property name="eclipselink.ddl-generation.output-mode" value="both"/>

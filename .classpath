@@ -46,5 +46,6 @@
 	<classpathentry kind="lib" path="lib/las2peer-0.5.4.jar"/>
 	<classpathentry kind="lib" path="lib/las2peer-rest-mapper-0.5.4.jar"/>
 	<classpathentry kind="lib" path="lib/las2peer-web-connector-0.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/hsqldb-2.3.4.jar"/>
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

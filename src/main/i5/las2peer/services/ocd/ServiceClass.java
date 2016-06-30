@@ -46,7 +46,12 @@ import io.swagger.annotations.Info;
 import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,6 +76,9 @@ import javax.ws.rs.QueryParam;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.la4j.matrix.sparse.CCSMatrix;
+import org.w3c.dom.Document;
+
+import b.b.b.b.b.n;
 
 
 
@@ -206,6 +214,10 @@ public class ServiceClass extends Service {
      * @param creationTypeStr The creation type the graph was created by.
      * @param graphInputFormatStr The name of the graph input format.
      * @param doMakeUndirectedStr Optional query parameter. Defines whether directed edges shall be turned into undirected edges (TRUE) or not.
+     * @param startDateStr Optional query parameter. For big graphs start date is the date from which the file will start parse.
+     * @param endDateStr Optional query parameter. For big graphs end date is the date till which the file will parse.
+     * @param indexPathStr Optional query parameter. Set index directory.
+     * @param filePathStr Optional query parameter. For testing purpose, file location of local file can be given.
      * @param contentStr The graph input.
      * @return A graph id xml.
      * Or an error xml.
@@ -328,6 +340,107 @@ public class ServiceClass extends Service {
 			return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
     	}    	
     }
+    
+    
+    /**
+     * Stores big graphs step by step.
+     * @param nameStr The name for the graph.
+     * @param contentStr The graph input.
+     * @return XML containing information about the stored file.
+     */
+    @POST
+    @Path("storegraph")
+    @Produces(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_PLAIN)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
+	@ApiOperation(value = "User validation",
+		notes = "Stores a graph step by step.")
+    public String storeGraph(
+    		@DefaultValue("unnamed") @QueryParam("name") String nameStr,
+			@ContentParam String contentStr) {
+		String username = ((UserAgent) getActiveAgent()).getLoginName();
+		File graphDir = new File("tmp" + File.separator + username);
+		if (!graphDir.exists()) {
+			graphDir.mkdirs();
+		}
+		File graphFile = new File(graphDir + File.separator + nameStr + ".txt");
+		try (FileWriter fileWriter = new FileWriter(graphFile, true);
+				BufferedWriter bufferWritter = new BufferedWriter(fileWriter);) {
+			if (!graphFile.exists()){				
+				graphFile.createNewFile();
+			}
+			bufferWritter.write(contentStr);
+			bufferWritter.newLine();
+		} catch (Exception e) {
+			requestHandler.log(Level.WARNING, "user: " + username, e);
+			return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+		}
+		return "<?xml version=\"1.0\" encoding=\"UTF-16\"?>"
+				+ "<File>"
+				+ "<Name>"+ graphFile.getName() +"</Name>"
+				+ "<Size>"+ graphFile.length() +"</Size>"
+				+ "<Message>"+ "File appned" +"</Message>"
+				+ "</File>";
+    }
+
+    /**
+     * Process the stored graph which was stored by storeGraph api.
+     * @param nameStr The name for the stored graph.
+     * @param creationTypeStr The creation type the graph was created by.
+     * @param graphInputFormatStr The name of the graph input format.
+     * @param doMakeUndirectedStr Optional query parameter. Defines whether directed edges shall be turned into undirected edges (TRUE) or not.
+     * @param startDateStr Optional query parameter. For big graphs start date is the date from which the file will start parse.
+     * @param endDateStr Optional query parameter. For big graphs end date is the date till which the file will parse.
+     * @param indexPathStr Optional query parameter. Set index directory.
+     * @param filePathStr Optional query parameter. For testing purpose, file location of local file can be given.
+     * @return A graph id xml.
+     * Or an error xml.
+     */
+    @POST
+    @Path("processgraph")
+    @Produces(MediaType.TEXT_XML)
+    @Consumes(MediaType.TEXT_PLAIN)
+    @ApiResponses(value = {
+    		@ApiResponse(code = 200, message = "Success"),
+    		@ApiResponse(code = 401, message = "Unauthorized")
+    })
+	@ApiOperation(value = "User validation",
+		notes = "Process the stored graph.")
+    public String processStoredGraph(
+    		@DefaultValue("unnamed") @QueryParam("name") String nameStr,
+    		@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
+    		@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
+    		@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
+    		@DefaultValue("2004-01-01") @QueryParam("startDate") String startDateStr,
+    		@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
+    		@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
+    		@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr)
+    {
+    	String username = ((UserAgent) getActiveAgent()).getLoginName();
+		File graphDir = new File("tmp" + File.separator + username);
+		File graphFile = new File(graphDir + File.separator + nameStr + ".txt");
+		StringBuffer contentStr = new StringBuffer();
+		if (!graphFile.exists()){
+			return requestHandler.writeError(Error.INTERNAL, "Graph Does not exists.");
+		}
+		try (FileReader fileWriter = new FileReader(graphFile);
+				BufferedReader bufferedReader = new BufferedReader(fileWriter);) {
+				String line;
+				while ((line = bufferedReader.readLine()) != null) {
+					contentStr.append(line);
+					contentStr.append("\n");
+				}
+		} catch (Exception e) {
+			requestHandler.log(Level.WARNING, "user: " + username, e);
+			return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+		}
+		graphFile.delete();
+		return createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr, endDateStr, indexPathStr, filePathStr, contentStr.toString());
+    }
+    
     
     /**
      * Returns the ids (or meta information) of multiple graphs.

@@ -27,7 +27,7 @@
 
 	<!-- libraries -->
     <property name="lib" location="lib" />
-	<property name="db" location="ocd/derby/db" />
+	<property name="db" location="ocd/db" />
 	<property name="indexes" location="indexes" />
 		
 
