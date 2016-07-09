@@ -2,12 +2,15 @@ package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.algorithms.BinarySearchRandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.ClizzAlgorithm;
-import i5.las2peer.services.ocd.algorithms.ExtendedSpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.CostFunctionOptimizationClusteringAlgorithm;
+import i5.las2peer.services.ocd.algorithms.EvolutionaryAlgorithmBasedOnSimilarity;
+import i5.las2peer.services.ocd.algorithms.ExtendedSpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.MergingOfOverlappingCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
+import i5.las2peer.services.ocd.algorithms.SignedDMIDAlgorithm;
+import i5.las2peer.services.ocd.algorithms.SignedProbabilisticMixtureAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
@@ -89,20 +92,41 @@ public enum CoverCreationType {
 	 */
 	NEWMAN(NewmanBenchmark.class, 12),
 	/**
-	 * Type corresponding to the k-means-gradient-descent-clustering-algorithm.
 	 */
 	COST_FUNC_OPT_CLUSTERING_ALGORITHM(CostFunctionOptimizationClusteringAlgorithm.class, 13),
+	/**
+	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
+	 * Cannot be used for algorithm instantiation.
+	 */
+	//DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 13);
+	/**
+	 * Type corresponding to the SignedDMIDAlgorithm.
+	 */
+	SIGNED_DMID_ALGORITHM(SignedDMIDAlgorithm.class, 14),
+	/**
+	 * Type corresponding to the EvolutionaryAlgorithmBasedOnSimilarity.
+	 */	
+	EVOLUTIONARY_ALGORITHM_BASED_ON_SIMILARITY(EvolutionaryAlgorithmBasedOnSimilarity.class,15),
+	/**
+	 * Type corresponding to the SignedProbabilisticMixtureAlgorithm.
+	 */	
+	SIGNED_PROBABILISTIC_MIXTURE_ALGORITHM(SignedProbabilisticMixtureAlgorithm.class,16),
+//	/**
+//	 * Type corresponding to the SignedDMIDExtendedAlgorithm.
+//	 */	
+//	SIGNED_DMID_EXTENDED_ALGORITHM(SignedDMIDExtendedAlgorithm.class,17);
 	
 	/**
 	 * Type corresponding to the wordclustering algorithm with refinement.	
 	 */
-	WORD_CLUSTERING_REF_ALGORITHM(WordClusteringRefinementAlgorithm.class, 16);
+	WORD_CLUSTERING_REF_ALGORITHM(WordClusteringRefinementAlgorithm.class, 17);
 	
 	/**
 	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
 	 * Cannot be used for algorithm instantiation.
 	 */
 	//DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 13);
+
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
 	 * Abstract types correspond to the CoverCreationMethod interface itself.

@@ -54,4 +54,59 @@ public class OcdTestCoverFactory {
 		return cover;
 	}
 	
+
+	//@author: YLi
+	public static Cover getLfrUnweightedCover() throws Exception {
+		CoverInputAdapter adapter = new LabeledMembershipMatrixCoverInputAdapter(
+				new FileReader(OcdTestConstants.lfrGroundTruthLabeledMembershipMatrixInputPath));
+		CustomGraph graph = OcdTestGraphFactory.getLfrGraph();
+		Cover cover = adapter.readCover(graph);
+		cover.setCreationMethod(new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(),
+				new HashSet<GraphType>()));
+		return cover;
+	}
+
+	//@author: YLi
+	public static Cover getSignedLfrCover() throws Exception {
+		CoverInputAdapter adapter = new LabeledMembershipMatrixCoverInputAdapter(
+				new FileReader(OcdTestConstants.signedLfrGroundTruthLabeledMembershipMatrixInputPath));
+		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();
+		Cover cover = adapter.readCover(graph);
+		cover.setCreationMethod(new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(),
+				new HashSet<GraphType>()));
+		return cover;
+	}
+
+	//@author: YLi
+	public static Cover getSignedLfrSixNodesCover() throws Exception {
+		CoverInputAdapter adapter = new LabeledMembershipMatrixCoverInputAdapter(
+				new FileReader(OcdTestConstants.signedLfrSixNodesGroundTruthLabeledMembershipMatrixInputPath));
+		CustomGraph graph = OcdTestGraphFactory.getSignedLfrSixNodesGraph();
+		Cover cover = adapter.readCover(graph);
+		cover.setCreationMethod(new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(),
+				new HashSet<GraphType>()));
+		return cover;
+	}
+
+	//@author: YLi
+	public static Cover getSignedLfrBlurredCover() throws Exception {
+		CoverInputAdapter adapter = new LabeledMembershipMatrixCoverInputAdapter(
+				new FileReader(OcdTestConstants.signedLfrBlurredGroundTruthLabeledMembershipMatrixInputPath));
+		CustomGraph graph = OcdTestGraphFactory.getSignedLfrBlurredGraph();
+		Cover cover = adapter.readCover(graph);
+		cover.setCreationMethod(new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(),
+				new HashSet<GraphType>()));
+		return cover;
+	}
+
+	//@author: YLi
+	public static Cover getgetSloveneParliamentaryPartyCover() throws Exception {
+		CoverInputAdapter adapter = new LabeledMembershipMatrixCoverInputAdapter(
+				new FileReader(OcdTestConstants.sloveneParliamentaryPartyCommunityMemberMatrixInputPath));
+		CustomGraph graph = OcdTestGraphFactory.getSloveneParliamentaryPartyGraph();
+		Cover cover = adapter.readCover(graph);
+		cover.setCreationMethod(new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(),
+				new HashSet<GraphType>()));
+		return cover;
+	}
 }

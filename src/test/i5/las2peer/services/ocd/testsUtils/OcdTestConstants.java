@@ -29,10 +29,22 @@ public class OcdTestConstants {
 	public static final String pgsql200EdgeListInputPath = inputFolderPath + "PGSQL_200.txt";
 	public static final String jmolEdgeListInputPath = inputFolderPath + "JMOL.txt";
 	public static final String academiaXMLInputPath = inputFolderPath + "stackexAcademia.xml";
+	public static final String signedLfrWeightedEdgeListInputPath = inputFolderPath + "signedLfrWeightedEdgeList.txt";
+	public static final String lfrUnweightedEdgeListInputPath = inputFolderPath + "lfrUnweightedEdgeList.txt";
+	public static final String signedLfrSixNodesWeightedEdgeListInputPath = inputFolderPath
+			+ "signedLfrSixNodesWeightedEdgeList.txt";
+	public static final String signedLfrBlurredWeightedEdgeListInputPath = inputFolderPath
+			+ "signedLfrBlurredWeightedEdgeList.txt";
+	public static final String sloveneParliamentaryPartyWeightedEdgeListInputPath = inputFolderPath
+			+ "sloveneParliamentaryPartyWeightedEdgeList.txt";
+	public static final String wikiElecWeightedEdgeListInputPath = inputFolderPath + "wikiElecWeightedEdgeList.txt";
+	public static final String epinionsWeightedEdgeListInputPath = inputFolderPath + "epinionsWeightedEdgeList.txt";
+	public static final String slashDotWeightedEdgeListInputPath = inputFolderPath + "slashDotWeightedEdgeList.txt";
 	
 	/*
 	 * Cover input filenames
 	 */
+	
 	public static final String sawmillArbitraryLabeledMembershipMatrixInputPath = inputFolderPath + "SawmillLabeledMembershipMatrix.txt";
 	public static final String sawmillGroundTruthLabeledMembershipMatrixInputPath = inputFolderPath + "SawmillGroundTruthLabeledMembershipMatrix.txt";
 	public static final String facebookGroundTruthCommunityMemberListxInputPath = inputFolderPath + "FacebookGroundTruthCommunityMemberList.txt";
@@ -41,6 +53,16 @@ public class OcdTestConstants {
 	public static final String newmanClizzCoverLabeledMembershipMatrixInputPath = inputFolderPath + "newmanClizzCoverLabeledMembershipMatrix.txt";
 	public static final String newmanLinkGroundTruthLabeledMembershipMatrixInputPath = inputFolderPath + "newmanLinkGroundTruthLabeledMembershipMatrix.txt";
 	public static final String newmanLinkCoverLabeledMembershipMatrixInputPath = inputFolderPath + "newmanLinkCoverLabeledMembershipMatrix.txt";
+	public static final String signedLfrGroundTruthLabeledMembershipMatrixInputPath = inputFolderPath
+			+ "signedLfrGroundTruthLabeledMembershipMatrix.txt";
+	public static final String lfrGroundTruthLabeledMembershipMatrixInputPath = inputFolderPath
+			+ "signedLfrGroundTruthLabeledMembershipMatrix.txt";
+	public static final String signedLfrSixNodesGroundTruthLabeledMembershipMatrixInputPath = inputFolderPath
+			+ "signedLfrSixNodesGroundTruthLabeledMembershipMatrix.txt";
+	public static final String signedLfrBlurredGroundTruthLabeledMembershipMatrixInputPath = inputFolderPath
+			+ "signedLfrBlurredGroundTruthLabeledMembershipMatrix.txt";
+	public static final String sloveneParliamentaryPartyCommunityMemberMatrixInputPath = inputFolderPath
+			+ "sloveneParliamentaryPartyGroundTruthMembershipMatrix.txt";
 	
 	/*
 	 * Cover output filenames
@@ -67,6 +89,7 @@ public class OcdTestConstants {
 	public static final String facebookName = "Facebook";
 	public static final String siamDmName = "SIAM DM";
 	public static final String twoCommunitiesName = "Two Communities";
+	public static final String fiveNodesGraphName = "Simple Graph with five nodes";
 	public static final String simpleTwoComponentsName = "Simple Two Components";
 	public static final String linkCommunitiesTestName = "Link Communities Test Graph";
 	public static final String newmanClizzName = "Newman Clizz";
@@ -75,5 +98,18 @@ public class OcdTestConstants {
 	public static final String docaTestGraphName = "Doca Test Graph";
 	public static final String contentTestName = "Content Test Graph";
 	public static final String jmolName = "Jmol Test Graph";
+	public static final String signedLfrGraphName = "Signed Lfr Graph";
+	public static final String lfrGraphName = "Lfr Graph";
+	public static final String signedLfrSixNodesGraphName = "Signed Lfr Graph";
+	public static final String signedLfrBlurredGraphName = "Signed Lfr Blurred Graph";
+	public static final String sloveneParliamentaryPartyGraphName = "Slovene Parliamentary Party Graph";
+	public static final String wikiElecGraphName = "Wiki Elec Graph";
+	public static final String epinionsGraphName = "Epinions Graph";
+	public static final String slashDotGraphName = "Slash Dot Graph";
 	
+	/*
+	 * others
+	 */
+	public static final String spmResultFilePath = outputFolderPath + "spmResultPartyNetwork.txt";
+	public static final String meaResultFilePath = outputFolderPath + "meaSignedLfrGraphCommunityResult.pop";
 }

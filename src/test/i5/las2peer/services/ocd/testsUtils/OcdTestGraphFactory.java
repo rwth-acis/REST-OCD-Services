@@ -407,4 +407,222 @@ public class OcdTestGraphFactory {
 		graph.setCreationMethod(log);
 		return graph;
 	}
+	
+	public static CustomGraph getLfrGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.lfrUnweightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.lfrGraphName);
+		graph.addType(GraphType.DIRECTED);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+	
+	// @author: YLi
+	public static CustomGraph getSignedLfrGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.signedLfrWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.signedLfrGraphName);
+		graph.addType(GraphType.DIRECTED);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getSignedLfrSixNodesGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.signedLfrSixNodesWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.signedLfrSixNodesGraphName);
+		graph.addType(GraphType.DIRECTED);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getSignedLfrBlurredGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.signedLfrBlurredWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.signedLfrGraphName);
+		graph.addType(GraphType.DIRECTED);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getSignedLfrMadeUndirectedGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.signedLfrWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.signedLfrGraphName);
+		GraphProcessor processor = new GraphProcessor();
+		graph.addType(GraphType.DIRECTED);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		processor.makeUndirected(graph);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getSloveneParliamentaryPartyGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.sloveneParliamentaryPartyWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.sloveneParliamentaryPartyGraphName);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getSloveneParliamentaryPartyDirectedGraph()
+			throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.sloveneParliamentaryPartyWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.sloveneParliamentaryPartyGraphName);
+		GraphProcessor processor = new GraphProcessor();
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		processor.makeDirected(graph);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getWikiElecGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.wikiElecWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.wikiElecGraphName);
+		graph.addType(GraphType.DIRECTED);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getWikiElecUndirectedGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.wikiElecWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.wikiElecGraphName);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphProcessor processor = new GraphProcessor();
+		processor.makeUndirected(graph);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getEpinionsGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.epinionsWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.epinionsGraphName);
+		graph.addType(GraphType.DIRECTED);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getEpinionsUndirectedGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.epinionsWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.epinionsGraphName);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphProcessor processor = new GraphProcessor();
+		processor.makeUndirected(graph);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getslashDotGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.slashDotWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.slashDotGraphName);
+		graph.addType(GraphType.DIRECTED);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getSlashDotUndirectedGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.slashDotWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.slashDotGraphName);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphProcessor processor = new GraphProcessor();
+		processor.makeUndirected(graph);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	// @author: YLi
+	public static CustomGraph getFiveNodesGraph() {
+		// Creates new graph
+		CustomGraph graph = new CustomGraph();
+		graph.setName(OcdTestConstants.fiveNodesGraphName);
+		// Creates nodes
+		Node n[] = new Node[5];
+		for (int i = 0; i < 5; i++) {
+			n[i] = graph.createNode();
+		}
+		// Creates edges
+		graph.createEdge(n[0], n[1]);
+		graph.createEdge(n[0], n[2]);
+		graph.createEdge(n[2], n[3]);
+		graph.createEdge(n[3], n[1]);
+		graph.createEdge(n[3], n[4]);
+		graph.createEdge(n[4], n[2]);
+		graph.createEdge(n[2], n[0]);
+		// Set edge weight
+		graph.setEdgeWeight(graph.getEdgeArray()[0], 1);
+		graph.setEdgeWeight(graph.getEdgeArray()[1], -1);
+		graph.setEdgeWeight(graph.getEdgeArray()[2], 1);
+		graph.setEdgeWeight(graph.getEdgeArray()[3], -1);
+		graph.setEdgeWeight(graph.getEdgeArray()[4], 1);
+		graph.setEdgeWeight(graph.getEdgeArray()[5], 1);
+		graph.setEdgeWeight(graph.getEdgeArray()[6], 1);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
 }
