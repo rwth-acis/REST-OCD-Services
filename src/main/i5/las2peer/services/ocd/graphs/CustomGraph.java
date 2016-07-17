@@ -25,6 +25,9 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
+import org.la4j.matrix.Matrix;
+import org.la4j.matrix.sparse.CCSMatrix;
+
 import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -476,6 +479,95 @@ public class CustomGraph extends Graph2D {
 	}
 	
 	/**
+	 * Returns positive in-degree, i.e. the weight sum of all positive
+	 * incoming edges of a node.
+	 * 
+	 * @param node
+	 *            The node.
+	 * @return The positive in-degree. 
+	 * 
+	 * @author YLi
+	 */
+	public double getPositiveInDegree(Node node) {
+		double inDegree = 0;
+		EdgeCursor inEdges = node.inEdges();
+		while (inEdges.ok()) {
+			Edge edge = inEdges.edge();
+			if (getCustomEdge(edge).getWeight() > 0)
+				inDegree += getCustomEdge(edge).getWeight();
+			inEdges.next();
+		}
+		return inDegree;
+	}
+
+	/**
+	 * Returns positive out-degree, i.e. the weight sum of all positive
+	 * outgoing edges of a node.
+	 * 
+	 * @param node
+	 *            The concerned node.
+	 * @return The positive out-degree. 
+	 * 
+	 * @author YLi
+	 */
+	public double getPositiveOutDegree(Node node) {
+		double outDegree = 0;
+		EdgeCursor outEdges = node.outEdges();
+		while (outEdges.ok()) {
+			Edge edge = outEdges.edge();
+			if (getCustomEdge(edge).getWeight() > 0)
+				outDegree += getCustomEdge(edge).getWeight();
+			outEdges.next();
+		}
+		return outDegree;
+	}
+
+	/**
+	 * Returns negative in-degree, i.e. the sum of all negative incoming edges
+	 * of a node.
+	 * 
+	 * @param node
+	 *            The node under observation.
+	 * @return The negative in-degree. 
+	 * 
+	 * @author YLi
+	 */
+	public double getNegativeInDegree(Node node) {
+		double inDegree = 0;
+		EdgeCursor inEdges = node.inEdges();
+		while (inEdges.ok()) {
+			Edge edge = inEdges.edge();
+			if (getCustomEdge(edge).getWeight() < 0)
+				inDegree += getCustomEdge(edge).getWeight();
+			inEdges.next();
+		}
+		return inDegree;
+	}
+
+	/**
+	 * Returns negative out-degree, i.e. the sum of all negative outgoing edges
+	 * of a node.
+	 * 
+	 * @param node
+	 *            The node under observation.
+	 * @return The negative out-degree. 
+	 * 
+	 * @author YLi
+	 */
+	public double getNegativeOutDegree(Node node) {
+		double outDegree = 0;
+		EdgeCursor outEdges = node.outEdges();
+		while (outEdges.ok()) {
+			Edge edge = outEdges.edge();
+			if (getCustomEdge(edge).getWeight() < 0)
+				outDegree += getCustomEdge(edge).getWeight();
+			outEdges.next();
+		}
+		return outDegree;
+	}
+
+	
+	/**
 	 * Returns the weighted out-degree, i.e. the sum of the weights of all outgoing edges of a node.
 	 * @param node The node.
 	 * @return The weighted out-degree.
@@ -502,6 +594,28 @@ public class CustomGraph extends Graph2D {
 		while(edges.ok()) {
 			Edge edge = edges.edge();
 			degree += getCustomEdge(edge).getWeight();
+			edges.next();
+		}
+		return degree;
+	}
+	
+	/**
+	 * Returns the absolute node degree, i.e. the sum of absolute weights of all
+	 * incident edges of a node.
+	 * 
+	 * @param node
+	 *            The node.
+	 * @return The absolute degree. 
+	 * 
+	 * @author YLi
+	 */
+	public double getAbsoluteNodeDegree(Node node) {
+		double degree = 0;
+		EdgeCursor edges = node.edges();
+		Edge edge;
+		while (edges.ok()) {
+			edge = edges.edge();
+			degree += Math.abs(getCustomEdge(edge).getWeight());
 			edges.next();
 		}
 		return degree;
@@ -677,6 +791,288 @@ public class CustomGraph extends Graph2D {
 		int id = this.edgeIds.get(edge);
 		this.edgeIds.remove(edge);
 		this.customEdges.remove(id);
+	}
+	
+
+	
+	
+	/*
+	 * Returns the neighbourhood matrix.
+	 * 
+	 * @return The neighbourhood matrix. 
+	 * 
+	 * @author YLi
+	 */
+
+	public Matrix getNeighbourhoodMatrix() throws InterruptedException {
+		int nodeNumber = this.nodeCount();
+		Matrix neighbourhoodMatrix = new CCSMatrix(nodeNumber, nodeNumber);
+		EdgeCursor edges = this.edges();
+		Edge edge;
+		while (edges.ok()) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			edge = edges.edge();
+			neighbourhoodMatrix.set(edge.source().index(), edge.target().index(), this.getEdgeWeight(edge));
+			edges.next();
+		}
+		return neighbourhoodMatrix;
+	}
+
+	/*
+	 * Returns the set of all neighbours of a given node.
+	 * 
+	 * @param node The node under observation.
+	 * 
+	 * @return The neighbour set of the given node. 
+	 * 
+	 * @author YLi
+	 */
+	public Set<Node> getNeighbours(Node node) throws InterruptedException {
+		Set<Node> neighbourSet = new HashSet<Node>();
+		NodeCursor neighbours = node.neighbors();
+		Node neighbour;
+		while (neighbours.ok()) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			neighbour = neighbours.node();
+			if (!neighbourSet.contains(neighbour)) {
+				neighbourSet.add(neighbour);
+			}
+			neighbours.next();
+		}
+		return neighbourSet;
+	}
+
+	/*
+	 * Returns the set of all positive neighbours of a given node.
+	 * 
+	 * @param node The node under observation.
+	 * 
+	 * @return The positive neighbour set of the given node. 
+	 * 
+	 * @author YLi
+	 */
+	public Set<Node> getPositiveNeighbours(Node node) throws InterruptedException {
+		Set<Node> positiveNeighbour = new HashSet<Node>();
+		Set<Node> neighbours = this.getNeighbours(node);
+		for (Node neighbour : neighbours) {
+			/*
+			 * if node a->b positive or node b->a positive
+			 */
+			Edge edge = node.getEdgeTo(neighbour);
+			Edge reverseEdge = node.getEdgeFrom(neighbour);
+			if (edge != null) {
+				if (this.getEdgeWeight(edge) > 0) {
+					positiveNeighbour.add(neighbour);
+					continue;
+				}
+			}
+			if (reverseEdge != null) {
+				if (this.getEdgeWeight(reverseEdge) > 0) {
+					positiveNeighbour.add(neighbour);
+				}
+			}
+		}
+		return positiveNeighbour;
+	}
+
+	/*
+	 * Returns the set of all negative neighbours of a given node.
+	 * 
+	 * @param node The node under observation.
+	 * 
+	 * @return The negative neighbour set of the given node. 
+	 * 
+	 * @author YLi
+	 */
+
+	public Set<Node> getNegativeNeighbours(Node node) throws InterruptedException {
+		Set<Node> negativeNeighbour = new HashSet<Node>();
+		Set<Node> neighbours = this.getNeighbours(node);
+		for (Node neighbour : neighbours) {
+			/*
+			 * if node a->b positive or node b->a positive
+			 */
+			Edge edge = node.getEdgeTo(neighbour);
+			Edge reverseEdge = node.getEdgeFrom(neighbour);
+			if (edge != null) {
+				if (this.getEdgeWeight(edge) < 0) {
+					negativeNeighbour.add(neighbour);
+					continue;
+				}
+			}
+			if (reverseEdge != null) {
+				if (this.getEdgeWeight(reverseEdge) < 0) {
+					negativeNeighbour.add(neighbour);
+				}
+			}
+		}
+		return negativeNeighbour;
+	}
+
+	/*
+	 * Returns the set of all positive edges incident to a given node.
+	 * 
+	 * @param node The node under observation.
+	 * 
+	 * @return The positive edge set of the given node.
+	 * 
+	 * @author YLi
+	 */
+
+	public Set<Edge> getPositiveEdges(Node node) throws InterruptedException {
+		Set<Edge> positiveEdges = new HashSet<Edge>();
+		EdgeCursor incidentEdges = node.edges();
+		Edge incidentEdge;
+		while (incidentEdges.ok()) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			incidentEdge = incidentEdges.edge();
+			if (getCustomEdge(incidentEdge).getWeight() > 0) {
+				positiveEdges.add(incidentEdge);
+			}
+			incidentEdges.next();
+		}
+		return positiveEdges;
+	}
+
+	/*
+	 * Returns the set of all positive incoming edges for a given node.
+	 * 
+	 * @param node The node under observation.
+	 * 
+	 * @return The positive incoming edge set of the given node.
+	 * 
+	 * @author YLi
+	 */
+
+	public Set<Edge> getPositiveInEdges(Node node) throws InterruptedException {
+		Set<Edge> positiveInEdges = new HashSet<Edge>();
+		EdgeCursor incidentInEdges = node.inEdges();
+		Edge incidentInEdge;
+		while (incidentInEdges.ok()) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			incidentInEdge = incidentInEdges.edge();
+			if (getCustomEdge(incidentInEdge).getWeight() > 0) {
+				positiveInEdges.add(incidentInEdge);
+			}
+			incidentInEdges.next();
+		}
+		return positiveInEdges;
+	}
+
+	/*
+	 * Returns the set of all positive outgoing edges for a given node.
+	 * 
+	 * @param node The node under observation.
+	 * 
+	 * @return The positive outgoing edge set of the given node. 
+	 * 
+	 * @author YLi
+	 */
+
+	public Set<Edge> getPositiveOutEdges(Node node) throws InterruptedException {
+		Set<Edge> positiveOutEdges = new HashSet<Edge>();
+		EdgeCursor incidentOutEdges = node.outEdges();
+		Edge incidentOutEdge;
+		while (incidentOutEdges.ok()) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			incidentOutEdge = incidentOutEdges.edge();
+			if (getCustomEdge(incidentOutEdge).getWeight() > 0) {
+				positiveOutEdges.add(incidentOutEdge);
+			}
+			incidentOutEdges.next();
+		}
+		return positiveOutEdges;
+	}
+
+	/*
+	 * Returns the set of all negative edges incident to a given node.
+	 * 
+	 * @param node The node under observation.
+	 * 
+	 * @return The negative edge set of the given node. 
+	 * 
+	 * @author YLi
+	 */
+
+	public Set<Edge> getNegativeEdges(Node node) throws InterruptedException {
+		Set<Edge> negativeEdges = new HashSet<Edge>();
+		EdgeCursor incidentEdges = node.edges();
+		Edge incidentEdge;
+		while (incidentEdges.ok()) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			incidentEdge = incidentEdges.edge();
+			if (getCustomEdge(incidentEdge).getWeight() < 0) {
+				negativeEdges.add(incidentEdge);
+			}
+			incidentEdges.next();
+		}
+		return negativeEdges;
+	}
+
+	/*
+	 * Returns the set of all negative incoming edges for a given node.
+	 * 
+	 * @param node The node under observation.
+	 * 
+	 * @return The negative incoming edge set of the given node. 
+	 * 
+	 * @author YLi
+	 */
+
+	public Set<Edge> getNegativeInEdges(Node node) throws InterruptedException {
+		Set<Edge> negativeInEdges = new HashSet<Edge>();
+		EdgeCursor incidentInEdges = node.inEdges();
+		Edge incidentInEdge;
+		while (incidentInEdges.ok()) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			incidentInEdge = incidentInEdges.edge();
+			if (getCustomEdge(incidentInEdge).getWeight() < 0) {
+				negativeInEdges.add(incidentInEdge);
+			}
+			incidentInEdges.next();
+		}
+		return negativeInEdges;
+	}
+
+	/*
+	 * Returns the set of all negative outgoing edges for a given node.
+	 * 
+	 * @param node The node under observation.
+	 * 
+	 * @return The negative outgoing edge set of the given node. 
+	 * 
+	 * @author YLi
+	 */
+
+	public Set<Edge> getNegativeOutEdges(Node node) throws InterruptedException {
+		Set<Edge> negativeOutEdges = new HashSet<Edge>();
+		EdgeCursor incidentOutEdges = node.outEdges();
+		Edge incidentOutEdge;
+		while (incidentOutEdges.ok()) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			incidentOutEdge = incidentOutEdges.edge();
+			if (getCustomEdge(incidentOutEdge).getWeight() < 0) {
+				negativeOutEdges.add(incidentOutEdge);
+			}
+			incidentOutEdges.next();
+		}
+		return negativeOutEdges;
 	}
 	
 	/////////////////////////// PERSISTENCE CALLBACK METHODS

@@ -65,7 +65,7 @@ public class GraphProcessor {
 	 * ways do already exist, they are assigned the sum of both weights.
 	 * @param graph The graph to be transformed.
 	 */
-	protected void makeUndirected(CustomGraph graph) {
+	public void makeUndirected(CustomGraph graph) {
 		EdgeCursor edges = graph.edges();
 		while(edges.ok()) {
 			Edge edge = edges.edge();
@@ -294,5 +294,58 @@ public class GraphProcessor {
 			noZeroWeights = true;
 		}
 		this.redefineEdges(graph, noNegativeWeights, noZeroWeights, noSelfLoops, setToOne);
+	}
+	
+	/**
+	 * Transforms an undirected graph into a directed Graph. For each edge a
+	 * "reverse" edge (if node A points to node B, then node B also points to node A) is added. The new
+	 * edge is assigned the same weight as the original one.
+	 * 
+	 * @param graph
+	 *            The graph to be transformed
+	 * @author YLi
+	 */
+	public void makeDirected(CustomGraph graph) {
+		EdgeCursor edges = graph.edges();
+		while (edges.ok()) {
+			Edge edge = edges.edge();
+			double edgeWeight = graph.getEdgeWeight(edge);
+			Edge reverseEdge;
+			Node target = edge.target();
+			Node source = edge.source();
+			if (target.index() > source.index()) {
+				reverseEdge = graph.createEdge(target, source);
+				graph.setEdgeWeight(reverseEdge, edgeWeight);
+			}
+			edges.next();
+		}
+		graph.addType(GraphType.DIRECTED);
+	}
+
+	/**
+	 * Creates a graph, which is exactly a copy of the input graph
+	 * 
+	 * @param graph
+	 *            The graph to be copied.
+	 * @author YLi
+	 */
+	public CustomGraph copyGraph(CustomGraph graph) {
+		CustomGraph graphCopy = new CustomGraph();
+		int nodeCount = graph.nodeCount();
+		Node t[] = new Node[nodeCount];
+		for (int i = 0; i < nodeCount; i++) {
+			t[i] = graphCopy.createNode();
+		}
+		EdgeCursor edges = graph.edges();
+		Edge edge;
+		while (edges.ok()) {
+			edge = edges.edge();
+			int source = edge.source().index();
+			int target = edge.target().index();
+			Edge newEdge = graphCopy.createEdge(t[source], t[target]);
+			graphCopy.setEdgeWeight(newEdge, graph.getEdgeWeight(edge));
+			edges.next();
+		}
+		return graphCopy;
 	}
 }

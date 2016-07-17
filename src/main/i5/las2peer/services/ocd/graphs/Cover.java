@@ -541,5 +541,21 @@ public class Cover {
 		return this.simCosts;
 	}
 
-	
+	/**
+	 * Get the community structure of a cover, i.e.
+	 * the number of communities of a certain size
+	 * YLi
+	 */
+	public Map<Integer,Integer> getCommunityStructure(){
+		Map<Integer,Integer> communityStructure=new HashMap<Integer,Integer>();
+		for (int i=0;i<communities.size();i++){
+			int size=communities.get(i).getSize();
+			if (communityStructure.keySet().contains(size)){
+				communityStructure.put(size, communityStructure.get(size) + 1);
+			}else{
+				communityStructure.put(size, 1);
+			}
+		}
+		return communityStructure;
+	}
 }
