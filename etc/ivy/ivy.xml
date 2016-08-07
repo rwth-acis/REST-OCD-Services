@@ -24,5 +24,7 @@
 		<dependency org="org.apache.poi" name="poi-ooxml" rev="3.13" conf="platform->default" />
 		<dependency org="org.ejml" name="ejml" rev="0.7" conf="platform->default" />
 		<dependency org="org.hsqldb" name="hsqldb" rev="2.3.4" conf="platform->default" />
+		<dependency org="batik" name="batik" rev="1.5" conf="platform->default" />
+		<dependency org="i5" name="batik" rev="1.0" conf="platform->default" />
     </dependencies>
 </ivy-module>
