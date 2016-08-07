@@ -7,5 +7,5 @@ cd ..
 set BASE=%CD%
 set CLASSPATH="%BASE%/lib/*;%BASE%/service/*;"
 
-java -cp %CLASSPATH% i5.las2peer.tools.L2pNodeLauncher windows_shell -w -p 9081 uploadStartupDirectory('etc/startup') startService('i5.las2peer.services.ocd.ServiceClass@1.0','ocdPass') startService('i5.las2peer.services.ocdViewer.ServiceClass@1.0','ocdViewerPass') startWebConnector interactive
+java -cp %CLASSPATH% i5.las2peer.tools.L2pNodeLauncher -w -p 9011 uploadStartupDirectory('etc/startup') startService('i5.las2peer.services.ocd.ServiceClass@1.0') startService('i5.las2peer.services.ocdViewer.ServiceClass@1.0') startWebConnector interactive
 pause
