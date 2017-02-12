@@ -4,9 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import i5.las2peer.p2p.LocalNode;
-import i5.las2peer.restMapper.RESTMapper;
-import i5.las2peer.restMapper.tools.ValidationResult;
-import i5.las2peer.restMapper.tools.XMLCheck;
+import i5.las2peer.p2p.ServiceNameVersion;
 import i5.las2peer.security.ServiceAgent;
 import i5.las2peer.security.UserAgent;
 import i5.las2peer.services.ocd.adapters.AdapterException;
@@ -78,11 +76,12 @@ public class ServiceTest {
 		node.storeAgent(testAgent);
 		node.launch();
 
+		// during testing, the specified service version does not matter
 		ServiceAgent testService = ServiceAgent.createServiceAgent(
-				testServiceClass, "a pass");
+				ServiceNameVersion.fromString(ServiceClass.class.getName() + "@1.0"), "a pass");
 		testService.unlockPrivateKey("a pass");
 
-		node.registerReceiver(testService);
+node.registerReceiver(testService);
 
 		// start connector
 		logStream = new ByteArrayOutputStream();
@@ -93,16 +92,7 @@ public class ServiceTest {
 		Thread.sleep(1000); // wait a second for the connector to become ready
 		testAgent = MockAgentFactory.getAdam();
 
-		connector.updateServiceList();
-		// avoid timing errors: wait for the repository manager to get all
-		// services before continuing
-		try {
-			System.out.println("waiting..");
-			Thread.sleep(10000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
+		
 		/*
 		 * Sets up the database environment for testing.
 		 */
@@ -228,43 +218,6 @@ public class ServiceTest {
 		}
 	}
 	
-	/**
-	 * Method for debugging purposes. Here the concept of restMapping validation
-	 * is shown. It is important to check, if all annotations are correct and
-	 * consistent. Otherwise the service will not be accessible by the
-	 * WebConnector.
-	 * 
-	 * @return true, if mapping correct
-	 */
-	@Test
-	public void debugMapping() {
-		String XML_LOCATION = "./restMapping.xml";
-		/*
-		 * Method was adapted manually.
-		 * Since debugMapping was moved here from the service class,
-		 * the method block of getRestMapping was copied here since that
-		 * method cannot be called out of this class.
-		 * 
-		 * Start of getRestMapping Block
-		 */
-		String xml="";
-        try {
-            xml= RESTMapper.getMethodsAsXML(this.getClass());
-        } catch (Exception e) {
-
-            e.printStackTrace();
-        }
-        /*
-         * End of getRestMapping Block
-         */
-		try {
-			RESTMapper.writeFile(XML_LOCATION, xml);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		XMLCheck validator = new XMLCheck();
-		ValidationResult result = validator.validate(xml);
-		assertTrue(result.isValid());
-	}
+	
 
 }
