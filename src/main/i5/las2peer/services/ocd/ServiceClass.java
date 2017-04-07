@@ -1,11 +1,11 @@
 package i5.las2peer.services.ocd;
 
-import i5.las2peer.api.Service;
-import i5.las2peer.restMapper.MediaType;
-import i5.las2peer.restMapper.RESTMapper;
-import i5.las2peer.restMapper.annotations.ContentParam;
-import i5.las2peer.restMapper.annotations.Version;
+import i5.las2peer.api.Context;
+import i5.las2peer.logging.L2pLogger;
+import i5.las2peer.restMapper.RESTService;
+import i5.las2peer.restMapper.annotations.ServicePath;
 import i5.las2peer.security.UserAgent;
+
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
@@ -37,6 +37,7 @@ import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.OcdRequestHandler;
 import i5.las2peer.services.ocd.utils.RequestHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -51,7 +52,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,33 +72,32 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.QueryParam;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.la4j.matrix.sparse.CCSMatrix;
-import org.w3c.dom.Document;
-
-import b.b.b.b.b.n;
-
 
 
 /**
  * 
- * LAS2peer Service Class
+ * LAS2peer OCD Service Class
  * 
  * Provides the RESTful interface of the overlapping community detection service.
  * 
  * @author Sebastian
  *
  */
-@Produces(MediaType.TEXT_XML)
-@Path("ocd")
-@Version("0.1")
+
+
+@ServicePath("ocd")
 @Api
 @SwaggerDefinition(
 		info = @Info(
-				title = "OCD",
-				version = "0.1",
+				title = "LAS2peer OCD Service",
+				version = "1.0",
 				description = "A RESTful service for overlapping community detection.",
 				termsOfService = "sample-tos.io",
 				contact = @Contact(
@@ -107,18 +106,29 @@ import b.b.b.b.b.n;
 				),
 				license = @License(
 						name = "Apache License 2",
-						url = "http://www.apache.org/licenses/LICENSE-2.0"
-				)
-		))
-public class ServiceClass extends Service {
+						url = "http://www.apache.org/licenses/LICENSE-2.0")
+				))
+public class ServiceClass extends RESTService {
 		
-	/*
+	/*//////////////////////////
 	 * Service initialization.
-	 */
-	static {
+	 *//////////////////////////
+	
+	@Override
+	protected void initResources() {
+		getResourceConfig().register(RootResource.class);		
+	}  
+
+	public ServiceClass() {
+		// read and set properties values
+		setFieldValues();
+	}
+	
+	static {		
 		RequestHandler reqHandler = new RequestHandler();
 		reqHandler.log(Level.INFO, "Overlapping Community Detection Service started.");
 	}
+	 
 	
 	///////////////////////////////////////////////////////////
 	//////// ATTRIBUTES
@@ -149,32 +159,26 @@ public class ServiceClass extends Service {
 	 */
 	private OcdMetricFactory metricFactory = new OcdMetricFactory();
 	
+		
 	
 	//////////////////////////////////////////////////////////////////
-	///////// METHODS
+	///////// REST Service Methods
 	//////////////////////////////////////////////////////////////////
-	
-	//////////////////////////////////////////////////////////////////
-	///////// GENERAL
-	//////////////////////////////////////////////////////////////////
-	
-	/**
-	 * This method is needed for every RESTful application in LAS2peer.
-	 * 
-	 * @return the mapping
-	 */
-    public String getRESTMapping()
-    {
-        String result="";
-        try {
-            result= RESTMapper.getMethodsAsXML(this.getClass());
-        } catch (Exception e) {
+		
+	@Path("/")
+	public static class RootResource {
+		// instantiate the logger class
+		private final L2pLogger logger = L2pLogger.getInstance(ServiceClass.class.getName());
 
-            e.printStackTrace();
-        }
-        return result;
-    }
-    
+		// get access to the service class
+		private final ServiceClass service = (ServiceClass) Context.getCurrent().getService();
+		
+		// get the request handler
+		private final OcdRequestHandler requestHandler = service.requestHandler;	
+		private final ThreadHandler threadHandler = service.threadHandler;
+		private final OcdBenchmarkFactory benchmarkFactory = service.benchmarkFactory;
+		private final OcdAlgorithmFactory algorithmFactory = service.algorithmFactory;
+		private final OcdMetricFactory metricFactory = service.metricFactory;
     
     /**
      * Simple function to validate a user login.
@@ -192,10 +196,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "User validation",
 		notes = "Simple function to validate a user login.")
-    public String validateLogin()
+    public Response validateLogin()
     {
     	try {
-    		return requestHandler.writeConfirmationXml();
+    		return Response.ok(requestHandler.writeConfirmationXml()).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -232,7 +236,7 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "User validation",
 		notes = "Imports a graph.")
-    public String createGraph(
+    public Response createGraph(
     		@DefaultValue("unnamed") @QueryParam("name") String nameStr,
     		@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
     		@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
@@ -241,10 +245,10 @@ public class ServiceClass extends Service {
     		@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
     		@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
     		@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
-    		@ContentParam String contentStr)
+    		String contentStr)
     {
     	try {
-	    	String username = ((UserAgent) getActiveAgent()).getLoginName();
+	    	String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    	GraphInputFormat format;
 	    	CustomGraph graph;
 	    	try {
@@ -333,7 +337,7 @@ public class ServiceClass extends Service {
 				throw e;
 			}
 			em.close();
-	    	return requestHandler.writeId(graph);
+	    	return Response.ok(requestHandler.writeId(graph)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -358,10 +362,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "User validation",
 		notes = "Stores a graph step by step.")
-    public String storeGraph(
+    public Response storeGraph(
     		@DefaultValue("unnamed") @QueryParam("name") String nameStr,
-			@ContentParam String contentStr) {
-		String username = ((UserAgent) getActiveAgent()).getLoginName();
+			String contentStr) {
+		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 		File graphDir = new File("tmp" + File.separator + username);
 		if (!graphDir.exists()) {
 			graphDir.mkdirs();
@@ -378,12 +382,12 @@ public class ServiceClass extends Service {
 			requestHandler.log(Level.WARNING, "user: " + username, e);
 			return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 		}
-		return "<?xml version=\"1.0\" encoding=\"UTF-16\"?>"
+		return Response.ok("<?xml version=\"1.0\" encoding=\"UTF-16\"?>"
 				+ "<File>"
 				+ "<Name>"+ graphFile.getName() +"</Name>"
 				+ "<Size>"+ graphFile.length() +"</Size>"
 				+ "<Message>"+ "File appned" +"</Message>"
-				+ "</File>";
+				+ "</File>").build();
     }
 
     /**
@@ -409,7 +413,7 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "User validation",
 		notes = "Process the stored graph.")
-    public String processStoredGraph(
+    public Response processStoredGraph(
     		@DefaultValue("unnamed") @QueryParam("name") String nameStr,
     		@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
     		@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
@@ -419,7 +423,7 @@ public class ServiceClass extends Service {
     		@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
     		@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr)
     {
-    	String username = ((UserAgent) getActiveAgent()).getLoginName();
+    	String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 		File graphDir = new File("tmp" + File.separator + username);
 		File graphFile = new File(graphDir + File.separator + nameStr + ".txt");
 		StringBuffer contentStr = new StringBuffer();
@@ -462,14 +466,14 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "Manage graphs",
 		notes = "Returns the ids or meta information of multiple graphs.")
-    public String getGraphs(
+    public Response getGraphs(
     		@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
     		@DefaultValue("") @QueryParam("length") String lengthStr,
     		@DefaultValue("FALSE") @QueryParam("includeMeta") String includeMetaStr,
     		@DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr)
     {
     	try {
-			String username = ((UserAgent) getActiveAgent()).getLoginName();
+			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 			List<CustomGraph> queryResults;
 			List<Integer> executionStatusIds = new ArrayList<Integer>();
 			if(!executionStatusesStr.equals("")) {
@@ -533,7 +537,7 @@ public class ServiceClass extends Service {
 			else {
 				responseStr = requestHandler.writeGraphIds(queryResults);
 			}
-			return responseStr;
+			return Response.ok(responseStr).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -557,13 +561,13 @@ public class ServiceClass extends Service {
     @Path("graphs/{graphId}")
 	@ApiOperation(value = "",
 		notes = "Returns a graph in a specified output format.")
-    public String getGraph(
+    public Response getGraph(
     		@DefaultValue("GRAPH_ML") @QueryParam("outputFormat") String graphOutputFormatStr,
     		@PathParam("graphId") String graphIdStr)
     {
     	try {
     		long graphId;
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		GraphOutputFormat format;
     		try {
     			graphId = Long.parseLong(graphIdStr);
@@ -599,7 +603,7 @@ public class ServiceClass extends Service {
 				throw e;
 			}
 			em.close();
-	    	return requestHandler.writeGraph(graph, format);
+	    	return Response.ok(requestHandler.writeGraph(graph, format)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -626,12 +630,12 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Deletes a graph.")
-    public String deleteGraph(
+    public Response deleteGraph(
     		@PathParam("graphId") String graphIdStr)
     {
     	try {
     		long graphId;
-	    	String username = ((UserAgent) getActiveAgent()).getLoginName();
+	    	String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    	try {
     			graphId = Long.parseLong(graphIdStr);
     		}
@@ -696,7 +700,7 @@ public class ServiceClass extends Service {
     				throw e;
     			}
     		}
-	    	return requestHandler.writeConfirmationXml();
+	    	return Response.ok(requestHandler.writeConfirmationXml()).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -728,15 +732,15 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Imports a cover for an existing graph.")
-    public String createCover(
+    public Response createCover(
     		@PathParam("graphId") String graphIdStr,
     		@DefaultValue("unnamed") @QueryParam("name") String nameStr,
     		@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
     		@DefaultValue("LABELED_MEMBERSHIP_MATRIX") @QueryParam("inputFormat") String coverInputFormatStr,
-    		@ContentParam String contentStr)
+    		String contentStr)
     {
     	try {
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		long graphId;
     		try {
     			graphId = Long.parseLong(graphIdStr);
@@ -802,7 +806,7 @@ public class ServiceClass extends Service {
 				throw e;
 			}
 			em.close();
-	    	return requestHandler.writeId(cover);
+	    	return Response.ok(requestHandler.writeId(cover)).build();
     	}
        	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -834,7 +838,7 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "Manage covers",
 		notes = "Returns the ids (or meta information) of multiple covers.")
-    public String getCovers(
+    public Response getCovers(
     		@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
     		@DefaultValue("") @QueryParam("length") String lengthStr,
     		@DefaultValue("FALSE") @QueryParam("includeMeta") String includeMetaStr,
@@ -843,7 +847,7 @@ public class ServiceClass extends Service {
     		@DefaultValue("") @QueryParam("graphId") String graphIdStr)
     {
     	try {
-			String username = ((UserAgent) getActiveAgent()).getLoginName();
+			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 			long graphId = 0;
 			if(!graphIdStr.equals("")) {
 	    		try {
@@ -951,7 +955,7 @@ public class ServiceClass extends Service {
 			else {
 				responseStr = requestHandler.writeCoverIds(queryResults);
 			}
-			return responseStr;
+			return Response.ok(responseStr).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -976,13 +980,13 @@ public class ServiceClass extends Service {
     @Path("covers/{coverId}/graphs/{graphId}")
 	@ApiOperation(value = "",
 		notes = "Returns a cover in a specified format.")
-    public String getCover(
+    public Response getCover(
     		@PathParam("graphId") String graphIdStr,
     		@PathParam("coverId") String coverIdStr,
     		@DefaultValue("LABELED_MEMBERSHIP_MATRIX") @QueryParam("outputFormat") String coverOutputFormatStr)
     {
     	try {
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		long graphId;
     		try {
     			graphId = Long.parseLong(graphIdStr);
@@ -1030,7 +1034,7 @@ public class ServiceClass extends Service {
 	    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Cover does not exist: cover id " + coverId + ", graph id " + graphId);
 				return requestHandler.writeError(Error.PARAMETER_INVALID, "Cover does not exist: cover id " + coverId + ", graph id " + graphId);
 	    	}
-	    	return requestHandler.writeCover(cover, format);
+	    	return Response.ok(requestHandler.writeCover(cover, format)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -1058,12 +1062,12 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Deletes a cover.")
-    public String deleteCover(
+    public Response deleteCover(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr)
     {
     	try {
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		long graphId;
     		try {
     			graphId = Long.parseLong(graphIdStr);
@@ -1146,7 +1150,7 @@ public class ServiceClass extends Service {
 					throw e;
 				}
     			em.close();
-    			return requestHandler.writeConfirmationXml();
+    			return Response.ok(requestHandler.writeConfirmationXml()).build();
     		}
     	}
     	catch (Exception e) {
@@ -1181,18 +1185,18 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Creates a new cover by running an algorithm on an existing graph.")
-    public String runAlgorithm(
+    public Response runAlgorithm(
     		@PathParam("graphId") String graphIdStr,
     		@DefaultValue("unnamed") @QueryParam("name") String nameStr,
     		@DefaultValue("SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM") @QueryParam("algorithm") String creationTypeStr,
-    		@ContentParam String content,
+    		String content,
     		@DefaultValue("false") @QueryParam("contentWeighting") String contentWeighting,
     		@DefaultValue("0") @QueryParam("componentNodeCountFilter") String componentNodeCountFilterStr)
     {
     	try {
     		int componentNodeCountFilter;
     		long graphId;
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		CoverCreationType algorithmType;
     		try {
     			graphId = Long.parseLong(graphIdStr);
@@ -1275,7 +1279,7 @@ public class ServiceClass extends Service {
 		    	 */
 				threadHandler.runAlgorithm(cover, algorithm, componentNodeCountFilter);
 	    	}
-	    	return requestHandler.writeId(cover);
+	    	return Response.ok(requestHandler.writeId(cover)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -1307,14 +1311,14 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Creates a ground truth benchmark cover.")
-    public String runGroundTruthBenchmark(
+    public Response runGroundTruthBenchmark(
     		@DefaultValue("unnamed") @QueryParam("coverName") String coverNameStr,
     		@DefaultValue("unnamed") @QueryParam("graphName") String graphNameStr,
     		@DefaultValue("LFR") @QueryParam("benchmark") String creationTypeStr,
-    		@ContentParam String contentStr)
+    		String contentStr)
     {
     	try {
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		GraphCreationType benchmarkType;
     		CoverCreationType coverCreationType;
     		try {
@@ -1377,7 +1381,7 @@ public class ServiceClass extends Service {
 				 */
 				threadHandler.runGroundTruthBenchmark(cover, benchmark);
 	    	}
-	    	return requestHandler.writeId(cover);
+	    	return Response.ok(requestHandler.writeId(cover)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -1409,14 +1413,14 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Runs a statistical measure on a cover and creates the corresponding log.")
-    public String runStatisticalMeasure(
+    public Response runStatisticalMeasure(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr,
     		@DefaultValue("EXTENDED_MODULARITY") @QueryParam("metricType") String metricTypeStr,
-    		@ContentParam String contentStr)
+    		String contentStr)
     {
     	try {
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		long graphId;
     		try {
     			graphId = Long.parseLong(graphIdStr);
@@ -1495,7 +1499,7 @@ public class ServiceClass extends Service {
 				}
 		    	threadHandler.runStatisticalMeasure(log, metric, cover);
 	    	}
-	    	return requestHandler.writeId(log);
+	    	return Response.ok(requestHandler.writeId(log)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -1526,15 +1530,15 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Runs a knowledge-driven measure on a cover and creates the corresponding log.")
-    public String runKnowledgeDrivenMeasure(
+    public Response runKnowledgeDrivenMeasure(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr,
     		@DefaultValue("EXTENDED_NORMALIZED_MUTUAL_INFORMATION") @QueryParam("metricType") String metricTypeStr,
     		@PathParam("groundTruthCoverId") String groundTruthCoverIdStr,
-    		@ContentParam String contentStr)
+    		String contentStr)
     {
     	try {
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		long graphId;
     		try {
     			graphId = Long.parseLong(graphIdStr);
@@ -1637,7 +1641,7 @@ public class ServiceClass extends Service {
 				}
 		    	threadHandler.runKnowledgeDrivenMeasure(log, metric, cover, groundTruth);
 	    	}
-	    	return requestHandler.writeId(log);
+	    	return Response.ok(requestHandler.writeId(log)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -1663,13 +1667,13 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Deletes a metric.")
-    public String deleteMetric(
+    public Response deleteMetric(
     		@PathParam("coverId") String coverIdStr,
     		@PathParam("graphId") String graphIdStr,
     		@PathParam("metricId") String metricIdStr)
     {
     	try {
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		long graphId;
     		try {
     			graphId = Long.parseLong(graphIdStr);
@@ -1741,7 +1745,7 @@ public class ServiceClass extends Service {
 					throw e;
 				}
     			em.close();
-    			return requestHandler.writeConfirmationXml();
+    			return Response.ok(requestHandler.writeConfirmationXml()).build();
     		}
     	}
     	catch (Exception e) {
@@ -1769,11 +1773,11 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Returns the default parameters of an algorithm.")
-    public String getAlgorithmDefaultParams(
+    public Response getAlgorithmDefaultParams(
     		@PathParam("CoverCreationType") String coverCreationTypeStr)
     {
     	try {
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		CoverCreationType creationType;
     		try {
     			creationType = CoverCreationType.valueOf(coverCreationTypeStr);
@@ -1788,7 +1792,7 @@ public class ServiceClass extends Service {
 			}
 			else {
 				OcdAlgorithm defaultInstance = algorithmFactory.getInstance(creationType, new HashMap<String, String>());
-				return requestHandler.writeParameters(defaultInstance.getParameters());
+				return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
 			}
     	}
     	catch (Exception e) {
@@ -1812,11 +1816,11 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Returns the default parameters of a benchmark.")
-    public String getBenchmarkDefaultParams(
+    public Response getBenchmarkDefaultParams(
     		@PathParam("GraphCreationType") String graphCreationTypeStr)
     {
     	try {
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		GraphCreationType creationType;
     		try {
     			creationType = GraphCreationType.valueOf(graphCreationTypeStr);
@@ -1832,7 +1836,7 @@ public class ServiceClass extends Service {
     		if(creationType.correspondsGroundTruthBenchmark())
     		{
     			GroundTruthBenchmark defaultInstance = (GroundTruthBenchmark)benchmarkFactory.getInstance(creationType, new HashMap<String, String>());
-    			return requestHandler.writeParameters(defaultInstance.getParameters());
+    			return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
     		}
     		else {
     			throw new NotImplementedException("Specified graph creation type is not a benchmark.");
@@ -1859,11 +1863,11 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Returns the default parameters of a metric.")
-    public String getMetricDefaultParameters(
+    public Response getMetricDefaultParameters(
     		@PathParam("OcdMetricType") String ocdMetricTypeStr)
     {
     	try {
-    		String username = ((UserAgent) getActiveAgent()).getLoginName();
+    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
     		OcdMetricType metricType;
     		try {
     			metricType = OcdMetricType.valueOf(ocdMetricTypeStr);
@@ -1879,12 +1883,12 @@ public class ServiceClass extends Service {
     		if(metricType.correspondsKnowledgeDrivenMeasure())
     		{
     			KnowledgeDrivenMeasure defaultInstance = (KnowledgeDrivenMeasure)metricFactory.getInstance(metricType, new HashMap<String, String>());
-    			return requestHandler.writeParameters(defaultInstance.getParameters());
+    			return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
     		}
     		if(metricType.correspondsStatisticalMeasure())
     		{
     			StatisticalMeasure defaultInstance = (StatisticalMeasure)metricFactory.getInstance(metricType, new HashMap<String, String>());
-    			return requestHandler.writeParameters(defaultInstance.getParameters());
+    			return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
     		}
     		else {
     			throw new NotImplementedException("Metric type is not properly registered.");
@@ -1914,10 +1918,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Returns all cover creation type names.")
-    public String getCoverCreationMethodNames()
+    public Response getCoverCreationMethodNames()
     {
     	try {
-			return requestHandler.writeEnumNames(CoverCreationType.class);
+			return Response.ok(requestHandler.writeEnumNames(CoverCreationType.class)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -1939,10 +1943,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "Algorithms information",
 		notes = "Returns all algorithm type names.")
-    public String getAlgorithmNames()
+    public Response getAlgorithmNames()
     {
     	try {
-			return requestHandler.writeAlgorithmNames();
+			return Response.ok(requestHandler.writeAlgorithmNames()).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -1964,10 +1968,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "Algorithms information",
 		notes = "Returns all ground truth benchmark type names.")
-    public String getGroundTruthBenchmarkNames()
+    public Response getGroundTruthBenchmarkNames()
     {
     	try {
-			return requestHandler.writeGroundTruthBenchmarkNames();
+			return Response.ok(requestHandler.writeGroundTruthBenchmarkNames()).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -1989,10 +1993,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Returns all graph creation type names.")
-    public String getGraphCreationMethodNames()
+    public Response getGraphCreationMethodNames()
     {
     	try {
-			return requestHandler.writeEnumNames(GraphCreationType.class);
+			return Response.ok(requestHandler.writeEnumNames(GraphCreationType.class)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -2014,10 +2018,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Returns all graph input format names.")
-    public String getGraphInputFormatNames()
+    public Response getGraphInputFormatNames()
     {
     	try {
-			return requestHandler.writeEnumNames(GraphInputFormat.class);
+			return Response.ok(requestHandler.writeEnumNames(GraphInputFormat.class)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -2039,10 +2043,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Returns all graph output format names.")
-    public String getGraphOutputFormatNames()
+    public Response getGraphOutputFormatNames()
     {
     	try {
-			return requestHandler.writeEnumNames(GraphOutputFormat.class);
+			return Response.ok(requestHandler.writeEnumNames(GraphOutputFormat.class)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -2064,10 +2068,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Returns all cover creation type names.")
-    public String getCoverOutputFormatNames()
+    public Response getCoverOutputFormatNames()
     {
     	try {
-			return requestHandler.writeEnumNames(CoverOutputFormat.class);
+			return Response.ok(requestHandler.writeEnumNames(CoverOutputFormat.class)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -2089,10 +2093,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Returns all cover creation type names.")
-    public String getCoverInputFormatNames()
+    public Response getCoverInputFormatNames()
     {
     	try {
-			return requestHandler.writeEnumNames(CoverInputFormat.class);
+			return Response.ok(requestHandler.writeEnumNames(CoverInputFormat.class)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -2114,10 +2118,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Returns all statistical measure type names.")
-    public String getStatisticalMeasureNames()
+    public Response getStatisticalMeasureNames()
     {
     	try {
-			return requestHandler.writeStatisticalMeasureNames();
+			return Response.ok(requestHandler.writeStatisticalMeasureNames()).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -2139,10 +2143,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "",
 		notes = "Returns all knowledge-driven measure type names.")
-    public String getKnowledgeDrivenMeasureNames()
+    public Response getKnowledgeDrivenMeasureNames()
     {
     	try {
-			return requestHandler.writeKnowledgeDrivenMeasureNames();
+			return Response.ok(requestHandler.writeKnowledgeDrivenMeasureNames()).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -2164,10 +2168,10 @@ public class ServiceClass extends Service {
     })
 	@ApiOperation(value = "Metrics information",
 		notes = "Returns all metric type names.")
-    public String getMetricNames()
+    public Response getMetricNames()
     {
     	try {
-			return requestHandler.writeEnumNames(OcdMetricType.class);
+			return Response.ok(requestHandler.writeEnumNames(OcdMetricType.class)).build();
     	}
     	catch (Exception e) {
     		requestHandler.log(Level.SEVERE, "", e);
@@ -2175,5 +2179,9 @@ public class ServiceClass extends Service {
     	}
     	
     }
-    
-}   
+
+  }  
+}
+
+
+
