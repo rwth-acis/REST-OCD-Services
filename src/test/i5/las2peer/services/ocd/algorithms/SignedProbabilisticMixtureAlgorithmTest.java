@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
@@ -45,7 +46,8 @@ public class SignedProbabilisticMixtureAlgorithmTest {
 		SignedProbabilisticMixtureAlgorithm algo = new SignedProbabilisticMixtureAlgorithm();
 		algo.writeNetworkFile(graph);
 	}
-
+	
+	@Ignore
 	@Test
 	public void testGetMembershipMatrix() throws IOException, InterruptedException {
 		SignedProbabilisticMixtureAlgorithm algo = new SignedProbabilisticMixtureAlgorithm();
@@ -79,7 +81,8 @@ public class SignedProbabilisticMixtureAlgorithmTest {
 		expectedMatrix.set(9, 1, 0);
 		assertEquals(expectedMatrix, membershipMatrix);
 	}
-
+	
+	@Ignore
 	@Test
 	public void testDetectOverlappingCommunities()
 			throws FileNotFoundException, AdapterException, OcdAlgorithmException, InterruptedException {
