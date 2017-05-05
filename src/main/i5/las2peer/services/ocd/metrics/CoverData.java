@@ -1,12 +1,9 @@
 package i5.las2peer.services.ocd.metrics;
 
 
-import java.util.LinkedList;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
-
-import com.sun.corba.se.impl.orbutil.graph.Graph;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;

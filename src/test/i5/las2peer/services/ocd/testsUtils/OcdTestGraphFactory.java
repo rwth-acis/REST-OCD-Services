@@ -24,7 +24,6 @@ import java.util.Map;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Node;
-import y.base.NodeCursor;
 
 /**
  * Provides graphs for testing purposes.
