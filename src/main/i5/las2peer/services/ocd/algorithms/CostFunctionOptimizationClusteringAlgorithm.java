@@ -8,10 +8,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.commons.math3.analysis.function.Abs;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
-import org.apache.commons.math3.linear.RealMatrix;
 import org.la4j.matrix.Matrix;
 
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;

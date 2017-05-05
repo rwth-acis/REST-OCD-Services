@@ -19,7 +19,6 @@ import i5.las2peer.services.ocd.preprocessing.TextProcessor;
 import i5.las2peer.services.ocd.utils.DocIndexer;
 import y.base.Edge;
 import y.base.Node;
-import y.base.NodeCursor;
 
 /**
  * A graph input adapter for a node list which includes a content attribute for each node and edges in form of a 

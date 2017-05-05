@@ -10,8 +10,6 @@ import org.apache.commons.math3.linear.ArrayRealVector;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.algorithms.utils.Similarities;
 import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;

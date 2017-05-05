@@ -1,6 +1,5 @@
 package i5.las2peer.services.ocd.preprocessing;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 
 public class StringConverter {
