@@ -48,8 +48,6 @@
 	<property name="ocd.ivy" location="${ocd}/ivy" />
 	<property name="ocd.ivy.dep" location="${ocd.ivy}/ocd_ivy.xml" />	
 	<property name="ocd.bin" location="${ocd}/bin" />
-	<property name="ocd.derby" location="${ocd}/derby" />
-	<property name="ocd.derby.db" location="${ocd.derby}/db" />
 	<property name="ocd.eclipselink" location="${ocd}/eclipselink" />
 	<property name="ocd.eclipselink.persistence" location="${ocd.eclipselink}/persistence.xml" />
 	<property name="ocd.lfr" location="${ocd}/lfr" />
@@ -76,12 +74,10 @@
         </ivy:settings>
         <ivy:resolve file="${ocd.ivy.dep}" type="jar" />
         <ivy:retrieve pattern="${lib}/[artifact]-[revision].[ext]" conf="standard"/>
-        <ivy:retrieve pattern="${lib}/[artifact].[ext]" conf="derby"/>
 	</target>
 	
 	<!-- Initialization (Folder Creation)-->
 	<target name="init" depends="las2peer.init_general, las2peer.init_compile, las2peer.init_jars, las2peer.init_doc, get_deps">
-		<mkdir dir="${ocd.derby}" />
 		<mkdir dir="${ocd.eclipselink}" />
 		<mkdir dir="${ocd.lfr}" />
 		<mkdir dir="${ocd.yGuard}" />
@@ -133,18 +129,12 @@ pause
 	</target>
 	
     <!-- JUnit Testing -->
-    <target name="junit" depends="junit_tests" description="--> execute all junit tests">
-    	<shutdown_database_server/>
+    <target name="junit" depends="junit_tests" description="--> execute all junit tests">    	
     	<antcall target="las2peer.junit_clean">
     	</antcall>
     </target>
-	
-	<target name="init_junit" depends="las2peer.init_junit, compile">
-		<delete dir="${ocd.derby.db}" />
-		<launch_database_server/>
-	</target>
     
-    <target name="junit_tests" depends="init_junit">
+    <target name="junit_tests">
 		<junit fork="no" haltonerror="yes" haltonfailure="yes" printsummary="yes">
 			<classpath>
 				<pathelement path="${tmp.junit}" />
@@ -162,64 +152,7 @@ pause
 				</fileset>
 			</batchtest>
 		</junit>
-    </target>
-	
-	<!-- Database Server Control -->
-	<macrodef name="launch_database_server" >
-		<sequential>
-			<echo>Trying to start database server.
-May fail if the server is already running or the port is otherwise occupied.</echo>
-			<java classname="org.apache.derby.drda.NetworkServerControl" classpathref="libraries" dir="${ocd.derby}" fork="true" spawn="true">
-				<arg line="'start' '-h' '${database.server}' '-p' '${database.port}'" />
-			</java>
-			<waitfor maxwait="5" maxwaitunit="second">
-				<socket server="${database.server}" port="${database.port}" />
-			</waitfor>
-		</sequential>
-	</macrodef>
-
-	<macrodef name="shutdown_database_server">
-		<sequential>
-			<echo>Trying to shutdown database server.
-May fail if the server is not running.</echo>
-			<java classname="org.apache.derby.drda.NetworkServerControl" classpathref="libraries">
-				<arg line="'shutdown' '-h' '${database.server}' '-p' '${database.port}' '-user' '${database.user}' '-password' '${database.password}'" />
-			</java>
-			<waitfor maxwait="5" maxwaitunit="second">
-				<not>
-					<socket server="${database.server}" port="${database.port}" />
-				</not>
-			</waitfor>
-		</sequential>
-	</macrodef>
-	
-	<!-- Database Initialization -->
-	<target name="setup_database" depends="las2peer.init_junit, compile" description="--> execute DatabaseInitializer">
-		<delete dir="${ocd.derby.db}" />
-		<parallel>
-			<launch_database_server/>
-			<sequential>
-				<waitfor maxwait="5" maxwaitunit="second">
-					<socket server="${database.server}" port="${database.port}" />
-				</waitfor>
-				<junit fork="yes" haltonerror="yes" haltonfailure="yes" printsummary="yes">
-					<classpath>
-						<pathelement path="${tmp.classes}" />
-						<pathelement path="${tmp.junit}" />
-						<pathelement path="${lib.junit}" />
-						<path refid="libraries" />
-					</classpath>
-					<formatter type="plain" />
-					<batchtest fork="yes" todir="${junit.report}">
-						<fileset dir="${tmp.junit}">
-							<include name="**/DatabaseInitializer.class" />
-						</fileset>
-					</batchtest>
-				</junit>
-			</sequential>
-		</parallel>
-		<shutdown_database_server/>
-	</target>
+    </target>		
 	
 	<!-- Obfuscates yFiles (i.e., y.jar) -->
 	    <target name="obfuscate" depends="jar" description="--> obfuscate yFiles">  
