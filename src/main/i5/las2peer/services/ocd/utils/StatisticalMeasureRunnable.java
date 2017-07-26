@@ -56,7 +56,8 @@ public class StatisticalMeasureRunnable implements Runnable {
 		 * Set metric state to running.
 		 */
     	RequestHandler requestHandler = new RequestHandler();
-    	EntityManager em = requestHandler.getEntityManager();
+    	EntityHandler entityHandler = new EntityHandler();
+    	EntityManager em = entityHandler.getEntityManager();
     	EntityTransaction tx = em.getTransaction();
 		try {
 			tx.begin();

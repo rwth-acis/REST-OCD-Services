@@ -129,12 +129,16 @@ pause
 	</target>
 	
     <!-- JUnit Testing -->
-    <target name="junit" depends="junit_tests" description="--> execute all junit tests">    	
+    <target name="junit" depends="junit_tests" description="--> execute all junit tests">    
     	<antcall target="las2peer.junit_clean">
     	</antcall>
     </target>
+	
+	<target name="init_junit" depends="las2peer.init_junit, compile">
+		
+	</target>
     
-    <target name="junit_tests">
+    <target name="junit_tests" depends="init_junit">
 		<junit fork="no" haltonerror="yes" haltonfailure="yes" printsummary="yes">
 			<classpath>
 				<pathelement path="${tmp.junit}" />
@@ -152,7 +156,7 @@ pause
 				</fileset>
 			</batchtest>
 		</junit>
-    </target>		
+</target>
 	
 	<!-- Obfuscates yFiles (i.e., y.jar) -->
 	    <target name="obfuscate" depends="jar" description="--> obfuscate yFiles">  

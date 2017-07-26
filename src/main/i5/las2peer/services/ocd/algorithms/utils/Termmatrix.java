@@ -22,7 +22,7 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.similarities.DefaultSimilarity;
-import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
@@ -318,7 +318,7 @@ public class Termmatrix {
 		/*RealMatrix u = svd.getU();
 		RealMatrix s = svd.getS();
 		RealMatrix v = svd.getV();*/
-		return (RealMatrix) svd.getU();
+		return svd.getU();
 	}
 	
 	private HashMap<String,HashMap<String,Double>> computeTFIDF(CustomGraph graph){
@@ -333,7 +333,7 @@ public class Termmatrix {
 
 			
 			Path f = new File(indexPath).toPath();
-			IndexReader re = DirectoryReader.open(SimpleFSDirectory.open(f)) ;
+			IndexReader re = DirectoryReader.open(FSDirectory.open(f)) ;
 			
 			
 			for(int k = 0; k < noOfDocs; k++){

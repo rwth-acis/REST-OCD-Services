@@ -85,7 +85,7 @@ public class OmegaIndex implements KnowledgeDrivenMeasure {
 		 */
 		int n = cover.getGraph().nodeCount();
 		int pairsCount = ( n * (n - 1) ) / 2;
-		double unadjustedIndex = 1d / (double) pairsCount * (double) pairsInAgreementCount;
+		double unadjustedIndex = 1d / pairsCount * pairsInAgreementCount;
 		double expectedIndex = calculateExpectedIndex(sharedCommunityCountsAlgo, sharedCommunityCountsTruth, pairsCount);
 		double metricValue = (unadjustedIndex - expectedIndex) / (1 - expectedIndex);
 		return metricValue;

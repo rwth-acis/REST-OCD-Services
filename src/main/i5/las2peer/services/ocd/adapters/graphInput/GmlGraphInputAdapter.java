@@ -26,6 +26,7 @@ import y.io.GMLIOHandler;
  */
 public class GmlGraphInputAdapter extends AbstractGraphInputAdapter {
 	
+	@Override
 	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
 		
 	}

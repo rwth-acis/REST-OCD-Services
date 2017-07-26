@@ -36,6 +36,7 @@ public class WeightedEdgeListGraphInputAdapter extends AbstractGraphInputAdapter
 	public WeightedEdgeListGraphInputAdapter() {
 	}
 	
+	@Override
 	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
 		
 	}

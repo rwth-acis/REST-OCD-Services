@@ -9,6 +9,7 @@ import i5.las2peer.security.UserAgent;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.utils.EntityHandler;
 import i5.las2peer.services.ocd.utils.RequestHandler;
 import i5.las2peer.testing.MockAgentFactory;
 import i5.las2peer.webConnector.WebConnector;
@@ -28,9 +29,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * Example Test Class demonstrating a basic JUnit test structure.
- * 
- * @author Peter de Lange
+ * Test service calls
  * 
  */
 
@@ -54,6 +53,7 @@ public class ServiceTest {
 	private static long AperiodicTwoCommunitiesGraphId;
 	
 	private static RequestHandler requestHandler = new RequestHandler();
+	private static EntityHandler entityHandler = new EntityHandler();
 	
 	/**
 	 * Called before the tests start.
@@ -122,7 +122,7 @@ node.registerReceiver(testService);
 	public static void createGraph(CustomGraph graph) throws AdapterException,
 			FileNotFoundException, ParserConfigurationException {
 		graph.setUserName(testAgent.getLoginName());
-		EntityManager em = requestHandler.getEntityManager();
+		EntityManager em = entityHandler.getEntityManager();
 		EntityTransaction tx = em.getTransaction();
 		try {
 			tx.begin();

@@ -131,10 +131,10 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 				}
 			}
 			for(int j = 0; j < m.getRowDimension(); j++){
-				m.setRowVector(j,(ArrayRealVector) m.getRowVector(j).mapAdd(min));
-				m.setRowVector(j,(ArrayRealVector) m.getRowVector(j).mapMultiply(1000));
+				m.setRowVector(j,m.getRowVector(j).mapAdd(min));
+				m.setRowVector(j,m.getRowVector(j).mapMultiply(1000));
 			}
-			termMat.setMatrix((Array2DRowRealMatrix) m);
+			termMat.setMatrix(m);
 		}
 		Clustering opt = new Clustering();
 		Clustering temp = new Clustering();

@@ -39,6 +39,7 @@ public class SignedModularityMetric implements StatisticalMeasure {
 		return compatibleTypes;
 	}
 
+	@Override
 	public double measure(Cover cover) throws InterruptedException {
 		double metricValue = 0;
 		CustomGraph graph = cover.getGraph();

@@ -2,7 +2,6 @@ package i5.las2peer.services.ocd.preprocessing;
 
 import java.util.Locale;
 
-import org.apache.lucene.analysis.en.PorterStemFilter;
 import org.tartarus.snowball.ext.PorterStemmer;
 
 public class TextProcessor {

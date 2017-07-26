@@ -34,6 +34,7 @@ public Set<GraphType> compatibleGraphTypes() {
 }
 	
 	
+	@Override
 	public double measure(Cover cover) throws InterruptedException {
 		double metricValue = 0;
 		Graph graph = cover.getGraph();

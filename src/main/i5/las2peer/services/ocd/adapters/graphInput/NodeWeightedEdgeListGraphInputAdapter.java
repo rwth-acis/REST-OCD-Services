@@ -38,6 +38,7 @@ public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAda
 	public NodeWeightedEdgeListGraphInputAdapter() {
 	}
 	
+	@Override
 	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
 		
 	}

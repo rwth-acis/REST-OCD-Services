@@ -28,5 +28,6 @@
 		<dependency org="org.hsqldb" name="hsqldb" rev="2.3.4" conf="platform->default" />
 		<dependency org="batik" name="batik" rev="1.5" conf="platform->default" />
 		<dependency org="i5" name="batik" rev="1.0" conf="platform->default" />
+		<dependency org="org.mockito" name="mockito-all" rev="1.9.5" conf="platform->default"/>
     </dependencies>
 </ivy-module>

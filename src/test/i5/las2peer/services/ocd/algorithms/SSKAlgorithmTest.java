@@ -166,7 +166,7 @@ public class SSKAlgorithmTest {
 		 */
 		for(int i=1; i<5; i++) {
 			for(int j=0; j<initialMemberships.columns(); j++) {
-				assertEquals(1d/(double)initialMemberships.columns(), initialMemberships.get(i, j), 0.0001);
+				assertEquals(1d/initialMemberships.columns(), initialMemberships.get(i, j), 0.0001);
 			}
 		}
 		System.out.println("Initial Memberships");

@@ -71,6 +71,7 @@ public class FrustrationMetric implements StatisticalMeasure {
 
 	protected final String WEIGHT_NAME = "weightingParameter";
 
+	@Override
 	public double measure(Cover cover) throws InterruptedException {
 		CustomGraph graph = cover.getGraph();
 		Matrix membership = cover.getMemberships();
