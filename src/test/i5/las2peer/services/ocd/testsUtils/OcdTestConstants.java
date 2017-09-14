@@ -9,12 +9,13 @@ public class OcdTestConstants {
 	public static final String inputFolderPath = "ocd/test/input/";
 	
 	/*
-	 * Graph input filenames
+	 * Graph input filenames 
 	 */
 	public static final String sawmillWeightedEdgeListInputPath = inputFolderPath + "SawmillEdgeList.txt";
 	public static final String sawmillNodeWeightedEdgeListInputPath = inputFolderPath + "SawmillNodeEdgeList.txt";
 	public static final String sawmillUnweightedEdgeListInputPath = inputFolderPath + "SawmillUnweightedEdgeList.txt";
 	public static final String sawmillGraphMlInputPath = inputFolderPath + "SawmillGraphMl.xml";
+	public static final String sawmillAdjacencyMatrixInputPath = inputFolderPath + "SawmillAdjacencyMatrix.txt";
 	public static final String fitnessGraphMlInputPath = inputFolderPath + "fitness_graph_jung.graphml";
 	public static final String siamDmUnweightedEdgeListInputPath = inputFolderPath + "SIAM_DM.txt";
 	public static final String facebookUnweightedEdgeListInputPath = inputFolderPath + "FacebookUnweightedEdgeList.txt";

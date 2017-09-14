@@ -38,13 +38,16 @@ public enum GraphInputFormat {
 	/**
 	 * Format corresponding to the NodeContentListGraphInputAdapter.
 	 */
-	NODE_CONTENT_EDGE_LIST (NodeContentEdgeListGraphInputAdapter.class,5),
-	
+	NODE_CONTENT_EDGE_LIST (NodeContentEdgeListGraphInputAdapter.class,5),	
 	/**
 	 * Format corresponding to the XMLGraphInputAdapter.
 	 */
-	XML (XMLGraphInputAdapter.class, 6);
-
+	XML (XMLGraphInputAdapter.class, 6),
+	/**
+	 * Format corresponding to the XMLGraphInputAdapter.
+	 */
+	ADJACENCY_MATRIX (AdjacencyMatrixGraphInputAdapter.class, 7);
+	
 	/**
 	 * The adapter class corresponding to the format.
 	 */
