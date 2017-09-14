@@ -33,7 +33,6 @@ import org.junit.Test;
  * 
  */
 
-
 public class ServiceTest {
 
 	private static final String HTTP_ADDRESS = "http://127.0.0.1";
@@ -51,10 +50,10 @@ public class ServiceTest {
 	private static long SawmillGraphId;
 	private static long DolphinsGraphId;
 	private static long AperiodicTwoCommunitiesGraphId;
-	
+
 	private static RequestHandler requestHandler = new RequestHandler();
 	private static EntityHandler entityHandler = new EntityHandler();
-	
+
 	/**
 	 * Called before the tests start.
 	 * 
@@ -69,16 +68,17 @@ public class ServiceTest {
 		// start node
 		node = LocalNode.newNode();
 		testAgent = MockAgentFactory.getAdam();
-		testAgent.unlockPrivateKey(testPass); // agent must be unlocked in order to be stored 
+		testAgent.unlockPrivateKey(testPass); // agent must be unlocked in order
+												// to be stored
 		node.storeAgent(testAgent);
 		node.launch();
 
 		// during testing, the specified service version does not matter
-		ServiceAgent testService = ServiceAgent.createServiceAgent(
-				ServiceNameVersion.fromString(ServiceClass.class.getName() + "@1.0"), "a pass");
+		ServiceAgent testService = ServiceAgent
+				.createServiceAgent(ServiceNameVersion.fromString(ServiceClass.class.getName() + "@1.0"), "a pass");
 		testService.unlockPrivateKey("a pass");
 
-node.registerReceiver(testService);
+		node.registerReceiver(testService);
 
 		// start connector
 		logStream = new ByteArrayOutputStream();
@@ -89,11 +89,10 @@ node.registerReceiver(testService);
 		Thread.sleep(1000); // wait a second for the connector to become ready
 		testAgent = MockAgentFactory.getAdam();
 
-		
 		/*
 		 * Sets up the database environment for testing.
 		 */
-		
+
 		setupDatabase();
 
 	}
@@ -101,13 +100,11 @@ node.registerReceiver(testService);
 	/*
 	 * Sets up the database environment for testing.
 	 */
-	private static void setupDatabase() throws AdapterException,
-			FileNotFoundException, ParserConfigurationException {
+	private static void setupDatabase() throws AdapterException, FileNotFoundException, ParserConfigurationException {
 		/*
 		 * Set db content
 		 */
-		CustomGraph graph = OcdTestGraphFactory
-				.getAperiodicTwoCommunitiesGraph();
+		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		createGraph(graph);
 		AperiodicTwoCommunitiesGraphId = graph.getId();
 		graph = OcdTestGraphFactory.getDolphinsGraph();
@@ -119,14 +116,15 @@ node.registerReceiver(testService);
 	}
 
 	// Persists a graph for database setup.
-	public static void createGraph(CustomGraph graph) throws AdapterException,
-			FileNotFoundException, ParserConfigurationException {
+	public static void createGraph(CustomGraph graph)
+			throws AdapterException, FileNotFoundException, ParserConfigurationException {
 		graph.setUserName(testAgent.getLoginName());
 		EntityManager em = entityHandler.getEntityManager();
 		EntityTransaction tx = em.getTransaction();
 		try {
 			tx.begin();
 			em.persist(graph);
+			em.flush();
 			tx.commit();
 		} catch (RuntimeException e) {
 			if (tx != null && tx.isActive()) {
@@ -174,11 +172,9 @@ node.registerReceiver(testService);
 
 		try {
 			c.setLogin(Long.toString(testAgent.getId()), testPass);
-			ClientResponse result = c.sendRequest("GET", mainPath + "validate",
-					"");
+			ClientResponse result = c.sendRequest("GET", mainPath + "validate", "");
 			assertEquals(200, result.getHttpCode());
-			System.out.println("Result of 'testValidateLogin': "
-					+ result.getResponse().trim());
+			System.out.println("Result of 'testValidateLogin': " + result.getResponse().trim());
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Exception: " + e);
@@ -187,34 +183,83 @@ node.registerReceiver(testService);
 	}
 
 	@Test
-	public void testGetGraph() throws AdapterException, FileNotFoundException {
+	public void testGetGraphMetaXMLFormat() throws AdapterException, FileNotFoundException {
 		MiniClient c = new MiniClient();
 		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
 		try {
 			c.setLogin(Long.toString(testAgent.getId()), testPass);
-			ClientResponse result = c.sendRequest("GET", mainPath + "graphs/"
-					+ SawmillGraphId + "?outputFormat=META_XML", "");
+
+			ClientResponse result = c.sendRequest("GET",
+					mainPath + "graphs/" + SawmillGraphId + "?outputFormat=META_XML", "");
+			System.out.println("Result of 'testGetGraphs' on Sawmill: " + result.getResponse().trim());
 			assertEquals(200, result.getHttpCode());
-			System.out.println("Result of 'testGetGraphs' on Sawmill: "
-					+ result.getResponse().trim());
-			result = c.sendRequest("GET", mainPath + "graphs/" + DolphinsGraphId
-					+ "?outputFormat=META_XML", "");
+
+			result = c.sendRequest("GET", mainPath + "graphs/" + DolphinsGraphId + "?outputFormat=META_XML", "");
+			System.out.println("Result of 'testGetGraphs' on Dolphins: " + result.getResponse().trim());
 			assertEquals(200, result.getHttpCode());
-			System.out.println("Result of 'testGetGraphs' on Dolphins: "
-					+ result.getResponse().trim());
+
 			result = c.sendRequest("GET",
-					mainPath + "graphs/" + AperiodicTwoCommunitiesGraphId
-							+ "?outputFormat=META_XML", "");
+					mainPath + "graphs/" + AperiodicTwoCommunitiesGraphId + "?outputFormat=META_XML", "");
+			System.out.println("Result of 'testGetGraphs' on AperiodicTwoCommunities: " + result.getResponse().trim());
 			assertEquals(200, result.getHttpCode());
-			System.out
-					.println("Result of 'testGetGraphs' on AperiodicTwoCommunities: "
-							+ result.getResponse().trim());
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception: " + e);
+		}
+	}
+
+	@Test
+	public void testGetGraphPropertiesXMLFormat() throws AdapterException, FileNotFoundException {
+		MiniClient c = new MiniClient();
+		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
+		try {
+			c.setLogin(Long.toString(testAgent.getId()), testPass);
+
+			ClientResponse result = c.sendRequest("GET",
+					mainPath + "graphs/" + SawmillGraphId + "?outputFormat=PROPERTIES_XML", "");
+			System.out.println("Result of 'testGetGraphs' on Sawmill: " + result.getResponse().trim());
+			assertEquals(200, result.getHttpCode());
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Exception: " + e);
 		}
 	}
 	
+	@Test
+	public void testGetGraphInvalidID() throws AdapterException, FileNotFoundException {
+		MiniClient c = new MiniClient();
+		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
+		try {
+			c.setLogin(Long.toString(testAgent.getId()), testPass);
+
+			ClientResponse result = c.sendRequest("GET", mainPath + "graphs/" + 999 + "?outputFormat=META_XML", "");
+			System.out.println("Result of 'testGetGraphs' on Sawmill: " + result.getResponse().trim());
+			assertEquals(400, result.getHttpCode());
+
+			result = c.sendRequest("GET", mainPath + "graphs/" + -4 + "?outputFormat=META_XML", "");
+			System.out.println("Result of 'testGetGraphs' on Sawmill: " + result.getResponse().trim());
+			assertEquals(400, result.getHttpCode());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception: " + e);
+		}
+	}
 	
+	@Test
+	public void testGetEnumListingProperties() throws AdapterException, FileNotFoundException {
+		MiniClient c = new MiniClient();
+		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
+		try {
+			c.setLogin(Long.toString(testAgent.getId()), testPass);
+			ClientResponse result = c.sendRequest("GET", mainPath + "graphs/properties", "");
+			assertEquals(200, result.getHttpCode());
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception: " + e);
+		}
+	}
 
 }

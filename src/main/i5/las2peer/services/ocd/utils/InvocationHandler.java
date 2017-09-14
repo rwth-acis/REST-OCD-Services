@@ -36,9 +36,10 @@ public class InvocationHandler {
 	public List<List<Integer>> getAdjList(CustomGraph graph) {
 
 		int size = graph.nodeCount();
-		List<List<Integer>> adjList = new ArrayList<>(size);
+		List<List<Integer>> adjList = new ArrayList<>(size+1);
+		adjList.add(0, new ArrayList<Integer>());
 		
-		for (int i = 0; i < size; i++) {
+		for (int i = 1; i <= size; i++) {
 			List<Integer> list = new ArrayList<>();
 			adjList.add(i, list);
 		}

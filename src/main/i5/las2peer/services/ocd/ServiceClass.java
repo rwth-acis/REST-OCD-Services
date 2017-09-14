@@ -27,6 +27,7 @@ import i5.las2peer.services.ocd.graphs.GraphCreationLog;
 import i5.las2peer.services.ocd.graphs.GraphCreationType;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
 import i5.las2peer.services.ocd.metrics.OcdMetricFactory;
@@ -678,8 +679,6 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
-
-	
 		
 		//////////////////////////////////////////////////////////////////////////
 		//////////// COVERS
@@ -1991,7 +1990,28 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
+		
+		/**
+		 * Returns all graph properties.
+		 * 
+		 * @return The property types in a names xml. Or an error xml.
+		 */
+		@GET
+		@Path("graphs/properties")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(value = "Graph Property information", notes = "Returns all graph property names.")
+		public Response getProperties() {
+			try {
+				return Response.ok(requestHandler.writeEnumNames(GraphProperty.class)).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
 
+		}
+		
 		/**
 		 * Returns all cover output format names.
 		 * 
@@ -2090,8 +2110,8 @@ public class ServiceClass extends RESTService {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
-
 		}
+					
 
 	}
 
@@ -2127,8 +2147,8 @@ public class ServiceClass extends RESTService {
 
 		Integer nodeCount = graph.nodeCount();
 		Integer edgeCount = graph.edgeCount();
-		Boolean directed = graph.getTypes().contains(GraphType.DIRECTED);
-		Boolean weighted = graph.getTypes().contains(GraphType.WEIGHTED);
+		Boolean directed = graph.isDirected();
+		Boolean weighted = graph.isWeighted();
 		String name = graph.getName();
 
 		InvocationHandler invocationHandler = new InvocationHandler();

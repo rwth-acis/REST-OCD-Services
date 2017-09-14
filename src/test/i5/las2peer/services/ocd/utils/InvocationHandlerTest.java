@@ -19,6 +19,7 @@ import org.la4j.matrix.dense.Basic2DMatrix;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.properties.CustomGraphProperties;
 import y.base.Node;
 
 public class InvocationHandlerTest {
@@ -37,47 +38,7 @@ public class InvocationHandlerTest {
 
 	long graphId;
 	long coverId;
-	
-	@AfterClass
-	public static void clearDatabase() {
-
-		EntityManager em = factory.createEntityManager();
-		EntityTransaction etx = em.getTransaction();
-		etx.begin();
-		Query EdgeQuery = em.createQuery("DELETE FROM CustomEdge", CustomGraph.class);
-		EdgeQuery.executeUpdate();
-		Query memberQuery = em.createQuery("DELETE FROM Community", CustomGraph.class);
-		memberQuery.executeUpdate();
-		Query NodeQuery = em.createQuery("DELETE FROM CustomNode", CustomGraph.class);
-		NodeQuery.executeUpdate();
-		Query CoverQuery = em.createQuery("DELETE FROM Cover", CustomGraph.class);
-		CoverQuery.executeUpdate();
-		Query GraphQuery = em.createQuery("DELETE FROM CustomGraph", CustomGraph.class);
-		GraphQuery.executeUpdate();
-		etx.commit();
-	}
-
-	public void persistEntities() {
-
-		EntityManager em = factory.createEntityManager();
-		EntityTransaction tx = em.getTransaction();
-		try {
-			tx.begin();
-			em.persist(graph);
-			em.flush();
-			graphId = graph.getId();
-			em.persist(cover);
-			em.flush();
-			coverId = cover.getId();
-			tx.commit();
-		} catch (RuntimeException ex) {
-			if (tx != null && tx.isActive())
-				tx.rollback();
-			throw ex;
-		}
-		em.close();
-	}
-
+		
 	@Before
 	public void setUp() {
 
@@ -91,7 +52,7 @@ public class InvocationHandlerTest {
 		nodes = new ArrayList<>(4);
 		for (int i = 0; i < 4; i++) {
 			nodes.add(i, graph.createNode());
-			graph.setNodeName(nodes.get(i), String.valueOf(i));
+			graph.setNodeName(nodes.get(i), String.valueOf(i + 1));
 		}
 
 		graph.createEdge(nodes.get(0), nodes.get(1));
@@ -107,63 +68,30 @@ public class InvocationHandlerTest {
 	@Test
 	public void getAdjListTest() {
 
-		Node node0 = nodes.get(0);
-		Node node1 = nodes.get(1);
-		Node node2 = nodes.get(2);
-		Node node3 = nodes.get(3);
+		Node node1 = nodes.get(0);
+		Node node2 = nodes.get(1);
+		Node node3 = nodes.get(2);
+		Node node4 = nodes.get(3);
 
-		assertEquals("0", graph.getNodeName(node0));
 		assertEquals("1", graph.getNodeName(node1));
 		assertEquals("2", graph.getNodeName(node2));
 		assertEquals("3", graph.getNodeName(node3));
+		assertEquals("4", graph.getNodeName(node4));
 
 		List<List<Integer>> adjList;
 
 		adjList = invocationHandler.getAdjList(graph);
 		assertNotNull(adjList);
-		assertEquals(4, adjList.size());
-		assertEquals(1, adjList.get(0).size());
-		assertEquals(2, adjList.get(1).size());
-		assertEquals(0, adjList.get(2).size());
-		assertEquals(1, adjList.get(3).size());
+		assertEquals(5, adjList.size());
+		assertEquals(1, adjList.get(1).size());
+		assertEquals(2, adjList.get(2).size());
+		assertEquals(0, adjList.get(3).size());
+		assertEquals(1, adjList.get(4).size());
 
-		assertTrue(adjList.get(0).contains(1));
 		assertTrue(adjList.get(1).contains(2));
-		assertTrue(adjList.get(1).contains(3));
-		assertTrue(adjList.get(3).contains(2));
-	}
-
-	@Test
-	public void persistenceAdjListTest() {
-
-		clearDatabase();
-		persistEntities();
-
-		CustomGraph entityGraph = null;
-		EntityHandler entityHandler = new EntityHandler();
-		try {
-			entityGraph = entityHandler.getGraph("eve", graphId);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		assertNotNull(entityGraph);
-		assertEquals(graph.getId(), entityGraph.getId());
-		
-		List<List<Integer>> adjList;
-		adjList = invocationHandler.getAdjList(entityGraph);
-		assertNotNull(adjList);
-
-		assertEquals(4, adjList.size());
-		assertEquals(1, adjList.get(0).size());
-		assertEquals(2, adjList.get(1).size());
-		assertEquals(0, adjList.get(2).size());
-		assertEquals(1, adjList.get(3).size());
-		
-		assertTrue(adjList.get(0).contains(1));
-		assertTrue(adjList.get(1).contains(2));
-		assertTrue(adjList.get(1).contains(3));
-		assertTrue(adjList.get(3).contains(2));
-
+		assertTrue(adjList.get(2).contains(3));
+		assertTrue(adjList.get(2).contains(4));
+		assertTrue(adjList.get(4).contains(3));
 	}
 	
 	@Test
@@ -194,50 +122,16 @@ public class InvocationHandlerTest {
 		assertEquals(3, memberLists.size());
 
 		assertEquals(2, memberLists.get(0).size());
-		assertTrue(memberLists.get(0).contains(0));
 		assertTrue(memberLists.get(0).contains(1));
-		assertFalse(memberLists.get(0).contains(2));
+		assertTrue(memberLists.get(0).contains(2));
 		assertFalse(memberLists.get(0).contains(3));
+		assertFalse(memberLists.get(0).contains(4));
 
-		assertFalse(memberLists.get(1).contains(0));
-		assertTrue(memberLists.get(1).contains(1));
+		assertFalse(memberLists.get(1).contains(1));
 		assertTrue(memberLists.get(1).contains(2));
 		assertTrue(memberLists.get(1).contains(3));
-		
-		//// after persistence
-		
-		clearDatabase();
-		persistEntities();
-
-		CustomGraph entityGraph = null;
-		Cover entityCover = null;
-		EntityHandler entityHandler = new EntityHandler();
-		try {
-			entityGraph = entityHandler.getGraph("eve", graphId);
-			entityCover = entityHandler.getCover("eve", coverId, graphId);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		assertNotNull(entityGraph);
-		assertEquals(graph.getId(), entityGraph.getId());
-		assertNotNull(entityCover);
-		assertEquals(cover.getId(), entityCover.getId());
-		
-		memberLists = invocationHandler.getCommunityMemberList(entityCover);
-		assertNotNull(memberLists);
-		assertEquals(3, memberLists.size());
-
-		assertEquals(2, memberLists.get(0).size());
-		assertTrue(memberLists.get(0).contains(0));
-		assertTrue(memberLists.get(0).contains(1));
-		assertFalse(memberLists.get(0).contains(2));
-		assertFalse(memberLists.get(0).contains(3));
-
-		assertFalse(memberLists.get(1).contains(0));
-		assertTrue(memberLists.get(1).contains(1));
-		assertTrue(memberLists.get(1).contains(2));
-		assertTrue(memberLists.get(1).contains(3));
-
+		assertTrue(memberLists.get(1).contains(4));
+				
 	}
 
 	

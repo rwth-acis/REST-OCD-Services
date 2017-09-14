@@ -26,8 +26,11 @@ public enum GraphOutputFormat {
 	/**
 	 * Format corresponding to the MetaXmlGraphOutputAdapter.
 	 */
-	META_XML (MetaXmlGraphOutputAdapter.class, 2);
-	
+	META_XML (MetaXmlGraphOutputAdapter.class, 2),
+	/**
+	 * Format corresponding to the PropertiesXMLGraphOutputAdapter.
+	 */
+	PROPERTIES_XML (PropertiesXmlGraphOutputAdapter.class, 3);
 	/**
 	 * The adapter class corresponding to the format.
 	 */

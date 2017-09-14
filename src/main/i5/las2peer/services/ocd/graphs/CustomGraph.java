@@ -11,7 +11,9 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -29,6 +31,8 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
+import i5.las2peer.services.ocd.graphs.properties.CustomGraphProperties;
+import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.GraphListener;
@@ -130,8 +134,7 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * The covers based on this graph.
 	 */
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = {
-			CascadeType.ALL } /* , fetch=FetchType.LAZY */)
+	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
 	private List<Cover> covers = new ArrayList<Cover>();
 
 	///////////////////// THE FOLLOWING ATTRIBUTES ARE MAINTAINED AUTOMATICALLY
@@ -141,16 +144,14 @@ public class CustomGraph extends Graph2D {
 	 * Mapping from fix node ids to custom nodes for additional node data and
 	 * persistence.
 	 */
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = {
-			CascadeType.ALL } /* , fetch=FetchType.LAZY */)
+	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
 	@MapKeyColumn(name = idNodeMapKeyColumnName)
 	private Map<Integer, CustomNode> customNodes = new HashMap<Integer, CustomNode>();
 	/*
 	 * Mapping from fix edge ids to custom nodes for additional edge data and
 	 * persistence.
 	 */
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = {
-			CascadeType.ALL } /* , fetch=FetchType.LAZY */)
+	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
 	@MapKeyColumn(name = idEdgeMapKeyColumnName)
 	private Map<Integer, CustomEdge> customEdges = new HashMap<Integer, CustomEdge>();
 	/*
@@ -181,6 +182,9 @@ public class CustomGraph extends Graph2D {
 
 	@Transient
 	private Termmatrix termMatrix = new Termmatrix();
+
+	@Embedded
+	private CustomGraphProperties properties;
 
 	//////////////////////////////////////////////////////////////////
 	///////// Constructor
@@ -410,6 +414,8 @@ public class CustomGraph extends Graph2D {
 		return this.creationMethod;
 	}
 
+	////////// Graph Types //////////
+
 	/**
 	 * States whether the graph is of a certain type.
 	 * 
@@ -459,6 +465,20 @@ public class CustomGraph extends Graph2D {
 			types.add(GraphType.lookupType(id));
 		}
 		return types;
+	}
+
+	/**
+	 * @return true if the graph is directed
+	 */
+	public boolean isDirected() {
+		return isOfType(GraphType.DIRECTED);
+	}
+
+	/**
+	 * @return true if the graph is weighted
+	 */
+	public boolean isWeighted() {
+		return isOfType(GraphType.WEIGHTED);
 	}
 
 	/**
@@ -516,6 +536,7 @@ public class CustomGraph extends Graph2D {
 	}
 
 	/////////// node degree //////////
+
 	/**
 	 * Returns weighted in-degree, i.e. the sum of the weights of all incoming
 	 * edges of a node.
@@ -1055,6 +1076,27 @@ public class CustomGraph extends Graph2D {
 			incidentOutEdges.next();
 		}
 		return negativeOutEdges;
+	}	
+	
+	/**	 
+	 * Returns a specific graph property
+	 *  
+	 * @param the requested property
+	 * 
+	 * @return the graph property
+	 * 
+	 */
+	public double getProperty(GraphProperty property) {
+		return this.properties.getProperty(property);
+	}
+
+	
+	/**	 
+	 * Initialize the properties
+	 * 
+	 */
+	protected void initProperties() {
+		this.properties = new CustomGraphProperties(this);
 	}
 
 	////////////////// THE FOLLOWING METHODS ARE ONLY OF INTERNAL PACKAGE USE
@@ -1219,12 +1261,15 @@ public class CustomGraph extends Graph2D {
 		this.addGraphListener(new CustomGraphListener());
 	}
 
-	@PrePersist
-	@PreUpdate
-	/*
+
+	/**
 	 * PrePersist Method. Writes the attributes of nodes and edges into their
 	 * corresponding custom nodes and edges.
+	 * 
+	 * Makes sure the Graph Properties are up-to-date.
 	 */
+	@PrePersist
+	@PreUpdate
 	protected void prePersist() {
 		NodeCursor nodes = this.nodes();
 		while (nodes.ok()) {
@@ -1238,6 +1283,7 @@ public class CustomGraph extends Graph2D {
 			this.getCustomEdge(edge).update(this, edge);
 			edges.next();
 		}
+		initProperties();
 	}
 
 }
