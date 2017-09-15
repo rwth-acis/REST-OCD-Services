@@ -8,8 +8,17 @@ import y.base.Node;
 import y.base.NodeCursor;
 import y.base.NodeList;
 
-public class ClusteringCoefficient extends CustomGraphProperty {
-
+/**
+ * This class handles the clustering coefficient computation of a CustomGraph.
+ */
+public class ClusteringCoefficient extends GraphPropertyAbstract {
+	
+	/**
+	 * Returns the clustering coefficient of a CustomGraph
+	 * 
+	 * @param graph the CustomGraph
+	 * @return the clustering coefficient
+	 */
 	@Override
 	public double calculate(CustomGraph graph) {
 		
@@ -20,18 +29,8 @@ public class ClusteringCoefficient extends CustomGraphProperty {
 		int nodeId = 0;
 		for (NodeCursor nc = graph.nodes(); nc.ok(); nc.next()) {
 			Node node = nc.node();
-			NodeList nodeNeighbours = GraphConnectivity.getNeighbors(graph, new NodeList(node), 1);
-			int links = 0;
-			for (NodeCursor outerNodeCursor = nodeNeighbours.nodes(); outerNodeCursor.ok(); outerNodeCursor.next()) {
-				Node neighbour = outerNodeCursor.node();
-				for (EdgeCursor ec = neighbour.outEdges(); ec.ok(); ec.next()) {
-					Edge edge = ec.edge();
-					if (nodeNeighbours.contains(edge.target()))
-						links++;
-				}
-			}
-
-			localClusterings[nodeId] = calculateLocalClusteringCoefficient(graph.isDirected(), links, node.degree());
+			localClusterings[nodeId] = calculateLocal(node, graph);
+			nodeId++;
 		}
 
 		double max = 0;
@@ -42,17 +41,66 @@ public class ClusteringCoefficient extends CustomGraphProperty {
 
 		return (max / length);
 	}
-
-	protected double calculateLocalClusteringCoefficient(boolean directed, int links, int degree) {
+	
+	
+	/**
+	 *  * Returns the local clustering coefficient of a node
+	 *  	 
+	 * @param node
+	 * @param graph
+	 * @return the local clustering coefficient 
+	 */
+	protected double calculateLocal(Node node, CustomGraph graph) {
+		
+		NodeList nodeNeighbours = GraphConnectivity.getNeighbors(graph, new NodeList(node), 1);
+		int links = 0;
+		for (NodeCursor outerNodeCursor = nodeNeighbours.nodes(); outerNodeCursor.ok(); outerNodeCursor.next()) {
+			Node neighbour = outerNodeCursor.node();
+			for (EdgeCursor ec = neighbour.outEdges(); ec.ok(); ec.next()) {
+				Edge edge = ec.edge();
+				if (nodeNeighbours.contains(edge.target()))
+					links++;
+			}
+		}
+		
+		int degree = node.degree() / 2;
+		if(graph.isDirected())
+			return localDirected(links, degree);
+		
+		return localUndirected(links / 2, degree);
+	}
+	
+	/**
+	 * Returns the local clustering coefficient of a node in a undirected graph
+	 * 
+	 * @param links the number of connected neighbours 
+	 * @param degree the degree of a node
+	 * @return
+	 */
+	protected double localUndirected(int links, int degree) {
 
 		if (degree <= 1)
-			return 0;
+			return 0;		
 
-		if (directed)
-			return (double) links / (degree * (degree - 1));
-
-		return (double) 2 * links / (degree * (degree - 1));
+		return links / (0.5 * degree * (degree - 1));
 
 	}
+	
+	/**
+	 * Returns the local clustering coefficient of a node in a directed graph
+	 * 
+	 * @param links the number of connected neighbours 
+	 * @param degree the degree of a node
+	 * @return
+	 */
+	protected double localDirected(int links, int degree) {
+
+		if (degree <= 1)
+			return 0;		
+
+		return (double) links / (degree * (degree - 1));
+
+	}
+	
 
 }

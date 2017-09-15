@@ -11,7 +11,6 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -31,7 +30,7 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
-import i5.las2peer.services.ocd.graphs.properties.CustomGraphProperties;
+import i5.las2peer.services.ocd.graphs.properties.GraphPropertyAbstract;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -116,13 +115,19 @@ public class CustomGraph extends Graph2D {
 	// @Version
 	// @Column(name = lastUpdateColumnName)
 	// private Timestamp lastUpdate;
-
+	
 	/**
 	 * The graph's types.
 	 */
 	@ElementCollection
 	private Set<Integer> types = new HashSet<Integer>();
 
+	/**
+	 * The graph's properties.
+	 */
+	@ElementCollection
+	private List<Double> properties;
+	
 	/**
 	 * The log for the benchmark model the graph was created by.
 	 */
@@ -183,8 +188,6 @@ public class CustomGraph extends Graph2D {
 	@Transient
 	private Termmatrix termMatrix = new Termmatrix();
 
-	@Embedded
-	private CustomGraphProperties properties;
 
 	//////////////////////////////////////////////////////////////////
 	///////// Constructor
@@ -1078,6 +1081,16 @@ public class CustomGraph extends Graph2D {
 		return negativeOutEdges;
 	}	
 	
+	////////// properties ////////
+	
+	/** 
+	 * @return properties list
+	 */
+	public List<Double> getProperties() {
+		return this.properties;
+	}
+	
+	
 	/**	 
 	 * Returns a specific graph property
 	 *  
@@ -1087,17 +1100,26 @@ public class CustomGraph extends Graph2D {
 	 * 
 	 */
 	public double getProperty(GraphProperty property) {
-		return this.properties.getProperty(property);
+		return getProperties().get(property.getId());
 	}
-
 	
 	/**	 
 	 * Initialize the properties
 	 * 
 	 */
-	protected void initProperties() {
-		this.properties = new CustomGraphProperties(this);
-	}
+	protected void initializeProperties() {
+		
+		this.properties = new ArrayList<>(GraphProperty.size());
+		for (int i = 0; i < GraphProperty.size(); i++) {
+			GraphPropertyAbstract property = null;
+			try {
+				property = GraphProperty.lookupProperty(i).getPropertyClass().newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
+			this.properties.add(i, property.calculate(this));
+		}
+	}	
 
 	////////////////// THE FOLLOWING METHODS ARE ONLY OF INTERNAL PACKAGE USE
 	////////////////// AND FOR PERSISTENCE PURPOSES
@@ -1283,7 +1305,8 @@ public class CustomGraph extends Graph2D {
 			this.getCustomEdge(edge).update(this, edge);
 			edges.next();
 		}
-		initProperties();
+		
+		initializeProperties();
 	}
 
 }

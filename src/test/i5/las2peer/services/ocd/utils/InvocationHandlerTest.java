@@ -5,13 +5,8 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
-import javax.persistence.Query;
-
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
@@ -19,7 +14,6 @@ import org.la4j.matrix.dense.Basic2DMatrix;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.properties.CustomGraphProperties;
 import y.base.Node;
 
 public class InvocationHandlerTest {

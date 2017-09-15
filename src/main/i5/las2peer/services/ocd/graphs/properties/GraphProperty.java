@@ -2,9 +2,10 @@ package i5.las2peer.services.ocd.graphs.properties;
 
 import java.security.InvalidParameterException;
 
-import i5.las2peer.services.ocd.metrics.OcdMetric;
-import i5.las2peer.services.ocd.metrics.OcdMetricType;
-
+/**
+ * This enum contains all computable graph properties.
+ *
+ */
 public enum GraphProperty {
 
 	DENSITY(Density.class, 0),
@@ -20,7 +21,7 @@ public enum GraphProperty {
 	/**
 	 * The class corresponding to the property.
 	 */
-	private final Class<? extends CustomGraphProperty> propertyClass;
+	private final Class<? extends GraphPropertyAbstract> propertyClass;
 
 	/**
 	 * Creates a new instance.
@@ -30,7 +31,7 @@ public enum GraphProperty {
 	 * @param id
 	 *            Defines the id attribute.
 	 */
-	GraphProperty(Class<? extends CustomGraphProperty> propertyClass, int id) {
+	GraphProperty(Class<? extends GraphPropertyAbstract> propertyClass, int id) {
 
 		this.id = id;
 		this.propertyClass = propertyClass;
@@ -40,7 +41,7 @@ public enum GraphProperty {
 	 * Returns the CustomGraphProperty subclass corresponding to the type.
 	 * @return The corresponding class.
 	 */
-	public Class<? extends CustomGraphProperty> getPropertyClass() {
+	public Class<? extends GraphPropertyAbstract> getPropertyClass() {
 		return this.propertyClass;
 	}
 	

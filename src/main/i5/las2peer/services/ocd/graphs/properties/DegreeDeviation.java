@@ -6,8 +6,17 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import y.base.Node;
 import y.base.NodeCursor;
 
-public class DegreeDeviation extends CustomGraphProperty {
-
+/**
+ * This class handles the degree deviation computation of a CustomGraph.
+ */
+public class DegreeDeviation extends GraphPropertyAbstract {
+	
+	/**
+	 * Returns the degree deviation of a CustomGraph
+	 * 
+	 * @param graph the CustomGraph
+	 * @return the degree deviation
+	 */
 	@Override
 	public double calculate(CustomGraph graph) {
 
@@ -17,14 +26,22 @@ public class DegreeDeviation extends CustomGraphProperty {
 		double[] degrees = new double[graph.nodeCount()];
 		int nodeId = 0;
 		for (NodeCursor nc = graph.nodes(); nc.ok(); nc.next()) {
-			Node node = nc.node();
-			degrees[nodeId] = node.degree();
+			Node node = nc.node();			
+			if(graph.isDirected()) {
+				degrees[nodeId] = node.degree();
+			} else {
+				degrees[nodeId] = node.degree() / 2;
+			}
 			nodeId++;
 		}
 		return calculate(degrees);
 
 	}
 
+	/**
+	 * @param values degree values of nodes
+	 * @return degree deviation
+	 */
 	protected double calculate(double[] values) {
 
 		if (values == null)

@@ -57,10 +57,10 @@ public class AverageDegreeTest {
 	public void initialize() {
 				
 		Mockito.when(graph.nodeCount()).thenReturn(4);
-		Mockito.when(graph.edgeCount()).thenReturn(7);
+		Mockito.when(graph.edgeCount()).thenReturn(8);
 				
 		property.calculate(graph);
-		Mockito.verify(property, Mockito.times(1)).calculate(4, 7);
+		Mockito.verify(property, Mockito.times(1)).calculate(4, 8);
 	}
 	
 }

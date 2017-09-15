@@ -2,8 +2,17 @@ package i5.las2peer.services.ocd.graphs.properties;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
-public class Density extends CustomGraphProperty {
-
+/**
+ * This class handles the density computation of a CustomGraph.
+ */
+public class Density extends GraphPropertyAbstract {
+	
+	/**
+	 * Returns the density of a CustomGraph
+	 * 
+	 * @param graph the CustomGraph
+	 * @return the density
+	 */
 	@Override
 	public double calculate(CustomGraph graph) {
 		
@@ -13,6 +22,11 @@ public class Density extends CustomGraphProperty {
 		return calculate(graph.nodeCount(), graph.edgeCount());
 	}
 	
+	/**
+	 * @param nodes number of nodes
+	 * @param edges number of edges
+	 * @return density
+	 */
 	public double calculate(int nodes, int edges) {
 
 		if (nodes < 2 || edges < 0)
