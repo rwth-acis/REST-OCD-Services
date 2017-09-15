@@ -234,7 +234,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 			}
 			else {
 				for(int i=0; i<memberships.columns(); i++) {
-					memberships.set(node.index(), i, 1d / (double)communityCount);
+					memberships.set(node.index(), i, 1d / communityCount);
 				}
 			}
 			nodes.next();

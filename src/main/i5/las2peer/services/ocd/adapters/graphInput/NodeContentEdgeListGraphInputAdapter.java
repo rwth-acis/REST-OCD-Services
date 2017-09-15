@@ -55,6 +55,7 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 		this.reader = reader;
 	}
 	
+	@Override
 	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
 		SimpleDateFormat df = new SimpleDateFormat ("yyyy-MM-dd");
 		

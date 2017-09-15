@@ -239,9 +239,9 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 				if (graph.getPositiveInDegree(node) - Math.abs(graph.getNegativeInDegree(node)) < 0) {
 					effectiveDegreeValue = 0;
 				} else {
-					effectiveDegreeValue = (double) (graph.getPositiveInDegree(node)
+					effectiveDegreeValue = (graph.getPositiveInDegree(node)
 							- Math.abs(graph.getNegativeInDegree(node)))
-							/ (double) (graph.getPositiveInDegree(node) + Math.abs(graph.getNegativeInDegree(node)));
+							/ (graph.getPositiveInDegree(node) + Math.abs(graph.getNegativeInDegree(node)));
 				}
 			} else {
 				effectiveDegreeValue = 0;
@@ -261,8 +261,8 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 		for (int i = 0; i < nodeCount; i++) {
 			leadershipVector.set(i,
 					(1 - disassortativityEffectiveDegreeWeight) * nodeEDandDASS.get(i, 0)
-							+ disassortativityEffectiveDegreeWeight * (double) nodeEDandDASS.get(i, 2)
-									/ (double) nodeEDandDASS.get(i, 1));
+							+ disassortativityEffectiveDegreeWeight * nodeEDandDASS.get(i, 2)
+									/ nodeEDandDASS.get(i, 1));
 		}
 		return leadershipVector;
 	}

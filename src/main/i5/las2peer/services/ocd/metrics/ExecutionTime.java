@@ -36,7 +36,7 @@ public class ExecutionTime {
 	 * @param cover The cover.
 	 */
 	public void setCoverExecutionTime(Cover cover) {
-		OcdMetricLog metric = new OcdMetricLog(OcdMetricType.EXECUTION_TIME, (double)totalTime / 1000d, new HashMap<String, String>(), cover);
+		OcdMetricLog metric = new OcdMetricLog(OcdMetricType.EXECUTION_TIME, totalTime / 1000d, new HashMap<String, String>(), cover);
 		metric.setStatus(ExecutionStatus.COMPLETED);
 		cover.addMetric(metric);
 	}

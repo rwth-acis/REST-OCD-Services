@@ -58,7 +58,8 @@ public class AlgorithmRunnable implements Runnable {
 		CustomGraphId graphId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
     	CoverId id = new CoverId(cover.getId(), graphId);
     	RequestHandler requestHandler = new RequestHandler();
-    	EntityManager em = requestHandler.getEntityManager();
+    	EntityHandler entityHandler = new EntityHandler();
+    	EntityManager em = entityHandler.getEntityManager();
     	EntityTransaction tx = em.getTransaction();
 		try {
 			tx.begin();

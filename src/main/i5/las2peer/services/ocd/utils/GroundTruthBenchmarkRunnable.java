@@ -50,7 +50,8 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 		 * Set algorithm and benchmark status to running.
 		 */
 		RequestHandler requestHandler = new RequestHandler();
-		EntityManager em = requestHandler.getEntityManager();
+		EntityHandler entityHandler = new EntityHandler();
+		EntityManager em = entityHandler.getEntityManager();
 		EntityTransaction tx = em.getTransaction();
 		try {
 			tx.begin();

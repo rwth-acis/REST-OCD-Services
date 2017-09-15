@@ -454,7 +454,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 					}
 					nodeSuccessors.next();
 				}
-				if (profitability / (double) nodeSuccessors.size() > profitabilityThreshold) {
+				if (profitability / nodeSuccessors.size() > profitabilityThreshold) {
 					memberships.put(node, iterationCount);
 				}
 			}

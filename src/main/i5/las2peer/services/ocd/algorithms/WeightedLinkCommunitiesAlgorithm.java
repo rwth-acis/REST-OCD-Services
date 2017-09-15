@@ -262,7 +262,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 				edge = edges.edge();
 				neighbor = edges.edge().opposite(node);
 				linkageDegree = degreeVector.get(neighbor.index());
-				linkageDegree += graph.getEdgeWeight(edge) / (double)node.degree();
+				linkageDegree += graph.getEdgeWeight(edge) / node.degree();
 				degreeVector.set(neighbor.index(), linkageDegree);
 				edges.next();
 			}

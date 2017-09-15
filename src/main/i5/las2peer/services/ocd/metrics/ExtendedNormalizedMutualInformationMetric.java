@@ -82,7 +82,7 @@ public class ExtendedNormalizedMutualInformationMetric implements KnowledgeDrive
 			}
 			arbitraryConditionalEntropy += minParticularConditionalEntropy;
 		}
-		return arbitraryConditionalEntropy / (double)cover1.communityCount();
+		return arbitraryConditionalEntropy / cover1.communityCount();
 	}
 	
 	/*

@@ -107,9 +107,9 @@ public class WordClusteringRefinementAlgorithm implements OcdAlgorithm{
 				}
 			}
 			for(int j = 0; j < m.getRowDimension(); j++){
-				m.setRowVector(j,(ArrayRealVector) m.getRowVector(j).mapAdd(min));
+				m.setRowVector(j,m.getRowVector(j).mapAdd(min));
 			}
-			termMat.setMatrix((Array2DRowRealMatrix) m);
+			termMat.setMatrix(m);
 		}
 		LinkedList<Cluster> resClust = new LinkedList<Cluster>();
 		Cluster[] temp = new Cluster[2];

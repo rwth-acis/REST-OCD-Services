@@ -15,7 +15,7 @@ To configure the test environment use the persistence.xml in the META-INF direct
 	      	<property name="javax.persistence.jdbc.user"     value="ocdUser" />
 			<property name="javax.persistence.jdbc.password" value="ocdPw" />
     	  	<property name="eclipselink.ddl-generation.output-mode" value="both"/>
-	      	<property name="eclipselink.ddl-generation"      value="create-tables" />
+	      	<property name="eclipselink.ddl-generation" value="create-or-extend-tables" />
 		  	<property name="eclipselink.create-ddl-jdbc-file-name" value="ocd/eclipselink/serviceCreateDDL.jdbc"/>
 	      	<property name="eclipselink.drop-ddl-jdbc-file-name" value="ocd/eclipselink/serviceDropDDL.jdbc"/>
 	    </properties>

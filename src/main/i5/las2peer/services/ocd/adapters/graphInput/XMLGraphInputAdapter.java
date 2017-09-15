@@ -50,6 +50,7 @@ public class XMLGraphInputAdapter extends AbstractGraphInputAdapter{
 	
 	private String indexPath = null;
 	
+	@Override
 	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
 		SimpleDateFormat df = new SimpleDateFormat ("yyyy-MM-dd");
 		
@@ -67,6 +68,7 @@ public class XMLGraphInputAdapter extends AbstractGraphInputAdapter{
 		}
 	}
 	
+	@Override
 	public CustomGraph readGraph() throws AdapterException{
 		CustomGraph graph = new CustomGraph();
 		TextProcessor textProc = new TextProcessor();

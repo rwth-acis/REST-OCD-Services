@@ -1,7 +1,11 @@
 package i5.las2peer.services.ocd.graphs;
 
 import static org.junit.Assert.*;
+
+import java.util.List;
+
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 
 import org.junit.Test;
 
@@ -52,5 +56,34 @@ public class CustomGraphTest {
 		assertEquals(5, graph.edgeCount());
 		graph.getEdgeWeight(edge5);
 	}
+	
+	@Test
+	public void testProperties() {
+
+		CustomGraph graph = new CustomGraph();
+		graph.addType(GraphType.DIRECTED);
+		Node n1 = graph.createNode();
+		Node n2 = graph.createNode();
+		Node n3 = graph.createNode();
+		Node n4 = graph.createNode();
+
+		graph.createEdge(n1, n2);
+		graph.createEdge(n2, n3);
+		graph.createEdge(n2, n4);
+		
+		graph.initializeProperties();
+		List<Double> list = graph.getProperties();
+		assertNotNull(list);
+		assertEquals(GraphProperty.values().length, list.size());
+		
+		double result = graph.getProperty(GraphProperty.DENSITY);
+		assertEquals(0.25, result, 0.000001);
+		
+		result = graph.getProperty(GraphProperty.AVERAGE_DEGREE);
+		assertEquals(1.5, result, 0.000001);		
+
+	}
+	
+	
 	
 }

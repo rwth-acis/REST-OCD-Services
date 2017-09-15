@@ -32,6 +32,7 @@ import y.io.graphml.KeyType;
  */
 public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 
+	@Override
 	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
 		
 	}

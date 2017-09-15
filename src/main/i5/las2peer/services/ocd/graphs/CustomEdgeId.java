@@ -39,7 +39,7 @@ public class CustomEdgeId {
  
     @Override
     public int hashCode() {
-        return (int)(id + graph.hashCode());
+        return id + graph.hashCode();
     }
 	
 }
