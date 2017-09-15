@@ -103,15 +103,5 @@
 	<classpathentry kind="lib" path="lib/mockito-all-1.9.5.jar"/>
 	<classpathentry kind="lib" path="lib/batik-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.3.jar"/>
-	<classpathentry kind="lib" path="lib/commons-math3-3.2.jar"/>
-	<classpathentry kind="lib" path="lib/javax.json-1.0.4.jar"/>
-	<classpathentry kind="lib" path="lib/javax.persistence-2.1.1.jar"/>
-	<classpathentry kind="lib" path="lib/jfreechart-1.0.17.jar"/>
-	<classpathentry kind="lib" path="lib/mason.19.jar"/>
-	<classpathentry kind="lib" path="lib/org.eclipse.persistence.antlr-2.6.4.jar"/>
-	<classpathentry kind="lib" path="lib/org.eclipse.persistence.asm-2.6.4.jar"/>
-	<classpathentry kind="lib" path="lib/org.eclipse.persistence.core-2.6.4.jar"/>
-	<classpathentry kind="lib" path="lib/org.eclipse.persistence.jpa-2.6.4.jar"/>
-	<classpathentry kind="lib" path="lib/org.eclipse.persistence.jpa.jpql-2.6.4.jar"/>
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>
