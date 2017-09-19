@@ -313,19 +313,11 @@ public class ServiceClass extends RESTService {
 						processor.makeCompatible(graph, graphTypes);
 					}
 				}
-				EntityManager em = entityHandler.getEntityManager();
-				EntityTransaction tx = em.getTransaction();
 				try {
-					tx.begin();
-					em.persist(graph);
-					tx.commit();
-				} catch (RuntimeException e) {
-					if (tx != null && tx.isActive()) {
-						tx.rollback();
-					}
-					throw e;
+					entityHandler.storeGraph(graph);
+				} catch (Exception e) {
+					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
 				}
-				em.close();
 				return Response.ok(requestHandler.writeId(graph)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -563,32 +555,18 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Specified graph output format does not exist.");
 				}
-				EntityManager em = entityHandler.getEntityManager();
-				CustomGraphId id = new CustomGraphId(graphId, username);
-				EntityTransaction tx = em.getTransaction();
-				CustomGraph graph;
-				try {
-					tx.begin();
-					graph = em.find(CustomGraph.class, id);
-					if (graph == null) {
-						requestHandler.log(Level.WARNING,
-								"user: " + username + ", " + "Graph does not exist: graph id " + graphId);
-						return requestHandler.writeError(Error.PARAMETER_INVALID,
-								"Graph does not exist: graph id " + graphId);
-					}
-					tx.commit();
-				} catch (RuntimeException e) {
-					if (tx != null && tx.isActive()) {
-						tx.rollback();
-					}
-					throw e;
-				}
-				em.close();
+
+				CustomGraph graph = entityHandler.getGraph(username, graphId);					
+				if(graph == null)
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Graph does not exist: graph id " + graphId);
+	
 				return Response.ok(requestHandler.writeGraph(graph, format)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
+
 		}
 
 		/**
@@ -618,68 +596,21 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
 				}
-				EntityManager em = entityHandler.getEntityManager();
-				CustomGraphId id = new CustomGraphId(graphId, username);
-				CustomGraph graph;
-				synchronized (threadHandler) {
-					EntityTransaction tx = em.getTransaction();
-					try {
-						tx.begin();
-						graph = em.find(CustomGraph.class, id);
-						if (graph == null) {
-							requestHandler.log(Level.WARNING,
-									"user: " + username + ", " + "Graph does not exist: graph id " + graphId);
-							return requestHandler.writeError(Error.PARAMETER_INVALID,
-									"Graph does not exist: graph id " + graphId);
-						}
-						tx.commit();
-					} catch (RuntimeException e) {
-						if (tx != null && tx.isActive()) {
-							tx.rollback();
-						}
-						throw e;
-					}
-					threadHandler.interruptBenchmark(id);
-					List<Cover> queryResults;
-					String queryStr = "SELECT c from Cover c" + " JOIN c." + Cover.GRAPH_FIELD_NAME + " g" + " WHERE g."
-							+ CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND g." + CustomGraph.ID_FIELD_NAME
-							+ " = " + graphId;
-					TypedQuery<Cover> query = em.createQuery(queryStr, Cover.class);
-					query.setParameter("username", username);
-					queryResults = query.getResultList();
-					for (Cover cover : queryResults) {
-						threadHandler.interruptAll(cover);
-						tx = em.getTransaction();
-						try {
-							tx.begin();
-							em.remove(cover);
-							tx.commit();
-						} catch (RuntimeException e) {
-							if (tx != null && tx.isActive()) {
-								tx.rollback();
-							}
-							throw e;
-						}
-					}
-					try {
-						tx = em.getTransaction();
-						tx.begin();
-						em.remove(graph);
-						tx.commit();
-					} catch (RuntimeException e) {
-						if (tx != null && tx.isActive()) {
-							tx.rollback();
-						}
-						throw e;
-					}
+
+				try {
+					entityHandler.deleteGraph(username, graphId, threadHandler);
+
+				} catch (Exception e) {
+					return requestHandler.writeError(Error.INTERNAL, "Graph not found");
 				}
+
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
-		
+
 		//////////////////////////////////////////////////////////////////////////
 		//////////// COVERS
 		//////////////////////////////////////////////////////////////////////////
@@ -750,9 +681,10 @@ public class ServiceClass extends RESTService {
 				CustomGraphId id = new CustomGraphId(graphId, username);
 				Cover cover;
 				try {
-					tx.begin();
-					CustomGraph graph = em.find(CustomGraph.class, id);
-					if (graph == null) {
+					CustomGraph graph;
+					try {
+						graph = entityHandler.getGraph(username, graphId);
+					} catch (Exception e) {
 						requestHandler.log(Level.WARNING,
 								"user: " + username + ", " + "Graph does not exist: graph id " + graphId);
 						return requestHandler.writeError(Error.PARAMETER_INVALID,
@@ -1031,77 +963,17 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Cover id is not valid.");
 				}
-				EntityManager em = entityHandler.getEntityManager();
-				CustomGraphId gId = new CustomGraphId(graphId, username);
-				CoverId cId = new CoverId(coverId, gId);
-				/*
-				 * Checks whether cover is being calculated by a ground truth
-				 * benchmark and if so deletes the graph instead.
-				 */
-				EntityTransaction tx = em.getTransaction();
-				Cover cover;
+
 				try {
-					tx.begin();
-					cover = em.find(Cover.class, cId);
-					tx.commit();
-				} catch (RuntimeException e) {
-					if (tx != null && tx.isActive()) {
-						tx.rollback();
-					}
-					throw e;
-				}
-				if (cover == null) {
-					requestHandler.log(Level.WARNING, "user: " + username + ", " + "Cover does not exist: cover id "
-							+ coverId + ", graph id " + graphId);
-					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Cover does not exist: cover id " + coverId + ", graph id " + graphId);
-				}
-				if (cover.getCreationMethod().getType().correspondsGroundTruthBenchmark()
-						&& cover.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
-					return this.deleteGraph(graphIdStr);
-				}
-				/*
-				 * Deletes the cover.
-				 */
-				synchronized (threadHandler) {
-					tx = em.getTransaction();
-					try {
-						tx.begin();
-						cover = em.find(Cover.class, cId);
-						tx.commit();
-					} catch (RuntimeException e) {
-						if (tx != null && tx.isActive()) {
-							tx.rollback();
-						}
-						throw e;
-					}
-					if (cover == null) {
-						requestHandler.log(Level.WARNING, "user: " + username + ", " + "Cover does not exist: cover id "
-								+ coverId + ", graph id " + graphId);
-						return requestHandler.writeError(Error.PARAMETER_INVALID,
-								"Cover does not exist: cover id " + coverId + ", graph id " + graphId);
-					}
-					/*
-					 * Interrupts algorithms and metrics.
-					 */
-					threadHandler.interruptAll(cover);
-					/*
-					 * Removes cover
-					 */
-					tx = em.getTransaction();
-					try {
-						tx.begin();
-						em.remove(cover);
-						tx.commit();
-					} catch (RuntimeException e) {
-						if (tx != null && tx.isActive()) {
-							tx.rollback();
-						}
-						throw e;
-					}
-					em.close();
+					entityHandler.deleteCover(username, coverId, graphId, threadHandler);
 					return Response.ok(requestHandler.writeConfirmationXml()).build();
+				} catch (IllegalArgumentException e) {
+					return requestHandler.writeError(Error.PARAMETER_INVALID, e.getMessage());
+				} catch (Exception e) {
+					requestHandler.log(Level.SEVERE, "", e);
+					return requestHandler.writeError(Error.INTERNAL, "Cover not deleted");
 				}
+
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
@@ -1330,6 +1202,7 @@ public class ServiceClass extends RESTService {
 				coverLog.setStatus(ExecutionStatus.WAITING);
 				cover.setCreationMethod(coverLog);
 				synchronized (threadHandler) {
+
 					EntityTransaction tx = em.getTransaction();
 					try {
 						tx.begin();
@@ -1432,6 +1305,7 @@ public class ServiceClass extends RESTService {
 						return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
 					}
 				}
+
 				EntityManager em = entityHandler.getEntityManager();
 				CustomGraphId gId = new CustomGraphId(graphId, username);
 				CoverId cId = new CoverId(coverId, gId);
@@ -1471,6 +1345,7 @@ public class ServiceClass extends RESTService {
 					}
 					threadHandler.runStatisticalMeasure(log, metric, cover);
 				}
+
 				return Response.ok(requestHandler.writeId(log)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -1990,7 +1865,7 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
-		
+
 		/**
 		 * Returns all graph properties.
 		 * 
@@ -2011,7 +1886,7 @@ public class ServiceClass extends RESTService {
 			}
 
 		}
-		
+
 		/**
 		 * Returns all cover output format names.
 		 * 
@@ -2111,7 +1986,6 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
-					
 
 	}
 
@@ -2162,7 +2036,7 @@ public class ServiceClass extends RESTService {
 		graphData.put("name", name);
 		graphData.put("graph", adjList);
 
-		logger.log(Level.INFO, "RMI requested a graph");
+		logger.log(Level.INFO, "RMI requested a graph: " + graphId);
 		return graphData;
 	}
 
@@ -2211,7 +2085,7 @@ public class ServiceClass extends RESTService {
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 		Cover cover;
 		try {
-			cover = entityHandler.getCover(username, coverId, graphId);
+			cover = entityHandler.getCover(username, graphId, coverId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -2249,28 +2123,15 @@ public class ServiceClass extends RESTService {
 
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 
-		List<Cover> queryResults;
-		EntityManager em = entityHandler.getEntityManager();
-
-		String queryStr = "SELECT c from Cover c" + " JOIN c." + Cover.GRAPH_FIELD_NAME + " g";
-		queryStr += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username";
-		queryStr += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
-
-		queryStr += " GROUP BY c";
-		TypedQuery<Cover> query = em.createQuery(queryStr, Cover.class);
-
-		query.setParameter("username", username);
-		queryResults = query.getResultList();
-		em.close();
-
-		int size = queryResults.size();
+		List<Cover> covers = entityHandler.getCovers(username, graphId);		
+		int size = covers.size();
+		
 		List<Long> coverIds = new ArrayList<>(size);
 		for (int i = 0; i < size; i++) {
-			coverIds.add(queryResults.get(i).getId());
+			coverIds.add(covers.get(i).getId());
 		}
 
 		return coverIds;
-
 	}
 
 }

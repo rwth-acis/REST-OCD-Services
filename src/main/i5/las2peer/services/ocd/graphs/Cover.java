@@ -43,7 +43,7 @@ import y.base.NodeCursor;
 @IdClass(CoverId.class)
 public class Cover {
 
-	/////////////////// DATABASE COLUMN NAMES
+	//////////////////////// DATABASE COLUMN NAMES ////////////////////////
 
 	/*
 	 * Database column name definitions.
@@ -51,11 +51,11 @@ public class Cover {
 	public static final String graphIdColumnName = "GRAPH_ID";
 	public static final String graphUserColumnName = "USER_NAME";
 	private static final String nameColumnName = "NAME";
-	// private static final String descriptionColumnName = "DESCRIPTION";
 	public static final String idColumnName = "ID";
-	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
 	public static final String simCostsColumnName = "SIMILARITYCOSTS";
+	// private static final String descriptionColumnName = "DESCRIPTION";
+	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 
 	/*
 	 * Field name definitions for JPQL queries.
@@ -65,7 +65,7 @@ public class Cover {
 	public static final String METRICS_FIELD_NAME = "metrics";
 	public static final String ID_FIELD_NAME = "id";
 
-	///////////////////////// ATTRIBUTES
+	////////////////////////////// ATTRIBUTES //////////////////////////////
 	/**
 	 * System generated persistence id.
 	 */
@@ -73,6 +73,7 @@ public class Cover {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = idColumnName)
 	private long id;
+
 	/**
 	 * The graph that the cover is based on.
 	 */
@@ -81,22 +82,26 @@ public class Cover {
 	@JoinColumns({ @JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
 			@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName) })
 	private CustomGraph graph = new CustomGraph();
+
 	/**
 	 * The name of the cover.
 	 */
 	@Column(name = nameColumnName)
 	private String name = "";
+
 	// /**
 	// * A description of the cover.
 	// */
 	// @Column(name = descriptionColumnName)
 	// private String description = "";
+
 	// /**
 	// * Last time of modification.
 	// */
 	// @Version
 	// @Column(name = lastUpdateColumnName)
 	// private Timestamp lastUpdate;
+
 	/**
 	 * Logged data about the algorithm that created the cover.
 	 */
@@ -104,22 +109,27 @@ public class Cover {
 	@JoinColumn(name = creationMethodColumnName)
 	private CoverCreationLog creationMethod = new CoverCreationLog(CoverCreationType.UNDEFINED,
 			new HashMap<String, String>(), new HashSet<GraphType>());
+
 	/**
 	 * The communities forming the cover.
 	 */
 	@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade = {
 			CascadeType.ALL } /* , fetch=FetchType.LAZY */)
 	private List<Community> communities = new ArrayList<Community>();
+
 	/**
 	 * The metric logs calculated for the cover.
 	 */
 	@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade = { CascadeType.ALL })
 	private List<OcdMetricLog> metrics = new ArrayList<OcdMetricLog>();
 
+	/**
+	 * The similarity costs calculated for the cover.
+	 */
 	@Column(name = simCostsColumnName)
 	private double simCosts;
 
-	/////////////////////////////////////////// CONSTRUCTORS
+	///////////////////////////// CONSTRUCTORS /////////////////////////////
 
 	/**
 	 * Creates a new instance. Only for persistence purposes.
@@ -156,7 +166,7 @@ public class Cover {
 		setMemberships(memberships, true);
 	}
 
-	/////////////////////////////////////////// GETTER & SETTER
+	//////////////////////////// GETTER & SETTER ////////////////////////////
 
 	/**
 	 * Getter for the id.
@@ -185,6 +195,91 @@ public class Cover {
 	public void setGraph(CustomGraph graph) {
 		this.graph = graph;
 	}
+
+	/**
+	 * Getter for the cover name.
+	 * 
+	 * @return The name.
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * Setter for the cover name.
+	 * 
+	 * @param name
+	 *            The name.
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * Getter for the simulation costs.
+	 * 
+	 * @return The simCost.
+	 */
+	public double getSimCosts() {
+		return this.simCosts;
+	}
+
+	/**
+	 * Setter for the simulation costs.
+	 */
+	public void setSimCosts(double costs) {
+		this.simCosts = costs;
+	}
+
+	/**
+	 * Getter for the cover creation method.
+	 * 
+	 * @return The creation method.
+	 */
+	public CoverCreationLog getCreationMethod() {
+		return creationMethod;
+	}
+
+	/**
+	 * Setter for the cover creation method.
+	 * 
+	 * @param creationMethod
+	 *            The creation method.
+	 */
+	public void setCreationMethod(CoverCreationLog creationMethod) {
+		if (creationMethod != null) {
+			this.creationMethod = creationMethod;
+		} else {
+			this.creationMethod = new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(),
+					new HashSet<GraphType>());
+		}
+	}
+
+	// /**
+	// * Getter for the cover description.
+	// * @return
+	// */
+	// public String getDescription() {
+	// return description;
+	// }
+
+	// /**
+	// * Setter for the cover description.
+	// * @param description
+	// */
+	// public void setDescription(String description) {
+	// this.description = description;
+	// }
+
+	// /**
+	// * Getter for the last update
+	// * @return
+	// */
+	// public Timestamp getLastUpdate() {
+	// return lastUpdate;
+	// }
+
+	///////////////////////////// MEMBERSHIPS /////////////////////////////
 
 	/**
 	 * Getter for the membership matrix representing the community structure.
@@ -275,90 +370,7 @@ public class Cover {
 		setMemberships(memberships, false);
 	}
 
-	/**
-	 * Getter for the cover name.
-	 * 
-	 * @return The name.
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * Setter for the cover name.
-	 * 
-	 * @param name
-	 *            The name.
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	// /**
-	// * Getter for the cover description.
-	// * @return
-	// */
-	// public String getDescription() {
-	// return description;
-	// }
-
-	// /**
-	// * Setter for the cover description.
-	// * @param description
-	// */
-	// public void setDescription(String description) {
-	// this.description = description;
-	// }
-
-	// /**
-	// * Getter for the last update
-	// * @return
-	// */
-	// public Timestamp getLastUpdate() {
-	// return lastUpdate;
-	// }
-
-	/**
-	 * Getter for the simulation costs.
-	 * 
-	 * @return The simCost.
-	 */
-	public double getSimCosts() {
-		return this.simCosts;
-	}
-
-	/**
-	 * Setter for the simulation costs.
-	 */
-	public void setSimCosts(double costs) {
-		this.simCosts = costs;
-	}
-
-	/**
-	 * Getter for the cover creation method.
-	 * 
-	 * @return The creation method.
-	 */
-	public CoverCreationLog getCreationMethod() {
-		return creationMethod;
-	}
-
-	/**
-	 * Setter for the cover creation method.
-	 * 
-	 * @param creationMethod
-	 *            The creation method.
-	 */
-	public void setCreationMethod(CoverCreationLog creationMethod) {
-		if (creationMethod != null) {
-			this.creationMethod = creationMethod;
-		} else {
-			this.creationMethod = new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(),
-					new HashSet<GraphType>());
-		}
-	}
-
-	/////////////////////////////////////////// METRICS
+	//////////////////////////// METRICS ////////////////////////////
 
 	/**
 	 * Getter for the metric logs calculated for the cover.
@@ -421,7 +433,7 @@ public class Cover {
 		this.metrics.remove(metric);
 	}
 
-	/////////////////////////////////////////// COMMUNITIES
+	///////////////////////////// COMMUNITIES /////////////////////////////
 
 	/**
 	 * Returns the community count of the cover.
@@ -430,7 +442,7 @@ public class Cover {
 	 */
 	public int communityCount() {
 		return communities.size();
-	}	
+	}
 
 	/**
 	 * Returns the size (i.e. the amount of members) of a certain community.
@@ -488,7 +500,7 @@ public class Cover {
 	public void setCommunityColor(int communityIndex, Color color) {
 		communities.get(communityIndex).setColor(color);
 	}
-	
+
 	/**
 	 * Returns the indices of all nodes that have a belonging to the community
 	 * 
@@ -497,7 +509,7 @@ public class Cover {
 	public List<Integer> getCommunityMemberIndices(int communityIndex) {
 		return communities.get(communityIndex).getMemberIndices();
 	}
-	
+
 	/**
 	 * Returns the indices of the communities that a node is member of.
 	 * 
@@ -561,7 +573,7 @@ public class Cover {
 		}
 	}
 
-	/////////////////////////////////////////// MEMBERSHIP MATRIX OPERATIONS
+	////////////////////// MEMBERSHIP MATRIX OPERATIONS //////////////////////
 
 	/**
 	 * Normalizes each row of a matrix using the one norm. Note that a unit
