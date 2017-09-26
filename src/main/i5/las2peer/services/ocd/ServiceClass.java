@@ -2,12 +2,11 @@ package i5.las2peer.services.ocd;
 
 import i5.las2peer.api.Context;
 import i5.las2peer.logging.L2pLogger;
+import i5.las2peer.logging.NodeObserver.Event;
 import i5.las2peer.p2p.AgentNotKnownException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.security.Agent;
 import i5.las2peer.security.UserAgent;
-
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
@@ -17,6 +16,14 @@ import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
+import i5.las2peer.services.ocd.cd.data.SimulationEntityHandler;
+import i5.las2peer.services.ocd.cd.data.simulation.MetaData;
+import i5.las2peer.services.ocd.cd.data.simulation.Parameters;
+import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeries;
+import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeriesGroup;
+import i5.las2peer.services.ocd.cd.simulation.SimulationBuilder;
+import i5.las2peer.services.ocd.cd.simulation.dynamic.DynamicType;
+import i5.las2peer.services.ocd.cd.simulation.game.GameType;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
@@ -55,6 +62,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,6 +85,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.QueryParam;
 
 import org.apache.commons.lang3.NotImplementedException;
@@ -111,16 +120,6 @@ public class ServiceClass extends RESTService {
 		setFieldValues();
 	}
 
-	public Long getUserId() {
-		Agent user = getContext().getMainAgent();
-		return user.getId();
-	}
-
-	public String getUserName() throws AgentNotKnownException {
-		UserAgent agent = (UserAgent) Context.getCurrent().getAgent(getUserId());
-		return agent.getLoginName();
-	}
-
 	///////////////////////////////////////////////////////////
 	///// ATTRIBUTES
 	///////////////////////////////////////////////////////////
@@ -142,7 +141,7 @@ public class ServiceClass extends RESTService {
 	/**
 	 * The entity handler used for access stored entities.
 	 */
-	private final static EntityHandler entityHandler = new EntityHandler();
+	private final static SimulationEntityHandler entityHandler = new SimulationEntityHandler();
 
 	/**
 	 * The factory used for creating benchmarks.
@@ -158,6 +157,18 @@ public class ServiceClass extends RESTService {
 	 * The factory used for creating metrics.
 	 */
 	private final static OcdMetricFactory metricFactory = new OcdMetricFactory();
+
+	//////////////////////////////////////////////////////////////////
+	///////// Utility Methods
+	//////////////////////////////////////////////////////////////////
+
+	public static String getUserName() {
+		return ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+	}
+
+	public static long getUserId() {
+		return Context.getCurrent().getMainAgent().getId();
+	}
 
 	//////////////////////////////////////////////////////////////////
 	///////// REST Service Methods
@@ -556,11 +567,11 @@ public class ServiceClass extends RESTService {
 							"Specified graph output format does not exist.");
 				}
 
-				CustomGraph graph = entityHandler.getGraph(username, graphId);					
-				if(graph == null)
+				CustomGraph graph = entityHandler.getGraph(username, graphId);
+				if (graph == null)
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Graph does not exist: graph id " + graphId);
-	
+
 				return Response.ok(requestHandler.writeGraph(graph, format)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -1987,8 +1998,247 @@ public class ServiceClass extends RESTService {
 			}
 		}
 
-	}
+		//////////////////////////////////////////////////////////////////////////
+		//////////// Simulations
+		//////////////////////////////////////////////////////////////////////////
 
+		/**
+		 * Gets all the simulations performed by the user
+		 * 
+		 * @return HttpResponse with the returnString
+		 */
+		@GET
+		@Path("/simulation/")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(value = "GET ALL SIMULATIONS", notes = "Gets all the simulations performed by the user")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getSimulations(Parameters parameters) {
+
+			List<SimulationSeries> series = new ArrayList<>();
+			long userId = getUserId();
+			try {
+
+				series = entityHandler.getSimulationSeriesByUser(userId);
+
+			} catch (Exception e) {
+				L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
+			}
+
+			return Response.ok().entity(series).build();
+
+		}
+
+		@GET
+		@Path("/simulation/meta")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(value = "GET ALL SIMULATIONS", notes = "Gets all the simulations performed by the user")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getSimulationMeta(Parameters parameters) {
+
+			if (parameters == null) {
+				parameters = new Parameters();
+			}
+
+			List<SimulationSeries> simulations = new ArrayList<>();
+			try {
+				simulations = entityHandler.getSimulationSeriesByUser(getUserId());
+
+			} catch (Exception e) {
+				L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
+			}
+			
+			if(simulations == null || simulations.size() < 1)
+				return Response.status(Status.BAD_REQUEST).entity("No simulation series found").build();
+			
+			List<MetaData> metaList = new SimulationSeriesGroup(simulations).getMetaData();
+			return Response.ok().entity(metaList).build();
+
+		}
+
+		/**
+		 * Gets the results of a performed simulation series on a network
+		 * 
+		 * @return HttpResponse with the returnString
+		 */
+		@GET
+		@Path("/simulation/{seriesId}")
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(value = "GET SIMULATION", notes = "Gets the results of a performed simulation")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getSimulation(@PathParam("seriesId") long seriesId) {
+
+			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+			SimulationSeries series = null;
+
+			try {
+				series = entityHandler.getSimulationSeries(seriesId);
+
+				if (series == null)
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + seriesId + " found")
+							.build();
+
+			} catch (Exception e) {
+				logger.log(Level.WARNING, "user: " + username, e);
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
+			}
+
+			return Response.ok().entity(series).build();
+		}
+
+		/**
+		 * Gets the parameters of a simulation
+		 * 
+		 * @return HttpResponse with the returnString
+		 */
+		@GET
+		@Path("/simulation/{seriesId}/parameters")
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(value = "GET SIMULATION PARAMETERS", notes = "Gets the parameters of a simulation")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getSimulationParameters(@PathParam("seriesId") long seriesId) {
+
+			Parameters parameters = null;
+			try {
+				parameters = entityHandler.getSimulationParameters(seriesId);
+			} catch (Exception e) {
+				logger.log(Level.WARNING, "fail to get simulation series parameters");
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series parameters")
+						.build();
+			}
+
+			return Response.ok().entity(parameters).build();
+		}
+
+		/**
+		 * Deletes a performed simulation series on a network
+		 * 
+		 * @return HttpResponse with the returnString
+		 */
+		@DELETE
+		@Path("/simulation/{seriesId}")
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiOperation(value = "DELETE SIMULATION", notes = "Deletes a performed simulation")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response deleteSimulation() {
+
+			return Response.status(Status.NOT_IMPLEMENTED).entity("").build();
+
+		}
+
+		/**
+		 * Starts the simulation of a cooperation and defection game simulation
+		 * 
+		 * @param JSON
+		 * 
+		 * @return HttpResponse with the returnString
+		 */
+		@POST
+		@Path("/simulation")
+		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.APPLICATION_JSON)
+		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		@ApiOperation(value = "POST SIMULATION", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
+		public Response postSimulation(Parameters parameters) {
+
+			String username = getUserName();
+
+			long graphId = parameters.getGraphId();
+			CustomGraph network = entityHandler.getGraph(username, graphId);
+			if (network == null)
+				return Response.status(Status.BAD_REQUEST).entity("graph not found").build();
+
+			if (parameters.getPayoffCC() == 0.0 && parameters.getPayoffCD() == 0.0 && parameters.getPayoffDC() == 0.0
+					&& parameters.getPayoffDD() == 0.0) {
+
+				if (parameters.getBenefit() == 0.0 && parameters.getCost() == 0.0) {
+					return Response.status(Status.BAD_REQUEST).entity("invalid payoff").build();
+				}
+			}
+
+			if (parameters.getDynamic() == null || parameters.getDynamic() == DynamicType.UNKNOWN) {
+				return Response.status(Status.BAD_REQUEST).entity("dynamic does not exist").build();
+			}
+
+			SimulationSeries series = null;
+			try {
+				// Simulation
+				SimulationBuilder simulationBuilder = new SimulationBuilder();
+				simulationBuilder.setParameters(parameters);
+				simulationBuilder.setNetwork(network);
+				series = simulationBuilder.simulate();
+
+			} catch (Exception e) {
+				logger.log(Level.WARNING, "user: " + username, e);
+				e.printStackTrace();
+				return Response.serverError().entity("simulation could not be carried out\n" + e.getMessage()).build();
+			}
+
+			long result;
+			try {
+				result = entityHandler.store(series, getUserId());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return Response.serverError().entity("simulation not stored").build();
+			}
+
+			return Response.ok().entity("simulation done" + result).build();
+		}
+
+		////////////// Information //////////////////
+
+		/**
+		 * Returns all available dynamics
+		 * 
+		 * @return HttpResponse with the returnString
+		 */
+		@GET
+		@Path("/simulation/dynamics")
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(value = "GET Dynamic", notes = "Get all available evolutionary dynamics")
+		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getDynamics() {
+
+			return Response.status(Status.OK).entity(DynamicType.values()).build();
+
+		}
+
+		/**
+		 * Returns all available games
+		 * 
+		 * @return HttpResponse with the returnString
+		 */
+		@GET
+		@Path("/simulation/games")
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(value = "GET Game", notes = "Get all available games")
+		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getGames() {
+
+			return Response.status(Status.OK).entity(GameType.values()).build();
+
+		}
+	}
 	//////////////////////////////////////////////////////////////////
 	///////// RMI Methods
 	//////////////////////////////////////////////////////////////////
@@ -2123,9 +2373,9 @@ public class ServiceClass extends RESTService {
 
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 
-		List<Cover> covers = entityHandler.getCovers(username, graphId);		
+		List<Cover> covers = entityHandler.getCovers(username, graphId);
 		int size = covers.size();
-		
+
 		List<Long> coverIds = new ArrayList<>(size);
 		for (int i = 0; i < size; i++) {
 			coverIds.add(covers.get(i).getId());

@@ -5,7 +5,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 /**
  * This class handles the average degree computation of a CustomGraph.
  */
-public class AverageDegree extends GraphPropertyAbstract {
+public class AverageDegree extends AbstractProperty {
 
 	/**
 	 * Returns the average degree of a CustomGraph

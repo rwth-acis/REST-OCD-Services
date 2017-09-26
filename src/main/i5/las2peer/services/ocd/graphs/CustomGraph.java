@@ -30,7 +30,7 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
-import i5.las2peer.services.ocd.graphs.properties.GraphPropertyAbstract;
+import i5.las2peer.services.ocd.graphs.properties.AbstractProperty;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -55,8 +55,8 @@ public class CustomGraph extends Graph2D {
 	/*
 	 * Database column name definitions.
 	 */
-	protected static final String idColumnName = "ID";
-	protected static final String userColumnName = "USER_NAME";
+	public static final String idColumnName = "ID";
+	public static final String userColumnName = "USER_NAME";
 	private static final String nameColumnName = "NAME";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
@@ -141,6 +141,13 @@ public class CustomGraph extends Graph2D {
 	 */
 	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
 	private List<Cover> covers = new ArrayList<Cover>();
+	
+	/**
+	 * The simulations based on this graph.
+	 */
+	//@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+	//private List<SimulationSeries> simulations = new ArrayList<>();
+	
 
 	///////////////////// THE FOLLOWING ATTRIBUTES ARE MAINTAINED AUTOMATICALLY
 	///////////////////// AND ONLY OF INTERNAL / PERSISTENCE USE
@@ -1107,11 +1114,11 @@ public class CustomGraph extends Graph2D {
 	 * Initialize the properties
 	 * 
 	 */
-	protected void initializeProperties() {
+	protected void initProperties() {
 		
 		this.properties = new ArrayList<>(GraphProperty.size());
 		for (int i = 0; i < GraphProperty.size(); i++) {
-			GraphPropertyAbstract property = null;
+			AbstractProperty property = null;
 			try {
 				property = GraphProperty.lookupProperty(i).getPropertyClass().newInstance();
 			} catch (InstantiationException | IllegalAccessException e) {
@@ -1120,6 +1127,43 @@ public class CustomGraph extends Graph2D {
 			this.properties.add(i, property.calculate(this));
 		}
 	}	
+	
+	/**
+	 * Returns a new sub graph of a CustomGraph
+	 * 
+	 * @param graph CustomGraph
+	 * @param nodeIds The node ids for the sub graph
+	 * @return sub graph
+	 */
+	public CustomGraph getSubGraph(List<Integer> nodeIds) {
+
+		CustomGraph subGraph = new CustomGraph();
+		int graphSize = nodeCount();
+		int subSize = nodeIds.size();
+		Map<Integer, Node> nodeMap = new HashMap<>(subSize);
+		
+		for (int i = 0; i < subSize; i++) {
+			int nodeId = nodeIds.get(i);
+
+			if (nodeId < 0)
+				throw new IllegalArgumentException("Invalid node id; negative id");
+
+			if (nodeId > graphSize)
+				throw new IllegalArgumentException("Invalid node id; id to high");
+
+			nodeMap.put(nodeId, subGraph.createNode());
+		}
+
+		for (Edge edge : getEdgeArray()) {
+			int source = edge.source().index();
+			int target = edge.target().index();
+			
+			if (nodeIds.contains(source) && nodeIds.contains(target)) {
+				subGraph.createEdge(nodeMap.get(source), nodeMap.get(target));
+			}
+		}
+		return subGraph;
+	}
 
 	////////////////// THE FOLLOWING METHODS ARE ONLY OF INTERNAL PACKAGE USE
 	////////////////// AND FOR PERSISTENCE PURPOSES
@@ -1306,7 +1350,7 @@ public class CustomGraph extends Graph2D {
 			edges.next();
 		}
 		
-		initializeProperties();
+		initProperties();
 	}
 
 }

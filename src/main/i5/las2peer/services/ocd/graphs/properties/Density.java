@@ -5,7 +5,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 /**
  * This class handles the density computation of a CustomGraph.
  */
-public class Density extends GraphPropertyAbstract {
+public class Density extends AbstractProperty {
 	
 	/**
 	 * Returns the density of a CustomGraph

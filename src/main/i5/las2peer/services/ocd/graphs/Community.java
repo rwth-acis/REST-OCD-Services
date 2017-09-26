@@ -21,6 +21,7 @@ import javax.persistence.MapKeyJoinColumn;
 import javax.persistence.MapKeyJoinColumns;
 import javax.persistence.PreRemove;
 
+import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import y.base.Node;
 
 /**
@@ -39,6 +40,7 @@ public class Community {
 	private static final String idColumnName = "ID";
 	private static final String nameColumnName = "NAME";
 	private static final String colorColumnName = "COLOR";
+	private static final String propertiesColumnName = "PROPERTIES";
 	public static final String coverIdColumnName = "COVER_ID";
 	public static final String graphIdColumnName = "GRAPH_ID";
 	public static final String graphUserColumnName = "USER_NAME";
@@ -68,9 +70,6 @@ public class Community {
 	 * The community name.
 	 */
 	@Column(name = nameColumnName)
-	/**
-	 * The community name.
-	 */
 	private String name = "";
 
 	/**
@@ -78,6 +77,13 @@ public class Community {
 	 */
 	@Column(name = colorColumnName)
 	private int color = Color.WHITE.getRGB();
+
+	/**
+	 * The communities properties.
+	 */
+	@Column(name = propertiesColumnName)
+	@ElementCollection
+	private List<Double> properties;
 
 	/**
 	 * A mapping from the community member (custom) nodes to their belonging
@@ -217,6 +223,28 @@ public class Community {
 	 */
 	public int getSize() {
 		return this.memberships.size();
+	}
+
+	/**
+	 * Return a specific property value
+	 * 
+	 * @param property
+	 *            The GraphProperty
+	 * @return the property value
+	 */
+	public double getProperty(GraphProperty property) {
+		return properties.get(property.getId());
+	}
+
+	/**
+	 * Sets the {@link #properties}. Should only be called by the community {@link Cover}
+	 * or for test purposes.
+	 * 
+	 * @param properties
+	 *            List of properties
+	 */
+	protected void setProperties(List<Double> properties) {
+		this.properties = properties;
 	}
 
 	/**

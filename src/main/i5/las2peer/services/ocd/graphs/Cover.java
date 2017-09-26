@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.graphs;
 
+import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.utils.NonZeroEntriesVectorProcedure;
@@ -443,7 +444,16 @@ public class Cover {
 	public int communityCount() {
 		return communities.size();
 	}
-
+	
+	/**
+	 * Returns the communities of this cover
+	 * 
+	 * @return community list
+	 */
+	public List<Community> getCommunities() {
+		return this.communities;
+	}
+	
 	/**
 	 * Returns the size (i.e. the amount of members) of a certain community.
 	 * 
@@ -500,7 +510,20 @@ public class Cover {
 	public void setCommunityColor(int communityIndex, Color color) {
 		communities.get(communityIndex).setColor(color);
 	}
-
+	
+	/**
+	 * Returns the property value of a community
+	 * 
+	 * @param communityIndex The id of the community
+	 * @param property The property of the communtiy
+	 * @return the property value
+	 */
+	public double getCommunityProperty(int communityIndex, GraphProperty property) {
+		Community community = communities.get(communityIndex);
+				
+		return community.getProperty(property);		
+	}
+	
 	/**
 	 * Returns the indices of all nodes that have a belonging to the community
 	 * 
@@ -570,6 +593,16 @@ public class Cover {
 			if (community.getSize() == 0) {
 				it.remove();
 			}
+		}
+	}	
+	
+	/**
+	 * Initializes the properties of all communities of this cover.
+	 */
+	public void initCommunityProperties() {
+		for(Community community: getCommunities()) {
+			CustomGraph subGraph = getGraph().getSubGraph(community.getMemberIndices());
+			community.setProperties(GraphProperty.getPropertyList(subGraph));
 		}
 	}
 
@@ -671,4 +704,5 @@ public class Cover {
 		coverString += getMemberships().toString();
 		return coverString;
 	}
+
 }

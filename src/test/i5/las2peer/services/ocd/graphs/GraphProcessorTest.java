@@ -302,5 +302,5 @@ public class GraphProcessorTest {
 		System.out.println("Unweighted, no negative weights, no zero weights.");
 		System.out.println("Types: " + copy.getTypes());
 		assertEquals(compatibleTypes, copy.getTypes());
-	}
+	}		
 }

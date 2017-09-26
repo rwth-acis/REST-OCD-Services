@@ -11,7 +11,7 @@ import y.base.NodeList;
 /**
  * This class handles the clustering coefficient computation of a CustomGraph.
  */
-public class ClusteringCoefficient extends GraphPropertyAbstract {
+public class ClusteringCoefficient extends AbstractProperty {
 	
 	/**
 	 * Returns the clustering coefficient of a CustomGraph

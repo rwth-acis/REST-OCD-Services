@@ -21,3 +21,5 @@ restMapping.xml
 /ocd/lfr/community.dat
 /ocd/yGuard
 /indexes/
+
+*.jdbc

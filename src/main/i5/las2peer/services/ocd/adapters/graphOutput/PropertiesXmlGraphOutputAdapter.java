@@ -27,14 +27,11 @@ public class PropertiesXmlGraphOutputAdapter extends AbstractGraphOutputAdapter 
 			Element graphElt = doc.createElement("Properties");
 			doc.appendChild(graphElt);
 
-			/*
-			 * Properties
-			 */
 			Element graphIdElt = doc.createElement("Id");
 			graphIdElt.appendChild(doc.createTextNode(Long.toString(graph.getId())));
 			graphElt.appendChild(graphIdElt);
 
-			Element graphNameElt = doc.createElement("Name");
+			Element graphNameElt = doc.createElement("Name");			
 			graphNameElt.appendChild(doc.createTextNode(graph.getName()));
 			graphElt.appendChild(graphNameElt);
 
@@ -50,8 +47,9 @@ public class PropertiesXmlGraphOutputAdapter extends AbstractGraphOutputAdapter 
 			}
 			graphElt.appendChild(graphEdgeCountElt);
 
-			for (GraphProperty property : GraphProperty.values()) {
-				Element graphPropertyElt = doc.createElement(property.name());
+			for (int i=1; i< GraphProperty.values().length; i++) {
+				GraphProperty property = GraphProperty.values()[i];
+				Element graphPropertyElt = doc.createElement(property.humanRead());
 				graphPropertyElt.appendChild(doc.createTextNode(Double.toString(graph.getProperty(property))));
 				graphElt.appendChild(graphPropertyElt);
 			}

@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.graphs;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
@@ -58,7 +59,7 @@ public class CustomGraphTest {
 	}
 	
 	@Test
-	public void testProperties() {
+	public void getProperties() {
 
 		CustomGraph graph = new CustomGraph();
 		graph.addType(GraphType.DIRECTED);
@@ -71,7 +72,7 @@ public class CustomGraphTest {
 		graph.createEdge(n2, n3);
 		graph.createEdge(n2, n4);
 		
-		graph.initializeProperties();
+		graph.initProperties();
 		List<Double> list = graph.getProperties();
 		assertNotNull(list);
 		assertEquals(GraphProperty.values().length, list.size());
@@ -80,8 +81,40 @@ public class CustomGraphTest {
 		assertEquals(0.25, result, 0.000001);
 		
 		result = graph.getProperty(GraphProperty.AVERAGE_DEGREE);
-		assertEquals(1.5, result, 0.000001);		
+		assertEquals(1.5, result, 0.000001);
+	}
+	
+	@Test
+	public void getSubGraph() {
+		
+		CustomGraph graph = new CustomGraph();
+		CustomGraph result;
+		Node n0 = graph.createNode();
+		Node n1 = graph.createNode();
+		Node n2 = graph.createNode();
+		Node n3 = graph.createNode();
+		
+		graph.createEdge(n0, n1);
+		graph.createEdge(n0, n2);
+		graph.createEdge(n3, n0);
+		graph.createEdge(n3, n2);		
 
+		List<Integer> nodeIds = new ArrayList<>();
+
+		nodeIds.add(0);
+		result = graph.getSubGraph(nodeIds);
+		assertEquals(1, result.nodeCount());
+		assertEquals(0, result.edgeCount());
+		
+		nodeIds.add(3);
+		result = graph.getSubGraph(nodeIds);
+		assertEquals(2, result.nodeCount());
+		assertEquals(1, result.edgeCount());
+		
+		nodeIds.add(2);
+		result = graph.getSubGraph(nodeIds);
+		assertEquals(3, result.nodeCount());
+		assertEquals(3, result.edgeCount());
 	}
 	
 	

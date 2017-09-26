@@ -9,7 +9,7 @@ import y.base.NodeCursor;
 /**
  * This class handles the degree deviation computation of a CustomGraph.
  */
-public class DegreeDeviation extends GraphPropertyAbstract {
+public class DegreeDeviation extends AbstractProperty {
 	
 	/**
 	 * Returns the degree deviation of a CustomGraph
