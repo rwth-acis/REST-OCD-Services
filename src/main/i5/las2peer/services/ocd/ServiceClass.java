@@ -11,6 +11,7 @@ import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
+import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputFormat;
 import i5.las2peer.services.ocd.algorithms.ContentBasedWeightingAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
@@ -42,13 +43,14 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.utils.EntityHandler;
 import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.InvocationHandler;
-import i5.las2peer.services.ocd.utils.OcdRequestHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
-
+import i5.las2peer.services.ocd.viewer.LayoutHandler;
+import i5.las2peer.services.ocd.viewer.ViewerRequestHandler;
+import i5.las2peer.services.ocd.viewer.layouters.GraphLayoutType;
+import i5.las2peer.services.ocd.viewer.painters.CoverPaintingType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -136,7 +138,7 @@ public class ServiceClass extends RESTService {
 	/**
 	 * The request handler used for simple request-related tasks.
 	 */
-	private final static OcdRequestHandler requestHandler = new OcdRequestHandler();
+	private final static ViewerRequestHandler requestHandler = new ViewerRequestHandler();
 
 	/**
 	 * The entity handler used for access stored entities.
@@ -157,6 +159,11 @@ public class ServiceClass extends RESTService {
 	 * The factory used for creating metrics.
 	 */
 	private final static OcdMetricFactory metricFactory = new OcdMetricFactory();
+
+	/**
+	 * The layout handler used for layouting graphs and covers.
+	 */
+	private final static LayoutHandler layoutHandler = new LayoutHandler();
 
 	//////////////////////////////////////////////////////////////////
 	///////// Utility Methods
@@ -1619,6 +1626,248 @@ public class ServiceClass extends RESTService {
 			}
 		}
 
+		//////////////////////////////////////////////////////////////////
+		///////// VISUALIZATION
+		//////////////////////////////////////////////////////////////////
+
+		/**
+		 * Returns a visual representation of a cover.
+		 * 
+		 * @param graphIdStr
+		 *            The id of the graph that the cover is based on.
+		 * @param coverIdStr
+		 *            The id of the cover.
+		 * @param graphLayoutTypeStr
+		 *            The name of the layout type defining which graph layouter
+		 *            to use.
+		 * @param coverPaintingTypeStr
+		 *            The name of the cover painting type defining which cover
+		 *            painter to use.
+		 * @param visualOutputFormatStr
+		 *            The name of the required output format.
+		 * @param doLabelNodesStr
+		 *            Optional query parameter. Defines whether nodes will
+		 *            receive labels with their names (TRUE) or not (FALSE).
+		 * @param doLabelEdgesStr
+		 *            Optional query parameter. Defines whether edges will
+		 *            receive labels with their weights (TRUE) or not (FALSE).
+		 * @param minNodeSizeStr
+		 *            Optional query parameter. Defines the minimum size of a
+		 *            node. Must be greater than 0.
+		 * @param maxNodeSizeStr
+		 *            Optional query parameter. Defines the maximum size of a
+		 *            node. Must be at least as high as the defined minimum
+		 *            size.
+		 * @return The visualization. Or an error xml.
+		 */
+		@GET
+		@Path("visualization/cover/{coverId}/graph/{graphId}/outputFormat/{VisualOutputFormat}/layout/{GraphLayoutType}/paint/{CoverPaintingType}")
+		public Response getCoverVisualization(@PathParam("graphId") String graphIdStr,
+				@PathParam("coverId") String coverIdStr, @PathParam("GraphLayoutType") String graphLayoutTypeStr,
+				@PathParam("CoverPaintingType") String coverPaintingTypeStr,
+				@PathParam("VisualOutputFormat") String visualOutputFormatStr,
+				@DefaultValue("TRUE") @QueryParam("doLabelNodes") String doLabelNodesStr,
+				@DefaultValue("FALSE") @QueryParam("doLabelEdges") String doLabelEdgesStr,
+				@DefaultValue("20") @QueryParam("minNodeSize") String minNodeSizeStr,
+				@DefaultValue("45") @QueryParam("maxNodeSize") String maxNodeSizeStr) {
+			try {
+				long graphId;
+				String username = getUserName();
+				try {
+					graphId = Long.parseLong(graphIdStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
+				}
+				long coverId;
+				try {
+					coverId = Long.parseLong(coverIdStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Cover id is not valid.");
+				}
+				double minNodeSize;
+				try {
+					minNodeSize = Double.parseDouble(minNodeSizeStr);
+					if (minNodeSize < 0) {
+						throw new IllegalArgumentException();
+					}
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Min node size is not valid.");
+				}
+				double maxNodeSize;
+				try {
+					maxNodeSize = Double.parseDouble(maxNodeSizeStr);
+					if (maxNodeSize < minNodeSize) {
+						throw new IllegalArgumentException();
+					}
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Max node size is not valid.");
+				}
+				VisualOutputFormat format;
+				GraphLayoutType layout;
+				boolean doLabelNodes;
+				boolean doLabelEdges;
+				try {
+					layout = GraphLayoutType.valueOf(graphLayoutTypeStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified layout does not exist.");
+				}
+				CoverPaintingType painting;
+				try {
+					painting = CoverPaintingType.valueOf(coverPaintingTypeStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified layout does not exist.");
+				}
+				try {
+					format = VisualOutputFormat.valueOf(visualOutputFormatStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified visual graph output format does not exist.");
+				}
+				try {
+					doLabelNodes = requestHandler.parseBoolean(doLabelNodesStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Label nodes is not a boolean value.");
+				}
+				try {
+					doLabelEdges = requestHandler.parseBoolean(doLabelEdgesStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Label edges is not a boolean value.");
+				}
+
+				Cover cover = entityHandler.getCover(username, graphId, coverId);
+				if (cover == null) {
+					requestHandler.log(Level.WARNING, "user: " + username + ", " + "Cover does not exist: cover id "
+							+ coverId + ", graph id " + graphId);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Cover does not exist: cover id " + coverId + ", graph id " + graphId);
+				}
+
+				layoutHandler.doLayout(cover, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize, painting);
+				return requestHandler.writeCover(cover, format);
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
+		 * Returns a visual representation of a graph.
+		 * 
+		 * @param graphIdStr
+		 *            The id of the graph.
+		 * @param graphLayoutTypeStr
+		 *            The name of the layout type defining which graph layouter
+		 *            to use.
+		 * @param visualOutputFormatStr
+		 *            The name of the required output format.
+		 * @param doLabelNodesStr
+		 *            Optional query parameter. Defines whether nodes will
+		 *            receive labels with their names (TRUE) or not (FALSE).
+		 * @param doLabelEdgesStr
+		 *            Optional query parameter. Defines whether edges will
+		 *            receive labels with their weights (TRUE) or not (FALSE).
+		 * @param minNodeSizeStr
+		 *            Optional query parameter. Defines the minimum size of a
+		 *            node. Must be greater than 0.
+		 * @param maxNodeSizeStr
+		 *            Optional query parameter. Defines the maximum size of a
+		 *            node. Must be at least as high as the defined minimum
+		 *            size.
+		 * @return The visualization. Or an error xml.
+		 */
+		@GET
+		@Path("visualization/graph/{graphId}/outputFormat/{VisualOutputFormat}/layout/{GraphLayoutType}")
+		public Response getGraphVisualization(@PathParam("graphId") String graphIdStr,
+				@PathParam("GraphLayoutType") String graphLayoutTypeStr,
+				@PathParam("VisualOutputFormat") String visualOutputFormatStr,
+				@DefaultValue("TRUE") @QueryParam("doLabelNodes") String doLabelNodesStr,
+				@DefaultValue("FALSE") @QueryParam("doLabelEdges") String doLabelEdgesStr,
+				@DefaultValue("20") @QueryParam("minNodeSize") String minNodeSizeStr,
+				@DefaultValue("45") @QueryParam("maxNodeSize") String maxNodeSizeStr) {
+			try {
+				long graphId;
+				String username = getUserName();
+				try {
+					graphId = Long.parseLong(graphIdStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
+				}
+				double minNodeSize;
+				try {
+					minNodeSize = Double.parseDouble(minNodeSizeStr);
+					if (minNodeSize < 0) {
+						throw new IllegalArgumentException();
+					}
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Min node size is not valid.");
+				}
+				double maxNodeSize;
+				try {
+					maxNodeSize = Double.parseDouble(maxNodeSizeStr);
+					if (maxNodeSize < minNodeSize) {
+						throw new IllegalArgumentException();
+					}
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Max node size is not valid.");
+				}
+				VisualOutputFormat format;
+				GraphLayoutType layout;
+				boolean doLabelNodes;
+				boolean doLabelEdges;
+				try {
+					layout = GraphLayoutType.valueOf(graphLayoutTypeStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified layout does not exist.");
+				}
+				try {
+					format = VisualOutputFormat.valueOf(visualOutputFormatStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified visual graph output format does not exist.");
+				}
+				try {
+					doLabelNodes = requestHandler.parseBoolean(doLabelNodesStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Label nodes is not a boolean value.");
+				}
+				try {
+					doLabelEdges = requestHandler.parseBoolean(doLabelEdgesStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Label edges is not a boolean value.");
+				}
+
+				CustomGraph graph = entityHandler.getGraph(username, graphId);
+				if (graph == null) {
+					requestHandler.log(Level.WARNING,
+							"user: " + username + ", " + "Graph does not exist: graph id " + graphId);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Graph does not exist: graph id " + graphId);
+				}
+
+				layoutHandler.doLayout(graph, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize);
+				return requestHandler.writeGraph(graph, format);
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
 		//////////////////////////////////////////////////////////////////////////
 		//////////// DEFAULT PARAMETERS
 		//////////////////////////////////////////////////////////////////////////
@@ -2056,10 +2305,10 @@ public class ServiceClass extends RESTService {
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
 			}
-			
-			if(simulations == null || simulations.size() < 1)
+
+			if (simulations == null || simulations.size() < 1)
 				return Response.status(Status.BAD_REQUEST).entity("No simulation series found").build();
-			
+
 			List<MetaData> metaList = new SimulationSeriesGroup(simulations).getMetaData();
 			return Response.ok().entity(metaList).build();
 
@@ -2202,6 +2451,10 @@ public class ServiceClass extends RESTService {
 
 			return Response.ok().entity("simulation done" + result).build();
 		}
+		
+		///////////////////// Mapping ///////////////////////////////
+
+		
 
 		////////////// Information //////////////////
 
@@ -2238,6 +2491,7 @@ public class ServiceClass extends RESTService {
 			return Response.status(Status.OK).entity(GameType.values()).build();
 
 		}
+
 	}
 	//////////////////////////////////////////////////////////////////
 	///////// RMI Methods

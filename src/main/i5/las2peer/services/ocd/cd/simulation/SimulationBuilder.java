@@ -178,6 +178,7 @@ public class SimulationBuilder {
 		parameters.setPayoffDC(game.getPayoffBA());
 		parameters.setPayoffDD(game.getPayoffBB());
 		parameters.setGraphId(graph.getId());
+		parameters.setIterations(iterations);
 
 		SimulationSeries series = new SimulationSeries(parameters, datasets);
 		series.evaluate();

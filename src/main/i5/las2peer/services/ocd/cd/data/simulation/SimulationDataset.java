@@ -86,12 +86,12 @@ public class SimulationDataset extends SimulationAbstract {
 
 	/////////////// Getter ///////////////
 
-	@JsonIgnore
+	@JsonProperty
 	public List<Double> getCooperationValues() {
 		return this.cooperationValues;
 	}
 
-	@JsonIgnore
+	@JsonProperty
 	public List<Double> getPayoffValues() {
 		return this.payoffValues;
 	}

@@ -31,10 +31,6 @@ import i5.las2peer.services.ocd.graphs.Community;
  *
  */
 
-/**
- * @author snl
- *
- */
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SimulationSeries extends SimulationAbstract {

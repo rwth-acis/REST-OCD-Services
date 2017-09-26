@@ -87,7 +87,7 @@ public class Parameters implements Serializable {
 	 * {@link SimulationDataset}s as part of one {@link SimulationSeries}
 	 */
 	@Basic
-	private int seriesIterations;
+	private int iterations;
 
 	////////// Constructor //////////
 
@@ -124,7 +124,7 @@ public class Parameters implements Serializable {
 
 	@JsonProperty
 	public int getIterations() {
-		return seriesIterations;
+		return iterations;
 	}
 
 	@JsonProperty
@@ -183,7 +183,7 @@ public class Parameters implements Serializable {
 
 	@JsonSetter
 	public void setIterations(int iterations) {
-		this.seriesIterations = iterations;
+		this.iterations = iterations;
 	}
 
 	@JsonSetter
