@@ -2,7 +2,6 @@ package i5.las2peer.services.ocd.cd.data.mapping;
 
 import java.util.List;
 
-import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

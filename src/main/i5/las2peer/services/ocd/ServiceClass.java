@@ -18,10 +18,13 @@ import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
 import i5.las2peer.services.ocd.cd.data.SimulationEntityHandler;
-import i5.las2peer.services.ocd.cd.data.simulation.MetaData;
-import i5.las2peer.services.ocd.cd.data.simulation.Parameters;
+import i5.las2peer.services.ocd.cd.data.mapping.MappingFactory;
+import i5.las2peer.services.ocd.cd.data.mapping.SimulationSeriesSetMapping;
+import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeriesMetaData;
+import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeriesParameters;
 import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeriesGroup;
+import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeriesGroupMetaData;
 import i5.las2peer.services.ocd.cd.simulation.SimulationBuilder;
 import i5.las2peer.services.ocd.cd.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cd.simulation.game.GameType;
@@ -82,6 +85,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -2264,7 +2268,7 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulations(Parameters parameters) {
+		public Response getSimulations(SimulationSeriesParameters parameters) {
 
 			List<SimulationSeries> series = new ArrayList<>();
 			long userId = getUserId();
@@ -2290,16 +2294,20 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulationMeta(Parameters parameters) {
+		public Response getSimulationMeta(@DefaultValue("0") @QueryParam("firstIndex") int firstIndex,
+				@DefaultValue("0") @QueryParam("length") int length, SimulationSeriesParameters parameters) {
 
 			if (parameters == null) {
-				parameters = new Parameters();
+				parameters = new SimulationSeriesParameters();
 			}
 
 			List<SimulationSeries> simulations = new ArrayList<>();
 			try {
-				simulations = entityHandler.getSimulationSeriesByUser(getUserId());
-
+				if (firstIndex < 0 || length <= 0) {
+					simulations = entityHandler.getSimulationSeriesByUser(getUserId());
+				} else {
+					simulations = entityHandler.getSimulationSeriesByUser(getUserId(), firstIndex, length);
+				}
 			} catch (Exception e) {
 				L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
 				e.printStackTrace();
@@ -2309,9 +2317,22 @@ public class ServiceClass extends RESTService {
 			if (simulations == null || simulations.size() < 1)
 				return Response.status(Status.BAD_REQUEST).entity("No simulation series found").build();
 
-			List<MetaData> metaList = new SimulationSeriesGroup(simulations).getMetaData();
+			List<SimulationSeriesMetaData> metaList = new ArrayList<>(simulations.size());
+			try {
+				for (SimulationSeries simulation : simulations) {
+					try {
+					SimulationSeriesMetaData metaData = simulation.getMetaData();
+					metaData.setGraphName(entityHandler.getGraph(getUserName(), simulation.getParameters().getGraphId()).getName());
+					metaList.add(metaData);
+					} catch (Exception e) {
+						
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail parse meta data").build();
+			}
 			return Response.ok().entity(metaList).build();
-
 		}
 
 		/**
@@ -2338,6 +2359,10 @@ public class ServiceClass extends RESTService {
 					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + seriesId + " found")
 							.build();
 
+				if (!series.isEvaluated()) {
+					series.evaluate();
+				}
+
 			} catch (Exception e) {
 				logger.log(Level.WARNING, "user: " + username, e);
 				e.printStackTrace();
@@ -2345,6 +2370,48 @@ public class ServiceClass extends RESTService {
 			}
 
 			return Response.ok().entity(series).build();
+		}
+
+		/**
+		 * Gets the results of a performed simulation series on a network
+		 * 
+		 * @return HttpResponse with the returnString
+		 */
+		@GET
+		@Path("/simulation/{seriesId}/table")
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiOperation(value = "GET SIMULATION", notes = "Gets the results of a performed simulation")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getSimulationTable(@PathParam("seriesId") long seriesId) {
+
+			String username = getUserName();
+			SimulationSeries series = null;
+
+			try {
+				series = entityHandler.getSimulationSeries(seriesId);
+
+				if (series == null)
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + seriesId + " found")
+							.build();
+
+				series.evaluate();
+
+			} catch (Exception e) {
+				logger.log(Level.WARNING, "user: " + username, e);
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
+			}
+
+			String responseString = "";
+			try {
+				responseString = series.toTable().print();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			return Response.ok().entity(responseString).build();
 		}
 
 		/**
@@ -2361,7 +2428,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getSimulationParameters(@PathParam("seriesId") long seriesId) {
 
-			Parameters parameters = null;
+			SimulationSeriesParameters parameters = null;
 			try {
 				parameters = entityHandler.getSimulationParameters(seriesId);
 			} catch (Exception e) {
@@ -2385,9 +2452,15 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response deleteSimulation() {
-
-			return Response.status(Status.NOT_IMPLEMENTED).entity("").build();
+		public Response deleteSimulation(@PathParam("seriesId") long seriesId) {
+			
+			try {
+				entityHandler.deleteSeries(seriesId);
+			} catch (Exception e) {
+				return Response.serverError().entity(e.getMessage()).build();
+			}
+			
+			return Response.ok("done").build();
 
 		}
 
@@ -2405,7 +2478,7 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		@ApiOperation(value = "POST SIMULATION", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
-		public Response postSimulation(Parameters parameters) {
+		public Response postSimulation(SimulationSeriesParameters parameters) {
 
 			String username = getUserName();
 
@@ -2439,7 +2512,10 @@ public class ServiceClass extends RESTService {
 				e.printStackTrace();
 				return Response.serverError().entity("simulation could not be carried out\n" + e.getMessage()).build();
 			}
-
+			
+			if(series.getSimulationDatasets() == null || !(series.getSimulationDatasets().size() == parameters.getIterations())) 
+				return Response.serverError().entity("something went wrong").build();
+				
 			long result;
 			try {
 				result = entityHandler.store(series, getUserId());
@@ -2449,13 +2525,222 @@ public class ServiceClass extends RESTService {
 				return Response.serverError().entity("simulation not stored").build();
 			}
 
-			return Response.ok().entity("simulation done" + result).build();
+			return Response.ok().entity("simulation done " + result).build();
 		}
 		
-		///////////////////// Mapping ///////////////////////////////
-
+		///////////////////// Group ///////////////////////////////
 		
+		@PUT
+		@Path("/simulation/group")
+		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.APPLICATION_JSON)
+		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		@ApiOperation(value = "POST SIMULATION", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
+		public Response putSimulationGroup(@DefaultValue("") @QueryParam("name") String name,
+				List<Integer> seriesIds) {
+			
+			List<SimulationSeries> series = new ArrayList<>(seriesIds.size());			
+			try {
+				for(Integer id: seriesIds) {
+				series.add(entityHandler.getSimulationSeries(id));				
+				}
+			} catch (Exception e) {
+				logger.log(Level.WARNING, "user: " + getUserName(), e);
+				e.printStackTrace();
+				return Response.serverError().entity("Invalid simulation series \n" + e.getMessage()).build();
+			}
+			
+			SimulationSeriesGroup group = null;			
+			try {
+			
+			 group = new SimulationSeriesGroup(series);
+			 group.setName(name);
+			 entityHandler.store(group, getUserId());
+			 
 
+			} catch (Exception e) {
+				e.printStackTrace();
+				return Response.serverError().entity("fail store series group").build();
+			}
+			return Response.ok().entity("done").build();
+		}
+		
+		@GET
+		@Path("/simulation/group/meta")
+		@Produces(MediaType.APPLICATION_JSON)
+		@Consumes(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		@ApiOperation(value = "POST SIMULATION", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
+		public Response getSimulationGroups(@DefaultValue("0") @QueryParam("firstIndex") int firstIndex,
+				@DefaultValue("0") @QueryParam("length") int length) {
+			
+			List<SimulationSeriesGroup> simulations = new ArrayList<>();
+			try {
+				if (firstIndex < 0 || length <= 0) {
+					simulations = entityHandler.getSimulationSeriesGroups(getUserId());
+				} else {
+					simulations = entityHandler.getSimulationSeriesGroups(getUserId(), firstIndex, length);
+				}
+			} catch (Exception e) {
+				L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
+			}
+
+			if (simulations == null || simulations.size() < 1)
+				return Response.status(Status.BAD_REQUEST).entity("No simulation series found").build();
+
+			List<SimulationSeriesGroupMetaData> metaList = new ArrayList<>(simulations.size());
+			try {
+				for (SimulationSeriesGroup simulation : simulations) {
+					SimulationSeriesGroupMetaData metaData = simulation.getMetaData();
+					metaList.add(metaData);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail parse meta data").build();
+			}
+			return Response.ok().entity(metaList).build();
+		}
+		
+		/**
+		 * Gets the results of a performed simulation series group on a network
+		 * 
+		 * @return HttpResponse with the returnString
+		 */
+		@GET
+		@Path("/simulation/group/{groupId}/table")
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiOperation(value = "GET SIMULATION", notes = "Gets the results of a performed simulation")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getSimulationGroupTable(@PathParam("groupId") long groupId) {
+
+			String username = getUserName();
+			SimulationSeriesGroup series = null;
+
+			try {
+				series = entityHandler.getSimulationSeriesGroup(groupId);
+
+				if (series == null)
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupId + " found")
+							.build();
+
+				series.evaluate();
+
+			} catch (Exception e) {
+				logger.log(Level.WARNING, "user: " + username, e);
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
+			}
+
+			String responseString = "";
+			try {
+				responseString = series.toTable().print();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			return Response.ok().entity(responseString).build();
+		}
+		
+		@GET
+		@Path("/simulation/group/{groupId}")
+		@Produces(MediaType.APPLICATION_JSON)
+		@Consumes(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		@ApiOperation(value = "POST SIMULATION", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
+		public Response getSimulationGroup(@PathParam("groupId") long groupId) {
+			
+			SimulationSeriesGroup simulation = null;
+			try {				
+					simulation = entityHandler.getSimulationSeriesGroup(groupId);
+					if(!simulation.isEvaluated())
+						simulation.evaluate();
+					
+			} catch (Exception e) {
+				L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
+			}
+
+			if (simulation == null)
+				return Response.status(Status.BAD_REQUEST).entity("simulation series group not found").build();
+			
+			return Response.ok().entity(simulation).build();
+		}
+		
+		/**
+		 * Deletes a a simulation series group
+		 * 
+		 * @return HttpResponse with the returnString
+		 */
+		@DELETE
+		@Path("/simulation/group/{groupId}")
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiOperation(value = "DELETE SIMULATION", notes = "Deletes a performed simulation")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response deleteSimulationSeriesGroup(@PathParam("groupId") long groupId) {
+			
+			try {
+				entityHandler.deleteGroup(groupId);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return Response.serverError().entity(e.getMessage()).build();
+			}			
+			return Response.ok("done").build();
+		}
+		
+		
+		///////////////////// Mapping ///////////////////////////////
+		
+		@GET
+		@Path("/simulation/group/{groupId}/mapping/")
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(value = "GET SIMULATION", notes = "Gets the results of a performed simulation")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getSimulationGroupMapping(@PathParam("groupId") long groupId) {
+
+			String username = getUserName();
+			SimulationSeriesGroup series = null;
+			SimulationSeriesSetMapping mapping;
+			
+			try {
+				series = entityHandler.getSimulationSeriesGroup(groupId);
+
+				if (series == null)
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupId + " found")
+							.build();
+
+				series.evaluate();
+								
+				MappingFactory factory = new MappingFactory();
+				mapping = factory.build(series.getSimulationSeries(), series.getName());
+				for(SimulationSeries sim: mapping.getSimulation()) {
+					sim.setNetwork(entityHandler.getGraph(getUserName(), sim.getParameters().getGraphId()));
+				}
+				mapping.correlate();
+				
+			} catch (Exception e) {
+				logger.log(Level.WARNING, "user: " + username, e);
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
+			}
+			
+			if(mapping == null)
+				return Response.serverError().entity("no mapping found").build();
+									
+			return Response.ok().entity(mapping).build();
+		}
+		
 		////////////// Information //////////////////
 
 		/**

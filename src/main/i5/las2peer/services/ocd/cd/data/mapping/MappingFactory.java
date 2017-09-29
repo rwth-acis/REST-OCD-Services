@@ -1,5 +1,7 @@
 package i5.las2peer.services.ocd.cd.data.mapping;
 
+import java.util.List;
+
 import i5.las2peer.services.ocd.cd.data.simulation.SimulationList;
 import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeriesGroup;
@@ -30,6 +32,15 @@ public class MappingFactory {
 	public SimulationGroupSetMapping build(SimulationList simulation, String name) {
 		
 		SimulationGroupSetMapping mapping = new SimulationGroupSetMapping();
+		mapping.setSimulation(simulation);
+		mapping.setName("mapping_" + name);
+		
+		return mapping;		
+	}
+	
+	public SimulationSeriesSetMapping build(List<SimulationSeries> simulation, String name) {
+		
+		SimulationSeriesSetMapping mapping = new SimulationSeriesSetMapping();
 		mapping.setSimulation(simulation);
 		mapping.setName("mapping_" + name);
 		

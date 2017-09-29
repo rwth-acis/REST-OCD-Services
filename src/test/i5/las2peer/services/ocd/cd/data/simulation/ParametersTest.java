@@ -9,7 +9,7 @@ public class ParametersTest {
 	@Test
 	public void normalize() {
 		
-		Parameters parameters = new Parameters();
+		SimulationSeriesParameters parameters = new SimulationSeriesParameters();
 		parameters.setPayoffCC(2.0);
 		parameters.setPayoffCD(4.0);
 		parameters.setPayoffDC(1.0);

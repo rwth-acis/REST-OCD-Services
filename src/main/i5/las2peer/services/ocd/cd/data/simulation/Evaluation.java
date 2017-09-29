@@ -5,8 +5,6 @@ import java.util.List;
 
 import javax.persistence.Basic;
 import javax.persistence.Embeddable;
-import javax.persistence.Transient;
-
 import org.apache.commons.math3.stat.StatUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -187,7 +185,7 @@ public class Evaluation implements Serializable {
 		return line;
 	}
 
-	public TableRow toHeadLine() {
+	public static TableRow toHeadLine() {
 
 		TableRow line = new TableRow();
 		line.add("avg").add("std");

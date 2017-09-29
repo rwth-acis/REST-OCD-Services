@@ -28,7 +28,7 @@ public class SimulationSeriesGroup extends SimulationAbstract {
 
 	////////// Entity Fields //////////
 
-	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
 	private List<SimulationSeries> seriesList;
 
 	////////// Constructor //////////
@@ -71,13 +71,11 @@ public class SimulationSeriesGroup extends SimulationAbstract {
 	 * @return MetaData
 	 */
 	@JsonIgnore
-	public List<MetaData> getMetaData() {
-		int size = seriesList.size();
-		List<MetaData> metaList = new ArrayList<MetaData>(size);
-		for (int i = 0; i < size; i++) {
-			metaList.add(new MetaData(seriesList.get(i)));
-		}
-		return metaList;
+	public SimulationSeriesGroupMetaData getMetaData() {
+		if(this.getCooperationEvaluation() == null)
+			this.evaluate();
+		SimulationSeriesGroupMetaData metaData = new SimulationSeriesGroupMetaData(this);
+		return metaData;
 	}
 
 	/////////// Setter ////////////
@@ -103,7 +101,7 @@ public class SimulationSeriesGroup extends SimulationAbstract {
 		
 		setCooperationEvaluation(new Evaluation(getAverageFinalCooperationValues()));
 		setPayoffEvaluation(new Evaluation(getAverageFinalPayoffValues()));
-		setGenerationEvaluation(new Evaluation(getAverageIterations()));
+		//setGenerationEvaluation(new Evaluation(getAverageIterations()));
 	
 	}
 
@@ -247,13 +245,13 @@ public class SimulationSeriesGroup extends SimulationAbstract {
 
 		Evaluation coopEvaluation = getCooperationEvaluation();
 		Evaluation payoffEvaluation = getPayoffEvaluation();
-		Evaluation generationEvaluation = getGenerationEvaluation();
+		//Evaluation generationEvaluation = getGenerationEvaluation();
 
 		TableRow line = new TableRow();
 		line.add(" ").add(" ").add(" ").add(" ").add(" ").add(" ");
 		line.add(coopEvaluation.toTableLine());
 		line.add(payoffEvaluation.toTableLine());
-		line.add(generationEvaluation.toTableLine());
+		//line.add(generationEvaluation.toTableLine());
 		return line;
 	}
 			

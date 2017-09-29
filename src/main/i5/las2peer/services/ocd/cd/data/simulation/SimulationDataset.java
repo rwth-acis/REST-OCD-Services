@@ -8,6 +8,8 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
@@ -36,15 +38,22 @@ public class SimulationDataset extends SimulationAbstract {
 	@JoinColumn
 	private List<AgentData> agentData;
 	
+	/**
+	 * A simulation is part of one simulation series
+	 */
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@JoinColumn(name="simulationSeries")
+	private SimulationSeries simulationSeries;
+	
 	@Basic
 	private double finalCooperationValue;
-	
+
 	@Basic
 	private double finalPayoffValue;
-	
+
 	@Basic
 	private double iterations;
-	
+
 	@ElementCollection
 	private List<Double> cooperationValues;
 
@@ -55,33 +64,34 @@ public class SimulationDataset extends SimulationAbstract {
 	private boolean stable;
 
 	/////////////// Constructor ///////////////
-	
+
 	/**
-	 * Creates a empty instance, that is used for persistence and testing purposes.
+	 * Creates a empty instance, that is used for persistence and testing
+	 * purposes.
 	 */
 	public SimulationDataset() {
 
 	}
-	
-	
-	public SimulationDataset(List<Double> cooperationValues, List<Double> payoffValues, List<AgentData> agentDataList, double cooperativity, double wealth) {
+
+	public SimulationDataset(List<Double> cooperationValues, List<Double> payoffValues, List<AgentData> agentDataList,
+			double cooperativity, double wealth) {
 
 		this.cooperationValues = cooperationValues;
 		this.payoffValues = payoffValues;
 		this.agentData = agentDataList;
-						
-		this.finalCooperationValue =  cooperativity;
-		this.finalPayoffValue =  wealth;
+
+		this.finalCooperationValue = cooperativity;
+		this.finalPayoffValue = wealth;
 	}
-	
+
 	public SimulationDataset(List<Double> cooperationValues, List<Double> payoffValues, List<AgentData> agentDataList) {
 
 		this.cooperationValues = cooperationValues;
 		this.payoffValues = payoffValues;
 		this.agentData = agentDataList;
-						
-		this.finalCooperationValue =  cooperationValues.get(cooperationValues.size() - 1);
-		this.finalPayoffValue =  payoffValues.get(payoffValues.size() - 1);
+
+		this.finalCooperationValue = cooperationValues.get(cooperationValues.size() - 1);
+		this.finalPayoffValue = payoffValues.get(payoffValues.size() - 1);
 	}
 
 	/////////////// Getter ///////////////
@@ -105,7 +115,7 @@ public class SimulationDataset extends SimulationAbstract {
 	public double getFinalCooperationValue() {
 		return this.finalCooperationValue;
 	}
-	
+
 	@JsonProperty
 	public double getIterations() {
 		return this.iterations;
@@ -120,7 +130,7 @@ public class SimulationDataset extends SimulationAbstract {
 	public boolean isStable() {
 		return stable;
 	}
-	
+
 	////// Setter /////
 
 	public void setAgentData(List<AgentData> agentList) {
@@ -138,15 +148,15 @@ public class SimulationDataset extends SimulationAbstract {
 	public void setStable(boolean stable) {
 		this.stable = stable;
 	}
-	
+
 	public void setFinalCooperationValue(double finalCooperationValue) {
 		this.finalCooperationValue = finalCooperationValue;
 	}
 
 	public void setFinalPayoffValue(double finalPayoffValue) {
 		this.finalPayoffValue = finalPayoffValue;
-	}	
-			
+	}
+
 	public void setIterations(int iterations) {
 		this.iterations = iterations;
 	}
@@ -155,17 +165,17 @@ public class SimulationDataset extends SimulationAbstract {
 
 	@Override
 	public void evaluate() {
-		
+
 		setCooperationEvaluation(new Evaluation(getCooperationValues()));
 		setPayoffEvaluation(new Evaluation(getPayoffValues()));
 		setIterations(generations());
-		
+
 	}
-	
+
 	public int generations() {
 		return getCooperationValues().size();
-	}	
-	
+	}
+
 	public int fill(int newSize) {
 		int oldSize = getCooperationValues().size();
 		if (newSize > oldSize) {
@@ -188,8 +198,8 @@ public class SimulationDataset extends SimulationAbstract {
 
 		for (int communityId = 0; communityId < communityCount; communityId++) {
 			List<Integer> memberList = communityList.get(communityId).getMemberIndices();
-						
-			try {	
+
+			try {
 				values[communityId] = getCommunityCooperationValue(memberList);
 			} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException("invalid communityList");
@@ -202,7 +212,7 @@ public class SimulationDataset extends SimulationAbstract {
 
 		int agentCount = agentCount();
 		int memberCount = memberList.size();
-				
+
 		double cooperativitySum = 0;
 		for (int i = 0; i < memberCount; i++) {
 			int memberId = memberList.get(i);
@@ -220,7 +230,7 @@ public class SimulationDataset extends SimulationAbstract {
 	public boolean getAgentStrategy(int agentId) {
 		return getAgentData().get(agentId).getFinalStrategy();
 	}
-	
+
 	@JsonIgnore
 	public double getAgentCooperativity(int agentId) {
 		return getAgentData().get(agentId).getCooperativity();
@@ -236,10 +246,13 @@ public class SimulationDataset extends SimulationAbstract {
 
 	@Override
 	public TableRow toTableLine() {
-
+		
+		if(getCooperationEvaluation() == null || getPayoffEvaluation() == null)
+			this.evaluate();
+		
 		Evaluation coopEvaluation = getCooperationEvaluation();
 		Evaluation payoffEvaluation = getPayoffEvaluation();
-
+		
 		TableRow line = new TableRow();
 		line.add(getFinalCooperationValue());
 		line.add(coopEvaluation.toTableLine());
@@ -252,14 +265,11 @@ public class SimulationDataset extends SimulationAbstract {
 
 	public TableRow toHeadLine() {
 
-		Evaluation coopEvaluation = getCooperationEvaluation();
-		Evaluation payoffEvaluation = getPayoffEvaluation();
-
 		TableRow line = new TableRow();
 		line.add("#C");
-		line.add(coopEvaluation.toHeadLine().suffix("#C"));
+		line.add(Evaluation.toHeadLine().suffix("#C"));
 		line.add("#P");
-		line.add(payoffEvaluation.toHeadLine().suffix("#P"));
+		line.add(Evaluation.toHeadLine().suffix("#P"));
 		line.add("Iterations");
 
 		return line;

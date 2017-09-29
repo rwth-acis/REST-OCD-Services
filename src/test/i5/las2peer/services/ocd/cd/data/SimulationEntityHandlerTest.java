@@ -54,7 +54,7 @@ public class SimulationEntityHandlerTest {
 	/////////////////////// Simulation Series //////////////////////////
 	
 	@Test
-	public void testStoreSimulationSeries() {
+	public void storeSimulationSeries() {
 
 		SimulationSeries series = new SimulationSeries();
 		series.setCooperationEvaluation(new Evaluation(new double[]{1.0,2.0,3.0}));
@@ -87,7 +87,7 @@ public class SimulationEntityHandlerTest {
 	}
 
 	@Test
-	public void testGetSimulationSeries() {
+	public void getSimulationSeries() {
 
 		SimulationSeries series = new SimulationSeries();
 		long userId = 7;
@@ -115,7 +115,41 @@ public class SimulationEntityHandlerTest {
 	}
 	
 	@Test
-	public void testDeleteSimulationSeries() {
+	public void getSimulationSeriesWithGraph() {
+
+		SimulationSeries series = new SimulationSeries();
+		CustomGraph graph = new CustomGraph();
+		graph.setName("testGraphName");
+		long userId = 7;
+		series.setUserId(7);
+		series.setNetwork(graph);
+
+		EntityManager em = factory.createEntityManager();
+		em.getTransaction().begin();
+		em.persist(series);
+		em.flush();
+		em.getTransaction().commit();
+		long seriesId = series.getId();
+		long graphId = graph.getId();
+		em.close();
+
+		SimulationSeries resultSeries = null;
+		try {
+			resultSeries = entityHandler.getSimulationSeries(seriesId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		assertNotNull(resultSeries);
+		assertEquals(userId, resultSeries.getUserId());
+		assertEquals(seriesId, resultSeries.getId());
+		assertNotNull(resultSeries.getNetwork());
+		assertEquals("testGraphName", resultSeries.getNetwork().getName());
+		assertEquals(graphId, resultSeries.getNetwork().getId());
+	}
+	
+	@Test
+	public void deleteSimulationSeries() {
 
 		SimulationSeries series = new SimulationSeries();
 

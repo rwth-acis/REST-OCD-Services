@@ -6,7 +6,7 @@ import java.util.List;
 import i5.las2peer.api.exceptions.ServiceInvocationException;
 import i5.las2peer.services.ocd.cd.data.simulation.AgentData;
 import i5.las2peer.services.ocd.cd.data.simulation.GroupType;
-import i5.las2peer.services.ocd.cd.data.simulation.Parameters;
+import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeriesParameters;
 import i5.las2peer.services.ocd.cd.data.simulation.SimulationDataset;
 import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.cd.simulation.dynamic.Dynamic;
@@ -37,6 +37,11 @@ public class SimulationBuilder {
 	int graphId;
 
 	int iterations;
+	int minIter;
+	int maxIter;
+	int window;
+	double thresh;
+	String name;
 
 	/////// Constructor ////////
 
@@ -54,12 +59,16 @@ public class SimulationBuilder {
 
 	/////// Simulation Series ////////
 
-	public void setParameters(Parameters parameters) {
+	public void setParameters(SimulationSeriesParameters parameters) {
 
 		try {
 			setGameParameters(parameters);
 			setDynamicParameters(parameters);
 			iterations = parameters.getIterations();
+			minIter = parameters.getMinIterations();
+			maxIter = parameters.getMaxIterations();
+			window = parameters.getTimeWindow();
+			thresh = parameters.getThreshold();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -67,7 +76,7 @@ public class SimulationBuilder {
 		}
 	}
 
-	public Game setGameParameters(Parameters parameters) {
+	public Game setGameParameters(SimulationSeriesParameters parameters) {
 
 		GameType gameType = parameters.getGame();
 
@@ -91,7 +100,7 @@ public class SimulationBuilder {
 		return game;
 	}
 
-	public Dynamic setDynamicParameters(Parameters parameters) {
+	public Dynamic setDynamicParameters(SimulationSeriesParameters parameters) {
 
 		DynamicType dynamicType = parameters.getDynamic();
 		if (dynamicType == null || dynamicType.equals(DynamicType.UNKNOWN))
@@ -116,6 +125,10 @@ public class SimulationBuilder {
 			throw new IllegalArgumentException("negative number of iterations");
 
 		this.iterations = value;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	/**
@@ -150,10 +163,33 @@ public class SimulationBuilder {
 
 		int iterations = this.iterations;
 		if (iterations < 1)
-			iterations = 1;
-
-		List<SimulationDataset> datasets = new ArrayList<>(iterations);
+			iterations = 10;
+		
+		int maxIter = this.maxIter;
+		if (maxIter < 1)
+			maxIter = 1000;
+		
+		int minIter = this.minIter;
+		if (minIter < 1)
+			minIter = 100;
+		
+		int window = this.window;
+		if (window < 1)
+			window = 100;
+		
+		double thresh = this.thresh;
+		if (thresh <= 0)
+			thresh = 0.1;
+		
+		if(this.name == null)
+			this.name = "";	
+		
+		List<SimulationDataset> datasets = new ArrayList<>(maxIter);
 		Simulation simulation = new Simulation(System.currentTimeMillis(), network, game, dynamic);
+		simulation.getBreakCondition().setMinIterations(minIter);
+		simulation.getBreakCondition().setMaxIterations(maxIter);
+		simulation.getBreakCondition().setWindow(window);
+		simulation.getBreakCondition().setThreshold(thresh);
 
 		for (int i = 0; i < iterations; i++) {
 
@@ -170,7 +206,7 @@ public class SimulationBuilder {
 			simulation.finish();
 		}
 
-		Parameters parameters = new Parameters();
+		SimulationSeriesParameters parameters = new SimulationSeriesParameters();
 		parameters.setDynamic(dynamic.getDynamicType());
 		parameters.setGame(game.getGameType());
 		parameters.setPayoffCC(game.getPayoffAA());
@@ -216,7 +252,7 @@ public class SimulationBuilder {
 
 	/////// Simulation Series Group ////////
 
-	public void setGameParameters(Parameters parameters, GroupType game, double scale) {
+	public void setGameParameters(SimulationSeriesParameters parameters, GroupType game, double scale) {
 
 		switch (game) {
 		case Rescaled_PD:
@@ -229,7 +265,7 @@ public class SimulationBuilder {
 		}
 	}
 
-	public void setDynamicParameters(Parameters parameters, DynamicType dynamic) {
+	public void setDynamicParameters(SimulationSeriesParameters parameters, DynamicType dynamic) {
 
 		switch (dynamic) {
 		case REPLICATOR:

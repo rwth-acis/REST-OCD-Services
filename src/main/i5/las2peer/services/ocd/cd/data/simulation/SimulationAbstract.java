@@ -2,8 +2,8 @@ package i5.las2peer.services.ocd.cd.data.simulation;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Embedded;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -16,6 +16,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
+import i5.las2peer.services.ocd.ServiceClass;
+import i5.las2peer.services.ocd.cd.data.SimulationEntityHandler;
 import i5.las2peer.services.ocd.cd.data.mapping.Correlation;
 import i5.las2peer.services.ocd.cd.data.table.Table;
 import i5.las2peer.services.ocd.cd.data.table.TableInterface;
@@ -42,7 +44,7 @@ public abstract class SimulationAbstract implements TableInterface {
 	 */
 	@Basic
 	private String name;
-	
+
 	/**
 	 * The Id of the owning user
 	 */
@@ -75,15 +77,16 @@ public abstract class SimulationAbstract implements TableInterface {
 	 */
 	@Transient
 	private Correlation payoffCorrelation;
-	
+
 	/**
 	 * The network on which the simulation was performed.
 	 */
-	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumns({ @JoinColumn(name = "graphId", referencedColumnName = CustomGraph.idColumnName,insertable=false, updatable = false),
-			@JoinColumn(name = "username", referencedColumnName = CustomGraph.userColumnName,insertable=false, updatable = false) })
+	@ManyToOne(cascade = CascadeType.ALL, targetEntity = CustomGraph.class, fetch=FetchType.LAZY)
+	@JoinColumns({
+			@JoinColumn(name = "graphId", referencedColumnName = CustomGraph.idColumnName, insertable = false, updatable = false),
+			@JoinColumn(name = "username", referencedColumnName = CustomGraph.userColumnName, insertable = false, updatable = false) })
 	private CustomGraph graph = new CustomGraph();
-	
+
 	///// Getter /////
 
 	/**
@@ -108,7 +111,7 @@ public abstract class SimulationAbstract implements TableInterface {
 			return String.valueOf(getId());
 		return name;
 	}
-	
+
 	@JsonIgnore
 	public long getUserId() {
 		return this.userId;
@@ -185,6 +188,17 @@ public abstract class SimulationAbstract implements TableInterface {
 	///// Methods /////
 
 	abstract public void evaluate();
+
+	public boolean isEvaluated() {
+
+		if (getCooperationEvaluation() == null)
+			return false;
+		if (getPayoffEvaluation() == null)
+			return false;
+		if (getGenerationEvaluation() == null)
+			return false;
+		return true;
+	}
 
 	///// Print /////
 

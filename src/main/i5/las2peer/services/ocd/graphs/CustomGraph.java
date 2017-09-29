@@ -30,6 +30,8 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
+import i5.las2peer.services.ocd.cd.data.simulation.SimulationAbstract;
+import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.graphs.properties.AbstractProperty;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import y.base.Edge;
@@ -131,7 +133,7 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * The log for the benchmark model the graph was created by.
 	 */
-	@OneToOne(orphanRemoval = true, cascade = { CascadeType.ALL })
+	@OneToOne(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JoinColumn(name = creationMethodColumnName)
 	private GraphCreationLog creationMethod = new GraphCreationLog(GraphCreationType.REAL_WORLD,
 			new HashMap<String, String>());
@@ -139,14 +141,14 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * The covers based on this graph.
 	 */
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Cover> covers = new ArrayList<Cover>();
 	
 	/**
 	 * The simulations based on this graph.
 	 */
-	//@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
-	//private List<SimulationSeries> simulations = new ArrayList<>();
+	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<SimulationSeries> simulations = new ArrayList<>();
 	
 
 	///////////////////// THE FOLLOWING ATTRIBUTES ARE MAINTAINED AUTOMATICALLY

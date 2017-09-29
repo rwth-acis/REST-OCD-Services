@@ -4,13 +4,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Root;
-
-import i5.las2peer.api.Context;
-import i5.las2peer.services.ocd.cd.data.simulation.Parameters;
+import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeriesParameters;
 import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeriesGroup;
 import i5.las2peer.services.ocd.cd.simulation.dynamic.DynamicType;
@@ -77,6 +71,17 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * 
 	 * @param series SimulationSeries
 	 */
+	public void deleteSeries(long Id) {
+
+		SimulationSeries simulation = getSimulationSeries(Id);
+		delete(simulation);
+	}
+	
+	/**
+	 * Removes a SimulatioSeries from the database
+	 * 
+	 * @param series SimulationSeries
+	 */
 	public synchronized void delete(SimulationSeries series) {
 
 		EntityManager em = getEntityManager();
@@ -96,6 +101,23 @@ public class SimulationEntityHandler extends EntityHandler {
 		query.setParameter("id", userId);
 		List<SimulationSeries> seriesList = query.getResultList();
 		return seriesList;
+	}
+	
+	/** 	  
+	 * @param userId Id of the user
+	 * @param firstIndex Id of the first simulation
+	 * @param length Number of simulations
+	 * @return List of SimulationSeries of a specific user
+	 */
+	public List<SimulationSeries> getSimulationSeriesByUser(long userId, int firstIndex, int length) {
+		
+		EntityManager em = getEntityManager();
+		TypedQuery<SimulationSeries> query = em.createQuery("SELECT s FROM SimulationSeries s WHERE s.userId = :id", SimulationSeries.class);
+		query.setFirstResult(firstIndex);
+		query.setMaxResults(length);
+		query.setParameter("id", userId);		
+		List<SimulationSeries> seriesList = query.getResultList();
+		return seriesList;		
 	}
 	
 	/**
@@ -126,13 +148,13 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * @param seriesId
 	 * @return
 	 */
-	public Parameters getSimulationParameters(long seriesId) {
+	public SimulationSeriesParameters getSimulationParameters(long seriesId) {
 
 		EntityManager em = getEntityManager();
-		TypedQuery<Parameters> query = em.createQuery("SELECT p FROM Parameters AS p WHERE s.series_seriesId =:id",
-				Parameters.class);
+		TypedQuery<SimulationSeriesParameters> query = em.createQuery("SELECT p FROM Parameters AS p WHERE s.series_seriesId =:id",
+				SimulationSeriesParameters.class);
 		query.setParameter("id", seriesId);
-		Parameters parameters = query.getSingleResult();
+		SimulationSeriesParameters parameters = query.getSingleResult();
 		return parameters;
 	}
 	
@@ -186,12 +208,28 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * 
 	 * @param simulation SimulationSeriesGroup
 	 */
+	public void deleteGroup(long id) {
+
+		EntityManager em = getEntityManager();
+		em.getTransaction().begin();
+		SimulationSeriesGroup simulation = em.getReference(SimulationSeriesGroup.class, id);
+		em.remove(simulation);
+		em.getTransaction().commit();
+		em.close();
+	}
+	
+	/**
+	 * Removes a SimulatioSeriesGroup from the database
+	 * 
+	 * @param simulation SimulationSeriesGroup
+	 */
 	public synchronized void delete(SimulationSeriesGroup simulation) {
 
 		EntityManager em = getEntityManager();
 		em.getTransaction().begin();
 		simulation = em.getReference(SimulationSeriesGroup.class, simulation.getId());
 		em.remove(simulation);
+		em.getTransaction().commit();
 		em.close();
 	}
 	
@@ -207,5 +245,26 @@ public class SimulationEntityHandler extends EntityHandler {
 		List<SimulationSeriesGroup> list = query.getResultList();
 		return list;
 	}
+
+	/**
+	 * Return a list of SimulationSeriesGroups.
+	 * 
+	 * @param userId Id of owner
+	 * @param firstIndex 
+	 * @param length Number of entries
+	 * @return simulationSeriesGroups
+	 */
+	public List<SimulationSeriesGroup> getSimulationSeriesGroups(long userId, int firstIndex, int length) {
+		
+		EntityManager em = getEntityManager();
+		TypedQuery<SimulationSeriesGroup> query = em.createQuery("SELECT s FROM SimulationSeriesGroup s WHERE s.userId = :id", SimulationSeriesGroup.class);
+		query.setFirstResult(firstIndex);
+		query.setMaxResults(length);
+		query.setParameter("id", userId);
+		List<SimulationSeriesGroup> list = query.getResultList();
+		return list;
+	}
+
+
 	
 }

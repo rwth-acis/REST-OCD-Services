@@ -75,8 +75,8 @@ public class DataRecorder implements Steppable {
 	 * Clear the cooperation and payoff value lists.
 	 */
 	protected void clear() {
-		cooperationValues.clear();
-		payoffValues.clear();
+		cooperationValues = new ArrayList<>(cooperationValues.size());
+		payoffValues = new ArrayList<>(payoffValues.size());
 	}
 
 	public List<Double> getCooperationValues() {

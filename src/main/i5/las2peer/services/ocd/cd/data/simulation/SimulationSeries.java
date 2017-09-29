@@ -17,57 +17,58 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
+import i5.las2peer.services.ocd.ServiceClass;
+import i5.las2peer.services.ocd.cd.data.SimulationEntityHandler;
 import i5.las2peer.services.ocd.cd.data.mapping.Correlation;
 import i5.las2peer.services.ocd.cd.data.table.Table;
 import i5.las2peer.services.ocd.cd.data.table.TableRow;
 import i5.las2peer.services.ocd.graphs.Community;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 /**
  * A SimulationSeries serves as a container for multiple SimulationDatasets.
  * 
  * If you repeat the same Simulation multiple times, you will get multiple
- * SimulationDatasets with the same parameters. This class is meant to group them
- * together and allow statistical evaluation of the data sets.
+ * SimulationDatasets with the same parameters. This class is meant to group
+ * them together and allow statistical evaluation of the data sets.
  *
  */
-
-@Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Entity
 public class SimulationSeries extends SimulationAbstract {
 
 	/////////////// Entity Fields ///////////////
-			
+
+	/**
+	 * The id of the owner
+	 */
 	@Basic
 	private long userId;
-	
-	@Basic
-	private int generations;
 
 	/**
 	 * The simulation parameters used for this simulation series
 	 */
 	@Embedded
-	private Parameters parameters;
-	
+	private SimulationSeriesParameters parameters;
+
 	/**
-	 * Statistical evaluation of the number of generations
-	 * of the SimulationDatasets
-	 */	
+	 * Statistical evaluation of the number of generations of the
+	 * SimulationDatasets
+	 */
 	@Transient
 	private Evaluation generationEvaluation;
-	
+
 	/**
-	 * Correlation between the cooperation value and the average payoff 
-	 * of the SimulationDatasets
-	 */	
+	 * Correlation between the cooperation value and the average payoff of the
+	 * SimulationDatasets
+	 */
 	@Transient
 	private Correlation payoffCorrelation;
-		
+
 	/**
 	 * A simulations series consists of multiple simulation datasets
 	 */
-	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumn
+	@OneToMany(mappedBy="simulationSeries", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
 	private List<SimulationDataset> simulationDatasets;
 
 	/**
@@ -75,24 +76,51 @@ public class SimulationSeries extends SimulationAbstract {
 	 */
 	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<SimulationSeriesGroup> simulationGroups;
-	
-	///////////////// Constructor //////////////////
-	
+
 	/**
-	 * Creates a empty instance, that is used for persistence and testing purposes.
+	 * Highest number of iterations of a dataset
+	 */
+	@Basic
+	private int generations;
+
+	///////////////// Constructor //////////////////
+
+	/**
+	 * Creates a empty instance, that is used for persistence and testing
+	 * purposes.
 	 */
 	public SimulationSeries() {
 
 	}
 
-	public SimulationSeries(Parameters parameters, List<SimulationDataset> simulationDatasets) {
-
-		this.parameters = parameters;
-		this.simulationDatasets = simulationDatasets;		
+	/**
+	 * Creates a instance with datasets, parameters and graph.
+	 * 
+	 * @param parameters
+	 * @param simulationDatasets
+	 */
+	public SimulationSeries(SimulationSeriesParameters parameters, List<SimulationDataset> datasets, CustomGraph graph) {
+		this.setParameters(parameters);
+		this.setSimulationDatasets(datasets);
+		this.setNetwork(graph);
+	}
+	
+	/**
+	 * Creates a instance with datasets and parameters
+	 * 
+	 * @param parameters
+	 * @param simulationDatasets
+	 */
+	public SimulationSeries(SimulationSeriesParameters parameters, List<SimulationDataset> datasets) {
+		this.setParameters(parameters);
+		this.setSimulationDatasets(datasets);
 	}
 
 	////////////////// Getter /////////////////////
 
+
+
+	@Override
 	@JsonIgnore
 	public long getUserId() {
 		return userId;
@@ -104,39 +132,41 @@ public class SimulationSeries extends SimulationAbstract {
 	}
 
 	@JsonProperty
-	public Parameters getParameters() {
+	public SimulationSeriesParameters getParameters() {
 		return parameters;
 	}
-	
+
 	@Override
 	@JsonProperty
 	public Evaluation getGenerationEvaluation() {
 		return generationEvaluation;
 	}
-	
+
 	@Override
 	@JsonProperty
 	public Correlation getPayoffCorrelation() {
 		return payoffCorrelation;
 	}
-	
+
 	@JsonProperty
 	public List<SimulationDataset> getSimulationDatasets() {
 		return simulationDatasets;
 	}
-	
+
 	@JsonIgnore
-	public MetaData getMetaData() {
-		return new MetaData(this);
+	public SimulationSeriesMetaData getMetaData() {
+		SimulationSeriesMetaData meta = new SimulationSeriesMetaData(this);		
+		return meta;
 	}
 
 	@JsonIgnore
 	public List<SimulationSeriesGroup> getSimulationSeriesGroups() {
 		return this.simulationGroups;
 	}
-
+	
 	////////////////// Setter /////////////////////
 
+	@Override
 	@JsonSetter
 	public void setUserId(long userId) {
 		this.userId = userId;
@@ -148,16 +178,16 @@ public class SimulationSeries extends SimulationAbstract {
 	}
 
 	@JsonSetter
-	public void setParameters(Parameters parameters) {
+	public void setParameters(SimulationSeriesParameters parameters) {
 		this.parameters = parameters;
 	}
-	
+
 	@Override
 	@JsonSetter
 	public void setGenerationEvaluation(Evaluation generationEvaluation) {
 		this.generationEvaluation = generationEvaluation;
 	}
-	
+
 	@Override
 	@JsonSetter
 	public void setPayoffCorrelation(Correlation payoffCorrelation) {
@@ -180,8 +210,9 @@ public class SimulationSeries extends SimulationAbstract {
 	public void evaluate() {
 		this.setCooperationEvaluation(new Evaluation(getFinalCooperationValues()));
 		this.setPayoffEvaluation(new Evaluation(getFinalPayoffValues()));
-		this.setGenerationEvaluation(new Evaluation(iterations()));
-		//payoffCorrelation = new Correlation(getFinalCooperationValues(), getFinalPayoffValues());
+		// this.setGenerationEvaluation(new Evaluation(iterations()));
+		// payoffCorrelation = new Correlation(getFinalCooperationValues(),
+		// getFinalPayoffValues());
 	}
 
 	/**
@@ -208,18 +239,17 @@ public class SimulationSeries extends SimulationAbstract {
 		}
 		return maxSize;
 	}
-	
+
 	public double[] iterations() {
-		
+
 		int size = size();
-		double[] iterations = new double[size];		
-		for(int i=0; i<size; i++) {
+		double[] iterations = new double[size];
+		for (int i = 0; i < size; i++) {
 			iterations[i] = getSimulationDatasets().get(i).getIterations();
 		}
-		
-		return iterations;		
+
+		return iterations;
 	}
-	
 
 	public void normalize() {
 		int maxSize = generations();
@@ -227,17 +257,17 @@ public class SimulationSeries extends SimulationAbstract {
 			dataset.fill(maxSize);
 		}
 	}
-	
+
 	@Override
 	public double averageCooperationValue() {
-		if(getCooperationEvaluation() == null)
+		if (getCooperationEvaluation() == null)
 			setCooperationEvaluation(new Evaluation(getFinalCooperationValues()));
 		return getCooperationEvaluation().getAverage();
 	}
-	
+
 	@Override
 	public double averagePayoffValue() {
-		if(getPayoffEvaluation() == null)
+		if (getPayoffEvaluation() == null)
 			setPayoffEvaluation(new Evaluation(getFinalPayoffValues()));
 		return getPayoffEvaluation().getAverage();
 	}
@@ -353,7 +383,7 @@ public class SimulationSeries extends SimulationAbstract {
 		}
 		return values;
 	}
-	
+
 	////////////// Print Data /////////////
 
 	@Override
@@ -378,31 +408,31 @@ public class SimulationSeries extends SimulationAbstract {
 	@Override
 	public TableRow toTableLine() {
 
-		Parameters parameters = getParameters();
+		SimulationSeriesParameters parameters = getParameters();
 		Evaluation coopEvaluation = getCooperationEvaluation();
 		Evaluation payoffEvaluation = getPayoffEvaluation();
-		Evaluation generationEvaluation = getGenerationEvaluation();
+		// valuation generationEvaluation = getGenerationEvaluation();
 
 		TableRow line = new TableRow();
 		line.add(parameters.toTableLine());
 		line.add(coopEvaluation.toTableLine());
 		line.add(payoffEvaluation.toTableLine());
-		line.add(generationEvaluation.toTableLine());
+		// line.add(generationEvaluation.toTableLine());
 		return line;
 	}
 
 	public TableRow toHeadLine() {
 
-		Parameters parameters = getParameters();
+		SimulationSeriesParameters parameters = getParameters();
 		Evaluation coopEvaluation = getCooperationEvaluation();
-		Evaluation payoffEvaluation = getPayoffEvaluation();		
-		Evaluation generationEvaluation = getGenerationEvaluation();
-		
+		Evaluation payoffEvaluation = getPayoffEvaluation();
+		// Evaluation generationEvaluation = getGenerationEvaluation();
+
 		TableRow line = new TableRow();
 		line.add(parameters.toHeadLine());
-		line.add(coopEvaluation.toHeadLine().suffix("#C"));
-		line.add(payoffEvaluation.toHeadLine().suffix("#P"));
-		line.add(generationEvaluation.toHeadLine().suffix("#G"));
+		line.add(Evaluation.toHeadLine().suffix("#C"));
+		line.add(Evaluation.toHeadLine().suffix("#P"));
+		// line.add(generationEvaluation.toHeadLine().suffix("#G"));
 
 		return line;
 

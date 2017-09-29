@@ -6,7 +6,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import i5.las2peer.services.ocd.cd.data.simulation.Parameters;
+import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeriesParameters;
 import i5.las2peer.services.ocd.cd.simulation.Agent;
 import i5.las2peer.services.ocd.cd.simulation.SimulationBuilder;
 import i5.las2peer.services.ocd.cd.simulation.dynamic.Dynamic;
@@ -24,7 +24,7 @@ public class SimulationBuilderTest {
     public ExpectedException exception = ExpectedException.none();
 	
 	SimulationBuilder simulationBuilder;
-	Parameters parameters;
+	SimulationSeriesParameters parameters;
 	
 	@Test 
 	public void setGameInvalidParameters() {
@@ -32,7 +32,7 @@ public class SimulationBuilderTest {
 		exception.expect(IllegalArgumentException.class);		
 		
 		simulationBuilder = new SimulationBuilder();		
-		parameters = new Parameters();
+		parameters = new SimulationSeriesParameters();
 		parameters.setPayoffCC(0);
 		parameters.setPayoffCD(0);
 		parameters.setPayoffDC(0);
@@ -51,7 +51,7 @@ public class SimulationBuilderTest {
 		double bb = 1;		
 		
 		simulationBuilder = new SimulationBuilder();		
-		parameters = new Parameters();
+		parameters = new SimulationSeriesParameters();
 		parameters.setPayoffCC(aa);
 		parameters.setPayoffCD(ab);
 		parameters.setPayoffDC(ba);
@@ -71,7 +71,7 @@ public class SimulationBuilderTest {
 		exception.expect(IllegalArgumentException.class);		
 		
 		simulationBuilder = new SimulationBuilder();		
-		parameters = new Parameters();
+		parameters = new SimulationSeriesParameters();
 		parameters.setDynamic(DynamicType.UNKNOWN);
 		
 		simulationBuilder.setDynamicParameters(parameters);				
@@ -83,7 +83,7 @@ public class SimulationBuilderTest {
 		Dynamic resultDynamic;		
 		
 		simulationBuilder = new SimulationBuilder();		
-		parameters = new Parameters();
+		parameters = new SimulationSeriesParameters();
 		parameters.setDynamic(DynamicType.REPLICATOR);
 		parameters.setDynamicValue(1.2);
 		
