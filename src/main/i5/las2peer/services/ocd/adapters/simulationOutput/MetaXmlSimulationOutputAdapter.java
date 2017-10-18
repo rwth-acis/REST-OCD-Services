@@ -13,9 +13,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeriesParameters;
-import i5.las2peer.services.ocd.cd.data.simulation.SimulationAbstract;
-import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeries;
+import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationAbstract;
+import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
+import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesParameters;
 
 public class MetaXmlSimulationOutputAdapter extends AbstractSimulationOutputAdapter {
 

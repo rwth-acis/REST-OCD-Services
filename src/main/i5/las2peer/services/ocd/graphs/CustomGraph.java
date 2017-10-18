@@ -30,8 +30,8 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
-import i5.las2peer.services.ocd.cd.data.simulation.SimulationAbstract;
-import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeries;
+import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationAbstract;
+import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.graphs.properties.AbstractProperty;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import y.base.Edge;

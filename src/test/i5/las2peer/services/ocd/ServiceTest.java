@@ -7,7 +7,7 @@ import i5.las2peer.p2p.ServiceNameVersion;
 import i5.las2peer.security.ServiceAgent;
 import i5.las2peer.security.UserAgent;
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.cd.data.simulation.SimulationSeries;
+import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.EntityHandler;
