@@ -10,7 +10,7 @@ public class DynamicFactory {
 	}
 
 	/**
-	 * Creates a {@link Dynamic} matching the specified {@link DynamicType} and
+	 * Creates a {@link Dynamic} matching the specified {@link ConditionType} and
 	 * parameter values.
 	 * 
 	 * @param dynamicType
@@ -42,7 +42,7 @@ public class DynamicFactory {
 	}
 
 	/**
-	 * Creates a {@link Dynamic} matching the specified {@link DynamicType} with
+	 * Creates a {@link Dynamic} matching the specified {@link ConditionType} with
 	 * default parameters.
 	 * 
 	 * @param dynamicType
@@ -53,7 +53,7 @@ public class DynamicFactory {
 	}
 
 	/**
-	 * Creates a {@link Dynamic} matching the specified {@link DynamicType} and
+	 * Creates a {@link Dynamic} matching the specified {@link ConditionType} and
 	 * the parameter value.
 	 * 
 	 * @param dynamicType

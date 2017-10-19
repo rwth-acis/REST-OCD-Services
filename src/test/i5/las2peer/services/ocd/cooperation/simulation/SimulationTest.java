@@ -1,20 +1,18 @@
 package i5.las2peer.services.ocd.cooperation.simulation;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyInt;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-
-import static org.mockito.Matchers.*;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import i5.las2peer.services.ocd.cooperation.simulation.Agent;
-import i5.las2peer.services.ocd.cooperation.simulation.Simulation;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
 import i5.las2peer.services.ocd.cooperation.simulation.game.Game;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.Condition;
 import sim.field.network.Network;
 import sim.util.Bag;
 
@@ -29,6 +27,9 @@ public class SimulationTest {
 
 	@Mock
 	Dynamic dynamic;
+
+	@Mock
+	Condition condition;
 
 	@Mock
 	Agent agent0;
@@ -59,7 +60,7 @@ public class SimulationTest {
 
 		int coopNumber;
 		double coopValue;
-		Simulation simulation = new Simulation(1, network, game, dynamic);
+		Simulation simulation = new Simulation(1, network, game, dynamic, condition);
 
 		Mockito.when(agent0.getStrategy()).thenReturn(true);
 		Mockito.when(agent1.getStrategy()).thenReturn(true);
@@ -95,7 +96,7 @@ public class SimulationTest {
 
 		double total;
 		double average;
-		Simulation simulation = new Simulation(1, network, game, dynamic);
+		Simulation simulation = new Simulation(1, network, game, dynamic, condition);
 
 		Mockito.when(agent0.getPayoff(anyInt())).thenReturn(2.0);
 		Mockito.when(agent1.getPayoff(anyInt())).thenReturn(4.0);

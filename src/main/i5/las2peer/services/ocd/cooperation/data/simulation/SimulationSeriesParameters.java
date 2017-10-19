@@ -17,6 +17,7 @@ import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 import i5.las2peer.services.ocd.cooperation.simulation.Simulation;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
 
 /**
  * Object of this class hold the parameters used for a simulation series.
@@ -68,6 +69,12 @@ public class SimulationSeriesParameters implements Serializable {
 	private double dynamicValue;
 
 	/**
+	 * the break condition for the simulaiton
+	 */
+	@Enumerated(EnumType.STRING)
+	private ConditionType condition;
+
+	/**
 	* the maximum rounds of a Simulation
 	*/
 	@Basic
@@ -99,6 +106,9 @@ public class SimulationSeriesParameters implements Serializable {
 	private int iterations;
 
 	@Basic
+	private String simulationName;
+
+	@Basic
 	private String graphName;
 
 	////////// Constructor //////////
@@ -121,6 +131,11 @@ public class SimulationSeriesParameters implements Serializable {
 	}
 
 	////////// Getter //////////
+
+	@JsonProperty
+	public String getName() {
+		return this.simulationName;
+	}
 
 	@JsonProperty
 	public long getGraphId() {
@@ -177,6 +192,13 @@ public class SimulationSeriesParameters implements Serializable {
 		return benefit;
 	}
 
+	@JsonProperty
+	public ConditionType getCondition() {
+		if (condition == null)
+			return ConditionType.UNKNOWN;
+		return condition;
+	}
+
 	/**
 	 * Return the payoff values as array
 	 * @return payoff values
@@ -186,12 +208,32 @@ public class SimulationSeriesParameters implements Serializable {
 		return new double[] { payoffCC, payoffCD, payoffDC, payoffDD };
 	}
 
+	/**
+	 * Return the dynamic values as array
+	 * 
+	 * @return dynamic values
+	 */
 	@JsonIgnore
 	public double[] getDynamicValues() {
 		return new double[] { dynamicValue };
 	}
 
+	/**
+	 * Return the condition values as array
+	 * 
+	 * @return condition values
+	 */
+	@JsonIgnore
+	public int[] getConditionValues() {
+		return new int[] { minIterations, maxIterations, timeWindow };
+	}
+
 	////////// Setter //////////
+
+	@JsonSetter
+	public void setName(String name) {
+		this.simulationName = name;
+	}
 
 	@JsonSetter
 	public void setIterations(int iterations) {

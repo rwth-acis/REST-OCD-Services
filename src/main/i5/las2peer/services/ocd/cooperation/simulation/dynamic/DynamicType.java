@@ -35,7 +35,7 @@ public enum DynamicType {
 	public final Class<? extends Dynamic> dynamicClass;
 
 	/**
-	 * Integer representation of the DynamicType
+	 * Integer representation of the ConditionType
 	 */
 	public final int id;
 
@@ -107,7 +107,7 @@ public enum DynamicType {
 	/**
 	 * @param typeString
 	 *            dynamic type as string
-	 * @return the DynamicType
+	 * @return the ConditionType
 	 */
 	public static DynamicType fromString(String typeString) {
 
@@ -121,7 +121,7 @@ public enum DynamicType {
 	}
 
 	/**
-	 * Returns the DynamicType of its corresponding class.
+	 * Returns the ConditionType of its corresponding class.
 	 * 
 	 * @param dynamicClass
 	 * @return the dynamicType

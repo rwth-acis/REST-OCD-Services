@@ -1,20 +1,19 @@
 package i5.las2peer.services.ocd.cooperation.simulation;
 
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
 import org.junit.Test;
 
-import i5.las2peer.services.ocd.cooperation.simulation.Agent;
-import i5.las2peer.services.ocd.cooperation.simulation.Simulation;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicFactory;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.Game;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameFactory;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
-
-import static org.junit.Assert.*;
-
-import org.junit.Before;
-
+import i5.las2peer.services.ocd.cooperation.simulation.termination.Condition;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionFactory;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
 import sim.field.network.Network;
 
 /**
@@ -64,8 +63,9 @@ public class SimulationInteractionTest {
 
 		Game game = GameFactory.getInstance().build(GameType.PRISONERS_DILEMMA, 1, 2);
 		Dynamic dynamic = DynamicFactory.getInstance().build(DynamicType.UNCONDITIONAL_IMITATION);
+		Condition condition = new ConditionFactory().build(ConditionType.STATIONARY_STATE);
 
-		Simulation simulation = new Simulation(System.currentTimeMillis(), network, game, dynamic);
+		Simulation simulation = new Simulation(System.currentTimeMillis(), network, game, dynamic, condition);
 		simulation.start();
 		do
 			if (!simulation.schedule.step(simulation))
@@ -83,8 +83,9 @@ public class SimulationInteractionTest {
 
 		Game game = GameFactory.getInstance().build(GameType.PRISONERS_DILEMMA, 1.0, 2.0);
 		Dynamic dynamic = DynamicFactory.getInstance().build(DynamicType.REPLICATOR);
+		Condition condition = new ConditionFactory().build(ConditionType.STATIONARY_STATE);
 
-		Simulation simulation = new Simulation(System.currentTimeMillis(), network, game, dynamic);
+		Simulation simulation = new Simulation(System.currentTimeMillis(), network, game, dynamic, condition);
 		simulation.start();
 		do
 			if (!simulation.schedule.step(simulation))

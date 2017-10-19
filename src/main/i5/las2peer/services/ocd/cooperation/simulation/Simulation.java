@@ -7,6 +7,8 @@ import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.Game;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameFactory;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.Condition;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.FixedIterationsCondition;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.field.network.Network;
@@ -43,7 +45,7 @@ public class Simulation extends SimState {
 	/**
 	 * break condition
 	 */
-	private BreakCondition breakCondition;
+	private Condition breakCondition;
 
 	////// Constructor ///////
 
@@ -59,13 +61,13 @@ public class Simulation extends SimState {
 	 * @param game
 	 * @param dynamic
 	 */
-	public Simulation(long seed, Network network, Game game, Dynamic dynamic) {
+	public Simulation(long seed, Network network, Game game, Dynamic dynamic, Condition condition) {
 		super(seed);
 
 		this.network = network;
 		this.game = game;
 		this.dynamic = dynamic;
-		this.breakCondition = new BreakCondition();
+		this.breakCondition = condition;
 		this.recorder = new DataRecorder(breakCondition.getMaxIterations());
 		
 	}
@@ -82,7 +84,7 @@ public class Simulation extends SimState {
 		this.network = netw;
 		this.game = GameFactory.getInstance().build(GameType.PRISONERS_DILEMMA, 1, 2);
 		this.dynamic = DynamicFactory.getInstance().build(DynamicType.REPLICATOR, 1.5);
-		this.breakCondition = new BreakCondition();
+		this.breakCondition = new FixedIterationsCondition(40);
 		this.recorder = new DataRecorder(breakCondition.getMaxIterations());
 
 	}
@@ -105,8 +107,7 @@ public class Simulation extends SimState {
 		super.start();
 		
 		recorder.clear();		
-		breakCondition = new BreakCondition(this);
-		
+
 		schedule.scheduleRepeating(1, 3, recorder);		
 		schedule.scheduleRepeating(1, 4, breakCondition);		
 		initAgents();
@@ -155,7 +156,7 @@ public class Simulation extends SimState {
 
 	}
 	
-	protected void stopSchedule() {
+	public void stopSchedule() {
 		this.schedule.clear();
 	}
 	
@@ -240,8 +241,12 @@ public class Simulation extends SimState {
 		return true;
 	}
 	
-	protected Bag getAgents() {
+	public Bag getAgents() {
 		return new Bag(getNetwork().getAllNodes());
+	}
+
+	public boolean hideAgents() {
+		return true;
 	}
 
 	/////// Get Simulation Settings /////////	
@@ -291,14 +296,21 @@ public class Simulation extends SimState {
 	/**
 	 * @return the data recorder
 	 */
-	protected DataRecorder getDataRecorder() {
+	public DataRecorder getDataRecorder() {
 		return recorder;
 	}
 	
 	/**
+	 * Hides DataRecorder UI element. Used only in UI mode.
+	 */
+	public boolean hideDataRecorder() {
+		return true;
+	}
+
+	/**
 	 * @return the data recorder
 	 */
-	protected BreakCondition getBreakCondition() {
+	protected Condition getBreakCondition() {
 		return breakCondition;
 	}
 	

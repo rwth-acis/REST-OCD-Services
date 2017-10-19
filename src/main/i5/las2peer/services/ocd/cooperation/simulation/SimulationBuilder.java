@@ -15,6 +15,10 @@ import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.Game;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameFactory;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.Condition;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionFactory;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.StationaryStateCondition;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
@@ -30,17 +34,15 @@ public class SimulationBuilder {
 
 	DynamicFactory dynamicFactory;
 	GameFactory gameFactory;
+	ConditionFactory conditionFactory;
 
 	Game game;
 	Dynamic dynamic;
 	CustomGraph network;
+	Condition condition;
 	int graphId;
 
 	int iterations;
-	int minIter;
-	int maxIter;
-	int window;
-	double thresh;
 	String name;
 
 	/////// Constructor ////////
@@ -64,11 +66,9 @@ public class SimulationBuilder {
 		try {
 			setGameParameters(parameters);
 			setDynamicParameters(parameters);
-			iterations = parameters.getIterations();
-			minIter = parameters.getMinIterations();
-			maxIter = parameters.getMaxIterations();
-			window = parameters.getTimeWindow();
-			thresh = parameters.getThreshold();
+			setConditionParameters(parameters);
+			setIterations(parameters.getIterations());
+			setName(parameters.getName());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -76,6 +76,12 @@ public class SimulationBuilder {
 		}
 	}
 
+	/**
+	 * Set the simulation parameters regarding the game.
+	 * 
+	 * @param parameters
+	 * @return Game
+	 */
 	public Game setGameParameters(SimulationSeriesParameters parameters) {
 
 		GameType gameType = parameters.getGame();
@@ -100,6 +106,12 @@ public class SimulationBuilder {
 		return game;
 	}
 
+	/**
+	 * Set the simulation parameters regarding the dynamic.
+	 * 
+	 * @param parameters
+	 * @return Dynamic
+	 */
 	public Dynamic setDynamicParameters(SimulationSeriesParameters parameters) {
 
 		DynamicType dynamicType = parameters.getDynamic();
@@ -111,6 +123,28 @@ public class SimulationBuilder {
 		return dynamic;
 	}
 
+	/**
+	 * Set the simulation parameters regarding the break condition.
+	 * 
+	 * @param parameters
+	 * @return Condition
+	 */
+	public Condition setConditionParameters(SimulationSeriesParameters parameters) {
+
+		ConditionType conditionType = parameters.getCondition();
+		if (conditionType == null || conditionType.equals(ConditionType.UNKNOWN))
+			throw new IllegalArgumentException("invalid condition type");
+
+		int[] values = parameters.getConditionValues();
+		condition = conditionFactory.build(conditionType, values);
+		return condition;
+	}
+
+	/**
+	 * Set the Graph
+	 * 
+	 * @param network
+	 */
 	public void setNetwork(CustomGraph network) {
 
 		if (network == null)
@@ -119,6 +153,12 @@ public class SimulationBuilder {
 		this.network = network;
 	}
 
+	/**
+	 * Set the number of simulations
+	 * 
+	 * @param number
+	 *            of simulations
+	 */
 	public void setIterations(int value) {
 
 		if (value < 1)
@@ -127,6 +167,11 @@ public class SimulationBuilder {
 		this.iterations = value;
 	}
 	
+	/**
+	 * Set the name of the simulation
+	 * 
+	 * @param name
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
@@ -146,8 +191,18 @@ public class SimulationBuilder {
 
 		if (this.network == null)
 			throw new IllegalStateException("no network defined");
+
+		if (this.condition == null)
+			throw new IllegalStateException("no break condition defined");
 	}
 
+	/**
+	 * Start a simulation series
+	 * 
+	 * @return SimulationSeries
+	 * @throws IllegalStateException
+	 * @throws ServiceInvocationException
+	 */
 	public SimulationSeries simulate() throws IllegalStateException, ServiceInvocationException {
 
 		try {
@@ -159,37 +214,24 @@ public class SimulationBuilder {
 		Game game = this.game;
 		Dynamic dynamic = this.dynamic;
 		CustomGraph graph = this.network;
+		Condition condition = this.condition;
 		Network network = buildNetwork(graph);
 
 		int iterations = this.iterations;
 		if (iterations < 1)
 			iterations = 10;
-		
-		int maxIter = this.maxIter;
-		if (maxIter < 1)
-			maxIter = 1000;
-		
-		int minIter = this.minIter;
-		if (minIter < 1)
-			minIter = 100;
-		
-		int window = this.window;
-		if (window < 1)
-			window = 100;
-		
-		double thresh = this.thresh;
-		if (thresh <= 0)
-			thresh = 0.1;
-		
+
+		if (condition instanceof StationaryStateCondition) {
+			StationaryStateCondition stCondition = (StationaryStateCondition) condition;
+			stCondition.setThreshold(1 / (Math.sqrt(network.getAllNodes().size())));
+			condition = stCondition;
+		}
+
 		if(this.name == null)
 			this.name = "";	
 		
-		List<SimulationDataset> datasets = new ArrayList<>(maxIter);
-		Simulation simulation = new Simulation(System.currentTimeMillis(), network, game, dynamic);
-		simulation.getBreakCondition().setMinIterations(minIter);
-		simulation.getBreakCondition().setMaxIterations(maxIter);
-		simulation.getBreakCondition().setWindow(window);
-		simulation.getBreakCondition().setThreshold(thresh);
+		List<SimulationDataset> datasets = new ArrayList<>();
+		Simulation simulation = new Simulation(System.currentTimeMillis(), network, game, dynamic, condition);
 
 		for (int i = 0; i < iterations; i++) {
 
@@ -217,6 +259,7 @@ public class SimulationBuilder {
 		parameters.setGraphName(graph.getName());
 
 		SimulationSeries series = new SimulationSeries(parameters, datasets);
+		series.setName(name);
 		series.evaluate();
 		return (series);
 	}
@@ -228,7 +271,7 @@ public class SimulationBuilder {
 	 */
 	public SimulationDataset getSimulationData(Simulation simulation) {
 
-		BreakCondition breakCondition = simulation.getBreakCondition();
+		Condition breakCondition = simulation.getBreakCondition();
 		DataRecorder recorder = simulation.getDataRecorder();
 
 		Bag agents = simulation.getAgents();
@@ -274,6 +317,7 @@ public class SimulationBuilder {
 			parameters.setDynamicValue(1.5);
 		}
 	}
+
 
 	/////// Initialize Network ////////
 

@@ -1,6 +1,6 @@
-package i5.las2peer.services.ocd.cooperation.simulation;
+package i5.las2peer.services.ocd.cooperation.simulation.termination;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +11,6 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import i5.las2peer.services.ocd.cooperation.simulation.Agent;
-import i5.las2peer.services.ocd.cooperation.simulation.BreakCondition;
 import i5.las2peer.services.ocd.cooperation.simulation.DataRecorder;
 import i5.las2peer.services.ocd.cooperation.simulation.Simulation;
 import sim.engine.Schedule;
@@ -19,10 +18,10 @@ import sim.engine.Stoppable;
 import sim.util.Bag;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BreakConditionTest {
+public class StationaryStateConditionTest {
 	
 	@Spy
-	BreakCondition condition;
+	StationaryStateCondition condition;
 	
 	@Mock
 	Simulation simulation;
@@ -71,7 +70,7 @@ public class BreakConditionTest {
 
 		Mockito.when(simulation.getRound()).thenReturn(maxIterations - 4);
 	
-		BreakCondition condition = new BreakCondition();
+		StationaryStateCondition condition = new StationaryStateCondition();
 		condition.setMaxIterations(10000);
 		condition.setMinIterations(1000);
 		condition.setWindow(200);
@@ -88,7 +87,7 @@ public class BreakConditionTest {
 
 		Mockito.when(simulation.getRound()).thenReturn(maxIterations + 2);
 
-		BreakCondition condition = new BreakCondition();
+		StationaryStateCondition condition = new StationaryStateCondition();
 		boolean result = condition.isFullfilled(simulation);
 		assertEquals(true, result);
 	}
@@ -96,7 +95,7 @@ public class BreakConditionTest {
 	@Test
 	public void isBreakConditionSteadyStateTrue() {
 		
-		BreakCondition condition = new BreakCondition();
+		StationaryStateCondition condition = new StationaryStateCondition();
 		condition.setMaxIterations(10000);
 		condition.setMinIterations(1000);
 		condition.setWindow(200);
@@ -119,7 +118,7 @@ public class BreakConditionTest {
 	@Test
 	public void isBreakConditionSteadyStateFalse() {
 		
-		BreakCondition condition = new BreakCondition();
+		StationaryStateCondition condition = new StationaryStateCondition();
 		condition.setMaxIterations(10000);
 		condition.setMinIterations(1000);
 		condition.setWindow(200);
@@ -145,7 +144,7 @@ public class BreakConditionTest {
 		Mockito.when(agent2.isSteady()).thenReturn(true);
 		Mockito.when(agent3.isSteady()).thenReturn(true);
 
-		BreakCondition condition = new BreakCondition();
+		StationaryStateCondition condition = new StationaryStateCondition();
 		boolean result = condition.isFullfilled(simulation);
 		assertEquals(false, result);
 	}

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ec.util.MersenneTwisterFast;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.Condition;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.field.network.Edge;
@@ -159,7 +160,7 @@ public class Agent implements Steppable {
 
 	/**
 	 * The agent is steady if it's strategy did not change between the last
-	 * rounds. This is used by the {@link BreakCondition}.
+	 * rounds. This is used by the {@link Condition}.
 	 * 
 	 * @return true if agent is steady
 	 */

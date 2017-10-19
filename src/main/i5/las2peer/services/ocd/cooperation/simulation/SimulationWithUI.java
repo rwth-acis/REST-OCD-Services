@@ -6,6 +6,7 @@ import javax.swing.JFrame;
 
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
 import i5.las2peer.services.ocd.cooperation.simulation.game.Game;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.Condition;
 import sim.display.Console;
 import sim.display.Controller;
 import sim.display.Display2D;
@@ -47,7 +48,7 @@ public class SimulationWithUI extends GUIState {
 		Simulation simulation = (Simulation) state;
 		Game game = simulation.getGame();
 		Dynamic dynamic = simulation.getDynamic();
-		BreakCondition condition = simulation.getBreakCondition();
+		Condition condition = simulation.getBreakCondition();
 		System.out.println(condition);
 		
 		Inspector simInspector = new SimpleInspector(simulation, this);
