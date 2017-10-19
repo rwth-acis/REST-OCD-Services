@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.cooperation.data.simulation;
 import java.io.Serializable;
 
 import javax.persistence.Basic;
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -32,7 +33,7 @@ public class SimulationSeriesParameters implements Serializable {
 
 	////////// Entity Fields //////////
 
-	@Basic
+	@Column(name = "graphId")
 	private long graphId;
 	
 	@Enumerated(EnumType.STRING)
@@ -225,7 +226,7 @@ public class SimulationSeriesParameters implements Serializable {
 	 */
 	@JsonIgnore
 	public int[] getConditionValues() {
-		return new int[] { minIterations, maxIterations, timeWindow };
+		return new int[] { maxIterations, minIterations, timeWindow };
 	}
 
 	////////// Setter //////////
@@ -258,6 +259,11 @@ public class SimulationSeriesParameters implements Serializable {
 	@JsonIgnore
 	public void setDynamic(DynamicType dynamic) {
 		this.dynamic = dynamic;
+	}
+
+	@JsonSetter
+	public void setCondition(String condition) {
+		this.condition = ConditionType.fromString(condition);
 	}
 
 	@JsonIgnore

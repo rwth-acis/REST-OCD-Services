@@ -10,6 +10,9 @@ public class ConditionFactory {
 	 */
 	public Condition build(ConditionType conditionEnum) {
 
+		if (conditionEnum == null || conditionEnum.equals(ConditionType.UNKNOWN))
+			throw new IllegalArgumentException("unknown break condition");
+
 		Condition conditionClass = null;
 		try {
 			conditionClass = conditionEnum.getEnumClass().newInstance();
@@ -28,15 +31,19 @@ public class ConditionFactory {
 	 */
 	public Condition build(ConditionType conditionEnum, int[] parameters) {
 
-		Condition conditionClass = null;
-		try {
-			conditionClass = conditionEnum.getEnumClass().newInstance();
-			conditionClass.setParameters(parameters);
-			return conditionClass;
-		} catch (Exception e) {
+		Condition condition = build(conditionEnum);
+		
+		if (parameters == null)
+			return condition;
+
+		try {			
+			condition.setParameters(parameters);
+		} catch (IllegalArgumentException e) {
 			e.printStackTrace();
+			throw e;
 		}
-		throw new IllegalArgumentException("cant create condition");
+		
+		return condition;
 	}
 
 }

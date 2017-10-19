@@ -1,19 +1,19 @@
 package i5.las2peer.services.ocd.cooperation.simulation;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesParameters;
-import i5.las2peer.services.ocd.cooperation.simulation.Agent;
-import i5.las2peer.services.ocd.cooperation.simulation.SimulationBuilder;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.Game;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphType;
 import sim.field.network.Network;
 import sim.util.Bag;
 import y.base.Node;
@@ -139,6 +139,7 @@ public class SimulationBuilderTest {
 		
 		SimulationBuilder simulationBuilder = new SimulationBuilder();
 		CustomGraph graph = new CustomGraph();
+		graph.getTypes().add(GraphType.SELF_LOOPS);
 		Node n0 = graph.createNode();
 		Node n1 = graph.createNode();
 		Node n2 = graph.createNode();

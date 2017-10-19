@@ -63,6 +63,7 @@ import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesPara
 import i5.las2peer.services.ocd.cooperation.simulation.SimulationBuilder;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
+import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
@@ -2296,7 +2297,9 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getSimulationMeta(@DefaultValue("0") @QueryParam("firstIndex") int firstIndex,
-				@DefaultValue("0") @QueryParam("length") int length, SimulationSeriesParameters parameters) {
+				@DefaultValue("0") @QueryParam("length") int length,
+				@DefaultValue("0") @QueryParam("graphId") long graphId,
+				SimulationSeriesParameters parameters) {
 
 			if (parameters == null) {
 				parameters = new SimulationSeriesParameters();
@@ -2307,7 +2310,11 @@ public class ServiceClass extends RESTService {
 				if (firstIndex < 0 || length <= 0) {
 					simulations = entityHandler.getSimulationSeriesByUser(getUserId());
 				} else {
-					simulations = entityHandler.getSimulationSeriesByUser(getUserId(), firstIndex, length);
+					if (graphId <= 0) {
+						simulations = entityHandler.getSimulationSeriesByUser(getUserId(), firstIndex, length);
+					} else {
+						simulations = entityHandler.getSimulationSeriesByUser(getUserId(), graphId, firstIndex, length);
+					}
 				}
 			} catch (Exception e) {
 				L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
@@ -2779,6 +2786,23 @@ public class ServiceClass extends RESTService {
 		public Response getGames() {
 
 			return Response.status(Status.OK).entity(GameType.values()).build();
+
+		}
+
+		/**
+		 * Returns all available break condition
+		 * 
+		 * @return HttpResponse with the returnString
+		 */
+		@GET
+		@Path("/simulation/conditions")
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(value = "GET Condition", notes = "Get all available break conditions")
+		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getBreakConditions() {
+
+			return Response.status(Status.OK).entity(ConditionType.values()).build();
 
 		}
 

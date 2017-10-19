@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.cooperation.data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -131,7 +132,7 @@ public class SimulationEntityHandler extends EntityHandler {
 
 		EntityManager em = getEntityManager();				 
 		TypedQuery<SimulationSeries> query = em.createQuery(
-				"SELECT s FROM SimulationSeries s JOIN Parameters p WHERE s.userId =:userId AND p.graphId =:graphId AND p.dynamic =:dynamic AND p.game =:game",
+				"SELECT s FROM SimulationSeries s WHERE s.userId =:userId AND s.graphId =:graphId AND s.dynamic =:dynamic AND s.game =:game",
 				SimulationSeries.class);
 				
 		query.setParameter("userId", userId);
@@ -140,6 +141,26 @@ public class SimulationEntityHandler extends EntityHandler {
 		query.setParameter("game", game);
 		List<SimulationSeries> seriesList = query.getResultList();
 		return seriesList;
+	}
+
+	/**
+	 * Returns a list of SimulationSeries filtered by the graphId
+	 * 
+	 * @param userId
+	 * @param firstIndex
+	 * @param length
+	 * @param graphId
+	 * @return simulation series list
+	 */
+	public List<SimulationSeries> getSimulationSeriesByUser(long userId, long graphId, int firstIndex, int length) {
+
+		List<SimulationSeries> seriesList = getSimulationSeriesByUser(userId, firstIndex, length);
+		List<SimulationSeries> resultList = new ArrayList<>();
+		for (SimulationSeries series : seriesList) {
+			if (series.getParameters().getGraphId() == graphId)
+				resultList.add(series);
+		}
+		return resultList;
 	}
 
 	
@@ -152,7 +173,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	public SimulationSeriesParameters getSimulationParameters(long seriesId) {
 
 		EntityManager em = getEntityManager();
-		TypedQuery<SimulationSeriesParameters> query = em.createQuery("SELECT p FROM Parameters AS p WHERE s.series_seriesId =:id",
+		TypedQuery<SimulationSeriesParameters> query = em.createQuery("SELECT p FROM SimulationSeriesParameters AS p WHERE s.series_seriesId =:id",
 				SimulationSeriesParameters.class);
 		query.setParameter("id", seriesId);
 		SimulationSeriesParameters parameters = query.getSingleResult();
@@ -265,7 +286,6 @@ public class SimulationEntityHandler extends EntityHandler {
 		List<SimulationSeriesGroup> list = query.getResultList();
 		return list;
 	}
-
 
 	
 }

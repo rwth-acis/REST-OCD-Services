@@ -137,7 +137,7 @@ public class StationaryStateConditionTest {
 	@Test
 	public void isBreakConditionMinRoundFalse() {
 
-		Mockito.when(simulation.getRound()).thenReturn(minIterations - 1);
+		Mockito.when(simulation.getRound()).thenReturn(50);
 
 		Mockito.when(agent0.isSteady()).thenReturn(true);
 		Mockito.when(agent1.isSteady()).thenReturn(true);
@@ -145,6 +145,9 @@ public class StationaryStateConditionTest {
 		Mockito.when(agent3.isSteady()).thenReturn(true);
 
 		StationaryStateCondition condition = new StationaryStateCondition();
+		condition.setMinIterations(100);
+		condition.setMaxIterations(200);
+		condition.setWindow(100);
 		boolean result = condition.isFullfilled(simulation);
 		assertEquals(false, result);
 	}

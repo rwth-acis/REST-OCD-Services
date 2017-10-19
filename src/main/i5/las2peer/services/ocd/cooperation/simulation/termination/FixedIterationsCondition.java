@@ -13,7 +13,7 @@ public class FixedIterationsCondition extends Condition {
 	/**
 	 * the number of rounds of one simulation
 	 */
-	private int iterations = 200;
+	private int maxIterations = 40;
 
 
 	/**
@@ -27,7 +27,7 @@ public class FixedIterationsCondition extends Condition {
 	 * Instantiates a new FixedIterationsCondition. Sets the number of iterations.
 	 */
 	public FixedIterationsCondition(int iterations) {
-		this.iterations = iterations;
+		this.maxIterations = iterations;
 
 	}
 
@@ -42,7 +42,7 @@ public class FixedIterationsCondition extends Condition {
 
 		int round = simulation.getRound();
 		
-		if (round >= getIterations() - 1)
+		if (round >= getMaxIterations() - 1)
 			return true;
 
 		return false;
@@ -64,22 +64,26 @@ public class FixedIterationsCondition extends Condition {
 
 		if (parameters[0] < 0)
 			throw new IllegalArgumentException("negative iterations");
+		
+		if (parameters[0] == 0)
+			return; // use default
 
 		if (parameters[0] > 100000)
 			throw new IllegalArgumentException("too many iterations");
 
-		setiterations(parameters[0]);
+		setMaxIterations(parameters[0]);
 	}
 
 	/**
 	 * @return the number of iterations
 	 */
-	public int getIterations() {
-		return iterations;
+	@Override
+	public int getMaxIterations() {
+		return this.maxIterations;
 	}
 
-	public void setiterations(int iterations) {
-		this.iterations = iterations;
+	public void setMaxIterations(int iterations) {
+		this.maxIterations = iterations;
 	}
 
 }

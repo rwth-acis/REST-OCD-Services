@@ -20,6 +20,7 @@ import i5.las2peer.services.ocd.cooperation.data.simulation.Evaluation;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationDataset;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesGroup;
+import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesParameters;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 public class SimulationEntityHandlerTest {
@@ -194,6 +195,40 @@ public class SimulationEntityHandlerTest {
 		assertNotNull(resultSeries.getSimulationDatasets());
 		assertEquals(2, resultSeries.size());
 		assertEquals("da1", resultSeries.getSimulationDatasets().get(0).getName());
+
+	}
+
+	@Test
+	public void getSimulationSeriesByGraphId() {
+
+		SimulationSeries series = new SimulationSeries();
+		long userId = 7;
+		series.setUserId(7);
+
+		SimulationSeriesParameters parameters = new SimulationSeriesParameters();
+		parameters.setGraphId(23);
+		parameters.setGraphName("testGraphName123");
+		series.setParameters(parameters);
+
+		EntityManager em = factory.createEntityManager();
+		em.getTransaction().begin();
+		em.persist(series);
+		em.flush();
+		em.getTransaction().commit();
+		long seriesId = series.getId();
+		em.close();
+
+		List<SimulationSeries> resultSeries = null;
+		try {
+			resultSeries = entityHandler.getSimulationSeriesByUser(7, 23, 0, 10);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		assertNotNull(resultSeries);
+		assertEquals(resultSeries.size(), 1);
+		assertNotNull(resultSeries.get(0).getParameters());
+		assertEquals(23, resultSeries.get(0).getParameters().getGraphId());
 
 	}
 

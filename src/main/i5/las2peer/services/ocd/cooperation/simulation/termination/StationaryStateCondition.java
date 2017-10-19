@@ -15,17 +15,17 @@ public class StationaryStateCondition extends Condition {
 	/**
 	 * the maximum rounds of one simulation
 	 */
-	private int maxIterations = 9000;
+	private int maxIterations = 1000;
 
 	/**
 	 * the minimum rounds of one simulation
 	 */
-	private int minIterations = 1000;
+	private int minIterations = 100;
 
 	/**
 	 * number of generations to thesis.execute the stationary state
 	 */
-	private int window = 200;
+	private int window = 100;
 
 	/**
 	 * threshold
@@ -89,18 +89,20 @@ public class StationaryStateCondition extends Condition {
 		if (parameters[0] > 100000)
 			throw new IllegalArgumentException("too many iterations");
 
-		if (parameters[0] < parameters[1]) {
-			setMinIterations(parameters[0]);
-			setMaxIterations(parameters[1]);
-		} else {
+		if (parameters[0] > 0)		
 			setMaxIterations(parameters[0]);
+		
+		if (parameters[1] > 0)		
 			setMinIterations(parameters[1]);
-		}
+		
+		if (parameters[2] > 0)		
+			setWindow(parameters[2]);
+		
+		if (getMaxIterations() < getMinIterations())
+			setMaxIterations(getMinIterations());
 
-		if (parameters[2] > maxIterations)
+		if (getWindow() > getMaxIterations())
 			throw new IllegalArgumentException("time window oversized ");
-
-		setWindow(parameters[2]);
 
 	}
 

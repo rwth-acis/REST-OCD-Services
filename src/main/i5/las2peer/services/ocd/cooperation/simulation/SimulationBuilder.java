@@ -20,7 +20,6 @@ import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionFact
 import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
 import i5.las2peer.services.ocd.cooperation.simulation.termination.StationaryStateCondition;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import sim.field.network.Network;
 import sim.util.Bag;
@@ -32,9 +31,9 @@ import y.base.Node;
  */
 public class SimulationBuilder {
 
-	DynamicFactory dynamicFactory;
-	GameFactory gameFactory;
-	ConditionFactory conditionFactory;
+	DynamicFactory dynamicFactory = new DynamicFactory();;
+	GameFactory gameFactory = new GameFactory();;
+	ConditionFactory conditionFactory = new ConditionFactory();;
 
 	Game game;
 	Dynamic dynamic;
@@ -51,6 +50,7 @@ public class SimulationBuilder {
 
 		this.dynamicFactory = new DynamicFactory();
 		this.gameFactory = new GameFactory();
+		this.conditionFactory = new ConditionFactory();
 	}
 
 	public SimulationBuilder(DynamicFactory dynamicFactory, GameFactory gameFactory) {
@@ -233,6 +233,9 @@ public class SimulationBuilder {
 		List<SimulationDataset> datasets = new ArrayList<>();
 		Simulation simulation = new Simulation(System.currentTimeMillis(), network, game, dynamic, condition);
 
+		System.out.println("simulate");
+		System.out.println(simulation.getBreakCondition().getMaxIterations());
+		System.out.println(simulation.getBreakCondition().toString());
 		for (int i = 0; i < iterations; i++) {
 
 			simulation.start();
@@ -257,6 +260,8 @@ public class SimulationBuilder {
 		parameters.setGraphId(graph.getId());
 		parameters.setIterations(iterations);
 		parameters.setGraphName(graph.getName());
+		parameters.setMaxIterations(condition.getMaxIterations());
+		parameters.setTimeWindow(condition.getWindow());
 
 		SimulationSeries series = new SimulationSeries(parameters, datasets);
 		series.setName(name);
@@ -330,11 +335,6 @@ public class SimulationBuilder {
 	 * @return network as {@link Network}
 	 */
 	protected Network buildNetwork(CustomGraph graph) {
-
-		if (graph.getTypes().isEmpty()) {
-			GraphProcessor proc = new GraphProcessor();
-			proc.determineGraphTypes(graph);
-		}
 
 		if (graph.getTypes().contains(GraphType.SELF_LOOPS))
 			throw new IllegalArgumentException("Self loops not supported");
