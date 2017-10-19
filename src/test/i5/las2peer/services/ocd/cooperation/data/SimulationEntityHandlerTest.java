@@ -1,7 +1,9 @@
 package i5.las2peer.services.ocd.cooperation.data;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -9,10 +11,10 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+
 import org.junit.After;
 import org.junit.Test;
 
-import i5.las2peer.services.ocd.cooperation.data.SimulationEntityHandler;
 import i5.las2peer.services.ocd.cooperation.data.simulation.AgentData;
 import i5.las2peer.services.ocd.cooperation.data.simulation.Evaluation;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationDataset;
@@ -88,6 +90,47 @@ public class SimulationEntityHandlerTest {
 	}
 
 	@Test
+	public void storeSimulationSeriesWithDatasets() {
+
+		SimulationSeries series = new SimulationSeries();
+		SimulationDataset d1 = new SimulationDataset();
+		d1.setName("da1");
+		SimulationDataset d2 = new SimulationDataset();
+		d2.setName("da2");
+		List<SimulationDataset> list = new ArrayList<>();
+		list.add(d1);
+		list.add(d2);
+		series.setSimulationDatasets(list);
+		long userId = 7;
+		series.setUserId(userId);
+
+		long seriesId = 0;
+		try {
+			seriesId = entityHandler.store(series, userId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		EntityManager em = factory.createEntityManager();
+		SimulationSeries resultSeries;
+		EntityTransaction tx = em.getTransaction();
+		try {
+			tx.begin();
+			resultSeries = em.find(SimulationSeries.class, seriesId);
+			tx.commit();
+		} catch (RuntimeException e) {
+			tx.rollback();
+			throw e;
+		}
+		em.close();
+
+		assertNotNull(resultSeries);
+		assertNotNull(resultSeries.getSimulationDatasets());
+		assertEquals(2, resultSeries.size());
+		assertEquals("da1", resultSeries.getSimulationDatasets().get(0).getName());
+	}
+
+	@Test
 	public void getSimulationSeries() {
 
 		SimulationSeries series = new SimulationSeries();
@@ -115,6 +158,45 @@ public class SimulationEntityHandlerTest {
 
 	}
 	
+	@Test
+	public void getSimulationSeriesWithDatasets() {
+
+		SimulationSeries series = new SimulationSeries();
+		long userId = 7;
+		series.setUserId(7);
+
+		SimulationDataset d1 = new SimulationDataset();
+		d1.setName("da1");
+		SimulationDataset d2 = new SimulationDataset();
+		d2.setName("da2");
+		List<SimulationDataset> list = new ArrayList<>();
+		list.add(d1);
+		list.add(d2);
+
+		series.setSimulationDatasets(list);
+
+		EntityManager em = factory.createEntityManager();
+		em.getTransaction().begin();
+		em.persist(series);
+		em.flush();
+		em.getTransaction().commit();
+		long seriesId = series.getId();
+		em.close();
+
+		SimulationSeries resultSeries = null;
+		try {
+			resultSeries = entityHandler.getSimulationSeries(seriesId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		assertNotNull(resultSeries);
+		assertNotNull(resultSeries.getSimulationDatasets());
+		assertEquals(2, resultSeries.size());
+		assertEquals("da1", resultSeries.getSimulationDatasets().get(0).getName());
+
+	}
+
 	@Test
 	public void getSimulationSeriesWithGraph() {
 

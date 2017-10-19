@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.cooperation.data.mapping;
 import java.util.ArrayList;
 import java.util.List;
 
+import i5.las2peer.services.ocd.cooperation.data.mapping.correlation.CorrelationDataset;
 import i5.las2peer.services.ocd.cooperation.data.table.Table;
 import i5.las2peer.services.ocd.cooperation.data.table.TableInterface;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
@@ -18,6 +19,7 @@ public class MappingList extends ArrayList<CoverSimulationGroupMapping> implemen
 		this.setName(name);
 	}
 	
+
 	@Override
 	public String getName() {
 		return this.name;
@@ -78,19 +80,19 @@ public class MappingList extends ArrayList<CoverSimulationGroupMapping> implemen
 	@Override
 	public Table toTable() {
 
-		Correlation sizeCorrelation = new Correlation(getCooperationValues(), getPropertyValues(GraphProperty.SIZE));
-		Correlation densityCorrelation = new Correlation(getCooperationValues(), getPropertyValues(GraphProperty.DENSITY));
-		Correlation avgDegCorrelation = new Correlation(getCooperationValues(),
+		CorrelationDataset sizeCorrelation = new CorrelationDataset(getCooperationValues(), getPropertyValues(GraphProperty.SIZE));
+		CorrelationDataset densityCorrelation = new CorrelationDataset(getCooperationValues(), getPropertyValues(GraphProperty.DENSITY));
+		CorrelationDataset avgDegCorrelation = new CorrelationDataset(getCooperationValues(),
 				getPropertyValues(GraphProperty.AVERAGE_DEGREE));
-		Correlation stdDegCorrelation = new Correlation(getCooperationValues(),
+		CorrelationDataset stdDegCorrelation = new CorrelationDataset(getCooperationValues(),
 				getPropertyValues(GraphProperty.DEGREE_DEVIATION));
-		Correlation ccCorrelation = new Correlation(getCooperationValues(),
+		CorrelationDataset ccCorrelation = new CorrelationDataset(getCooperationValues(),
 				getPropertyValues(GraphProperty.CLUSTERING_COEFFICIENT));
 
 		Table table = new Table();
 		System.out.println("Community Count: " + communityCount);
 		table.add("Communities: " + communityCount);
-		table.add("").append(Correlation.toHeadLine());
+		table.add("").append(CorrelationDataset.toHeadLine());
 		table.add("size").append(sizeCorrelation);
 		table.add("density").append(densityCorrelation);
 		table.add("avg Deg").append(avgDegCorrelation);

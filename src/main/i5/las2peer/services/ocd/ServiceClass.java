@@ -1,5 +1,40 @@
 package i5.las2peer.services.ocd;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.net.HttpURLConnection;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.lang3.NotImplementedException;
+import org.la4j.matrix.sparse.CCSMatrix;
+
 import i5.las2peer.api.Context;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.logging.NodeObserver.Event;
@@ -62,40 +97,6 @@ import io.swagger.annotations.Contact;
 import io.swagger.annotations.Info;
 import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.net.HttpURLConnection;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.TypedQuery;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.QueryParam;
-
-import org.apache.commons.lang3.NotImplementedException;
-import org.la4j.matrix.sparse.CCSMatrix;
 
 /**
  * 
@@ -2710,24 +2711,28 @@ public class ServiceClass extends RESTService {
 		public Response getSimulationGroupMapping(@PathParam("groupId") long groupId) {
 
 			String username = getUserName();
-			SimulationSeriesGroup series = null;
+			SimulationSeriesGroup simulationGroup = null;
 			SimulationSeriesSetMapping mapping;
 			
 			try {
-				series = entityHandler.getSimulationSeriesGroup(groupId);
+				simulationGroup = entityHandler.getSimulationSeriesGroup(groupId);
 
-				if (series == null)
+				if (simulationGroup == null)
 					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupId + " found")
 							.build();
 
-				series.evaluate();
+				if (!simulationGroup.isEvaluated())
+					simulationGroup.evaluate();
 								
 				MappingFactory factory = new MappingFactory();
-				mapping = factory.build(series.getSimulationSeries(), series.getName());
+				mapping = factory.build(simulationGroup.getSimulationSeries(), simulationGroup.getName());
 				for(SimulationSeries sim: mapping.getSimulation()) {
 					sim.setNetwork(entityHandler.getGraph(getUserName(), sim.getParameters().getGraphId()));
 				}
-				mapping.correlate();
+				
+				if (!mapping.isEvaluated())
+					mapping.correlate();
+
 				
 			} catch (Exception e) {
 				logger.log(Level.WARNING, "user: " + username, e);

@@ -9,9 +9,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationList;
+import i5.las2peer.services.ocd.cooperation.data.mapping.correlation.CorrelationDataset;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
-import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesGroup;
 import i5.las2peer.services.ocd.cooperation.data.table.Table;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
@@ -77,7 +76,7 @@ public class SimulationSeriesSetMapping extends MappingAbstract {
 	public Table toTable() {
 						
 		Table table = new Table();
-			table.add("").append(Correlation.toHeadLine());			
+			table.add("").append(CorrelationDataset.toHeadLine());			
 			table.add("size").append(getSizeCorrelation());
 			table.add("D").append(getDensityCorrelation());
 			table.add("avg deg").append(getAverageDegreeCorrelation());

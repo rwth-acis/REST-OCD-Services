@@ -7,6 +7,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -76,6 +77,19 @@ public class SimulationSeriesGroup extends SimulationAbstract {
 			this.evaluate();
 		SimulationSeriesGroupMetaData metaData = new SimulationSeriesGroupMetaData(this);
 		return metaData;
+	}
+
+	/**
+	 * 
+	 * @return SimulationSeries MetaData
+	 */
+	@JsonProperty
+	public List<SimulationSeriesMetaData> getSeriesMetaData() {
+		List<SimulationSeriesMetaData> list = new ArrayList<>(this.size());
+		for (SimulationSeries sim : this.getSimulationSeries()) {
+			list.add(sim.getMetaData());
+		}
+		return list;
 	}
 
 	/////////// Setter ////////////

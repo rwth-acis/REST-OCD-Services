@@ -48,7 +48,6 @@ public class SimulationList extends ArrayList<SimulationSeriesGroup> implements 
 		
 		
 		List<String> networks = networks();
-		System.out.println(networks.size());
 
 		List<List<Double>> values = new ArrayList<>();		
 		for (String n : networks) {

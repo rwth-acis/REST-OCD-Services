@@ -1,4 +1,4 @@
-package i5.las2peer.services.ocd.cooperation.data.mapping;
+package i5.las2peer.services.ocd.cooperation.data.mapping.correlation;
 
 import java.util.List;
 

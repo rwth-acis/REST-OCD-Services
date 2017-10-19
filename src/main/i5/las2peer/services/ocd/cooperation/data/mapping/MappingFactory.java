@@ -37,16 +37,14 @@ public class MappingFactory {
 		
 		return mapping;		
 	}
-	
-	public SimulationSeriesSetMapping build(List<SimulationSeries> simulation, String name) {
+
+	public SimulationSeriesSetMapping build(List<SimulationSeries> simulationSeries, String name) {
 		
 		SimulationSeriesSetMapping mapping = new SimulationSeriesSetMapping();
-		mapping.setSimulation(simulation);
+		mapping.setSimulation(simulationSeries);
 		mapping.setName("mapping_" + name);
 		
 		return mapping;		
 	}
-	
-
 
 }

@@ -5,7 +5,6 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 /**
  * This is the super class of all graph properties
- *
  */
 public abstract class AbstractProperty {
 

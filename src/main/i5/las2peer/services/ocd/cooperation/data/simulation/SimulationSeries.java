@@ -17,9 +17,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
-import i5.las2peer.services.ocd.ServiceClass;
-import i5.las2peer.services.ocd.cooperation.data.SimulationEntityHandler;
-import i5.las2peer.services.ocd.cooperation.data.mapping.Correlation;
+import i5.las2peer.services.ocd.cooperation.data.mapping.correlation.Correlation;
 import i5.las2peer.services.ocd.cooperation.data.table.Table;
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 import i5.las2peer.services.ocd.graphs.Community;
@@ -68,7 +66,8 @@ public class SimulationSeries extends SimulationAbstract {
 	/**
 	 * A simulations series consists of multiple simulation datasets
 	 */
-	@OneToMany(mappedBy="simulationSeries", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@JoinColumn
 	private List<SimulationDataset> simulationDatasets;
 
 	/**
@@ -142,12 +141,6 @@ public class SimulationSeries extends SimulationAbstract {
 		return generationEvaluation;
 	}
 
-	@Override
-	@JsonProperty
-	public Correlation getPayoffCorrelation() {
-		return payoffCorrelation;
-	}
-
 	@JsonProperty
 	public List<SimulationDataset> getSimulationDatasets() {
 		return simulationDatasets;
@@ -186,12 +179,6 @@ public class SimulationSeries extends SimulationAbstract {
 	@JsonSetter
 	public void setGenerationEvaluation(Evaluation generationEvaluation) {
 		this.generationEvaluation = generationEvaluation;
-	}
-
-	@Override
-	@JsonSetter
-	public void setPayoffCorrelation(Correlation payoffCorrelation) {
-		this.payoffCorrelation = payoffCorrelation;
 	}
 
 	@JsonSetter

@@ -5,8 +5,6 @@ import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-
 /**
  * Objects of this class contain the meta data of simulation series. They are
  * used to be send as JSON data to the client.
@@ -34,6 +32,8 @@ public class SimulationSeriesMetaData implements Serializable {
 		this.parameters = series.getParameters();
 		this.evaluation = series.getCooperationEvaluation();		
 		this.graphId = series.getParameters().getGraphId();
+		this.graphName = series.getParameters().getGraphName();
+
 	}
 
 	////// Getter //////

@@ -1,7 +1,10 @@
 package i5.las2peer.services.ocd.cooperation.data.simulation;
 
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -16,9 +19,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
-import i5.las2peer.services.ocd.ServiceClass;
-import i5.las2peer.services.ocd.cooperation.data.SimulationEntityHandler;
-import i5.las2peer.services.ocd.cooperation.data.mapping.Correlation;
 import i5.las2peer.services.ocd.cooperation.data.table.Table;
 import i5.las2peer.services.ocd.cooperation.data.table.TableInterface;
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
@@ -61,7 +61,14 @@ public abstract class SimulationAbstract implements TableInterface {
 	/**
 	 * Statistical evaluation of the payoff values of the SimulationDatasets
 	 */
-	@Transient
+	@AttributeOverrides({
+		    @AttributeOverride(name="average",column=@Column(name="payoffAverage")),
+			@AttributeOverride(name = "variance", column = @Column(name = "payoffvariance")),
+			@AttributeOverride(name = "deviation", column = @Column(name = "payoffdeviation")),
+			@AttributeOverride(name = "maximum", column = @Column(name = "payoffmaximum")),
+			@AttributeOverride(name = "minimum", column = @Column(name = "payoffminimum")),
+		  })
+	@Embedded
 	private Evaluation payoffEvaluation;
 
 	/**
@@ -71,12 +78,12 @@ public abstract class SimulationAbstract implements TableInterface {
 	@Transient
 	private Evaluation generationEvaluation;
 
-	/**
+	/*
 	 * Correlation between the cooperation value and the average payoff of the
 	 * SimulationDatasets
+	 * 
+	 * @Transient private Correlation payoffCorrelation;
 	 */
-	@Transient
-	private Correlation payoffCorrelation;
 
 	/**
 	 * The network on which the simulation was performed.
@@ -132,11 +139,11 @@ public abstract class SimulationAbstract implements TableInterface {
 		return generationEvaluation;
 	}
 
-	@JsonProperty
-	public Correlation getPayoffCorrelation() {
-		return payoffCorrelation;
-	}
-
+	/*
+	 * @JsonProperty public Correlation getPayoffCorrelation() { return
+	 * payoffCorrelation; }
+	 */
+	
 	@JsonIgnore
 	public CustomGraph getNetwork() {
 		return this.graph;
@@ -180,10 +187,10 @@ public abstract class SimulationAbstract implements TableInterface {
 		this.generationEvaluation = generationEvaluation;
 	}
 
-	@JsonSetter
-	public void setPayoffCorrelation(Correlation payoffCorrelation) {
-		this.payoffCorrelation = payoffCorrelation;
-	}
+	/*
+	 * @JsonSetter public void setPayoffCorrelation(Correlation payoffCorrelation) {
+	 * this.payoffCorrelation = payoffCorrelation; }
+	 */
 
 	///// Methods /////
 
@@ -194,8 +201,6 @@ public abstract class SimulationAbstract implements TableInterface {
 		if (getCooperationEvaluation() == null)
 			return false;
 		if (getPayoffEvaluation() == null)
-			return false;
-		if (getGenerationEvaluation() == null)
 			return false;
 		return true;
 	}

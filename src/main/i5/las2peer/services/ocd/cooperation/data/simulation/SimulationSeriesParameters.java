@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
+import i5.las2peer.services.ocd.cooperation.simulation.Simulation;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
 
@@ -96,6 +97,9 @@ public class SimulationSeriesParameters implements Serializable {
 	 */
 	@Basic
 	private int iterations;
+
+	@Basic
+	private String graphName;
 
 	////////// Constructor //////////
 
@@ -335,5 +339,12 @@ public class SimulationSeriesParameters implements Serializable {
 		return dynamicValue;
 	}
 
+	public String getGraphName() {
+		return graphName;
+	}
+
+	public void setGraphName(String string) {
+		this.graphName = string;
+	}
 
 }

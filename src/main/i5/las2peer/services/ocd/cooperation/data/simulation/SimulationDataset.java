@@ -8,7 +8,6 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
@@ -41,7 +40,7 @@ public class SimulationDataset extends SimulationAbstract {
 	/**
 	 * A simulation is part of one simulation series
 	 */
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name="simulationSeries")
 	private SimulationSeries simulationSeries;
 	
@@ -106,7 +105,7 @@ public class SimulationDataset extends SimulationAbstract {
 		return this.payoffValues;
 	}
 
-	@JsonProperty
+	@JsonIgnore
 	public List<AgentData> getAgentData() {
 		return this.agentData;
 	}

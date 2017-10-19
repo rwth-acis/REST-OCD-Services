@@ -1,7 +1,7 @@
 package i5.las2peer.services.ocd.cooperation.data.mapping;
 
 import javax.persistence.Basic;
-import javax.persistence.Embedded;
+import javax.persistence.ElementCollection;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
+import i5.las2peer.services.ocd.cooperation.data.mapping.correlation.CorrelationDataset;
 import i5.las2peer.services.ocd.cooperation.data.table.Table;
 import i5.las2peer.services.ocd.cooperation.data.table.TableInterface;
 import i5.las2peer.services.ocd.cooperation.data.table.TableLineInterface;
@@ -18,15 +19,15 @@ import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 
 @MappedSuperclass
-public abstract class MappingAbstract implements TableInterface, TableLineInterface{
-	
+public abstract class MappingAbstract implements TableInterface, TableLineInterface {
+
 	/**
 	 * The id is used as persistence primary key
 	 */
 	@Id
 	@GeneratedValue
 	private long id;
-	
+
 	/**
 	 * The name of the mapping
 	 */
@@ -36,39 +37,39 @@ public abstract class MappingAbstract implements TableInterface, TableLineInterf
 	/**
 	 * Correlation between cooperativity and size
 	 */
-	@Embedded
-	Correlation sizeCorrelation;
-	
+	@ElementCollection
+	CorrelationDataset sizeCorrelation;
+
 	/**
 	 * Correlation between cooperativity and density
 	 */
-	@Embedded
-	Correlation densityCorrelation;
-	
+	@ElementCollection
+	CorrelationDataset densityCorrelation;
+
 	/**
 	 * Correlation between cooperativity and average degree
 	 */
-	@Embedded
-	Correlation averageDegreeCorrelation;
-	
+	@ElementCollection
+	CorrelationDataset averageDegreeCorrelation;
+
 	/**
 	 * Correlation between cooperativity and degree deviation
 	 */
-	@Embedded
-	Correlation degreeDeviationCorrelation;
-	
+	@ElementCollection
+	CorrelationDataset degreeDeviationCorrelation;
+
 	/**
 	 * Correlation between cooperativity and clustering coefficient
 	 */
-	@Embedded
-	Correlation clusteringCoefficientCorrelation;
-	
+	@ElementCollection
+	CorrelationDataset clusteringCoefficientCorrelation;
+
 	private double[] cooperationValues;
 
 	private double[] payoffValues;
 
 	///// Getter /////
-	
+
 	/**
 	 * Returns a unique id.
 	 * 
@@ -78,7 +79,7 @@ public abstract class MappingAbstract implements TableInterface, TableLineInterf
 	public long getId() {
 		return this.id;
 	}
-	
+
 	/**
 	 * Returns the name of this mapping or the id if the mapping have no name
 	 * 
@@ -87,44 +88,45 @@ public abstract class MappingAbstract implements TableInterface, TableLineInterf
 	@Override
 	@JsonGetter
 	public String getName() {
-		if(name.isEmpty())
+		if (name.isEmpty())
 			return String.valueOf(getId());
 		return this.name;
 	}
 
 	@JsonProperty
-	public Correlation getSizeCorrelation() {
+	public CorrelationDataset getSizeCorrelation() {
 		return sizeCorrelation;
 	}
 
 	@JsonProperty
-	public Correlation getDensityCorrelation() {
+	public CorrelationDataset getDensityCorrelation() {
 		return densityCorrelation;
 	}
 
 	@JsonProperty
-	public Correlation getAverageDegreeCorrelation() {
+	public CorrelationDataset getAverageDegreeCorrelation() {
 		return averageDegreeCorrelation;
 	}
 
 	@JsonProperty
-	public Correlation getDegreeDeviationCorrelation() {
+	public CorrelationDataset getDegreeDeviationCorrelation() {
 		return degreeDeviationCorrelation;
 	}
 
 	@JsonProperty
-	public Correlation getClusteringCoefficientCorrelation() {
+	public CorrelationDataset getClusteringCoefficientCorrelation() {
 		return clusteringCoefficientCorrelation;
 	}
-	
+
 	/**
 	 * Returns the property values in order to compute the correlations
 	 * 
-	 * @param property The property
+	 * @param property
+	 *            The property
 	 * @return property values array
 	 */
 	public abstract double[] getPropertyValues(GraphProperty property);
-	
+
 	/**
 	 * Returns the cooperation values in order to compute the correlations
 	 *
@@ -140,27 +142,27 @@ public abstract class MappingAbstract implements TableInterface, TableLineInterf
 	}
 
 	@JsonSetter
-	public void setSizeCorrelation(Correlation sizeCorrelation) {
+	public void setSizeCorrelation(CorrelationDataset sizeCorrelation) {
 		this.sizeCorrelation = sizeCorrelation;
 	}
 
 	@JsonSetter
-	public void setDensityCorrelation(Correlation densityCorrelation) {
+	public void setDensityCorrelation(CorrelationDataset densityCorrelation) {
 		this.densityCorrelation = densityCorrelation;
 	}
 
 	@JsonSetter
-	public void setAverageDegreeCorrelation(Correlation averageDegreeCorrelation) {
+	public void setAverageDegreeCorrelation(CorrelationDataset averageDegreeCorrelation) {
 		this.averageDegreeCorrelation = averageDegreeCorrelation;
 	}
 
 	@JsonSetter
-	public void setDegreeDeviationCorrelation(Correlation degreeDeviationCorrelation) {
+	public void setDegreeDeviationCorrelation(CorrelationDataset degreeDeviationCorrelation) {
 		this.degreeDeviationCorrelation = degreeDeviationCorrelation;
 	}
-	
+
 	@JsonSetter
-	public void setClusteringCoefficient(Correlation clusteringCoefficientCorrelation) {
+	public void setClusteringCoefficient(CorrelationDataset clusteringCoefficientCorrelation) {
 		this.clusteringCoefficientCorrelation = clusteringCoefficientCorrelation;
 	}
 
@@ -177,7 +179,21 @@ public abstract class MappingAbstract implements TableInterface, TableLineInterf
 	///// Methods /////
 
 	/**
-	 * Create the correlations between the cooperativity values and the property values.
+	 * Checks if the the correlation lists are set
+	 * 
+	 * @return
+	 */
+	public boolean isEvaluated() {
+		if (sizeCorrelation != null && densityCorrelation != null && averageDegreeCorrelation != null) {
+			if (sizeCorrelation.isEmpty() && densityCorrelation.isEmpty() && averageDegreeCorrelation.isEmpty())
+				return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Create the correlations between the cooperativity values and the property
+	 * values.
 	 */
 	public void correlate() {
 
@@ -186,19 +202,19 @@ public abstract class MappingAbstract implements TableInterface, TableLineInterf
 			cooperationValues = getCooperationValues();
 
 			if (cooperationValues == null || cooperationValues.length < 1)
-				return;
+				throw new IllegalStateException("no cooperation values found");
 
-			sizeCorrelation = new Correlation(cooperationValues, getPropertyValues(GraphProperty.SIZE));
+			sizeCorrelation = new CorrelationDataset(cooperationValues, getPropertyValues(GraphProperty.SIZE));
 
-			densityCorrelation = new Correlation(cooperationValues, getPropertyValues(GraphProperty.DENSITY));
+			densityCorrelation = new CorrelationDataset(cooperationValues, getPropertyValues(GraphProperty.DENSITY));
 
-			averageDegreeCorrelation = new Correlation(cooperationValues,
+			averageDegreeCorrelation = new CorrelationDataset(cooperationValues,
 					getPropertyValues(GraphProperty.AVERAGE_DEGREE));
 
-			degreeDeviationCorrelation = new Correlation(cooperationValues,
+			degreeDeviationCorrelation = new CorrelationDataset(cooperationValues,
 					getPropertyValues(GraphProperty.DEGREE_DEVIATION));
 
-			clusteringCoefficientCorrelation = new Correlation(cooperationValues,
+			clusteringCoefficientCorrelation = new CorrelationDataset(cooperationValues,
 					getPropertyValues(GraphProperty.CLUSTERING_COEFFICIENT));
 
 		} catch (Exception e) {
@@ -212,10 +228,11 @@ public abstract class MappingAbstract implements TableInterface, TableLineInterf
 
 		TableRow line = new TableRow();
 		line.add(getSizeCorrelation().toTableLine()).add(getDensityCorrelation().toTableLine())
-				.add(getAverageDegreeCorrelation().toTableLine()).add(getDegreeDeviationCorrelation().toTableLine()).add(getClusteringCoefficientCorrelation().toTableLine());
+				.add(getAverageDegreeCorrelation().toTableLine()).add(getDegreeDeviationCorrelation().toTableLine())
+				.add(getClusteringCoefficientCorrelation().toTableLine());
 		return line;
 	}
-		
+
 	@Override
 	public Table toTable() {
 		return new Table();

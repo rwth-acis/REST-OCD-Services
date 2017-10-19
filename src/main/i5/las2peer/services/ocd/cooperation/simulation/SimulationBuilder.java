@@ -193,7 +193,6 @@ public class SimulationBuilder {
 
 		for (int i = 0; i < iterations; i++) {
 
-			System.out.print(" " + i);
 			simulation.start();
 			do
 				if (!simulation.schedule.step(simulation))
@@ -215,6 +214,7 @@ public class SimulationBuilder {
 		parameters.setPayoffDD(game.getPayoffBB());
 		parameters.setGraphId(graph.getId());
 		parameters.setIterations(iterations);
+		parameters.setGraphName(graph.getName());
 
 		SimulationSeries series = new SimulationSeries(parameters, datasets);
 		series.evaluate();
