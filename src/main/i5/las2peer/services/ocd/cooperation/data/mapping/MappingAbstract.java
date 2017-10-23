@@ -204,19 +204,35 @@ public abstract class MappingAbstract implements TableInterface, TableLineInterf
 			if (cooperationValues == null || cooperationValues.length < 1)
 				throw new IllegalStateException("no cooperation values found");
 
-			sizeCorrelation = new CorrelationDataset(cooperationValues, getPropertyValues(GraphProperty.SIZE));
-
-			densityCorrelation = new CorrelationDataset(cooperationValues, getPropertyValues(GraphProperty.DENSITY));
-
-			averageDegreeCorrelation = new CorrelationDataset(cooperationValues,
-					getPropertyValues(GraphProperty.AVERAGE_DEGREE));
-
-			degreeDeviationCorrelation = new CorrelationDataset(cooperationValues,
-					getPropertyValues(GraphProperty.DEGREE_DEVIATION));
-
-			clusteringCoefficientCorrelation = new CorrelationDataset(cooperationValues,
-					getPropertyValues(GraphProperty.CLUSTERING_COEFFICIENT));
-
+			try {
+				sizeCorrelation = new CorrelationDataset(cooperationValues, getPropertyValues(GraphProperty.SIZE));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				densityCorrelation = new CorrelationDataset(cooperationValues,
+						getPropertyValues(GraphProperty.DENSITY));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				averageDegreeCorrelation = new CorrelationDataset(cooperationValues,
+						getPropertyValues(GraphProperty.AVERAGE_DEGREE));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				degreeDeviationCorrelation = new CorrelationDataset(cooperationValues,
+						getPropertyValues(GraphProperty.DEGREE_DEVIATION));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				clusteringCoefficientCorrelation = new CorrelationDataset(cooperationValues,
+						getPropertyValues(GraphProperty.CLUSTERING_COEFFICIENT));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import i5.las2peer.services.ocd.cooperation.data.table.Table;
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 import i5.las2peer.services.ocd.graphs.Community;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 /**
  * A SimulationSeriesGroup serves as a container for multiple SimulationSeries.
@@ -63,6 +64,11 @@ public class SimulationSeriesGroup extends SimulationAbstract {
 			networkIds.add(series.getParameters().getGraphId());
 		}
 		return networkIds;
+	}
+
+	@Override
+	public CustomGraph getNetwork() {
+		return this.getSimulationSeries().get(0).getNetwork();
 	}
 
 	/**

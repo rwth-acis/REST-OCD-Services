@@ -23,9 +23,11 @@ public class SimulationGroupSetMapping extends MappingAbstract {
 	@ManyToOne(fetch = FetchType.LAZY)
 	private List<SimulationSeriesGroup> simulation;
 
+	private String username;
+
 	///// Getter /////
 
-	@JsonIgnore
+	@JsonProperty
 	public List<SimulationSeriesGroup> getSimulation() {
 		return simulation;
 	}
@@ -40,16 +42,17 @@ public class SimulationGroupSetMapping extends MappingAbstract {
 	///// Methods /////
 		
 	@Override
-	@JsonProperty
+	@JsonIgnore
 	public double[] getPropertyValues(GraphProperty property) {		
-		
-		List<SimulationSeriesGroup> series = getSimulation();
-		int size = series.size();
+
+		List<SimulationSeriesGroup> simulationGroup = getSimulation();
+		int size = simulationGroup.size();
 		double[] properties = new double[size];
 		
 		for(int i=0; i<size; i++) {
-			CustomGraph network = series.get(i).getNetwork();
-			properties[i] = network.getProperty(property);						
+			CustomGraph network = simulationGroup.get(i).getNetwork();
+			properties[i] = network.getProperty(property);
+
 		}		
 		return properties;		
 	}
@@ -70,6 +73,31 @@ public class SimulationGroupSetMapping extends MappingAbstract {
 		return values;		
 	}	
 
+	@JsonProperty
+	public double[] getSize() {
+		return getPropertyValues(GraphProperty.SIZE);
+	}
+
+	@JsonProperty
+	public double[] getAverageDegree() {
+		return getPropertyValues(GraphProperty.AVERAGE_DEGREE);
+	}
+
+	@JsonProperty
+	public double[] getDensityValues() {
+		return getPropertyValues(GraphProperty.DENSITY);
+	}
+
+	@JsonProperty
+	public double[] getSizeDegreeDeviation() {
+		return getPropertyValues(GraphProperty.DEGREE_DEVIATION);
+	}
+
+	@JsonProperty
+	public double[] getClusteringCoefficient() {
+		return getPropertyValues(GraphProperty.CLUSTERING_COEFFICIENT);
+	}
+
 	///// Print /////
 	
 	@Override
@@ -87,6 +115,13 @@ public class SimulationGroupSetMapping extends MappingAbstract {
 		
 	}
 
+	public void correlate(String username) {
+		
+		this.username = username;
+
+		this.correlate();
+		
+	}
 
 
 

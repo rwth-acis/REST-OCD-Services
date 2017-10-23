@@ -54,6 +54,7 @@ import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
 import i5.las2peer.services.ocd.cooperation.data.SimulationEntityHandler;
 import i5.las2peer.services.ocd.cooperation.data.mapping.MappingFactory;
+import i5.las2peer.services.ocd.cooperation.data.mapping.SimulationGroupSetMapping;
 import i5.las2peer.services.ocd.cooperation.data.mapping.SimulationSeriesSetMapping;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesGroup;
@@ -2753,6 +2754,58 @@ public class ServiceClass extends RESTService {
 			return Response.ok().entity(mapping).build();
 		}
 		
+		@PUT
+		@Path("/simulation/group/mapping/")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(value = "GET SIMULATION", notes = "Gets the results of a performed simulation")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getSimulationGroupsMapping(List<Long> groupIds) {
+
+			String username = getUserName();
+			List<SimulationSeriesGroup> groups = new ArrayList<>(groupIds.size());
+			SimulationGroupSetMapping mapping = null;
+
+			try {
+				for (Long groupId : groupIds) {
+					try {
+						SimulationSeriesGroup group = entityHandler.getSimulationSeriesGroup(groupId);
+						groups.add(group);
+					
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+				}
+
+				try {
+
+					for (int i = 0; i < groups.size(); i++) {
+						for (int j = 0; j < groups.get(i).getSimulationSeries().size(); j++) {
+							groups.get(i).getSimulationSeries().get(j).setNetwork(entityHandler.getGraph(getUserName(),
+									groups.get(i).getSimulationSeries().get(j).getParameters().getGraphId()));
+							groups.get(i).getSimulationSeries().get(j).evaluate();
+						}
+						groups.get(i).evaluate();
+					}
+					MappingFactory factory = new MappingFactory();
+					mapping = factory.buildGroupMapping(groups, "Evaluation");
+					mapping.correlate(username);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+			} catch (Exception e) {
+				logger.log(Level.WARNING, "user: " + username, e);
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
+			}
+
+			return Response.ok().entity(mapping).build();
+		}
+
 		////////////// Information //////////////////
 
 		/**

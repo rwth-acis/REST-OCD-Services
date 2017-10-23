@@ -1,5 +1,10 @@
 package i5.las2peer.services.ocd.viewer;
 
+import java.io.StringWriter;
+import java.io.Writer;
+
+import javax.ws.rs.core.Response;
+
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputAdapter;
 import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputAdapterFactory;
@@ -7,11 +12,6 @@ import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputFormat;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.utils.OcdRequestHandler;
-
-import java.io.StringWriter;
-import java.io.Writer;
-
-import javax.ws.rs.core.Response;
 
 /**
  * Manages different request-related tasks for the Service Class particularly for the viewer service.
@@ -53,7 +53,7 @@ public class ViewerRequestHandler extends OcdRequestHandler {
 	 * @throws IllegalAccessException
 	 */
 	public Response writeCover(Cover cover, VisualOutputFormat outputFormat) throws AdapterException, InstantiationException, IllegalAccessException {
-		return Response.ok().entity(writeGraph(cover.getGraph(), outputFormat)).build();
+		return writeGraph(cover.getGraph(), outputFormat);
 	}
 
 }

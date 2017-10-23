@@ -52,6 +52,18 @@ public abstract class SimulationAbstract implements TableInterface {
 	private long userId;
 
 	/**
+	 * cooperativity the simulation
+	 */
+	@Basic
+	private double cooperativiaty;
+
+	/**
+	 * Wealth the simulation
+	 */
+	@Basic
+	private double wealth;
+
+	/**
 	 * Statistical evaluation of the cooperation values of the
 	 * SimulationDatasets
 	 */
@@ -150,10 +162,14 @@ public abstract class SimulationAbstract implements TableInterface {
 	}
 
 	public double averageCooperationValue() {
+		if (getCooperationEvaluation() == null)
+			return this.cooperativiaty;
 		return getCooperationEvaluation().getAverage();
 	}
 
 	public double averagePayoffValue() {
+		if (getPayoffEvaluation() == null)
+			return this.wealth;
 		return getPayoffEvaluation().getAverage();
 	}
 
@@ -175,11 +191,13 @@ public abstract class SimulationAbstract implements TableInterface {
 	@JsonSetter
 	public void setCooperationEvaluation(Evaluation cooperationEvaluation) {
 		this.cooperationEvaluation = cooperationEvaluation;
+		this.cooperativiaty = cooperationEvaluation.getAverage();
 	}
 
 	@JsonSetter
 	public void setPayoffEvaluation(Evaluation payoffEvaluation) {
 		this.payoffEvaluation = payoffEvaluation;
+		this.wealth = cooperationEvaluation.getAverage();
 	}
 
 	@JsonSetter
