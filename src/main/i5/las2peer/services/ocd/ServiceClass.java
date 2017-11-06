@@ -937,7 +937,7 @@ public class ServiceClass extends RESTService {
 
 				Cover cover = null;
 				try {
-					cover = entityHandler.getCover(username, coverId, graphId);
+					cover = entityHandler.getCover(username, graphId, coverId);
 				} catch (Exception e) {
 
 					requestHandler.log(Level.WARNING, "user: " + username + ", " + "Cover does not exist: cover id "
