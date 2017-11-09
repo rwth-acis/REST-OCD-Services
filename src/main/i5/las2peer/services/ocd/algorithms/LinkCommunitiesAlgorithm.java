@@ -202,7 +202,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 		}
 	}
 	
-	/*
+	/**
 	 * Calculates the linkage degree vectors for all nodes.
 	 * The linkage degrees are required for the calculation of edge similarity
 	 * and originally referred to as the a vectors.
@@ -249,7 +249,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 		return linkageDegrees;
 	}
 	
-	/*
+	/**
 	 * Identifies the edge community pairs with maximum similarity. 
 	 * @param similarities The similarity matrix.
 	 * @return A list of pairs with the indices of the identified edge communities. If several pairs are
@@ -321,7 +321,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 		return mostSimilarPairs;
 	}
 
-	/*
+	/**
 	 * Updates the similarity matrix when the two edge communities given by mostSimilarPair are merged. 
 	 * @param similarities The similarity matrix.
 	 * @param mostSimilarPair A pair containing the indices of the communities that are merged.
@@ -361,7 +361,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 		return similarities.select(newIndices, newIndices);
 	}
 	
-	/*
+	/**
 	 * Initializes variables for the dendrogram creation.
 	 * @param graph The graph being analyzed.
 	 * @param communityEdges An edge partition indicating the edge communities.
@@ -398,7 +398,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 		}
 	}
 	
-	/*
+	/**
 	 * Calculates the weighted link density of a community. 
 	 * @param edgeCount The number of community edges.
 	 * @param nodeCount The number of community nodes.
@@ -409,7 +409,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 		return (double)(edgeCount * (edgeCount - (nodeCount - 1))) / (double)denominator;
 	}
 
-	/*
+	/**
 	 * Derives a cover from an edge partition.
 	 * @param graph The graph being analyzed.
 	 * @param partition The edge partition from which the cover will be derived.

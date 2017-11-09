@@ -14,7 +14,7 @@ import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Node;
 
-/* 
+/** 
  * @author YLi
  */
 public class SignedModularityMetric implements StatisticalMeasure {
@@ -98,7 +98,7 @@ public class SignedModularityMetric implements StatisticalMeasure {
 		return metricValue / (2 * positiveWeightSum + 2 * negativeWeightSum);
 	}
 
-	/*
+	/**
 	 * Returns the number of communities node A nd node B both belong to.
 	 * 
 	 * @param cover The cover being measured.

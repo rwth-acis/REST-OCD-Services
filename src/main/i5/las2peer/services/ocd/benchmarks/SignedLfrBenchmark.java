@@ -34,30 +34,30 @@ import org.la4j.matrix.Matrix;
  *
  */
 public class SignedLfrBenchmark implements GroundTruthBenchmark {
-	/*
+	/**
 	 * Path of the directory reserved for the signed LFR benchmark application.
 	 */
 	private static final String SignedLfrDirectoryPath = "ocd/signedLfr/";
-	/*
+	/**
 	 * Used for synchronization purposes. Executes the benchmark graph
 	 * calculation.
 	 */
 	private static DefaultExecutor executor = new DefaultExecutor();
-	/*
+	/**
 	 * Path of the file holding an application developed by Lancichinetti that
 	 * calculates LFR benchmark graphs. For Windows.
 	 */
 	private static String windowsBenchmarkGeneratorPath = SignedLfrDirectoryPath + "SignedLfrBenchmarkWindows.exe";
-	/*
+	/**
 	 * Path of the file holding an application developed by Lancichinetti that
 	 * calculates LFR benchmark graphs. For Linux.
 	 */
 	private static String linuxBenchmarkGeneratorPath = "./SignedLfrBenchmarkLinux";
-	/*
+	/**
 	 * Path of the file containing the calculated benchmark graph.
 	 */
 	private static final String graphPath = SignedLfrDirectoryPath + "network.dat";
-	/*
+	/**
 	 * Path of the file containing the ground truth cover of the benchmark
 	 * graph.
 	 */
@@ -363,15 +363,12 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 		}
 	}
 
-	/*
+	/**
 	 * Returns a cover with the same membership matrix but the signed graph.
 	 * 
-	 * @param cover The ground truth of the LFR model.
-	 * 
-	 * @param neg The fraction of intra-edges which are negative.
-	 * 
-	 * @param pos The fraction of inter-edges which are positive.
-	 * 
+	 * @param cover The ground truth of the LFR model.	 
+	 * @param neg The fraction of intra-edges which are negative.	 
+	 * @param pos The fraction of inter-edges which are positive.	 
 	 * @return The adapted cover.
 	 */
 

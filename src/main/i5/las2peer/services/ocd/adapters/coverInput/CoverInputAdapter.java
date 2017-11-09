@@ -14,11 +14,6 @@ public interface CoverInputAdapter extends InputAdapter {
 	
 	/**
 	 * Reads a cover and closes the reader.
-	 * @return The read cover.
-	 * @throws AdapterException
-	 */
-	/**
-	 * Reads a cover and closes the reader.
 	 * @param graph The graph to which the cover belongs.
 	 * @return The cover.
 	 * @throws AdapterException

@@ -126,7 +126,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		return labelPropagationPhase(graph, leaders);
 	}
 
-	/*
+	/**
 	 * Executes the random walk phase of the algorithm and returns global
 	 * leaders.
 	 * 
@@ -145,7 +145,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		return getGlobalLeaders(followerMap);
 	}
 
-	/*
+	/**
 	 * Returns the transposed normalized disassortativity matrix for the random
 	 * walk phase.
 	 * 
@@ -193,7 +193,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		return disassortativities;
 	}
 
-	/*
+	/**
 	 * Executes the random walk for the random walk phase. The vector is
 	 * initialized with a uniform distribution.
 	 * 
@@ -227,7 +227,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		return vec1;
 	}
 
-	/*
+	/**
 	 * Calculates the leadership values of all nodes for the random walk phase.
 	 * 
 	 * @param graph The graph containing the nodes.
@@ -261,7 +261,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		return leadershipVector;
 	}
 
-	/*
+	/**
 	 * Returns the follower degree of each node for the random walk phase.
 	 * 
 	 * @param graph The graph containing the nodes.
@@ -338,7 +338,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		return followerMap;
 	}
 
-	/*
+	/**
 	 * Returns a list of global leaders for the random walk phase.
 	 * 
 	 * @param followerMap The mapping from nodes to their follower degrees
@@ -368,7 +368,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		return globalLeaders;
 	}
 
-	/*
+	/**
 	 * Executes the label propagation phase.
 	 * 
 	 * @param graph The graph which is being analyzed.
@@ -399,7 +399,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		return getMembershipDegrees(graph, communities);
 	}
 
-	/*
+	/**
 	 * Executes the label propagation for a single leader to identify its
 	 * community members.
 	 * 
@@ -462,7 +462,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		return memberships;
 	}
 
-	/*
+	/**
 	 * Returns all predecessors of the nodes which adopted the leader's behavior
 	 * (and the leader itself) for the label propagation of each leader.
 	 * 
@@ -509,7 +509,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		return neighbors;
 	}
 
-	/*
+	/**
 	 * Indicates for the label propagation phase whether all nodes have been
 	 * assigned to at least one community.
 	 * 
@@ -549,7 +549,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 		return allNodesAreAssigned;
 	}
 
-	/*
+	/**
 	 * Returns a cover containing the membership degrees of all nodes.,
 	 * calculated from
 	 * 

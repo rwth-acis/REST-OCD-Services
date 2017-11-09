@@ -132,7 +132,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 		return calculatePartitionCover(graph, densestPartition);
 	}
 	
-	/*
+	/**
 	 * Calculates the edge similarity matrix.
 	 * This is a lower triangle matrix containing a similarity value for each edge pair. 
 	 * @param linkageDegrees The linkage degree vectors calculated for each node.
@@ -232,7 +232,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	}
 	
 	
-	/*
+	/**
 	 * Calculates the linkage degree vectors for all nodes.
 	 * The linkage degrees are required for the calculation of edge similarity
 	 * and originally referred to as the a vectors.
@@ -279,7 +279,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 		return linkageDegrees;
 	}
 	
-	/*
+	/**
 	 * Identifies the edge community pairs with maximum similarity. 
 	 * @param similarities The similarity matrix.
 	 * @return A list of pairs with the indices of the identified edge communities. If several pairs are
@@ -351,7 +351,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 		return mostSimilarPairs;
 	}
 
-	/*
+	/**
 	 * Updates the similarity matrix when the two edge communities given by mostSimilarPair are merged. 
 	 * @param similarities The similarity matrix.
 	 * @param mostSimilarPair A pair containing the indices of the communities that are merged.
@@ -391,7 +391,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 		return similarities.select(newIndices, newIndices);
 	}
 	
-	/*
+	/**
 	 * Initializes variables for the dendrogram creation.
 	 * @param graph The graph being analyzed.
 	 * @param communityEdges An edge partition indicating the edge communities.
@@ -428,7 +428,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 		}
 	}
 	
-	/*
+	/**
 	 * Calculates the weighted link density of a community. 
 	 * @param edgeCount The number of community edges.
 	 * @param nodeCount The number of community nodes.
@@ -439,7 +439,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 		return (double)(edgeCount * (edgeCount - (nodeCount - 1))) / (double)denominator;
 	}
 
-	/*
+	/**
 	 * Derives a cover from an edge partition.
 	 * @param graph The graph being analyzed.
 	 * @param partition The edge partition from which the cover will be derived.

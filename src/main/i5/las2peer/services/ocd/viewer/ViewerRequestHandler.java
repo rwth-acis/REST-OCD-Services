@@ -9,9 +9,10 @@ import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputAdapter;
 import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputFormat;
+import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.utils.OcdRequestHandler;
+import i5.las2peer.services.ocd.utils.RequestHandler;
 
 /**
  * Manages different request-related tasks for the Service Class particularly for the viewer service.
@@ -19,7 +20,7 @@ import i5.las2peer.services.ocd.utils.OcdRequestHandler;
  * @author Sebastian
  *
  */
-public class ViewerRequestHandler extends OcdRequestHandler {
+public class ViewerRequestHandler extends RequestHandler {
 	
 	/**
 	 * The factory used for creating visual output adapters.
@@ -44,7 +45,7 @@ public class ViewerRequestHandler extends OcdRequestHandler {
 	}
 	
 	/**
-	 * Creates a visual cover output  in a specified format.
+	 * Creates a visual cover output in a specified format.
 	 * @param cover The cover.
 	 * @param outputFormat The format.
 	 * @return The visual cover output.
@@ -54,6 +55,19 @@ public class ViewerRequestHandler extends OcdRequestHandler {
 	 */
 	public Response writeCover(Cover cover, VisualOutputFormat outputFormat) throws AdapterException, InstantiationException, IllegalAccessException {
 		return writeGraph(cover.getGraph(), outputFormat);
+	}
+	
+	/**
+	 * Creates a visual CentralityMap output in a specified format.
+	 * @param map The CentralityMap.
+	 * @param outputFormat The format.
+	 * @return The visual CentralityMap output.
+	 * @throws AdapterException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	public Response writeCentralityMap(CentralityMap map, VisualOutputFormat outputFormat) throws AdapterException, InstantiationException, IllegalAccessException {
+		return writeGraph(map.getGraph(), outputFormat);
 	}
 
 }

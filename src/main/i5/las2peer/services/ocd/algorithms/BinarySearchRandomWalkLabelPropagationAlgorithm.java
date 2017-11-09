@@ -111,7 +111,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		return labelPropagationPhase(graph, leaders);
 	}
 
-	/*
+	/**
 	 * Executes the random walk phase of the algorithm and returns global
 	 * leaders.
 	 * 
@@ -130,7 +130,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		return getGlobalLeaders(followerMap);
 	}
 
-	/*
+	/**
 	 * Returns the transposed normalized disassortativity matrix for the random
 	 * walk phase.
 	 * 
@@ -179,7 +179,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		return disassortativities;
 	}
 
-	/*
+	/**
 	 * Executes the random walk for the random walk phase. The vector is
 	 * initialized with a uniform distribution.
 	 * 
@@ -213,7 +213,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		return vec1;
 	}
 
-	/*
+	/**
 	 * Calculates the leadership values of all nodes for the random walk phase.
 	 * 
 	 * @param graph The graph containing the nodes.
@@ -247,7 +247,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		return leadershipVector;
 	}
 
-	/*
+	/**
 	 * Returns the follower degree of each node for the random walk phase.
 	 * 
 	 * @param graph The graph containing the nodes.
@@ -324,7 +324,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		return followerMap;
 	}
 
-	/*
+	/**
 	 * Returns a list of global leaders for the random walk phase.
 	 * 
 	 * @param followerMap The mapping from nodes to their follower degrees
@@ -354,7 +354,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		return globalLeaders;
 	}
 
-	/*
+	/**
 	 * Executes the label propagation phase.
 	 * 
 	 * @param graph The graph which is being analyzed.
@@ -399,7 +399,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		return getMembershipDegrees(graph, bestValidSolution);
 	}
 
-	/*
+	/**
 	 * Executes the label propagation for a single leader to identify its
 	 * community members.
 	 * 
@@ -462,7 +462,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		return memberships;
 	}
 
-	/*
+	/**
 	 * Returns all predecessors of the nodes which adopted the leader's behavior
 	 * (and the leader itself) for the label propagation of each leader.
 	 * 
@@ -512,7 +512,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		return neighbors;
 	}
 
-	/*
+	/**
 	 * Indicates for the label propagation phase whether all nodes have been
 	 * assigned to at least one community.
 	 * 
@@ -552,7 +552,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		return allNodesAreAssigned;
 	}
 
-	/*
+	/**
 	 * Returns a cover containing the membership degrees of all nodes.,
 	 * calculated from
 	 * 

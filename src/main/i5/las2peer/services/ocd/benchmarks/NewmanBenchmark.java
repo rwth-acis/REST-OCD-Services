@@ -139,7 +139,7 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 		return cover;
 	}
 	
-	/*
+	/**
 	 * Tries to generate a random internal edge between node A and another unsatisfied Node.
 	 * An edge must only be created with a node which is not yet a neighbor of A. Returns true after success, otherwise false.
 	 * @param graph The graph which is being created.
@@ -177,7 +177,7 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 		return edgeCreated;
 	}
 	
-	/*
+	/**
 	 * Deletes an existing internal edge to create a new internal edge for the unsatisfied node A.
 	 * The existing edge is chosen as an edge incident to a satisfied node B, which is not a neighbor of A.
 	 * After deleting the existing edge an edge between A and B is created. Finally the list of unsatisfied nodes is updated.
@@ -224,7 +224,7 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 		}
 	}
 	
-	/*
+	/**
 	 * Tries to generate a random external edge between node A and another unsatisfied Node.
 	 * An edge must only be created with a node that is not yet a neighbor of A and that belongs to a different group than A.
 	 * Returns true after success, otherwise false.
@@ -264,7 +264,7 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 		return edgeCreated;
 	}
 	
-	/*
+	/**
 	 * Deletes an existing external edge to create a new external edge for the unsatisfied node A.
 	 * The existing edge is chosen as an edge incident to a satisfied node B, which is not a neighbor of A and belongs to a different community than A.
 	 * After deleting the existing edge an edge between A and B is created. Finally the list of unsatisfied nodes is updated.

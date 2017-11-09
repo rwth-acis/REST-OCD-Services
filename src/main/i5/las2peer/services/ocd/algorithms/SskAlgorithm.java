@@ -142,7 +142,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return new Cover(graph, memberships);
 	}
 	
-	/*
+	/**
 	 * Determines the membership matrix through a random walk process.
 	 * @param graph The graph being analyzed.
 	 * @param leaders A mapping from the community leader nodes to the indices of their communities.
@@ -192,7 +192,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return memberships;
 	}
 	
-	/*
+	/**
 	 * Returns the maximum difference between two matrices.
 	 * It is calculated entry-wise as the greatest absolute value
 	 * of any entry in the difference among the two matrices.
@@ -217,7 +217,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return maxDifference;
 	}
 	
-	/*
+	/**
 	 * Initializes the membership matrix for the memberships assignation phase.
 	 * Leader nodes are set to belong entirely to their own community. All other nodes
 	 * have equal memberships for all communities.
@@ -248,7 +248,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return memberships;
 	}
 	
-	/*
+	/**
 	 * Initializes the membership coefficient matrix C for the memberships assignation phase.
 	 * The coefficient of the membership vector of node i for the calculation of the updated
 	 * memberships of node j is stored in entry C_ij, where i and j are the node indices.
@@ -283,7 +283,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return coefficients;
 	}
 	
-	/*
+	/**
 	 * Returns the global leaders of the graph.
 	 * @param graph The graph being analyzed.
 	 * @param transitionMatrix The transition matrix used for the random walk.
@@ -372,7 +372,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return communityLeaders;
 	}
 	
-	/*
+	/**
 	 * Executes a random walk on the transition matrix and returns the total node influences. 
 	 * @param transitionMatrix The transition matrix.
 	 * @return A vector containing the total influence of each node under the corresponding node index.
@@ -394,7 +394,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return vec1;
 	}
 	
-	/*
+	/**
 	 * Calculates the transition matrix for the random walk phase. 
 	 * @param graph The graph being analyzed.
 	 * @return The normalized transition matrix.
@@ -433,7 +433,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return transitionMatrix;
 	}
 	
-	/*
+	/**
 	 * Calculates the transitive link weight from source to target.
 	 * Note that target must be a successor of source.
 	 * @param graph The graph being analyzed.

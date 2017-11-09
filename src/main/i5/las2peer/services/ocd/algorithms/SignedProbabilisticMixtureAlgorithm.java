@@ -27,36 +27,36 @@ import y.base.EdgeCursor;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
-/*
+/**
  * @author YLi
  */
 public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
-	/*
+	/**
 	 * Path of the directory reserved for the application.
 	 */
 	private static final String DirectoryPath = "ocd/spm/";
-	/*
+	/**
 	 * Used for synchronization purposes. Executes the application execution.
 	 */
 	private static DefaultExecutor executor = new DefaultExecutor();
-	/*
+	/**
 	 * Path of the application for Linux based on the source codes of Chen et. al.
 	 */
 	private static String linuxApplicationPath = "./SpmLinux";
-	/*
+	/**
 	 * Path of the application for Windows based on the source codes of Chen et
 	 * al.
 	 */
 	private static String windowsApplicationPath = DirectoryPath + "SpmWindows.exe";
-	/*
+	/**
 	 * Path of tuple file.
 	 */
 	private static final String graphPath = DirectoryPath + "network.tuple";
-	/*
+	/**
 	 * Name of tuple file.
 	 */
 	private static final String graphName = "network.tuple";
-	/*
+	/**
 	 * Path of the output of last generation.
 	 */
 	private static String LastResultPath = DirectoryPath + "result.txt";
@@ -164,7 +164,12 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 		}
 	}
 
-	// translate graph into tuple file
+	/** translate graph into tuple file
+	 * 
+	 * @param graph
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	protected void writeNetworkFile(CustomGraph graph) throws IOException, InterruptedException {
 		FileWriter networkFile = new FileWriter(graphPath);
 		try {
@@ -195,7 +200,14 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 		}
 	}
 
-	//Transform the results written by the executable file into the membership matrix.
+	/**
+	 * Transform the results written by the executable file into the membership matrix.
+	 * @param resultFile
+	 * @param nodeCount
+	 * @return matrix
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	protected Matrix getMembershipMatrix(File resultFile, int nodeCount) throws IOException, InterruptedException {
 		Scanner communityResult = new Scanner(resultFile);
 		int communityCount = 0;

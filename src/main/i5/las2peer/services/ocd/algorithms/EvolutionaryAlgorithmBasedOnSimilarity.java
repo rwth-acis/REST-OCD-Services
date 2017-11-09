@@ -31,34 +31,34 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
-/*
+/**
  * @author YLi
  */
 public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 
-	/*
+	/**
 	 * Path of the directory reserved for the application.
 	 */
 	private static final String DirectoryPath = "ocd/mea/";
-	/*
+	/**
 	 * Used for synchronization purposes. Executes the application execution.
 	 */
 	private static DefaultExecutor executor = new DefaultExecutor();
-	/*
+	/**
 	 * Path of the application for Linux based on the source codes of Liu et al.
 	 */
 	private static String linuxMeaApplicationPath = "./MeaLinux";
-	/*
+	/**
 	 * Path of the application for Windows based on the source codes of Liu et
 	 * al.
 	 */
 	private static String windowsMeaApplicationPath = DirectoryPath + "MeaWindows.exe";
-	/*
+	/**
 	 * Path of paj file.
 	 */
 	private static final String graphPath = DirectoryPath + "network.paj";
 	private static final String graphName = "network.paj";
-	/*
+	/**
 	 * Path of the output of last generation.
 	 */
 	private static String LastResultPath = DirectoryPath + "network.paj.0099.pop";
@@ -160,7 +160,13 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 		}
 	}
 
-	// translate graph into paj file
+	/** 
+	 * translate graph into paj file
+	 * 
+	 * @param graph
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	protected void writeNetworkFile(CustomGraph graph) throws IOException, InterruptedException {
 		FileWriter networkFile = new FileWriter(graphPath);
 		try {
@@ -192,7 +198,14 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 		}
 	}
 
-	//Transform the results written by the executable file into the membership matrix.
+	/**
+	 * Transform the results written by the executable file into the membership matrix.
+	 * @param LastResultPath
+	 * @param nodeCount
+	 * @return matrix
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	protected Matrix translateCommunityFile(String LastResultPath, int nodeCount)
 			throws IOException, InterruptedException {
 		File resultFile = new File(LastResultPath);

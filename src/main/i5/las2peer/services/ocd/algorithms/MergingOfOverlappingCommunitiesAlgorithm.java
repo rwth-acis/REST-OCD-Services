@@ -119,7 +119,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		return new Cover(graph, memberships);
 	}
 	
-	/*
+	/**
 	 * Calculates the membership matrix for the output cover. 
 	 * @param graph The graph being analyzed.
 	 * @param unactiveCommunities The detected (unactivated) communities.
@@ -171,7 +171,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		return memberships;
 	}
 	
-	/*
+	/**
 	 * Returns the resolution alpha, i.e. the alpha with the most stable plateau of 1/alpha.
 	 * @param graph The graph being analyzed.
 	 * @param inclusionAlphas A mapping from all community members to their inclusion alphas.
@@ -196,7 +196,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		return resolutionAlpha / normalizationCoefficient;
 	}
 	
-	/*
+	/**
 	 * Calculates the resolution alpha for a given alpha sequence. 
 	 * @param alphaSequence An ordered sequence of alpha values.
 	 * @return The resolution alpha.
@@ -231,7 +231,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		return resolutionAlpha;
 	}
 	
-	/*
+	/**
 	 * Determines the joined alpha sequence of all communities. 
 	 * @param inclusionAlphas A mapping from all community members to their inclusion alphas.
 	 * @return The joined alpha sequence.
@@ -249,7 +249,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		return alphaSequence;
 	}
 	
-	/*
+	/**
 	 * Determines the alpha sequence of a single community. 
 	 * @param graph The graph being analyzed.
 	 * @param inclusionAlphas A mapping from all community members to their inclusion alphas.
@@ -279,7 +279,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		return alphaSequence;
 	}
 	
-	/*
+	/**
 	 * Deactivates a community if it contains all graph nodes or if it equals another community.
 	 * Note that it is not yet removed from the active communities due to concurrency issues.
 	 * @param graph The graph to be analyzed.
@@ -320,7 +320,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		}
 	}
 	
-	/*
+	/**
 	 * Calculates the inclusion alpha for a new candidate community member. 
 	 * @param internalCommunityDegree The weighted internal community degree.
 	 * @param totalCommunityDegree The weighted total community degree.
@@ -334,7 +334,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		return alpha;
 	}
 	
-	/*
+	/**
 	 * Updates all community parameters after new nodes were added a community.
 	 * @param graph The graph being analyzed.
 	 * @param communityId The id node of the community the new nodes were added to.
@@ -402,7 +402,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		}
 	}
 	
-	/*
+	/**
 	 * Initializes all parameters other than graph for the algorithm execution.
 	 * @param graph The graph being analyzed.
 	 * @param communities A mapping from each community index node to the community members.

@@ -2,6 +2,11 @@ package i5.las2peer.services.ocd.utils;
 
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
+import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
+import i5.las2peer.services.ocd.centrality.data.CentralityMap;
+import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
+import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulation;
+import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CoverId;
@@ -24,8 +29,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
 /**
- * Handles the execution and synchronization of threads for running algorithms, benchmarks and metrics.
- * @author Sebastian
+ * Handles the execution and synchronization of threads for running OCD algorithms, centrality algorithms, simulations, 
+ * benchmarks and metrics.
+ * @author Sebastian, Tobias
  *
  */
 public class ThreadHandler {
@@ -39,6 +45,11 @@ public class ThreadHandler {
 	 * Mapping from the id of a cover in calculation to the future of the algorithm calculating it.
 	 */
 	private static Map<CoverId, Future<CoverCreationLog>> algorithms = new HashMap<CoverId, Future<CoverCreationLog>>();
+	
+	/**
+	 * Mapping from the id of a CentralityMap in calculation to the future of the algorithm calculating it.
+	 */
+	private static Map<CentralityMapId, Future<CentralityCreationLog>> centralityAlgorithms = new HashMap<CentralityMapId, Future<CentralityCreationLog>>();
 	
 	/**
 	 * Mapping from the id of a metric being calculated to the future of its execution.
@@ -78,6 +89,38 @@ public class ThreadHandler {
 		synchronized (algorithms) {
 			Future<CoverCreationLog> future = executor.<CoverCreationLog>submit(runnable, log);
 			algorithms.put(coverId, future);
+		}
+	}
+	
+	/**
+	 * Runs a CentralityAlgorithm.
+	 * @param map The centrality map that is already persisted but not holding any valid information aside the graph and id.
+	 * @param algorithm The algorithm to calculate the centrality values with.
+	 */
+	public void runCentralityAlgorithm(CentralityMap map, CentralityAlgorithm algorithm) {
+		CustomGraphId gId = new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName());
+		CentralityMapId mapId = new CentralityMapId(map.getId(), gId);
+		CentralityAlgorithmRunnable runnable = new CentralityAlgorithmRunnable(map, algorithm, this);
+		CentralityCreationLog log = map.getCreationMethod();
+		synchronized (centralityAlgorithms) {
+			Future<CentralityCreationLog> future = executor.<CentralityCreationLog>submit(runnable, log);
+			centralityAlgorithms.put(mapId, future);
+		}
+	}
+	
+	/**
+	 * Runs a CentralitySimulation.
+	 * @param map The centrality map that is already persisted but not holding any valid information aside the graph and id.
+	 * @param simulation The CentralitySimulation to calculate the centrality values with
+	 */
+	public void runCentralitySimulation(CentralityMap map, CentralitySimulation simulation) {
+		CustomGraphId gId = new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName());
+		CentralityMapId mapId = new CentralityMapId(map.getId(), gId);
+		CentralitySimulationRunnable runnable = new CentralitySimulationRunnable(map, simulation, this);
+		CentralityCreationLog log = map.getCreationMethod();
+		synchronized (centralityAlgorithms) {
+			Future<CentralityCreationLog> future = executor.<CentralityCreationLog>submit(runnable, log);
+			centralityAlgorithms.put(mapId, future);
 		}
 	}
 	
@@ -350,6 +393,71 @@ public class ThreadHandler {
 	}
 	
 	/**
+	 * Merges a calculated CentralityMap to the persistence context.
+	 * Is called from the runnable itself.
+	 * @param calculatedMap The calculated cover.
+	 * May be null if error is true.
+	 * @param mapId The id reserved for the calculated cover.
+	 * @param error States whether an error occurred (true) during execution.
+	 */
+	public void createCentralityMap(CentralityMap calculatedMap, CentralityMapId mapId, boolean error) {
+    	synchronized (centralityAlgorithms) {
+    		if(Thread.interrupted()) {
+    			Thread.currentThread().interrupt();
+    			return;
+    		}
+    		if(!error) {
+    			EntityManager em = entityHandler.getEntityManager();
+    			EntityTransaction tx = em.getTransaction();
+		    	try {
+					tx.begin();
+					CentralityMap map = em.find(CentralityMap.class, mapId);
+					if(map == null) {
+						/*
+						 * Should not happen.
+						 */
+						requestHandler.log(Level.SEVERE, "Centrality map deleted while algorithm running.");
+						throw new IllegalStateException();
+					}
+					map.setMap(calculatedMap.getMap());
+					map.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+					map.getCreationMethod().setExecutionTime(calculatedMap.getCreationMethod().getExecutionTime());
+					tx.commit();
+		    	} catch( RuntimeException e ) {
+					if( tx != null && tx.isActive() ) {
+						tx.rollback();
+					}
+					error = true;
+				}
+		    	em.close();
+    		}
+    		if(error) {
+    			EntityManager em = entityHandler.getEntityManager();
+    			EntityTransaction tx = em.getTransaction();
+    			try {
+					tx.begin();
+					CentralityMap map = em.find(CentralityMap.class, mapId);
+					if(map == null) {
+						/*
+						 * Should not happen.
+						 */
+						requestHandler.log(Level.SEVERE, "Centrality map deleted while algorithm running.");
+						throw new IllegalStateException();
+					}
+					map.getCreationMethod().setStatus(ExecutionStatus.ERROR);
+					tx.commit();
+    			} catch( RuntimeException e ) {
+					if( tx != null && tx.isActive() ) {
+						tx.rollback();
+					}
+    			}
+    			em.close();
+			}	
+	    	unsynchedInterruptAlgorithm(mapId);
+		}
+	}
+	
+	/**
 	 * Interrupts the algorithm creating a cover.
 	 * @param coverId The id of the persisted cover reserved for the algorithm result.
 	 */
@@ -396,6 +504,16 @@ public class ThreadHandler {
 	}
 	
 	/**
+	 * Interrupts the algorithm creating the given CentralityMap.
+	 * @param map The CentralityMap 
+	 */
+	public void interruptAll(CentralityMap map) {
+		synchronized (centralityAlgorithms) {
+			unsynchedInterruptAlgorithm(new CentralityMapId(map.getId(), new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName())));
+		}
+	}
+	
+	/**
 	 * Interrupts an algorithm execution without synchronization.
 	 * @param coverId The id of the reserved persisted cover being calculated by the algorithm.
 	 */
@@ -404,6 +522,18 @@ public class ThreadHandler {
 		if(future != null) {
 			future.cancel(true);
 			algorithms.remove(future);
+		}
+	}
+	
+	/**
+	 * Interrupts a centrality algorithm execution without synchronization.
+	 * @param mapId The id of the reserved persisted centrality map being calculated by the algorithm.
+	 */
+	private void unsynchedInterruptAlgorithm(CentralityMapId mapId) {
+		Future<CentralityCreationLog> future = centralityAlgorithms.get(mapId);
+		if(future != null) {
+			future.cancel(true);
+			centralityAlgorithms.remove(future);
 		}
 	}
 	

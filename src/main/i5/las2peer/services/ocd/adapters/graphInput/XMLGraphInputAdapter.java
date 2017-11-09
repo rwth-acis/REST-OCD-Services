@@ -1,7 +1,9 @@
 package i5.las2peer.services.ocd.adapters.graphInput;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -17,12 +19,13 @@ import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.preprocessing.TextProcessor;
-import i5.las2peer.services.ocd.utils.DocIndexer;
+//import i5.las2peer.services.ocd.utils.DocIndexer;
 import y.base.Edge;
 import y.base.Node;
 
@@ -74,21 +77,29 @@ public class XMLGraphInputAdapter extends AbstractGraphInputAdapter{
 		TextProcessor textProc = new TextProcessor();
 		Map<String, Node> nodeNames = new HashMap<String, Node>();
 		Map<String, Node> nodeIds = new HashMap<String, Node>();
-		Map<String, String> nodeContents = new HashMap<String, String>();
+		//Map<String, String> nodeContents = new HashMap<String, String>();
 		Map<Node,HashMap<String,Integer>> links = new HashMap<Node, HashMap<String,Integer>>();
 		SimpleDateFormat df = new SimpleDateFormat ("yyyy-MM-dd");
-		
+
 		try {
 			
 			if(indexPath == null){
 				throw new AdapterException("No path for saving index");
 			}
 			graph.setPath(indexPath);
-			File file = new File(filePath);
+			//File file = new File(filePath);
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder;
 			docBuilder = factory.newDocumentBuilder();
-			Document doc = docBuilder.parse(file);
+			//Document doc = docBuilder.parse(file);
+			BufferedReader br = new BufferedReader(this.reader);
+			String line = null;
+			StringBuilder sb = new StringBuilder();
+			while ((line = br.readLine()) != null) {
+			    sb.append(line);
+			}
+			InputSource is = new InputSource(new StringReader(sb.toString()));
+			Document doc = docBuilder.parse(is);
 			Element docElement = doc.getDocumentElement();
 			NodeList nodeList = docElement.getElementsByTagName("row");
 			int length = nodeList.getLength();
@@ -102,7 +113,7 @@ public class XMLGraphInputAdapter extends AbstractGraphInputAdapter{
 					if(customNodeName == ""){
 						customNodeName = textProc.deletWhiteSpace(e.getAttribute("OwnerDisplayName"));
 					}
-					String customNodeContent = textProc.preprocText(e.getAttribute("Body"));
+					//String customNodeContent = textProc.preprocText(e.getAttribute("Body"));
 					String customNodeId = e.getAttribute("Id");
 					String customNodeParent = e.getAttribute("ParentId");
 					// node does not yet exist
@@ -110,8 +121,7 @@ public class XMLGraphInputAdapter extends AbstractGraphInputAdapter{
 						node = graph.createNode();						//create new node and add attributes
 						graph.setNodeName(node , customNodeName);
 						nodeIds.put(customNodeId, node);
-						nodeContents.put(customNodeName, customNodeContent);
-						//graph.setNodeContent(node, customNodeContent);
+						//nodeContents.put(customNodeName, customNodeContent);
 						if(customNodeParent != ""){
 							HashMap<String,Integer> temp = new HashMap<String,Integer>();
 							temp.put(customNodeParent,1);					// initialize structural weights (number of connections between two nodes)
@@ -122,8 +132,7 @@ public class XMLGraphInputAdapter extends AbstractGraphInputAdapter{
 					}else{
 						node = nodeNames.get(customNodeName);		// get respective node
 						//customNodeContent = customNodeContent + " " + graph.getNodeContent(node);	//add further content to the nodes attribute
-						nodeContents.merge(customNodeName, " " + customNodeContent, String::concat);
-						//graph.setNodeContent(node, customNodeContent);
+						//nodeContents.merge(customNodeName, " " + customNodeContent, String::concat);
 						if(!nodeIds.containsKey(customNodeId)){
 							nodeIds.put(customNodeId, node);
 						}
@@ -148,11 +157,12 @@ public class XMLGraphInputAdapter extends AbstractGraphInputAdapter{
 					}
 				}
 			}
-			DocIndexer di = new DocIndexer(graph.getPath());
+			
+			//DocIndexer di = new DocIndexer(graph.getPath());
 			//create lucene index for content
-			for(Entry<String,String> e : nodeContents.entrySet()){
-				di.indexDocPerField(e.getKey(), e.getValue());	
-			}
+			//for(Entry<String,String> e : nodeContents.entrySet()){
+			//	di.indexDocPerField(e.getKey(), e.getValue());	
+			//}
 			
 			//create edges for each entry in the temporary edge list
 			for(Entry<Node, HashMap<String,Integer>> entry : links.entrySet()){

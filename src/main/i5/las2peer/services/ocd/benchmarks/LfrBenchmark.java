@@ -29,27 +29,29 @@ import org.apache.commons.lang3.SystemUtils;
  */
 public class LfrBenchmark implements GroundTruthBenchmark {
 
-	/*
+	/**
 	 * Path of the directory reserved for the lfr benchmark application. 
 	 */
 	private static final String lfrDirectoryPath = "ocd/lfr/";
-	/*
+	/**
 	 * Used for synchronization purposes. Executes the benchmark graph calculation.
 	 */
 	private static DefaultExecutor executor = new DefaultExecutor();
-	/* Path of the file holding an application developed by Lancichinetti that calculates
+	/**
+	 *  Path of the file holding an application developed by Lancichinetti that calculates
 	 * LFR benchmark graphs. For Windows.
 	 */
 	private static String windowsBenchmarkGeneratorPath = lfrDirectoryPath + "LfrBenchmarkWindows.exe";
-	/* Path of the file holding an application developed by Lancichinetti that calculates
+	/**
+	 *  Path of the file holding an application developed by Lancichinetti that calculates
 	 * LFR benchmark graphs. For Linux.
 	 */
 	private static String linuxBenchmarkGeneratorPath = "./LfrBenchmarkLinux";
-	/*
+	/**
 	 * Path of the file containing the calculated benchmark graph.
 	 */
 	private static final String graphPath = lfrDirectoryPath + "network.dat";
-	/*
+	/**
 	 * Path of the file containing the ground truth cover of the benchmark graph.
 	 */
 	private static final String coverPath = lfrDirectoryPath + "community.dat";

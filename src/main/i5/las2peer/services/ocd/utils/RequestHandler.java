@@ -1,6 +1,12 @@
 package i5.las2peer.services.ocd.utils;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
+import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputAdapter;
+import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputAdapterFactory;
+import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
+import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputAdapter;
+import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputAdapterFactory;
+import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -13,9 +19,15 @@ import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapter;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
+import i5.las2peer.services.ocd.centrality.data.CentralityMap;
+import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
+import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulationType;
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphCreationType;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
+import i5.las2peer.services.ocd.metrics.OcdMetricType;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -36,6 +48,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.math3.linear.RealMatrix;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -71,6 +84,11 @@ public class RequestHandler {
 	private static CoverOutputAdapterFactory coverOutputAdapterFactory = new CoverOutputAdapterFactory();
 
 	/**
+	 * The factory used for creating centrality output adapters.
+	 */
+	private static CentralityOutputAdapterFactory centralityOutputAdapterFactory = new CentralityOutputAdapterFactory();
+	
+	/**
 	 * The factory used for creating graph output adapters.
 	 */
 	private static GraphOutputAdapterFactory graphOutputAdapterFactory = new GraphOutputAdapterFactory();
@@ -79,6 +97,11 @@ public class RequestHandler {
 	 * The factory used for creating cover input adapters.
 	 */
 	private static CoverInputAdapterFactory coverInputAdapterFactory = new CoverInputAdapterFactory();
+	
+	/**
+	 * The factory used for creating centrality input adapters.
+	 */
+	private static CentralityInputAdapterFactory centralityInputAdapterFactory = new CentralityInputAdapterFactory();
 
 	/**
 	 * The factory used for creating graph input adapters.
@@ -242,11 +265,26 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates an XML document containing multiple CentralityMap ids.
+	 * @param maps The CentralityMaps.
+	 * @return The document.
+	 * @throws ParserConfigurationException
+	 */
+	public String writeCentralityMapIds(List<CentralityMap> maps) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element centralityMapElt = doc.createElement("CentralityMaps");
+		for(int i=0; i<maps.size(); i++) {
+			centralityMapElt.appendChild(getIdElt(maps.get(i), doc));
+		}
+		doc.appendChild(centralityMapElt);
+		return writeDoc(doc);
+	}
+	
+	/**
 	 * Creates an XML document containing meta information about multiple
 	 * graphs.
 	 * 
-	 * @param graphs
-	 *            The graphs.
+	 * @param graphs The graphs.
 	 * @return The document.
 	 * @throws AdapterException
 	 * @throws ParserConfigurationException
@@ -298,6 +336,30 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates an XML document containing meta information about multiple centrality maps.
+	 * @param maps The centrality maps.
+	 * @return The document.
+	 * @throws AdapterException
+	 * @throws ParserConfigurationException
+	 * @throws IOException
+	 * @throws SAXException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	public String writeCentralityMapMetas(List<CentralityMap> maps) throws AdapterException, ParserConfigurationException, IOException, SAXException, InstantiationException, IllegalAccessException {
+		Document doc = getDocument();
+		Element mapsElt = doc.createElement("CentralityMaps");
+		for(CentralityMap map : maps) {
+			String metaDocStr = writeCentralityMap(map, CentralityOutputFormat.META_XML);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
+			Node importNode = doc.importNode(metaDocNode, true);
+			mapsElt.appendChild(importNode);
+		}
+		doc.appendChild(mapsElt);
+		return writeDoc(doc);
+	}
+	
+	/**
 	 * Creates an XML document containing the id of a single graph.
 	 * 
 	 * @param graph
@@ -325,6 +387,18 @@ public class RequestHandler {
 		return writeDoc(doc);
 	}
 
+	/**
+	 * Creates an XML document containing the id of a single CentralityMap.
+	 * @param map The CentralityMap.
+	 * @return The document.
+	 * @throws ParserConfigurationException
+	 */
+	public String writeId(CentralityMap map) throws ParserConfigurationException {
+		Document doc = getDocument();
+		doc.appendChild(getIdElt(map, doc));
+		return writeDoc(doc);
+	}
+	
 	/**
 	 * Creates an XML document containing the id of a single metric log.
 	 * 
@@ -381,6 +455,133 @@ public class RequestHandler {
 		return writer.toString();
 	}
 
+	/**
+	 * Creates a CentralityMap output.
+	 * @param map The CentralityMap.
+	 * @return The CentralityMap output.
+	 * @throws AdapterException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws ParserConfigurationException 
+	 */
+	public String writeCentralityMap(CentralityMap map, CentralityOutputFormat outputFormat) throws AdapterException, InstantiationException, IllegalAccessException, ParserConfigurationException {
+		Writer writer = new StringWriter();
+		CentralityOutputAdapter adapter = centralityOutputAdapterFactory.getInstance(outputFormat);
+    	adapter.setWriter(writer);
+		adapter.writeCentralityMap(map);
+		return writer.toString();
+	}
+	
+	/**
+	 * Creates an XML document containing all statistical measure names.
+	 * @return The document.
+	 * @throws ParserConfigurationException
+	 */
+	public String writeStatisticalMeasureNames() throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element namesElt = doc.createElement("Names");
+		for(OcdMetricType e : OcdMetricType.class.getEnumConstants()) {
+			if(e.correspondsStatisticalMeasure()) {
+				Element nameElt = doc.createElement("Name");
+				nameElt.appendChild(doc.createTextNode(e.name()));
+				namesElt.appendChild(nameElt);
+			}
+		}
+		doc.appendChild(namesElt);
+		return writeDoc(doc);
+	}
+	
+	/**
+	 * Creates an XML document containing all knowledge-driven measure names.
+	 * @return The document.
+	 * @throws ParserConfigurationException
+	 */
+	public String writeKnowledgeDrivenMeasureNames() throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element namesElt = doc.createElement("Names");
+		for(OcdMetricType e : OcdMetricType.class.getEnumConstants()) {
+			if(e.correspondsKnowledgeDrivenMeasure()) {
+				Element nameElt = doc.createElement("Name");
+				nameElt.appendChild(doc.createTextNode(e.name()));
+				namesElt.appendChild(nameElt);
+			}
+		}
+		doc.appendChild(namesElt);
+		return writeDoc(doc);
+	}
+	
+	/**
+	 * Creates an XML document containing all ground truth benchmark names.
+	 * @return The document.
+	 * @throws ParserConfigurationException
+	 */
+	public String writeGroundTruthBenchmarkNames() throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element namesElt = doc.createElement("Names");
+		for(GraphCreationType e : GraphCreationType.class.getEnumConstants()) {
+			if(e.correspondsGroundTruthBenchmark()) {
+				Element nameElt = doc.createElement("Name");
+				nameElt.appendChild(doc.createTextNode(e.name()));
+				namesElt.appendChild(nameElt);
+			}
+		}
+		doc.appendChild(namesElt);
+		return writeDoc(doc);
+	}
+	
+	/**
+	 * Creates an XML document containing all ocd algorithm names.
+	 * @return The document.
+	 * @throws ParserConfigurationException
+	 */
+	public String writeAlgorithmNames() throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element namesElt = doc.createElement("Names");
+		for(CoverCreationType e : CoverCreationType.class.getEnumConstants()) {
+			if(e.correspondsAlgorithm()) {
+				Element nameElt = doc.createElement("Name");
+				nameElt.appendChild(doc.createTextNode(e.name()));
+				namesElt.appendChild(nameElt);
+			}
+		}
+		doc.appendChild(namesElt);
+		return writeDoc(doc);
+	}
+	
+	/**
+	 * Creates an XML document containing all centrality measure names.
+	 * @return The document.
+	 * @throws ParserConfigurationException
+	 */
+	public String writeCentralityMeasureNames() throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element namesElt = doc.createElement("Names");
+		for(CentralityMeasureType e : CentralityMeasureType.class.getEnumConstants()) {
+			Element nameElt = doc.createElement("Name");
+			nameElt.appendChild(doc.createTextNode(e.getDisplayName()));
+			namesElt.appendChild(nameElt);
+		}
+		doc.appendChild(namesElt);
+		return writeDoc(doc);
+	}
+	
+	/**
+	 * Creates an XML document containing all CentralitySimulation names.
+	 * @return The document.
+	 * @throws ParserConfigurationException
+	 */
+	public String writeCentralitySimulationNames() throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element namesElt = doc.createElement("Names");
+		for(CentralitySimulationType e : CentralitySimulationType.class.getEnumConstants()) {
+			Element nameElt = doc.createElement("Name");
+			nameElt.appendChild(doc.createTextNode(e.getDisplayName()));
+			namesElt.appendChild(nameElt);
+		}
+		doc.appendChild(namesElt);
+		return writeDoc(doc);
+	}
+	
 	/**
 	 * Parses a graph input using a specified format.
 	 * 
@@ -448,6 +649,26 @@ public class RequestHandler {
 		adapter.setReader(reader);
 		return adapter.readCover(graph);
 	}
+	
+	/**
+	 * Creates a CentralityMap by parsing a String containing centrality values.
+	 * 
+	 * @param contentStr
+	 *            The centrality input
+	 * @param graph
+	 *            The graph the centrality values are based on.
+	 * @return The CentralityMap.
+	 * @throws AdapterException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	public CentralityMap parseCentralityMap(String contentStr, CustomGraph graph, CentralityInputFormat inputFormat)
+			throws AdapterException, InstantiationException, IllegalAccessException {
+		CentralityInputAdapter adapter = centralityInputAdapterFactory.getInstance(inputFormat);
+		Reader reader = new StringReader(contentStr);
+		adapter.setReader(reader);
+		return adapter.readCentrality(graph);
+	}
 
 	/**
 	 * Returns an XML element node representing the id of a graph.
@@ -488,6 +709,25 @@ public class RequestHandler {
 		return coverElt;
 	}
 
+	/**
+	 * Returns an XML element node representing the id of a CentralityMap.
+	 * @param cover The CentralityMap.
+	 * @param doc The document to create the element node for.
+	 * @return The element node.
+	 */
+	protected Node getIdElt(CentralityMap map, Document doc) {
+		Element centralityMapElt = doc.createElement("CentralityMap");
+		Element idElt = doc.createElement("Id");
+		Element centralityMapIdElt = doc.createElement("CentralityMapId");
+		centralityMapIdElt.appendChild(doc.createTextNode(Long.toString(map.getId())));
+		idElt.appendChild(centralityMapIdElt);
+		Element graphIdElt = doc.createElement("GraphId");
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(map.getGraph().getId())));
+		idElt.appendChild(graphIdElt);
+		centralityMapElt.appendChild(idElt);
+		return centralityMapElt;
+	}
+	
 	/**
 	 * Returns an XML element node representing the id of a metric log.
 	 * 
@@ -623,5 +863,31 @@ public class RequestHandler {
 	public List<String> parseQueryMultiParam(String paramStr) {
 		return Arrays.asList(paramStr.split("-"));
 	}
-
+	
+	/**
+	 * Creates an XML document containing the correlation matrix of a number of centrality maps.
+	 * @param mapIds The list of centrality map ids.
+	 * @param correlationMatrix The matrix containing the correlations for each pair of centrality maps.
+	 * @return The document.
+	 * @throws ParserConfigurationException
+	 */
+	public String writeCorrelationMatrix(List<Integer> mapIds, RealMatrix correlationMatrix) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element matrixElt = doc.createElement("Matrix");
+		int n = mapIds.size();
+		Element rowElt;
+		for(int i = 0; i < n; i++) {
+			rowElt = doc.createElement("Row");
+			rowElt.setAttribute("CentralityMapId", Integer.toString(mapIds.get(i)));
+			for(int j = 0; j < n; j++) {
+				Element cellElt = doc.createElement("Cell");
+				cellElt.setAttribute("CentralityMapId", Integer.toString(mapIds.get(j)));
+				cellElt.appendChild(doc.createTextNode(Double.toString(correlationMatrix.getEntry(i, j))));
+				rowElt.appendChild(cellElt);
+			}
+			matrixElt.appendChild(rowElt);
+		}
+		doc.appendChild(matrixElt);
+		return writeDoc(doc);
+	}
 }

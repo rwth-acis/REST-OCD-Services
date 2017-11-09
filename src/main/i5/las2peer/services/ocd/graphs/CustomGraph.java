@@ -714,8 +714,27 @@ public class CustomGraph extends Graph2D {
 		}
 		return degree;
 	}
-
-	//////////////////
+	 
+	/**
+	 * Returns all edge weights
+	 * @return Double array containing all edge weights
+	 * 
+	 * @author Tobias
+	 */
+	public double[] getEdgeWeights() {
+		double[] res = new double[this.edgeCount()];
+		
+		EdgeCursor edges = this.edges();
+		int i = 0;
+		while(edges.ok()) {
+			Edge edge = edges.edge();
+			res[i] = this.getEdgeWeight(edge);
+			edges.next();
+			i++;
+		}	
+		return res;
+	}
+	
 	/**
 	 * Returns the maximum edge weight of the graph.
 	 * 
@@ -1098,6 +1117,7 @@ public class CustomGraph extends Graph2D {
 		return this.properties;
 	}
 	
+
 	
 	/**	 
 	 * Returns a specific graph property
@@ -1353,5 +1373,6 @@ public class CustomGraph extends Graph2D {
 		
 		initProperties();
 	}
+
 
 }

@@ -30,7 +30,7 @@ public class ExtendedNormalizedMutualInformationMetric implements KnowledgeDrive
 		return metricValue;
 	}
 
-	/*
+	/**
 	 * Determines the uncertainty about the membership of a node in an arbitrary community of cover 1,
 	 * when the community memberships of the node are known for cover 2.
 	 * @param cover1 The cover 1.
@@ -85,7 +85,7 @@ public class ExtendedNormalizedMutualInformationMetric implements KnowledgeDrive
 		return arbitraryConditionalEntropy / cover1.communityCount();
 	}
 	
-	/*
+	/**
 	 * Determines the uncertainty about the membership of a node in a particular community of cover 1, when it is known
 	 * that the node is a member of a particular community in cover 2.
 	 * @param cover1Memberships The community memberships of cover 1.
@@ -153,7 +153,7 @@ public class ExtendedNormalizedMutualInformationMetric implements KnowledgeDrive
 		return conditionalEntropy;
 	}
 	
-	/*
+	/**
 	 * Determines the community sizes of all communities of a cover. 
 	 * @param cover The cover.
 	 * @return A mapping from the community indices to the community sizes.

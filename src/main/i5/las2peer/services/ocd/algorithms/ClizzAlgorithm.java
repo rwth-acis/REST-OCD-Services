@@ -139,7 +139,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return CoverCreationType.CLIZZ_ALGORITHM;
 	}
 	
-	/*
+	/**
 	 * Determines the membership matrix through a random walk process.
 	 * @param graph The graph being analyzed.
 	 * @param leaders A mapping from the community leader nodes to the indices of their communities.
@@ -186,7 +186,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return memberships;
 	}
 	
-	/*
+	/**
 	 * Returns the maximum difference between two matrices.
 	 * It is calculated entry-wise as the greatest absolute value
 	 * of any entry in the difference among the two matrices.
@@ -211,7 +211,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return maxDifference;
 	}
 	
-	/*
+	/**
 	 * Initializes the membership matrix for the memberships assignation phase.
 	 * Leader nodes are set to belong entirely to their own community. All other nodes
 	 * have equal memberships for all communities.
@@ -242,7 +242,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return memberships;
 	}
 	
-	/*
+	/**
 	 * Determines the community leaders and their community indices. 
 	 * @param graph The graph being analyzed.
 	 * @param distances The distance matrix corresponding the graph.
@@ -281,7 +281,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return communityLeaders;
 	}
 	
-	/*
+	/**
 	 * Returns the leader nodes of the graph.
 	 * @param graph The graph being analyzed.
 	 * @param distances The distance matrix.
@@ -317,7 +317,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return leaders;
 	}
 	
-	/*
+	/**
 	 * Calculates the leadership values of all nodes.
 	 * @param graph The graph being analyzed.
 	 * @param distances A matrix d containing the distance from node i to node j in d_ij.
@@ -340,7 +340,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return leadershipValues;
 	}
 	
-	/*
+	/**
 	 * Determines the directed node distances for all node pairs.
 	 * For node pairs that are further apart than the influence range the distance is returned as 0.
 	 * This is due to efficiency issues but should be interpreted as infinity.
@@ -434,7 +434,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return nodeDistances;
 	}
 	
-	/*
+	/**
 	 * Returns the leadership value of a node.
 	 * @param nodeInDistances The distances to the node from other nodes.
 	 * Contains in entry i the length of the path from node with index i.
@@ -446,7 +446,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return leadershipProcedure.getLeadershipIndex();
 	}
 	
-	/*
+	/**
 	 * Returns the indices of all nodes within the influence range of a node.
 	 * This includes connections in either direction, i.e. also the nodes exerting influence on the node.
 	 * @param nodeOutDistances The distances from the examined node to any other node. The distance
@@ -470,13 +470,13 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		return influenceNodesProcedure.getInfluencingNodeIndices();
 	}
 	
-	/*
+	/**
 	 * Calculates the length of an edge in terms of a distance based interpretation (a high value
 	 * means two nodes belong together only loosely) rather than an influence based interpretation
 	 * (a high value means two nodes belong together closely).
 	 * @param edgeWeight The original edge weight.
-	 * @param minWeight The smallest edge weight greater 0 of the examined graph.
-	 * @param maxWeight The maximum edge weight of the examined graph.
+	 * @param minEdgeWeight The smallest edge weight greater 0 of the examined graph.
+	 * @param maxEdgeWeight The maximum edge weight of the examined graph.
 	 */
 	protected double getEdgeLength(double edgeWeight, double minEdgeWeight, double maxEdgeWeight) {
 		return maxEdgeWeight + minEdgeWeight - edgeWeight;

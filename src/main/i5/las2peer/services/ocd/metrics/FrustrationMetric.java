@@ -13,11 +13,11 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Edge;
 import y.base.EdgeCursor;
 
-/* 
+/** 
  * @author YLi
  */
 public class FrustrationMetric implements StatisticalMeasure {
-	/*
+	/**
 	 * Parameter for weighting between negative edges within communities and
 	 * positive edges between communities.
 	 */

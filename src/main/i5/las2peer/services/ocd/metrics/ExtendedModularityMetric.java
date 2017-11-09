@@ -68,7 +68,7 @@ public class ExtendedModularityMetric implements StatisticalMeasure {
 		return metricValue;
 	}
 	
-	/*
+	/**
 	 * Returns the belonging coefficient of an edge for a certain community.
 	 * @param cover The cover being measured.
 	 * @param sourceNode The source node of the edge.
@@ -80,7 +80,7 @@ public class ExtendedModularityMetric implements StatisticalMeasure {
 		return cover.getBelongingFactor(sourceNode, communityIndex) * cover.getBelongingFactor(targetNode, communityIndex);
 	}
 	
-	/*
+	/**
 	 * Returns the modularity index contribution by the null model for two given nodes a and b and a certain community.
 	 * This contains the contribution for edge a -> b and edge b -> a.
 	 * @param cover The cover being measured.
@@ -109,7 +109,7 @@ public class ExtendedModularityMetric implements StatisticalMeasure {
 		return coeff;
 	}
 
-	/*
+	/**
 	 * Returns the modularity index for the two nodes a and b.
 	 * This includes the edges a -> b and b -> a.
 	 * @param cover The cover being measured.

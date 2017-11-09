@@ -11,6 +11,8 @@ import javax.persistence.TypedQuery;
 
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.p2p.AgentNotKnownException;
+import i5.las2peer.services.ocd.centrality.data.CentralityMap;
+import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CoverId;
@@ -155,6 +157,15 @@ public class EntityHandler {
 			for (Cover cover : coverList) {
 				try {
 					deleteCover(username, cover, threadHandler);
+				} catch (Exception e) {
+					throw e;
+				}
+			}
+			
+			List<CentralityMap> centralityMapList = getCentralityMaps(username, graphId);
+			for (CentralityMap map : centralityMapList) {
+				try {
+					deleteCentralityMap(username, map, threadHandler);
 				} catch (Exception e) {
 					throw e;
 				}
@@ -393,6 +404,116 @@ public class EntityHandler {
 		return queryResults;
 	}
 
-	//////////////////////// METRICS ////////////////////////
+	//////////////////////// CENTRALITY ////////////////////////
+	
+	/**
+	 * Get a stored centrality map.
+	 * 
+	 * @param username
+	 *            Owner of the CentralityMap
+	 * @param graphId
+	 *            Id of the graph the CentralityMap is based on
+	 * @param mapId
+	 *            Id the of CentralityMap
+	 * @return The found CentralityMap instance or null if the CentralityMap does not exist
+	 */
+	public CentralityMap getCentralityMap(String username, long graphId, long mapId) {
+		
+		EntityManager em = getEntityManager();
+    	CustomGraphId gId = new CustomGraphId(graphId, username);
+    	CentralityMapId cId = new CentralityMapId(mapId, gId);
+		/*
+		 * Finds CentralityMap
+		 */
+		EntityTransaction tx = em.getTransaction();
+    	CentralityMap map;
+    	try {
+			tx.begin();
+			map = em.find(CentralityMap.class, cId);
+			tx.commit();
+		}
+    	catch( RuntimeException e ) {
+			if( tx != null && tx.isActive() ) {
+				tx.rollback();
+			}
+			throw e;
+		}
+		if (map == null) {
+			logger.log(Level.WARNING,
+					"user: " + username + ", " + "Centrality map does not exist: centrality map id " + mapId + ", graph id " + graphId);
+		}
+		return map;
+	}
+	
+	/**
+	 * Deletes a persisted CentralityMap from the database
+	 * 
+	 * @param username
+	 *            Owner of the CentralityMap
+	 * @param graphId
+	 *            Id of the graph
+	 * @param mapId
+	 *            Id of the CentralityMap
+	 * @param threadHandler
+	 *            The ThreadHandler for algorithm execution
+	 */
+	public void deleteCentralityMap(String username, long graphId, long mapId, ThreadHandler threadHandler) {
+		CentralityMap map = getCentralityMap(username, graphId, mapId);		
+		if (map == null)
+			throw new IllegalArgumentException("Centrality map not found");
+		
+		deleteCentralityMap(username, map, threadHandler);
+	}
+	
+	/**
+	 * Deletes a persisted CentralityMap from the database
+	 * 
+	 * @param username
+	 *            Owner of the CentralityMap
+	 * @param map
+	 *            The CentralityMap
+	 * @param threadHandler
+	 *            The ThreadHandler for algorithm execution
+	 */
+	public void deleteCentralityMap(String username, CentralityMap map, ThreadHandler threadHandler) {
+		synchronized (threadHandler) {
+			threadHandler.interruptAll(map);
+			EntityManager em = getEntityManager();
+			EntityTransaction tx = em.getTransaction();
 
+			CentralityMapId id = new CentralityMapId(map.getId(), new CustomGraphId(map.getGraph().getId(), username));
+			try {
+				tx.begin();
+				em.remove(em.getReference(CentralityMap.class, id));
+				tx.commit();
+			} catch (RuntimeException e) {
+				if (tx != null && tx.isActive()) {
+					tx.rollback();
+				}
+				throw e;
+			}
+			em.close();
+		}
+	}
+	
+	/**
+	 * Returns all centrality maps corresponding to a CustomGraph
+	 * 
+	 * @param username
+	 *            Owner of the graph
+	 * @param graphId
+	 *            Id of the graph
+	 * @return A list of the corresponding centrality maps
+	 */
+	public List<CentralityMap> getCentralityMaps(String username, long graphId) {
+
+		EntityManager em = getEntityManager();
+		String queryStr = "SELECT c from CentralityMap c" + " JOIN c." + CentralityMap.GRAPH_FIELD_NAME + " g" + " WHERE g."
+				+ CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND g." + CustomGraph.ID_FIELD_NAME + " = "
+				+ graphId;
+		TypedQuery<CentralityMap> query = em.createQuery(queryStr, CentralityMap.class);
+		query.setParameter("username", username);
+
+		return query.getResultList();
+	}
 }

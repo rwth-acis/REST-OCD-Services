@@ -140,7 +140,7 @@ public class CustomEdge {
 	/////////// The following methods are only of internal use for persistence purposes.
 	/////////////////////////////////////////////////////////////////////////////////////////
 	
-	/*
+	/**
 	 * Getter for the source node.
 	 * Only for persistence purposes.
 	 * @return The source custom node.
@@ -149,7 +149,7 @@ public class CustomEdge {
 		return source;
 	}
 
-	/*
+	/**
 	 * Setter for the source node.
 	 * Only for persistence purposes.
 	 * @param source The source custom node.
@@ -158,7 +158,7 @@ public class CustomEdge {
 		this.source = source;
 	}
 	
-	/*
+	/**
 	 * Getter for the target node.
 	 * Only for persistence purposes.
 	 * @return The target custom node.
@@ -167,7 +167,7 @@ public class CustomEdge {
 		return target;
 	}
 
-	/*
+	/**
 	 * Setter for the target node.
 	 * Only for persistence purposes.
 	 * @param target The target custom node.
@@ -194,7 +194,7 @@ public class CustomEdge {
 //		this.points = points;
 //	}
 	
-	/*
+	/**
 	 * Updates a custom edge before it is being persistence.
 	 * Only for persistence purposes.
 	 * @param graph The graph that the edge is part of.
@@ -213,7 +213,7 @@ public class CustomEdge {
 		this.graph = graph;
 	}
 
-	/*
+	/**
 	 * Creates the corresponding yFiles edge after the custom edge is loaded from persistence.
 	 * Only for persistence purposes.
 	 * @param graph The graph that the edge is part of.

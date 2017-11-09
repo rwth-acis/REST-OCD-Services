@@ -49,12 +49,12 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 	 * Recommended are values between 0.02 and 0.1.
 	 */
 	private double probabilityThreshold = 0.15;
-	/*
+	/**
 	 * The speaker rule according to which a speaker decides which label to send.
 	 * Currently only the UniformSpeakerRule is implemented.
 	 */
 	private SlpaSpeakerRuleCommand speakerRule = new SlpaUniformSpeakerRule();
-	/*
+	/**
 	 * The listener rule according to which a listener decides which label to accept.
 	 * Currently only the popularity listener rule is implemented.
 	 */
@@ -163,7 +163,7 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 		}
 	}
 	
-	/*
+	/**
 	 * Returns the next label to be received by the listener according to the speaker
 	 * and the listener rule.
 	 */
@@ -179,7 +179,7 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 		return listenerRule.getLabel(graph, listener, receivedLabels);
 	}
 	
-	/*
+	/**
 	 * Calculates a cover with the membership degrees for all nodes based on the node memories.
 	 */
 	protected Cover calculateMembershipDegrees(CustomGraph graph, List<List<Integer>> memories) throws InterruptedException {
@@ -212,7 +212,7 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 		return new Cover(graph, membershipMatrix);
 	}
 	
-	/*
+	/**
 	 * Creates a histogram of the occurrence frequency based on the labels in the node memory.
 	 * Manipulates labelCount to track the total number of labels represented in the histogram.
 	 */
@@ -250,7 +250,7 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 	    return histogram;
 	}
 	
-	/*
+	/**
 	 * Returns a vector of the membership degrees of a single node, calculated from its histogram.
 	 * Manipulates the communities list to identify communities.
 	 */

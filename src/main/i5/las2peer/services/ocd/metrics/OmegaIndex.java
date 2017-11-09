@@ -91,7 +91,7 @@ public class OmegaIndex implements KnowledgeDrivenMeasure {
 		return metricValue;
 	}
 	
-	/*
+	/**
 	 * Calculates the number of shared communities for each node pair.
 	 * @param cover The corresponding cover.
 	 * @return A mapping from the node pairs to the count of shared communities.
