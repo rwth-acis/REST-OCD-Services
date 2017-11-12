@@ -30,7 +30,7 @@ public class CentralityAlgorithmExecutor {
 		if(algorithm.getCentralityMeasureType() == CentralityMeasureType.ECCENTRICITY || algorithm.getCentralityMeasureType() == CentralityMeasureType.CLOSENESS_CENTRALITY || algorithm.getCentralityMeasureType() == CentralityMeasureType.HARMONIC_CENTRALITY || algorithm.getCentralityMeasureType() == CentralityMeasureType.HARMONIC_IN_CLOSENESS || algorithm.getCentralityMeasureType() == CentralityMeasureType.BETWEENNESS_CENTRALITY || algorithm.getCentralityMeasureType() == CentralityMeasureType.STRESS_CENTRALITY || algorithm.getCentralityMeasureType() == CentralityMeasureType.INTEGRATION || algorithm.getCentralityMeasureType() == CentralityMeasureType.RADIALITY || algorithm.getCentralityMeasureType() == CentralityMeasureType.RESIDUAL_ClOSENESS || algorithm.getCentralityMeasureType() == CentralityMeasureType.CENTROID_VALUE) {
 			processor.invertEdgeWeights(graphCopy);
 		}
-		if(algorithm.getCentralityMeasureType() == CentralityMeasureType.HARMONIC_IN_CLOSENESS || algorithm.getCentralityMeasureType() == CentralityMeasureType.RADIALITY) {
+		if(algorithm.getCentralityMeasureType() == CentralityMeasureType.HARMONIC_IN_CLOSENESS || algorithm.getCentralityMeasureType() == CentralityMeasureType.INTEGRATION) {
 			processor.reverseEdgeDirections(graphCopy);
 		}
 		long startTime = System.currentTimeMillis();

@@ -18,7 +18,11 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 public class PageRank implements CentralityAlgorithm {
-	public static final double d = 0.85;
+	private double d = 0.85;
+	/*
+	 * PARAMETER NAMES
+	 */
+	protected static final String DAMPING_FACTOR_NAME = "Damping Factor";
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {
 		CentralityMap res = new CentralityMap(graph);
@@ -84,12 +88,18 @@ public class PageRank implements CentralityAlgorithm {
 	}
 	
 	@Override
-	public HashMap<String, String> getParameters() {
-		return new HashMap<String, String>();
+	public Map<String, String> getParameters() {
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(DAMPING_FACTOR_NAME, Double.toString(d));
+		return parameters;
 	}
 	
 	@Override
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
+		if(parameters.containsKey(DAMPING_FACTOR_NAME)) {
+			d = Double.parseDouble(parameters.get(DAMPING_FACTOR_NAME));
+			parameters.remove(DAMPING_FACTOR_NAME);
+		}
 		if(parameters.size() > 0) {
 			throw new IllegalArgumentException();
 		}
