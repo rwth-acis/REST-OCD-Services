@@ -120,69 +120,64 @@ public enum CentralityMeasureType implements CentralityType {
 	FLOW_BETWEENNESS("Flow Betweenness", i5.las2peer.services.ocd.centrality.measures.FlowBetweenness.class, 22),
 	
 	/**
-	 * Type corresponding to the bridging coefficient
-	 */
-	BRIDGING_COEFFICIENT("Bridging Coefficient", i5.las2peer.services.ocd.centrality.measures.BridgingCoefficient.class, 23),
-	
-	/**
 	 * Type corresponding to the bridging centrality
 	 */
-	BRIDGING_CENTRALITY("Bridging Centrality", i5.las2peer.services.ocd.centrality.measures.BridgingCentrality.class, 24),
+	BRIDGING_CENTRALITY("Bridging Centrality", i5.las2peer.services.ocd.centrality.measures.BridgingCentrality.class, 23),
 	
 	/**
 	 * Type corresponding to Katz centrality
 	 */
-	KATZ_CENTRALITY("Katz Centrality", i5.las2peer.services.ocd.centrality.measures.KatzCentrality.class, 25),
+	KATZ_CENTRALITY("Katz Centrality", i5.las2peer.services.ocd.centrality.measures.KatzCentrality.class, 24),
 	
 	/**
 	 * Type corresponding to subgraph centrality
 	 */
-	SUBGRAPH_CENTRALITY("Subgraph Centrality", i5.las2peer.services.ocd.centrality.measures.SubgraphCentrality.class, 26),
+	SUBGRAPH_CENTRALITY("Subgraph Centrality", i5.las2peer.services.ocd.centrality.measures.SubgraphCentrality.class, 25),
 	
 	/**
 	 * Type corresponding to eigenvector centrality
 	 */
-	EIGENVECTOR_CENTRALITY("Eigenvector Centrality", i5.las2peer.services.ocd.centrality.measures.EigenvectorCentrality.class, 27),
+	EIGENVECTOR_CENTRALITY("Eigenvector Centrality", i5.las2peer.services.ocd.centrality.measures.EigenvectorCentrality.class, 26),
 	
 	/**
 	 * Type corresponding to the alpha centrality
 	 */
-	ALPHA_CENTRALITY("Alpha Centrality", i5.las2peer.services.ocd.centrality.measures.AlphaCentrality.class, 28),
+	ALPHA_CENTRALITY("Alpha Centrality", i5.las2peer.services.ocd.centrality.measures.AlphaCentrality.class, 27),
 	
 	/**
 	 * Type corresponding to the bargaining centrality
 	 */
-	BARGAINING_CENTRALITY("Bargaining Centrality", i5.las2peer.services.ocd.centrality.measures.BargainingCentrality.class, 29),
+	BARGAINING_CENTRALITY("Bargaining Centrality", i5.las2peer.services.ocd.centrality.measures.BargainingCentrality.class, 28),
 	
 	/**
 	 * Type corresponding to PageRank
 	 */
-	PAGERANK("PageRank", i5.las2peer.services.ocd.centrality.measures.PageRank.class, 30),
+	PAGERANK("PageRank", i5.las2peer.services.ocd.centrality.measures.PageRank.class, 29),
 	
 	/**
 	 * Type corresponding to alpha centrality
 	 */
-	LEADERRANK("LeaderRank", i5.las2peer.services.ocd.centrality.measures.LeaderRank.class, 31),
+	LEADERRANK("LeaderRank", i5.las2peer.services.ocd.centrality.measures.LeaderRank.class, 30),
 	
 	/**
 	 * Type corresponding to the hyperlink-induced topic search (HITS) hub score
 	 */
-	HITS_HUB_SCORE("HITS (Hub Score)", i5.las2peer.services.ocd.centrality.measures.HitsHubScore.class, 32),
+	HITS_HUB_SCORE("HITS (Hub Score)", i5.las2peer.services.ocd.centrality.measures.HitsHubScore.class, 31),
 	
 	/**
 	 * Type corresponding to the hyperlink-induced topic search (HITS) authority score
 	 */
-	HITS_AUTHORITY_SCORE("HITS (Authority Score)", i5.las2peer.services.ocd.centrality.measures.HitsAuthorityScore.class, 33),
+	HITS_AUTHORITY_SCORE("HITS (Authority Score)", i5.las2peer.services.ocd.centrality.measures.HitsAuthorityScore.class, 32),
 	
 	/**
 	 * Type corresponding to the SALSA hub score
 	 */
-	SALSA_HUB_SCORE("SALSA (Hub Score)", i5.las2peer.services.ocd.centrality.measures.SalsaHubScore.class, 34),
+	SALSA_HUB_SCORE("SALSA (Hub Score)", i5.las2peer.services.ocd.centrality.measures.SalsaHubScore.class, 33),
 	
 	/**
 	 * Type corresponding to the SALSA authority score
 	 */
-	SALSA_AUTHORITY_SCORE("SALSA (Authority Score)", i5.las2peer.services.ocd.centrality.measures.SalsaAuthorityScore.class, 35);
+	SALSA_AUTHORITY_SCORE("SALSA (Authority Score)", i5.las2peer.services.ocd.centrality.measures.SalsaAuthorityScore.class, 34);
 	
 	/**
 	 * The class corresponding to the type

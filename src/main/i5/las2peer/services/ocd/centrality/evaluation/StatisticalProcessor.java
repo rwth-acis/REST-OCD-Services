@@ -2,7 +2,12 @@ package i5.las2peer.services.ocd.centrality.evaluation;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
@@ -119,5 +124,52 @@ public class StatisticalProcessor {
 			i++;
 		}
 		return mapsValues;
+	}
+	
+	/**
+	 * Calculates the precision at k of the given centrality maps in relating to the ground truth map.
+	 * 
+	 * @param graph The graph the centrality maps are based on.
+	 * @param groundTruthMap The ground truth map that determines the correct ranking.
+	 * @param maps The centrality maps whose precision is calculated.
+	 * @param k The number k of top nodes that are considered.
+	 * @return A double array containing the precision values.
+	 */
+	public static double[] getPrecision(CustomGraph graph, CentralityMap groundTruthMap, List<CentralityMap> maps, int k) {
+		double[] precisionVector = new double[maps.size()];
+		List<String> groundTruthRanking = getTopNodes(groundTruthMap, k);
+		for(int i = 0; i < maps.size(); i++) {
+			CentralityMap map = maps.get(i);
+			List<String> centralityRanking = getTopNodes(map, k);
+			int agreementCount = 0;
+			for(int j = 0; j < k; j++) {
+				if(centralityRanking.contains(groundTruthRanking.get(j)))
+					agreementCount++;
+			}
+			precisionVector[i] = (double)agreementCount/k;
+		}
+		return precisionVector;
+	}
+	
+	/**
+	 * Retrieve the names of the top k nodes of the given centrality map.
+	 * 
+	 * @param map The centrality map.
+	 * @param k The number of top nodes that are considered.
+	 * @return The list of node names.
+	 */
+	private static List<String> getTopNodes(CentralityMap map, int k) {
+		Map<String, Double> valuesMap = map.getMap();
+		Set<String> keySet = valuesMap.keySet();
+	    List<String> keys = new ArrayList<String>(keySet);
+
+	    Collections.sort(keys, new Comparator<String>() {
+	        @Override
+	        public int compare(String s1, String s2) {
+	        	return Double.compare(valuesMap.get(s2), valuesMap.get(s1));
+	        }
+	    });
+
+	    return keys.subList(0, k);
 	}
 }

@@ -19,7 +19,7 @@ public class BridgingCoefficient implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {
 		CentralityMap res = new CentralityMap(graph);
-		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.BRIDGING_COEFFICIENT, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
+		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.UNDEFINED, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
 		NodeCursor nc = graph.nodes();
 		while(nc.ok()) {
@@ -64,7 +64,7 @@ public class BridgingCoefficient implements CentralityAlgorithm {
 
 	@Override
 	public CentralityMeasureType getCentralityMeasureType() {
-		return CentralityMeasureType.BRIDGING_COEFFICIENT;
+		return CentralityMeasureType.UNDEFINED;
 	}
 	
 	@Override

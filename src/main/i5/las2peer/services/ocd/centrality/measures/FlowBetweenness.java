@@ -36,43 +36,48 @@ public class FlowBetweenness implements CentralityAlgorithm {
 		}
 		DataProvider capacities = Maps.createIndexEdgeMap(intWeights);
 		
+		// Set initial values to 0
 		NodeCursor nc = graph.nodes();
 		while(nc.ok()) {
+			res.setNodeValue(nc.node(), 0.0);
+			nc.next();
+		}
+		
+		// For each pair (i,j) of nodes calculate the maximum flow and add flows through the individual nodes to their centrality values
+		for(int i = 0; i < nodeArray.length; i++) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();	
-			double flowSum = 0.0;	
-			for(int i = 0; i < nodeArray.length; i++) {
-				if(nodeArray[i] != node) {
-					Node source = nodeArray[i];
-					for(int j = 0; j < nodeArray.length; j++) {
-						if(nodeArray[j] != node && i != j) {
-							Node sink = nodeArray[j];
-							
-							// Instantiate data structures
-							Map<Edge, Integer> flowMap = new HashMap<Edge, Integer>();
-							EdgeMap flowEdgeMap = Maps.createEdgeMap(flowMap);
-							
-							// Calculate and add maximum flows with given source and sink
-							int maximumFlow = NetworkFlows.calcMaxFlow(graph, source, sink, capacities, flowEdgeMap);
-							
+			Node source = nodeArray[i];
+			for(int j = 0; j < nodeArray.length; j++) {
+				if(i != j) {
+					Node sink = nodeArray[j];
+					
+					// Instantiate data structures
+					Map<Edge, Integer> flowMap = new HashMap<Edge, Integer>();
+					EdgeMap flowEdgeMap = Maps.createEdgeMap(flowMap);
+					
+					// Calculate maximum flows with given source and sink
+					int maximumFlow = NetworkFlows.calcMaxFlow(graph, source, sink, capacities, flowEdgeMap);
+					
+					// Measure flow through all the nodes
+					nc = graph.nodes();
+					while(nc.ok()) {
+						Node node = nc.node();
+						if(node != source && node != sink && maximumFlow != 0) {
+							// Calculate flow through node
 							int maximumFlowThroughNode = 0;
 							EdgeCursor inEdges = node.inEdges();
 							while(inEdges.ok()) {
 								maximumFlowThroughNode += flowEdgeMap.getInt(inEdges.edge());
 								inEdges.next();
 							}
-
-							if(maximumFlow != 0) {
-								flowSum += maximumFlowThroughNode/maximumFlow;
-							}
+							res.setNodeValue(node, res.getNodeValue(node) + maximumFlowThroughNode/maximumFlow);
 						}
-					}
-				}	
+						nc.next();
+					}	
+				}
 			}	
-			res.setNodeValue(node, flowSum);
-			nc.next();
 		}
 		return res;
 	}

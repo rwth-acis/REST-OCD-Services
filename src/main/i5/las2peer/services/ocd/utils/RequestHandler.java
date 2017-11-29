@@ -227,6 +227,21 @@ public class RequestHandler {
 		doc.appendChild(doc.createElement("Confirmation"));
 		return writeDoc(doc);
 	}
+	
+	/**
+	 * Creates an XMl document containing a single value.
+	 * 
+	 * @param value The value that is written to the document.
+	 * @return The document.
+	 * @throws ParserConfigurationException
+	 */
+	public String writeValueXml(double value) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element valueElt = doc.createElement("Value");
+		valueElt.appendChild(doc.createTextNode(Double.toString(value)));
+		doc.appendChild(valueElt);
+		return writeDoc(doc);
+	}
 
 	/**
 	 * Creates an XML document containing multiple graph ids.
@@ -888,6 +903,37 @@ public class RequestHandler {
 			matrixElt.appendChild(rowElt);
 		}
 		doc.appendChild(matrixElt);
+		return writeDoc(doc);
+	}
+	
+	/**
+	 * Creates an XML containing the results of a precision calculation.
+	 * 
+	 * @param maps The list of centrality maps whose precision was calculated.
+	 * @param precisionVector The vector of precision values.
+	 * @return The XML document as a String.
+	 * @throws ParserConfigurationException
+	 */
+	public String writePrecisionResult(List<CentralityMap> maps, double[] precisionVector) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element mapsElt = doc.createElement("CentralityMaps");
+		doc.appendChild(mapsElt);
+		for(int i = 0; i < maps.size(); i++) {
+			CentralityMap map = maps.get(i);
+			Element mapElt = doc.createElement("CentralityMap");
+			mapsElt.appendChild(mapElt);
+			Element nameElt = doc.createElement("Name");
+			nameElt.appendChild(doc.createTextNode(map.getName()));
+			mapElt.appendChild(nameElt);
+			Element mapIdElt = doc.createElement("CentralityMapId");
+			mapIdElt.appendChild(doc.createTextNode(Long.toString(map.getId())));
+			mapElt.appendChild(mapIdElt);
+			Element precisionElt = doc.createElement("Precision");
+			mapElt.appendChild(precisionElt);
+			Element precisionValueElt = doc.createElement("Value");
+			precisionValueElt.appendChild(doc.createTextNode(Double.toString(precisionVector[i])));
+			precisionElt.appendChild(precisionValueElt);
+		}	
 		return writeDoc(doc);
 	}
 }

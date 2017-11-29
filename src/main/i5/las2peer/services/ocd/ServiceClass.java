@@ -69,6 +69,7 @@ import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulationFacto
 import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulationType;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmFactory;
+import i5.las2peer.services.ocd.centrality.utils.MatrixOperations;
 import i5.las2peer.services.ocd.cooperation.data.SimulationEntityHandler;
 import i5.las2peer.services.ocd.cooperation.data.mapping.MappingFactory;
 import i5.las2peer.services.ocd.cooperation.data.mapping.SimulationGroupSetMapping;
@@ -1639,6 +1640,72 @@ public class ServiceClass extends RESTService {
 	    	}
 	    }
 	    
+	    /**
+	     * Calculates the principal eigenvalue of the graph's adjacency matrix.
+	     * 
+	     * @param graphIdStr
+	     *            The graph id of the graph.
+	     * @return An xml containing the eigenvalue.
+	     */
+	    @GET
+	    @Path("centrality/graphs/{graphId}/eigenvalue")
+	    @Produces(MediaType.TEXT_XML)
+	    @ApiResponses(value = {
+	    		@ApiResponse(code = 200, message = "Success"),
+	    		@ApiResponse(code = 401, message = "Unauthorized")
+	    })
+		@ApiOperation(value = "",
+			notes = "Get the absolute principal eigenvalue of the adjacency matrix of the given graph.")
+	    public Response getAdjacencyMatrixEigenvalue(
+	    		@PathParam("graphId") String graphIdStr)
+	    {
+	    	double eigenvalue;
+	    	try {
+	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+	    		long graphId;
+	    		try {
+	    			graphId = Long.parseLong(graphIdStr);
+	    		}
+	    		catch (Exception e) {
+	    			requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
+	    		}
+
+	    		EntityManager em = entityHandler.getEntityManager();
+		    	CustomGraphId id = new CustomGraphId(graphId, username);
+		    	synchronized(threadHandler) {
+		    		EntityTransaction tx = em.getTransaction();
+			    	CustomGraph graph;
+			    	try {
+			    		tx.begin();
+						graph = em.find(CustomGraph.class, id);
+				    	if(graph == null) {
+				    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphId);
+							return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphId);
+				    	}
+				    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+				    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for eigenvalue calculation: " + graph.getCreationMethod().getStatus().name());
+							return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for eigenvalue calculation: " + graph.getCreationMethod().getStatus().name());
+				    	}
+						tx.commit();
+			    	}
+			    	catch( RuntimeException e ) {
+						if( tx != null && tx.isActive() ) {
+							tx.rollback();
+						}
+						throw e;
+					}
+					em.close();
+					eigenvalue = MatrixOperations.calculateAbsolutePrincipalEigenvalue(graph.getNeighbourhoodMatrix());
+		    	}	
+		    	return Response.ok(requestHandler.writeValueXml(eigenvalue)).build();
+	    	}
+	    	catch (Exception e) {
+	    		requestHandler.log(Level.SEVERE, "", e);
+	    		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+	    	}
+	    }
+	    
 		////////////////////////////////////////////////////////////////////////////
 		////////////// CENTRALITY SIMULATIONS
 		////////////////////////////////////////////////////////////////////////////
@@ -1876,6 +1943,7 @@ public class ServiceClass extends RESTService {
 	    /**
 	     * Calculates the correlation matrix by calculating the corresponding correlation
 	     * coefficient for each pair of centrality maps from the given list.
+	     * 
 	     * @param correlationCoefficientStr
 	     *            The correlation coefficient that is used.
 	     * @param graphIdStr 
@@ -1942,7 +2010,7 @@ public class ServiceClass extends RESTService {
 	    			}
 	    			em.close();
 	        	}
-	        	List<CentralityMap> maps = new LinkedList<CentralityMap>();
+	        	List<CentralityMap> maps = new ArrayList<CentralityMap>();
 	        	for(int id : mapIds) {
 	        		long mapId = (long) id;
 	        		em = entityHandler.getEntityManager();
@@ -1969,6 +2037,111 @@ public class ServiceClass extends RESTService {
 	        	}
 		    	RealMatrix correlationMatrix = StatisticalProcessor.getCorrelation(graph, maps, correlationCoefficient);    	        	
 	        	return Response.ok(requestHandler.writeCorrelationMatrix(mapIds, correlationMatrix)).build();
+	    	}
+	    	catch (Exception e) {
+	    		requestHandler.log(Level.SEVERE, "", e);
+	    		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+	    	}
+	    }
+	    
+	    /**
+	     * Calculates the precision at k for the given centrality maps. The first one is selected as the ground truth.
+	     * 
+	     * @param kStr 
+	     *            Number k of the top nodes that are considered.
+	     * @param graphIdStr 
+	     *            The id of the graph that the centrality maps are based on.
+	     * @param mapIds 
+	     *            The list of centrality map ids.
+	     * @return XML containing the centrality map ids, names and precision values.
+	     */
+	    @GET
+	    @Path("evaluation/precision/{k}/graph/{graphId}/maps")
+	    @Produces(MediaType.TEXT_XML)
+	    @Consumes(MediaType.TEXT_PLAIN)
+	    @ApiResponses(value = {
+	    		@ApiResponse(code = 200, message = "Success"),
+	    		@ApiResponse(code = 401, message = "Unauthorized")
+	    })
+		@ApiOperation(value = "",
+			notes = "Calculates the precision.")
+	    public Response getPrecision(
+	    		@PathParam("k") String kStr,
+	    		@PathParam("graphId") String graphIdStr,
+	    		@QueryParam("mapIds") List<Integer> mapIds) {
+	    	try {
+	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+	    		int k;
+	    		try {
+	    			k = Integer.parseInt(kStr);
+	    		}
+	    		catch (Exception e) {
+	    			requestHandler.log(Level.WARNING, "user: " + username, e);
+	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameter k is not valid.");
+	    		}
+	        	long graphId;
+	        	try {
+	    			graphId = Long.parseLong(graphIdStr);
+	    		}
+	    		catch (Exception e) {
+	    			requestHandler.log(Level.WARNING, "user: " + username, e);
+	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
+	    		}
+	        	CustomGraph graph;
+	        	EntityManager em = entityHandler.getEntityManager();
+	        	CustomGraphId gId = new CustomGraphId(graphId, username);
+	        	synchronized(threadHandler) {
+	        		EntityTransaction tx = em.getTransaction();
+	    	    	try {
+	    	    		tx.begin();
+	    				graph = em.find(CustomGraph.class, gId);
+	    		    	if(graph == null) {
+	    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphId);
+	    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphId);
+	    		    	}
+	    		    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+	    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for correlation calculation: " + graph.getCreationMethod().getStatus().name());
+	    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for correlation calculation: " + graph.getCreationMethod().getStatus().name());
+	    		    	}
+	    				tx.commit();
+	    	    	}
+	    	    	catch( RuntimeException e ) {
+	    				if( tx != null && tx.isActive() ) {
+	    					tx.rollback();
+	    				}
+	    				throw e;
+	    			}
+	    			em.close();
+	        	}
+	        	List<CentralityMap> maps = new ArrayList<CentralityMap>();
+	        	for(int id : mapIds) {
+	        		long mapId = (long) id;
+	        		em = entityHandler.getEntityManager();
+	    	    	CentralityMapId cId = new CentralityMapId(mapId, gId);
+	    	    	
+	    	    	EntityTransaction tx = em.getTransaction();
+	    	    	CentralityMap map;
+	    	    	try {
+	    				tx.begin();
+	    				map = em.find(CentralityMap.class, cId);
+	    				tx.commit();
+	    			}
+	    	    	catch( RuntimeException e ) {
+	    				if( tx != null && tx.isActive() ) {
+	    					tx.rollback();
+	    				}
+	    				throw e;
+	    			}
+	    	    	if(map == null) {
+	    	    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Centrality map does not exist: Centrality map id " + mapId + ", graph id " + graphId);
+	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Centrality map does not exist: Centrality map id " + mapId + ", graph id " + graphId);
+	    	    	}
+	    	    	maps.add(map);
+	        	}
+	        	CentralityMap groundTruthMap = maps.get(0);
+	        	maps = maps.subList(1, maps.size());
+		    	double[] precisionVector = StatisticalProcessor.getPrecision(graph, groundTruthMap, maps, k);    	        	
+	        	return Response.ok(requestHandler.writePrecisionResult(maps, precisionVector)).build();
 	    	}
 	    	catch (Exception e) {
 	    		requestHandler.log(Level.SEVERE, "", e);
