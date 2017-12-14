@@ -15,6 +15,12 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Neighborhood Coreness.
+ * See: Bae, Joonhyun and Kim, Sangwook. 2014. Identifying and ranking influential spreaders in complex networks by neighborhood coreness.
+ * @author Tobias
+ *
+ */
 public class NeighborhoodCoreness implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

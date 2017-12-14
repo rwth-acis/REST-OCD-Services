@@ -20,6 +20,12 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Bargaining Centrality.
+ * See: Bonacich, Phillip. 1987. Power and centrality: A family of measures.
+ * @author Tobias
+ *
+ */
 public class BargainingCentrality implements CentralityAlgorithm {
 	private double alpha = 1;
 	private double beta = 0.1;

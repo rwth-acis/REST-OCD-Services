@@ -16,6 +16,12 @@ import y.base.Node;
 import y.base.NodeCursor;
 import y.algo.ShortestPaths;
 
+/**
+ * Implementation of Closeness Centrality.
+ * See: Lü, Linyuan and Chen, Duanbing and Ren, Xiao-Long and Zhang, Qian-Ming and Zhang, Yi-Cheng and Zhou, Tao. 2016. Vital nodes identification in complex networks.
+ * @author Tobias
+ *
+ */
 public class ClosenessCentrality implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

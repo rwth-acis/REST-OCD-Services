@@ -21,6 +21,12 @@ import y.base.Node;
 import y.base.NodeCursor;
 import y.util.Maps;
 
+/**
+ * Implementation of Flow Centrality.
+ * See: Freeman, Linton C and Borgatti, Stephen P and White, Douglas R. 1991. Centrality in valued graphs: A measure of betweenness based on network flow. 
+ * @author Tobias
+ *
+ */
 public class FlowBetweenness implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

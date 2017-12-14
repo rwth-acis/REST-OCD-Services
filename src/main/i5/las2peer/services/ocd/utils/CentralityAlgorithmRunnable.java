@@ -13,7 +13,6 @@ import i5.las2peer.services.ocd.graphs.CustomGraphId;
 
 /**
  * Runnable for the execution of centrality algorithms.
- * @author Tobias
  *
  */
 public class CentralityAlgorithmRunnable implements Runnable {

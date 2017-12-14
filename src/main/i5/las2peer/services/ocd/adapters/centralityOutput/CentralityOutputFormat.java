@@ -6,7 +6,6 @@ import java.util.Locale;
 /**
  * CentralityOutputAdapter registry.
  * Used for factory instantiation, persistence or other context.
- * @author Tobias
  *
  */
 public enum CentralityOutputFormat {

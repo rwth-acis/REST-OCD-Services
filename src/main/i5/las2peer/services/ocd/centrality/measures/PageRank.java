@@ -17,6 +17,12 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of PageRank.
+ * See: Page, Lawrence and Brin, Sergey and Motwani, Rajeev and Winograd, Terry. 1999. The PageRank citation ranking: Bringing order to the web.
+ * @author Tobias
+ *
+ */
 public class PageRank implements CentralityAlgorithm {
 	private double d = 0.85;
 	/*

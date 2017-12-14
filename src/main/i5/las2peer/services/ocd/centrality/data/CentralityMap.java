@@ -1,8 +1,13 @@
 package i5.las2peer.services.ocd.centrality.data;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -15,9 +20,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.OneToOne;
 
+import org.w3c.dom.Element;
+
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Node;
+import y.base.NodeCursor;
 
 @Entity
 @IdClass(CentralityMapId.class)
@@ -189,6 +197,26 @@ public class CentralityMap {
 	}
 	
 	/**
+	 * Retrieve the names of the top k nodes of the CentralityMap.
+	 * 
+	 * @param k The number of top nodes that are considered.
+	 * @return The list of node names.
+	 */
+	public List<String> getTopNodes(int k) {
+		Map<String, Double> valuesMap = this.getMap();
+		Set<String> keySet = valuesMap.keySet();
+	    List<String> keys = new ArrayList<String>(keySet);
+
+	    Collections.sort(keys, new Comparator<String>() {
+	        @Override
+	        public int compare(String s1, String s2) {
+	        	return Double.compare(valuesMap.get(s2), valuesMap.get(s1));
+	        }
+	    });
+	    return keys.subList(0, k);
+	}
+	
+	/**
 	 * Getter for the CentralityMap creation method.
 	 * @return The creation method.
 	 */
@@ -211,6 +239,12 @@ public class CentralityMap {
 
 	@Override
 	public String toString() {
-		return "map=" + map;
+		String centralityMapString = "Centrality Map: " + getName() + "\n";
+		centralityMapString += "Graph: " + getGraph().getName() + "\n";
+		centralityMapString += "Values:" + "\n";
+		for(String nodeName : getMap().keySet()) {
+			centralityMapString += nodeName + ": " + Double.toString(getNodeValue(nodeName)) + "\n";
+		}
+		return centralityMapString;
 	}
 }

@@ -31,7 +31,7 @@ import y.view.SmartNodeLabelModel;
 
 /**
  * Manages the integration of all layouting phases.
- * @author Sebastian, Tobias
+ * @author Sebastian
  *
  */
 public class LayoutHandler {
@@ -268,6 +268,7 @@ public class LayoutHandler {
 	/**
 	 * Paint the nodes using a single color, setting the saturation proportionally to the centrality value of the node.
 	 * @param map The CentralityMap that is visualized.
+	 * @author Tobias
 	 */
 	private void paintNodesWithSingleColor(CentralityMap map) {
 		int r = CENTRALITY_COLOR.getRed();
@@ -291,6 +292,7 @@ public class LayoutHandler {
 	/**
 	 * Paint the nodes using a color gradient where green represents a low centrality value and red a high centrality value.
 	 * @param map The CentralityMap that is visualized.
+	 * @author Tobias
 	 */
 	private void paintNodesWithColorGradient(CentralityMap map) {
 		int rMin = CENTRALITY_GRADIENT_MIN.getRed();
@@ -320,6 +322,7 @@ public class LayoutHandler {
 	/**
 	 * Set the size of each node proportionally to its centrality value.
 	 * @param map The CentralityMap that is visualized.
+	 * @author Tobias
 	 */
 	private void setProportionalNodeSizes(CentralityMap map) {
 		double min = map.getMinValue();

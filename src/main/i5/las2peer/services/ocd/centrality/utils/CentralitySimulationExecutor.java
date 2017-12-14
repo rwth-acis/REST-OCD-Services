@@ -1,6 +1,5 @@
-package i5.las2peer.services.ocd.centrality.simulations;
+package i5.las2peer.services.ocd.centrality.utils;
 
-import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmException;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;

@@ -16,6 +16,12 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of ClusterRank.
+ * See: Chen, Duan-Bing and Gao, Hui and Lü, Linyuan and Zhou, Tao. 2013. Identifying influential nodes in large-scale directed networks: the role of clustering.
+ * @author Tobias
+ *
+ */
 public class ClusterRank implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

@@ -22,6 +22,12 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Current-Flow Betweenness.
+ * See: Brandes, Ulrik and Fleischer, Daniel. 2005. Centrality Measures Based on Current Flow.
+ * @author Tobias
+ *
+ */
 public class CurrentFlowBetweenness implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

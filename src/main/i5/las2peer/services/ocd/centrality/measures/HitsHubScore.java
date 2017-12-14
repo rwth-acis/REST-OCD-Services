@@ -20,6 +20,12 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of the HITS hub score.
+ * See: Kleinberg, Jon M. 1999. Authoritative Sources in a Hyperlinked Environment. 
+ * @author Tobias
+ *
+ */
 public class HitsHubScore implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

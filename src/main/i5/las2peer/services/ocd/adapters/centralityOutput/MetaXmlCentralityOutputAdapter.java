@@ -45,6 +45,9 @@ public class MetaXmlCentralityOutputAdapter extends AbstractCentralityOutputAdap
 			Element graphNameElt = doc.createElement("GraphName");
 			graphNameElt.appendChild(doc.createTextNode(map.getGraph().getName()));
 			graphElt.appendChild(graphNameElt);
+			Element graphSizeElt = doc.createElement("GraphSize");
+			graphSizeElt.appendChild(doc.createTextNode(Integer.toString(map.getGraph().nodeCount())));
+			graphElt.appendChild(graphSizeElt);
 			mapElt.appendChild(graphElt);
 			/*
 			 * Creation Method
@@ -83,43 +86,6 @@ public class MetaXmlCentralityOutputAdapter extends AbstractCentralityOutputAdap
 			creationMethodElt.appendChild(creationMethodExecutionTimeElt);
 			
 			mapElt.appendChild(creationMethodElt);
-			/*
-			 * Metrics
-			 */
-			/*Element metricsElt = doc.createElement("Metrics");
-			for(int i=0; i<cover.getMetrics().size(); i++) {
-				OcdMetricLog metric = cover.getMetrics().get(i);
-				Element metricElt = doc.createElement("Metric");
-				Element metricIdElt = doc.createElement("Id");
-				metricIdElt.appendChild(doc.createTextNode(Long.toString(metric.getId())));
-				metricElt.appendChild(metricIdElt);
-				Element metricTypeElt = doc.createElement("Type");
-				metricTypeElt.appendChild(doc.createTextNode(metric.getType().name()));
-				metricElt.appendChild(metricTypeElt);
-				Element metricStatusElt = doc.createElement("Status");
-				metricStatusElt.appendChild(doc.createTextNode(metric.getStatus().name()));
-				metricElt.appendChild(metricStatusElt);
-				Element metricValueElt = doc.createElement("Value");
-				metricValueElt.appendChild(doc.createTextNode(Double.toString(metric.getValue())));
-				metricElt.appendChild(metricValueElt);
-				/*
-				 * Metric Parameters
-				 */
-				/*Element metricParamsElt = doc.createElement("Parameters");
-				for(Map.Entry<String, String> entry: metric.getParameters().entrySet()) {
-					Element metricParamElt = doc.createElement("Parameter");
-					Element metricParamNameElt = doc.createElement("Name");
-					metricParamNameElt.appendChild(doc.createTextNode(entry.getKey()));
-					metricParamElt.appendChild(metricParamNameElt);
-					Element metricParamValueElt = doc.createElement("Value");
-					metricParamValueElt.appendChild(doc.createTextNode(entry.getValue()));
-					metricParamElt.appendChild(metricParamValueElt);
-					metricParamsElt.appendChild(metricParamElt);
-				}
-				metricElt.appendChild(metricParamsElt);
-				metricsElt.appendChild(metricElt);
-			}
-			mapElt.appendChild(metricsElt);
 			/*
 			 * XML output
 			 */

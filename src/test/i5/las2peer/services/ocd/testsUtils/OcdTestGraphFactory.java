@@ -624,4 +624,141 @@ public class OcdTestGraphFactory {
 		graph.setCreationMethod(log);
 		return graph;
 	}
+	
+	public static CustomGraph getSimpleGraphUndirectedUnweighted() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("Simple Test Graph Undirected Unweighted");
+		
+		// Create nodes
+		Node n[] = new Node[7];
+		for (int i = 0; i < 7; i++) {
+			n[i] = graph.createNode();
+			graph.setNodeName(n[i], Integer.toString(i));
+		}
+		// Create edges
+		graph.createEdge(n[0], n[1]);
+		graph.createEdge(n[1], n[0]);
+		graph.createEdge(n[1], n[2]);
+		graph.createEdge(n[1], n[3]);
+		graph.createEdge(n[2], n[1]);
+		graph.createEdge(n[2], n[3]);
+		graph.createEdge(n[3], n[1]);
+		graph.createEdge(n[3], n[2]);
+		graph.createEdge(n[3], n[4]);
+		graph.createEdge(n[3], n[5]);
+		graph.createEdge(n[4], n[3]);
+		graph.createEdge(n[4], n[6]);
+		graph.createEdge(n[5], n[3]);
+		graph.createEdge(n[6], n[4]);
+		
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+	
+	public static CustomGraph getSimpleGraphUndirectedWeighted() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("Simple Test Graph Undirected Unweighted");
+		
+		// Create nodes
+		Node n[] = new Node[7];
+		for (int i = 0; i < 7; i++) {
+			n[i] = graph.createNode();
+			graph.setNodeName(n[i], Integer.toString(i));
+		}
+		// Create edges
+		graph.createEdge(n[0], n[1]);
+		graph.createEdge(n[1], n[0]);
+		graph.createEdge(n[1], n[2]);
+		graph.createEdge(n[1], n[3]);
+		graph.createEdge(n[2], n[1]);
+		graph.createEdge(n[2], n[3]);
+		graph.createEdge(n[3], n[1]);
+		graph.createEdge(n[3], n[2]);
+		graph.createEdge(n[3], n[4]);
+		graph.createEdge(n[3], n[5]);
+		graph.createEdge(n[4], n[3]);
+		graph.createEdge(n[4], n[6]);
+		graph.createEdge(n[5], n[3]);
+		graph.createEdge(n[6], n[4]);
+		// Set edge weights
+		graph.setEdgeWeight(n[0].getEdgeTo(n[1]), 3.0);
+		graph.setEdgeWeight(n[1].getEdgeTo(n[0]), 3.0);	
+		graph.setEdgeWeight(n[1].getEdgeTo(n[2]), 2.0);
+		graph.setEdgeWeight(n[2].getEdgeTo(n[1]), 2.0);	
+		graph.setEdgeWeight(n[1].getEdgeTo(n[3]), 2.0);
+		graph.setEdgeWeight(n[3].getEdgeTo(n[1]), 2.0);
+		graph.setEdgeWeight(n[2].getEdgeTo(n[3]), 1.0);
+		graph.setEdgeWeight(n[3].getEdgeTo(n[2]), 1.0);
+		graph.setEdgeWeight(n[3].getEdgeTo(n[4]), 1.0);
+		graph.setEdgeWeight(n[4].getEdgeTo(n[3]), 1.0);
+		graph.setEdgeWeight(n[3].getEdgeTo(n[5]), 1.0);
+		graph.setEdgeWeight(n[5].getEdgeTo(n[3]), 1.0);
+		graph.setEdgeWeight(n[4].getEdgeTo(n[6]), 4.0);
+		graph.setEdgeWeight(n[6].getEdgeTo(n[4]), 4.0);
+		
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+	
+	public static CustomGraph getSimpleGraphDirectedUnweighted() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("Simple Test Graph Undirected Unweighted");
+		
+		// Create nodes
+		Node n[] = new Node[7];
+		for (int i = 0; i < 7; i++) {
+			n[i] = graph.createNode();
+			graph.setNodeName(n[i], Integer.toString(i));
+		}
+		// Create edges
+		graph.createEdge(n[0], n[1]);
+		graph.createEdge(n[1], n[2]);
+		graph.createEdge(n[1], n[3]);
+		graph.createEdge(n[3], n[2]);
+		graph.createEdge(n[3], n[4]);
+		graph.createEdge(n[3], n[5]);
+		graph.createEdge(n[4], n[6]);
+		
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+	
+	public static CustomGraph getSimpleGraphDirectedWeighted() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("Simple Test Graph Undirected Unweighted");
+		
+		// Create nodes
+		Node n[] = new Node[7];
+		for (int i = 0; i < 7; i++) {
+			n[i] = graph.createNode();
+			graph.setNodeName(n[i], Integer.toString(i));
+		}
+		// Create edges
+		graph.createEdge(n[0], n[1]);
+		graph.createEdge(n[1], n[2]);
+		graph.createEdge(n[1], n[3]);
+		graph.createEdge(n[3], n[2]);
+		graph.createEdge(n[3], n[4]);
+		graph.createEdge(n[3], n[5]);
+		graph.createEdge(n[4], n[6]);
+		// Set edge weights
+		graph.setEdgeWeight(n[0].getEdgeTo(n[1]), 3.0);
+		graph.setEdgeWeight(n[1].getEdgeTo(n[2]), 2.0);
+		graph.setEdgeWeight(n[1].getEdgeTo(n[3]), 2.0);
+		graph.setEdgeWeight(n[3].getEdgeTo(n[2]), 1.0);
+		graph.setEdgeWeight(n[3].getEdgeTo(n[4]), 1.0);
+		graph.setEdgeWeight(n[3].getEdgeTo(n[5]), 1.0);
+		graph.setEdgeWeight(n[4].getEdgeTo(n[6]), 4.0);
+		
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
 }

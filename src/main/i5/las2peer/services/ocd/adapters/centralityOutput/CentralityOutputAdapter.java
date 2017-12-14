@@ -6,7 +6,6 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 
 /**
  * The common interface of all centrality output adapters.
- * @author Tobias
  *
  */
 public interface CentralityOutputAdapter extends OutputAdapter {

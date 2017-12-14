@@ -19,6 +19,12 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Eigenvector Centrality.
+ * See: Bonacich, Phillip. 1972. Factoring and weighting approaches to status scores and clique identification. 
+ * @author Tobias
+ *
+ */
 public class EigenvectorCentrality implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

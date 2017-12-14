@@ -15,6 +15,12 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of the Bridging Coefficient.
+ * See: Hwang, Woochang and Kim, Taehyong and Ramanathan, Murali and Zhang, Aidong. 2008. Bridging centrality: graph mining from element level to group level.
+ * @author Tobias
+ *
+ */
 public class BridgingCoefficient implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

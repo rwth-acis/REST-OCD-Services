@@ -17,6 +17,12 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Coreness.
+ * See: Kitsak, Maksim and Gallos, Lazaros K. and Havlin, Shlomo and Liljeros, Fredrik and Muchnik, Lev and Stanley, H. Eugene and Makse, Hernán A. 2010. Identification of influential spreaders in complex networks. 
+ * @author Tobias
+ *
+ */
 public class Coreness implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

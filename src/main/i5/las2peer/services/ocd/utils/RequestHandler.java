@@ -7,6 +7,7 @@ import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputAdapter;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
+import i5.las2peer.services.ocd.adapters.centralityOutput.DefaultXmlCentralityOutputAdapter;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -21,7 +22,7 @@ import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
-import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulationType;
+import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
@@ -484,6 +485,14 @@ public class RequestHandler {
 		CentralityOutputAdapter adapter = centralityOutputAdapterFactory.getInstance(outputFormat);
     	adapter.setWriter(writer);
 		adapter.writeCentralityMap(map);
+		return writer.toString();
+	}
+	
+	public String writeCentralityMapTopNodes(CentralityMap map, int k) throws AdapterException, InstantiationException, IllegalAccessException, ParserConfigurationException {
+		Writer writer = new StringWriter();
+		DefaultXmlCentralityOutputAdapter adapter = new DefaultXmlCentralityOutputAdapter();
+    	adapter.setWriter(writer);
+		adapter.writeCentralityMapTopNodes(map, k);
 		return writer.toString();
 	}
 	

@@ -13,6 +13,12 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 
+/**
+ * Implementation of Integration.
+ * See: Valente, Thomas W. and Foreman, Robert K. 1998. Integration and radiality: measuring the extent of an individual's connectedness and reachability in a network.
+ * @author Tobias
+ *
+ */
 public class Integration implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

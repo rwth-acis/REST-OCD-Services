@@ -8,6 +8,8 @@ import java.util.Set;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
+import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
+import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Edge;
@@ -18,6 +20,7 @@ import y.base.Node;
  * In this simulation each node sends a package to each node in the graph (including itself). 
  * The package travels through the network by randomly traversing edges until it reaches the target node. 
  * The centrality values are determined by counting the number of times a package passes a node.
+ * The edge transition probabilities are proportional to the edge weights.
  * @author Tobias
  *
  */

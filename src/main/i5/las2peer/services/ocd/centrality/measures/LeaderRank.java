@@ -17,6 +17,12 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of LeaderRank.
+ * See: Lü, Linyuan and Zhang, Yi-Cheng and Yeung, Chi Ho and Zhou, Tao. 2011. Leaders in social networks, the delicious case. 
+ * @author Tobias
+ *
+ */
 public class LeaderRank implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

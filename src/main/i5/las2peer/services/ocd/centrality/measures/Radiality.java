@@ -16,6 +16,12 @@ import y.algo.ShortestPaths;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Radiality.
+ * See: Valente, Thomas W. and Foreman, Robert K. 1998. Integration and radiality: measuring the extent of an individual's connectedness and reachability in a network.
+ * @author Tobias
+ *
+ */
 public class Radiality implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

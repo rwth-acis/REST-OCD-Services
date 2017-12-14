@@ -5,8 +5,8 @@ import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
-import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulation;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
+import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CoverId;
@@ -31,7 +31,7 @@ import javax.persistence.EntityTransaction;
 /**
  * Handles the execution and synchronization of threads for running OCD algorithms, centrality algorithms, simulations, 
  * benchmarks and metrics.
- * @author Sebastian, Tobias
+ * @author Sebastian
  *
  */
 public class ThreadHandler {

@@ -23,8 +23,9 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
- * This implementation of alpha centrality uses a uniform external status of one for all the nodes in the graph.
- * The calculation is the same as for Katz centrality with the only difference that the matrix A is transposed.
+ * Implementation of Alpha Centrality.
+ * See: Bonacich, Phillip and Lloyd, Paulette. 2001. Eigenvector-like measures of centrality for asymmetric relations.
+ * @author Tobias
  */
 public class AlphaCentrality implements CentralityAlgorithm {
 	

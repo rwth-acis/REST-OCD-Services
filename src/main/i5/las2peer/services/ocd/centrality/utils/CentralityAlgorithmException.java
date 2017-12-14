@@ -4,7 +4,6 @@ import i5.las2peer.services.ocd.utils.AbstractCustomException;
 
 /**
  * An exception that indicates the failure of the execution of a CentralityAlgorithm.
- * @author Tobias
  *
  */
 public class CentralityAlgorithmException extends AbstractCustomException {

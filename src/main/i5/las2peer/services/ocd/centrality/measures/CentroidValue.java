@@ -21,6 +21,12 @@ import y.algo.ShortestPaths;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Centroid Value.
+ * See: Scardoni, Giovanni and Laudanna, Carlo and Tosadori, Gabriele and Fabbri, Franco and Faizaan, Mohammed. 2009. CentiScaPe: Network centralities for Cytoscape.
+ * @author Tobias
+ *
+ */
 public class CentroidValue implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

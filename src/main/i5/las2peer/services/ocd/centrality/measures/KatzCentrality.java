@@ -22,6 +22,12 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Katz Centrality.
+ * See: Katz, Leo. 1953. A new status index derived from sociometric analysis. 
+ * @author Tobias
+ *
+ */
 public class KatzCentrality implements CentralityAlgorithm {
 	private double alpha = 0.1;
 	/*

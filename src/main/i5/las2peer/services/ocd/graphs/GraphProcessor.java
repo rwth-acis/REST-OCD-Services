@@ -382,6 +382,8 @@ public class GraphProcessor {
 	/**
 	 * Invert all edge weights in the graph
 	 * 
+	 * @param graph
+	 *            The graph to be transformed.
 	 * @author Tobias
 	 */
 	public void invertEdgeWeights(CustomGraph graph) {
@@ -398,6 +400,8 @@ public class GraphProcessor {
 	/**
 	 * Reverse all edge directions in the graph
 	 * 
+	 * @param graph
+	 *            The graph to be transformed.
 	 * @author Tobias
 	 */
 	public void reverseEdgeDirections(CustomGraph graph) {

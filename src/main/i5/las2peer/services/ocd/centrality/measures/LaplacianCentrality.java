@@ -15,6 +15,12 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Laplacian Centrality.
+ * See: Qi, Xingqin and Fuller, Eddie and Wu, Qin and Wu, Yezhou and Zhang, Cun-Quan. 2012. Laplacian centrality: A new centrality measure for weighted networks.
+ * @author Tobias
+ *
+ */
 public class LaplacianCentrality implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

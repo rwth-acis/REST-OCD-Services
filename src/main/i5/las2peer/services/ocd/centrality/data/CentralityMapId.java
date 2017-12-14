@@ -4,7 +4,6 @@ import i5.las2peer.services.ocd.graphs.CustomGraphId;
 
 /**
  * Composite persistence id of a CentralityMap.
- * @author Tobias
  *
  */
 public class CentralityMapId {

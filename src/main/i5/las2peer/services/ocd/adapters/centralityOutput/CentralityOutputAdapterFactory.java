@@ -4,7 +4,6 @@ import i5.las2peer.services.ocd.utils.SimpleFactory;
 
 /**
  * A factory for producing centrality output adapters using centrality output format objects as descriptors.
- * @author Tobias
  *
  */
 public class CentralityOutputAdapterFactory implements SimpleFactory<CentralityOutputAdapter, CentralityOutputFormat> {

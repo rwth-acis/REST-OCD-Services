@@ -13,6 +13,11 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 
+/**
+ * Implementation of a variant of Harmonic Centrality considering incoming paths.
+ * @author Tobias
+ *
+ */
 public class HarmonicInCloseness implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {	

@@ -17,6 +17,12 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Subgraph Centrality.
+ * See: Estrada, Ernesto and Rodriguez-Velazquez, Juan A. 2005. Subgraph centrality in complex networks.
+ * @author Tobias
+ *
+ */
 public class SubgraphCentrality implements CentralityAlgorithm {
 	// The number of iterations which determines the maximum power of the adjacency matrix that is calculated
 	private static final int ITERATIONS = 20;

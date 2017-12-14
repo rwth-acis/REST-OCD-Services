@@ -1,9 +1,12 @@
-package i5.las2peer.services.ocd.centrality.simulations;
+package i5.las2peer.services.ocd.centrality.data;
 
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
-import i5.las2peer.services.ocd.centrality.data.CentralityType;
+import i5.las2peer.services.ocd.centrality.simulations.RandomPackageTransmissionUnweighted;
+import i5.las2peer.services.ocd.centrality.simulations.RandomPackageTransmissionWeighted;
+import i5.las2peer.services.ocd.centrality.simulations.SirSimulation;
+import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
 
 public enum CentralitySimulationType implements CentralityType {
 	

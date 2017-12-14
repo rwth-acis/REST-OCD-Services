@@ -21,6 +21,12 @@ import y.base.Edge;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of the SALSA hub score.
+ * See: Lempel, R. and Moran, S. 2001. SALSA: The Stochastic Approach for Link-structure Analysis.
+ * @author Tobias
+ *
+ */
 public class SalsaHubScore implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

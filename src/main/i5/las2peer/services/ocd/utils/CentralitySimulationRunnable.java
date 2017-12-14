@@ -7,8 +7,8 @@ import javax.persistence.EntityTransaction;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
-import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulation;
-import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulationExecutor;
+import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
+import i5.las2peer.services.ocd.centrality.utils.CentralitySimulationExecutor;
 import i5.las2peer.services.ocd.graphs.CustomGraphId;
 
 public class CentralitySimulationRunnable implements Runnable {

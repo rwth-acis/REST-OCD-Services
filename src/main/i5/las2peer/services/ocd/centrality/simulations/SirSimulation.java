@@ -3,12 +3,15 @@ package i5.las2peer.services.ocd.centrality.simulations;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
+import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
+import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Node;
@@ -128,7 +131,7 @@ public class SirSimulation implements CentralitySimulation {
 	}
 	
 	public Map<String, String> getParameters() {
-		Map<String, String> parameters = new HashMap<String, String>();
+		Map<String, String> parameters = new LinkedHashMap<String, String>();
 		parameters.put(INFECTION_PROBABILITY_NAME, Double.toString(infectionProbability));
 		parameters.put(RECOVERY_PROBABILITY_NAME, Double.toString(recoveryProbability));
 		parameters.put(REPETITIONS_NAME, Integer.toString(repetitions));

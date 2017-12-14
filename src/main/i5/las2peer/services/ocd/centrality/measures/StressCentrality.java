@@ -19,6 +19,12 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Stress Centrality.
+ * See: Brandes, Ulrik. 2005. Network analysis: methodological foundations.
+ * @author Tobias
+ *
+ */
 public class StressCentrality implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {

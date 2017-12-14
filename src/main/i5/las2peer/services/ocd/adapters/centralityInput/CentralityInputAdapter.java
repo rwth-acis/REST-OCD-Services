@@ -7,7 +7,6 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 /**
  * The common interface of all centrality input adapters.
- * @author Tobias
  *
  */
 public interface CentralityInputAdapter extends InputAdapter {

@@ -10,7 +10,6 @@ import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 /**
  * Manages the execution of a CentralityAlgorithm.
- * @author Tobias
  *
  */
 public class CentralityAlgorithmExecutor {

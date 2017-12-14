@@ -1,7 +1,8 @@
-package i5.las2peer.services.ocd.centrality.simulations;
+package i5.las2peer.services.ocd.centrality.utils;
 
 import java.util.Map;
 
+import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
 import i5.las2peer.services.ocd.utils.ConditionalParameterizableFactory;
 
 public class CentralitySimulationFactory implements ConditionalParameterizableFactory<CentralitySimulation, CentralitySimulationType> {

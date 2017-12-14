@@ -1,8 +1,9 @@
-package i5.las2peer.services.ocd.centrality.simulations;
+package i5.las2peer.services.ocd.centrality.utils;
 
 import java.util.Set;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
+import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.utils.Parameterizable;

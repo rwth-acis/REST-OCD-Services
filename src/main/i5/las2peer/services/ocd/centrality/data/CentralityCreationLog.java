@@ -1,6 +1,5 @@
 package i5.las2peer.services.ocd.centrality.data;
 
-import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulationType;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
@@ -18,7 +17,6 @@ import javax.persistence.Id;
 
 /**
  * A log representation for a CentralityCreationMethod.
- * @author Tobias
  *
  */
 @Entity

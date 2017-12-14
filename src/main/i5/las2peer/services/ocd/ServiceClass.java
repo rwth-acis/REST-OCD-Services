@@ -60,15 +60,15 @@ import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
+import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.centrality.evaluation.CorrelationCoefficient;
 import i5.las2peer.services.ocd.centrality.evaluation.StatisticalProcessor;
-import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulation;
-import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulationFactory;
-import i5.las2peer.services.ocd.centrality.simulations.CentralitySimulationType;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmFactory;
+import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
+import i5.las2peer.services.ocd.centrality.utils.CentralitySimulationFactory;
 import i5.las2peer.services.ocd.centrality.utils.MatrixOperations;
 import i5.las2peer.services.ocd.cooperation.data.SimulationEntityHandler;
 import i5.las2peer.services.ocd.cooperation.data.mapping.MappingFactory;
@@ -1538,6 +1538,10 @@ public class ServiceClass extends RESTService {
 	     *            The CentralityMap id.
 	     * @param centralityOutputFormatStr 
 	     *            The CentralityMap output format.
+	     * @param onlyTopNodesStr
+	     *            Specifies if only the top nodes should be returned.
+	     * @param topNodesNumberStr
+	     *            Specifies the number of top nodes that are returned.
 	     * @return The CentralityMap output. Or an error xml.
 	     */
 	    @GET
@@ -1552,7 +1556,9 @@ public class ServiceClass extends RESTService {
 	    public Response getCentralityMap(
 	    		@PathParam("graphId") String graphIdStr,
 	    		@PathParam("mapId") String mapIdStr,
-	    		@DefaultValue("DEFAULT_XML") @QueryParam("outputFormat") String centralityOutputFormatStr)
+	    		@DefaultValue("DEFAULT_XML") @QueryParam("outputFormat") String centralityOutputFormatStr,
+	    		@DefaultValue("FALSE") @QueryParam("onlyTopNodes") String onlyTopNodesStr,
+	    		@DefaultValue("0") @QueryParam("topNodesNumber") String topNodesNumberStr)
 	    {
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -1580,7 +1586,25 @@ public class ServiceClass extends RESTService {
 		    		requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified centrality output format does not exist.");
 		    	}
+	    		boolean onlyTopNodes;
+	    		try {
+	    			onlyTopNodes = requestHandler.parseBoolean(onlyTopNodesStr);
+	    		} catch (Exception e) {
+	    			requestHandler.log(Level.WARNING, "", e);
+	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Only top nodes is not a boolean value.");
+	    		}
+	    		int topNodesNumber;
+	    		try {
+	    			topNodesNumber = Integer.parseInt(topNodesNumberStr);
+	    		}
+	    		catch (Exception e) {
+	    			requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Top nodes number is not valid.");
+	    		}
 	    		CentralityMap map = entityHandler.getCentralityMap(username, graphId, mapId);
+	    		if(onlyTopNodes && topNodesNumber != 0) {
+	    			return Response.ok(requestHandler.writeCentralityMapTopNodes(map, topNodesNumber)).build();
+	    		}
 		    	return Response.ok(requestHandler.writeCentralityMap(map, format)).build();
 	    	}
 	    	catch (Exception e) {

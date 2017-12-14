@@ -20,6 +20,12 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implementation of Residual Centrality.
+ * See: Dangalchev, Chavdar. 2006. Residual closeness in networks.
+ * @author Tobias
+ *
+ */
 public class ResidualCloseness implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {
