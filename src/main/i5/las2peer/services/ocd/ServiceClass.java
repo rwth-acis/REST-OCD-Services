@@ -3909,6 +3909,11 @@ public class ServiceClass extends RESTService {
 			if (parameters.getDynamic() == null || parameters.getDynamic() == DynamicType.UNKNOWN) {
 				return Response.status(Status.BAD_REQUEST).entity("dynamic does not exist").build();
 			}
+			
+			//@MaxKissgen Own if statement here to check for emptiness of condition. Otherwise ServiceTest will fail as there's going to be an internal server error resulting from an empty condition.
+			if (parameters.getCondition() == null || parameters.getCondition() == ConditionType.UNKNOWN) {
+				return Response.status(Status.BAD_REQUEST).entity("condition does not exist").build();
+			}
 	
 			SimulationSeries series = null;
 			try {

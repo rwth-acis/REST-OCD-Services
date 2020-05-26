@@ -190,14 +190,24 @@ public abstract class SimulationAbstract implements TableInterface {
 
 	@JsonSetter
 	public void setCooperationEvaluation(Evaluation cooperationEvaluation) {
-		this.cooperationEvaluation = cooperationEvaluation;
-		this.cooperativiaty = cooperationEvaluation.getAverage();
+		//@MaxKissgen SimulationSeriesTest calls this function with null, I added a Handler for this case as the test will otherwise fail through a NullPointerException
+		if(cooperationEvaluation == null)
+			this.cooperationEvaluation = new Evaluation();
+		else
+			this.cooperationEvaluation = cooperationEvaluation;
+		
+		this.cooperativiaty = this.cooperationEvaluation.getAverage();
 	}
 
 	@JsonSetter
 	public void setPayoffEvaluation(Evaluation payoffEvaluation) {
-		this.payoffEvaluation = payoffEvaluation;
-		this.wealth = cooperationEvaluation.getAverage();
+		//@MaxKissgen SimulationSeriesTest calls this function with null, I added a Handler for this case as the test will otherwise fail through a NullPointerException
+		if(payoffEvaluation == null)
+			this.payoffEvaluation = new Evaluation();
+		else
+			this.payoffEvaluation = payoffEvaluation;
+		
+		this.wealth = this.payoffEvaluation.getAverage();
 	}
 
 	@JsonSetter
