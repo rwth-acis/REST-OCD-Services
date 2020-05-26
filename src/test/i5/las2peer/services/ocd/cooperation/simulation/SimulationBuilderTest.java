@@ -139,7 +139,11 @@ public class SimulationBuilderTest {
 		
 		SimulationBuilder simulationBuilder = new SimulationBuilder();
 		CustomGraph graph = new CustomGraph();
-		graph.getTypes().add(GraphType.SELF_LOOPS);
+		
+		//@MaxKissgen Previously, SELF_LOOPS was only added to the Set returned from getTypes().
+		//This set is not the internal list of types of a graph, and SELF_LOOPS would therefore not have been added to it and the SimulationBuilderTest would have failed.
+		graph.addType(GraphType.SELF_LOOPS);
+		
 		Node n0 = graph.createNode();
 		Node n1 = graph.createNode();
 		Node n2 = graph.createNode();
