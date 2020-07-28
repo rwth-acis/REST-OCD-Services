@@ -18,7 +18,7 @@ public class LEMONArrayListIndexComparator implements Comparator<Integer>
     	ArrayList<Integer> indexes = new ArrayList<Integer>(arrayList.size());
         for (int i = 0; i < arrayList.size(); i++)
         {
-            indexes.set(i, i); // Autoboxing
+            indexes.add(i, i); // Autoboxing
         }
         return indexes;
     }

@@ -18,6 +18,7 @@ import org.la4j.decomposition.SingularValueDecompositor;
 import org.la4j.decomposition.EigenDecompositor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,13 +31,21 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
-import scpsolver.problems.LinearProgram;
-import scpsolver.problems.LPSolution;
-import scpsolver.problems.LPWizard;
-import scpsolver.problems.LPWizardConstraint;
-import scpsolver.lpsolver.LinearProgramSolver;
-import scpsolver.constraints.LinearConstraint;
-import scpsolver.constraints.*;
+import org.apache.commons.math3.optim.PointValuePair;
+import org.apache.commons.math3.optim.linear.LinearConstraint;
+import org.apache.commons.math3.optim.linear.LinearConstraintSet;
+import org.apache.commons.math3.optim.linear.LinearObjectiveFunction;
+import org.apache.commons.math3.optim.linear.Relationship;
+import org.apache.commons.math3.optim.linear.SimplexSolver;
+import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
+
+//import scpsolver.problems.LinearProgram;
+//import scpsolver.problems.LPSolution;
+//import scpsolver.problems.LPWizard;
+//import scpsolver.problems.LPWizardConstraint;
+//import scpsolver.lpsolver.LinearProgramSolver;
+//import scpsolver.constraints.LinearConstraint;
+//import scpsolver.constraints.*;
 
 /**
  * Implements The LEMON Local Spectral Clustering Algorithm by Yi et al. Heavily
@@ -48,18 +57,18 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	/*
 	 * The index list of the graph node seed set
 	 */
-	ArrayList<Integer> seedSet; 
-	
+	private ArrayList<Integer> seedSet;
+
 	/*
 	 * The minimum possible community size
 	 */
-	int minimumCommunitySize = 50;
-	
+	private int minimumCommunitySize = 1;
+
 	/*
 	 * The maximum possible community size
 	 */
-	int maximumCommunitySize = 100;
-	
+	private int maximumCommunitySize = 100;
+
 	/*
 	 * The number of nodes to be added with each expansion step
 	 * 
@@ -98,19 +107,19 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 */
 
 	protected static final String SEED_SET_NAME = "seedSet";
-	
+
 	protected static final String MINIMUM_COMMUNITY_SIZE_NAME = "minimumCommunitySize";
-	
+
 	protected static final String MAXIMUM_COMMUNITY_SIZE_NAME = "maximumCommunitySize";
-	
+
 	protected static final String EXPANSION_STEP_SIZE_NAME = "expansionStepSize";
-	
+
 	protected static final String BIASED_NAME = "biased";
-	
+
 	protected static final String SUBSPACE_DIMENSION_NAME = "subspaceDimension";
-	
+
 	protected static final String RANDOM_WALK_STEPS_NAME = "randomWalkSteps";
-	
+
 	/**
 	 * Creates a standard instance of the algorithm. All attributes are assigned
 	 * there default values.
@@ -134,85 +143,83 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	@Override
 	public Map<String, String> getParameters() {
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(SEED_SET_NAME,
-		seedSet.toString());
-		parameters.put(MINIMUM_COMMUNITY_SIZE_NAME,
-		Integer.toString(minimumCommunitySize));
-		parameters.put(MAXIMUM_COMMUNITY_SIZE_NAME,
-		Integer.toString(maximumCommunitySize));
-		parameters.put(EXPANSION_STEP_SIZE_NAME,
-		Integer.toString(expansionStepSize));
-		parameters.put(BIASED_NAME,
-		Boolean.toString(biased));
-		parameters.put(SUBSPACE_DIMENSION_NAME,
-		Integer.toString(subspaceDimension));
-		parameters.put(RANDOM_WALK_STEPS_NAME,
-		Integer.toString(randomWalkSteps));
+		parameters.put(SEED_SET_NAME, seedSet.toString());
+		parameters.put(MINIMUM_COMMUNITY_SIZE_NAME, Integer.toString(minimumCommunitySize));
+		parameters.put(MAXIMUM_COMMUNITY_SIZE_NAME, Integer.toString(maximumCommunitySize));
+		parameters.put(EXPANSION_STEP_SIZE_NAME, Integer.toString(expansionStepSize));
+		parameters.put(BIASED_NAME, Boolean.toString(biased));
+		parameters.put(SUBSPACE_DIMENSION_NAME, Integer.toString(subspaceDimension));
+		parameters.put(RANDOM_WALK_STEPS_NAME, Integer.toString(randomWalkSteps));
 		return parameters;
 	}
 
 	@Override // TODO: Check
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
-		if(parameters.containsKey(SEED_SET_NAME)) {
+		if (parameters.containsKey(SEED_SET_NAME)) {
 			String seedString = parameters.get(SEED_SET_NAME);
-			if(seedString.matches("[,0-9]"))
-			{
+			if (seedString.matches("[^,0-9]*")) {
 				throw new IllegalArgumentException();
 			}
-						
+
+			seedSet = new ArrayList<Integer>();
+
+			System.out.println(seedString);
 			String[] seedSetString = seedString.split(",");
-			for(String str : seedSetString)
-			{
+			for (String str : seedSetString) {
+
 				seedSet.add(Integer.parseInt(str));
 			}
-			if(seedSet.size() <= 0) {
+			if (seedSet.size() == 0) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(MINIMUM_COMMUNITY_SIZE_NAME);
+			parameters.remove(SEED_SET_NAME);
+		} else {
+			throw new IllegalArgumentException("Please specify a seed set");
 		}
-		if(parameters.containsKey(MINIMUM_COMMUNITY_SIZE_NAME)) {
+		if (parameters.containsKey(MINIMUM_COMMUNITY_SIZE_NAME)) {
 			minimumCommunitySize = Integer.parseInt(parameters.get(MINIMUM_COMMUNITY_SIZE_NAME));
-			if(minimumCommunitySize <= seedSet.size() || minimumCommunitySize <= 0) {
+			if (minimumCommunitySize <= seedSet.size() || minimumCommunitySize <= 0) {
 				throw new IllegalArgumentException();
 			}
 			parameters.remove(MINIMUM_COMMUNITY_SIZE_NAME);
 		}
-		if(parameters.containsKey(MAXIMUM_COMMUNITY_SIZE_NAME)) {
+		if (parameters.containsKey(MAXIMUM_COMMUNITY_SIZE_NAME)) {
 			maximumCommunitySize = Integer.parseInt(parameters.get(MAXIMUM_COMMUNITY_SIZE_NAME));
-			if(maximumCommunitySize <= 0) {
+			if (maximumCommunitySize <= 0) {
 				throw new IllegalArgumentException();
 			}
 			parameters.remove(MAXIMUM_COMMUNITY_SIZE_NAME);
 		}
-		if(parameters.containsKey(EXPANSION_STEP_SIZE_NAME)) {
+		if (parameters.containsKey(EXPANSION_STEP_SIZE_NAME)) {
 			expansionStepSize = Integer.parseInt(parameters.get(EXPANSION_STEP_SIZE_NAME));
-			if(expansionStepSize <= 0) {
+			if (expansionStepSize <= 0) {
 				throw new IllegalArgumentException();
 			}
 			parameters.remove(EXPANSION_STEP_SIZE_NAME);
 		}
-		if(parameters.containsKey(BIASED_NAME)) {
+		if (parameters.containsKey(BIASED_NAME)) {
 			biased = Boolean.parseBoolean(parameters.get(BIASED_NAME));
-			//if(expansionStepSize <= 0) {
-			//	throw new IllegalArgumentException();
-			//}
+			// if(expansionStepSize <= 0) {
+			// throw new IllegalArgumentException();
+			// }
 			parameters.remove(BIASED_NAME);
 		}
-		if(parameters.containsKey(SUBSPACE_DIMENSION_NAME)) {
+		if (parameters.containsKey(SUBSPACE_DIMENSION_NAME)) {
 			subspaceDimension = Integer.parseInt(parameters.get(SUBSPACE_DIMENSION_NAME));
-			if(subspaceDimension <= 0) {
+			if (subspaceDimension <= 0) {
 				throw new IllegalArgumentException();
 			}
 			parameters.remove(SUBSPACE_DIMENSION_NAME);
 		}
-		if(parameters.containsKey(RANDOM_WALK_STEPS_NAME)) {
+		if (parameters.containsKey(RANDOM_WALK_STEPS_NAME)) {
 			randomWalkSteps = Integer.parseInt(parameters.get(RANDOM_WALK_STEPS_NAME));
-			if(randomWalkSteps <= 0) {
+			if (randomWalkSteps <= 0) {
 				throw new IllegalArgumentException();
 			}
 			parameters.remove(RANDOM_WALK_STEPS_NAME);
 		}
 		if (parameters.size() > 0) {
+			System.out.println(parameters.toString());
 			throw new IllegalArgumentException();
 		}
 	}
@@ -220,18 +227,22 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	@Override // TODO: Implement
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		Matrix graphAdjacencyMatrix = getAdjacencyMatrixWithIdentity(graph);
-		
-		Map<Integer, Double> members = seed_expand_auto(graphAdjacencyMatrix, ArrayList<Integer> seedset, int min_comm_size,
-				int max_comm_size, expansionStepSize, subspaceDimension, randomWalkSteps, biased);
-		
-		Matrix coverMatrix = new Basic2DMatrix(graphAdjacencyMatrix.rows(),1);
+
+		//getLinkList(graph);
+
+		Map<Integer, Double> members = seed_expand_auto(graphAdjacencyMatrix, seedSet, minimumCommunitySize,
+				maximumCommunitySize, expansionStepSize, subspaceDimension, randomWalkSteps, biased);
+
+		Matrix coverMatrix = new Basic2DMatrix(graphAdjacencyMatrix.rows(), 1);
 		coverMatrix = coverMatrix.blank();
-		for(Map.Entry<Integer, Double> entry : members.entrySet())
-		{
+		for (Map.Entry<Integer, Double> entry : members.entrySet()) {
 			coverMatrix.set(entry.getKey(), 0, entry.getValue());
 		}
-		
-		// TODO: Implement
+
+		//System.out.println("DETECTED FINAL:" + members.keySet().toString());
+		//System.out.println("DETECTED FINAL:" + members.values().toString());
+
+		// TODO: Implement in a way that probabilities don't get lost here
 		Cover c = new Cover(graph, coverMatrix);
 		return c;
 	}
@@ -243,9 +254,9 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * self-directed edges. The rows mark the nodes and the columns entries for that
 	 * row are either 1 or 0 when there is an edge or not.
 	 * 
-	 * @param CustomGraph
+	 * @param graph A graph
 	 * 
-	 * @return Adjacency Matrix
+	 * @return Adjacency Matrix with self-directed edges
 	 * 
 	 */
 	public Matrix getAdjacencyMatrixWithIdentity(CustomGraph graph) {
@@ -278,6 +289,15 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	// Use basic vector for now, enables faster fetch/store, but zeroes take up less
 	// memory
 	// n >= startingNodes.size()
+	/**
+	 * Sets the initial probability for every node to be in the community
+	 * Here, it is unbiased, so every node will have 1/#startingNodes
+	 * 
+	 * @param n Number of nodes n in graph
+	 * @param startingNodes ArrayList of starting node indices
+	 * 
+	 * @return A vector containing all initial probabilities.
+	 */
 	public Vector set_initial_prob(int n, ArrayList<Integer> startingNodes) {
 		Vector v = new BasicVector(n);
 		v = v.blank();
@@ -290,6 +310,16 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	}
 
 	// n >= startingNodes.size()
+	/**
+	 * Sets the initial probability for every node to be in the community
+	 * Here, it is biased by node degree, so every node will have nodeDegree/#startingNodes
+	 * 
+	 * @param n Number of nodes n in graph
+	 * @param degreeMap Map of node degrees(index to degree) in graph
+	 * @param startingNodes ArrayList of starting node indices
+	 * 
+	 * @return A vector containing all initial probabilities.
+	 */
 	public Vector set_initial_prob_proportional(int n, Map<Integer, Integer> degreeMap,
 			ArrayList<Integer> startingNodes) {
 		Vector v = new BasicVector(n);
@@ -307,46 +337,15 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		return v;
 	}
 
-	// Computes the symmetric normalized laplacian matrix of a given graphs
-	// adjacency matrix TODO: Check
-	@Deprecated
-	public Matrix adj_to_Laplacian(Matrix graphAdjacencyMatrix) {
-
-		int n = graphAdjacencyMatrix.rows(); // Could also be columns, is nxn
-
-		// Represents the degree matrix
-		Vector sqrtDegrees = new BasicVector(n);
-		sqrtDegrees = sqrtDegrees.blank();
-
-		for (int i = 0; i < n; i++) {
-			sqrtDegrees.set(i, Math.sqrt(graphAdjacencyMatrix.getRow(i).sum()));
-		}
-
-		Matrix symmetricNormalizedLaplacianMatrix = new Basic2DMatrix();
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; i < n; i++) {
-				if (i == j) {
-					if (sqrtDegrees.get(i) != 0) {
-						symmetricNormalizedLaplacianMatrix.set(i, j, 1);
-					} else {
-						symmetricNormalizedLaplacianMatrix.set(i, j, 0);
-					}
-				}
-				symmetricNormalizedLaplacianMatrix.set(i, j,
-						-graphAdjacencyMatrix.get(i, j) / (sqrtDegrees.get(i) * sqrtDegrees.get(j)));
-			}
-		}
-
-		return symmetricNormalizedLaplacianMatrix;
-	}
-
-	// Computes the normalized adjacency matrix as defined by Li's Paper:
-	// (D^(-1/2))*(A+I)*(D^(-1/2)) of a given graph
-	// With I being the identity, D being the graphs degree and A the graphs
-	// adjacency matrix
-	// However in an actual normalized laplacian matrix the diagonal is one when the
-	// degree of a node is >0 else 0,
-	// so TODO: which of these give the desired result?
+	/**
+	 * Computes the normalized adjacency matrix as defined by Li's Paper:
+	 * (D^(-1/2))*(A+I)*(D^(-1/2)) of a given graph
+	 * with I being the identity, D being the graphs degree and A the graphs adjacency matrix
+	 * 
+	 * @param graphAdjacencyMatrix A graphs adjacency matrix (with self directed edges)
+	 * 
+	 * @return A "normalized" adjacency matrix according to the described formula
+	 */
 	public Matrix adjToNormAdj(Matrix graphAdjacencyMatrix) {
 
 		int n = graphAdjacencyMatrix.rows(); // Could also be columns, is nxn
@@ -367,246 +366,110 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		return normalizedAdjacencyMatrix;
 	}
 
-	// cluster: a list of node ids that form a community.
-	// Calculate the conductance of the cut A and complement of A. TODO: Check
+	//TODO: Check
+	/**
+	 * Computes the conductace of a given node cluster by
+	 * dividing the cut that results from the cluster through
+	 * the minimum of the clusters edges and the remaining edges in the graph.
+	 * The conductance measures the fraction of the incident edges leaving the subgraph.
+	 * 
+	 * @param graphAdjacencyMatrix A graphs adjacency matrix (with self directed edges)
+	 * @param cluster A node cluster given by a list of indices
+	 * 
+	 * @return A conductance of floating point value
+	 */
 	public double cal_conductance(Matrix graphAdjacencyMatrix, List<Integer> cluster) {
 
-		Matrix clusterAdjacencyMatrix = new Basic2DMatrix(cluster.size(), graphAdjacencyMatrix.columns());
-		for (int index : cluster) {
-			clusterAdjacencyMatrix.setRow(index, graphAdjacencyMatrix.getRow(index));
+		int[] clusterArray = new int[cluster.size()];
+		for (int i = 0; i < cluster.size(); i++) {
+			clusterArray[i] = cluster.get(i);
+		}
+		int[] allColumns = new int[graphAdjacencyMatrix.columns()];
+		for (int i = 0; i < graphAdjacencyMatrix.columns(); i++) {
+			allColumns[i] = i;
 		}
 
-		Matrix subgraphAdjacencyMatrix = new Basic2DMatrix(cluster.size(), cluster.size());
-		for (int index : cluster) {
-			subgraphAdjacencyMatrix.setColumn(index, graphAdjacencyMatrix.getColumn(index));
-		}
+		Matrix clusterAdjacencyMatrix = graphAdjacencyMatrix.select(clusterArray, allColumns);
+
+		Matrix subgraphAdjacencyMatrix = graphAdjacencyMatrix.select(clusterArray, clusterArray);
 
 		double cutsize = clusterAdjacencyMatrix.sum() - subgraphAdjacencyMatrix.sum();
 		double denominator = Math.min(clusterAdjacencyMatrix.sum(),
 				graphAdjacencyMatrix.sum() - clusterAdjacencyMatrix.sum());
-		double conductance = cutsize / denominator;
+		double conductance = Double.MAX_VALUE;
+		if (denominator != 0.0) {
+			conductance = cutsize / denominator;
+		}
 
 		return conductance;
 	}
 
-	// Sample rate=neg value, biased default=true TODO: Check and refine
-	public Matrix sample_graph(HashMap<Integer, ArrayList<Integer>> neighbourMap, int node_number,
-			Map<Integer, Integer> degree_sequence, int starting_node, double sample_rate, boolean biased) {
-
-		ArrayList<Integer> initial = new ArrayList<Integer>();
-		initial.add(starting_node);
-
-		Vector prob_distribution;
-
-		if (biased) {
-			prob_distribution = set_initial_prob_proportional(node_number, degree_sequence, initial);
-		} else {
-			prob_distribution = set_initial_prob(node_number, initial);
-		}
-
-		HashSet<Integer> subgraph = new HashSet<Integer>();
-		subgraph.add(starting_node);
-		HashSet<Integer> RW_graph = new HashSet<Integer>();
-		RW_graph.add(starting_node);
-
-		ArrayList<Integer> neighbours = new ArrayList<Integer>();
-
-		for (int j = 0; j < 30; j++) {
-			Vector original_distribution = new BasicVector(prob_distribution);
-
-			for (Integer node : RW_graph) {
-				neighbours.add(node);
-
-				double divided_prob = original_distribution.get(node) / (double) (neighbours.size());
-				prob_distribution.set(node, prob_distribution.get(node) - original_distribution.get(node));
-
-				for (Integer v : neighbours) {
-					prob_distribution.set(v, prob_distribution.get(v) + divided_prob);
-				}
-
-				RW_graph.addAll(neighbours);
-
-				if (RW_graph.size() >= 7000) {
-					break;
-				}
-			}
-		}
-
-		for (int i = 0; i < 30; i++) {
-			for (Integer node : subgraph) {
-
-				neighbours = neighbourMap.get(node);
-				subgraph.addAll(neighbours);
-				if (subgraph.size() >= 7000) {
-					break;
-				}
-			}
-		}
-
-		int index = 0;
-		HashMap<Integer, Integer> RW_dict = new HashMap<Integer, Integer>();
-		HashMap<Integer, Integer> RW_dict_reverse = new HashMap<Integer, Integer>();
-		ArrayList<Double> sub_prob_distribution = new ArrayList<Double>(subgraph.size());
-
-		for (Integer node : subgraph) {
-			RW_dict.put(node, index); // mapping from whole graph to subgraph
-			RW_dict_reverse.put(index, node); // mapping from subgraph to whole graph
-
-			sub_prob_distribution.set(index, (prob_distribution.get(node)));
-
-			index++;
-		}
-
-		// new = [0 for k in range(node_number)]
-		int new_graph_size = 3000;
-
-		List<Integer> nodes_in_new_graph = new ArrayList<Integer>(3000);
-		// TODO: Check if included one too many through new_graph_size
-		// Returns the nodes indices of the new_graph_size -many biggest values of
-		// sub_prob_distribution in array form
-		LEMONArrayListIndexComparator comparator = new LEMONArrayListIndexComparator(sub_prob_distribution);
-		nodes_in_new_graph = comparator.createIndexArrayList();
-		Collections.sort(nodes_in_new_graph, comparator);
-		nodes_in_new_graph = nodes_in_new_graph.subList(0, new_graph_size);
-		// list(np.argsort(sub_prob_distribution)[::-1][:new_graph_size]);
-		// argsort returns the index order in array form so that the array would be
-		// sorted small->big
-		// [::-1] reverses the WHOLE array
-		// [:new_graph_size] then gets all items of that reversed array until
-		// new_graph_size
-		// So, we get the indices of the new_graph_size -many biggest values in array
-		// form
-
-		ArrayList<Integer> nodes_in_new_graph_ori_index = new ArrayList<Integer>();
-		for (Integer v : nodes_in_new_graph) {
-			nodes_in_new_graph_ori_index.add(RW_dict_reverse.get(v));
-		}
-
-		HashSet<Integer> nodes_in_new_graph_ori_index_set = new HashSet<Integer>();
-		nodes_in_new_graph_ori_index_set.addAll(nodes_in_new_graph_ori_index);
-
-		// print "The size of sampled graph is", len(node_in_new_graph)
-		Matrix new_graph = new Basic2DMatrix(new_graph_size, new_graph_size);
-		new_graph = new_graph.blank();
-		for (int k = 0; k < new_graph_size; k++) {
-			new_graph.set(k, k, 1);
-		}
-
-		HashMap<Integer, Integer> map_dict = new HashMap<Integer, Integer>();
-		HashMap<Integer, Integer> map_dict_reverse = new HashMap<Integer, Integer>();
-		int count = 0;
-		for (int i = 0; i < node_number; i++) {
-			if (nodes_in_new_graph_ori_index_set.contains(i)) {
-				map_dict.put(count, i); // from new to original
-				map_dict_reverse.put(i, count); // from original to new
-				count++;
-			}
-		}
-		for (int i = 0; i < new_graph_size; i++) {
-			for (int j = 0; j < new_graph_size; j++) {
-				int a = map_dict.get(i);
-				int b = map_dict.get(j);
-				if (neighbourMap.get(b).contains(a)) {
-					new_graph.set(i, j, 1.0);
-					new_graph.set(j, i, 1.0);
-				}
-			}
-
-		}
-
-		// print "new graph returned"
-		sample_rate = new_graph_size / (double) (node_number);
-
-		return new_graph;// , map_dict, map_dict_reverse, sample_rate, new_graph_size TODO: These
-							// parameters are probably still needed somewhere
-	}
-
-	// Given a list of node indices in the new graph after sampling, return the list
-	// of indices that the nodes correspond
-	// to in the original graph before sampling.
-	public ArrayList<Integer> map_from_new_to_ori(ArrayList<Integer> nodelist, HashMap<Integer, Integer> map_dict) {
-
-		ArrayList<Integer> mapped_list = new ArrayList<Integer>();
-		for (Integer node : nodelist) {
-			mapped_list.add(map_dict.get(node));
-		}
-
-		return mapped_list;
-	}
-
-	// Given a list of node indices in the original graph before sampling, return
-	// the list of indices that the nodes correspond
-	// to in the new graph after sampling.
-	public ArrayList<Integer> map_from_ori_to_new(ArrayList<Integer> nodelist,
-			HashMap<Integer, Integer> map_dict_reverse) {
-
-		ArrayList<Integer> mapped_list = new ArrayList<Integer>();
-		for (Integer node : nodelist) {
-			if (map_dict_reverse.containsKey(node)) {
-				mapped_list.add(map_dict_reverse.get(node));
-			} else {
-				mapped_list.add(1000000000); // set the value to be infinity(Yeah sure, very infinite TODO: Fix that,
-												// negative value should be less hacky) when the key cannot be found in
-												// the dictionary
-			}
-		}
-		return mapped_list;
-	}
-
-	// Pretty much based on the scipy orth() solution, no clue if that works atm
+	// Pretty much based on the scipy orth() solution, no clue if that works completely as intended
 	// TODO: Check
-	@Deprecated
-	public Matrix createOrthonormalOld(Matrix matrix) {
+	
+	/**
+	 * Computes the eigenvalues of the Krylov subspace by
+	 * single value decomposition
+	 * 
+	 * @param matrix A matrix
+	 * 
+	 * @return A matrix of orthonormal vectors
+	 */
+	public Matrix createOrthonormal(Matrix matrix) {
+//		System.out.println("Mat\n" + matrix.toString() + "mat\n");
+
 		SingularValueDecompositor svdCompositor = new SingularValueDecompositor(matrix);
 		// Looks like (U=unitary,D=diagonal,V=unitary)
 		Matrix[] svdResult = svdCompositor.decompose();
 		Matrix U = svdResult[0];
 		Matrix V = svdResult[2];
 		Matrix D = svdResult[1];
-
+		
 		// TODO: Check whether #rows=#columns for U,V
 		int m = U.rows();
-		int n = V.rows();
+		int n = V.columns();
 
-		double rcond = (1.0 - Double.MIN_VALUE) * Math.max(m, n);
+		double rcond = Double.MIN_VALUE * Math.max(m, n);
 
 		double tol = D.max() * rcond;
 
 		double num = 0.0;
+//		System.out.println("tol was: " + tol);
 		for (int i = 0; i < D.rows(); i++) {
 			if (D.get(i, i) > tol) {
 				num += D.get(i, i);
+			} else {
+				// System.out.println("Dii was: " + D.get(i, i));
 			}
 		}
 
-		Matrix orthonormalMatrix = new Basic2DMatrix(U.rows(), (int) num);
-		for (int j = 0; j < (int) num; j++) {
-			orthonormalMatrix.setColumn(j, U.getColumn(j));
+		Matrix orthonormalMatrix = new Basic2DMatrix(U.rows(), (int) num + 1);
+		for (int j = 0; j <= (int) num; j++) {
+			Vector a = U.getColumn(j);
+			double norm = a.fold(Vectors.mkManhattanNormAccumulator());
+			Vector normalizedColumn = a.divide(norm);
+
+			orthonormalMatrix.setColumn(j, normalizedColumn);
+//			System.out.println(normalizedColumn.toString());
 		}
+
+		// System.out.println(orthonormalMatrix.toString());
 
 		return orthonormalMatrix;
 	}
 
-	// Get eigenvectormatrix and normalize it to make it an orthonormal basis TODO:
-	// Check if that works as intended
-	public Matrix createOrthonormal(Matrix matrix) {
-		EigenDecompositor eigenDecomp = new EigenDecompositor(matrix);
-
-		Matrix eigenMatrix = eigenDecomp.decompose()[0];
-
-		for (int j = 0; j < eigenMatrix.rows(); j++) {
-			Vector a = eigenMatrix.getColumn(j);
-			double norm1 = a.fold(Vectors.mkManhattanNormAccumulator());
-			Vector normalized = a.divide(norm1);
-
-			eigenMatrix.setColumn(j, normalized);
-		}
-
-		return eigenMatrix;
-	}
-
 	// Start a random walk with probability distribution p_initial.
 	// Transition matrix needs to be calculated according to adjacent matrix G.
+	/**
+	 * Starts a random walk 
+	 * 
+	 * @param graphAdjacencyMatrix A graphs adjacency matrix
+	 * @param initial_prob A vector of initial node probability
+	 * @param subspace_dim The size of the subspace dimension
+	 * @param walk_steps Number of random walk steps that are going to be taken 
+	 * 
+	 * @return The probability matrix with n probability vectors resulting from n random walks
+	 */
 	public Matrix random_walk(Matrix graphAdjacencyMatrix, Vector initial_prob, int subspace_dim, int walk_steps) {
 
 		// Transform the adjacency matrix to a "normalized" adjacency matrix
@@ -626,7 +489,10 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 		Matrix orthProbMatrix = createOrthonormal(probMatrix);
 
+//		System.out.println("ORTH: " + orthProbMatrix.rows() + " " + orthProbMatrix.columns());
+
 		for (int i = 0; i < walk_steps; i++) {
+//			System.out.println("ORTH: " + orthProbMatrix.rows() + " " + orthProbMatrix.columns());
 			Matrix temp = orthProbMatrix.transpose().multiply(normalizedAdjacencyMatrix);
 			orthProbMatrix = createOrthonormal(temp.transpose());
 		}
@@ -634,7 +500,16 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		return orthProbMatrix;
 	}
 
-	// TODO: Although more good looking like this, realise with math3
+	// TODO: Check
+	/**
+	 * Computes the minimum one norm, essentially linear programming 
+	 * 
+	 * @param matrix A probability matrix
+	 * @param initial_seed A vector of the initial seed node indices
+	 * @param seed A vector of the current seed node indices
+	 * 
+	 * @return The probability vector for nodes to belong in a community
+	 */
 	public ArrayList<Double> min_one_norm(Matrix matrix, ArrayList<Integer> initial_seed, ArrayList<Integer> seed) {
 
 		double weight_initial = 1 / (double) (initial_seed.size());
@@ -643,59 +518,143 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		int rows = matrix.rows();
 		int columns = matrix.columns();
 
-		LPWizard lpw = new LPWizard();
-
 		// min ||y||_1
-		lpw.setMinProblem(true);
+		double[] term = new double[rows + columns];
+
+//		System.out.println("MINMAT\n" + matrix.toString() + "MINMAT\n");
+//		System.out.println("SEED\n" + initial_seed.toString() + "\nSEED\n");
+
 		for (int i = 0; i < rows; i++) {
-			lpw.plus("y" + String.valueOf(i), 1.0);
+			term[i] = 1.0; // Add y's to objective function
+		}
+		for (int j = 0; j < columns; j++) {
+			term[rows + j] = 0.0; // Leave out x's from objective function
 		}
 
+		LinearObjectiveFunction objective = new LinearObjectiveFunction(term, 0);
+
+		List<LinearConstraint> constraints = new ArrayList<LinearConstraint>();
+
 		// y == V_kl * x //TODO: Check if that works as intended
-		for (int i = 0; i < rows; i++) {
-			for (int j = 0; j < columns; i++) {
-				lpw.addConstraint("cV_" + String.valueOf(i), 0.0, "==").plus("y" + String.valueOf(i), 1.0)
-						.plus("x" + String.valueOf(i), -matrix.get(i, j));
+		for (int constraintRow = 0; constraintRow < rows; constraintRow++) {
+			double[] constTerm = new double[rows + columns];
+			for (int i = 0; i < rows; i++) {
+				if (i == constraintRow) {
+					constTerm[i] = 1.0;
+				} else {
+					constTerm[i] = 0.0;
+				}
 			}
+			for (int j = 0; j < columns; j++) {
+				constTerm[rows + j] = -matrix.get(constraintRow, j);
+			}
+			constraints.add(new LinearConstraint(constTerm, Relationship.EQ, 0.0));
 		}
 
 		// y >= 0
-		for (int i = 0; i < rows; i++) {
-			lpw.addConstraint("c0_" + String.valueOf(i), 0.0, "<=").plus("y" + String.valueOf(i), 1.0);
+		for (int constraintRow = 0; constraintRow < rows; constraintRow++) {
+			double[] constTerm = new double[rows + columns];
+			for (int i = 0; i < rows; i++) {
+				if (i == constraintRow) {
+					constTerm[i] = 1.0;
+					// System.out.println("Set constTerm[" + i + "] to one");
+				} else {
+					constTerm[i] = 0.0;
+				}
+			}
+			for (int j = 0; j < columns; j++) {
+				constTerm[rows + j] = 0.0;
+			}
+			constraints.add(new LinearConstraint(constTerm, Relationship.GEQ, 0.0));
 		}
 
 		// y >= 1 , y element of initialSeed
-		for (int i : initial_seed) {
-			lpw.addConstraint("c1_" + String.valueOf(i), 1.0, "<=").plus("y" + String.valueOf(i), 1.0);
+		for (int constraintRow = 0; constraintRow < rows; constraintRow++) {
+			double[] constTerm = new double[rows + columns];
+			for (int i = 0; i < rows; i++) {
+				if (i == constraintRow && initial_seed.contains(constraintRow)) {
+					constTerm[i] = 1.0;
+					// System.out.println("Set constTerm[" + i + "] to one " + constTerm[i]);
+				} else {
+					constTerm[i] = 0.0;
+				}
+			}
+			for (int j = 0; j < columns; j++) {
+				constTerm[rows + j] = 0.0;
+			}
+			if (initial_seed.contains(constraintRow)) {
+				constraints.add(new LinearConstraint(constTerm, Relationship.GEQ, 1.0));
+			}
 		}
 
 		// y >= 1+ weight_later_added*difference , y element of seed
-		for (int i : seed) {
-			lpw.addConstraint("c1_" + String.valueOf(i), 1.0 + weight_later_added * difference, "<=")
-					.plus("y" + String.valueOf(i), 1.0);
+		for (int constraintRow = 0; constraintRow < rows; constraintRow++) {
+			double[] constTerm = new double[rows + columns];
+			for (int i = 0; i < rows; i++) {
+				if (i == constraintRow && seed.contains(i)) {
+					constTerm[i] = 1.0;
+				} else {
+					constTerm[i] = 0.0;
+				}
+			}
+			for (int j = 0; j < columns; j++) {
+				constTerm[rows + j] = 0.0;
+			}
+			if (seed.contains(constraintRow)) {
+				constraints
+						.add(new LinearConstraint(constTerm, Relationship.GEQ, 1.0 + weight_later_added * difference));
+			}
 		}
 
-		LPSolution solution = lpw.solve();
+		System.out.println("Begin Norm");
+
+		PointValuePair solution = null;
+		solution = new SimplexSolver().optimize(objective, new LinearConstraintSet(constraints), GoalType.MINIMIZE);
+
+		System.out.println("Norm done");
 
 		ArrayList<Double> v = new ArrayList<Double>(rows);
 
+		//System.out.println(Arrays.toString(solution.getPoint()));
+		//System.out.println(solution.getPoint().length);
+
 		for (int i = 0; i < rows; i++) {
-			v.set(i, solution.getDouble("y" + String.valueOf(i)));
+			if (solution.getPoint()[i] >= 1.0) {
+				v.add(i, 1.0);
+			} else {
+				v.add(i, solution.getPoint()[i]);
+			}
 		}
 
 		return v;
 	}
 
+	/**
+	 * Finds the first semi-global minimum within a range of 32 starting from entry 0
+	 * 
+	 * @param sequence A sequence of (conductance) values
+	 * @param start_index The index at which the looked at portion would actually start
+	 * @param global_conductance An array of the 30 most recent global conductances
+	 * @param iteration The current iteration number of the algorithm
+	 * 
+	 * @return The global minimum of the sequence
+	 */
 	public int global_minimum(ArrayList<Double> sequence, int start_index, double[] global_conductance, int iteration) {
 
 		int detected_size = sequence.size();
 		int seq_length = sequence.size();
-		global_conductance[iteration] = sequence.get(seq_length - 2);
+
+		//System.out.println("TO BE INSERTED: " + sequence.get(Math.floorMod(seq_length - 2, seq_length)));
+		//System.out.println("FROM: " + sequence.toString());
+		global_conductance[Math.floorMod(iteration, global_conductance.length)] = sequence
+				.get(Math.floorMod(seq_length - 2, seq_length));
+		
 		for (int x = 0; x < 40; x++) {
 			sequence.add(0.0);
 		}
-		for (int i = 0; i < (seq_length - 40); i++) {
-			if (sequence.get(i) < sequence.get(i - 1) && sequence.get(i) < sequence.get(i + 1)) {
+		for (int i = 0; i < seq_length; i++) {
+			if (sequence.get(i) < sequence.get(Math.floorMod(i - 1, seq_length))
+					&& sequence.get(i) < sequence.get(i + 1)) {
 				int count_larger = 0;
 				int count_smaller = 0;
 				for (int j = 1; j < 32; j++) {
@@ -704,26 +663,38 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 					}
 				}
 				for (int k = 1; k < 32; k++) {
-					if (sequence.get(i - 1 - k) > sequence.get(i - 1)) {
+					if (sequence.get(Math.floorMod(i - 1 - k, seq_length)) > sequence
+							.get(Math.floorMod(i - 1, seq_length))) {
 						count_smaller++;
 					}
 				}
 				if (count_larger >= 18 && count_smaller >= 18) {
 					detected_size = i + start_index;
-					global_conductance[iteration] = sequence.get(i);
+					global_conductance[Math.floorMod(iteration, global_conductance.length)] = sequence.get(i);
 					break;
 				}
 			}
 		}
-
+		
 		return detected_size;
 	}
 
-	// Actual algorithm
-	// Have the defaults be
-	// expand_step=neg_val, subspace_dim=neg_val, walk_steps=neg_val, biased=True
-	public Map<Integer, Double> seed_expand_auto(Matrix graphAdjacencyMatrix, ArrayList<Integer> seedset, int min_comm_size,
-			int max_comm_size, int expand_step, int subspace_dim, int walk_steps, boolean biased) {
+	/**
+	 * The actual ocd algorithm (Local Expansion via Minimum One Norm)
+	 * 
+	 * @param graphAdjacencyMatrix A graphs adjacency matrix (with self-directed edges)
+	 * @param seedset The set of seed node indices
+	 * @param min_comm_size Minimum size of a community
+	 * @param max_comm_size Maximum size of a community
+	 * @param expand_step (maximum) number of added nodes per iteration
+	 * @param subspace_dim Dimension of the krylov subspace, i.e. number of random walks per iteration
+	 * @param walk_steps Number of steps per random walk
+	 * @param biased Boolean to tell whether node degree is taken into account for initial probabilities or not
+	 * 
+	 * @return A map of node indices and their likelihood to be in a community
+	 */
+	public Map<Integer, Double> seed_expand_auto(Matrix graphAdjacencyMatrix, ArrayList<Integer> seedset,
+			int min_comm_size, int max_comm_size, int expand_step, int subspace_dim, int walk_steps, boolean biased) {
 
 		int n = graphAdjacencyMatrix.rows();
 
@@ -750,9 +721,12 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		ArrayList<Integer> seed = seedset;
 		int step = expand_step;
 
-		// TODO: Scores not really needed in actual algorithm, maybe keep but elsewhere
-		ArrayList<Double> F1_scores = new ArrayList<Double>();
-		ArrayList<Double> Jaccard_scores = new ArrayList<Double>();
+		if (max_comm_size > n) {
+			max_comm_size = n;
+		}
+		if (min_comm_size > n) {
+			min_comm_size = 1;
+		}
 
 		Map<Integer, Double> detected_comm = new HashMap<Integer, Double>();
 
@@ -761,23 +735,21 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		global_conductance[28] = 1000000;
 		boolean flag = true;
 
-		ArrayList<Double> F1_score_return = new ArrayList<Double>();
-		ArrayList<Double> Jaccard_score_return = new ArrayList<Double>();
-
 		int iteration = 0;
-		while (flag) {
-			ArrayList<Double> temp = min_one_norm(orthProbMatrix, initial_seed, seed); // TODO: Sorted here in original,
-																						// should not be necessary but
-																						// check if that is a problem
-
+		while (flag && iteration < 50) { // && iteration < 1 && detected_comm.size() < rows) {
+			ArrayList<Double> temp = min_one_norm(orthProbMatrix, initial_seed, seed); 
+			
 			List<Integer> sorted_top = new ArrayList<Integer>(temp.size());
+
 			// TODO: Check if included one too many through new_graph_size
 			// Returns the nodes indices of the new_graph_size -many biggest values of
 			// sub_prob_distribution in array form
 			LEMONArrayListIndexComparator comparator = new LEMONArrayListIndexComparator(temp);
 			sorted_top = comparator.createIndexArrayList();
 			Collections.sort(sorted_top, comparator);
-			sorted_top = sorted_top.subList(0, step);
+			if (step <= sorted_top.size()) {
+				sorted_top = sorted_top.subList(0, step);
+			}
 
 			for (int i : sorted_top) {
 				if (!detected.contains(i)) {
@@ -786,18 +758,22 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			}
 			seed = detected;
 
-			ArrayList<Double> conductance_record = new ArrayList<Double>(max_comm_size - min_comm_size + 1);
-			conductance_record.set(max_comm_size - min_comm_size, 0.0);
-
-			// community_size = [0] TODO:Find out what the hell that was for, only one
-			// occurrence in original
+			ArrayList<Double> conductance_record = new ArrayList<Double>((max_comm_size - min_comm_size + 1));
+			for (int i = 0; i <= max_comm_size - min_comm_size; i++) {
+				conductance_record.add(i, 0.0);
+			}
 
 			LEMONArrayListIndexComparator tmpcomparator = new LEMONArrayListIndexComparator(temp);
 			ArrayList<Integer> tempIndDesc = comparator.createIndexArrayList();
 			Collections.sort(tempIndDesc, tmpcomparator);
 
 			for (int i = min_comm_size; i <= max_comm_size; i++) {
-				List<Integer> candidate_comm = tempIndDesc.subList(0, i);
+				List<Integer> candidate_comm = new ArrayList<Integer>(max_comm_size);
+				if (i < tempIndDesc.size()) {
+					candidate_comm = tempIndDesc.subList(0, i);
+				} else {
+					candidate_comm = tempIndDesc;
+				}
 				conductance_record.set(i - min_comm_size, cal_conductance(graphAdjacencyMatrix, candidate_comm));
 			}
 
@@ -813,20 +789,18 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 			orthProbMatrix = random_walk(graphAdjacencyMatrix, initial_prob, subspace_dim, walk_steps);
 
-			if (detected_size != 0) {
-				for(int i=0; i<detected_size; i++)
-				{
+			if (global_conductance[Math.floorMod(iteration - 1, global_conductance.length)] <= global_conductance[Math
+					.floorMod(iteration, global_conductance.length)]
+					&& global_conductance[Math.floorMod(iteration - 1,
+							global_conductance.length)] <= global_conductance[Math.floorMod(iteration - 2,
+									global_conductance.length)]) {
+				flag = false;
+			}
+
+			if (detected_size != 0 && flag) {
+				for (int i = 0; i < detected_size; i++) {
 					detected_comm.put(tempIndDesc.get(i), temp.get(tempIndDesc.get(i)));
 				}
-			}
-			// else:
-			// F1_score = 0
-			// Jind = 0
-			// Probably only needed for print, but check if needed for more
-
-			if (global_conductance[iteration - 1] <= global_conductance[iteration]
-					&& global_conductance[iteration - 1] <= global_conductance[iteration - 2]) {
-				flag = false;
 			}
 
 			iteration++;
