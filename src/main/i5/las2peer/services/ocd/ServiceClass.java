@@ -341,6 +341,10 @@ public class ServiceClass extends RESTService {
 							param.put("path", indexPathStr);
 						}
 					}
+					else if (format == GraphInputFormat.XGMML) {
+						param.put("indexPath", indexPathStr);
+						param.put("filePath", filePathStr);
+					}
 					graph = requestHandler.parseGraph(contentStr, format, param);
 
 				} catch (Exception e) {

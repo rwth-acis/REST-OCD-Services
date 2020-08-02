@@ -44,9 +44,13 @@ public enum GraphInputFormat {
 	 */
 	XML (XMLGraphInputAdapter.class, 6),
 	/**
+	 * Format corresponding to the XGMMLGraphInputAdapter.
+	 */
+	XGMML (XGMMLGraphInputAdapter.class, 7),
+	/**
 	 * Format corresponding to the XMLGraphInputAdapter.
 	 */
-	ADJACENCY_MATRIX (AdjacencyMatrixGraphInputAdapter.class, 7);
+	ADJACENCY_MATRIX (AdjacencyMatrixGraphInputAdapter.class, 8);
 	
 	/**
 	 * The adapter class corresponding to the format.

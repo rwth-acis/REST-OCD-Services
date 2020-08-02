@@ -28,6 +28,9 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import y.base.Edge;
 import y.base.Node;
 
+import java.io.Reader;
+import java.io.FileReader;
+
 //TODO: Currently only for the youtube graph, make more general
 //TODO: Be able to have more Attributes for nodes(at least string id's) and maybe edges(at least type) in general
 public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
@@ -40,7 +43,7 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 	//// Variables////
 	/////////////////
 
-	private String filePath = "ocd/test/input/stackexAcademia.xml";
+	private String filePath = null;
 
 	private String indexPath = null;
 
@@ -67,10 +70,12 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 			}
 			graph.setPath(indexPath);
 			// File file = new File(filePath);
+			System.out.println(filePath);
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder;
 			docBuilder = factory.newDocumentBuilder();
-			// Document doc = docBuilder.parse(file);
+			
+			//this.reader = new FileReader(filePath);
 			BufferedReader br = new BufferedReader(this.reader);
 			String line = null;
 			StringBuilder sb = new StringBuilder();
@@ -78,8 +83,14 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 				sb.append(line);
 			}
 			InputSource is = new InputSource(new StringReader(sb.toString()));
+			//System.out.println(sb.toString());
 			Document doc = docBuilder.parse(is);
 			Element docElement = doc.getDocumentElement();
+			boolean undirected = false;
+			if(Integer.parseInt(docElement.getAttribute("directed")) == 0)
+			{
+				undirected = true;
+			}
 			
 			NodeList nodeList = docElement.getElementsByTagName("node");
 			int nodeListLength = nodeList.getLength();
@@ -90,10 +101,10 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 				Node node;
 				
 				// String customNodeContent = textProc.preprocText(e.getAttribute("Body"));
-				String customNodeId = e.getAttribute("label");
+				String customNodeId = e.getAttribute("id");
 				String customNodeName = "";
 				//String customNodeParent = e.getAttribute("ParentId");
-				
+				//TODO: Get rid of customNodeName, apparently not able to add more attributes
 				NodeList attributes = e.getElementsByTagName("att");
 				for (int a = 0; a < attributes.getLength(); a++) {
 					if(((Element) attributes.item(a)).getAttribute("name") == "snippet")
@@ -115,16 +126,17 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 				// node does not yet exist
 				if (!nodeIds.containsKey(customNodeId)) {
 					node = graph.createNode(); // create new node and add attributes
-					graph.setNodeName(node, customNodeId); //TODO: Find a way to save both title and ID, as ID is not int
+					graph.setNodeName(node, customNodeId);
 					nodeIds.put(customNodeId, node);
 					// nodeContents.put(customNodeName, customNodeContent);
 				} 
 				//TODO: Maybe do an else case
 			}
 
-			//A bit confusing due to the class
+			// A bit confusing due to the class
 			NodeList edgeList = docElement.getElementsByTagName("edge");
 			int edgeListLength = edgeList.getLength();
+			Map <String, Edge> edgeLabels = new HashMap<String, Edge>();
 			
 			// create edges for each entry in the temporary edge list
 			for (int i = 0; i < edgeListLength; i++) {
@@ -132,7 +144,14 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 				
 				if(nodeIds.containsKey(e.getAttribute("source")) && nodeIds.containsKey(e.getAttribute("target")))
 				{
-					graph.createEdge(nodeIds.get(e.getAttribute("source")), nodeIds.get(e.getAttribute("target")));
+					if (!edgeLabels.containsKey(e.getAttribute("label"))) {
+						Edge edge = graph.createEdge(nodeIds.get(e.getAttribute("source")), nodeIds.get(e.getAttribute("target")));
+						if(undirected)
+						{
+							graph.createEdge(nodeIds.get(e.getAttribute("target")), nodeIds.get(e.getAttribute("source")));
+						}
+						edgeLabels.put(e.getAttribute("source") + e.getAttribute("target"), edge);
+					}
 				}
 				else
 				{
