@@ -26,18 +26,21 @@ public class LEMONArrayListIndexComparator implements Comparator<Integer>
     @Override
     public int compare(Integer index1, Integer index2)
     {
+    	int compRes = arrayList.get(index1).compareTo(arrayList.get(index2));
          // Autounbox from Integer to int to use as array indexes
-    	if(arrayList.get(index1) < arrayList.get(index2))
+    	if(compRes < 0)
     	{
     		return 1;
     	}
-    	else if(arrayList.get(index1) == arrayList.get(index2))
+    	else if(compRes == 0)
     	{
     		return 0;
     	}
-    	else
+    	else if(compRes > 0)
     	{
     		return -1;
     	}
+    	System.out.println("SHOULD NOT HAPPEN" + arrayList.get(index1) + " " + arrayList.get(index2));
+    	return -1;
     }
 }
