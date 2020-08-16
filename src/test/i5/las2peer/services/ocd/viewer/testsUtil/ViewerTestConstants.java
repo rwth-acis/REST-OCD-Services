@@ -34,6 +34,15 @@ public class ViewerTestConstants {
 	public static final String dolphinsSvgOutputPath = ViewerTestConstants.outputFolderPath + "DolphinsGraph.svg";
 	
 	/*
+	 * Json graph output files
+	 */
+	public static final String tinyCircleJsonOutputPath = ViewerTestConstants.outputFolderPath + "TinyCircleGraph.json";
+	
+	public static final String twoCommunitiesJsonOutputPath = ViewerTestConstants.outputFolderPath + "TwoCommunitiesGraph.json";
+	
+	public static final String sawmillJsonOutputPath = ViewerTestConstants.outputFolderPath + "SawmillGraph.json";
+	
+	/*
 	 * Svg cover output files
 	 */
 	
