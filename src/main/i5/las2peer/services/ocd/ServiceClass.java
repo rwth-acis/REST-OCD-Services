@@ -291,7 +291,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
 				@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
 				@DefaultValue("2004-01-01") @QueryParam("startDate") String startDateStr,
-				@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
+				@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,				
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
 				String contentStr) {
@@ -344,6 +344,10 @@ public class ServiceClass extends RESTService {
 					else if (format == GraphInputFormat.XGMML) {
 						param.put("indexPath", indexPathStr);
 						param.put("filePath", filePathStr);
+						//param.put("key", keyStr);
+						//param.put("type1", type1Str);
+						//param.put("type2", type2Str);
+						//param.put("type3", type3Str);
 					}
 					graph = requestHandler.parseGraph(contentStr, format, param);
 
