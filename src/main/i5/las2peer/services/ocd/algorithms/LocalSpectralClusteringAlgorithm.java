@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,7 @@ import org.ojalgo.optimisation.Variable;
 
 /**
  * Implements The LEMON Local Spectral Clustering Algorithm by Yi et al. Heavily
- * oriented on https://github.com/YixuanLi/LEMON Handles Unweighted(for now),
+ * oriented on https://github.com/YixuanLi/LEMON. Handles Unweighted(for now),
  * Directed/Undirected graphs
  */
 public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
@@ -166,7 +167,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		return parameters;
 	}
 
-	@Override // TODO: Check
+	@Override
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
 		if (parameters.containsKey(COMMA_SEPARATED_SEED_SET_NAME)) {
 			String seedString = parameters.get(COMMA_SEPARATED_SEED_SET_NAME);
@@ -174,10 +175,9 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 				throw new IllegalArgumentException();
 			}
 
-			System.out.println(seedString);
+			System.out.println("seed: " + seedString);
 			ArrayList<Integer> seedSetTmp = new ArrayList<Integer>();
 
-			//System.out.println(seedString);
 			String[] seedSetString = seedString.split(",");
 			for (String str : seedSetString) {
 
@@ -235,20 +235,15 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			parameters.remove(randomrandomWalkSteps_NAME);
 		}
 		if (parameters.size() > 0) {
-			System.out.println(parameters.toString());
+			System.out.println("params: " + parameters.toString());
 			throw new IllegalArgumentException();
 		}
 	}
 
-	@Override // TODO: Implement
+	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
-		System.out.println(graph.nodeCount());
 		Matrix graphAdjacencyMatrix = getAdjacencyMatrixWithIdentity(graph);
 		
-		//System.out.printf("\n\n graphAdjacencyMatrix.set(%d, %d, 1.0);\n\n", graph.nodeCount(), graph.nodeCount());
-
-		//getLinkList(graph);
-
 		Map<Integer, Double> members = seedSetExpansion(graphAdjacencyMatrix, commaSeparatedSeedSet, minimumCommunitySize,
 				maximumCommunitySize, expansionStepSize, subspaceDimension, randomWalkSteps, biased);
 		
@@ -261,44 +256,43 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		{
 			coverMatrix.set(i, 1, 1);
 		}
+		
+		Double maxVal = 0.0;
+		// Calculate maximum value to get all entries to a value from 0 to 1
+		for(Map.Entry<Integer, Double> entry : members.entrySet())
+		{
+			entry.setValue(Math.log10(entry.getValue()+1)); //TODO: Decide whether to remove or keep for better representation
+			if(entry.getValue() > maxVal)
+			{
+				maxVal = entry.getValue();
+			}
+		}
+		// DEBUG: System.out.println("Max: " + maxVal);
 		for (Map.Entry<Integer, Double> entry : members.entrySet()) {
-			coverMatrix.set(entry.getKey(), 0, entry.getValue());
-			coverMatrix.set(entry.getKey(), 1, Math.abs(1.0 - entry.getValue()));
+			// DEBUG: System.out.println(entry.getKey() + ": " + entry.getValue() + " , " + entry.getValue()/maxVal);
+			double normVal = entry.getValue()/maxVal;
+			coverMatrix.set(entry.getKey(), 0, normVal);
+			coverMatrix.set(entry.getKey(), 1, 1.0 - normVal);
 		}
 
-		//System.out.println("DETECTED FINAL:" + members.keySet().toString());
-		//System.out.println("DETECTED FINAL:" + members.values().toString());
+		// DEBUG: System.out.println("DETECTED FINAL:" + members.keySet().toString());
+		// DEBUG: System.out.println("DETECTED FINAL:" + members.values().toString());
 
 		Cover c = new Cover(graph, coverMatrix);
 		
-		return c;
-	}
-	
-	public void detectOverlappingCommunities(Matrix graphAdjacencyMatrix) throws OcdAlgorithmException, InterruptedException {
-		//Matrix graphAdjacencyMatrix = getAdjacencyMatrixWithIdentity(graph);
-
-		//getLinkList(graph);
-
-		Map<Integer, Double> members = seedSetExpansion(graphAdjacencyMatrix, commaSeparatedSeedSet, minimumCommunitySize,
-				maximumCommunitySize, expansionStepSize, subspaceDimension, randomWalkSteps, biased);
+		//TODO: remove
+		Node[] nodes = graph.getNodeArray();
+		for(int i=0; i<coverMatrix.rows(); i++) {
+			System.out.print(nodes[i].index()+ ":::" + graph.getNodeName(nodes[i]) + ": ");	
+			for(int j=0; j<coverMatrix.columns(); j++)
+			{
+				System.out.print(" " + coverMatrix.get(i, j));	
+			}
+			System.out.println(" END");
+		}
+		//TODO: remove
 		
-		// Clear seeds for potential component detection later on
-		commaSeparatedSeedSet = new ArrayList<Integer>(Arrays.asList(0));
-
-		Matrix coverMatrix = new Basic2DMatrix(graphAdjacencyMatrix.rows(), 2);
-		coverMatrix = coverMatrix.blank();
-		for(int i=0; i<graphAdjacencyMatrix.rows(); i++)
-		{
-			coverMatrix.set(i, 1, 1);
-		}
-		for (Map.Entry<Integer, Double> entry : members.entrySet()) {
-			coverMatrix.set(entry.getKey(), 0, entry.getValue());
-			coverMatrix.set(entry.getKey(), 1, Math.abs(1.0 - entry.getValue()));
-		}
-
-		//System.out.println("DETECTED FINAL:" + members.keySet().toString());
-		//System.out.println("DETECTED FINAL:" + members.values().toString());
-		System.out.println(coverMatrix.toString());		
+		return c;
 	}
 
 	/**
@@ -316,16 +310,14 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	public Matrix getAdjacencyMatrixWithIdentity(CustomGraph graph) {
 
 		int size = graph.nodeCount();
-		Matrix adjacencyMatrix = new CCSMatrix(size, size);
+		// DEBUG: System.out.println("NODES OF GRAPH: " + size);
+		Matrix adjacencyMatrix = new CCSMatrix(size, size); //TOD: Maybe CCS is the problem?
 		adjacencyMatrix = adjacencyMatrix.blank();
 
 		for (EdgeCursor ec = graph.edges(); ec.ok(); ec.next()) {
 			Edge edge = ec.edge();
 			Node source = edge.source();
 			Node target = edge.target();
-
-			// int sourceId = Integer.valueOf(graph.getNodeName(source));
-			// int targetId = Integer.valueOf(graph.getNodeName(target));
 
 			if (source.index() != target.index()) {
 				adjacencyMatrix.set(source.index(), target.index(), 1);
@@ -336,11 +328,11 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		for (int i = 0; i < size; i++) {
 			adjacencyMatrix.set(i, i, 1);
 		}
-
+		
+		// DEBUG: System.out.println("Adjmat:\n" + adjacencyMatrix);
 		return adjacencyMatrix;
 	}
 
-	// n >= startingNodes.size()
 	/**
 	 * Sets the initial probability for every node to be in the community
 	 * Here, it is unbiased, so every node will have 1/#startingNodes
@@ -361,7 +353,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		return v;
 	}
 
-	// n >= startingNodes.size()
 	/**
 	 * Sets the initial probability for every node to be in the community
 	 * Here, it is biased by node degree, so every node will have nodeDegree/#startingNodes
@@ -391,11 +382,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		for (int node : startingNodes) {
 			v.set(node, degreeMap.get(node) / degreeSum);
 		}
-
-		for(int i=0; i<n; i++)
-		{
-			//System.out.println(i + "_prob: " + String.format("%.50f", v.get(i)));
-		}
 		
 		return v;
 	}
@@ -413,7 +399,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 		int n = graphAdjacencyMatrix.rows(); // Could also be columns, is nxn
 
-		System.out.println("Matrix setup");
+		// DEBUG: System.out.println("Matrix setup");
 		// Represents the degree matrix D^(-1/2)
 		Matrix sqrtDegrees = new Basic2DMatrix(n, n);
 		sqrtDegrees = sqrtDegrees.blank();
@@ -424,7 +410,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		// Represents the matrix (A+I)
 		Matrix normalizedAdjacencyMatrix = graphAdjacencyMatrix;
 		
-		System.out.println("Matrix mult opt begin");
+		// DEBUG: System.out.println("Matrix mult opt begin");
 		//(A+I)*(D^(-1/2)) = R
 		for(int j=0; j<n; j++)
 		{
@@ -436,12 +422,11 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		{
 			normalizedAdjacencyMatrix.setRow(i, normalizedAdjacencyMatrix.getRow(i).multiply(sqrtDegrees.get(i,i)));
 		}
-		System.out.println("Matrix mult opt end");
+		// DEBUG: System.out.println("Matrix mult opt end");
 
 		return normalizedAdjacencyMatrix;
 	}
 
-	//TODO: Check
 	/**
 	 * Computes the conductance of a given node cluster by
 	 * dividing the cut that results from the cluster through
@@ -453,7 +438,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * 
 	 * @return A conductance of floating point value
 	 */
-	public double calculateConductance(Matrix graphAdjacencyMatrix, List<Integer> cluster) {
+	public double calculateConductance(Matrix graphAdjacencyMatrix, List<Integer> cluster, double graphAdjacencyMatrixSum, double[] graphAdjacencyMatrixRowSums) {
 
 		int[] clusterArray = new int[cluster.size()];
 		for (int i = 0; i < cluster.size(); i++) {
@@ -467,10 +452,15 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		Matrix clusterAdjacencyMatrix = graphAdjacencyMatrix.select(clusterArray, allColumns);
 
 		Matrix subgraphAdjacencyMatrix = graphAdjacencyMatrix.select(clusterArray, clusterArray);
-
-		double cutsize = clusterAdjacencyMatrix.sum() - subgraphAdjacencyMatrix.sum();
-		double denominator = Math.min(clusterAdjacencyMatrix.sum(),
-				graphAdjacencyMatrix.sum() - clusterAdjacencyMatrix.sum());
+		
+		double clusterAdjacencyMatrixSum = 0;
+		for(int i=0; i<cluster.size(); i++) //TODO: CHECK IF CORRECT
+		{
+			clusterAdjacencyMatrixSum += graphAdjacencyMatrixRowSums[clusterArray[i]];
+		}
+		double cutsize = clusterAdjacencyMatrixSum - subgraphAdjacencyMatrix.sum();
+		double denominator = Math.min(clusterAdjacencyMatrixSum,
+				graphAdjacencyMatrixSum - clusterAdjacencyMatrixSum);
 		double conductance = Double.MAX_VALUE;
 		if (denominator != 0.0) {
 			conductance = cutsize / denominator;
@@ -479,8 +469,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		return conductance;
 	}
 
-	// Pretty much based on the scipy orth() solution, no clue if that works completely as intended
-	// TODO: Check	
+	// Pretty much based on the scipy orth() solution
 	/**
 	 * Computes the eigenvalues of the Krylov subspace by
 	 * single value decomposition
@@ -490,16 +479,15 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * @return A matrix of orthonormal vectors
 	 */
 	public Matrix createOrthonormal(Matrix matrix) {
-//		System.out.println("Mat\n" + matrix.toString() + "mat\n");
+		// DEBUG: System.out.println("Mat\n" + matrix.toString() + "mat\n");
 
 		SingularValueDecompositor svdCompositor = new SingularValueDecompositor(matrix);
-		// Looks like (U=unitary,D=diagonal,V=unitary)
+		// Looks like (U=orthogonal columns, D=diagonal,V=orthogonal columns)
 		Matrix[] svdResult = svdCompositor.decompose();
 		Matrix U = svdResult[0];
 		Matrix V = svdResult[2];
 		Matrix D = svdResult[1];
 		
-		// TODO: Check whether #rows=#columns for U,V
 		int m = U.rows();
 		int n = V.columns();
 
@@ -508,16 +496,13 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		double tol = D.max() * rcond;
 
 		double num = 0.0;
-//		System.out.println("tol was: " + tol);
 		for (int i = 0; i < D.rows(); i++) {
 			if (D.get(i, i) > tol) {
 				num += D.get(i, i);
-			} else {
-				// System.out.println("Dii was: " + D.get(i, i));
 			}
 		}
 
-		//TODO: Check if num +1 truly gives the correct result
+		//TODO: Intensive checks if num +1 truly gives the correct result
 		num +=1;
 		if((int)num > U.columns())
 		{
@@ -531,10 +516,10 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			Vector normalizedColumn = a.divide(norm);
 
 			orthonormalMatrix.setColumn(j, normalizedColumn);
-//			System.out.println(normalizedColumn.toString());
+			// DEBUG: System.out.println(normalizedColumn.toString());
 		}
 
-		// System.out.println(orthonormalMatrix.toString());
+		// DEBUG: System.out.println(orthonormalMatrix.toString());
 
 		return orthonormalMatrix;
 	}
@@ -550,8 +535,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * @return The probability matrix with n probability vectors resulting from n random walks
 	 */
 	public Matrix randomWalk(Matrix graphAdjacencyMatrix, Vector initialProbability, int subspaceDimension, int randomWalkSteps) {
-		
-		// Transform the adjacency matrix to a "normalized" adjacency matrix
 		Matrix normalizedAdjacencyMatrix = adjToNormAdj(graphAdjacencyMatrix);
 		
 		Matrix probMatrix = new Basic2DMatrix(graphAdjacencyMatrix.rows(), subspaceDimension);
@@ -560,18 +543,12 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			probMatrix.set(i, 0, initialProbability.get(i));
 		}
 
-		// TODO: Check if that following term actually resembles P*probMatrix[i-1]:
-		// np.dot(probMatrix[:,i-1], P));
 		for (int i = 1; i < subspaceDimension; i++) {
 			probMatrix.setColumn(i, normalizedAdjacencyMatrix.multiply(probMatrix.getColumn(i - 1)));
 		}
-
 		Matrix orthProbMatrix = createOrthonormal(probMatrix);
-		
-//		System.out.println("ORTH: " + orthProbMatrix.rows() + " " + orthProbMatrix.columns());
 
 		for (int i = 0; i < randomWalkSteps; i++) {
-//			System.out.println("ORTH: " + orthProbMatrix.rows() + " " + orthProbMatrix.columns());
 			Matrix temp = orthProbMatrix.transpose().multiply(normalizedAdjacencyMatrix);
 			orthProbMatrix = createOrthonormal(temp.transpose());
 		}
@@ -580,16 +557,24 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	}
 
 	/**
-	 * Computes the minimum one norm, essentially linear programming 
+	 * Computes the minimum one norm for a subgraph and its seed nodes, essentially solves the linear programming problem:
+	 * 		min ||y||_1
+	 * 		y == V_k,l * x
+	 * 		y >= 0
+	 * 		y_initialSeed >= 1
+	 * 		y_seed >= 1 + weightLaterAdded*difference
+	 * from the paper.
 	 * 
 	 * @param matrix A probability matrix
 	 * @param initialSeed A vector of the initial seed node indices
-	 * @param seed A vector of the current seed node indices
+	 * @param seed A vector of the all seed node indices
 	 * 
-	 * @return The probability vector for nodes to belong in a community
+	 * @return A vector which entries signify the likelihood for nodes to belong in a community (the larger the number the larger the likelihood, not a probability vector)
 	 */
-	public ArrayList<Double> minimumOneNorm(Matrix matrix, ArrayList<Integer> initialSeed, ArrayList<Integer> seed) {
+	public ArrayList<Double> minimumOneNorm(Matrix matrix, ArrayList<Integer> initialSeed, ArrayList<Integer> seed, Matrix graphAdjacencyMatrix) {
 
+		// DEBUG: System.out.println("NORM SEEDS: " + seed.toString());
+		
 		double weightInitial = 1 / (double) (initialSeed.size());
 		double weightLaterAdded = weightInitial / 0.5;
 		int difference = seed.size() - initialSeed.size();
@@ -600,212 +585,176 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		double[] term = new double[rows + columns];
 		ArrayList<Variable> vars = new ArrayList<Variable>(rows + columns);
 
-		//System.out.println("MINMAT\n" + matrix.toString() + "\n" + matrix.getColumn(0).sum() + "MINMAT\n");
-		//System.out.println("SEED\n" + initialSeed.toString() + "\nSEED\n");
+		// DEBUG: System.out.println("MINMAT\n" + matrix.toString() + "\n" + matrix.getColumn(0).sum() + "MINMAT\n");
+		// DEBUG: System.out.println("INITIALSEED\n" + initialSeed.toString() + "\nINITIALSEED\n");
 
 		for (int i = 0; i < rows; i++) {
-			term[i] = 1.0; // Add y's to objective function
+//APACHE			term[i] = 1.0; // Add y's to objective function
 			vars.add(new Variable("y_" + i).lower(0.0).weight(1.0));
 		}
 		for (int j = 0; j < columns; j++) {
-			term[rows + j] = 0.0; // Leave out x's from objective function
+//APACHE			term[rows + j] = 0.0; // Leave out x's from objective function
 			vars.add(new Variable("x_" + j).weight(0.0));
 		}
 
 		LinearObjectiveFunction objective = new LinearObjectiveFunction(term, 0);
-		//LinearProgram lp = new LinearProgram(term);
 		ExpressionsBasedModel model = new ExpressionsBasedModel(vars);
 
 		ArrayList<LinearConstraint> constraints = new ArrayList<LinearConstraint>();
 		
 
-		// y == V_kl * x //TODO: Check if that works as intended
+		// y == V_kl * x
 		for (int constraintRow = 0; constraintRow < rows; constraintRow++) {
-			
 			Expression expr = model.addExpression("cEQ_" + constraintRow).lower(0.0).upper(0.0);
 			
-			double[] constTerm = new double[rows + columns];
+//APACHE			double[] constTerm = new double[rows + columns];
 			for (int i = 0; i < rows; i++) {
 				if (i == constraintRow) {
-					constTerm[i] = 1.0;
+//APACHE					constTerm[i] = 1.0;
 					expr.set(vars.get(i), 1.0);
 				} else {
-					constTerm[i] = 0.0;
+//APACHE					constTerm[i] = 0.0;
 					expr.set(vars.get(i), 0.0);
 				}
-			}
-			if(initialSeed.contains(constraintRow))
-			{
-				//System.out.printf("y%d (>=1.0)", constraintRow);	
-			}
-			else
-			{
-				//System.out.printf("y%d", constraintRow);
 			}
 			for (int j = 0; j < columns; j++) {
 				
 				if(-matrix.get(constraintRow, j) != 0.0)
 				{
-					constTerm[rows + j] = -matrix.get(constraintRow, j);
+//APACHE					constTerm[rows + j] = -matrix.get(constraintRow, j);
 					expr.set(vars.get(rows + j), -matrix.get(constraintRow, j));
 					
-					//System.out.printf(" + %.20f *x%d", -matrix.get(constraintRow, j),j);
 				}
 				else
 				{
-					constTerm[rows+j] = 0.0;
+//APACHE					constTerm[rows+j] = 0.0;
 					expr.set(vars.get(rows + j), 0.0);
 				}
 				
 			}
-			//System.out.println(" == 0");
-			constraints.add(new LinearConstraint(constTerm, Relationship.EQ, 0.0));
-			//constraints.add(new LinearEqualsConstraint(constTerm, 0.0, "cEQ_" + constraintRow));			
-	        
+//APACHE			constraints.add(new LinearConstraint(constTerm, Relationship.EQ, 0.0));		
 		}
 
 		// y >= 0
 		for (int constraintRow = 0; constraintRow < rows; constraintRow++) {
-			
 			Expression expr = model.addExpression("cGEQ0_" + constraintRow).lower(0.0);
 			
-			double[] constTerm = new double[rows + columns];
+//APACHE			double[] constTerm = new double[rows + columns];
 			for (int i = 0; i < rows; i++) {
 				if (i == constraintRow) {
-					constTerm[i] = 1.0;
+//APACHE					constTerm[i] = 1.0;
 					expr.set(vars.get(i), 1.0);
 				} else {
-					constTerm[i] = 0.0;
+//APACHE					constTerm[i] = 0.0;
 					expr.set(vars.get(i), 0.0);
 				}
 			}
 			for (int j = 0; j < columns; j++) {
-				constTerm[rows + j] = 0.0;
-				expr.set(vars.get(rows + j), 1.0);
+//APACHE				constTerm[rows + j] = 0.0;
+				expr.set(vars.get(rows + j), 0.0);
 			}
-			constraints.add(new LinearConstraint(constTerm, Relationship.GEQ, 0.0));
-			//constraints.add(new LinearBiggerThanEqualsConstraint(constTerm, 0.0, "cGEQ0_" + constraintRow));
+//APACHE			constraints.add(new LinearConstraint(constTerm, Relationship.GEQ, 0.0));
 		}
-
-		// x in reasonable boundaries
-//		for (int constraintRow = rows; constraintRow < rows + columns; constraintRow++) {
-//			double[] constTerm = new double[rows + columns];
-//			for (int i = 0; i < rows; i++) {
-//				constTerm[i] = 0.0;
-//			}
-//			for (int j = 0; j < columns; j++) {
-//				if(j + rows == constraintRow)
-//				{
-//					constTerm[rows + j] = 1.0;
-//				}
-//				else
-//				{
-//					constTerm[rows + j] = 0.0;
-//				}
-//			}
-//			constraints.add(new LinearConstraint(constTerm, Relationship.GEQ, -Double.MAX_VALUE +1));
-//			constraints.add(new LinearConstraint(constTerm, Relationship.LEQ, Double.MAX_VALUE -1 ));
-//		}
 		
 		// y >= 1 , y element of initialSeed
 		for (int constraintRow = 0; constraintRow < rows; constraintRow++) {
-			
 			if (initialSeed.contains(constraintRow)) {
 				Expression expr = model.addExpression("cGEQ1_" + constraintRow).lower(1.0);
 			
-				double[] constTerm = new double[rows + columns];
+//APACHE				double[] constTerm = new double[rows + columns];
 				for (int i = 0; i < rows; i++) {
 					if (i == constraintRow && initialSeed.contains(constraintRow)) {
-						constTerm[i] = 1.0;
+//APACHE						constTerm[i] = 1.0;
 						expr.set(vars.get(i), 1.0);
 					} else {
-						constTerm[i] = 0.0;
+//APACHE						constTerm[i] = 0.0;
 						expr.set(vars.get(i), 0.0);
 					}
 				}
 				for (int j = 0; j < columns; j++) {
-					constTerm[rows + j] = 0.0;
+//APACHE					constTerm[rows + j] = 0.0;
 					expr.set(vars.get(rows + j), 0.0);
-				}
-				
-				constraints.add(new LinearConstraint(constTerm, Relationship.GEQ, 1.0));
-				//constraints.add(new LinearBiggerThanEqualsConstraint(constTerm, 1.0, "GEQ1_cEq" + constraintRow));			
+				}					
+//APACHE				constraints.add(new LinearConstraint(constTerm, Relationship.GEQ, 1.0));	
 			}
 		}
 
 		// y >= 1+ weightLaterAdded*difference , y element of seed
 		for (int constraintRow = 0; constraintRow < rows; constraintRow++) {
-			
 			if (seed.contains(constraintRow)) {
-				Expression expr = model.addExpression("cGEQ1b_" + constraintRow).lower(1.0);
+				Expression expr = model.addExpression("cGEQ1b_" + constraintRow).lower(1.0 + weightLaterAdded * difference);
 				
-				double[] constTerm = new double[rows + columns];
+//APACHE				double[] constTerm = new double[rows + columns];
 				for (int i = 0; i < rows; i++) {
 					if (i == constraintRow && seed.contains(i)) {
-						constTerm[i] = 1.0;
+//APACHE						constTerm[i] = 1.0;
 						expr.set(vars.get(i), 1.0);
 					} else {
-						constTerm[i] = 0.0;
+//APACHE						constTerm[i] = 0.0;
 						expr.set(vars.get(i), 0.0);
 					}
 				}
 				for (int j = 0; j < columns; j++) {
-					constTerm[rows + j] = 0.0;
+//APACHE					constTerm[rows + j] = 0.0;
 					expr.set(vars.get(rows + j), 0.0);
-				}
-				
-					constraints.add(new LinearConstraint(constTerm, Relationship.GEQ, 1.0 + weightLaterAdded * difference));
+				}				
+//APACHE				constraints.add(new LinearConstraint(constTerm, Relationship.GEQ, 1.0 + weightLaterAdded * difference));
 			}
 		}
-
+	
 		System.out.println("Begin Norm");
 
 		ArrayList<Double> v = new ArrayList<Double>(rows);
 		
-		PointValuePair solutionApache = null;
-		//double solution = new double[rows];
+//APACHE		PointValuePair solutionApache = null;
 		Optimisation.Result result;
 		try {
-			try {
-				solutionApache = new SimplexSolver(1.0e-8, 10, 1.0e-15).optimize(objective, new LinearConstraintSet(constraints), GoalType.MINIMIZE, PivotSelectionRule.BLAND, new NonNegativeConstraint(false));
-				
-				for (int i = 0; i < rows; i++) {
-					v.add(i, solutionApache.getPoint()[i]);
-				}
-			}
-			catch(Exception err) //If Apache's SimplexSolver does not find a solution, use Ojalgo's different solvers instead
-			{
+//APACHE
+//			try {
+//				//solutionApache = new SimplexSolver(1.0e-8, 10, 1.0e-15).optimize(objective, new LinearConstraintSet(constraints), GoalType.MINIMIZE, PivotSelectionRule.BLAND, new NonNegativeConstraint(false));
+//				for (int i = 0; i < rows; i++) {
+//					if(neighboursAndSeeds.get(i) != null)//////////////////
+//					{
+//						//System.out.println("SEED " + i + ": " + solutionApache.getPoint()[i]);///////////////
+//						if(i == 19)//////////////////////
+//						{
+//							System.out.println("x36: " + solutionApache.getPoint()[36]);
+//						}
+//						
+//						v.add(i, solutionApache.getPoint()[i]);
+//						throw new java.lang.NullPointerException();/////////////
+//					}
+//					else///////////////////
+//					{
+//						v.add(i, 0.0);
+//					}
+//				}
+//			}
+//			catch(Exception err) //If Apache's SimplexSolver does not find a solution, use Ojalgo's different solvers instead
+//APACHE			{
+				// DEBUG: System.out.println("Apache Solver failed, trying ojalgo...");
 				result = model.minimise();
+//APACHE				v = new ArrayList<Double>(rows);
 				
 				for (int i = 0; i < rows; i++) {
+					// DEBUG: System.out.println("SEED " + i + ": " + result.doubleValue(i));
 					v.add(i, result.doubleValue(i));
 				}
-			}
-			//lp.addConstraints(constraints);
-			//lp.setMinProblem(true);
-						
-			
-			//LinearProgramSolver solver = SolverFactory.newDefault(); 
-			//solution = solver.solve(lp);
+//APACHE			}
 		}
-		catch(Exception err) {//NoFeasibleSolutionException err) {
-//			for(int i=0; i<matrix.rows(); i++)
-//			{
-//				System.out.println(i + ": " + String.format("%.50f", matrix.getRow(i).sum()) + " > " + (initialSeed.contains(i) ? 1 : 0) + "\n");
-//			}
-			//System.out.println(matrix);
+		catch(Exception err) {
+			// DEBUG: System.out.println(matrix);
 			throw err;
 		}
 
 		System.out.println("Norm done");
 
-				
 		return v;
-				
 	}
 
 	/**
-	 * Finds the first semi-global minimum within a range of 32 starting from entry 0
+	 * Finds the "global" minimum within a sequence of range of 32 conductances of communities starting from entry 0
+	 * This global sequence minimum is then also added to the global conductance list, as its community will be adopted for the further process
 	 * 
 	 * @param sequence A sequence of (conductance) values
 	 * @param startIndex The index at which the looked at portion would actually start
@@ -819,8 +768,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		int detectedSize = sequence.size();
 		int sequenceLength = sequence.size();
 
-		//System.out.println("TO BE INSERTED: " + sequence.get(Math.floorMod(sequenceLength - 2, sequenceLength)));
-		//System.out.println("FROM: " + sequence.toString());
 		globalConductance[Math.floorMod(iteration, globalConductance.length)] = sequence
 				.get(Math.floorMod(sequenceLength - 2, sequenceLength));
 		
@@ -829,15 +776,15 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		}
 		for (int i = 0; i < sequenceLength; i++) {
 			if (sequence.get(i) < sequence.get(Math.floorMod(i - 1, sequenceLength))
-					&& sequence.get(i) < sequence.get(i + 1)) {
+					&& sequence.get(i) < sequence.get(i + 1)) { // Is local Minimum
 				int countLarger = 0;
 				int countSmaller = 0;
-				for (int j = 1; j < 32; j++) {
+				for (int j = 1; j < 32; j++) { // Calculate how long values get continuously larger afterwards
 					if (sequence.get(i + 1 + j) > sequence.get(i + 1)) {
 						countLarger++;
 					}
 				}
-				for (int k = 1; k < 32; k++) {
+				for (int k = 1; k < 32; k++) { // Calculate how long values get continuously larger before
 					if (sequence.get(Math.floorMod(i - 1 - k, sequenceLength)) > sequence
 							.get(Math.floorMod(i - 1, sequenceLength))) {
 						countSmaller++;
@@ -845,6 +792,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 				}
 				if (countLarger >= 18 && countSmaller >= 18) {
 					detectedSize = i + startIndex;
+					// DEBUG: System.out.println("DETECTEDSIZE=" +detectedSize);
 					globalConductance[Math.floorMod(iteration, globalConductance.length)] = sequence.get(i);
 					break;
 				}
@@ -872,6 +820,15 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			int minimumCommunitySize, int maximumCommunitySize, int expansionStepSize, int subspaceDimension, int randomWalkSteps, boolean biased) {
 
 		int n = graphAdjacencyMatrix.rows();
+		
+		double graphAdjacencyMatrixSum = graphAdjacencyMatrix.sum();
+		double[] graphAdjacencyMatrixRowSums = new double[n];
+		for(int i=0; i<n; i++)
+		{
+			graphAdjacencyMatrixRowSums[i]=graphAdjacencyMatrix.getRow(i).sum();
+		}
+		
+		// DEBUG: System.out.println("ROWS: " + n);
 
 		HashMap<Integer, Integer> degree = new HashMap<Integer, Integer>();
 		for (int i = 0; i < n; i++) {
@@ -880,23 +837,23 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 		Vector initialProbability;
 		// Random walk starting from seed nodes:
-		System.out.println("SEEDS: " + seedset.toString());
+		// DEBUG: System.out.println("SEEDS: " + seedset.toString());
 		if (biased) {
 			initialProbability = setInitialProbabilityProportional(n, degree, seedset);
 		} else {
 			initialProbability = setInitialProbability(n, seedset);
 		}
 
-		System.out.println("Initial walk begin");
+		// DEBUG: System.out.println("Initial walk begin");
 		Matrix orthProbMatrix = randomWalk(graphAdjacencyMatrix, initialProbability, subspaceDimension, randomWalkSteps);
 		ArrayList<Integer> initialSeed = seedset;
-		System.out.println("initial walk end");
+		// DEBUG: System.out.println("initial walk end");
 		
 		// Initialization
-		ArrayList<Integer> detected = seedset;
+		ArrayList<Integer> detected = new ArrayList<Integer>(seedset);
 		int rows = orthProbMatrix.rows();
 		int columns = orthProbMatrix.columns();
-		ArrayList<Integer> seed = seedset;
+		ArrayList<Integer> seed = new ArrayList<Integer>(seedset);
 		int step = expansionStepSize;
 
 		if (maximumCommunitySize > n) {
@@ -909,20 +866,20 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		Map<Integer, Double> detectedCommunity = new HashMap<Integer, Double>();
 
 		double globalConductance[] = new double[30];
-		globalConductance[29] = Double.MAX_VALUE; // set the last element to be infinitely large
+		// Set the last two elements to be infinitely large
+		globalConductance[29] = Double.MAX_VALUE; 
 		globalConductance[28] = Double.MAX_VALUE;
 		boolean flag = true;
 
 		int iteration = 0;
-		while (flag) { // && iteration < 50 && detectedCommunity.size() < rows) {
+		while (flag) {
 			System.out.println("Start Norm procedure");
-			ArrayList<Double> temp = minimumOneNorm(orthProbMatrix, initialSeed, seed); 
+			ArrayList<Double> temp = minimumOneNorm(orthProbMatrix, initialSeed, seed, graphAdjacencyMatrix); 
 			
 			List<Integer> sortedTop = new ArrayList<Integer>(temp.size());
 
 			// TODO: Check if included one too many through new_graph_size
-			// Returns the nodes indices of the new_graph_size -many biggest values of
-			// sub_prob_distribution in array form
+			// Compute a list of the node indices ranked by descending norm value
 			LEMONArrayListIndexComparator comparator = new LEMONArrayListIndexComparator(temp);
 			sortedTop = comparator.createIndexArrayList();
 			Collections.sort(sortedTop, comparator);
@@ -937,28 +894,29 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			}
 			seed = detected;
 
+			// Calculate the conductance
+			System.out.println("Calculate the Conductance");
 			ArrayList<Double> conductanceRecord = new ArrayList<Double>((maximumCommunitySize - minimumCommunitySize + 1));
 			for (int i = 0; i <= maximumCommunitySize - minimumCommunitySize; i++) {
 				conductanceRecord.add(i, 0.0);
 			}
 
-			LEMONArrayListIndexComparator tmpcomparator = new LEMONArrayListIndexComparator(temp);
+			comparator = new LEMONArrayListIndexComparator(temp);
 			ArrayList<Integer> tempIndDesc = comparator.createIndexArrayList();
-			Collections.sort(tempIndDesc, tmpcomparator);
+			Collections.sort(tempIndDesc, comparator);
 			
 			for (int i = minimumCommunitySize; i <= maximumCommunitySize; i++) {
+				// DEBUG: System.out.println("; Conductance " + i);
 				List<Integer> candidateCommunity = new ArrayList<Integer>(maximumCommunitySize);
-				if (i < tempIndDesc.size()) {
-					candidateCommunity = tempIndDesc.subList(0, i);
-				} else {
-					candidateCommunity = tempIndDesc;
-				}
-				conductanceRecord.set(i - minimumCommunitySize, calculateConductance(graphAdjacencyMatrix, candidateCommunity));
+				
+				candidateCommunity = tempIndDesc.subList(0, i);
+				conductanceRecord.set(i - minimumCommunitySize, calculateConductance(graphAdjacencyMatrix, candidateCommunity, graphAdjacencyMatrixSum, graphAdjacencyMatrixRowSums));
 			}
+			// DEBUG: System.out.println("CONDUCTANCES: " + conductanceRecord.toString());
 
-			System.out.println("Start minimum");
+			// Recieve best community size according to conductance
+			System.out.println("Calculate Minimum");
 			int detectedSize = globalMinimum(conductanceRecord, minimumCommunitySize, globalConductance, iteration);
-			System.out.println("End minimum");
 
 			step += expansionStepSize;
 
@@ -976,7 +934,8 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 					.floorMod(iteration, globalConductance.length)]
 					&& globalConductance[Math.floorMod(iteration - 1,
 							globalConductance.length)] <= globalConductance[Math.floorMod(iteration - 2,
-									globalConductance.length)]) {
+									globalConductance.length)]) { // If the global conductance has increased after a local minimum
+				System.out.println("Conductance: " + Arrays.toString(globalConductance));
 				flag = false;
 			}
 
@@ -989,9 +948,9 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			iteration++;
 		}
 
-		System.out.println("Done");
+		// DEBUG: System.out.println("Done");
 		return detectedCommunity;
 	}
 
-	// TODO: Maybe implement the score functions
+	// TODO: Maybe implement the score functions from the example for further debug purposes
 }

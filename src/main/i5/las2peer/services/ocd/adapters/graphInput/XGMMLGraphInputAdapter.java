@@ -153,7 +153,7 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 			DocumentBuilder docBuilder;
 			docBuilder = factory.newDocumentBuilder();
 
-			//this.reader = new FileReader(filePath);
+			//this.reader = new FileReader(filePath); //TODO: Only for tests, find a better way to run those and to not have to comment/uncomment this everytime
 			BufferedReader br = new BufferedReader(this.reader);
 			String line = null;
 			StringBuilder sb = new StringBuilder();
