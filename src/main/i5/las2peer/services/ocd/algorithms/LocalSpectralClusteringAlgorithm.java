@@ -71,7 +71,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	/*
 	 * The index list of the graph node seed set
 	 */
-	private ArrayList<Integer> commaSeparatedSeedSet = new ArrayList<Integer>(Arrays.asList(0));
+	private ArrayList<String> commaSeparatedSeedSet = new ArrayList<String>(Arrays.asList("NodeName"));
 
 	/*
 	 * The minimum possible community size
@@ -171,17 +171,16 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
 		if (parameters.containsKey(COMMA_SEPARATED_SEED_SET_NAME)) {
 			String seedString = parameters.get(COMMA_SEPARATED_SEED_SET_NAME);
-			if (seedString.matches("[^,0-9]+")) {
-				throw new IllegalArgumentException();
-			}
+			//if (seedString.matches("[^,0-9]+")) {
+			//	throw new IllegalArgumentException();
+			//}
 
-			System.out.println("seed: " + seedString);
-			ArrayList<Integer> seedSetTmp = new ArrayList<Integer>();
+			// DEBUG: System.out.println("seed: " + seedString);
+			ArrayList<String> seedSetTmp = new ArrayList<String>();
 
 			String[] seedSetString = seedString.split(",");
 			for (String str : seedSetString) {
-
-				seedSetTmp.add(Integer.parseInt(str));
+				seedSetTmp.add(str);
 			}
 			if (seedSetTmp.size() != 0) {
 				commaSeparatedSeedSet = seedSetTmp;
@@ -235,20 +234,39 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			parameters.remove(randomrandomWalkSteps_NAME);
 		}
 		if (parameters.size() > 0) {
-			System.out.println("params: " + parameters.toString());
+			// DEBUG: System.out.println("params: " + parameters.toString());
 			throw new IllegalArgumentException();
 		}
 	}
 
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
+		
+		ArrayList<Integer> commaSeparatedSeedIndexSet = new ArrayList<Integer>(commaSeparatedSeedSet.size());
+		Node[] graphNodes = graph.getNodeArray();
+		for(String seed : commaSeparatedSeedSet)
+		{
+			boolean found = false;
+			for(Node node : graphNodes)
+			{
+				if(graph.getNodeName(node).equals(seed))
+				{
+					commaSeparatedSeedIndexSet.add(node.index());
+					// DEBUG: System.out.println("SEEDNODE INDEX: " + node.index());
+					found = true;
+					break;
+				}
+			}
+			if(!found) {
+				throw new OcdAlgorithmException("Could not find a seed node: " + seed);
+			}
+		}
+		
+		
 		Matrix graphAdjacencyMatrix = getAdjacencyMatrixWithIdentity(graph);
 		
-		Map<Integer, Double> members = seedSetExpansion(graphAdjacencyMatrix, commaSeparatedSeedSet, minimumCommunitySize,
+		Map<Integer, Double> members = seedSetExpansion(graphAdjacencyMatrix, commaSeparatedSeedIndexSet, minimumCommunitySize,
 				maximumCommunitySize, expansionStepSize, subspaceDimension, randomWalkSteps, biased);
-		
-		// Clear seeds for potential component detection later on
-		commaSeparatedSeedSet = new ArrayList<Integer>(Arrays.asList(0));
 
 		Matrix coverMatrix = new Basic2DMatrix(graphAdjacencyMatrix.rows(), 2);
 		coverMatrix = coverMatrix.blank();
@@ -279,18 +297,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		// DEBUG: System.out.println("DETECTED FINAL:" + members.values().toString());
 
 		Cover c = new Cover(graph, coverMatrix);
-		
-		//TODO: remove
-		Node[] nodes = graph.getNodeArray();
-		for(int i=0; i<coverMatrix.rows(); i++) {
-			System.out.print(nodes[i].index()+ ":::" + graph.getNodeName(nodes[i]) + ": ");	
-			for(int j=0; j<coverMatrix.columns(); j++)
-			{
-				System.out.print(" " + coverMatrix.get(i, j));	
-			}
-			System.out.println(" END");
-		}
-		//TODO: remove
 		
 		return c;
 	}
@@ -573,7 +579,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 */
 	public ArrayList<Double> minimumOneNorm(Matrix matrix, ArrayList<Integer> initialSeed, ArrayList<Integer> seed, Matrix graphAdjacencyMatrix) {
 
-		// DEBUG: System.out.println("NORM SEEDS: " + seed.toString());
+		// DEBUG: System.out.println("SEEDS: " + seed.toString());
 		
 		double weightInitial = 1 / (double) (initialSeed.size());
 		double weightLaterAdded = weightInitial / 0.5;
@@ -702,7 +708,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			}
 		}
 	
-		System.out.println("Begin Norm");
+		// DEBUG: System.out.println("Begin Norm");
 
 		ArrayList<Double> v = new ArrayList<Double>(rows);
 		
@@ -747,7 +753,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			throw err;
 		}
 
-		System.out.println("Norm done");
+		// DEBUG: System.out.println("Norm done");
 
 		return v;
 	}
@@ -873,7 +879,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 		int iteration = 0;
 		while (flag) {
-			System.out.println("Start Norm procedure");
+			// DEBUG: System.out.println("Start Norm procedure");
 			ArrayList<Double> temp = minimumOneNorm(orthProbMatrix, initialSeed, seed, graphAdjacencyMatrix); 
 			
 			List<Integer> sortedTop = new ArrayList<Integer>(temp.size());
@@ -895,7 +901,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			seed = detected;
 
 			// Calculate the conductance
-			System.out.println("Calculate the Conductance");
+			// DEBUG: System.out.println("Calculate the Conductance");
 			ArrayList<Double> conductanceRecord = new ArrayList<Double>((maximumCommunitySize - minimumCommunitySize + 1));
 			for (int i = 0; i <= maximumCommunitySize - minimumCommunitySize; i++) {
 				conductanceRecord.add(i, 0.0);
@@ -906,17 +912,17 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			Collections.sort(tempIndDesc, comparator);
 			
 			for (int i = minimumCommunitySize; i <= maximumCommunitySize; i++) {
-				// DEBUG: System.out.println("; Conductance " + i);
 				List<Integer> candidateCommunity = new ArrayList<Integer>(maximumCommunitySize);
-				
+
 				candidateCommunity = tempIndDesc.subList(0, i);
 				conductanceRecord.set(i - minimumCommunitySize, calculateConductance(graphAdjacencyMatrix, candidateCommunity, graphAdjacencyMatrixSum, graphAdjacencyMatrixRowSums));
 			}
 			// DEBUG: System.out.println("CONDUCTANCES: " + conductanceRecord.toString());
 
 			// Recieve best community size according to conductance
-			System.out.println("Calculate Minimum");
+			// DEBUG: System.out.println("Start minimum");
 			int detectedSize = globalMinimum(conductanceRecord, minimumCommunitySize, globalConductance, iteration);
+			// DEBUG: System.out.println("End minimum");
 
 			step += expansionStepSize;
 
@@ -926,16 +932,16 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 				initialProbability = setInitialProbability(graphAdjacencyMatrix.rows(), seedset);
 			}
 
-			System.out.println("Random walk begin");
+			// DEBUG: System.out.println("Random walk begin");
 			orthProbMatrix = randomWalk(graphAdjacencyMatrix, initialProbability, subspaceDimension, randomWalkSteps);
-			System.out.println("Random walk end");
+			// DEBUG: System.out.println("Random walk end");
 
 			if (globalConductance[Math.floorMod(iteration - 1, globalConductance.length)] <= globalConductance[Math
 					.floorMod(iteration, globalConductance.length)]
 					&& globalConductance[Math.floorMod(iteration - 1,
 							globalConductance.length)] <= globalConductance[Math.floorMod(iteration - 2,
 									globalConductance.length)]) { // If the global conductance has increased after a local minimum
-				System.out.println("Conductance: " + Arrays.toString(globalConductance));
+				// DEBUG: System.out.println("Conductance: " + Arrays.toString(globalConductance));
 				flag = false;
 			}
 

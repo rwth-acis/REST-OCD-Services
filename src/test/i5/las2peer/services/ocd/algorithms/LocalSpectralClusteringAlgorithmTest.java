@@ -32,7 +32,7 @@ public class LocalSpectralClusteringAlgorithmTest {
 		OcdAlgorithm algo = new LocalSpectralClusteringAlgorithm();
 		
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(LocalSpectralClusteringAlgorithm.COMMA_SEPARATED_SEED_SET_NAME, "1,33");
+		parameters.put(LocalSpectralClusteringAlgorithm.COMMA_SEPARATED_SEED_SET_NAME, "2,34");
 		algo.setParameters(parameters);
 				
 		Cover cover = algo.detectOverlappingCommunities(graph);
@@ -40,7 +40,7 @@ public class LocalSpectralClusteringAlgorithmTest {
 		System.out.println(cover.toString());
 		
 		parameters = new HashMap<String, String>();
-		parameters.put(LocalSpectralClusteringAlgorithm.COMMA_SEPARATED_SEED_SET_NAME, "8,10");
+		parameters.put(LocalSpectralClusteringAlgorithm.COMMA_SEPARATED_SEED_SET_NAME, "9,11");
 		algo.setParameters(parameters);
 				
 		cover = algo.detectOverlappingCommunities(graph);
@@ -48,7 +48,7 @@ public class LocalSpectralClusteringAlgorithmTest {
 		System.out.println(cover.toString());
 		
 		parameters = new HashMap<String, String>();
-		parameters.put(LocalSpectralClusteringAlgorithm.COMMA_SEPARATED_SEED_SET_NAME, "12,13,20");
+		parameters.put(LocalSpectralClusteringAlgorithm.COMMA_SEPARATED_SEED_SET_NAME, "13,14,21");
 		algo.setParameters(parameters);
 				
 		cover = algo.detectOverlappingCommunities(graph);
