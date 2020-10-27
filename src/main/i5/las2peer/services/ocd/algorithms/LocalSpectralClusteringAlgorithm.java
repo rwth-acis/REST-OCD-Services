@@ -252,7 +252,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 				if(graph.getNodeName(node).equals(seed))
 				{
 					commaSeparatedSeedIndexSet.add(node.index());
-					// DEBUG: System.out.println("SEEDNODE INDEX: " + node.index());
 					found = true;
 					break;
 				}
@@ -279,6 +278,9 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		// Calculate maximum value to get all entries to a value from 0 to 1
 		for(Map.Entry<Integer, Double> entry : members.entrySet())
 		{
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			entry.setValue(Math.log10(entry.getValue()+1)); //TODO: Decide whether to remove or keep for better representation
 			if(entry.getValue() > maxVal)
 			{
@@ -313,14 +315,16 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * @return Adjacency Matrix with self-directed edges
 	 * 
 	 */
-	public Matrix getAdjacencyMatrixWithIdentity(CustomGraph graph) {
+	public Matrix getAdjacencyMatrixWithIdentity(CustomGraph graph) throws InterruptedException {
 
 		int size = graph.nodeCount();
-		// DEBUG: System.out.println("NODES OF GRAPH: " + size);
 		Matrix adjacencyMatrix = new CCSMatrix(size, size); //TOD: Maybe CCS is the problem?
 		adjacencyMatrix = adjacencyMatrix.blank();
 
 		for (EdgeCursor ec = graph.edges(); ec.ok(); ec.next()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			Edge edge = ec.edge();
 			Node source = edge.source();
 			Node target = edge.target();
@@ -332,6 +336,9 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 		// Self-directed edges
 		for (int i = 0; i < size; i++) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			adjacencyMatrix.set(i, i, 1);
 		}
 		
@@ -409,7 +416,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		// Represents the degree matrix D^(-1/2)
 		Matrix sqrtDegrees = new Basic2DMatrix(n, n);
 		sqrtDegrees = sqrtDegrees.blank();
-		for (int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {			
 			sqrtDegrees.set(i, i, 1.0 / Math.sqrt(graphAdjacencyMatrix.getRow(i).sum()));
 		}
 
@@ -418,14 +425,13 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		
 		// DEBUG: System.out.println("Matrix mult opt begin");
 		//(A+I)*(D^(-1/2)) = R
-		for(int j=0; j<n; j++)
-		{
+		for(int j=0; j<n; j++) {
 			normalizedAdjacencyMatrix.setColumn(j, normalizedAdjacencyMatrix.getColumn(j).multiply(sqrtDegrees.get(j, j)));
 		}
 		
 		//(D^(-1/2))*R
 		for(int i=0; i<n; i++)
-		{
+		{			
 			normalizedAdjacencyMatrix.setRow(i, normalizedAdjacencyMatrix.getRow(i).multiply(sqrtDegrees.get(i,i)));
 		}
 		// DEBUG: System.out.println("Matrix mult opt end");
@@ -444,7 +450,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * 
 	 * @return A conductance of floating point value
 	 */
-	public double calculateConductance(Matrix graphAdjacencyMatrix, List<Integer> cluster, double graphAdjacencyMatrixSum, double[] graphAdjacencyMatrixRowSums) {
+	public double calculateConductance(Matrix graphAdjacencyMatrix, List<Integer> cluster, double graphAdjacencyMatrixSum, double[] graphAdjacencyMatrixRowSums) throws InterruptedException{
 
 		int[] clusterArray = new int[cluster.size()];
 		for (int i = 0; i < cluster.size(); i++) {
@@ -460,8 +466,12 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		Matrix subgraphAdjacencyMatrix = graphAdjacencyMatrix.select(clusterArray, clusterArray);
 		
 		double clusterAdjacencyMatrixSum = 0;
-		for(int i=0; i<cluster.size(); i++) //TODO: CHECK IF CORRECT
+		for(int i=0; i<cluster.size(); i++)
 		{
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			
 			clusterAdjacencyMatrixSum += graphAdjacencyMatrixRowSums[clusterArray[i]];
 		}
 		double cutsize = clusterAdjacencyMatrixSum - subgraphAdjacencyMatrix.sum();
@@ -484,7 +494,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * 
 	 * @return A matrix of orthonormal vectors
 	 */
-	public Matrix createOrthonormal(Matrix matrix) {
+	public Matrix createOrthonormal(Matrix matrix) throws InterruptedException{
 		// DEBUG: System.out.println("Mat\n" + matrix.toString() + "mat\n");
 
 		SingularValueDecompositor svdCompositor = new SingularValueDecompositor(matrix);
@@ -508,7 +518,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			}
 		}
 
-		//TODO: Intensive checks if num +1 truly gives the correct result
 		num +=1;
 		if((int)num > U.columns())
 		{
@@ -517,6 +526,10 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		
 		Matrix orthonormalMatrix = new Basic2DMatrix(U.rows(), (int) num);
 		for (int j = 0; j < (int) num; j++) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			
 			Vector a = U.getColumn(j);
 			double norm = a.fold(Vectors.mkManhattanNormAccumulator());
 			Vector normalizedColumn = a.divide(norm);
@@ -540,7 +553,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * 
 	 * @return The probability matrix with n probability vectors resulting from n random walks
 	 */
-	public Matrix randomWalk(Matrix graphAdjacencyMatrix, Vector initialProbability, int subspaceDimension, int randomWalkSteps) {
+	public Matrix randomWalk(Matrix graphAdjacencyMatrix, Vector initialProbability, int subspaceDimension, int randomWalkSteps) throws InterruptedException{
 		Matrix normalizedAdjacencyMatrix = adjToNormAdj(graphAdjacencyMatrix);
 		
 		Matrix probMatrix = new Basic2DMatrix(graphAdjacencyMatrix.rows(), subspaceDimension);
@@ -555,6 +568,10 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		Matrix orthProbMatrix = createOrthonormal(probMatrix);
 
 		for (int i = 0; i < randomWalkSteps; i++) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			
 			Matrix temp = orthProbMatrix.transpose().multiply(normalizedAdjacencyMatrix);
 			orthProbMatrix = createOrthonormal(temp.transpose());
 		}
@@ -708,8 +725,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			}
 		}
 	
-		// DEBUG: System.out.println("Begin Norm");
-
 		ArrayList<Double> v = new ArrayList<Double>(rows);
 		
 //APACHE		PointValuePair solutionApache = null;
@@ -753,8 +768,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			throw err;
 		}
 
-		// DEBUG: System.out.println("Norm done");
-
 		return v;
 	}
 
@@ -769,7 +782,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * 
 	 * @return The global minimum of the sequence
 	 */
-	public int globalMinimum(ArrayList<Double> sequence, int startIndex, double[] globalConductance, int iteration) {
+	public int globalMinimum(ArrayList<Double> sequence, int startIndex, double[] globalConductance, int iteration) throws InterruptedException{
 
 		int detectedSize = sequence.size();
 		int sequenceLength = sequence.size();
@@ -781,6 +794,10 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			sequence.add(0.0);
 		}
 		for (int i = 0; i < sequenceLength; i++) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			
 			if (sequence.get(i) < sequence.get(Math.floorMod(i - 1, sequenceLength))
 					&& sequence.get(i) < sequence.get(i + 1)) { // Is local Minimum
 				int countLarger = 0;
@@ -798,7 +815,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 				}
 				if (countLarger >= 18 && countSmaller >= 18) {
 					detectedSize = i + startIndex;
-					// DEBUG: System.out.println("DETECTEDSIZE=" +detectedSize);
 					globalConductance[Math.floorMod(iteration, globalConductance.length)] = sequence.get(i);
 					break;
 				}
@@ -823,7 +839,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * @return A map of node indices and their likelihood to be in a community
 	 */
 	public Map<Integer, Double> seedSetExpansion(Matrix graphAdjacencyMatrix, ArrayList<Integer> seedset,
-			int minimumCommunitySize, int maximumCommunitySize, int expansionStepSize, int subspaceDimension, int randomWalkSteps, boolean biased) {
+			int minimumCommunitySize, int maximumCommunitySize, int expansionStepSize, int subspaceDimension, int randomWalkSteps, boolean biased) throws InterruptedException{
 
 		int n = graphAdjacencyMatrix.rows();
 		
@@ -834,8 +850,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			graphAdjacencyMatrixRowSums[i]=graphAdjacencyMatrix.getRow(i).sum();
 		}
 		
-		// DEBUG: System.out.println("ROWS: " + n);
-
 		HashMap<Integer, Integer> degree = new HashMap<Integer, Integer>();
 		for (int i = 0; i < n; i++) {
 			degree.put(i, (int) (graphAdjacencyMatrix.getRow(i).sum()));
@@ -879,6 +893,10 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 		int iteration = 0;
 		while (flag) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			
 			// DEBUG: System.out.println("Start Norm procedure");
 			ArrayList<Double> temp = minimumOneNorm(orthProbMatrix, initialSeed, seed, graphAdjacencyMatrix); 
 			
@@ -913,13 +931,13 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			
 			for (int i = minimumCommunitySize; i <= maximumCommunitySize; i++) {
 				List<Integer> candidateCommunity = new ArrayList<Integer>(maximumCommunitySize);
-
+				
 				candidateCommunity = tempIndDesc.subList(0, i);
 				conductanceRecord.set(i - minimumCommunitySize, calculateConductance(graphAdjacencyMatrix, candidateCommunity, graphAdjacencyMatrixSum, graphAdjacencyMatrixRowSums));
 			}
 			// DEBUG: System.out.println("CONDUCTANCES: " + conductanceRecord.toString());
 
-			// Recieve best community size according to conductance
+			// Receive best community size according to conductance
 			// DEBUG: System.out.println("Start minimum");
 			int detectedSize = globalMinimum(conductanceRecord, minimumCommunitySize, globalConductance, iteration);
 			// DEBUG: System.out.println("End minimum");
