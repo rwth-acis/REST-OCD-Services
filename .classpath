@@ -15,7 +15,6 @@
 	<classpathentry kind="lib" path="lib/yguard.jar"/>
 	<classpathentry kind="lib" path="lib/json-simple-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-jxpath-1.1.jar"/>
-	<classpathentry kind="lib" path="lib/sbbi-upnplib-1.0.4.jar"/>
 	<classpathentry kind="lib" path="lib/commonj.sdo-2.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/eclipselink-2.5.2.jar"/>
 	<classpathentry kind="lib" path="lib/javax.persistence-2.1.0.jar"/>
@@ -105,5 +104,6 @@
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.3.jar"/>
 	<classpathentry kind="lib" path="lib/mason.19.jar"/>
 	<classpathentry kind="lib" path="lib/ysvg.jar"/>
+	<classpathentry kind="lib" path="lib/ojalgo-47.1.1.jar"/>
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

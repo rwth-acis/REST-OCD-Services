@@ -18,7 +18,12 @@ public enum VisualOutputFormat {
 	/**
 	 * Format corresponding to the SvgVisualOutputAdapter.
 	 */
-	SVG (SvgVisualOutputAdapter.class, 0);
+	SVG (SvgVisualOutputAdapter.class, 0),
+	
+	/**
+	 * Format corresponding to the SvgVisualOutputAdapter.
+	 */
+	JSON (JsonVisualOutputAdapter.class, 1);
 	
 	/**
 	 * The adapter class corresponding to the format.
