@@ -1032,7 +1032,7 @@ public class ServiceClass extends RESTService {
 				}
 
 				try {
-					entityHandler.deleteCover(username, coverId, graphId, threadHandler);
+					entityHandler.deleteCover(username, graphId, coverId, threadHandler);
 					return Response.ok(requestHandler.writeConfirmationXml()).build();
 				} catch (IllegalArgumentException e) {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, e.getMessage());
