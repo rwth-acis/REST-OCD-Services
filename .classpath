@@ -102,8 +102,8 @@
 	<classpathentry kind="lib" path="lib/mockito-all-1.9.5.jar"/>
 	<classpathentry kind="lib" path="lib/batik-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.3.jar"/>
-	<classpathentry kind="lib" path="lib/mason.19.jar"/>
 	<classpathentry kind="lib" path="lib/ysvg.jar"/>
-	<classpathentry kind="lib" path="lib/ojalgo-47.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/mason-19.jar"/>
+	<classpathentry kind="lib" path="lib/ojalgo-48.3.2.jar"/>
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

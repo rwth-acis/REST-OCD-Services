@@ -29,5 +29,9 @@
 		<dependency org="batik" name="batik" rev="1.5" conf="platform->default" />
 		<dependency org="i5" name="batik" rev="1.0" conf="platform->default" />
 		<dependency org="org.mockito" name="mockito-all" rev="1.9.5" conf="platform->default"/>
+		<dependency org="fr.irit.smac.thirdparty.edu.gmu.cs" name="mason" rev="19" conf="platform->default"/>
+		<dependency org="org.ojalgo" name="ojalgo" rev="48.3.2" conf="platform->default"/>
+		<dependency org="net.sbbi" name="sbbi-upnplib" rev="1.0.4" conf="platform->default"/>
+		
     </dependencies>
 </ivy-module>
