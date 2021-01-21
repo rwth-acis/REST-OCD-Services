@@ -1,4 +1,4 @@
-OCD Service
+OCD Service - WebOCD
 
 This is a RESTful web service for overlapping community detection. The service is developed with the Eclipse IDE, so we recommend you to use this tool to work on the project.
 
