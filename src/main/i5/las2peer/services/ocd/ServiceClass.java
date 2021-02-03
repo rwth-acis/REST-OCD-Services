@@ -761,6 +761,7 @@ public class ServiceClass extends RESTService {
 					}
 					cover.setCreationMethod(log);
 					cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
+					tx.begin();
 					em.persist(cover);
 					tx.commit();
 				} catch (RuntimeException e) {
