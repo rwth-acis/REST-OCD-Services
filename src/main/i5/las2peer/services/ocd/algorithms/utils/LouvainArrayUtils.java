@@ -20,12 +20,21 @@ package i5.las2peer.services.ocd.algorithms.utils;
 
 import java.util.Random;
 
+/**
+ * This class contains some helper methods for Array handling in the Louvain algorithm
+ */
 public final class LouvainArrayUtils {
 
   private LouvainArrayUtils() {
     // Disable instantiation of static helper class
   }
 
+  /**
+   * Gives the last occuring index of a value in an array
+   * @param a An array
+   * @param n A value
+   * @return The last occuring index of a value in an array
+   */
   public static int lastIndexOf(double[] a, double n) {
     if (a == null) {
       return -1;
@@ -39,6 +48,10 @@ public final class LouvainArrayUtils {
     return lastIndex;
   }
 
+  /**
+   * Shuffles the values in an integer array randomly
+   * @param a An array
+   */
   public static void shuffle(int[] a) {
     final Random rnd = new Random();
     final int count = a.length;
@@ -48,6 +61,10 @@ public final class LouvainArrayUtils {
     }
   }
 
+  /**
+   * Fills an integer array with random values
+   * @param a An array
+   */
   public static void fillRandomly(int[] a) {
     final int count = a.length;
 
@@ -58,6 +75,12 @@ public final class LouvainArrayUtils {
     shuffle(a);
   }
 
+  /**
+   * Swaps to values in an integer array
+   * @param a An array
+   * @param i A first value
+   * @param j A second value
+   */
   private static void swap(int[] a, int i, int j) {
     final int temp = a[i];
     a[i] = a[j];

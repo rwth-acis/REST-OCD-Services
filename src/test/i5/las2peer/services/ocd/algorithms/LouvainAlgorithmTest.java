@@ -9,14 +9,9 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.la4j.matrix.Matrix;
-
-import y.base.Node;
 
 public class LouvainAlgorithmTest {
 
@@ -27,6 +22,17 @@ public class LouvainAlgorithmTest {
 	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new LouvainAlgorithm();
+		Cover cover = algo.detectOverlappingCommunities(graph);
+		System.out.println(cover.toString());
+	}
+	
+	/*
+	 * Tests the algorithm on the sawmill graph with maximum layers
+	 */
+	@Test
+	public void testOnSawmillMaxLayers() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
+		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
+		OcdAlgorithm algo = new LouvainAlgorithm(Integer.MAX_VALUE);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}

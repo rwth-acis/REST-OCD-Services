@@ -45,10 +45,15 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- * Implementation of the Louvain method of community detection.
+ * Implementation of the Louvain method of non-overlapping community detection. This implementation is based on the definition by Vincent D. Blondel, Jean-Loup Guillaume, Renaud Lambiotte, Etienne Lefebvre from 2008 
+ * and largely corresponds to the one at https://github.com/neil-justice/louvain.
+ * Handles undirected graphs(makes them undirected if not)
  */
 public class LouvainAlgorithm implements OcdAlgorithm {
 	
+  /**
+   * The number of community layers the algorithm is allowed to produce. Each node is a community from the previous layers. 
+   */
   private int maxLayers = 20;
   
   /*
@@ -115,6 +120,12 @@ public class LouvainAlgorithm implements OcdAlgorithm {
 	  }
   }
   
+  /**
+   * Builds a membership matrix from a given graph and community belonging per node
+   * @param graph The graph the community detection was done on
+   * @param communitiesPerNode An int array of which community belongs to which node, the node indexes correspond to the array indexes and the values to the community number
+   * @return The membership matrix
+   */
   public Matrix getMembershipMatrix(CustomGraph graph, int[] communitiesPerNode) {
 	  Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communitiesPerNode.length);
 	  membershipMatrix = membershipMatrix.blank();
@@ -144,12 +155,22 @@ public class LouvainAlgorithm implements OcdAlgorithm {
 		return CoverCreationType.LOUVAIN_ALGORITHM;
 	}
 
+  /**
+   * Computes an array of community belonging for each node, default if maxLayers is undefined
+   * @return An int array of community belonging for each node, the node indexes correspond to the array indexes and the values to the community number
+   * @throws OcdAlgorithmException
+   */
   public int[] cluster() 
 		  throws OcdAlgorithmException {
     return cluster(Integer.MAX_VALUE);
   }
 
-  // detect communities
+  /**
+   * Computes an array of community belonging for each node and produces at maximum as many community layers as it is allowed
+   * @param maxLayers Maximum number of community layers allowed
+   * @return An int array of community belonging for each node, the node indexes correspond to the array indexes and the values to the community number
+   * @throws OcdAlgorithmException
+   */
   public int[] cluster(int maxLayers) 
 		  throws OcdAlgorithmException {
     if (maxLayers <= 0) {
@@ -199,10 +220,11 @@ public class LouvainAlgorithm implements OcdAlgorithm {
   }
 
   /**
-   * Get the modularity of a specific layer of the graph. If called before the clusterer has run, will throw
-   * an {@link IndexOutOfBoundsException}.
-   *
+   * Gets the modularity of a specific layer of the graph. If called before the clusterer has run, will throw
+   * an exception
    * @param l the index of the layer.
+   * @return The modularity of a specific layer of the graph
+   * @throws IndexOutOfBoundsException
    */
   public double modularity(int l) {
     if (l >= graphs.size()) {
@@ -216,25 +238,25 @@ public class LouvainAlgorithm implements OcdAlgorithm {
   }
 
   /**
-   * Get the number of layers created during the detection process.
-   *
-   * If called before the clusterer has run, will return 0.
+   * Get the number of layers created during the detection process. If called before the clusterer has run, will return 0.
+   * @return The number of layers created during the detection process
    */
   public int getLayerCount() {
     return layer;
   }
 
   /**
-   * Get the graphs created during the detection process.
-   *
-   * If called before the clusterer has run, will return an empty list.
-   *
-   * @return an immutable view of the graphs list.
+   * Get the graphs created during the detection process. If called before the clusterer has run, will return an empty list.
+   * @return An immutable view of the graphs list.
    */
   public List<LouvainGraph> getGraphs() {
     return Collections.unmodifiableList(graphs);
   }
 
+  /**
+   * Adds a new community layer
+   * @throws OcdAlgorithmException
+   */
   private void addNewLayer() 
 		  throws OcdAlgorithmException {
     final LouvainGraph last = graphs.get(layer);
@@ -251,6 +273,12 @@ public class LouvainAlgorithm implements OcdAlgorithm {
     private LouvainGraph g;
     private int[] shuffledNodes;
 
+    /**
+     * Runs the louvain maximiser for community modularity.
+     * @param g A graph
+     * @return The number of total moves taken
+     * @throws OcdAlgorithmException
+     */
     private int run(LouvainGraph g) 
     		throws OcdAlgorithmException {
       this.g = g;
@@ -266,6 +294,10 @@ public class LouvainAlgorithm implements OcdAlgorithm {
       return totalMoves;
     }
 
+    /**
+     * Reassigns communities through maximising local modularity until modularity values don't change anymore
+     * @throws OcdAlgorithmException
+     */
     private void reassignCommunities() 
     		throws OcdAlgorithmException {
       double mod = g.partitioning().modularity();
@@ -288,6 +320,11 @@ public class LouvainAlgorithm implements OcdAlgorithm {
       } while (hasChanged);
     }
 
+    /**
+     * Maximises the local modularity of a set of nodes
+     * @return The number of moves needed
+     * @throws OcdAlgorithmException
+     */
     private int maximiseLocalModularity() 
     		throws OcdAlgorithmException {
       int moves = 0;
@@ -300,6 +337,12 @@ public class LouvainAlgorithm implements OcdAlgorithm {
       return moves;
     }
 
+    /**
+     * Make best move for maximising local modularity
+     * @param node A node
+     * @return true if it was possible, false if there was no better move
+     * @throws OcdAlgorithmException
+     */
     private boolean makeBestMove(int node)
     		throws OcdAlgorithmException {
       double max = 0d;
@@ -322,7 +365,12 @@ public class LouvainAlgorithm implements OcdAlgorithm {
       }
     }
 
-    // change in modularity if node is moved to community
+    /**
+     * Computes the modularity delta for a node and a community. Modularity will change if node is moved to community
+     * @param node A node index
+     * @param community A community index
+     * @return The modularity delta for a node and a community
+     */
     private double deltaModularity(int node, int community) {
       final double dnodecomm = g.partitioning().dnodecomm(node, community);
       final double ctot = g.partitioning().totDegree(community);

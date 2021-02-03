@@ -55,7 +55,8 @@ public class LouvainGraph {
   }
 
   /**
-   * loads a partition set.
+   * Loads a partition set.
+   * @param The partition set
    */
   public void loadPartitioning(int[] partitioning) 
 		  throws OcdAlgorithmException {
@@ -135,6 +136,12 @@ public class LouvainGraph {
       }
     }
 
+    /**
+     * Moves a node to a new community
+     * @param node A node
+     * @param newComm The new community
+     * @throws OcdAlgorithmException
+     */
     public void moveToComm(int node, int newComm) 
     		throws OcdAlgorithmException {
       rangeCheck(node);
@@ -184,7 +191,12 @@ public class LouvainGraph {
       }
     }
 
-    // weight between a community and a node
+    /**
+     * Computes the weight between a community and a node, essentially the edge weights between the node and nodes from that community added
+     * @param node A node
+     * @param comm A community
+     * @return The weight between a community and a node
+     */
     public int dnodecomm(int node, int comm) {
       rangeCheck(node);
       rangeCheck(comm);
@@ -211,7 +223,11 @@ public class LouvainGraph {
       return q;
     }
 
-    // returns the contribution that this comm makes to the total modularity
+    /**
+     * Returns the contribution that a community makes to the total modularity
+     * @param comm A community
+     * @return The contribution
+     */
     public double modularityContribution(int comm) {
       rangeCheck(comm);
       final double ctot = totDegree(comm);

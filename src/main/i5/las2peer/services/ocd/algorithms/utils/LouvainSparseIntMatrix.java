@@ -24,7 +24,7 @@ import java.util.HashMap;
 
 
 /**
- * Sparse square matrix using hashmap.
+ * Sparse square matrix using hashmap for louvain graphs.
  */
 public class LouvainSparseIntMatrix {
   private final HashMap<Long,Integer> map;

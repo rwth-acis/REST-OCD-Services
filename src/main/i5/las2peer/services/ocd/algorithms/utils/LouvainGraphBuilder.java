@@ -35,6 +35,9 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.Map.Entry;
 
+/**
+ * This class builds Louvain graphs from the graphs used in the ocd service
+ */
 public class LouvainGraphBuilder {
 
   private LouvainSparseIntMatrix matrix;
@@ -44,6 +47,13 @@ public class LouvainGraphBuilder {
   private int sizeDbl = 0;
   private int layer = 0;
 
+  /**
+   * Builds Louvain graphs from the graph used in the ocd service
+   * @param graph A graph
+   * @return A corresponding louvain graph
+   * @throws InterruptedException
+   * @throws OcdAlgorithmException
+   */
   public LouvainGraph fromGraph(CustomGraph graph) 
 		  throws InterruptedException, OcdAlgorithmException{
 	order = graph.nodeCount();
@@ -69,6 +79,9 @@ public class LouvainGraphBuilder {
 	return build();
   }
   
+  /**
+   * Initialises the builder
+   */
   private void initialise() {
     matrix = new LouvainSparseIntMatrix(order);
     degrees = new int[order];
@@ -78,7 +91,12 @@ public class LouvainGraphBuilder {
     }
   }
 
-  //inserts symmetrical edge
+  /**
+   * Inserts a symmetrical edge
+   * @param n1 A first node
+   * @param n2 A second node
+   * @param weight An edge weight
+   */
   private void insertEdgeSym(int n1, int n2, int weight) {
     insertEdge(n1, n2, weight);
     if (n1 != n2) {
@@ -86,6 +104,12 @@ public class LouvainGraphBuilder {
     }
   }
 
+  /**
+   * Inserts an edge
+   * @param n1 A first node
+   * @param n2 A second node
+   * @param weight An edge weight
+   */
   private void insertEdge(int n1, int n2, int weight) {
     matrix.set(n1, n2, weight);
     adjList.get(n1).add(n2);
@@ -100,6 +124,14 @@ public class LouvainGraphBuilder {
     return this;
   }
 
+  /**
+   * Adds an edge between two nodes
+   * @param n1 A first node
+   * @param n2 A second node
+   * @param weight An edge weight
+   * @return This LouvaingraphBuilder
+   * @throws OcdAlgorithmException
+   */
   public LouvainGraphBuilder addEdge(int n1, int n2, int weight) 
 		  throws OcdAlgorithmException {
     if (n1 >= order) {
@@ -119,6 +151,13 @@ public class LouvainGraphBuilder {
     return this;
   }
 
+  /**
+   * Coarse-grains the weights between nodes of a graph
+   * @param g A louvain graph
+   * @param map A mapping
+   * @return The processed louvain graph
+   * @throws OcdAlgorithmException
+   */
   public LouvainGraph coarseGrain(LouvainGraph g, HashMap<Integer,Integer> map) 
 		  throws OcdAlgorithmException {
     this.order = g.partitioning().numComms();
@@ -147,6 +186,12 @@ public class LouvainGraphBuilder {
     return build();
   }
 
+  /**
+   * Builds a louvain graph from an existing louvain graph and a list of community members
+   * @param g A louvain graph
+   * @param members A list of community member indexes
+   * @return
+   */
   public LouvainGraph fromCommunity(LouvainGraph g, ArrayList<Integer> members) {
     this.order = members.size();
     initialise();
