@@ -43,7 +43,7 @@ public class LouvainGraphLayerMapper {
    * @throws OcdAlgorithmException
    */
   public HashMap<Integer,Integer> createLayerMap(LouvainGraph g) 
-		  throws OcdAlgorithmException {
+		  throws OcdAlgorithmException, InterruptedException {
     int count = 0;
     layer++;
     final boolean[] isFound = new boolean[g.order()];
@@ -51,6 +51,10 @@ public class LouvainGraphLayerMapper {
     // Arrays.sort(communities);
 
     for (int node = 0; node < g.order(); node++) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }	
+    	
       final int comm = g.partitioning().community(node);
       if (!isFound[comm]) {
         map.put(comm, count);
@@ -72,16 +76,25 @@ public class LouvainGraphLayerMapper {
    * Uses the layer maps to assign a community from each layer to the base layer graph.
    * @return A list of community belongings per layer
    */
-  public List<int[]> run() {
+  public List<int[]> run() 
+		  throws InterruptedException {
     final List<int[]> rawComms = new ArrayList<>();
     final List<int[]> communities = new ArrayList<>();
     communities.add(graphs.get(0).partitioning().communities());
 
     for (int i = 0; i < layer; i++) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }
+    	
       rawComms.add(graphs.get(i).partitioning().communities());
     }
 
     for (int i = 0; i < layer - 1; i++) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }
+    	
       communities.add(mapToBaseLayer(i, rawComms));
     }
 
@@ -94,12 +107,17 @@ public class LouvainGraphLayerMapper {
    * @param rawComms The basic communities per layer
    * @return The mapping from nodes of the specified layer to the base layer
    */
-  private int[] mapToBaseLayer(int layer, List<int[]> rawComms) {
+  private int[] mapToBaseLayer(int layer, List<int[]> rawComms) 
+		  throws InterruptedException {
     int[] a = mapToNextLayer(graphs.get(layer), layerMaps.get(layer),
         rawComms.get(layer + 1));
     layer--;
 
     while (layer >= 0) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }	
+    	
       a = mapToNextLayer(graphs.get(layer), layerMaps.get(layer), a);
       layer--;
     }
@@ -114,11 +132,16 @@ public class LouvainGraphLayerMapper {
    * @param commsL2 The community in a layer above the first
    * @return The mapping
    */
-  private int[] mapToNextLayer(LouvainGraph g, HashMap<Integer,Integer> map, int[] commsL2) {
+  private int[] mapToNextLayer(LouvainGraph g, HashMap<Integer,Integer> map, int[] commsL2) 
+		  throws InterruptedException {
     final int[] commsL1 = g.partitioning().communities();
     final int[] NL1toCL2 = new int[g.order()];
 
     for (int nodeL1 = 0; nodeL1 < g.order(); nodeL1++) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }	
+    	
       final int commL1 = commsL1[nodeL1];
       final int nodeL2 = map.get(commL1);
       final int commL2 = commsL2[nodeL2];

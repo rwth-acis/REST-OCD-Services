@@ -35,12 +35,17 @@ public final class LouvainArrayUtils {
    * @param n A value
    * @return The last occuring index of a value in an array
    */
-  public static int lastIndexOf(double[] a, double n) {
+  public static int lastIndexOf(double[] a, double n) 
+		  throws InterruptedException {
     if (a == null) {
       return -1;
     }
     int lastIndex = -1;
     for (int i = 0; i < a.length; i++) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }
+    	
       if (a[i] == n) {
         lastIndex = i;
       }
@@ -52,10 +57,15 @@ public final class LouvainArrayUtils {
    * Shuffles the values in an integer array randomly
    * @param a An array
    */
-  public static void shuffle(int[] a) {
+  public static void shuffle(int[] a) 
+		  throws InterruptedException {
     final Random rnd = new Random();
     final int count = a.length;
     for (int i = count; i > 1; i--) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }
+    	
       final int r = rnd.nextInt(i);
       swap(a, i - 1, r);
     }
@@ -65,10 +75,15 @@ public final class LouvainArrayUtils {
    * Fills an integer array with random values
    * @param a An array
    */
-  public static void fillRandomly(int[] a) {
+  public static void fillRandomly(int[] a) 
+		  throws InterruptedException {
     final int count = a.length;
 
     for (int i = 0; i < count; i++) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }
+    	
       a[i] = i;
     }
 

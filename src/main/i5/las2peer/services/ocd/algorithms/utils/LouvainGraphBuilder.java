@@ -59,10 +59,11 @@ public class LouvainGraphBuilder {
 	order = graph.nodeCount();
 	initialise();
 	
-	for (EdgeCursor ec = graph.edges(); ec.ok(); ec.next()) {
+	for (EdgeCursor ec = graph.edges(); ec.ok(); ec.next()) {		
 		if(Thread.interrupted()) {
 			throw new InterruptedException();
 		}
+		
 		Edge edge = ec.edge();
 		Node source = edge.source();
 		Node target = edge.target();
@@ -82,11 +83,16 @@ public class LouvainGraphBuilder {
   /**
    * Initialises the builder
    */
-  private void initialise() {
+  private void initialise() 
+		  throws InterruptedException {
     matrix = new LouvainSparseIntMatrix(order);
     degrees = new int[order];
     adjList = new ArrayList<ArrayList<Integer>>(order);
     for (int i = 0; i < order; i++) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }	
+    	
       adjList.add(i,new ArrayList<Integer>());
     }
   }
@@ -117,7 +123,8 @@ public class LouvainGraphBuilder {
     sizeDbl += weight;
   }
 
-  public LouvainGraphBuilder setSize(int order) {
+  public LouvainGraphBuilder setSize(int order) 
+		  throws InterruptedException {
     this.order = order;
     initialise();
 
@@ -159,13 +166,17 @@ public class LouvainGraphBuilder {
    * @throws OcdAlgorithmException
    */
   public LouvainGraph coarseGrain(LouvainGraph g, HashMap<Integer,Integer> map) 
-		  throws OcdAlgorithmException {
+		  throws OcdAlgorithmException, InterruptedException {
     this.order = g.partitioning().numComms();
     this.layer = g.layer() + 1;
     initialise();
     int sum = 0;
 
     for (final Iterator<HashMap.Entry<Long,Integer>> it = g.partitioning().commWeightIterator(); it.hasNext(); ) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }
+    	
       Entry<Long, Integer> entry = it.next();
       final int weight = entry.getValue();
       long cmMatrixSize = g.partitioning().cMatrix().size();
@@ -192,11 +203,16 @@ public class LouvainGraphBuilder {
    * @param members A list of community member indexes
    * @return
    */
-  public LouvainGraph fromCommunity(LouvainGraph g, ArrayList<Integer> members) {
+  public LouvainGraph fromCommunity(LouvainGraph g, ArrayList<Integer> members) 
+		  throws InterruptedException {
     this.order = members.size();
     initialise();
 
     for (int newNode = 0; newNode < order; newNode++) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }
+    	
       final int oldNode = members.get(newNode);
       for (int i = 0; i < g.neighbours(oldNode).size(); i++) {
         final int oldNeigh = g.neighbours(oldNode).get(i);

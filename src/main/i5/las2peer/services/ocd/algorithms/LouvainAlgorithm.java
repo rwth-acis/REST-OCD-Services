@@ -126,17 +126,26 @@ public class LouvainAlgorithm implements OcdAlgorithm {
    * @param communitiesPerNode An int array of which community belongs to which node, the node indexes correspond to the array indexes and the values to the community number
    * @return The membership matrix
    */
-  public Matrix getMembershipMatrix(CustomGraph graph, int[] communitiesPerNode) {
+  public Matrix getMembershipMatrix(CustomGraph graph, int[] communitiesPerNode)
+		  throws InterruptedException {
 	  Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communitiesPerNode.length);
 	  membershipMatrix = membershipMatrix.blank();
 	  
 	  for(int i=0; i<communitiesPerNode.length; i++) {
+		  if(Thread.interrupted()) {
+				throw new InterruptedException();
+		  }
+		  
 		  membershipMatrix.set(i, communitiesPerNode[i], 1);
 	  }
 	  
 	  ArrayList<Vector> filledColumns = new ArrayList<Vector>();
 	  int communityCount = 0;
 	  for(int j=0; j<membershipMatrix.columns(); j++) {
+		  if(Thread.interrupted()) {
+				throw new InterruptedException();
+		  }
+		  
 		  if(membershipMatrix.getColumn(j).sum() != 0.0) {
 			  filledColumns.add(membershipMatrix.getColumn(j));
 			  communityCount++;
@@ -144,6 +153,10 @@ public class LouvainAlgorithm implements OcdAlgorithm {
 	  }
 	  membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communityCount);
 	  for(int j=0; j<filledColumns.size(); j++) {
+		  if(Thread.interrupted()) {
+				throw new InterruptedException();
+		  }
+		  
 		  membershipMatrix.setColumn(j, filledColumns.get(j));
 	  }
 	  
@@ -161,7 +174,7 @@ public class LouvainAlgorithm implements OcdAlgorithm {
    * @throws OcdAlgorithmException
    */
   public int[] cluster() 
-		  throws OcdAlgorithmException {
+		  throws OcdAlgorithmException, InterruptedException {
     return cluster(Integer.MAX_VALUE);
   }
 
@@ -172,7 +185,7 @@ public class LouvainAlgorithm implements OcdAlgorithm {
    * @throws OcdAlgorithmException
    */
   public int[] cluster(int maxLayers) 
-		  throws OcdAlgorithmException {
+		  throws OcdAlgorithmException, InterruptedException {
     if (maxLayers <= 0) {
       maxLayers = Integer.MAX_VALUE;
     }
@@ -191,6 +204,10 @@ public class LouvainAlgorithm implements OcdAlgorithm {
     double modularityMax = 0;
     int bestCommunityIndex = 0;
     for(int l=0; l<graphs.size(); l++) {
+    	if(Thread.interrupted()) {
+			throw new InterruptedException();
+    	}
+    	
     	double mod = modularity(l);
         if (mod > modularityMax) {
       	  modularityMax = mod;
@@ -204,6 +221,10 @@ public class LouvainAlgorithm implements OcdAlgorithm {
     {
     	int orgGraphCommunity[] = new int[graphs.get(0).size()];
     	for(int i=0; i<graphs.get(0).size(); i++) {
+    		if(Thread.interrupted()) {
+				throw new InterruptedException();
+    		}
+    		
     		orgGraphCommunity[i] = i;
     	}
     	return orgGraphCommunity;
@@ -258,7 +279,7 @@ public class LouvainAlgorithm implements OcdAlgorithm {
    * @throws OcdAlgorithmException
    */
   private void addNewLayer() 
-		  throws OcdAlgorithmException {
+		  throws OcdAlgorithmException, InterruptedException {
     final LouvainGraph last = graphs.get(layer);
     final HashMap<Integer,Integer> map = mapper.createLayerMap(last);
     layer++;
@@ -280,7 +301,7 @@ public class LouvainAlgorithm implements OcdAlgorithm {
      * @throws OcdAlgorithmException
      */
     private int run(LouvainGraph g) 
-    		throws OcdAlgorithmException {
+    		throws OcdAlgorithmException, InterruptedException {
       this.g = g;
       shuffledNodes = new int[g.order()];
       LouvainArrayUtils.fillRandomly(shuffledNodes);
@@ -299,13 +320,17 @@ public class LouvainAlgorithm implements OcdAlgorithm {
      * @throws OcdAlgorithmException
      */
     private void reassignCommunities() 
-    		throws OcdAlgorithmException {
+    		throws OcdAlgorithmException, InterruptedException {
       double mod = g.partitioning().modularity();
       double oldMod;
       int moves;
       boolean hasChanged;
 
       do {
+    	if(Thread.interrupted()) {
+    	  throw new InterruptedException();
+		}
+    	  
         hasChanged = true;
         oldMod = mod;
         moves = maximiseLocalModularity();
@@ -326,9 +351,13 @@ public class LouvainAlgorithm implements OcdAlgorithm {
      * @throws OcdAlgorithmException
      */
     private int maximiseLocalModularity() 
-    		throws OcdAlgorithmException {
+    		throws OcdAlgorithmException, InterruptedException {
       int moves = 0;
       for (int i = 0; i < g.order(); i++) {
+    	if(Thread.interrupted()) {
+		  throw new InterruptedException();
+		}
+    	  
         final int node = shuffledNodes[i];
         if (makeBestMove(node)) {
           moves++;
@@ -344,11 +373,15 @@ public class LouvainAlgorithm implements OcdAlgorithm {
      * @throws OcdAlgorithmException
      */
     private boolean makeBestMove(int node)
-    		throws OcdAlgorithmException {
+    		throws OcdAlgorithmException, InterruptedException {
       double max = 0d;
       int best = -1;
 
       for (int i = 0; i < g.neighbours(node).size(); i++) {
+    	if(Thread.interrupted()) {
+		  throw new InterruptedException();
+		}  
+    	  
         final int community = g.partitioning().community(g.neighbours(node).get(i));
         final double inc = deltaModularity(node, community);
         if (inc > max) {
@@ -371,7 +404,8 @@ public class LouvainAlgorithm implements OcdAlgorithm {
      * @param community A community index
      * @return The modularity delta for a node and a community
      */
-    private double deltaModularity(int node, int community) {
+    private double deltaModularity(int node, int community) 
+    		throws InterruptedException {
       final double dnodecomm = g.partitioning().dnodecomm(node, community);
       final double ctot = g.partitioning().totDegree(community);
       final double wdeg = g.degree(node);

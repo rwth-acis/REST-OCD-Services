@@ -59,12 +59,16 @@ public class LouvainGraph {
    * @param The partition set
    */
   public void loadPartitioning(int[] partitioning) 
-		  throws OcdAlgorithmException {
+		  throws OcdAlgorithmException, InterruptedException {
     if (partitioning.length != order()) {
       throw new OcdAlgorithmException("new partitioning size-graph size mismatch: " +
           order() + " != " + partitioning.length);
     }
     for (int node = 0; node < order(); node++) {
+      if(Thread.interrupted()) {
+			throw new InterruptedException();
+	  }	
+    	
       partitioning().moveToComm(node, partitioning[node]);
     }
   }
@@ -143,7 +147,7 @@ public class LouvainGraph {
      * @throws OcdAlgorithmException
      */
     public void moveToComm(int node, int newComm) 
-    		throws OcdAlgorithmException {
+    		throws OcdAlgorithmException, InterruptedException {
       rangeCheck(node);
       rangeCheck(newComm);
 
@@ -159,6 +163,10 @@ public class LouvainGraph {
       totDegrees[newComm] += degree(node);
       final ArrayList<Integer> neighbours = neighbours(node);
       for (int i = 0; i < neighbours.size(); i++) {
+    	if(Thread.interrupted()) {
+  			throw new InterruptedException();
+  	    }  
+    	  
         final int neighbour = neighbours.get(i);
         final int weight = weight(node, neighbour);
         if (neighbour != node) {
@@ -197,13 +205,18 @@ public class LouvainGraph {
      * @param comm A community
      * @return The weight between a community and a node
      */
-    public int dnodecomm(int node, int comm) {
+    public int dnodecomm(int node, int comm) 
+    		throws InterruptedException {
       rangeCheck(node);
       rangeCheck(comm);
 
       int dnodecomm = 0;
       final ArrayList<Integer> neighbours = neighbours(node);
       for (int i = 0; i < neighbours.size(); i++) {
+    	if(Thread.interrupted()) {
+  			throw new InterruptedException();
+  	    }
+    	  
         final int neigh = neighbours.get(i);
         if (community(neigh) == comm && node != neigh) {
           dnodecomm += weight(node, neigh);
