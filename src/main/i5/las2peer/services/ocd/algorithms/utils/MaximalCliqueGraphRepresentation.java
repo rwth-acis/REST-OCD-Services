@@ -17,19 +17,16 @@ import y.view.Graph2D;
 
 
 /**
- * The 
- * @author Marlene
+ * The class is used to find all maximal cliques in a graph. It was introduced by 
+ * Etsuji Tomita, Akira Tanaka and Haruhisa Takahashi in their paper "The worst-case 
+ * time complexity for generating all maximal cliques and computational experiments" in 2006. 
+ * 
+ * @author Marlene Damm
  *
  */
 public class MaximalCliqueGraphRepresentation{
-	/**
-	 * collection of node numbers in a subgraph. Over the iteration of the Expand method this
-	 * set is expanding until we reach a maximal complete subgraph. 
-	 */
 	
-	public MaximalCliqueGraphRepresentation()
-	{
-	}
+	public MaximalCliqueGraphRepresentation() {}
 	
 	/**
 	 * Method to find all maximal cliques of a graph.  
@@ -41,9 +38,15 @@ public class MaximalCliqueGraphRepresentation{
 		expand(subgr,cand);
 	}
 	
+	/**
+	 * Recursive function to find all the maximal cliques in depth-first search approach with pruning 
+	 * to make it useful even on big graphs
+	 * @param subgr: set of vertices in which is needed to find a complete subgraph. It is defined as
+	 * the set of all vertices with are not neighbors of the current largest complete subgraph. 
+	 * @param cand: All the vertices which not have been processed by the algorithm
+	 */
 	protected void expand(HashSet<Node> subgr, HashSet<Node> cand){
-		if(subgr.length != 0) {
-			Node maxNode = subgr[0];
+		if(subgr.isEmpty() != true) {
 			int maxcount = 0; 
 			HashSet<Node> maxOverlap = new HashSet<Node>();
 			for(Node v: subgr) {
@@ -65,16 +68,19 @@ public class MaximalCliqueGraphRepresentation{
 				}
 				if(count > maxcount){
 				    maxcount = count; 
-				    maxNode = v; 
 				    maxOverlap = overlap; 
 				}
 			}
-			HashSet<Node> Ext_u = cand.clone();
+			HashSet<Node> Ext_u = new HashSet<Node>(cand);
 			Ext_u.removeAll(maxOverlap);
-			HashSet<Node> subgr2 = new HashSet<Node>();
 			for(Node q: Ext_u) {
-				compSubgr.add(q);
-				
+				Collection<?> q_neighbors = (Collection<?>) q.neighbors();
+				HashSet<Node> subgr2 = new HashSet<Node>(subgr);
+				subgr2.retainAll(q_neighbors);
+				HashSet<Node> cand2 = new HashSet<Node>(cand);
+				cand2.retainAll(q_neighbors);
+				expand(subgr2,cand2);
+				cand.remove(q);
 			}
 				
 		}
