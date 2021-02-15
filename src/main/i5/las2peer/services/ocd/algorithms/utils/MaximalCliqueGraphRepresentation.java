@@ -1,19 +1,15 @@
 package i5.las2peer.services.ocd.algorithms.utils;
 
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.GraphType;
-import i5.las2peer.services.ocd.utils.Parameterizable;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.GraphListener;
+
 import y.base.Node;
 import y.base.NodeCursor;
-import y.view.Graph2D;
+
 
 
 /**
@@ -26,16 +22,26 @@ import y.view.Graph2D;
  */
 public class MaximalCliqueGraphRepresentation{
 	
-	public MaximalCliqueGraphRepresentation() {}
+	private HashSet<HashSet<Node>> maxCliques;
+	
+	private Node maxNode; 
+	
+	public MaximalCliqueGraphRepresentation() {
+		this.maxCliques = new HashSet<HashSet<Node>>();
+	}
 	
 	/**
 	 * Method to find all maximal cliques of a graph.  
 	 * @param graph: the graph in which to find the all maximal cliques
 	 */
-	public void cliques(CustomGraph graph) {
-		HashSet<Node> subgr = new HashSet<Node>((Collection<? extends Node>) graph.nodes());
+	public HashSet<HashSet<Node>> cliques(CustomGraph graph) {
+		Node[] nodes = graph.getNodeArray();
+		HashSet<Node> subgr = new HashSet<Node>(Arrays.asList(nodes));
 		HashSet<Node> cand = subgr;
-		expand(subgr,cand);
+		HashSet<Node> q = new HashSet<Node>();
+		expand(q,subgr,cand);
+		System.out.println(maxCliques);
+		return maxCliques;
 	}
 	
 	/**
@@ -45,16 +51,22 @@ public class MaximalCliqueGraphRepresentation{
 	 * the set of all vertices with are not neighbors of the current largest complete subgraph. 
 	 * @param cand: All the vertices which not have been processed by the algorithm
 	 */
-	protected void expand(HashSet<Node> subgr, HashSet<Node> cand){
-		if(subgr.isEmpty() != true) {
+	protected void expand(HashSet<Node> maxClq, HashSet<Node> subgr, HashSet<Node> cand){
+		if(subgr.isEmpty() == true) {
+			System.out.println(" clique,");
+			maxCliques.add(maxClq);
+			System.out.println(maxCliques);
+		}else{
 			int maxcount = 0; 
 			HashSet<Node> maxOverlap = new HashSet<Node>();
 			for(Node v: subgr) {
 				NodeCursor neighbors = v.neighbors();
 				int count = 0;
 				HashSet<Node> overlap = new HashSet<Node>(); 
-				for(int i = 0 ; i <neighbors.size(); i++) {
+				
+				for(int i = 1 ; i <neighbors.size(); i++) {
 					Node u = neighbors.node();
+					
 					if(cand.contains(u)) {
 						count++;
 						overlap.add(u);
@@ -67,22 +79,45 @@ public class MaximalCliqueGraphRepresentation{
 				    }
 				}
 				if(count > maxcount){
+					maxNode = v;
 				    maxcount = count; 
 				    maxOverlap = overlap; 
 				}
 			}
 			HashSet<Node> Ext_u = new HashSet<Node>(cand);
 			Ext_u.removeAll(maxOverlap);
+			HashSet<Node> q_neighbors = new HashSet<Node>();
 			for(Node q: Ext_u) {
-				Collection<?> q_neighbors = (Collection<?>) q.neighbors();
-				HashSet<Node> subgr2 = new HashSet<Node>(subgr);
-				subgr2.retainAll(q_neighbors);
-				HashSet<Node> cand2 = new HashSet<Node>(cand);
-				cand2.retainAll(q_neighbors);
-				expand(subgr2,cand2);
-				cand.remove(q);
-			}
+					System.out.println(q);
+					maxClq.add(q);
+					NodeCursor n = q.neighbors();
+					
+					for(int i = 0 ; i <n.size(); i++) {
+						q_neighbors.add(n.node());
+						
+						if(n.ok()== true){
+							n.cyclicNext();
+						}
+						else {
+							break;
+						}
+					}
+					
+					HashSet<Node> subgr2 = new HashSet<Node>(subgr);
+					HashSet<Node> cand2 = new HashSet<Node>(cand);
+					//System.out.println("neighbors");
+					//System.out.println(q_neighbors);
+					
+					subgr2.retainAll(q_neighbors);
 				
+					cand2.retainAll(q_neighbors);
+					expand(maxClq,subgr2,cand2);
+					
+					cand.remove(q);
+					maxClq.remove(q);
+			}
+			
 		}
 	}
-}
+}		
+		
