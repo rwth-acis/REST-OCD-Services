@@ -29,6 +29,7 @@ import y.base.NodeCursor;
 /**
 * The original version of the overlapping community detection algorithm introduced in 2020
 * by Ping Ji, Shanxin Zhang, Zhiping Zhou.
+* @author Marlene Damm
 */
 //todo description of the algorithm
 public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
