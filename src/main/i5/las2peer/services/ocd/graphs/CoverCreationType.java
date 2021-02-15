@@ -16,6 +16,7 @@ import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WordClusteringRefinementAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LocalSpectralClusteringAlgorithm;
+import i5.las2peer.services.ocd.algorithms.AntColonyOptimizationAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
@@ -125,7 +126,12 @@ public enum CoverCreationType {
 	/**
 	 * Type corresponding to the LocalSpectralClustering algorithm with refinement.	
 	 */
-	LOCAL_SPECTRAL_CLUSTERING_ALGORITHM(LocalSpectralClusteringAlgorithm.class, 18);
+	LOCAL_SPECTRAL_CLUSTERING_ALGORITHM(LocalSpectralClusteringAlgorithm.class, 18),
+	
+	/**
+	 * Type corresponding to the AntColonyOptimization algorithm 
+	 */
+	ANT_COLONY_OPTIMIZATION(AntColonyOptimizationAlgorithm.class, 19);
 	
 	/**
 	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
