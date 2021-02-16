@@ -54,10 +54,15 @@ public class MaximalCliqueGraphRepresentation{
 	 * @param cand: All the vertices which not have been processed by the algorithm
 	 */
 	protected void expand(List<Node> subgr, List<Node> cand){
-		if(subgr.isEmpty() == true) {
-			HashSet<Node> cliques = new HashSet<Node>(maxClq); 
+		if(subgr.isEmpty() == true) {// found a maximal connected subgraph
+			if(maxClq.size()<3) {// filter out two node "cliques"
+				return;
+			}
+			HashSet<Node> cliques = new HashSet<Node>(maxClq); // deal with the call by value issue
 			maxCliques.add(cliques);
-		}else{
+		}else{// expand the complete subgraph
+			
+			// find the node is most connected in the current subset (subgr)
 			int maxcount = 0; 
 			HashSet<Node> maxOverlap = new HashSet<Node>();
 			for(Node v: subgr) {
@@ -65,6 +70,7 @@ public class MaximalCliqueGraphRepresentation{
 				int count = 0;
 				HashSet<Node> overlap = new HashSet<Node>(); 
 				
+				// find nodes that are neighbors of the current node and the current subset
 				for(int i = 1 ; i <neighbors.size(); i++) {
 					Node u = neighbors.node();
 					
@@ -79,6 +85,7 @@ public class MaximalCliqueGraphRepresentation{
 				    	break;
 				    }
 				}
+				// to find the maximum neighborhood overlap with the current subgraph
 				if(count >= maxcount){
 					maxNode = v;
 				    maxcount = count; 
@@ -86,18 +93,17 @@ public class MaximalCliqueGraphRepresentation{
 				}
 			}
 			
+			// process all the nodes which are not neighbors of the most connected node found above
 			HashSet<Node> Ext_u = new HashSet<Node>(cand);
-			HashSet<Node> Ext_u2 = new HashSet<Node>(cand);
-			Ext_u2.retainAll(maxOverlap);
 			Ext_u.removeAll(maxOverlap);
 			
 			for(Node q: Ext_u) {
 					List<Node> q_neighbors = new ArrayList<Node>();
 					
-					maxClq.add(q);
+					maxClq.add(q); // current clique (not maximal yet)
 					NodeCursor n = q.neighbors();
 					
-					for(int i = 0 ; i <n.size(); i++) {
+					for(int i = 0 ; i <n.size(); i++) { // find neighbors
 						q_neighbors.add(n.node());
 						if(n.ok()== true){
 							n.cyclicNext();
@@ -107,17 +113,17 @@ public class MaximalCliqueGraphRepresentation{
 						}
 					}
 					
+					//update the candidate and the subgraph set to the neighbors of q
 					List<Node> subgr2 = new ArrayList<Node>(subgr);
 					List<Node> cand2 = new ArrayList<Node>(cand);
 					subgr2.retainAll(q_neighbors);
 					cand2.retainAll(q_neighbors);
 					cand2.remove(q);
 					
-					expand(subgr2,cand2);
+					expand(subgr2,cand2); // process the neighbors of q 
 					
-					cand.remove(q);
-					
-					maxClq.remove(q);
+					cand.remove(q); // make sure that the node to processed twice
+					maxClq.remove(q); // prepare a clique set
 			}
 		}
 	}
