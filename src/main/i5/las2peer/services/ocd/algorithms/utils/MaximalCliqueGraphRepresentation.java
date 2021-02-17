@@ -4,6 +4,7 @@ package i5.las2peer.services.ocd.algorithms.utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -24,9 +25,9 @@ import y.base.NodeCursor;
  */
 public class MaximalCliqueGraphRepresentation{
 	
-	private HashSet<HashSet<Node>> maxCliques;
-	private HashSet<Node> maxClq;
-	private Node maxNode; 
+	private HashMap<Integer,HashSet<Node>> maxCliques; // saves the maximal cliques by a numbered key
+	private HashSet<Node> maxClq; // hold the current complete subgraph 
+	private int clqNr; // number of the clique and also key of the HashMap
 	
 	public MaximalCliqueGraphRepresentation() {
 		
@@ -36,12 +37,13 @@ public class MaximalCliqueGraphRepresentation{
 	 * Method to find all maximal cliques of a graph.  
 	 * @param graph: the graph in which to find the all maximal cliques
 	 */
-	public HashSet<HashSet<Node>> cliques(CustomGraph graph) {
+	public HashMap<Integer,HashSet<Node>> cliques(CustomGraph graph) {
 		Node[] nodes = graph.getNodeArray();
 		List<Node> subgr = new ArrayList<Node>(Arrays.asList(nodes));
 		List<Node> cand = new ArrayList<Node>(Arrays.asList(nodes));
 		maxClq = new HashSet<Node>();
-		maxCliques = new HashSet<HashSet<Node>>();
+		maxCliques = new HashMap<Integer,HashSet<Node>>();
+		clqNr = 0; 
 		expand(subgr,cand);
 		return maxCliques;
 	}
@@ -58,8 +60,9 @@ public class MaximalCliqueGraphRepresentation{
 			if(maxClq.size()<3) {// filter out two node "cliques"
 				return;
 			}
-			HashSet<Node> cliques = new HashSet<Node>(maxClq); // deal with the call by value issue
-			maxCliques.add(cliques);
+			HashSet<Node> clique = new HashSet<Node>(maxClq); // deal with the call by value issue
+			maxCliques.put(clqNr, clique);
+			clqNr++; 
 		}else{// expand the complete subgraph
 			
 			// find the node is most connected in the current subset (subgr)
@@ -71,7 +74,7 @@ public class MaximalCliqueGraphRepresentation{
 				HashSet<Node> overlap = new HashSet<Node>(); 
 				
 				// find nodes that are neighbors of the current node and the current subset
-				for(int i = 1 ; i <neighbors.size(); i++) {
+				for(int i = 0 ; i <neighbors.size(); i++) {
 					Node u = neighbors.node();
 					
 					if(cand.contains(u)) {
@@ -87,7 +90,6 @@ public class MaximalCliqueGraphRepresentation{
 				}
 				// to find the maximum neighborhood overlap with the current subgraph
 				if(count >= maxcount){
-					maxNode = v;
 				    maxcount = count; 
 				    maxOverlap = overlap; 
 				}

@@ -2,7 +2,10 @@ package i5.las2peer.services.ocd.algorithms.ClusteringUtils;
 
 import java.io.FileNotFoundException;
 import java.text.ParseException;
+
 import java.util.HashSet;
+import java.util.HashMap;
+
 import org.junit.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
@@ -19,7 +22,7 @@ public class MaximalCliqueGraphRepresentationTest {
 	public void testOnMaximalCliqueGraph() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
 		MaximalCliqueGraphRepresentation MCl = new MaximalCliqueGraphRepresentation();
-		HashSet<HashSet<Node>> maxClq = MCl.cliques(graph);
+		HashMap<Integer, HashSet<Node>> maxClq = MCl.cliques(graph);
 		System.out.println(maxClq);
 	}
 	
@@ -27,16 +30,7 @@ public class MaximalCliqueGraphRepresentationTest {
 	public void testOnUndirectedUnweigthedGraph() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getSimpleGraphUndirectedUnweighted() ;
 		MaximalCliqueGraphRepresentation MCl = new MaximalCliqueGraphRepresentation();
-		HashSet<HashSet<Node>> maxClq = MCl.cliques(graph);
-		System.out.println(maxClq);
-
-	}
-	
-	@Test
-	public void testOnDolphinGraph() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
-		CustomGraph graph = OcdTestGraphFactory.getDolphinsGraph();
-		MaximalCliqueGraphRepresentation MCl = new MaximalCliqueGraphRepresentation();
-		HashSet<HashSet<Node>> maxClq = MCl.cliques(graph);
+		HashMap<Integer, HashSet<Node>> maxClq = MCl.cliques(graph);
 		System.out.println(maxClq);
 
 	}
@@ -45,7 +39,7 @@ public class MaximalCliqueGraphRepresentationTest {
 	public void testOnTwoCommunitiesGraph() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
 		MaximalCliqueGraphRepresentation MCl = new MaximalCliqueGraphRepresentation();
-		HashSet<HashSet<Node>> maxClq = MCl.cliques(graph);
+		HashMap<Integer, HashSet<Node>> maxClq = MCl.cliques(graph);
 		System.out.println(maxClq);
 
 	}
