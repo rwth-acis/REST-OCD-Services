@@ -16,7 +16,6 @@ import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import y.base.Node;
-import y.base.NodeMap;
 
 
 public class AntColonyOptimizationTest {
