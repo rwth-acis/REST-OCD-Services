@@ -40,6 +40,13 @@ import y.base.NodeCursor;
 //TODO description of the algorithm
 public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
+	/**
+	 * Threshold determines the edges which are in the clique graph. It should be in between 0 and 1 with
+	 * 1 being no edges in the clique graph and 0 being no edge will be left out. Setting this threshold 
+	 * to 0 will slow down the performance. Since good thresholds are not stated in the paper the threshold 
+	 * should be proven experimentally. 
+	 */
+	private double threshold = 0.2; 
 	
 	private double pheromones; 
 	
@@ -62,7 +69,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Executes the algorithm on a connected graph.
 	 * Implementations of this method should allow to be interrupted.
-	 * I.e. they should periodically check the thread for interrupts
+	 * I.e. they should periodically check the thread for interrupts (/TODO)
 	 * and throw an InterruptedException if an interrupt was detected.
 	 * @param graph An at least weakly connected graph whose community structure will be detected.
 	 * @return A cover for the input graph containing the community structure.
@@ -72,10 +79,33 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) 
 			throws OcdAlgorithmException, InterruptedException {
-		MaximalCliqueGraphRepresentation maxClq = new MaximalCliqueGraphRepresentation();
-		maxClq.cliques(graph);
+		// maximal clique search 
+		MaximalCliqueGraphRepresentation MCR = new MaximalCliqueGraphRepresentation();
+		HashMap<Integer,HashSet<Node>> maxClq = MCR.cliques(graph);
 		
-		//return new Cover(graph, memberships);
+		// determining the link strength in between the cliques
+		Matrix lkstrgth = linkStrength(graph, maxClq);
+		
+		//creating the encoding
+		int clqNr = maxClq.size(); 
+		CustomGraph encoding = new CustomGraph(); 
+		for(int i = 0; i < clqNr; i++) {//creating clique nodes
+			encoding.createNode(); 
+		}
+		Node[] nodes = encoding.getNodeArray();
+		for(Node n1: nodes) { // creating clique edges 
+			int i1 = n1.index();
+			for(Node n2: nodes) {
+				int i2 = n2.index();
+				if(lkstrgth.get(i1, i2)>=threshold) { // leaving out weak edges
+					encoding.createEdge(n1, n2);
+				}
+			}
+		}
+		
+		
+		
+		
 		return new Cover(graph);
 		
 	}
