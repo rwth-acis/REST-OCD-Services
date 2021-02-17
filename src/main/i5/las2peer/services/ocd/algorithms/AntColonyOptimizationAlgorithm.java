@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueGraphRepresentation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,12 +15,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.lang.Double; 
+import java.lang.Math;
+
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 import org.la4j.vector.dense.BasicVector;
+
+import com.sun.corba.se.impl.orbutil.graph.Graph;
 
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -31,7 +37,7 @@ import y.base.NodeCursor;
 * by Ping Ji, Shanxin Zhang, Zhiping Zhou.
 * @author Marlene Damm
 */
-//todo description of the algorithm
+//TODO description of the algorithm
 public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	
@@ -66,12 +72,110 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) 
 			throws OcdAlgorithmException, InterruptedException {
-
-		Matrix memberships = ();
-		return new Cover(graph, memberships);
-		//todo
+		MaximalCliqueGraphRepresentation maxClq = new MaximalCliqueGraphRepresentation();
+		maxClq.cliques(graph);
+		
+		//return new Cover(graph, memberships);
+		return new Cover(graph);
 		
 	}
+	
+	protected Matrix linkStrength(CustomGraph graph, HashMap<Integer,HashSet<Node>> maxClq) {
+		int clqNr = maxClq.size(); 
+		Matrix lkstrgth = new Basic2DMatrix(clqNr,clqNr);
+		
+		for(int i = 0; i < clqNr; i++) {
+			HashSet<Node> clq1 = maxClq.get(i);
+			double clq1Size = clq1.size();
+			for(int j = i + 1; j < clqNr; j++) {
+				HashSet<Node> clq2 = maxClq.get(j);
+				double clq2Size = clq2.size();
+				
+				HashSet<Node> diff12 = new HashSet<Node>(clq1); 
+				diff12.removeAll(clq2);
+				double diff12size = diff12.size();
+				
+				double cdDist1 = 0;
+				for(Node v1: diff12) {
+					for(Node v2: clq2) {
+						cdDist1 += CzechkanowskiDice(graph, v1, v2); 
+					}
+				}
+				
+				HashSet<Node> diff21 = new HashSet<Node>(clq2); 
+				diff21.removeAll(clq1);
+				double diff21size = diff21.size();
+				
+				double cdDist2 = 0;
+				for(Node v1: diff21) {
+					for(Node v2: clq1) {
+						cdDist2 += CzechkanowskiDice(graph, v1, v2); 
+					}
+				}
+				
+				double lstr = cdDist2/(diff21size*clq1Size)*cdDist1/(diff12size*clq2Size);
+				lstr = Math.sqrt(lstr);
+				lkstrgth.set(i, j, lstr);
+				
+			}
+		}
+		
+		return lkstrgth;
+	}
+	
+	/**
+	 * Version of the Czechkanowski Dice Distance
+	 * @param graph a graph from which v1 and v2 are taken
+	 * @param v1 node which is in a clique
+	 * @param v2 node which is not in the same clique as v1
+	 * @return
+	 */
+	protected double CzechkanowskiDice(CustomGraph graph, Node v1, Node v2) {
+		NodeCursor nbors1 = v1.neighbors();
+		NodeCursor nbors2 = v2.neighbors(); 
+
+		int nbor1size = nbors1.size()/2; 
+		int nbor2size = nbors2.size()/2; 
+		
+		double olapsize = 0; 
+		
+		for(int i = 0 ; i <nbors1.size(); i++) {
+			Node n1 = nbors1.node();
+			for(int j = 0 ; j <nbors1.size(); j++) {
+				Node n2 = nbors2.node(); 
+			
+				if(n2 == n1) {
+					olapsize++;
+					break; 
+				}
+				
+				if(nbors2.ok() == true){
+					nbors2.cyclicNext();
+				}
+				else {
+					break;
+				}
+			}
+			
+			if(nbors1.ok() == true){
+				nbors1.cyclicNext();
+			}
+			else {
+				break;
+			}
+		}
+		double edgeNr = graph.edgeCount()/2;
+		double nodeNr = graph.nodeCount(); 
+		double avgDegr = 2*edgeNr/nodeNr;
+		double tmp1 = avgDegr - nbor1size; 
+		double tmp2 = avgDegr - nbor2size; 
+		
+		double lmbd1 = Double.max(0, tmp1);
+		double lmbd2 = Double.max(0, tmp2);
+		
+		return olapsize/(lmbd1 + nbor1size + lmbd2 + nbor2size);
+	}
+	
 	
 	/**
 	 * Returns a log representing the concrete algorithm execution.
@@ -93,8 +197,10 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return compatibilities;
 	};
 	
+	
 	@Override
-	public Map<String, String> getParameters() {
+	public Map<String,String> getParameters(){
+		return  new HashMap<String, String>();
 	}
 
 	@Override
