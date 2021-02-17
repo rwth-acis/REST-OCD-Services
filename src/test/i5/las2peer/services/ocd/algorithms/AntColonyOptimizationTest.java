@@ -13,6 +13,7 @@ import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.AntColonyOptimizationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueGraphRepresentation;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
+import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import y.base.Node;
@@ -20,6 +21,9 @@ import y.base.Node;
 
 public class AntColonyOptimizationTest {
 	
+	/**
+	 * tests the function CzechkanowskiDice() which determinates the CD-distance between two nodes 
+	 */
 	@Test
 	public void testCDDistanceTest() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
@@ -32,6 +36,9 @@ public class AntColonyOptimizationTest {
 		System.out.println(cddistance);
 	}
 	
+	/**
+	 * tests the function LinkStrength() which determinates the interconectivity in between the cliques
+	 */
 	@Test
 	public void testLinkStrenghTest() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
@@ -41,6 +48,13 @@ public class AntColonyOptimizationTest {
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		Matrix linkStr = ACO.linkStrength(graph, maxClq);
 		System.out.println(linkStr);
+	}
+	
+	@Test
+	public void testInitialization() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
+		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
+		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
+		Cover cover = ACO.detectOverlappingCommunities(graph);
 	}
 	
 	

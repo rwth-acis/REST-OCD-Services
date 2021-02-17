@@ -48,11 +48,16 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	private double threshold = 0.2; 
 	
-	private double pheromones; 
+	/**
+	 * pheromone matrix to get hold of the current pheromones in the graph. 
+	 * Each cell of the matrix stands for an edge. The higher the pheromone concentration
+	 * the more likely it will be that an ant visits this edge.   
+	 */
+	private Matrix pheromones; 
 	
 	
 	/** 
-	 * Defines the number of subproblems solved which need to be minimized
+	 * Defines the number of subproblems solved which need to be minimized. 
 	 */
 	private int subproblems = 2; 
 	
@@ -103,8 +108,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 		}
 		
-		
-		
+		//TODO add Ant colony Optimization here
 		
 		return new Cover(graph);
 		
