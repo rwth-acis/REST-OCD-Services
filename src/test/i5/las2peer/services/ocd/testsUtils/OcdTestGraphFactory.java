@@ -805,6 +805,7 @@ public class OcdTestGraphFactory {
 		graph.createEdge(n[7], n[5]);
 		graph.createEdge(n[7], n[6]);
 		graph.createEdge(n[8], n[0]);
+		graph.createEdge(n[8], n[1]);
 		graph.createEdge(n[8], n[2]);
 		
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
