@@ -107,13 +107,13 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				}
 			}
 		}
-		
+
 		//TODO add Ant colony Optimization here
 		
 		return new Cover(graph);
 		
 	}
-	
+	//TODO add commentaries here
 	protected Matrix linkStrength(CustomGraph graph, HashMap<Integer,HashSet<Node>> maxClq) {
 		int clqNr = maxClq.size(); 
 		Matrix lkstrgth = new Basic2DMatrix(clqNr,clqNr);
@@ -240,13 +240,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	@Override
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
 		
-	}
-	
-	/**
-	 * Initialize parameters and convert the graph into a maximal clique graph representation
-	 */
-	protected void initialize() {
-		//todo
 	}
 	
 	protected void constructSolution() {
