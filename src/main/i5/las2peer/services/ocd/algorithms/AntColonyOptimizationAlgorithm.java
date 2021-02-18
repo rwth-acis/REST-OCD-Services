@@ -48,26 +48,32 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private double threshold = 0.2; 
 	
 	/**
-	 * pheromone matrix to get hold of the current pheromones in the graph. 
-	 * Each cell of the matrix stands for an edge. The higher the pheromone concentration
-	 * the more likely it will be that an ant visits this edge.   
+	 * Contains pheromones matrix of each group of ants to get hold of the current pheromones in the graph. 
+	 * Each cell of the matrix stands for an edge. The higher the pheromone concentration the more likely it will be 
+	 * that an ant visits this edge.   
 	 */
-	private Matrix pheromones; 
-	
-	
-	/** 
-	 * Defines the number of subproblems solved which need to be minimized. 
-	 */
-	private int subproblems = 2; 
+	private List<Matrix> pheromones; 
 	
 	/**
-	 * Number of objective functions used in this algorithm. The proposed algorithm by Ji et al 
-	 * uses 2 objective functions. So we recommend to this parameter to be 2. 
+	 * Number of objective functions used in this algorithm. The proposed algorithm by Ji et al uses 2 objective functions. So we recommend to this parameter to be 2. 
 	 */
 	private int objectFkt = 2;
 	
+	/**
+	 * saves all best found community solutions
+	 */
+	private List<Node> EP;
+	
+	/**
+	 * Heuristic information matrix: shows how similar to nodes. Nodes which are more similar are more likely to be in 
+	 * the same community. The values are between 0 and 1 which 0 being not connected and 1 being very similar. 
+	 * 
+	 */
+	private Matrix heuristic; 
+	
+	
 	public AntColonyOptimizationAlgorithm() {
-		//todo
+		//TODO
 	}
 	
 	/**
@@ -106,12 +112,47 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				}
 			}
 		}
-
+		
+		//initialization of the weight vectors of the subproblems 
+		List<Vector> lambda = new ArrayList<Vector>(); //contains the weight vector for the M sub-problems 
+		double[] v_help = {0,1};
+		Vector v = new BasicVector(v_help);
+		
+		for(int i = 0; i < M; i++) {
+			lambda.add(v);
+		}
+		
+		// fill in the heuristic information matrix
+		heuristic = new Basic2DMatrix(clqNr,clqNr);  
+		int nodeNr = graph.nodeCount(); 
+		int edgeNr = graph.edgeCount();
+		
+		for(int i = 0; i < nodeNr; i++) {
+			double nborsNr1 = nodes[i].degree(); 
+			double mu1 = nborsNr1/nodeNr; 
+			double std1 = (nborsNr1*Math.pow(1-mu1, 2)+(nodeNr-nborsNr1)*Math.pow(mu1, 2))/nodeNr;
+			std1 = Math.sqrt(std1); 
+			for(int j = 0; j < nodeNr; j++) {
+				double nborsNr2 = nodes[j].degree(); 
+				double mu2 = nborsNr2/nodeNr; 
+				double std2 = (nborsNr2*Math.pow(1-mu2, 2)+(nodeNr-nborsNr2)*Math.pow(mu2, 2))/nodeNr;
+				std1 = Math.sqrt(std2); 
+				
+				//double pearson = ()/(nodeNr*std1*std2);
+		
+				double n = 1/(1+Math.E);
+				
+				heuristic.set(i, j, n);
+			}
+		}
+		
 		//TODO add Ant colony Optimization here
 		
 		return new Cover(graph);
 		
 	}
+	
+	
 	//TODO add commentaries here
 	protected Matrix linkStrength(CustomGraph graph, HashMap<Integer,HashSet<Node>> maxClq) {
 		int clqNr = maxClq.size(); 
@@ -209,7 +250,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return olapsize/(lmbd1 + nbor1size + lmbd2 + nbor2size);
 	}
 	
-	
 	//TODO add commentaries
 	protected double negativeRatioAssociation(CustomGraph graph, Cover cover) {
 		double NRA = 0; 
@@ -275,20 +315,24 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return L;
 	}
 	
+	protected void initialization() {
+		
+	}
+	
 	protected void constructSolution() {
-		//todo
+		//TODO
 	}
 	
 	protected void updateEP() {
-		//todo
+		//TODO
 	}
 	
 	protected void updatePheromoneMatrix() {
-		//todo
+		//TODO
 	}
 	
 	protected void updateCurrentSolution() {
-		//todo
+		//TODO
 	}
 	
 	
