@@ -219,7 +219,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			Vector v = memberships.getColumn(i); 
 			double vSum = cover.getCommunityMemberIndices(i).size();
 			
-			NRA -= cliqueInterconectivity(graph, v, v)/vSum;
+			NRA -= cliqueInterconectivity(graph, v, v)/(2*vSum);
 			
 		}
 		
@@ -228,25 +228,27 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	//TODO add commentaries
 	protected double cutRatio(CustomGraph graph, Cover cover) {
-		double RC = 0; 
+		double CR = 0; 
 		Matrix memberships = cover.getMemberships();
 		int cols = memberships.columns(); 
-	
-		
-		double[] one = new double[cols]; 
-		Arrays.fill(one, 1);
-		Vector vOne = new BasicVector(one);
-		
+
 		for(int i = 0; i<cols; i++) {
 			Vector v = memberships.getColumn(i); 
-			double vSum = cover.getCommunityMemberIndices(i).size();
-			Vector v_compl = vOne.subtract(v);
+			List<Integer> comNodes = cover.getCommunityMemberIndices(i); 
 			
-			RC += cliqueInterconectivity(graph, v, v_compl)/vSum;
+			double[] one = new double[graph.nodeCount()]; 
+			Arrays.fill(one, 1);
+			Vector v_compl = new BasicVector(one);
+			for(int cn: comNodes) {
+				v_compl.set(cn,0);
+			}
 			
+			double vSum = comNodes.size();
+			
+			CR += cliqueInterconectivity(graph, v, v_compl)/vSum;
 		}
 		
-		return RC;
+		return CR;
 	}
 	
 	//TODO add commentaries
@@ -260,7 +262,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 			Node n1 = nodes[i]; 
 			for(int j = 0; j < com1Len; j++) {
-				if(com1.get(j) == 0) {
+				if(com2.get(j) == 0) {
 					continue;
 				}
 				Node n2 = nodes[j];
