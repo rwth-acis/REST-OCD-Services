@@ -210,6 +210,86 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	}
 	
 	
+	//TODO add commentaries
+	protected double negativeRatioAssociation(CustomGraph graph, Cover cover) {
+		double NRA = 0; 
+		Matrix memberships = cover.getMemberships();
+		int cols = memberships.columns(); 
+		for(int i = 0; i<cols; i++) {
+			Vector v = memberships.getColumn(i); 
+			double vSum = cover.getCommunityMemberIndices(i).size();
+			
+			NRA -= cliqueInterconectivity(graph, v, v)/vSum;
+			
+		}
+		
+		return NRA;
+	}
+	
+	//TODO add commentaries
+	protected double cutRatio(CustomGraph graph, Cover cover) {
+		double RC = 0; 
+		Matrix memberships = cover.getMemberships();
+		int cols = memberships.columns(); 
+	
+		
+		double[] one = new double[cols]; 
+		Arrays.fill(one, 1);
+		Vector vOne = new BasicVector(one);
+		
+		for(int i = 0; i<cols; i++) {
+			Vector v = memberships.getColumn(i); 
+			double vSum = cover.getCommunityMemberIndices(i).size();
+			Vector v_compl = vOne.subtract(v);
+			
+			RC += cliqueInterconectivity(graph, v, v_compl)/vSum;
+			
+		}
+		
+		return RC;
+	}
+	
+	//TODO add commentaries
+	protected double cliqueInterconectivity(CustomGraph graph, Vector com1, Vector com2) {
+		double L = 0; 
+		int com1Len = com1.length(); 
+		Node[] nodes = graph.getNodeArray(); 
+		for(int i = 0; i < com1Len; i++) {
+			if(com1.get(i) == 0) {
+				continue;
+			}
+			Node n1 = nodes[i]; 
+			for(int j = 0; j < com1Len; j++) {
+				if(com1.get(j) == 0) {
+					continue;
+				}
+				Node n2 = nodes[j];
+				
+				if (graph.containsEdge(n1, n2)) {
+					L += 1; 
+				}
+			}
+		}
+		return L;
+	}
+	
+	protected void constructSolution() {
+		//todo
+	}
+	
+	protected void updateEP() {
+		//todo
+	}
+	
+	protected void updatePheromoneMatrix() {
+		//todo
+	}
+	
+	protected void updateCurrentSolution() {
+		//todo
+	}
+	
+	
 	/**
 	 * Returns a log representing the concrete algorithm execution.
 	 * @return The log.
@@ -239,82 +319,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	@Override
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
 		
-	}
-	
-	protected double negativeRatioAssociation(CustomGraph graph, Cover cover) {
-		double NRA = 0; 
-		Matrix memberships = cover.getMemberships();
-		int cols = memberships.columns(); 
-		for(int i = 0; i<cols; i++) {
-			Vector v = memberships.getColumn(i); 
-			double vSum = v.sum();
-			
-			NRA -= cliqueInterconectivity(graph, v, v)/vSum;
-			
-		}
-		
-		return NRA;
-	}
-	
-	protected double cutRatio(CustomGraph graph, Cover cover) {
-		double RC = 0; 
-		Matrix memberships = cover.getMemberships();
-		int cols = memberships.columns(); 
-	
-		
-		double[] one = new double[cols]; 
-		Arrays.fill(one, 1);
-		Vector vOne = new BasicVector(one);
-		
-		for(int i = 0; i<cols; i++) {
-			Vector v = memberships.getColumn(i); 
-			double vSum = v.sum();
-			Vector v_compl = vOne.subtract(v);
-			
-			RC += cliqueInterconectivity(graph, v, v_compl)/vSum;
-			
-		}
-		
-		return RC;
-	}
-	
-	protected double cliqueInterconectivity(CustomGraph graph, Vector com1, Vector com2) {
-		double L = 0; 
-		int com1Len = com1.length(); 
-		Node[] nodes = graph.getNodeArray(); 
-		for(int i = 0; i < com1Len; i++) {
-			if(com1.get(i) == 0) {
-				continue;
-			}
-			Node n1 = nodes[i]; 
-			for(int j = 0; j < com1Len; j++) {
-				if(com1.get(j) == 0) {
-					continue;
-				}
-				Node n2 = nodes[j];
-				
-				if (graph.containsEdge(n1, n2)) {
-					L += 0; 
-				}
-			}
-		}
-		return L;
-	}
-	
-	protected void constructSolution() {
-		//todo
-	}
-	
-	protected void updateEP() {
-		//todo
-	}
-	
-	protected void updatePheromoneMatrix() {
-		//todo
-	}
-	
-	protected void updateCurrentSolution() {
-		//todo
 	}
 	
 	
