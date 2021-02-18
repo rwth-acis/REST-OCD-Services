@@ -90,4 +90,35 @@ public class AntColonyOptimizationTest {
 		System.out.println(NRC);
 		
 	}
+	
+	@Test
+	public void testCutRatio() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
+		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph();
+		Cover cover = new Cover(graph);
+		Matrix memberships = new Basic2DMatrix(9,5); 
+		memberships.set(0, 0, 1);
+		memberships.set(1, 0, 1);
+		memberships.set(8, 0, 1);
+		memberships.set(1, 1, 1);
+		memberships.set(2, 1, 1);
+		memberships.set(8, 1, 1);
+		memberships.set(2, 2, 1);
+		memberships.set(3, 2, 1);
+		memberships.set(7, 2, 1);
+		memberships.set(3, 3, 1);
+		memberships.set(5, 3, 1);
+		memberships.set(6, 3, 1);
+		memberships.set(7, 3, 1);
+		memberships.set(3, 4, 1);
+		memberships.set(4, 4, 1);
+		memberships.set(5, 4, 1);
+		
+		
+		cover.setMemberships(memberships);
+		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
+		double CR = ACO.cutRatio(graph, cover);
+		System.out.println("Cut Ratio");
+		System.out.println(CR);
+		
+	}
 }
