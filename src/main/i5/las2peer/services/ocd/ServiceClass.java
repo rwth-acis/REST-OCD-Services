@@ -2790,8 +2790,21 @@ public class ServiceClass extends RESTService {
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID,
 	    					"Cover does not exist: cover id " + coverId + ", graph id " + graphId);
 	    		}
-
-	    		layoutHandler.doLayout(cover, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize, painting);
+	    		EntityManager em = entityHandler.getEntityManager();
+	    		EntityTransaction tx = em.getTransaction();
+	    		try {		    		
+		    		tx.begin();
+		    		cover = entityHandler.getCover(username, graphId, coverId);//em.merge(cover);
+		    		layoutHandler.doLayout(cover, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize, painting);
+		    		tx.commit();
+	    		} catch (RuntimeException e) {
+					if (tx != null && tx.isActive()) {
+						tx.rollback();
+					}
+					throw e;
+	    		}
+	    		em.close();
+	    		
 	    		return requestHandler.writeCover(cover, format);
 	    	} catch (Exception e) {
 	    		requestHandler.log(Level.SEVERE, "", e);
