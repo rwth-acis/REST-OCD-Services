@@ -2794,7 +2794,7 @@ public class ServiceClass extends RESTService {
 	    		EntityTransaction tx = em.getTransaction();
 	    		try {		    		
 		    		tx.begin();
-		    		cover = entityHandler.getCover(username, graphId, coverId);//em.merge(cover);
+		    		cover = em.merge(cover);
 		    		layoutHandler.doLayout(cover, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize, painting);
 		    		tx.commit();
 	    		} catch (RuntimeException e) {
