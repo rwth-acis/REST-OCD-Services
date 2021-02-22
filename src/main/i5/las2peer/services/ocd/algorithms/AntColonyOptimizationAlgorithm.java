@@ -287,43 +287,48 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	}
 	
 	
-	//TODO add commentaries here
+	/** Measures the link strength in between the maximal cliques. 
+	 * 
+	 * @param graph
+	 * @param maxClq output of the MaximalCliqueGraphRepresentation
+	 * @return Matrix of link strength in  between the nodes
+	 */
 	protected Matrix linkStrength(CustomGraph graph, HashMap<Integer,HashSet<Node>> maxClq) {
 		int clqNr = maxClq.size(); 
 		Matrix lkstrgth = new Basic2DMatrix(clqNr,clqNr);
 		
-		for(int i = 0; i < clqNr; i++) {
-			HashSet<Node> clq1 = maxClq.get(i);
+		for(int i = 0; i < clqNr; i++) { 
+			HashSet<Node> clq1 = maxClq.get(i); // select clique 1
 			double clq1Size = clq1.size();
 			for(int j = i + 1; j < clqNr; j++) {
-				HashSet<Node> clq2 = maxClq.get(j);
+				HashSet<Node> clq2 = maxClq.get(j); // select clique 2
 				double clq2Size = clq2.size();
 				
 				HashSet<Node> diff12 = new HashSet<Node>(clq1); 
-				diff12.removeAll(clq2);
-				double diff12size = diff12.size();
+				diff12.removeAll(clq2); 
+				double diff12size = diff12.size(); // size of clique 1 without nodes from clique 2
 				
 				double cdDist1 = 0;
 				for(Node v1: diff12) {
 					for(Node v2: clq2) {
-						cdDist1 += CzechkanowskiDice(graph, v1, v2); 
+						cdDist1 += CzechkanowskiDice(graph, v1, v2);  // Czechkanowski Dice Distance of the difference and clique 2
 					}
 				}
 				
 				HashSet<Node> diff21 = new HashSet<Node>(clq2); 
 				diff21.removeAll(clq1);
-				double diff21size = diff21.size();
+				double diff21size = diff21.size(); // size of clique 2 without nodes from clique 1 
 				
 				double cdDist2 = 0;
 				for(Node v1: diff21) {
 					for(Node v2: clq1) {
-						cdDist2 += CzechkanowskiDice(graph, v1, v2); 
+						cdDist2 += CzechkanowskiDice(graph, v1, v2); // Czechkanowski Dice Distance of the difference and clique 1
 					}
 				}
 				
 				double lstr = cdDist2/(diff21size*clq1Size)*cdDist1/(diff12size*clq2Size);
 				lstr = Math.sqrt(lstr);
-				lkstrgth.set(i, j, lstr);
+				lkstrgth.set(i, j, lstr); // set matrix (entries have a triangular form)
 				
 			}
 		}
@@ -332,11 +337,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	}
 	
 	/**
-	 * Version of the Czechkanowski/Sorensen Dice Distance
+	 * Version of the adjusted Czechkanowski/Sorensen Dice Distance. The number of neighbors is changed to the average if it lay below the average. 
 	 * @param graph a graph from which v1 and v2 are taken
 	 * @param v1 node which is in a clique
 	 * @param v2 node which is not in the same clique as v1
-	 * @return
+	 * @return adjusted Czechkanowski Dice distance
 	 */
 	protected double CzechkanowskiDice(CustomGraph graph, Node v1, Node v2) {
 		NodeCursor nbors1 = v1.neighbors();
@@ -388,7 +393,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * Evaluation of the cover of a graph. This measures the intra-link sparesity and should be minimized. 
 	 * @param graph
 	 * @param cover to evaluate on the graph
-	 * @return
+	 * @return negative Ratio Association
 	 */
 	protected double negativeRatioAssociation(CustomGraph graph, Cover cover) {
 		double NRA = 0; 
@@ -410,7 +415,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * Evaluation of the cover of a graph. This measures the inter-link density and should be minimized. 
 	 * @param graph
 	 * @param cover to evaluate on the graph
-	 * @return
+	 * @return Cut Ratio
 	 */
 	protected double cutRatio(CustomGraph graph, Cover cover) {
 		double CR = 0; 
@@ -441,7 +446,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param graph 
 	 * @param com1 - community 1
 	 * @param com2 - community 2
-	 * @return
+	 * @return shared edges between two communities
 	 */
 	protected double cliqueInterconectivity(CustomGraph graph, Vector com1, Vector com2) {
 		double L = 0; // counter of edges in between the communities
