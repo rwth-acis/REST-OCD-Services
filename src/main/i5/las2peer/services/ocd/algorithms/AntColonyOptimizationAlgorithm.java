@@ -39,6 +39,29 @@ import y.base.NodeCursor;
 //TODO description of the algorithm
 public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
+	
+	private static int maxIterations = 1000;
+	
+	/**
+	 * number of ants/subproblems to solve 
+	 */
+	private static int M;
+	  
+	/**
+	 * Positive integer associated with M. Helps to find uniformly distributed weight vector. Should be at least as large as M.  
+	 */
+	private static int H = M; 
+	
+	/**
+	 * number of nodes in the graph
+	 */
+	private static int nodeNr;
+	  
+	/**
+	 * Evaporation-Factor
+	 */
+	private static double rho = 0.5;
+
 	/**
 	 * Threshold determines the edges which are in the clique graph. It should be in between 0 and 1 with
 	 * 1 being no edges in the clique graph and 0 being no edge will be left out. Setting this threshold 
@@ -71,10 +94,25 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	private Matrix heuristic; 
 	
+	/**
+	* The number of nearest neighbors considered in a neighborhood
+	*/
+	private static int nearNbors; 
 	
-	public AntColonyOptimizationAlgorithm() {
-		//TODO
-	}
+	/*
+	 * PARAMETER NAMES
+	 */
+	protected static final String MAX_ITERATIONS = "maximum iterations";
+	
+	protected static final String NUMBER_OF_ANTS = "number of ants/subproblems";
+			
+	protected static final String EVAPORATION_FACTOR = "evaportation factor";
+	
+	protected static final String MCR_THRESHOLD = "Threshold to filter out edges";
+	
+	protected static final String NUMMER_OF_NEIGHBORS = "Number of nearest neighbors to be considered in a neighborhood"";
+	
+	public AntColonyOptimizationAlgorithm() {}
 	
 	/**
 	 * Executes the algorithm on a connected graph.
@@ -89,31 +127,60 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) 
 			throws OcdAlgorithmException, InterruptedException {
+		CustomGraph MCR = representationScheme(graph);
+		
+		
+}
+		
+		//TODO add Ant colony Optimization here
+		
+		return new Cover(graph);
+		
+	}
+	
+	/**
+	 * The Representation Scheme of this algorithm is a Maximal Clique Scheme. This is done to have a less complex community search process, since cliques in the 
+	 * original graph tend to be in the same community anyways. After the search for maximal cliques, inter-clique edges are filtered out if the cliques are loosly
+	 * connected.
+	 * @param graph to make an Maximal Clique Graph from
+	 * @return encoded input graph
+	 */
+	protected CustomGraph representationScheme(CustomGraph graph) {
 		// maximal clique search 
 		MaximalCliqueGraphRepresentation MCR = new MaximalCliqueGraphRepresentation();
 		HashMap<Integer,HashSet<Node>> maxClq = MCR.cliques(graph);
-		
+				
 		// determining the link strength in between the cliques
 		Matrix lkstrgth = linkStrength(graph, maxClq);
-		
+				
 		//creating the encoding
-		int clqNr = maxClq.size(); 
+		nodeNr = maxClq.size(); 
 		CustomGraph encoding = new CustomGraph(); 
-		for(int i = 0; i < clqNr; i++) {//creating clique nodes
-			encoding.createNode(); 
+		for(int i = 0; i < nodeNr; i++) {//creating clique nodes
+				encoding.createNode(); 
 		}
 		Node[] nodes = encoding.getNodeArray();
-		for(Node n1: nodes) { // creating clique edges 
-			int i1 = n1.index();
-			for(Node n2: nodes) {
-				int i2 = n2.index();
-				double ls = lkstrgth.get(i1, i2);
-				if(ls>=threshold) { // leaving out weak edges
-					Edge e = encoding.createEdge(n1, n2);
-					encoding.setEdgeWeight(e, ls);
+			for(Node n1: nodes) { // creating clique edges 
+				int i1 = n1.index();
+				for(Node n2: nodes) {
+					int i2 = n2.index();
+					double ls = lkstrgth.get(i1, i2);
+					if(ls>=threshold) { // leaving out weak edges
+						Edge e = encoding.createEdge(n1, n2);
+						encoding.setEdgeWeight(e, ls);
+					}
 				}
 			}
-		}
+		return encoding; 
+				
+	}
+	
+	/**
+	 * Initialization of the weigth vector, pheromone information matrix, heuristic information matrix and initial solutions
+	 * @param graph
+	 * @param nodes
+	 */
+	protected void initialization(CustomGraph graph, Node[] nodes) {
 		
 		//initialization of the weight vectors of the subproblems 
 		List<Vector> lambda = new ArrayList<Vector>(); //contains the weight vector for the M sub-problems 
@@ -125,20 +192,25 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		}
 		
 		// fill in the heuristic information matrix
-		heuristic = new Basic2DMatrix(clqNr,clqNr);  
+		heuristic = new Basic2DMatrix(nodeNr,nodeNr);  
 		int nodeNr = graph.nodeCount(); 
 		int edgeNr = graph.edgeCount();
 		
 		for(int i = 0; i < nodeNr; i++) {
-			double nborsNr1 = nodes[i].degree(); 
+			NodeCursor nbor1 = nodes[i].neighbors();
+			double nborsNr1 = nbor1.size(); 
 			double mu1 = nborsNr1/nodeNr; 
 			double std1 = (nborsNr1*Math.pow(1-mu1, 2)+(nodeNr-nborsNr1)*Math.pow(mu1, 2))/nodeNr;
 			std1 = Math.sqrt(std1); 
+			
+			nbor1.
 			for(int j = 0; j < nodeNr; j++) {
-				double nborsNr2 = nodes[j].degree(); 
+				NodeCursor nbor2 = nodes[j].neighbors();
+				double nborsNr2 = nbor2.size(); 
 				double mu2 = nborsNr2/nodeNr; 
 				double std2 = (nborsNr2*Math.pow(1-mu2, 2)+(nodeNr-nborsNr2)*Math.pow(mu2, 2))/nodeNr;
 				std1 = Math.sqrt(std2); 
+				
 				
 				//double pearson = ()/(nodeNr*std1*std2);
 		
@@ -146,11 +218,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				
 				heuristic.set(i, j, n);
 			}
-		}
-		
-		//TODO add Ant colony Optimization here
-		
-		return new Cover(graph);
 		
 	}
 	
@@ -200,7 +267,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	}
 	
 	/**
-	 * Version of the Czechkanowski Dice Distance
+	 * Version of the Czechkanowski/Sorensen Dice Distance
 	 * @param graph a graph from which v1 and v2 are taken
 	 * @param v1 node which is in a clique
 	 * @param v2 node which is not in the same clique as v1
@@ -317,9 +384,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return L;
 	}
 	
-	protected void initialization() {
-		
-	}
+
 	
 	protected void constructSolution() {
 		//TODO
@@ -361,12 +426,57 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	@Override
 	public Map<String,String> getParameters(){
-		return  new HashMap<String, String>();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(MAX_ITERATIONS, Double.toString(maxIterations));
+		parameters.put(NUMBER_OF_ANTS, Integer.toString(M));
+		parameters.put(EVAPORATION_FACTOR, Double.toString(rho));
+		parameters.put(MCR_THRESHOLD, Double.toString(threshold));
+		return parameters;
 	}
 
 	@Override
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
+		if(parameters.containsKey(MAX_ITERATIONS)) {
+			maxIterations = Integer.parseInt(parameters.get(MAX_ITERATIONS));
+			if(maxIterations <= 0) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(MAX_ITERATIONS);
+		}
+		if(parameters.containsKey(NUMBER_OF_ANTS)) {
+			M = Integer.parseInt(parameters.get(NUMBER_OF_ANTS));
+			if(M <= 0) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(NUMBER_OF_ANTS);
+		}
+		if(parameters.containsKey(EVAPORATION_FACTOR)) {
+			rho = Double.parseDouble(parameters.get(EVAPORATION_FACTOR));
+			if(rho < 0 || rho > 1) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(EVAPORATION_FACTOR);
+		}
 		
+		if(parameters.containsKey(MCR_THRESHOLD)) {
+			threshold = Double.parseDouble(parameters.get(MCR_THRESHOLD));
+			if(threshold < 0 || threshold > 1) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(MCR_THRESHOLD);
+		}
+		
+		if(parameters.containsKey(NUMMER_OF_NEIGHBORS)) {
+			nearNbors = Integer.parseInt(parameters.get(NUMMER_OF_NEIGHBORS));
+			if(nearNbors < 0 || nearNbors >= nodeNr) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(NUMMER_OF_NEIGHBORS);
+		}
+	
+		if(parameters.size() > 0) {
+			throw new IllegalArgumentException();
+		}
 	}
 	
 	
