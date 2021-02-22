@@ -6,6 +6,7 @@ import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueGraphRepresentation;
+import i5.las2peer.services.ocd.algorithms.utils.Ant;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +15,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import java.lang.Double; 
@@ -53,6 +55,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private static int H = M; 
 	
 	/**
+	 * Number of groups of ants. The value should be in between 0 and M. 
+	 */
+	private static int K; 
+	
+	/**
 	 * number of nodes in the graph
 	 */
 	private static int nodeNr;
@@ -78,6 +85,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private List<Matrix> pheromones; 
 	
 	/**
+	 * initial pheromone level
+	 */
+	private static int initialPheromones = 100; 
+	
+	/**
 	 * Number of objective functions used in this algorithm. The proposed algorithm by Ji et al uses 2 objective functions. So we recommend to this parameter to be 2. 
 	 */
 	private int objectFkt = 2;
@@ -98,6 +110,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	* The number of nearest neighbors considered in a neighborhood
 	*/
 	private static int nearNbors; 
+	
+	
 	
 	/*
 	 * PARAMETER NAMES
@@ -130,7 +144,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		CustomGraph MCR = representationScheme(graph);
 		
 		
-}
 		
 		//TODO add Ant colony Optimization here
 		
@@ -176,48 +189,100 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	}
 	
 	/**
-	 * Initialization of the weigth vector, pheromone information matrix, heuristic information matrix and initial solutions
+	 * Initialization of ants, the weight vector, pheromone information matrix, heuristic information matrix and initial solutions
+	 * "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition" by Qingfu Zhang et al. for reference.
 	 * @param graph
 	 * @param nodes
 	 */
 	protected void initialization(CustomGraph graph, Node[] nodes) {
+		EP = new ArrayList<Node>(); 
 		
-		//initialization of the weight vectors of the subproblems 
-		List<Vector> lambda = new ArrayList<Vector>(); //contains the weight vector for the M sub-problems 
-		double[] v_help = {0,1};
-		Vector v = new BasicVector(v_help);
-		
+		//Initializing Ants
+		List<Ant> ants = new ArrayList<Ant>(); 
 		for(int i = 0; i < M; i++) {
-			lambda.add(v);
+			Ant a = new Ant();
+			ants.add(a);
 		}
+		
+		// initializing the values to choose from 
+		List<Double> H_values = new ArrayList<Double>();
+		for(int i = 0; i <= H; i++) {
+			double hlp = i/H;
+			H_values.add(i,hlp);
+		}
+		
+		//initialization of the weight vectors of the subproblems/ants
+		Random rand = new Random();
+		for(int i = 0; i <= M; i++) {
+			double rVal = H_values.get(rand.nextInt(H));
+			double[] hlp = {rVal,1-rVal};
+			Vector v = new BasicVector(hlp);
+			ants.get(i).setWeight(v);
+		}
+		
+		// find the T closest neighbors
+		Matrix euclDist = new Basic2DMatrix(nodeNr, nodeNr); 
+		for(int i = 0; i < nodeNr; i++) {
+			
+			Ant a1 = ants.get(i); 
+			Vector lda1 = a1.getWeight(); 
+			for(int j = 0; j < nodeNr; j++) {
+				Ant a2 = ants.get(j);
+				Vector lda2 = a2.getWeight(); 
+				double eucl = Math.sqrt(Math.pow(lda2.get(0) - lda1.get(1), 2) + Math.pow(lda2.get(1) - lda1.get(1), 2));
+				euclDist.set(i, j, eucl);
+			}
+			for(int k = 0; k<nearNbors; k++) {
+				double max = euclDist.maxInRow(i);
+				euclDist.getColumn(i).
+			}
+		}
+
 		
 		// fill in the heuristic information matrix
 		heuristic = new Basic2DMatrix(nodeNr,nodeNr);  
-		int nodeNr = graph.nodeCount(); 
-		int edgeNr = graph.edgeCount();
-		
-		for(int i = 0; i < nodeNr; i++) {
-			NodeCursor nbor1 = nodes[i].neighbors();
-			double nborsNr1 = nbor1.size(); 
-			double mu1 = nborsNr1/nodeNr; 
-			double std1 = (nborsNr1*Math.pow(1-mu1, 2)+(nodeNr-nborsNr1)*Math.pow(mu1, 2))/nodeNr;
-			std1 = Math.sqrt(std1); 
+		Matrix neighbors = graph.getNeighbourhoodMatrix();
+		for(int i = 0; i < nodeNr-1; i++) {
+			Vector nbor1 = neighbors.getRow(i);
+			double nborsum1 = nbor1.sum(); 
+			double mu1 = nborsum1/nodeNr; // mean
+			double std1 = (nborsum1*Math.pow(1-mu1, 2)+(nodeNr-nborsum1)*Math.pow(mu1, 2))/nodeNr;
+			std1 = Math.sqrt(std1); // standard deviation
 			
-			nbor1.
-			for(int j = 0; j < nodeNr; j++) {
-				NodeCursor nbor2 = nodes[j].neighbors();
-				double nborsNr2 = nbor2.size(); 
-				double mu2 = nborsNr2/nodeNr; 
-				double std2 = (nborsNr2*Math.pow(1-mu2, 2)+(nodeNr-nborsNr2)*Math.pow(mu2, 2))/nodeNr;
-				std1 = Math.sqrt(std2); 
+			nbor1.subtract(mu1);  
+			for(int j = i+1; j < nodeNr; j++) {
+				Vector nbor2 = neighbors.getRow(j);
+				double nborsum2 = nbor2.sum(); 
+				double mu2 = nborsum1/nodeNr; // mean
+				double std2 = (nborsum2*Math.pow(1-mu1, 2)+(nodeNr-nborsum2)*Math.pow(mu1, 2))/nodeNr; 
+				std2 = Math.sqrt(std2); // standard deviation
 				
+				// compute covariance
+				nbor2.subtract(mu2);
+				double cov = 0;
+				for(int k = 0; k < nodeNr; k++) {
+					cov += nbor1.get(k)*nbor2.get(k);
+				}
 				
-				//double pearson = ()/(nodeNr*std1*std2);
-		
-				double n = 1/(1+Math.E);
+				double pearson = -cov/(nodeNr*std1*std2); // negative pearson correlation coefficient
+				double h = 1/(1+Math.pow(Math.E, pearson)); // heuristic information value for nodes i, j 
+				if(h < 0) {
+					h = 0; 
+				}
+				heuristic.set(i, j, h);
+				heuristic.set(j, i, h); 
 				
-				heuristic.set(i, j, n);
 			}
+		}
+		
+		//initialize the pheromone matrices 
+		double[] p = new double[nodeNr]; 
+		Arrays.fill(p, initialPheromones);
+		Matrix pheromone = new Basic2DMatrix();
+		for(int i = 0; i < K; i++) {
+			pheromones.add(pheromone);
+		}
+		
 		
 	}
 	
@@ -319,14 +384,20 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return olapsize/(lmbd1 + nbor1size + lmbd2 + nbor2size);
 	}
 	
-	//TODO add commentaries
+	/**
+	 * Evaluation of the cover of a graph. This measures the intra-link sparesity and should be minimized. 
+	 * @param graph
+	 * @param cover to evaluate on the graph
+	 * @return
+	 */
 	protected double negativeRatioAssociation(CustomGraph graph, Cover cover) {
 		double NRA = 0; 
-		Matrix memberships = cover.getMemberships();
+		Matrix memberships = cover.getMemberships(); 
 		int cols = memberships.columns(); 
+		
 		for(int i = 0; i<cols; i++) {
 			Vector v = memberships.getColumn(i); 
-			double vSum = cover.getCommunityMemberIndices(i).size();
+			double vSum = cover.getCommunityMemberIndices(i).size(); //how many members has this community
 			
 			NRA -= cliqueInterconectivity(graph, v, v)/(2*vSum);
 			
@@ -335,24 +406,29 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return NRA;
 	}
 	
-	//TODO add commentaries
+	/**
+	 * Evaluation of the cover of a graph. This measures the inter-link density and should be minimized. 
+	 * @param graph
+	 * @param cover to evaluate on the graph
+	 * @return
+	 */
 	protected double cutRatio(CustomGraph graph, Cover cover) {
 		double CR = 0; 
 		Matrix memberships = cover.getMemberships();
 		int cols = memberships.columns(); 
-
+		
 		for(int i = 0; i<cols; i++) {
 			Vector v = memberships.getColumn(i); 
 			List<Integer> comNodes = cover.getCommunityMemberIndices(i); 
 			
 			double[] one = new double[graph.nodeCount()]; 
 			Arrays.fill(one, 1);
-			Vector v_compl = new BasicVector(one);
+			Vector v_compl = new BasicVector(one); // calculate inverse of v
 			for(int cn: comNodes) {
-				v_compl.set(cn,0);
+				v_compl.set(cn,0); 
 			}
 			
-			double vSum = comNodes.size();
+			double vSum = comNodes.size(); // sum of nodes in the community
 			
 			CR += cliqueInterconectivity(graph, v, v_compl)/vSum;
 		}
@@ -360,23 +436,29 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return CR;
 	}
 	
-	//TODO add commentaries
+	/** 
+	 * Measure for the interconnectivity of two communities (can also be the same communities!)
+	 * @param graph 
+	 * @param com1 - community 1
+	 * @param com2 - community 2
+	 * @return
+	 */
 	protected double cliqueInterconectivity(CustomGraph graph, Vector com1, Vector com2) {
-		double L = 0; 
+		double L = 0; // counter of edges in between the communities
 		int com1Len = com1.length(); 
 		Node[] nodes = graph.getNodeArray(); 
-		for(int i = 0; i < com1Len; i++) {
-			if(com1.get(i) == 0) {
+		for(int i = 0; i < com1Len; i++) { // iterates over all nodes
+			if(com1.get(i) == 0) { // filters out all nodes within a community from the community vector
 				continue;
 			}
 			Node n1 = nodes[i]; 
-			for(int j = 0; j < com1Len; j++) {
-				if(com2.get(j) == 0) {
+			for(int j = 0; j < com1Len; j++) { // iterates over all nodes
+				if(com2.get(j) == 0) { // filters out all nodes within a community from the community vector
 					continue;
 				}
 				Node n2 = nodes[j];
 				
-				if (graph.containsEdge(n1, n2)) {
+				if (graph.containsEdge(n1, n2)) { // if two nodes from these two communities are connected by an edge
 					L += 1; 
 				}
 			}
