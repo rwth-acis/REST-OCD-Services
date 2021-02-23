@@ -44,6 +44,7 @@ public class Ant {
 	private int group; 
 	private Vector solution;   
 	public int number; 
+	private Vector fitness; 
 	
 	public Ant(int i){
 		this.number = i; 
@@ -67,6 +68,10 @@ public class Ant {
 	 public Vector getSolution() {
 		return solution; 
 	}
+	 
+	 public Vector getFitness() {
+			return fitness; 
+		}
 		 
 	/*----------------------------------------------------------------------------------------------------------------------------------------------------------
 	 * setters for some of the global attributes
@@ -87,6 +92,9 @@ public class Ant {
 	 public void setSolution(Vector solution) {
 			this.solution = solution; 
 	}
-		 
+		
+	 public void setFitness(Vector fitness) {
+			this.fitness = fitness; 
+	}
 	
 }
