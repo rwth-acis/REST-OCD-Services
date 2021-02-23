@@ -65,7 +65,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private static int nodeNr;
 	  
 	/**
-	 * Evaporation-Factor
+	 * Rate of the pheromone persistence
 	 */
 	private static double rho = 0.5;
 
@@ -97,7 +97,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * saves all best found community solutions
 	 */
-	private List<Node> EP;
+	private List<Vector> EP;
 	
 	/**
 	 * Heuristic information matrix: shows how similar to nodes. Nodes which are more similar are more likely to be in 
@@ -111,6 +111,25 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	*/
 	private static int nearNbors; 
 	
+	/**
+	 * Indicates the influence of the pheromone information matrix to the solution construction. The higher alpha the bigger is the influence.
+	 */
+	private static double alpha; 
+	
+	/**
+	 * Indicates the influence of the heuristic information matrix to the solution construction. The higher beta the bigger is the influence. 
+	 */
+	private static double beta; 
+	
+	/**
+	 * reference point for the minimal solution found so far 
+	 */
+	private static Vector refPoint;
+	
+	/**
+	 * threshold to filter out path randomly. used in solution construction
+	 */
+	private static float R;
 	
 	
 	/*
@@ -142,7 +161,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	public Cover detectOverlappingCommunities(CustomGraph graph) 
 			throws OcdAlgorithmException, InterruptedException {
 		CustomGraph MCR = representationScheme(graph);
-		
+		initialization(MCR);
 		
 		
 		//TODO add Ant colony Optimization here
@@ -195,15 +214,15 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param nodes
 	 * @throws InterruptedException 
 	 */
-	protected void initialization(CustomGraph graph, Node[] nodes) throws InterruptedException {
-		EP = new ArrayList<Node>(); 
+	protected void initialization(CustomGraph graph) throws InterruptedException {
+		EP = new ArrayList<Vector>(); 
 		
 		//Initializing Ants
-		//List<Ant> ants = new ArrayList<Ant>(); 
-		//for(int i = 0; i < M; i++) {
-		//	Ant a = new Ant();
-		//	ants.add(a);
-		//}
+		List<Ant> ants = new ArrayList<Ant>(); 
+		for(int i = 0; i < M; i++) {
+			Ant a = new Ant();
+			ants.add(a);
+		}
 		
 		// initializing the values to choose from 
 		List<Double> H_values = new ArrayList<Double>();
@@ -219,67 +238,73 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			double rVal = H_values.get(rand.nextInt(H));
 			double[] hlp = {rVal,1-rVal};
 			Vector v = new BasicVector(hlp);
-			//ants.get(i).setWeight(v);
+			ants.get(i).setWeight(v);
 			lambdas.add(v);
 		}
 		
 		// find the T closest neighbors
 		Map<Double,Integer> euclDist = new HashMap<Double,Integer>();
-		List<ArrayList<Integer>> neighborhood = new ArrayList<ArrayList<Integer>>();
+		//List<ArrayList<Integer>> neighborhood = new ArrayList<ArrayList<Integer>>();
 		
-		for(Vector lda1: lambdas) {
+		for(Ant a1: ants) {
+			Vector lda1 = a1.getWeight(); 
 			int j = 0; 
-			for(Vector lda2: lambdas) {
+			for(Ant a2: ants) { // calculate the euclidian distance for two vectors   
+				Vector lda2 = a2.getWeight();
 				double eucl = Math.sqrt(Math.pow(lda2.get(0) - lda1.get(1), 2) + Math.pow(lda2.get(1) - lda1.get(1), 2));
-				if(j < nearNbors) {
+				if(j < nearNbors) { // if not nearNbors solutions have been found
 					euclDist.put(eucl,j);
 				} else {
 					Iterator<Double> it = euclDist.keySet().iterator(); 
-					while(it.hasNext()) {
+					while(it.hasNext()) { // compare the entries found so far to the current vector
 						double comp_eucl = it.next();
-						if(comp_eucl>eucl) {
+						if(comp_eucl>eucl) { // as soon as the euclidian distance of the current vector is smaller then the entry in the table -> replace that entry
 							euclDist.remove(comp_eucl);
 							euclDist.put(eucl,j); 
+							break;
 						}
 					}
 				}
 				j++;
 			}
-			Iterator<Double> it = euclDist.keySet().iterator(); 
+			Iterator<Double> it = euclDist.keySet().iterator(); //convert HashMap into ArrayList 
 			ArrayList<Integer> tmp = new ArrayList<Integer>();
 			while(it.hasNext()) {
 				tmp.add(euclDist.get(it.next()));
 			}
-			neighborhood.add(tmp); 
+			//neighborhood.add(tmp); 
+			a1.setNeighbors(tmp);
 		}
 		
 		
-		// Group ants in K groups 
-		int memGroup = nodeNr/K; 
-		int div = nodeNr%K;
-		HashMap<HashSet<Integer>,Integer> groups = new HashMap<HashSet<Integer>,Integer>();
-		HashSet<Integer> help = new HashSet<Integer>();
-		int k = 0;
-		for(int i = 0; i < nodeNr; i++) {
-			if(help.contains(i)) { // if node is already in a group
-				continue; 
+		//initialization of help weight vectors of the group generation
+		List<Vector> hlp_lambdas = new ArrayList<Vector>(); 
+		for(int i = 0; i <= K; i++) {
+			double rVal = H_values.get(rand.nextInt(H));
+			double[] hlp = {rVal,1-rVal};
+			Vector v = new BasicVector(hlp);
+			hlp_lambdas.add(v);
+		}
+		
+		// grouping the ants in K groups
+		for(Ant a1: ants) {
+			Vector lda1 = a1.getWeight(); 
+			int minID = 0; 
+			double minEucl = Math.sqrt(Math.pow(hlp_lambdas.get(0).get(0) - lda1.get(1), 2) + Math.pow(hlp_lambdas.get(0).get(1) - lda1.get(1), 2)); 
+			int j = 0; 
+			for(Vector v: hlp_lambdas) { // calculate the euclidian distance for two vectors  
+				double eucl = Math.sqrt(Math.pow(v.get(0) - lda1.get(1), 2) + Math.pow(v.get(1) - lda1.get(1), 2));
+				if(j == 0) { // if not nearNbors solutions have been found
+					continue;
+				} else {
+					if(minEucl > eucl) {
+						minID = j;
+						minEucl = eucl; 
+					}
+				}
+				j++;
 			}
-			HashSet<Integer> group = new HashSet<Integer>();
-			ArrayList<Integer> neighbors = neighborhood.get(i);
-			if(i < div) { // if nodeNr/K not an integer (add in div groups a member more)
-				int ind = neighbors.get(memGroup);
-				group.add(ind);
-				help.add(ind);
-			}
-			for(int j = 0; j < memGroup; j++) { //add nodeNr/K group members
-				int ind = neighbors.get(j);
-				group.add(ind);
-				help.add(ind);
-			}
-			help.add(i);
-			group.add(i); 
-			groups.put(group, k);
-			k++;
+			a1.setGroup(minID);
 		}
 		
 		// fill in the heuristic information matrix
@@ -326,10 +351,25 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			pheromones.add(pheromone);
 		}
 		
-		//initial solution
-		//TODO
+		Random rand = new Random(); 
+		//initial solution randomized
+		for(Ant a: ants) {
+			Vector v = new BasicVector(nodeNr);
+			for(int i = 0; i < nodeNr; i++) {
+				v.set(i, rand.nextInt(2));
+			}
+			a.setSolution(v);
+		}
+		
+		//Reference Point 
+		setRefPoint(ants);
 	}
 	
+	protected void setRefPoint(List<Ant> ants) {
+		for(Ant a: ants) {
+			
+		}
+	}
 	
 	/** Measures the link strength in between the maximal cliques. 
 	 * 
@@ -439,14 +479,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param cover to evaluate on the graph
 	 * @return negative Ratio Association
 	 */
-	protected double negativeRatioAssociation(CustomGraph graph, Cover cover) {
+	protected double negativeRatioAssociation(CustomGraph graph, Vector sol) {
 		double NRA = 0; 
-		Matrix memberships = cover.getMemberships(); 
-		int cols = memberships.columns(); 
-		
-		for(int i = 0; i<cols; i++) {
+		int comNr = (int) sol.max(); 
+		int[] memNr = int[comNr]();
+		for(int j = 0; j < sol.length(); j++) {
+				memNr[(int)sol.get(j)]++;
+			}
+		for(int i = 0; i<comNr; i++) {
 			Vector v = memberships.getColumn(i); 
-			double vSum = cover.getCommunityMemberIndices(i).size(); //how many members has this community
+			double vSum = 0; //how many members has this community
+			
 			
 			NRA -= cliqueInterconectivity(graph, v, v)/(2*vSum);
 			
@@ -517,16 +560,108 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 
 	
-	protected void constructSolution() {
-		//TODO
+	protected void constructSolution(CustomGraph graph, Ant ant, boolean initial) {
+		Matrix phi = new Basic2DMatrix(); 
+		int group = ant.getGroup();
+		Matrix m = pheromones.get(group); 
+		Vector weight = ant.getWeight();
+		if(initial) {
+			for(int i = 0; i<nodeNr; i++) {
+				for(int j = 0; j < nodeNr; j++) {
+					phi.set(i, j, Math.pow(m.get(i, j), alpha)* Math.pow(heuristic.get(i, j), beta));
+				}
+			}
+		}
+		else {
+			Vector sol = ant.getSolution(); 
+			for(int i = 0; i<nodeNr; i++) {
+				for(int j = 0; j < nodeNr; j++) {
+					double update = m.get(i, j)+1/(1+TchebyehoffDecomposition(sol, weight))*isEdgeinSol(sol, i, j);
+					phi.set(i, j, Math.pow(update, alpha)*Math.pow(heuristic.get(i, j), beta));
+				}
+			}
+		}
+		
+		Random rand = new Random();
+		
+		List<Node> unvisited = new ArrayList<Node>(); 
+		unvisited.addAll(Arrays.asList(graph.getNodeArray()));
+		Node curr = unvisited.get(rand.nextInt());
+		unvisited.remove(curr); 
+		while(unvisited.isEmpty() != true) {
+			if(rand.nextFloat() < R) {
+				
+			} else {
+				
+			}
+			
+		}
 	}
 	
 	protected void updateEP() {
+		
+	}
+	
+	/**
+	 * Updates the pheromone matrix: two mechanisms
+	 * 1) pheromone evaporation on an edge
+	 * 2) pheromone deposit on an edge
+	 * @param addedSol solutions added to EP (non-dominated solution) (weight vector, solution vector)  
+	 * @param groups of nodes (groups number, weight vectors)
+	 */
+	protected void updatePheromoneMatrix(HashMap<Vector,Vector> addedSol, HashMap<Integer,HashSet<Vector>> groups) {
+		List<Matrix> pherUpdate = new ArrayList<Matrix>(); 
+		for(int k = 0; k < K; k++) {
+			Matrix m = pherUpdate.get(k);
+			Matrix persist = pheromones.get(k).multiply(rho); // persistence of the pheromones on a path
+			for(int i = 0; i < nodeNr; i++) { // starting point of edge
+				for(int j = 0; j < nodeNr; i++) { // ending point of edge
+					double delta = 0; 
+					int l = 0;
+					Iterator<Vector> it = addedSol.keySet().iterator();
+					while(it.hasNext()){
+						Vector weight = it.next();
+						if(groups.get(k).contains(weight)) {
+							Vector sol = addedSol.get(weight);
+							delta += 1/(1 + TchebyehoffDecomposition(sol, weight)) * isEdgeinSol(sol, i, j); // changed pheromones on a path 
+							l++; 
+						}
+						
+					}
+					m.set(i, j, delta + persist.get(i, j)); // evaporation + deposit
+				}
+			}
+			pheromones.set(k, m);
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * 
+	 * @param sol solution-vector
+	 * @param lambdas weight vector of the solution
+	 * @return result of the Tschebyeheff decomposition
+	 */
+	protected double TchebyehoffDecomposition(Vector sol, Vector lambda) {
+		double tc = 0; 
+		double RC = 0;
+		return 0; 
 		//TODO
 	}
 	
-	protected void updatePheromoneMatrix() {
-		//TODO
+	/**
+	 * Checks whether the edge (k,l) is contained in solution
+	 * @param sol solution vector
+	 * @param k index of a node
+	 * @param l index of another node
+	 * @return whether edge (k,l) is contained in solution sol
+	 */
+	protected double isEdgeinSol(Vector sol, int k, int l) {
+		if(sol.get(k) == 1 && sol.get(l) == 1) {
+			return 1; 
+		}
+		return 0; 
 	}
 	
 	protected void updateCurrentSolution() {
