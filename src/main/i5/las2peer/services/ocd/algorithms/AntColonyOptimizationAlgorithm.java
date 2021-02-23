@@ -124,7 +124,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	protected static final String MCR_THRESHOLD = "Threshold to filter out edges";
 	
-	protected static final String NUMMER_OF_NEIGHBORS = "Number of nearest neighbors to be considered in a neighborhood"";
+	protected static final String NUMMER_OF_NEIGHBORS = "Number of nearest neighbors to be considered in a neighborhood";
 	
 	public AntColonyOptimizationAlgorithm() {}
 	
@@ -193,16 +193,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition" by Qingfu Zhang et al. for reference.
 	 * @param graph
 	 * @param nodes
+	 * @throws InterruptedException 
 	 */
-	protected void initialization(CustomGraph graph, Node[] nodes) {
+	protected void initialization(CustomGraph graph, Node[] nodes) throws InterruptedException {
 		EP = new ArrayList<Node>(); 
 		
 		//Initializing Ants
-		List<Ant> ants = new ArrayList<Ant>(); 
-		for(int i = 0; i < M; i++) {
-			Ant a = new Ant();
-			ants.add(a);
-		}
+		//List<Ant> ants = new ArrayList<Ant>(); 
+		//for(int i = 0; i < M; i++) {
+		//	Ant a = new Ant();
+		//	ants.add(a);
+		//}
 		
 		// initializing the values to choose from 
 		List<Double> H_values = new ArrayList<Double>();
@@ -213,31 +214,73 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		
 		//initialization of the weight vectors of the subproblems/ants
 		Random rand = new Random();
+		List<Vector> lambdas = new ArrayList<Vector>(); 
 		for(int i = 0; i <= M; i++) {
 			double rVal = H_values.get(rand.nextInt(H));
 			double[] hlp = {rVal,1-rVal};
 			Vector v = new BasicVector(hlp);
-			ants.get(i).setWeight(v);
+			//ants.get(i).setWeight(v);
+			lambdas.add(v);
 		}
 		
 		// find the T closest neighbors
-		Matrix euclDist = new Basic2DMatrix(nodeNr, nodeNr); 
-		for(int i = 0; i < nodeNr; i++) {
-			
-			Ant a1 = ants.get(i); 
-			Vector lda1 = a1.getWeight(); 
-			for(int j = 0; j < nodeNr; j++) {
-				Ant a2 = ants.get(j);
-				Vector lda2 = a2.getWeight(); 
+		Map<Double,Integer> euclDist = new HashMap<Double,Integer>();
+		List<ArrayList<Integer>> neighborhood = new ArrayList<ArrayList<Integer>>();
+		
+		for(Vector lda1: lambdas) {
+			int j = 0; 
+			for(Vector lda2: lambdas) {
 				double eucl = Math.sqrt(Math.pow(lda2.get(0) - lda1.get(1), 2) + Math.pow(lda2.get(1) - lda1.get(1), 2));
-				euclDist.set(i, j, eucl);
+				if(j < nearNbors) {
+					euclDist.put(eucl,j);
+				} else {
+					Iterator<Double> it = euclDist.keySet().iterator(); 
+					while(it.hasNext()) {
+						double comp_eucl = it.next();
+						if(comp_eucl>eucl) {
+							euclDist.remove(comp_eucl);
+							euclDist.put(eucl,j); 
+						}
+					}
+				}
+				j++;
 			}
-			for(int k = 0; k<nearNbors; k++) {
-				double max = euclDist.maxInRow(i);
-				euclDist.getColumn(i).
+			Iterator<Double> it = euclDist.keySet().iterator(); 
+			ArrayList<Integer> tmp = new ArrayList<Integer>();
+			while(it.hasNext()) {
+				tmp.add(euclDist.get(it.next()));
 			}
+			neighborhood.add(tmp); 
 		}
-
+		
+		
+		// Group ants in K groups 
+		int memGroup = nodeNr/K; 
+		int div = nodeNr%K;
+		HashMap<HashSet<Integer>,Integer> groups = new HashMap<HashSet<Integer>,Integer>();
+		HashSet<Integer> help = new HashSet<Integer>();
+		int k = 0;
+		for(int i = 0; i < nodeNr; i++) {
+			if(help.contains(i)) { // if node is already in a group
+				continue; 
+			}
+			HashSet<Integer> group = new HashSet<Integer>();
+			ArrayList<Integer> neighbors = neighborhood.get(i);
+			if(i < div) { // if nodeNr/K not an integer (add in div groups a member more)
+				int ind = neighbors.get(memGroup);
+				group.add(ind);
+				help.add(ind);
+			}
+			for(int j = 0; j < memGroup; j++) { //add nodeNr/K group members
+				int ind = neighbors.get(j);
+				group.add(ind);
+				help.add(ind);
+			}
+			help.add(i);
+			group.add(i); 
+			groups.put(group, k);
+			k++;
+		}
 		
 		// fill in the heuristic information matrix
 		heuristic = new Basic2DMatrix(nodeNr,nodeNr);  
@@ -283,7 +326,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			pheromones.add(pheromone);
 		}
 		
-		
+		//initial solution
+		//TODO
 	}
 	
 	
