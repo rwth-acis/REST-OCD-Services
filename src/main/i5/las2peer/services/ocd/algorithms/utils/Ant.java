@@ -40,9 +40,14 @@ import y.base.NodeCursor;
 public class Ant {
 	 
 	private Vector lambda; 
-	private Set<Ant> neighbors;	  
-	  
-	public Ant(){}
+	private Set<Ant> neighbors;	 
+	private int group; 
+	private Vector solution;   
+	public int number; 
+	
+	public Ant(int i){
+		this.number = i; 
+	}
 
 	/*----------------------------------------------------------------------------------------------------------------------------------------------------------
 	 * getters for some of the global attributes
@@ -56,6 +61,13 @@ public class Ant {
 		return neighbors;
 	}
 	 
+	 public int getGroup() {
+		 return group; 
+	}
+	 public Vector getSolution() {
+		return solution; 
+	}
+		 
 	/*----------------------------------------------------------------------------------------------------------------------------------------------------------
 	 * setters for some of the global attributes
 	 *----------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -67,5 +79,14 @@ public class Ant {
 	 public void setNeighbors(Set<Ant> neighbors) {
 		this.neighbors = neighbors; 
 	 }
+	 
+	 public void setGroup(int group) {
+			this.group = group; 
+	}
+	 
+	 public void setSolution(Vector solution) {
+			this.solution = solution; 
+	}
+		 
 	
 }
