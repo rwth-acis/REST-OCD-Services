@@ -367,15 +367,25 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	}
 	//TODO ref point
 	protected void setRefPoint(CustomGraph graph, List<Ant> ants) {
-		double maxRC = 0; 
-		double maxNRA = 0;
+		double minCR = cutRatio(graph, ants.get(0).getSolution());
+		double minNRA = negativeRatioAssociation(graph, ants.get(0).getSolution()); 
 		for(Ant a: ants) {
 			Vector fitness = new BasicVector(2); 
 			Vector sol = a.getSolution(); 
 			double NRA = negativeRatioAssociation(graph, sol);
+			double CR = cutRatio(graph, sol);
 			fitness.set(0, NRA);
-			fitness.set(1, cutRatio(graph, sol));
+			fitness.set(1, CR);
+			if(NRA > minNRA) { // NRA is a negative metric
+				minNRA = NRA; 
+			}
+			if(CR < minCR){
+				minCR = CR;
+			}
 		}
+		refPoint = new BasicVector(2);
+		refPoint.set(0, minNRA);
+		refPoint.set(1, minCR);
 	}
 	
 	/** Measures the link strength in between the maximal cliques. 
