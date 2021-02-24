@@ -96,9 +96,15 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private int objectFkt = 2;
 	
 	/**
+	 * saves all best found community solutions (Pareto-Front)
+	 */
+	private HashMap<Vector, Vector> EP;
+	
+	/**
 	 * saves all best found community solutions
 	 */
-	private List<Vector> EP;
+	private List<Vector> newtoEP;
+	
 	
 	/**
 	 * Heuristic information matrix: shows how similar to nodes. Nodes which are more similar are more likely to be in 
@@ -131,6 +137,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * threshold to filter out path randomly. used in solution construction and between 0 and 1
 	 */
 	private static double R = 0.5;
+	
 	
 	
 	/*
@@ -220,7 +227,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException 
 	 */
 	protected List<Ant> initialization(CustomGraph graph) throws InterruptedException {
-		EP = new ArrayList<Vector>(); 
+		EP = new HashMap<Vector,Vector>(); 
 		
 		//Initializing Ants
 		List<Ant> ants = new ArrayList<Ant>(); 
@@ -611,6 +618,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	protected void constructSolution(CustomGraph graph, List<Ant> ants) {
 		Random rand = new Random();
+		newtoEP = new ArrayList<Vector>(); 
 		for(Ant ant: ants) {
 			Matrix phi = new Basic2DMatrix(); 
 			int group = ant.getGroup();
@@ -625,24 +633,83 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				}
 			}
 			
-		
-			List<Node> unvisited = new ArrayList<Node>(); 
-			unvisited.addAll(Arrays.asList(graph.getNodeArray()));
-			Node curr = unvisited.get(rand.nextInt());
-			unvisited.remove(curr); 
-			while(unvisited.isEmpty() != true) {
-				if(rand.nextFloat() < R) {
-					for 
-				} else {
-				
-			}
+			double[] zeros = new double[nodeNr]; 
+			Arrays.fill(zeros, 0);
+			Vector new_sol = new BasicVector(zeros); 
 			
-		}
+			for(int i = 0; i<nodeNr; i++) {
+				int maxId = 0; 
+				if(rand.nextFloat() < R) {
+					double maxphi = 0; 
+					for(int j = 0; j < nodeNr; j++) {
+						double phi_ij = phi.get(i, j);
+						if(phi_ij>maxphi) {
+							maxphi = phi_ij; 
+							maxId = j;
+						}
+					}
+					maxId = (int) sol.get(maxId);
+				} else {
+					ArrayList<Integer> nbors = ant.getNeighbors(); 
+					double sum_nbor = 0; 
+					for(int j: nbors) {
+						sum_nbor = phi.get(i, j);
+					}
+					
+					HashMap<Double,Integer> v = new HashMap<Double, Integer>(); 
+					for(int j: nbors) {
+						v.put(phi.get(i, j)/sum_nbor,j);
+					}
+					for(int j: nbors) {
+						v.put(phi.get(i, j)/sum_nbor, j);
+					}
+					Iterator<Double> it = v.keySet().iterator();
+					
+					double prob = 0; 
+					while(it.hasNext()) {
+						double next = it.next();
+						if(next < prob) {
+							continue; 
+						}
+						maxId = (int) sol.get(v.get(next)); 
+						prob = next; 
+					}
+				}
+				new_sol.set(i, maxId);
+			}
+			Vector fitness = new BasicVector(2);
+			fitness.set(0, negativeRatioAssociation(graph, new_sol));
+			fitness.set(1, cutRatio(graph, new_sol));
+			updateEP(new_sol, fitness);
 		}
 	}
 	
-	protected void updateEP() {
-		
+	/**
+	 * Updates the set of the Pareto front/ optimal solutions EP. Checks whether the new solution is dominated 
+	 * by old solutions in EP. If the new solution is not dominated by any of the old solutions, add the new solution
+	 * to EP and remove all solutions dominated by the new solution. 
+	 * @param new_sol new found solution
+	 * @param fitness fitness value of the found solution
+	 */
+	protected void updateEP(Vector new_sol, Vector fitness) {
+		Iterator<Vector> it = EP.keySet().iterator(); 
+		while(it.hasNext()) {// is the new solution dominated by any vector in EP 
+			Vector fitEP = it.next(); 
+			// new_sol is dominated (already found a better solution) -> new solution will not be added to EP
+			if((fitEP.get(0)>new_sol.get(0)&&fitEP.get(1)<=new_sol.get(1))||(fitEP.get(1)<new_sol.get(1)&&fitEP.get(0)>=new_sol.get(0))) {
+				return; 
+			}
+		}
+		Iterator<Vector> it2 = EP.keySet().iterator(); 
+		while(it2.hasNext()) { // remove the vectors dominated by the new solution
+			Vector fitEP = it.next(); 
+			// a vector is dominated -> remove it from EP
+			if((fitEP.get(0)<new_sol.get(0)&&fitEP.get(1)>=new_sol.get(1))||(fitEP.get(1)>new_sol.get(1)&&fitEP.get(0)<=new_sol.get(0))) {
+				EP.remove(fitEP); 
+			}
+		}
+		EP.put(fitness, new_sol); 
+		newtoEP.add(new_sol); // keep track of the newly added solutions for the update of the pheromone matrix
 	}
 	
 	/**
@@ -701,13 +768,13 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @return whether edge (k,l) is contained in solution sol
 	 */
 	protected double isEdgeinSol(Vector sol, int k, int l) {
-		if(sol.get(k) == 1 && sol.get(l) == 1) {
+		if(sol.get(k) == l || sol.get(l) = k) {
 			return 1; 
 		}
 		return 0; 
 	}
 	
-	protected void updateCurrentSolution() {
+	protected void updateCurrentSolution(Ant ant, Vector new_sol) {
 		//TODO
 	}
 	
