@@ -27,6 +27,7 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 import org.la4j.vector.dense.BasicVector;
+import org.la4j.vector.sparse.CompressedVector;
 
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -47,7 +48,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * number of ants/subproblems to solve 
 	 */
-	private static int M;
+	private static int M = 10;
 	  
 	/**
 	 * Positive integer associated with M. Helps to find uniformly distributed weight vector. Should be at least as large as M.  
@@ -57,7 +58,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Number of groups of ants. The value should be in between 0 and M. 
 	 */
-	private static int K; 
+	private static int K = 5; 
 	
 	/**
 	 * number of nodes in the graph
@@ -109,17 +110,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	* The number of nearest neighbors considered in a neighborhood
 	*/
-	private static int nearNbors; 
+	private static int nearNbors = 2; 
 	
 	/**
 	 * Indicates the influence of the pheromone information matrix to the solution construction. The higher alpha the bigger is the influence.
 	 */
-	private static double alpha; 
+	private static double alpha = 0.2; 
 	
 	/**
 	 * Indicates the influence of the heuristic information matrix to the solution construction. The higher beta the bigger is the influence. 
 	 */
-	private static double beta; 
+	private static double beta = 0.2; 
 	
 	/**
 	 * reference point for the minimal solution found so far 
@@ -127,9 +128,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private static Vector refPoint;
 	
 	/**
-	 * threshold to filter out path randomly. used in solution construction
+	 * threshold to filter out path randomly. used in solution construction and between 0 and 1
 	 */
-	private static float R;
+	private static double R = 0.5;
 	
 	
 	/*
@@ -220,7 +221,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		//Initializing Ants
 		List<Ant> ants = new ArrayList<Ant>(); 
 		for(int i = 0; i < M; i++) {
-			Ant a = new Ant();
+			Ant a = new Ant(i);
 			ants.add(a);
 		}
 		
@@ -234,7 +235,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		//initialization of the weight vectors of the subproblems/ants
 		Random rand = new Random();
 		List<Vector> lambdas = new ArrayList<Vector>(); 
-		for(int i = 0; i <= M; i++) {
+		for(int i = 0; i < M; i++) {
 			double rVal = H_values.get(rand.nextInt(H));
 			double[] hlp = {rVal,1-rVal};
 			Vector v = new BasicVector(hlp);
@@ -344,14 +345,14 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		}
 		
 		//initialize the pheromone matrices 
+		pheromones = new ArrayList<Matrix>(); 
 		double[] p = new double[nodeNr]; 
 		Arrays.fill(p, initialPheromones);
 		Matrix pheromone = new Basic2DMatrix();
 		for(int i = 0; i < K; i++) {
 			pheromones.add(pheromone);
 		}
-		
-		Random rand = new Random(); 
+		 
 		//initial solution randomized
 		for(Ant a: ants) {
 			Vector v = new BasicVector(nodeNr);
@@ -361,13 +362,19 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			a.setSolution(v);
 		}
 		
-		//Reference Point 
-		setRefPoint(ants);
+		//Reference Point & Fitness Values of the current solution
+		setRefPoint(graph, ants);
 	}
-	
-	protected void setRefPoint(List<Ant> ants) {
+	//TODO ref point
+	protected void setRefPoint(CustomGraph graph, List<Ant> ants) {
+		double maxRC = 0; 
+		double maxNRA = 0;
 		for(Ant a: ants) {
-			
+			Vector fitness = new BasicVector(2); 
+			Vector sol = a.getSolution(); 
+			double NRA = negativeRatioAssociation(graph, sol);
+			fitness.set(0, NRA);
+			fitness.set(1, cutRatio(graph, sol));
 		}
 	}
 	
@@ -481,18 +488,26 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	protected double negativeRatioAssociation(CustomGraph graph, Vector sol) {
 		double NRA = 0; 
-		int comNr = (int) sol.max(); 
-		int[] memNr = int[comNr]();
+		int comNr = (int) sol.max()+1; // starts with community 0
+		
+		List<Vector> members= new ArrayList<Vector>();
+		double[] zeros = new double[sol.length()];
+		Arrays.fill(zeros, 0);
+		Vector v_hlp = new BasicVector(zeros);
+		for(int j = 0; j < comNr; j++) {
+			members.add(v_hlp);
+		}
+		
 		for(int j = 0; j < sol.length(); j++) {
-				memNr[(int)sol.get(j)]++;
-			}
+			int com = (int)sol.get(j);
+			Vector v = new BasicVector();
+			v = members.get(com).copy(); //separate the vector per community
+			v.set(j, 1);
+			members.set(com, v);
+		}
 		for(int i = 0; i<comNr; i++) {
-			Vector v = memberships.getColumn(i); 
-			double vSum = 0; //how many members has this community
-			
-			
-			NRA -= cliqueInterconectivity(graph, v, v)/(2*vSum);
-			
+			Vector v = members.get(i);
+			NRA -= cliqueInterconectivity(graph, v, v)/v.sum();
 		}
 		
 		return NRA;
@@ -504,25 +519,33 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param cover to evaluate on the graph
 	 * @return Cut Ratio
 	 */
-	protected double cutRatio(CustomGraph graph, Cover cover) {
+	protected double cutRatio(CustomGraph graph, Vector sol) {
 		double CR = 0; 
-		Matrix memberships = cover.getMemberships();
-		int cols = memberships.columns(); 
+		int comNr = (int) sol.max()+1; 
 		
-		for(int i = 0; i<cols; i++) {
-			Vector v = memberships.getColumn(i); 
-			List<Integer> comNodes = cover.getCommunityMemberIndices(i); 
+		List<Vector> members= new ArrayList<Vector>();
+		double[] zeros = new double[sol.length()];
+		Arrays.fill(zeros, 0);
+		Vector v_hlp = new BasicVector(zeros);
+		for(int j = 0; j < comNr; j++) {
+			members.add(v_hlp);
+		}
+		
+		double[] ones = new double[sol.length()];
+		Arrays.fill(ones, 1);
+		Vector one = new BasicVector(zeros);
+		for(int j = 0; j < sol.length(); j++) {
+			int com = (int)sol.get(j);
+			Vector v = members.get(com).copy(); //separate the vector per community
+			v.set(j, 1);
+			members.set(com, v);
+		}
+
+		for(int i = 0; i<comNr; i++) {
+			Vector v = members.get(i); 
+			Vector v_compl = one.subtract(v); // calculate inverse of v
 			
-			double[] one = new double[graph.nodeCount()]; 
-			Arrays.fill(one, 1);
-			Vector v_compl = new BasicVector(one); // calculate inverse of v
-			for(int cn: comNodes) {
-				v_compl.set(cn,0); 
-			}
-			
-			double vSum = comNodes.size(); // sum of nodes in the community
-			
-			CR += cliqueInterconectivity(graph, v, v_compl)/vSum;
+			CR += cliqueInterconectivity(graph, v, v_compl)/v.sum();
 		}
 		
 		return CR;

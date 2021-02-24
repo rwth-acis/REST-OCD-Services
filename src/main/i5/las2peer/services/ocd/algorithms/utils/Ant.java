@@ -40,7 +40,7 @@ import y.base.NodeCursor;
 public class Ant {
 	 
 	private Vector lambda; 
-	private Set<Ant> neighbors;	 
+	private ArrayList<Integer> neighbors;	 
 	private int group; 
 	private Vector solution;   
 	public int number; 
@@ -58,7 +58,7 @@ public class Ant {
 		return lambda;
 	}
 	
-	public Set<Ant> getNeighbors() {
+	public ArrayList<Integer> getNeighbors() {
 		return neighbors;
 	}
 	 
@@ -81,7 +81,7 @@ public class Ant {
 		this.lambda = weight; 
 	 }
 	 
-	 public void setNeighbors(Set<Ant> neighbors) {
+	 public void setNeighbors(ArrayList<Integer> neighbors) {
 		this.neighbors = neighbors; 
 	 }
 	 
