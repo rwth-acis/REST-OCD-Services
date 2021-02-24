@@ -162,7 +162,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	public Cover detectOverlappingCommunities(CustomGraph graph) 
 			throws OcdAlgorithmException, InterruptedException {
 		CustomGraph MCR = representationScheme(graph);
-		initialization(MCR);
+		List<Ant> ants = initialization(MCR);
 		
 		
 		//TODO add Ant colony Optimization here
@@ -203,7 +203,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 						encoding.setEdgeWeight(e, ls);
 					}
 				}
+				if(n1.edges().size()==0) {
+					encoding.removeNode(n1);
+				}	
 			}
+		
 		return encoding; 
 				
 	}
@@ -215,7 +219,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param nodes
 	 * @throws InterruptedException 
 	 */
-	protected void initialization(CustomGraph graph) throws InterruptedException {
+	protected List<Ant> initialization(CustomGraph graph) throws InterruptedException {
 		EP = new ArrayList<Vector>(); 
 		
 		//Initializing Ants
@@ -357,14 +361,16 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		for(Ant a: ants) {
 			Vector v = new BasicVector(nodeNr);
 			for(int i = 0; i < nodeNr; i++) {
-				v.set(i, rand.nextInt(2));
+				v.set(i, i);
 			}
 			a.setSolution(v);
 		}
 		
 		//Reference Point & Fitness Values of the current solution
 		refPoint = new BasicVector(2);
-		setRefPoint(graph, ants);
+		ants = setRefPoint(graph, ants);
+		
+		return ants;
 	}
 	
 	/**
@@ -372,7 +378,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param graph the clique graph of the original graph
 	 * @param ants the generated ants
 	 */
-	protected void setRefPoint(CustomGraph graph, List<Ant> ants) {
+	protected List<Ant> setRefPoint(CustomGraph graph, List<Ant> ants) {
 		double minCR = cutRatio(graph, ants.get(0).getSolution());
 		double minNRA = negativeRatioAssociation(graph, ants.get(0).getSolution()); 
 		for(Ant a: ants) {
@@ -392,6 +398,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		
 		refPoint.set(0, minNRA);
 		refPoint.set(1, minCR);
+		return ants; 
 	}
 	
 	/** Measures the link strength in between the maximal cliques. 
@@ -597,43 +604,40 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return L;
 	}
 	
-
-	
-	protected void constructSolution(CustomGraph graph, Ant ant, boolean initial) {
-		Matrix phi = new Basic2DMatrix(); 
-		int group = ant.getGroup();
-		Matrix m = pheromones.get(group); 
-		Vector weight = ant.getWeight();
-		if(initial) {
-			for(int i = 0; i<nodeNr; i++) {
-				for(int j = 0; j < nodeNr; j++) {
-					phi.set(i, j, Math.pow(m.get(i, j), alpha)* Math.pow(heuristic.get(i, j), beta));
-				}
-			}
-		}
-		else {
+	/**
+	 * construct a new solution for each ant
+	 * @param graph to find new soutions on 
+	 * @param ants population of ants
+	 */
+	protected void constructSolution(CustomGraph graph, List<Ant> ants) {
+		Random rand = new Random();
+		for(Ant ant: ants) {
+			Matrix phi = new Basic2DMatrix(); 
+			int group = ant.getGroup();
+			Matrix m = pheromones.get(group); 
+			Vector weight = ant.getWeight();
 			Vector sol = ant.getSolution(); 
+			
 			for(int i = 0; i<nodeNr; i++) {
 				for(int j = 0; j < nodeNr; j++) {
 					double update = m.get(i, j)+1/(1+TchebyehoffDecomposition(sol, weight))*isEdgeinSol(sol, i, j);
 					phi.set(i, j, Math.pow(update, alpha)*Math.pow(heuristic.get(i, j), beta));
 				}
 			}
-		}
+			
 		
-		Random rand = new Random();
-		
-		List<Node> unvisited = new ArrayList<Node>(); 
-		unvisited.addAll(Arrays.asList(graph.getNodeArray()));
-		Node curr = unvisited.get(rand.nextInt());
-		unvisited.remove(curr); 
-		while(unvisited.isEmpty() != true) {
-			if(rand.nextFloat() < R) {
-				
-			} else {
+			List<Node> unvisited = new ArrayList<Node>(); 
+			unvisited.addAll(Arrays.asList(graph.getNodeArray()));
+			Node curr = unvisited.get(rand.nextInt());
+			unvisited.remove(curr); 
+			while(unvisited.isEmpty() != true) {
+				if(rand.nextFloat() < R) {
+					for 
+				} else {
 				
 			}
 			
+		}
 		}
 	}
 	
