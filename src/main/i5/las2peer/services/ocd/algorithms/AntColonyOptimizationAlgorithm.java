@@ -165,16 +165,15 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	@Override
-	public Cover detectOverlappingCommunities(CustomGraph graph) 
-			throws OcdAlgorithmException, InterruptedException {
+	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		CustomGraph MCR = representationScheme(graph);
 		List<Ant> ants = initialization(MCR);
+		
 		for(int i = 0; i < maxIterations; i++) {
 			constructSolution(MCR,ants); 
 			updatePheromoneMatrix(ants); 
-			updateCurrentSolution(); 
+			updateCurrentSolution(ants); 
 		}
-		
 		
 		// select solution from the pareto front EP
 		Iterator<Vector> it = EP.keySet().iterator();
@@ -690,8 +689,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			Vector fitness = new BasicVector(2);
 			fitness.set(0, negativeRatioAssociation(graph, new_sol));
 			fitness.set(1, cutRatio(graph, new_sol));
-			updateEP(new_sol, fitness);
+			updateEP(ant, new_sol, fitness);
 			ant.setSolution(new_sol);
+			ant.setFitness(fitness);
 		}
 	}
 	
@@ -702,7 +702,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param new_sol new found solution
 	 * @param fitness fitness value of the found solution
 	 */
-	protected void updateEP(Vector new_sol, Vector fitness) {
+	protected void updateEP(Ant ant, Vector new_sol, Vector fitness) {
 		Iterator<Vector> it = EP.keySet().iterator(); 
 		while(it.hasNext()) {// is the new solution dominated by any vector in EP 
 			Vector fitEP = it.next(); 
@@ -720,7 +720,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 		}
 		EP.put(fitness, new_sol); 
-		newtoEP.add(new_sol); // keep track of the newly added solutions for the update of the pheromone matrix
+		newtoEP.add(ant.number, new_sol);; // keep track of the newly added solutions for the update of the pheromone matrix
 	}
 	
 	/**
@@ -729,7 +729,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * 2) pheromone deposit on an edge
 	 * @param ants implemented ants
 	 */
-	protected void updatePheromoneMatrix(List<Ant> ants) {
+	protected void updatePheromoneMatrix(List<Ant> ants) {//TODO
 		List<Matrix> pherUpdate = new ArrayList<Matrix>(); 
 		for(int k = 0; k < K; k++) {
 			Matrix m = pherUpdate.get(k);
@@ -737,14 +737,12 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			for(int i = 0; i < nodeNr; i++) { // starting point of edge
 				for(int j = 0; j < nodeNr; i++) { // ending point of edge
 					double delta = 0; 
-					int l = 0;
-					Iterator<Vector> it = addedSol.keySet().iterator();
-					while(it.hasNext()){
-						Vector weight = it.next();
-						if(groups.get(k).contains(weight)) {
-							Vector sol = addedSol.get(weight);
-							delta += 1/(1 + TchebyehoffDecomposition(sol, weight)) * isEdgeinSol(sol, i, j); // changed pheromones on a path 
-							l++; 
+					for(Vector v: newtoEP) {
+						Ant ant = ants.get(newtoEP.indexOf(v));
+						Vector weight = ant.getWeight();
+						if(ant.getGroup() == k) {
+							Vector fit = ant.getFitness();
+							delta += 1/(1 + TchebyehoffDecomposition(fit, weight)) * isEdgeinSol(fit, i, j); // changed pheromones on a path 
 						}
 						
 					}
@@ -783,8 +781,33 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return 0;  
 	}
 	
-	protected void updateCurrentSolution(Ant ant, Vector new_sol) {
-		//TODO
+	/**
+	 * Simulation of interaction of ants in the same neighborhood. If an ant in the neighborhood finds 
+	 * a better solution, then the solution of an ant is replaced by the solution of the neighbor. Each 
+	 * neighbor can only replace one solution.  
+	 * @param ants 
+	 */
+	protected void updateCurrentSolution(List<Ant> ants) {
+		List<Ant> used = ants; 
+		
+		for(Ant ant: ants) {
+			ArrayList<Integer> neighbors = ant.getNeighbors();
+			Vector weight = ant.getWeight(); 
+			Vector fit = ant.getFitness();
+			double tc = TchebyehoffDecomposition(fit, weight);
+			for(int i: neighbors) { 
+				Ant neighbor = ants.get(i);
+				Vector fit_nbor = neighbor.getFitness();
+				Vector wei_nbor = neighbor.getWeight();
+				double tc_nbor = TchebyehoffDecomposition(fit_nbor, wei_nbor);
+	
+				// solution was not used before and neighbor solution is better -> replace solution
+				if(tc > tc_nbor && used.contains(neighbor)) { 
+					ant.setSolution(neighbor.getSolution());
+					used.remove(neighbor); // solution cannot be used to replace twice
+				}
+			}
+		}
 	}
 	
 	protected Cover decodeMaximalCliques(CustomGraph graph, Vector sol) {

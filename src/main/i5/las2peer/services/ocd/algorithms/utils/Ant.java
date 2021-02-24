@@ -41,7 +41,7 @@ public class Ant {
 	 
 	private Vector lambda; 
 	private ArrayList<Integer> neighbors;	 
-	private int group; 
+	private int group; // number of group in which ant is
 	private Vector solution;   
 	public int number; 
 	private Vector fitness; 
