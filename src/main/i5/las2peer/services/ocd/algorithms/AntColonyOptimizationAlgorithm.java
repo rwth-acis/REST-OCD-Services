@@ -363,9 +363,15 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		}
 		
 		//Reference Point & Fitness Values of the current solution
+		refPoint = new BasicVector(2);
 		setRefPoint(graph, ants);
 	}
-	//TODO ref point
+	
+	/**
+	 * This method sets the fitness values of the solutions found so far and updates the best solution found so far (reference point). 
+	 * @param graph the clique graph of the original graph
+	 * @param ants the generated ants
+	 */
 	protected void setRefPoint(CustomGraph graph, List<Ant> ants) {
 		double minCR = cutRatio(graph, ants.get(0).getSolution());
 		double minNRA = negativeRatioAssociation(graph, ants.get(0).getSolution()); 
@@ -383,7 +389,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				minCR = CR;
 			}
 		}
-		refPoint = new BasicVector(2);
+		
 		refPoint.set(0, minNRA);
 		refPoint.set(1, minCR);
 	}
