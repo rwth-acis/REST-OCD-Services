@@ -46,9 +46,15 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private static int maxIterations = 1000;
 	
 	/**
-	 * number of ants/subproblems to solve 
+	 * maximal clique encoding. the integer represents the number of the clique and the Hashset stores the 
+	 * clique members
 	 */
-	private static int M = 10;
+	private static HashMap<Integer,HashSet<Node>> maxClq;
+	
+	/**
+	 * number of ants/subproblems to solve. Default value: 1000
+	 */
+	private static int M = 1000;
 	  
 	/**
 	 * Positive integer associated with M. Helps to find uniformly distributed weight vector. Should be at least as large as M.  
@@ -91,11 +97,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private static int initialPheromones = 100; 
 	
 	/**
-	 * Number of objective functions used in this algorithm. The proposed algorithm by Ji et al uses 2 objective functions. So we recommend to this parameter to be 2. 
-	 */
-	private int objectFkt = 2;
-	
-	/**
 	 * saves all best found community solutions (Pareto-Front)
 	 */
 	private HashMap<Vector, Vector> EP;
@@ -105,11 +106,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	private List<Vector> newtoEP;
 	
-	
 	/**
 	 * Heuristic information matrix: shows how similar to nodes. Nodes which are more similar are more likely to be in 
 	 * the same community. The values are between 0 and 1 which 0 being not connected and 1 being very similar. 
-	 * 
 	 */
 	private Matrix heuristic; 
 	
@@ -121,15 +120,15 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Indicates the influence of the pheromone information matrix to the solution construction. The higher alpha the bigger is the influence.
 	 */
-	private static double alpha = 0.2; 
+	private static double alpha = 5; 
 	
 	/**
 	 * Indicates the influence of the heuristic information matrix to the solution construction. The higher beta the bigger is the influence. 
 	 */
-	private static double beta = 0.2; 
+	private static double beta = 4; 
 	
 	/**
-	 * reference point for the minimal solution found so far 
+	 * reference point for the minimal objective function values found so far 
 	 */
 	private static Vector refPoint;
 	
@@ -170,11 +169,22 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			throws OcdAlgorithmException, InterruptedException {
 		CustomGraph MCR = representationScheme(graph);
 		List<Ant> ants = initialization(MCR);
+		for(int i = 0; i < maxIterations; i++) {
+			constructSolution(MCR,ants); 
+			updatePheromoneMatrix(ants); 
+			updateCurrentSolution(); 
+		}
 		
 		
-		//TODO add Ant colony Optimization here
+		// select solution from the pareto front EP
+		Iterator<Vector> it = EP.keySet().iterator();
+		Vector fini_sol = new BasicVector();
+		while(it.hasNext()) { // selects the first 
+			 fini_sol = EP.get(it.next()); 
+			 break; 
+		}
 		
-		return new Cover(graph);
+		return decodeMaximalCliques(MCR, fini_sol);
 		
 	}
 	
@@ -188,7 +198,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	protected CustomGraph representationScheme(CustomGraph graph) {
 		// maximal clique search 
 		MaximalCliqueGraphRepresentation MCR = new MaximalCliqueGraphRepresentation();
-		HashMap<Integer,HashSet<Node>> maxClq = MCR.cliques(graph);
+		maxClq = MCR.cliques(graph);
 				
 		// determining the link strength in between the cliques
 		Matrix lkstrgth = linkStrength(graph, maxClq);
@@ -681,6 +691,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			fitness.set(0, negativeRatioAssociation(graph, new_sol));
 			fitness.set(1, cutRatio(graph, new_sol));
 			updateEP(new_sol, fitness);
+			ant.setSolution(new_sol);
 		}
 	}
 	
@@ -716,10 +727,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * Updates the pheromone matrix: two mechanisms
 	 * 1) pheromone evaporation on an edge
 	 * 2) pheromone deposit on an edge
-	 * @param addedSol solutions added to EP (non-dominated solution) (weight vector, solution vector)  
-	 * @param groups of nodes (groups number, weight vectors)
+	 * @param ants implemented ants
 	 */
-	protected void updatePheromoneMatrix(HashMap<Vector,Vector> addedSol, HashMap<Integer,HashSet<Vector>> groups) {
+	protected void updatePheromoneMatrix(List<Ant> ants) {
 		List<Matrix> pherUpdate = new ArrayList<Matrix>(); 
 		for(int k = 0; k < K; k++) {
 			Matrix m = pherUpdate.get(k);
@@ -747,17 +757,16 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	}
 	
 	/**
-	 * 
-	 * 
-	 * @param sol solution-vector
+	 *  computes the Tschebyeheff decomposition of a solution
+	 * @param fitness vector of the solution
 	 * @param lambdas weight vector of the solution
 	 * @return result of the Tschebyeheff decomposition
 	 */
-	protected double TchebyehoffDecomposition(Vector sol, Vector lambda) {
-		double tc = 0; 
-		double RC = 0;
-		return 0; 
-		//TODO
+	protected double TchebyehoffDecomposition(Vector fitness, Vector lambda) {
+		double NRA_ratio = fitness.get(0)*Math.abs(lambda.get(0)-refPoint.get(0));
+		double CR_ratio = fitness.get(1)*Math.abs(lambda.get(1)-refPoint.get(1));
+
+		return Math.max(NRA_ratio, CR_ratio); 
 	}
 	
 	/**
@@ -768,16 +777,34 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @return whether edge (k,l) is contained in solution sol
 	 */
 	protected double isEdgeinSol(Vector sol, int k, int l) {
-		if(sol.get(k) == l || sol.get(l) = k) {
+		if(sol.get(k) == l) {
 			return 1; 
 		}
-		return 0; 
+		return 0;  
 	}
 	
 	protected void updateCurrentSolution(Ant ant, Vector new_sol) {
 		//TODO
 	}
 	
+	protected Cover decodeMaximalCliques(CustomGraph graph, Vector sol) {
+		// prepare membership matrix
+		Iterator<Integer> it = maxClq.keySet().iterator();
+		Matrix membershipMatrix = new Basic2DMatrix(nodeNr,nodeNr);
+		while(it.hasNext()) {
+			int ind = it.next(); // index of clique
+			HashSet<Node> clique = maxClq.get(ind); 
+			int member = (int) sol.get(ind); // index of the solution community
+			for(Node n: clique) { 
+				membershipMatrix.set(n.index(),member, 1); // set node in community 
+			}
+		}
+		//generate Cover
+		Cover c = new Cover(graph); 
+		c.setMemberships(membershipMatrix);
+		
+		return c;
+	}
 	
 	/**
 	 * Returns a log representing the concrete algorithm execution.
