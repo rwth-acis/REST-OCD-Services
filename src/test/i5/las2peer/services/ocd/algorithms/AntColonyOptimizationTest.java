@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.text.ParseException;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.HashMap;
 
 import org.junit.Test;
@@ -14,6 +15,7 @@ import org.la4j.vector.dense.BasicVector;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.AntColonyOptimizationAlgorithm;
+import i5.las2peer.services.ocd.algorithms.utils.Ant;
 import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueGraphRepresentation;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
@@ -56,11 +58,35 @@ public class AntColonyOptimizationTest {
 	}
 	
 	@Test
-	public void testInitialization() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
+	public void testAllSteps() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
-		Cover cover = ACO.detectOverlappingCommunities(graph);
+		CustomGraph MCR = ACO.representationScheme(graph);
+		List<Ant> ants = ACO.initialization(MCR);
+		ACO.constructSolution(MCR, ants);
+		ACO.updatePheromoneMatrix(MCR, ants);	
+		ACO.updateCurrentSolution(ants);
 	}
+	
+	@Test
+	public void testDecoding() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
+		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
+		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
+		CustomGraph MCR = ACO.representationScheme(graph);
+		
+		Vector cover = new BasicVector();
+		cover.set(0, 0);
+		cover.set(1, 0);
+		cover.set(2, 1);
+		cover.set(3, 1);
+		cover.set(3, 1);
+		ACO.decodeMaximalCliques(MCR, cover);
+	}
+	
+
+	
+	
+	
 	
 	@Test
 	public void testNegativeRatioAssociation() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
