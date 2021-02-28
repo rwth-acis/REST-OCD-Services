@@ -171,7 +171,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		
 		for(int i = 0; i < maxIterations; i++) {
 			constructSolution(MCR,ants); 
-			updatePheromoneMatrix(ants); 
+			updatePheromoneMatrix(MCR, ants); 
 			updateCurrentSolution(ants); 
 		}
 		
@@ -366,9 +366,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		
 		//initialize the pheromone matrices 
 		pheromones = new ArrayList<Matrix>(); 
-		double[] p = new double[nodeNr]; 
-		Arrays.fill(p, initialPheromones);
-		Matrix pheromone = new Basic2DMatrix();
+		double[][] p = new double[nodeNr][nodeNr]; 
+		for(int i = 0; i < nodeNr; i++) {
+			Arrays.fill(p[i], initialPheromones);
+		}	
+		Matrix pheromone = new Basic2DMatrix(p);
 		for(int i = 0; i < K; i++) {
 			pheromones.add(pheromone);
 		}
@@ -492,20 +494,10 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 					break; 
 				}
 				
-				if(nbors2.ok() == true){
-					nbors2.cyclicNext();
-				}
-				else {
-					break;
-				}
+				nbors2.cyclicNext();
 			}
-			
-			if(nbors1.ok() == true){
-				nbors1.cyclicNext();
-			}
-			else {
-				break;
-			}
+
+			nbors1.cyclicNext();
 		}
 		double edgeNr = graph.edgeCount()/2;
 		double nodeNr = graph.nodeCount(); 
@@ -629,7 +621,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		Random rand = new Random();
 		newtoEP = new ArrayList<Vector>(); 
 		for(Ant ant: ants) {
-			Matrix phi = new Basic2DMatrix(); 
+			Matrix phi = new Basic2DMatrix(nodeNr,nodeNr); 
 			int group = ant.getGroup();
 			Matrix m = pheromones.get(group); 
 			Vector weight = ant.getWeight();
@@ -637,7 +629,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			
 			for(int i = 0; i<nodeNr; i++) {
 				for(int j = 0; j < nodeNr; j++) {
-					double update = m.get(i, j)+1/(1+TchebyehoffDecomposition(sol, weight))*isEdgeinSol(sol, i, j);
+					double update = m.get(i, j)+1/(1+TchebyehoffDecomposition(sol, weight))*isEdgeinSol(graph, sol, i, j);
 					phi.set(i, j, Math.pow(update, alpha)*Math.pow(heuristic.get(i, j), beta));
 				}
 			}
@@ -712,13 +704,15 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 		}
 		Iterator<Vector> it2 = EP.keySet().iterator(); 
+		HashMap<Vector, Vector> EP_new = new HashMap<Vector, Vector>(); 
 		while(it2.hasNext()) { // remove the vectors dominated by the new solution
-			Vector fitEP = it.next(); 
+			Vector fitEP = it2.next(); 
 			// a vector is dominated -> remove it from EP
-			if((fitEP.get(0)<new_sol.get(0)&&fitEP.get(1)>=new_sol.get(1))||(fitEP.get(1)>new_sol.get(1)&&fitEP.get(0)<=new_sol.get(0))) {
-				EP.remove(fitEP); 
+			if((fitEP.get(0) >= new_sol.get(0) && fitEP.get(1) >= new_sol.get(1))) {
+				EP_new.put(fitEP, EP.get(fitEP)); 
 			}
 		}
+		EP = EP_new; 
 		EP.put(fitness, new_sol); 
 		newtoEP.add(ant.number, new_sol);; // keep track of the newly added solutions for the update of the pheromone matrix
 	}
@@ -729,24 +723,25 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * 2) pheromone deposit on an edge
 	 * @param ants implemented ants
 	 */
-	protected void updatePheromoneMatrix(List<Ant> ants) {//TODO
-		List<Matrix> pherUpdate = new ArrayList<Matrix>(); 
+	protected void updatePheromoneMatrix(CustomGraph graph, List<Ant> ants) {//TODO 
 		for(int k = 0; k < K; k++) {
-			Matrix m = pherUpdate.get(k);
+			Matrix m = new Basic2DMatrix(nodeNr, nodeNr);
 			Matrix persist = pheromones.get(k).multiply(rho); // persistence of the pheromones on a path
-			for(int i = 0; i < nodeNr; i++) { // starting point of edge
-				for(int j = 0; j < nodeNr; i++) { // ending point of edge
+			for(int i = 0; i < nodeNr; i++) { // end of edge
+				for(int j = i+1; j < nodeNr; j++) { // end of edge
 					double delta = 0; 
 					for(Vector v: newtoEP) {
 						Ant ant = ants.get(newtoEP.indexOf(v));
 						Vector weight = ant.getWeight();
 						if(ant.getGroup() == k) {
 							Vector fit = ant.getFitness();
-							delta += 1/(1 + TchebyehoffDecomposition(fit, weight)) * isEdgeinSol(fit, i, j); // changed pheromones on a path 
+							Vector sol = ant.getSolution(); 
+							delta += 1/(1 + TchebyehoffDecomposition(fit, weight)) * isEdgeinSol(graph, sol, i, j); // changed pheromones on a path 
 						}
 						
 					}
 					m.set(i, j, delta + persist.get(i, j)); // evaporation + deposit
+					m.set(j, i, delta + persist.get(i, j));
 				}
 			}
 			pheromones.set(k, m);
@@ -774,8 +769,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param l index of another node
 	 * @return whether edge (k,l) is contained in solution sol
 	 */
-	protected double isEdgeinSol(Vector sol, int k, int l) {
-		if(sol.get(k) == l) {
+	protected double isEdgeinSol(CustomGraph graph, Vector sol, int k, int l) {
+		Node[] nodes = graph.getNodeArray();
+		if(graph.containsEdge(nodes[k], nodes[l])&& sol.get(k) == sol.get(l)) {
 			return 1; 
 		}
 		return 0;  
