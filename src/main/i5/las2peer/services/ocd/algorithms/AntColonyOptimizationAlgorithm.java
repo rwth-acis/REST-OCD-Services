@@ -43,18 +43,18 @@ import y.base.NodeCursor;
 public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	
-	private static int maxIterations = 100;
+	private static int maxIterations = 10;
 	
 	/**
 	 * maximal clique encoding. the integer represents the number of the clique and the Hashset stores the 
 	 * clique members
 	 */
-	private static HashMap<Integer,HashSet<Node>> maxClq;
+	private HashMap<Integer,HashSet<Node>> maxClq;
 	
 	/**
 	 * number of ants/subproblems to solve. Default value: 1000
 	 */
-	private static int M = 6;
+	private static int M = 100;
 	  
 	/**
 	 * Positive integer associated with M. Helps to find uniformly distributed weight vector. Should be at least as large as M.  
@@ -135,7 +135,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * threshold to filter out path randomly. used in solution construction and between 0 and 1
 	 */
-	private static double R = 0.5;
+	private static double R = 0.2;
 	
 	
 	
@@ -175,13 +175,41 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			updateCurrentSolution(ants); 
 		}
 		
-		// select solution from the pareto front EP
+		// select solution from the pareto front EP by modularity Q
 		Iterator<Vector> it = EP.keySet().iterator();
 		Vector fini_sol = new BasicVector();
-		while(it.hasNext()) { // selects the first 
-			 fini_sol = EP.get(it.next()); 
-			 break; 
+		double Q = 0; //modularity
+		Node[] nodes = MCR.getNodeArray();
+		double edgeNr = MCR.edgeCount();  
+		while(it.hasNext()) { 
+			Vector curr = EP.get(it.next()); 
+			double Q_new = 0;
+			boolean first = true; 
+			
+			for(Node n1: nodes) {
+				for(Node n2: nodes) {
+					if(curr.get(n1.index()) == curr.get(n2.index())) { // nodes are in the same community 
+						if(MCR.containsEdge(n1,n2)) {
+							Edge e = n1.getEdgeTo(n2); // edge between nodes 
+							Q_new += MCR.getEdgeWeight(e) - n1.degree()*n2.degree()/2*edgeNr;
+						}
+						else {
+							Q_new -= n1.degree()*n2.degree()/2*edgeNr; // no edge between nodes 
+						}
+					}
+				}
+			}
+			
+			Q_new = Q_new/2*edgeNr;
+			if(Q_new > Q || first == true) {
+				Q = Q_new; 
+				fini_sol = curr; 
+				first = false;
+			}
+			break; 
 		}
+		
+		
 		
 		return decodeMaximalCliques(graph, fini_sol);
 		
@@ -215,8 +243,10 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 					int i2 = n2.index();
 					double ls = lkstrgth.get(i1, i2);
 					if(ls>=threshold) { // leaving out weak edges
-						Edge e = encoding.createEdge(n1, n2);
-						encoding.setEdgeWeight(e, ls);
+						Edge e1 = encoding.createEdge(n1, n2);
+						Edge e2 = encoding.createEdge(n2, n1);
+						encoding.setEdgeWeight(e1, ls);
+						encoding.setEdgeWeight(e2, ls);
 					}
 				}
 				if(n1.edges().size()==0) {
@@ -464,7 +494,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				
 			}
 		}
-		
 		return lkstrgth;
 	}
 	
@@ -519,17 +548,15 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	protected double negativeRatioAssociation(CustomGraph graph, Vector sol) {
 		double NRA = 0; 
-		int comNr = (int) sol.max()+1; // starts with community 0
+		int comNr = (int) sol.max() +1; // starts with community 0
 		
 		List<Vector> members= new ArrayList<Vector>();
-		double[] zeros = new double[sol.length()];
-		Arrays.fill(zeros, 0);
-		Vector v_hlp = new BasicVector(zeros);
+		Vector v_hlp = new BasicVector(nodeNr);
 		for(int j = 0; j < comNr; j++) {
 			members.add(v_hlp);
 		}
 		
-		for(int j = 0; j < sol.length(); j++) {
+		for(int j = 0; j < nodeNr; j++) {
 			int com = (int)sol.get(j);
 			Vector v = new BasicVector();
 			v = members.get(com).copy(); //separate the vector per community
@@ -705,11 +732,16 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param fitness fitness value of the found solution
 	 */
 	protected void updateEP(Ant ant, Vector new_sol, Vector fitness) {
+		if(EP.isEmpty()) {
+			EP.put(fitness, new_sol); 
+			return; 
+		}
+		
 		Iterator<Vector> it = EP.keySet().iterator(); 
 		while(it.hasNext()) {// is the new solution dominated by any vector in EP 
 			Vector fitEP = it.next(); 
 			// new_sol is dominated (already found a better solution) -> new solution will not be added to EP
-			if((fitEP.get(0)>new_sol.get(0)&&fitEP.get(1)<=new_sol.get(1))||(fitEP.get(1)<new_sol.get(1)&&fitEP.get(0)>=new_sol.get(0))) {
+			if((fitEP.get(0)>fitness.get(0)&&fitEP.get(1)<=fitness.get(1))||(fitEP.get(1)<new_sol.get(1)&&fitEP.get(0)>=new_sol.get(0))) {
 				return; 
 			}
 		}
@@ -718,13 +750,13 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		while(it2.hasNext()) { // remove the vectors dominated by the new solution
 			Vector fitEP = it2.next(); 
 			// a vector is dominated -> remove it from EP
-			if((fitEP.get(0) >= new_sol.get(0) && fitEP.get(1) >= new_sol.get(1))) {
+			if((fitEP.get(0) >= fitness.get(0) && fitEP.get(1) >= fitness.get(1))) {
 				EP_new.put(fitEP, EP.get(fitEP)); 
 			}
 		}
 		EP = EP_new; 
 		EP.put(fitness, new_sol); 
-		newtoEP.add(ant.number, new_sol);; // keep track of the newly added solutions for the update of the pheromone matrix
+		newtoEP.add(ant.number, new_sol); // keep track of the newly added solutions for the update of the pheromone matrix
 	}
 	
 	/**

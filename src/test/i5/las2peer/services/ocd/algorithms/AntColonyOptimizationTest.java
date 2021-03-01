@@ -19,6 +19,7 @@ import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
+import y.base.Edge;
 import y.base.Node;
 
 
@@ -68,7 +69,7 @@ public class AntColonyOptimizationTest {
 	
 	@Test
 	public void testACO() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
-		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
+		CustomGraph graph = OcdTestGraphFactory.getDolphinsGraph();
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		Cover c = ACO.detectOverlappingCommunities(graph);
 		System.out.print(c);
