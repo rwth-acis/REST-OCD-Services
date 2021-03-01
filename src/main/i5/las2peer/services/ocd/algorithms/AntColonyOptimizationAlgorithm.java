@@ -54,7 +54,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * number of ants/subproblems to solve. Default value: 1000
 	 */
-	private static int M = 1000;
+	private static int M = 50;
 	  
 	/**
 	 * Positive integer associated with M. Helps to find uniformly distributed weight vector. Should be at least as large as M.  
@@ -183,7 +183,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			 break; 
 		}
 		
-		return decodeMaximalCliques(MCR, fini_sol);
+		return decodeMaximalCliques(graph, fini_sol);
 		
 	}
 	
@@ -784,8 +784,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param ants 
 	 */
 	protected void updateCurrentSolution(List<Ant> ants) {
-		List<Ant> used = ants; 
-		
+		List<Ant> used = new ArrayList<Ant>(); 
 		for(Ant ant: ants) {
 			ArrayList<Integer> neighbors = ant.getNeighbors();
 			Vector weight = ant.getWeight(); 
@@ -798,18 +797,25 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				double tc_nbor = TchebyehoffDecomposition(fit_nbor, wei_nbor);
 	
 				// solution was not used before and neighbor solution is better -> replace solution
-				if(tc > tc_nbor && used.contains(neighbor)) { 
+				if(tc > tc_nbor && !used.contains(neighbor)) { 
 					ant.setSolution(neighbor.getSolution());
-					used.remove(neighbor); // solution cannot be used to replace twice
+					used.add(neighbor); // solution cannot be used to replace twice
 				}
 			}
 		}
+		
 	}
 	
+	/**
+	 * Transfer the solution of the Maximal Clique Graph into a solution for the original graph
+	 * @param graph original graph (not Maximal Clique Graph!)
+	 * @param sol solution vector of the best solution
+	 * @return Cover of the original graph 
+	 */
 	protected Cover decodeMaximalCliques(CustomGraph graph, Vector sol) {
 		// prepare membership matrix
 		Iterator<Integer> it = maxClq.keySet().iterator();
-		Matrix membershipMatrix = new Basic2DMatrix(nodeNr,nodeNr);
+		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),nodeNr);
 		while(it.hasNext()) {
 			int ind = it.next(); // index of clique
 			HashSet<Node> clique = maxClq.get(ind); 
