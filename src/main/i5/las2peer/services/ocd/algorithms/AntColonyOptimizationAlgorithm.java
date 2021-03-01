@@ -43,7 +43,7 @@ import y.base.NodeCursor;
 public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	
-	private static int maxIterations = 1000;
+	private static int maxIterations = 100;
 	
 	/**
 	 * maximal clique encoding. the integer represents the number of the clique and the Hashset stores the 
@@ -54,7 +54,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * number of ants/subproblems to solve. Default value: 1000
 	 */
-	private static int M = 50;
+	private static int M = 6;
 	  
 	/**
 	 * Positive integer associated with M. Helps to find uniformly distributed weight vector. Should be at least as large as M.  
@@ -375,11 +375,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			pheromones.add(pheromone);
 		}
 		 
-		//initial solution randomized
+		//initial solution -> each clique is a community 
 		for(Ant a: ants) {
 			Vector v = new BasicVector(nodeNr);
 			for(int i = 0; i < nodeNr; i++) {
-				v.set(i, i);
+				v.set(i, i); 
 			}
 			a.setSolution(v);
 		}
@@ -626,20 +626,18 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			Matrix m = pheromones.get(group); 
 			Vector weight = ant.getWeight();
 			Vector sol = ant.getSolution(); 
-			
+			HashMap<Vector, Vector> new_solutions = new HashMap<Vector,Vector>();
 			for(int i = 0; i<nodeNr; i++) {
 				for(int j = 0; j < nodeNr; j++) {
 					double update = m.get(i, j)+1/(1+TchebyehoffDecomposition(sol, weight))*isEdgeinSol(graph, sol, i, j);
 					phi.set(i, j, Math.pow(update, alpha)*Math.pow(heuristic.get(i, j), beta));
 				}
 			}
-			
-			double[] zeros = new double[nodeNr]; 
-			Arrays.fill(zeros, 0);
-			Vector new_sol = new BasicVector(zeros); 
-			
+				
 			for(int i = 0; i<nodeNr; i++) {
 				int maxId = 0; 
+				Vector new_sol = sol.copy(); 
+				
 				if(rand.nextFloat() < R) {
 					double maxphi = 0; 
 					for(int j = 0; j < nodeNr; j++) {
@@ -649,7 +647,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 							maxId = j;
 						}
 					}
-					maxId = (int) sol.get(maxId);
 				} else {
 					ArrayList<Integer> nbors = ant.getNeighbors(); 
 					double sum_nbor = 0; 
@@ -672,18 +669,31 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 						if(next < prob) {
 							continue; 
 						}
-						maxId = (int) sol.get(v.get(next)); 
+						maxId = (int) v.get(next); 
 						prob = next; 
 					}
+					
 				}
-				new_sol.set(i, maxId);
+				new_sol.set(i, sol.get(maxId));
+				Vector fitness = new BasicVector(2);
+				fitness.set(0, negativeRatioAssociation(graph, new_sol));
+				fitness.set(1, cutRatio(graph, new_sol));
+				new_solutions.put(fitness, new_sol);
 			}
-			Vector fitness = new BasicVector(2);
-			fitness.set(0, negativeRatioAssociation(graph, new_sol));
-			fitness.set(1, cutRatio(graph, new_sol));
-			updateEP(ant, new_sol, fitness);
-			ant.setSolution(new_sol);
-			ant.setFitness(fitness);
+			Iterator<Vector> it = new_solutions.keySet().iterator();
+			Vector bestFit = it.next(); 
+			while(it.hasNext()) {
+				Vector v = it.next();
+				double NRA = v.get(0); 
+				double CR = v.get(1); 
+				if(NRA >= bestFit.get(0) && CR <= bestFit.get(1)) {
+					bestFit = v; 
+				}
+			}
+
+			updateEP(ant, new_solutions.get(bestFit), bestFit);
+			ant.setSolution(new_solutions.get(bestFit));
+			ant.setFitness(bestFit);
 		}
 	}
 	

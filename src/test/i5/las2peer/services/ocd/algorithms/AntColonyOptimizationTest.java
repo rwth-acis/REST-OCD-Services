@@ -68,7 +68,7 @@ public class AntColonyOptimizationTest {
 	
 	@Test
 	public void testACO() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
-		CustomGraph graph = OcdTestGraphFactory.getDolphinsGraph() ;
+		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		Cover c = ACO.detectOverlappingCommunities(graph);
 		System.out.print(c);
