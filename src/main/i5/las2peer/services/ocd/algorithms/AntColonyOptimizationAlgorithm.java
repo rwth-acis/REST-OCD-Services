@@ -823,17 +823,43 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @return Cover of the original graph 
 	 */
 	protected Cover decodeMaximalCliques(CustomGraph graph, Vector sol) {
+		// find out how many communities are there
+		List<Vector> membershipMatrixVectors = new ArrayList<Vector>(nodeNr);
+		List<Integer> com = new ArrayList<Integer>();
+		
+		for(int i = 0; i < nodeNr; i++) {
+			int com1 = (int) sol.get(i);
+			if(!com.contains(com1)) {
+				com.add(com1);	
+			}
+		}
+		
+		for(int i = 0; i < nodeNr; i++) {
+			Vector v = new BasicVector(graph.nodeCount());
+			membershipMatrixVectors.add(i,v);
+		}
+
 		// prepare membership matrix
 		Iterator<Integer> it = maxClq.keySet().iterator();
-		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),nodeNr);
+
 		while(it.hasNext()) {
 			int ind = it.next(); // index of clique
 			HashSet<Node> clique = maxClq.get(ind); 
 			int member = (int) sol.get(ind); // index of the solution community
-			for(Node n: clique) { 
-				membershipMatrix.set(n.index(),member, 1); // set node in community 
+			for(Node n: clique){ 
+				Vector v = membershipMatrixVectors.get(member);
+				v.set(n.index(), 1);
+				membershipMatrixVectors.set(member, v);  // set node in community 
 			}
 		}
+		
+		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),com.size());
+		int i = 0;
+		for(int cNr: com) {
+			membershipMatrix.setColumn(i, membershipMatrixVectors.get(cNr));
+			i++;
+		}
+		
 		//generate Cover
 		Cover c = new Cover(graph); 
 		c.setMemberships(membershipMatrix);
