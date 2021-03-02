@@ -54,7 +54,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Positive integer associated with M. Helps to find uniformly distributed weight vector. Should be at least as large as M.  
 	 */
-	private static int H = M; 
+	private static int H = M*100; 
 	
 	/**
 	 * Number of  ants in groups. The value should be in between 0 and M. 
@@ -287,27 +287,34 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			Map<Double,Integer> euclDist = new HashMap<Double,Integer>();
 			Vector lda1 = a1.getWeight(); 
 			int j = 0; 
-			for(Ant a2: ants) { // calculate the euclidian distance for two vectors   
+			for(Ant a2: ants) { // calculate the euclidian distance for two vectors  
 				if(a1 == a2) {
-					j++;
 					continue; 
 				}
+				int ind = a2.number; 
 				Vector lda2 = a2.getWeight();
-				double eucl = Math.sqrt(Math.pow(lda2.get(0) - lda1.get(1), 2) + Math.pow(lda2.get(1) - lda1.get(1), 2));
+				double eucl = Math.sqrt(Math.pow(lda2.get(0) - lda1.get(0), 2) + Math.pow(lda2.get(1) - lda1.get(1), 2));
 				if(j < nearNbors) { // if not nearNbors solutions have been found
-					euclDist.put(eucl,j);
+					euclDist.put(eucl,ind);
+					j++; 
 				} else {
 					Iterator<Double> it = euclDist.keySet().iterator(); 
+					boolean replace = false; 
+					double maxEucl = it.next(); 
 					while(it.hasNext()) { // compare the entries found so far to the current vector
 						double comp_eucl = it.next();
-						if(comp_eucl>eucl) { // as soon as the euclidian distance of the current vector is smaller then the entry in the table -> replace that entry
-							euclDist.remove(comp_eucl);
-							euclDist.put(eucl,j); 
-							break;
+						if(comp_eucl > eucl) { // as soon as the euclidian distance of the current vector is smaller then the entry in the table -> replace that entry
+							if(comp_eucl > maxEucl) { // make sure to replace the biggest euclidian dist
+								maxEucl = comp_eucl; 
+							}
+							replace = true; 
 						}
+					}	
+					if(replace == true) {
+						euclDist.remove(maxEucl);
+						euclDist.put(eucl,ind); 
 					}
 				}
-				j++;
 			}
 			Iterator<Double> it = euclDist.keySet().iterator(); //convert HashMap into ArrayList 
 			ArrayList<Integer> tmp = new ArrayList<Integer>();
@@ -331,19 +338,14 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		for(Ant a1: ants) {
 			Vector lda1 = a1.getWeight(); 
 			int minID = 0; 
-			double minEucl = Math.sqrt(Math.pow(hlp_lambdas.get(0).get(0) - lda1.get(1), 2) + Math.pow(hlp_lambdas.get(0).get(1) - lda1.get(1), 2)); 
-			int j = 0; 
-			for(Vector v: hlp_lambdas) { // calculate the euclidian distance for two vectors  
-				double eucl = Math.sqrt(Math.pow(v.get(0) - lda1.get(1), 2) + Math.pow(v.get(1) - lda1.get(1), 2));
-				if(j == 0) { // if not nearNbors solutions have been found
-					continue;
-				} else {
-					if(minEucl > eucl) {
-						minID = j;
-						minEucl = eucl; 
-					}
+			double minEucl = Math.sqrt(Math.pow(hlp_lambdas.get(0).get(0) - lda1.get(0), 2) + Math.pow(hlp_lambdas.get(0).get(1) - lda1.get(1), 2)); 
+			for(int j = 1; j < K; j++) { // calculate the euclidian distance for two vectors  
+				Vector v = hlp_lambdas.get(j);
+				double eucl = Math.sqrt(Math.pow(v.get(0) - lda1.get(0), 2) + Math.pow(v.get(1) - lda1.get(1), 2));
+				if(minEucl > eucl) {
+					minID = j;
+					minEucl = eucl; 
 				}
-				j++;
 			}
 			a1.setGroup(minID);
 		}
