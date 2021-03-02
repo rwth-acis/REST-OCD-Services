@@ -565,6 +565,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		}
 		for(int i = 0; i<comNr; i++) {
 			Vector v = members.get(i);
+			if(v.sum() == 0) {
+				continue; 
+			}
 			NRA -= cliqueInterconectivity(graph, v, v)/v.sum();
 		}
 		
@@ -581,17 +584,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		double CR = 0; 
 		int comNr = (int) sol.max()+1; 
 		
+		// help list to identify which node is in which community
 		List<Vector> members= new ArrayList<Vector>();
-		double[] zeros = new double[sol.length()];
-		Arrays.fill(zeros, 0);
-		Vector v_hlp = new BasicVector(zeros);
+		Vector v_hlp = new BasicVector(nodeNr);
 		for(int j = 0; j < comNr; j++) {
 			members.add(v_hlp);
 		}
 		
-		double[] ones = new double[sol.length()];
+		// complementary vector 1-vector
+		double[] ones = new double[nodeNr];
 		Arrays.fill(ones, 1);
-		Vector one = new BasicVector(zeros);
+		Vector one = new BasicVector(ones);
 		for(int j = 0; j < sol.length(); j++) {
 			int com = (int)sol.get(j);
 			Vector v = members.get(com).copy(); //separate the vector per community
@@ -602,7 +605,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		for(int i = 0; i<comNr; i++) {
 			Vector v = members.get(i); 
 			Vector v_compl = one.subtract(v); // calculate inverse of v
-			
+			if(v.sum() == 0) {
+				continue; 
+			}
 			CR += cliqueInterconectivity(graph, v, v_compl)/v.sum();
 		}
 		
@@ -617,6 +622,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @return shared edges between two communities
 	 */
 	protected double cliqueInterconectivity(CustomGraph graph, Vector com1, Vector com2) {
+		if(com1.sum() == 1) {
+			return 1; 
+		}
 		double L = 0; // counter of edges in between the communities
 		int com1Len = com1.length(); 
 		Node[] nodes = graph.getNodeArray(); 
@@ -632,7 +640,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				Node n2 = nodes[j];
 				
 				if (graph.containsEdge(n1, n2)) { // if two nodes from these two communities are connected by an edge
-					L += 1; 
+					L += graph.getEdgeWeight(n1.getEdgeTo(n2)); 
 				}
 			}
 		}
@@ -646,8 +654,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	protected void constructSolution(CustomGraph graph, List<Ant> ants) {
 		Random rand = new Random();
-		newtoEP = new ArrayList<Vector>(); 
+		newtoEP = new ArrayList<Vector>(M); 
 		for(Ant ant: ants) {
+			newtoEP.add(new BasicVector(nodeNr));
 			Matrix phi = new Basic2DMatrix(nodeNr,nodeNr); 
 			int group = ant.getGroup();
 			Matrix m = pheromones.get(group); 
@@ -703,7 +712,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				}
 				new_sol.set(i, sol.get(maxId));
 				Vector fitness = new BasicVector(2);
-				fitness.set(0, negativeRatioAssociation(graph, new_sol));
+				double NRA = negativeRatioAssociation(graph, new_sol);
+				fitness.set(0, NRA);
+
 				fitness.set(1, cutRatio(graph, new_sol));
 				new_solutions.put(fitness, new_sol);
 			}
