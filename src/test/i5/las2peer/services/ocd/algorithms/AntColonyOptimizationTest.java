@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.HashMap;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
