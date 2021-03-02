@@ -57,7 +57,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private static int H = M; 
 	
 	/**
-	 * Number of groups of ants. The value should be in between 0 and M. 
+	 * Number of  ants in groups. The value should be in between 0 and M. 
 	 */
 	private static int K = 5; 
 	
@@ -177,7 +177,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		Node[] nodes = MCR.getNodeArray();
 		double edgeNr = MCR.edgeCount();  
 		while(it.hasNext()) { 
-			Vector curr = EP.get(it.next()); 
+			Vector i = it.next();
+			Vector curr = EP.get(i); 
 			double Q_new = 0;
 			boolean first = true; 
 			
@@ -185,25 +186,24 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				for(Node n2: nodes) {
 					if(curr.get(n1.index()) == curr.get(n2.index())) { // nodes are in the same community 
 						if(MCR.containsEdge(n1,n2)) {
-							Edge e = n1.getEdgeTo(n2); // edge between nodes 
-							Q_new += MCR.getEdgeWeight(e) - n1.degree()*n2.degree()/2*edgeNr;
+							Q_new += 1;
 						}
-						else {
-							Q_new -= n1.degree()*n2.degree()/2*edgeNr; // no edge between nodes 
-						}
+						Q_new -= n1.inDegree()*n2.inDegree()/edgeNr; // no edge between nodes 
 					}
 				}
 			}
 			
 			Q_new = Q_new/2*edgeNr;
+			
 			if(Q_new > Q || first == true) {
 				Q = Q_new; 
 				fini_sol = curr; 
+				System.out.println(fini_sol);
 				first = false;
 			}
 			break; 
 		}
-		
+		System.out.println(fini_sol);
 		return decodeMaximalCliques(graph, fini_sol);
 		
 	}
@@ -267,7 +267,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		// initializing the values to choose from 
 		List<Double> H_values = new ArrayList<Double>();
 		for(int i = 0; i <= H; i++) {
-			double hlp = i/H;
+			double hlp = ((double)i)/H;
 			H_values.add(i,hlp);
 		}
 		
@@ -283,13 +283,15 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		}
 		
 		// find the T closest neighbors
-		Map<Double,Integer> euclDist = new HashMap<Double,Integer>();
-		//List<ArrayList<Integer>> neighborhood = new ArrayList<ArrayList<Integer>>();
-		
 		for(Ant a1: ants) {
+			Map<Double,Integer> euclDist = new HashMap<Double,Integer>();
 			Vector lda1 = a1.getWeight(); 
 			int j = 0; 
 			for(Ant a2: ants) { // calculate the euclidian distance for two vectors   
+				if(a1 == a2) {
+					j++;
+					continue; 
+				}
 				Vector lda2 = a2.getWeight();
 				double eucl = Math.sqrt(Math.pow(lda2.get(0) - lda1.get(1), 2) + Math.pow(lda2.get(1) - lda1.get(1), 2));
 				if(j < nearNbors) { // if not nearNbors solutions have been found
@@ -312,7 +314,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			while(it.hasNext()) {
 				tmp.add(euclDist.get(it.next()));
 			}
-			//neighborhood.add(tmp); 
 			a1.setNeighbors(tmp);
 		}
 		
@@ -385,9 +386,14 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		
 		//initialize the pheromone matrices 
 		pheromones = new ArrayList<Matrix>(); 
+		Node[] nodes = graph.getNodeArray(); 
 		double[][] p = new double[nodeNr][nodeNr]; 
-		for(int i = 0; i < nodeNr; i++) {
-			Arrays.fill(p[i], initialPheromones);
+		for(Node n1: nodes) {
+			for(Node n2: nodes) {
+				if(graph.containsEdge(n1, n2)) {
+					p[n1.index()][n2.index()] = initialPheromones;
+				}
+			}
 		}	
 		Matrix pheromone = new Basic2DMatrix(p);
 		for(int i = 0; i < K; i++) {
