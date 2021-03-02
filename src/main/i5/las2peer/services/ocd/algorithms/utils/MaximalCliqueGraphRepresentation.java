@@ -57,9 +57,6 @@ public class MaximalCliqueGraphRepresentation{
 	 */
 	protected void expand(List<Node> subgr, List<Node> cand){
 		if(subgr.isEmpty() == true) {// found a maximal connected subgraph
-			if(maxClq.size()<3) {// filter out two node "cliques"
-				return;
-			}
 			HashSet<Node> clique = new HashSet<Node>(maxClq); // deal with the call by value issue
 			maxCliques.put(clqNr, clique);
 			clqNr++; 

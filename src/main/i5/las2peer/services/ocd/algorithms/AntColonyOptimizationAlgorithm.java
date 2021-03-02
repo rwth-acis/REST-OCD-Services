@@ -23,14 +23,9 @@ import java.lang.Math;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
-import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
-import org.la4j.vector.Vectors;
 import org.la4j.vector.dense.BasicVector;
-import org.la4j.vector.sparse.CompressedVector;
-
 import y.base.Edge;
-import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
@@ -54,7 +49,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * number of ants/subproblems to solve. Default value: 1000
 	 */
-	private static int M = 100;
+	private static int M = 10;
 	  
 	/**
 	 * Positive integer associated with M. Helps to find uniformly distributed weight vector. Should be at least as large as M.  
@@ -209,8 +204,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			break; 
 		}
 		
-		
-		
 		return decodeMaximalCliques(graph, fini_sol);
 		
 	}
@@ -236,23 +229,19 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		for(int i = 0; i < nodeNr; i++) {//creating clique nodes
 				encoding.createNode(); 
 		}
-		Node[] nodes = encoding.getNodeArray();
-			for(Node n1: nodes) { // creating clique edges 
-				int i1 = n1.index();
-				for(Node n2: nodes) {
-					int i2 = n2.index();
-					double ls = lkstrgth.get(i1, i2);
-					if(ls>=threshold) { // leaving out weak edges
-						Edge e1 = encoding.createEdge(n1, n2);
-						Edge e2 = encoding.createEdge(n2, n1);
-						encoding.setEdgeWeight(e1, ls);
-						encoding.setEdgeWeight(e2, ls);
-					}
+		for(Node n1: encoding.getNodeArray()) { // creating clique edges 
+			int i1 = n1.index();
+			for(Node n2: encoding.getNodeArray()) {
+				int i2 = n2.index();
+				double ls = lkstrgth.get(i1, i2);
+				if(ls>=threshold) { // leaving out weak edges
+					Edge e1 = encoding.createEdge(n1, n2);
+					Edge e2 = encoding.createEdge(n2, n1);
+					encoding.setEdgeWeight(e1, ls);
+					encoding.setEdgeWeight(e2, ls);
 				}
-				if(n1.edges().size()==0) {
-					encoding.removeNode(n1);
-				}	
 			}
+		}
 		
 		return encoding; 
 				
@@ -742,7 +731,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param new_sol new found solution
 	 * @param fitness fitness value of the found solution
 	 */
-	protected void updateEP(Ant ant, Vector new_sol, Vector fitness) {
+	protected void updateEP(Ant ant, Vector new_sol, Vector fitness) {		
 		if(EP.isEmpty()) {
 			EP.put(fitness, new_sol); 
 			return; 
@@ -767,7 +756,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		}
 		EP = EP_new; 
 		EP.put(fitness, new_sol); 
-		newtoEP.add(ant.number, new_sol); // keep track of the newly added solutions for the update of the pheromone matrix
+		newtoEP.set(ant.number, new_sol); // keep track of the newly added solutions for the update of the pheromone matrix
 	}
 	
 	/**
@@ -794,7 +783,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 						
 					}
 					m.set(i, j, delta + persist.get(i, j)); // evaporation + deposit
-					m.set(j, i, delta + persist.get(i, j));
+					m.set(j, i, delta + persist.get(j, i));
 				}
 			}
 			pheromones.set(k, m);
@@ -823,8 +812,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @return whether edge (k,l) is contained in solution sol
 	 */
 	protected double isEdgeinSol(CustomGraph graph, Vector sol, int k, int l) {
-		Node[] nodes = graph.getNodeArray();
-		if(graph.containsEdge(nodes[k], nodes[l])&& sol.get(k) == sol.get(l)) {
+		if(graph.containsEdge(graph.getNodeArray()[l], graph.getNodeArray()[k])&& sol.get(k) == sol.get(l)) {
 			return 1; 
 		}
 		return 0;  
