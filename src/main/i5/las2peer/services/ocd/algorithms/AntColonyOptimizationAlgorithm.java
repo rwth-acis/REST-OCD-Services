@@ -414,38 +414,21 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		}
 		
 		//Reference Point & Fitness Values of the current solution
-		refPoint = new BasicVector(2);
-		ants = setRefPoint(graph, ants);
-		
-		return ants;
-	}
-	
-	/**
-	 * This method sets the fitness values of the solutions found so far and updates the best solution found so far (reference point). 
-	 * @param graph the clique graph of the original graph
-	 * @param ants the generated ants
-	 */
-	protected List<Ant> setRefPoint(CustomGraph graph, List<Ant> ants) {
-		double minCR = cutRatio(graph, ants.get(0).getSolution());
-		double minNRA = negativeRatioAssociation(graph, ants.get(0).getSolution()); 
+		Vector fitness = new BasicVector(2); 
+		Vector sol = ants.get(0).getSolution(); 
+		double NRA = negativeRatioAssociation(graph, sol);
+		double CR = cutRatio(graph, sol);
+		fitness.set(0, NRA);
+		fitness.set(1, CR);
+		// all the ants have same initial solutions -> so same fitness
 		for(Ant a: ants) {
-			Vector fitness = new BasicVector(2); 
-			Vector sol = a.getSolution(); 
-			double NRA = negativeRatioAssociation(graph, sol);
-			double CR = cutRatio(graph, sol);
-			fitness.set(0, NRA);
-			fitness.set(1, CR);
-			if(NRA > minNRA) { // NRA is a negative metric
-				minNRA = NRA; 
-			}
-			if(CR < minCR){
-				minCR = CR;
-			}
+			a.setFitness(fitness);
 		}
+		//set reference point (best values for NRA, CR found so far)
+		refPoint = fitness;
 		
-		refPoint.set(0, minNRA);
-		refPoint.set(1, minCR);
 		return ants; 
+		
 	}
 	
 	/** Measures the link strength in between the maximal cliques. 
@@ -549,7 +532,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		double NRA = 0; 
 		int comNr = (int) sol.max() +1; // starts with community 0
 		
-		List<Vector> members= new ArrayList<Vector>();
+		List<Vector> members= new ArrayList<Vector>(); // prepare arrays of member of each community
 		Vector v_hlp = new BasicVector(nodeNr);
 		for(int j = 0; j < comNr; j++) {
 			members.add(v_hlp);
@@ -562,9 +545,10 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			v.set(j, 1);
 			members.set(com, v);
 		}
-		for(int i = 0; i<comNr; i++) {
+		
+		for(int i = 0; i < comNr; i++) {
 			Vector v = members.get(i);
-			if(v.sum() == 0) {
+			if(v.sum() == 0) {  // community vanished in the process of OCD
 				continue; 
 			}
 			NRA -= cliqueInterconectivity(graph, v, v)/v.sum();
@@ -621,9 +605,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @return shared edges between two communities
 	 */
 	protected double cliqueInterconectivity(CustomGraph graph, Vector com1, Vector com2) {
-		if(com1.sum() == 1) {
-			return 1; 
-		}
 		double L = 0; // counter of edges in between the communities
 		int com1Len = com1.length(); 
 		Node[] nodes = graph.getNodeArray(); 
