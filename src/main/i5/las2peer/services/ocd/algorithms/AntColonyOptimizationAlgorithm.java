@@ -353,23 +353,26 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		// fill in the heuristic information matrix
 		heuristic = new Basic2DMatrix(nodeNr,nodeNr);  
 		Matrix neighbors = graph.getNeighbourhoodMatrix();
+		Node[] nodes = graph.getNodeArray();
 		for(int i = 0; i < nodeNr-1; i++) {
 			Vector nbor1 = neighbors.getRow(i);
-			double nborsum1 = nbor1.sum(); 
+			double nborsum1 = nbor1.sum(); // sum(A_i) --> edge weights considered
 			double mu1 = nborsum1/nodeNr; // mean
-			double std1 = (nborsum1*Math.pow(1-mu1, 2)+(nodeNr-nborsum1)*Math.pow(mu1, 2))/nodeNr;
+			double deg1 = nodes[i].inDegree(); // number of neighbors
+			double std1 = (deg1*Math.pow(1-mu1, 2)+(nodeNr-deg1)*Math.pow(mu1, 2))/nodeNr; //variance
 			std1 = Math.sqrt(std1); // standard deviation
 			
-			nbor1.subtract(mu1);  
+			nbor1 = nbor1.subtract(mu1); // preparation for the covariance 
 			for(int j = i+1; j < nodeNr; j++) {
-				Vector nbor2 = neighbors.getRow(j);
-				double nborsum2 = nbor2.sum(); 
-				double mu2 = nborsum1/nodeNr; // mean
-				double std2 = (nborsum2*Math.pow(1-mu1, 2)+(nodeNr-nborsum2)*Math.pow(mu1, 2))/nodeNr; 
+				Vector nbor2 = neighbors.getRow(j); 
+				double nborsum2 = nbor2.sum(); // sum(A_j) --> edge weights considered
+				double mu2 = nborsum2/nodeNr; // mean
+				double deg2 = nodes[j].inDegree(); // number of neighbors
+				double std2 = (deg2*Math.pow(1-mu2, 2)+(nodeNr-deg2)*Math.pow(mu2, 2))/nodeNr;  //variance
 				std2 = Math.sqrt(std2); // standard deviation
 				
 				// compute covariance
-				nbor2.subtract(mu2);
+				nbor2 = nbor2.subtract(mu2); // preparation for the covariance 
 				double cov = 0;
 				for(int k = 0; k < nodeNr; k++) {
 					cov += nbor1.get(k)*nbor2.get(k);
@@ -377,7 +380,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				
 				double pearson = -cov/(nodeNr*std1*std2); // negative pearson correlation coefficient
 				double h = 1/(1+Math.pow(Math.E, pearson)); // heuristic information value for nodes i, j 
-				if(h < 0) {
+				if(h < 0 || !graph.containsEdge(nodes[i], nodes[j])) {
 					h = 0; 
 				}
 				heuristic.set(i, j, h);
@@ -388,7 +391,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		
 		//initialize the pheromone matrices 
 		pheromones = new ArrayList<Matrix>(); 
-		Node[] nodes = graph.getNodeArray(); 
 		double[][] p = new double[nodeNr][nodeNr]; 
 		for(Node n1: nodes) {
 			for(Node n2: nodes) {
