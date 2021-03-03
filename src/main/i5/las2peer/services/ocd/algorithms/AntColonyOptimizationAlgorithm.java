@@ -161,16 +161,18 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
+		// construct the maximal clique graph and initialize the parameters
 		CustomGraph MCR = representationScheme(graph);
 		List<Ant> ants = initialization(MCR);
 		
+		// constructions of the Pareto Front (Pareto optimal solutions) 
 		for(int i = 0; i < maxIterations; i++) {
 			constructSolution(MCR,ants); 
 			updatePheromoneMatrix(MCR, ants); 
 			updateCurrentSolution(ants); 
 		}
 		
-		// select solution from the pareto front EP by modularity Q
+		// select solution from the Pareto Front EP by modularity Q
 		Iterator<Vector> it = EP.keySet().iterator();
 		Vector fini_sol = new BasicVector();
 		double Q = 0; //modularity
@@ -188,28 +190,31 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 						if(MCR.containsEdge(n1,n2)) {
 							Q_new += 1;
 						}
-						Q_new -= n1.inDegree()*n2.inDegree()/edgeNr; // no edge between nodes 
+						Q_new -= n1.inDegree()*n2.inDegree()/edgeNr; // - k_j*k_i/(edges)
 					}
 				}
 			}
 			
-			Q_new = Q_new/2*edgeNr;
+			Q_new = Q_new/2*edgeNr; // new modularity
 			
 			if(Q_new > Q || first == true) {
 				Q = Q_new; 
 				fini_sol = curr; 
-				System.out.println(fini_sol);
 				first = false;
 			}
 			break; 
 		}
+		System.out.println(EP.size());
 		System.out.println(fini_sol);
 		return decodeMaximalCliques(graph, fini_sol);
 		
 	}
 	
-	/**
-	 * The Representation Scheme of this algorithm is a Maximal Clique Scheme. This is done to have a less complex community search process, since cliques in the 
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+// preparations Maximal Clique Graph construction and initialization of the parameters
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+/**
+ 	* The Representation Scheme of this algorithm is a Maximal Clique Scheme. This is done to have a less complex community search process, since cliques in the 
 	 * original graph tend to be in the same community anyways. After the search for maximal cliques, inter-clique edges are filtered out if the cliques are loosly
 	 * connected.
 	 * @param graph to make an Maximal Clique Graph from
@@ -246,7 +251,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return encoding; 
 				
 	}
-	
+
 	/**
 	 * Initialization of ants, the weight vector, pheromone information matrix, heuristic information matrix and initial solutions
 	 * "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition" by Qingfu Zhang et al. for reference.
@@ -522,6 +527,149 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return olapsize/(lmbd1 + nbor1size + lmbd2 + nbor2size);
 	}
 	
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+// construction of the solutions und update of Pareto Front
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+/**
+ 	* construct a new solution for each ant
+	 * @param graph to find new soutions on 
+	 * @param ants population of ants
+	 * @throws InterruptedException 
+	 */
+	protected void constructSolution(CustomGraph graph, List<Ant> ants) throws InterruptedException {
+		Random rand = new Random();
+		newtoEP = new ArrayList<Vector>(M); 
+		Node[] nodes = graph.getNodeArray(); 
+		for(Ant ant: ants) {
+			newtoEP.add(new BasicVector(nodeNr));
+			Matrix phi = new Basic2DMatrix(nodeNr,nodeNr); 
+			int group = ant.getGroup();
+			Matrix m = pheromones.get(group); 
+			Vector weight = ant.getWeight();
+			Vector sol = ant.getSolution(); 
+			HashMap<Vector, Vector> new_solutions = new HashMap<Vector,Vector>();
+			for(int i = 0; i<nodeNr; i++) {
+				for(int j = 0; j < nodeNr; j++) {
+					double update = m.get(i, j)+1/(1+TchebyehoffDecomposition(sol, weight))*isEdgeinSol(graph, sol, i, j);
+					phi.set(i, j, Math.pow(update, alpha)*Math.pow(heuristic.get(i, j), beta));
+				}
+			}
+				
+			for(int i = 0; i<nodeNr; i++) {
+				int maxId = 0; 
+				Vector new_sol = sol.copy(); 
+				
+				if(rand.nextFloat() < R) {
+					double maxphi = 0; 
+					for(int j = 0; j < nodeNr; j++) {
+						double phi_ij = phi.get(i, j);
+						if(phi_ij>maxphi) {
+							maxphi = phi_ij; 
+							maxId = j;
+						}
+					}
+				} else {
+					// calculate the probability to put node i into the community of node j
+					Set<Node> nbors = graph.getNeighbours(nodes[i]); 
+					double sum_nbor = 0; 
+					for(int j = 0; j < nodeNr; j++) {
+						if(nbors.contains(nodes[j])) {
+							sum_nbor += phi.get(i, j); // sum all values in phi 
+						}
+					}
+					// probability to put node i in community of node j
+					HashMap<Double,Integer> v = new HashMap<Double, Integer>(); 
+					for(int j = 0; j < nodeNr; j++) {
+						if(nbors.contains(nodes[j])) {
+							v.put(phi.get(i, j)/sum_nbor,j);
+						}
+					}
+					
+					Iterator<Double> it = v.keySet().iterator();
+					
+					double prob = 0; 
+					while(it.hasNext()) {
+						double next = it.next();
+						if(next < prob) {
+							continue; 
+						}
+						maxId = (int) v.get(next); 
+						prob = next; 
+					}
+					
+				}
+				new_sol.set(i, sol.get(maxId));
+				Vector fitness = new BasicVector(2);
+				double NRA = negativeRatioAssociation(graph, new_sol);
+				fitness.set(0, NRA);
+
+				fitness.set(1, cutRatio(graph, new_sol));
+				new_solutions.put(fitness, new_sol);
+			}
+			Iterator<Vector> it = new_solutions.keySet().iterator();
+			Vector bestFit = it.next(); 
+			while(it.hasNext()) {
+				Vector v = it.next();
+				double NRA = v.get(0); 
+				double CR = v.get(1); 
+				if(NRA <= bestFit.get(0) && CR <= bestFit.get(1)) {
+					bestFit = v; 
+				}
+			}
+
+			updateEP(ant, new_solutions.get(bestFit), bestFit);
+			ant.setSolution(new_solutions.get(bestFit));
+			ant.setFitness(bestFit);
+		}
+	}
+	
+	/**
+	 * Updates the set of the Pareto front/ optimal solutions EP. Checks whether the new solution is dominated 
+	 * by old solutions in EP. If the new solution is not dominated by any of the old solutions, add the new solution
+	 * to EP and remove all solutions dominated by the new solution. 
+	 * @param new_sol new found solution
+	 * @param fitness fitness value of the found solution
+	 */
+	protected void updateEP(Ant ant, Vector new_sol, Vector fitness) {		
+		if(EP.isEmpty()) {
+			EP.put(fitness, new_sol); 
+			return; 
+		}
+		
+		Iterator<Vector> it = EP.keySet().iterator(); 
+		while(it.hasNext()) {// is the new solution dominated by any vector in EP 
+			Vector fitEP = it.next(); 
+			// new_sol is dominated (already found a better solution) -> new solution will not be added to EP
+			if((fitEP.get(0)>fitness.get(0)&&fitEP.get(1)<=fitness.get(1))||(fitEP.get(1)<new_sol.get(1)&&fitEP.get(0)>=new_sol.get(0))) {
+				return; 
+			}
+		}
+		Iterator<Vector> it2 = EP.keySet().iterator(); 
+		HashMap<Vector, Vector> EP_new = new HashMap<Vector, Vector>(); 
+		while(it2.hasNext()) { // remove the vectors dominated by the new solution
+			Vector fitEP = it2.next(); 
+			// a vector is dominated -> remove it from EP
+			if((fitEP.get(0) >= fitness.get(0) && fitEP.get(1) >= fitness.get(1))) {
+				EP_new.put(fitEP, EP.get(fitEP)); 
+			}
+		}
+		EP = EP_new; 
+		EP.put(fitness, new_sol); 
+		newtoEP.set(ant.number, new_sol); // keep track of the newly added solutions for the update of the pheromone matrix
+		
+		//update reference point
+		if(refPoint.get(0) > fitness.get(0)) {
+			refPoint.set(0, fitness.get(0));
+		}
+		if(refPoint.get(1) > fitness.get(1)) {
+			refPoint.set(1, fitness.get(1));
+		}
+	
+	}
+	
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+// metric calculations 	
+// --------------------------------------------------------------------------------------------------------------------------------------------------
 	/**
 	 * Evaluation of the cover of a graph. This measures the intra-link sparesity and should be minimized. 
 	 * @param graph
@@ -605,156 +753,31 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @return shared edges between two communities
 	 */
 	protected double cliqueInterconectivity(CustomGraph graph, Vector com1, Vector com2) {
-		double L = 0; // counter of edges in between the communities
-		int com1Len = com1.length(); 
-		Node[] nodes = graph.getNodeArray(); 
-		for(int i = 0; i < com1Len; i++) { // iterates over all nodes
-			if(com1.get(i) == 0) { // filters out all nodes within a community from the community vector
-				continue;
-			}
-			Node n1 = nodes[i]; 
-			for(int j = 0; j < com1Len; j++) { // iterates over all nodes
-				if(com2.get(j) == 0) { // filters out all nodes within a community from the community vector
+			double L = 0; // counter of edges in between the communities
+			int com1Len = com1.length(); 
+			Node[] nodes = graph.getNodeArray(); 
+			for(int i = 0; i < com1Len; i++) { // iterates over all nodes
+				if(com1.get(i) == 0) { // filters out all nodes within a community from the community vector
 					continue;
 				}
-				Node n2 = nodes[j];
-				
-				if (graph.containsEdge(n1, n2)) { // if two nodes from these two communities are connected by an edge
-					L += graph.getEdgeWeight(n1.getEdgeTo(n2)); 
+				Node n1 = nodes[i]; 
+				for(int j = 0; j < com1Len; j++) { // iterates over all nodes
+					if(com2.get(j) == 0) { // filters out all nodes within a community from the community vector
+						continue;
+					}
+					Node n2 = nodes[j];
+					
+					if (graph.containsEdge(n1, n2)) { // if two nodes from these two communities are connected by an edge
+						L += graph.getEdgeWeight(n1.getEdgeTo(n2)); 
+					}
 				}
 			}
+			return L;
 		}
-		return L;
-	}
-	
-	/**
-	 * construct a new solution for each ant
-	 * @param graph to find new soutions on 
-	 * @param ants population of ants
-	 * @throws InterruptedException 
-	 */
-	protected void constructSolution(CustomGraph graph, List<Ant> ants) throws InterruptedException {
-		Random rand = new Random();
-		newtoEP = new ArrayList<Vector>(M); 
-		Node[] nodes = graph.getNodeArray(); 
-		for(Ant ant: ants) {
-			newtoEP.add(new BasicVector(nodeNr));
-			Matrix phi = new Basic2DMatrix(nodeNr,nodeNr); 
-			int group = ant.getGroup();
-			Matrix m = pheromones.get(group); 
-			Vector weight = ant.getWeight();
-			Vector sol = ant.getSolution(); 
-			HashMap<Vector, Vector> new_solutions = new HashMap<Vector,Vector>();
-			for(int i = 0; i<nodeNr; i++) {
-				for(int j = 0; j < nodeNr; j++) {
-					double update = m.get(i, j)+1/(1+TchebyehoffDecomposition(sol, weight))*isEdgeinSol(graph, sol, i, j);
-					phi.set(i, j, Math.pow(update, alpha)*Math.pow(heuristic.get(i, j), beta));
-				}
-			}
-				
-			for(int i = 0; i<nodeNr; i++) {
-				int maxId = 0; 
-				Vector new_sol = sol.copy(); 
-				
-				if(rand.nextFloat() < R) {
-					double maxphi = 0; 
-					for(int j = 0; j < nodeNr; j++) {
-						double phi_ij = phi.get(i, j);
-						if(phi_ij>maxphi) {
-							maxphi = phi_ij; 
-							maxId = j;
-						}
-					}
-				} else {
-					// calculate the probability to put node i into the community of node j
-					Set<Node> nbors = graph.getNeighbours(nodes[i]); 
-					double sum_nbor = 0; 
-					for(int j = 0; j < nodeNr; j++) {
-						if(nbors.contains(nodes[j])) {
-							sum_nbor += phi.get(i, j); // sum all values in phi 
-						}
-					}
-					// probability to put node i in community of node j
-					HashMap<Double,Integer> v = new HashMap<Double, Integer>(); 
-					for(int j = 0; j < nodeNr; j++) {
-						if(nbors.contains(nodes[j])) {
-							v.put(phi.get(i, j)/sum_nbor,j);
-						}
-					}
-					
-					Iterator<Double> it = v.keySet().iterator();
-					
-					double prob = 0; 
-					while(it.hasNext()) {
-						double next = it.next();
-						if(next < prob) {
-							continue; 
-						}
-						maxId = (int) v.get(next); 
-						prob = next; 
-					}
-					
-				}
-				new_sol.set(i, sol.get(maxId));
-				Vector fitness = new BasicVector(2);
-				double NRA = negativeRatioAssociation(graph, new_sol);
-				fitness.set(0, NRA);
 
-				fitness.set(1, cutRatio(graph, new_sol));
-				new_solutions.put(fitness, new_sol);
-			}
-			Iterator<Vector> it = new_solutions.keySet().iterator();
-			Vector bestFit = it.next(); 
-			while(it.hasNext()) {
-				Vector v = it.next();
-				double NRA = v.get(0); 
-				double CR = v.get(1); 
-				if(NRA >= bestFit.get(0) && CR <= bestFit.get(1)) {
-					bestFit = v; 
-				}
-			}
-
-			updateEP(ant, new_solutions.get(bestFit), bestFit);
-			ant.setSolution(new_solutions.get(bestFit));
-			ant.setFitness(bestFit);
-		}
-	}
-	
-	/**
-	 * Updates the set of the Pareto front/ optimal solutions EP. Checks whether the new solution is dominated 
-	 * by old solutions in EP. If the new solution is not dominated by any of the old solutions, add the new solution
-	 * to EP and remove all solutions dominated by the new solution. 
-	 * @param new_sol new found solution
-	 * @param fitness fitness value of the found solution
-	 */
-	protected void updateEP(Ant ant, Vector new_sol, Vector fitness) {		
-		if(EP.isEmpty()) {
-			EP.put(fitness, new_sol); 
-			return; 
-		}
-		
-		Iterator<Vector> it = EP.keySet().iterator(); 
-		while(it.hasNext()) {// is the new solution dominated by any vector in EP 
-			Vector fitEP = it.next(); 
-			// new_sol is dominated (already found a better solution) -> new solution will not be added to EP
-			if((fitEP.get(0)>fitness.get(0)&&fitEP.get(1)<=fitness.get(1))||(fitEP.get(1)<new_sol.get(1)&&fitEP.get(0)>=new_sol.get(0))) {
-				return; 
-			}
-		}
-		Iterator<Vector> it2 = EP.keySet().iterator(); 
-		HashMap<Vector, Vector> EP_new = new HashMap<Vector, Vector>(); 
-		while(it2.hasNext()) { // remove the vectors dominated by the new solution
-			Vector fitEP = it2.next(); 
-			// a vector is dominated -> remove it from EP
-			if((fitEP.get(0) >= fitness.get(0) && fitEP.get(1) >= fitness.get(1))) {
-				EP_new.put(fitEP, EP.get(fitEP)); 
-			}
-		}
-		EP = EP_new; 
-		EP.put(fitness, new_sol); 
-		newtoEP.set(ant.number, new_sol); // keep track of the newly added solutions for the update of the pheromone matrix
-	}
-	
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+// update of pheromones and simulation of the interaction between the neighbors
+// --------------------------------------------------------------------------------------------------------------------------------------------------
 	/**
 	 * Updates the pheromone matrix: two mechanisms
 	 * 1) pheromone evaporation on an edge
@@ -788,33 +811,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	}
 	
 	/**
-	 *  computes the Tschebyeheff decomposition of a solution
-	 * @param fitness vector of the solution
-	 * @param lambdas weight vector of the solution
-	 * @return result of the Tschebyeheff decomposition
-	 */
-	protected double TchebyehoffDecomposition(Vector fitness, Vector lambda) {
-		double NRA_ratio = fitness.get(0)*Math.abs(lambda.get(0)-refPoint.get(0));
-		double CR_ratio = fitness.get(1)*Math.abs(lambda.get(1)-refPoint.get(1));
-
-		return Math.max(NRA_ratio, CR_ratio); 
-	}
-	
-	/**
-	 * Checks whether the edge (k,l) is contained in solution
-	 * @param sol solution vector
-	 * @param k index of a node
-	 * @param l index of another node
-	 * @return whether edge (k,l) is contained in solution sol
-	 */
-	protected double isEdgeinSol(CustomGraph graph, Vector sol, int k, int l) {
-		if(graph.containsEdge(graph.getNodeArray()[l], graph.getNodeArray()[k])&& sol.get(k) == sol.get(l)) {
-			return 1; 
-		}
-		return 0;  
-	}
-	
-	/**
 	 * Simulation of interaction of ants in the same neighborhood. If an ant in the neighborhood finds 
 	 * a better solution, then the solution of an ant is replaced by the solution of the neighbor. Each 
 	 * neighbor can only replace one solution.  
@@ -843,6 +839,36 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		
 	}
 	
+	/**
+	 *  computes the Tschebyeheff decomposition of a solution
+	 * @param fitness vector of the solution
+	 * @param lambdas weight vector of the solution
+	 * @return result of the Tschebyeheff decomposition
+	 */
+	protected double TchebyehoffDecomposition(Vector fitness, Vector lambda) {
+		double NRA_ratio = fitness.get(0)*Math.abs(lambda.get(0)-refPoint.get(0));
+		double CR_ratio = fitness.get(1)*Math.abs(lambda.get(1)-refPoint.get(1));
+
+		return Math.max(NRA_ratio, CR_ratio); 
+	}
+	
+	/**
+	 * Checks whether the edge (k,l) is contained in solution
+	 * @param sol solution vector
+	 * @param k index of a node
+	 * @param l index of another node
+	 * @return whether edge (k,l) is contained in solution sol
+	 */
+	protected double isEdgeinSol(CustomGraph graph, Vector sol, int k, int l) {
+		if(graph.containsEdge(graph.getNodeArray()[l], graph.getNodeArray()[k])&& sol.get(k) == sol.get(l)) {
+			return 1; 
+		}
+		return 0;  
+	}
+
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+// decoding the maximal clique graph into the original graph
+// --------------------------------------------------------------------------------------------------------------------------------------------------
 	/**
 	 * Transfer the solution of the Maximal Clique Graph into a solution for the original graph
 	 * @param graph original graph (not Maximal Clique Graph!)
@@ -894,6 +920,10 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return c;
 	}
 	
+
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+// override important methods from the parent class
+// --------------------------------------------------------------------------------------------------------------------------------------------------
 	/**
 	 * Returns a log representing the concrete algorithm execution.
 	 * @return The log.
@@ -969,7 +999,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			throw new IllegalArgumentException();
 		}
 	}
-	
 	
 }
 
