@@ -57,7 +57,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private static int H = M*100; 
 	
 	/**
-	 * Number of  ants in groups. The value should be in between 0 and M. 
+	 * Number of groups to cluser the ants in. The value should be in between 0 and M. 
 	 */
 	private static int K = 5; 
 	
@@ -77,7 +77,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * to 0 will slow down the performance. Since good thresholds are not stated in the paper the threshold 
 	 * should be proven experimentally. 
 	 */
-	private double threshold = 0.1; 
+	private double threshold = 0.2; 
 	
 	/**
 	 * Contains pheromones matrix of each group of ants to get hold of the current pheromones in the graph. 
@@ -94,7 +94,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Limits of pheromones to avoid stagnation because of excessive accumulation
 	 */
-	private double[] limits = {0.5 , initialPheromones*10}; 
+	private double[] limits = {0 , initialPheromones}; 
 	/**
 	 * saves all best found community solutions (Pareto-Front)
 	 */
@@ -129,7 +129,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * threshold to filter out path randomly. used in solution construction and between 0 and 1
 	 */
-	private static double R = 0.4;
+	private static double R = 0.2;
 	
 	/*
 	 * PARAMETER NAMES
@@ -188,7 +188,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			
 			for(Node n1: nodes) {
 				for(Node n2: nodes) {
-					if(curr.get(n1.index()) == curr.get(n2.index())) { // nodes are in the same community 
+					if(curr.get(n1.index()) == curr.get(n2.index()) && !n1.equals(n2)) { // nodes are in the same community 
 						if(MCR.containsEdge(n1,n2)) {
 							Q_new += 1;
 						}
@@ -196,15 +196,13 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 					}
 				}
 			}
-			
-			Q_new = Q_new/2*edgeNr; // new modularity
+			Q_new = Q_new/edgeNr; // new modularity
 			
 			if(Q_new > Q || first == true) {
 				Q = Q_new; 
 				fini_sol = curr; 
 				first = false;
 			}
-			break; 
 		}
 		System.out.println(Q);
 		System.out.println(EP.size());
@@ -419,7 +417,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			Vector v = new BasicVector(nodeNr);
 			for(int i = 0; i < nodeNr; i++) {
 				
-				v.set(i, rand.nextInt(84)); 
+				v.set(i, rand.nextInt(nodeNr)); 
 			}
 			ant.setSolution(v);
 			// fitness of the solution
@@ -582,8 +580,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 							maxId = j;
 						}
 					}
-				} else {
-					// calculate the probability to put node i into the community of node j
+				} else {// calculate the probability to put node i into the community of node j
+					
 					Set<Node> nbors = graph.getNeighbours(nodes[i]); 
 					double sum_nbor = 0; 
 					for(int j = 0; j < nodeNr; j++) {
@@ -599,18 +597,21 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 						}
 					}
 					
-					// select the maximum probability
+					// select object according to probability
 					Iterator<Double> it = v.keySet().iterator();
-					double prob = 0; 
+					double sum = 0; 
 					while(it.hasNext()) {
-						double next = it.next();
-						if(next < prob) {
-							continue; 
-						}
-						maxId = (int) v.get(next); 
-						prob = next; 
+						sum += it.next(); 
 					}
-					
+					double r = rand.nextDouble()*sum;
+					double cumsum = 0; 
+					while(it.hasNext()) {
+						double n = it.next();
+						cumsum += n; 
+						if(r < cumsum) {
+							maxId = v.get(n); 
+						}
+					}
 				}
 				new_sol.set(i, sol.get(maxId));				
 				Vector fitness = new BasicVector(2);
@@ -799,7 +800,28 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * 2) pheromone deposit on an edge
 	 * @param ants implemented ants
 	 */
-	protected void updatePheromoneMatrix(CustomGraph graph, List<Ant> ants) {//TODO 
+	protected void updatePheromoneMatrix(CustomGraph graph, List<Ant> ants) {
+		List<Double> tc = new ArrayList<Double>(); 
+		double g_min = 0;
+		double B = 0;
+		for(int i = 0; i < M; i++) {
+			Ant ant = ants.get(i);
+			Vector weight = ant.getWeight();
+			Vector fit = ant.getFitness();
+			tc.add(TchebyehoffDecomposition(fit, weight));
+			if (ant.number == 0) { // minimum Tchebyehoff Decomposition
+				g_min = tc.get(i); 
+			} else {
+				if(g_min > tc.get(i)) {
+					g_min = tc.get(i); 
+				}
+			}
+			if(ant.getNew_sol()) { // number of new solutions
+				B++;
+			}
+		}
+		limits[1] = B + 1/(1 - rho)*(1 + g_min); 
+		limits[0] =	0.001 * limits[1]; 	
 		for(int k = 0; k < K; k++) {
 			Matrix m = new Basic2DMatrix(nodeNr, nodeNr);
 			Matrix persist = pheromones.get(k).multiply(rho); // persistence of the pheromones on a path
@@ -812,7 +834,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 							Vector weight = ant.getWeight();
 							Vector fit = ant.getFitness();
 							Vector sol = ant.getSolution(); 
-							delta += 1/(1 + TchebyehoffDecomposition(fit, weight)) * isEdgeinSol(graph, sol, i, j); // changed pheromones on a path 
+							delta += 1/(1 + tc.get(l)) * isEdgeinSol(graph, sol, i, j); // changed pheromones on a path 
 						}
 					}
 					double result = delta + persist.get(i, j);
@@ -853,8 +875,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			for(int i: neighbors) { 
 				Ant neighbor = ants.get(i);
 				Vector fit_nbor = neighbor.getFitness();
-				Vector wei_nbor = neighbor.getWeight();
-				double tc_nbor = TchebyehoffDecomposition(fit_nbor, wei_nbor);
+				double tc_nbor = TchebyehoffDecomposition(fit_nbor, weight);
 	
 				// solution was not used before and neighbor solution is better -> replace solution
 				if(tc > tc_nbor && !used.contains(neighbor)) { 
@@ -921,7 +942,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 
 		// prepare membership matrix
 		Iterator<Integer> it = maxClq.keySet().iterator();
-
 		while(it.hasNext()) {
 			int ind = it.next(); // index of clique
 			HashSet<Node> clique = maxClq.get(ind); 
