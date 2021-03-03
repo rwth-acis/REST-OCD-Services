@@ -45,6 +45,7 @@ public class Ant {
 	private Vector solution;   
 	public int number; 
 	private Vector fitness; 
+	private boolean new_sol; // was new solution added?
 	
 	public Ant(int i){
 		this.number = i; 
@@ -62,16 +63,21 @@ public class Ant {
 		return neighbors;
 	}
 	 
-	 public int getGroup() {
-		 return group; 
+	public int getGroup() {
+		return group; 
 	}
-	 public Vector getSolution() {
+	
+	public Vector getSolution() {
 		return solution; 
 	}
 	 
-	 public Vector getFitness() {
-			return fitness; 
-		}
+	public Vector getFitness() {
+		return fitness; 
+	}
+	 
+	 public boolean getNew_sol() {
+		return new_sol; 
+	}
 		 
 	/*----------------------------------------------------------------------------------------------------------------------------------------------------------
 	 * setters for some of the global attributes
@@ -95,6 +101,14 @@ public class Ant {
 		
 	 public void setFitness(Vector fitness) {
 			this.fitness = fitness; 
+	}
+	 
+	public void setTrueNew_sol() {
+			this.new_sol = true; 
+	 }
+	
+	public void setFalseNew_sol() {
+		this.new_sol = false; 
 	}
 	
 }
