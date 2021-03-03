@@ -38,7 +38,7 @@ import y.base.NodeCursor;
 public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	
-	private static int maxIterations = 10;
+	private static int maxIterations = 100;
 	
 	/**
 	 * maximal clique encoding. the integer represents the number of the clique and the Hashset stores the 
@@ -631,10 +631,12 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * construct a new solution for each ant
 	 * @param graph to find new soutions on 
 	 * @param ants population of ants
+	 * @throws InterruptedException 
 	 */
-	protected void constructSolution(CustomGraph graph, List<Ant> ants) {
+	protected void constructSolution(CustomGraph graph, List<Ant> ants) throws InterruptedException {
 		Random rand = new Random();
 		newtoEP = new ArrayList<Vector>(M); 
+		Node[] nodes = graph.getNodeArray(); 
 		for(Ant ant: ants) {
 			newtoEP.add(new BasicVector(nodeNr));
 			Matrix phi = new Basic2DMatrix(nodeNr,nodeNr); 
@@ -664,19 +666,22 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 						}
 					}
 				} else {
-					ArrayList<Integer> nbors = ant.getNeighbors(); 
+					// calculate the probability to put node i into the community of node j
+					Set<Node> nbors = graph.getNeighbours(nodes[i]); 
 					double sum_nbor = 0; 
-					for(int j: nbors) {
-						sum_nbor = phi.get(i, j);
+					for(int j = 0; j < nodeNr; j++) {
+						if(nbors.contains(nodes[j])) {
+							sum_nbor += phi.get(i, j); // sum all values in phi 
+						}
+					}
+					// probability to put node i in community of node j
+					HashMap<Double,Integer> v = new HashMap<Double, Integer>(); 
+					for(int j = 0; j < nodeNr; j++) {
+						if(nbors.contains(nodes[j])) {
+							v.put(phi.get(i, j)/sum_nbor,j);
+						}
 					}
 					
-					HashMap<Double,Integer> v = new HashMap<Double, Integer>(); 
-					for(int j: nbors) {
-						v.put(phi.get(i, j)/sum_nbor,j);
-					}
-					for(int j: nbors) {
-						v.put(phi.get(i, j)/sum_nbor, j);
-					}
 					Iterator<Double> it = v.keySet().iterator();
 					
 					double prob = 0; 
