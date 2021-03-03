@@ -204,6 +204,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 			break; 
 		}
+		System.out.println(EP.keySet());
 		System.out.println(EP.size());
 		System.out.println(fini_sol);
 		return decodeMaximalCliques(graph, fini_sol);
@@ -563,7 +564,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 					double maxphi = 0; 
 					for(int j = 0; j < nodeNr; j++) {
 						double phi_ij = phi.get(i, j);
-						if(phi_ij>maxphi) {
+						if(phi_ij > maxphi) { // find maximum in phi
 							maxphi = phi_ij; 
 							maxId = j;
 						}
@@ -591,6 +592,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 					while(it.hasNext()) {
 						double next = it.next();
 						if(next < prob) {
+							if(next < 0) {
+							System.out.println(next);}
 							continue; 
 						}
 						maxId = (int) v.get(next); 
@@ -600,9 +603,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				}
 				new_sol.set(i, sol.get(maxId));
 				Vector fitness = new BasicVector(2);
-				double NRA = negativeRatioAssociation(graph, new_sol);
-				fitness.set(0, NRA);
-
+				fitness.set(0, negativeRatioAssociation(graph, new_sol));
 				fitness.set(1, cutRatio(graph, new_sol));
 				new_solutions.put(fitness, new_sol);
 			}
@@ -635,22 +636,21 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			EP.put(fitness, new_sol); 
 			return; 
 		}
-		
+		HashMap<Vector, Vector> EP_new = new HashMap<Vector, Vector>(); // updated EP
 		Iterator<Vector> it = EP.keySet().iterator(); 
 		while(it.hasNext()) {// is the new solution dominated by any vector in EP 
 			Vector fitEP = it.next(); 
+			double NRAEP = fitEP.get(0);
+			double CREP = fitEP.get(1);
+			double NRA = fitness.get(0); 
+			double CR = fitness.get(1);
 			// new_sol is dominated (already found a better solution) -> new solution will not be added to EP
-			if((fitEP.get(0)>fitness.get(0)&&fitEP.get(1)<=fitness.get(1))||(fitEP.get(1)<new_sol.get(1)&&fitEP.get(0)>=new_sol.get(0))) {
+			if((NRAEP < NRA && CREP <= CR) || (CREP < CR && NRAEP <= NRA)) {
 				return; 
 			}
-		}
-		Iterator<Vector> it2 = EP.keySet().iterator(); 
-		HashMap<Vector, Vector> EP_new = new HashMap<Vector, Vector>(); 
-		while(it2.hasNext()) { // remove the vectors dominated by the new solution
-			Vector fitEP = it2.next(); 
-			// a vector is dominated -> remove it from EP
-			if((fitEP.get(0) >= fitness.get(0) && fitEP.get(1) >= fitness.get(1))) {
-				EP_new.put(fitEP, EP.get(fitEP)); 
+			// vectors not dominated by fitness stay in EP
+			if((NRAEP > NRA && CREP < CR) || (CREP > CR && NRAEP < NRA)) {
+				EP_new.put(fitEP, EP.get(fitEP));  
 			}
 		}
 		EP = EP_new; 
