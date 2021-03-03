@@ -69,7 +69,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Rate of the pheromone persistence
 	 */
-	private static double rho = 0.5;
+	private static double rho = 0.8;
 
 	/**
 	 * Threshold determines the edges which are in the clique graph. It should be in between 0 and 1 with
@@ -77,7 +77,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * to 0 will slow down the performance. Since good thresholds are not stated in the paper the threshold 
 	 * should be proven experimentally. 
 	 */
-	private double threshold = 0.2; 
+	private double threshold = 0.1; 
 	
 	/**
 	 * Contains pheromones matrix of each group of ants to get hold of the current pheromones in the graph. 
@@ -91,6 +91,10 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	private static int initialPheromones = 100; 
 	
+	/**
+	 * Limits of pheromones to avoid stagnation because of excessive accumulation
+	 */
+	private double[] limits = {0.5 , initialPheromones*10}; 
 	/**
 	 * saves all best found community solutions (Pareto-Front)
 	 */
@@ -125,7 +129,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * threshold to filter out path randomly. used in solution construction and between 0 and 1
 	 */
-	private static double R = 0.2;
+	private static double R = 0.4;
 	
 	/*
 	 * PARAMETER NAMES
@@ -167,7 +171,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				break; 
 			}
 			updatePheromoneMatrix(MCR, ants); 
-			System.out.println(pheromones.get(1));
 			updateCurrentSolution(ants); 
 		}
 		
@@ -812,8 +815,21 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 							delta += 1/(1 + TchebyehoffDecomposition(fit, weight)) * isEdgeinSol(graph, sol, i, j); // changed pheromones on a path 
 						}
 					}
-					m.set(i, j, delta + persist.get(i, j)); // deposit+ evaporation 
-					m.set(j, i, delta + persist.get(j, i));
+					double result = delta + persist.get(i, j);
+					if (result > limits[0]  ) {
+						if(result < limits[1]) {
+							m.set(i, j, result); // deposit+ evaporation 
+							m.set(j, i, result);
+						}
+						else { // too high pheromone concentration
+							m.set(i, j, limits[1]);  
+							m.set(j, i, limits[1]);
+						}
+					}
+					else { // too low pheromone concentration
+						m.set(i, j, limits[0]);  
+						m.set(j, i, limits[0]);
+					}
 				}
 			}
 			pheromones.set(k, m);
