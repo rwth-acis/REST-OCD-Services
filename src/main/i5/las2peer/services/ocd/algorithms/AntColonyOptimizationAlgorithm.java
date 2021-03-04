@@ -127,9 +127,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private static Vector refPoint;
 	
 	/**
-	 * threshold to filter out path randomly. used in solution construction and between 0 and 1
+	 * threshold to filter out path randomly. Used in solution construction and between 0 and 1
 	 */
-	private static double R = 0.2;
+	private static double R = 0.7;
 	
 	/*
 	 * PARAMETER NAMES
@@ -166,6 +166,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		for(int i = 0; i < maxIterations; i++) {
 			HashMap<Vector, Vector> EP_old = (HashMap<Vector, Vector>) EP.clone();
 			constructSolution(MCR,ants); 
+			if(i > maxIterations/4) {
+				R = 0;
+			}
+			localSearch(MCR, ants); 
+			updateEP(ants);	
 			if(EP_old.equals(EP)) {
 				System.out.println(i);
 				break; 
@@ -402,24 +407,26 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		double[][] p = new double[nodeNr][nodeNr]; 
 		for(Node n1: nodes) {
 			for(Node n2: nodes) {
-				if(graph.containsEdge(n1, n2)) {
+				if(graph.containsEdge(n1, n2)) { //only set pheromones if there is an edge
 					p[n1.index()][n2.index()] = initialPheromones;
 				}
 			}
 		}	
 		Matrix pheromone = new Basic2DMatrix(p);
 		for(int i = 0; i < K; i++) {
-			pheromones.add(pheromone);
+			pheromones.add(pheromone); //new 
 		}
 		 
 		//initial solution -> random put random cliques together  
+		// reference point and set fitness value
 		for(Ant ant: ants) {
+			//initial solution
 			Vector v = new BasicVector(nodeNr);
 			for(int i = 0; i < nodeNr; i++) {
-				
 				v.set(i, rand.nextInt(nodeNr)); 
 			}
 			ant.setSolution(v);
+			
 			// fitness of the solution
 			Vector fitness = new BasicVector(2); 
 			Vector sol = ants.get(0).getSolution(); 
@@ -428,6 +435,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			fitness.set(0, NRA);
 			fitness.set(1, CR);
 			ant.setFitness(fitness);
+			
+			//set reference point
 			if(ant.number == 0) {
 				refPoint = fitness;
 			} else if (NRA < refPoint.get(0)) {
@@ -437,12 +446,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				refPoint.set(1, CR); 
 			}
 		}
-		
-		//Reference Point & Fitness Values of the current solution
-		
-		
 		return ants; 
-		
 	}
 	
 	/** Measures the link strength in between the maximal cliques. 
@@ -630,8 +634,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 					bestFit = v; 
 				}
 			}
-
-			updateEP(ant, new_solutions.get(bestFit), bestFit);
 			ant.setSolution(new_solutions.get(bestFit));
 			ant.setFitness(bestFit);
 		}
@@ -644,45 +646,85 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param new_sol new found solution
 	 * @param fitness fitness value of the found solution
 	 */
-	protected void updateEP(Ant ant, Vector new_sol, Vector fitness) {		
-		if(EP.isEmpty()) {
-			EP.put(fitness, new_sol); 
-			return; 
-		}		
-		HashMap<Vector, Vector> EP_new = new HashMap<Vector, Vector>(); // updated EP
-		Iterator<Vector> it = EP.keySet().iterator(); 
-		while(it.hasNext()) {// is the new solution dominated by any vector in EP 
-			Vector fitEP = it.next(); 
-			// fitness of the solution in EP
-			double NRAEP = fitEP.get(0);
-			double CREP = fitEP.get(1);
-			// fitness of the new solution
-			double NRA = fitness.get(0); 
-			double CR = fitness.get(1);
-			// new_sol is dominated (already found a better solution) -> new solution will not be added to EP
-			if((NRAEP < NRA && CREP <= CR) || (CREP < CR && NRAEP <= NRA)) {
+	protected void updateEP(List<Ant> ants) {		
+		for(Ant ant: ants) {
+			Vector fitness = ant.getFitness(); 
+			Vector new_sol = ant.getSolution();
+			if(EP.isEmpty()) {
+				EP.put(fitness, new_sol); 
 				return; 
+			}		
+			HashMap<Vector, Vector> EP_new = new HashMap<Vector, Vector>(); // updated EP
+			Iterator<Vector> it = EP.keySet().iterator(); 
+			while(it.hasNext()) {// is the new solution dominated by any vector in EP 
+				Vector fitEP = it.next(); 
+				// fitness of the solution in EP
+				double NRAEP = fitEP.get(0);
+				double CREP = fitEP.get(1);
+				// fitness of the new solution
+				double NRA = fitness.get(0); 
+				double CR = fitness.get(1);
+				// new_sol is dominated (already found a better solution) -> new solution will not be added to EP
+				if((NRAEP < NRA && CREP <= CR) || (CREP < CR && NRAEP <= NRA)) {
+					return; 
+				}
+				// vectors not dominated by fitness stay in EP
+				if((NRAEP > NRA && CREP < CR) || (CREP > CR && NRAEP < NRA)) {
+					EP_new.put(fitEP, EP.get(fitEP));  
+				}
 			}
-			// vectors not dominated by fitness stay in EP
-			if((NRAEP > NRA && CREP < CR) || (CREP > CR && NRAEP < NRA)) {
-				EP_new.put(fitEP, EP.get(fitEP));  
-			}
-		}
-
-		EP = EP_new; 
-		EP.put(fitness, new_sol); 
-		ant.setTrueNew_sol();
-		
-		//update reference point
-		if(refPoint.get(0) > fitness.get(0)) {
-			refPoint.set(0, fitness.get(0));
-		}
-		if(refPoint.get(1) > fitness.get(1)) {
-			refPoint.set(1, fitness.get(1));
-		}
 	
+			EP = EP_new; 
+			EP.put(fitness, new_sol); 
+			ant.setTrueNew_sol();
+			
+			//update reference point
+			if(refPoint.get(0) > fitness.get(0)) {
+				refPoint.set(0, fitness.get(0));
+			}
+			if(refPoint.get(1) > fitness.get(1)) {
+				refPoint.set(1, fitness.get(1));
+			}
+		}
 	}
 	
+	/**
+	 * Method to improve the solution and to make sure that the algorithm does not stuck into the a local minimum 
+	 * @throws InterruptedException 
+	 */
+	protected void localSearch(CustomGraph graph, List<Ant> ants) throws InterruptedException {
+		for(Ant ant: ants) {
+			List<Ant> ant_help = new ArrayList<Ant>(); 
+			Random rand = new Random(); 
+			ant_help.add(ant);
+			Vector old_sol = ant.getSolution();
+			Vector old_fit = ant.getFitness(); 
+			Vector new_fit =  new BasicVector(); ;
+			Vector weight = ant.getFitness(); 
+			Vector new_sol = new BasicVector(); 
+			for(double T = 100; T > 0.4;){ // 8 iterations
+				T = 0.5*T; 
+				for(int j = 0; j < 5; j++) {
+					constructSolution(graph, ant_help); 
+					new_sol = ant.getSolution();
+					new_fit = ant.getFitness();
+					Vector VectorF = weight.multiply(TchebyehoffDecomposition(new_fit, weight)-TchebyehoffDecomposition(old_fit, weight)); 
+					double F = VectorF.sum();
+					if(F >= 0) {
+						old_sol = new_sol; 
+						ant.setSolution(new_sol);
+					} else if (rand.nextDouble() < Math.pow(Math.E,(-F/T))){
+						old_sol = new_sol;
+						ant.setSolution(new_sol);
+					}
+					
+				}
+			}
+			
+			ant.setSolution(new_sol);
+			ant.setFitness(new_fit);
+		}
+	}
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 // metric calculations 	
 // --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -922,11 +964,16 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param graph original graph (not Maximal Clique Graph!)
 	 * @param sol solution vector of the best solution
 	 * @return Cover of the original graph 
+	 * @throws OcdAlgorithmException if no solution is found
 	 */
-	protected Cover decodeMaximalCliques(CustomGraph graph, Vector sol) {
+	protected Cover decodeMaximalCliques(CustomGraph graph, Vector sol) throws OcdAlgorithmException {
 		// find out how many communities are there
 		List<Vector> membershipMatrixVectors = new ArrayList<Vector>(nodeNr);
 		List<Integer> com = new ArrayList<Integer>();
+		
+		if(EP.isEmpty()) {
+			throw new OcdAlgorithmException(); 
+		}
 		
 		for(int i = 0; i < nodeNr; i++) {
 			int com1 = (int) sol.get(i);
@@ -967,7 +1014,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return c;
 	}
 	
-
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 // override important methods from the parent class
 // --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -989,8 +1035,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.ZERO_WEIGHTS);
 		return compatibilities;
-	};
-	
+	};	
 	
 	@Override
 	public Map<String,String> getParameters(){
