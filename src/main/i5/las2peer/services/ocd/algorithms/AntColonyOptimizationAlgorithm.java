@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
 import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueGraphRepresentation;
 import i5.las2peer.services.ocd.algorithms.utils.Ant;
 
@@ -38,7 +39,7 @@ import y.base.NodeCursor;
 public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	
-	private static int maxIterations = 100;
+	private static int maxIterations = 10;
 	
 	/**
 	 * maximal clique encoding. the integer represents the number of the clique and the Hashset stores the 
@@ -166,54 +167,19 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		for(int i = 0; i < maxIterations; i++) {
 			HashMap<Vector, Vector> EP_old = (HashMap<Vector, Vector>) EP.clone();
 			constructSolution(MCR,ants); 
-			if(i > maxIterations/4) {
-				R = 0;
-			}
+			//if(i > maxIterations/4) {
+			//	R = 0;
+			//}
 			localSearch(MCR, ants); 
 			updateEP(ants);	
-			if(EP_old.equals(EP)) {
+			if(EP_old.equals(EP)) { // stops if no new solutions have been found
 				System.out.println(i);
 				break; 
 			}
 			updatePheromoneMatrix(MCR, ants); 
 			updateCurrentSolution(ants); 
 		}
-		
-		// select solution from the Pareto Front EP by modularity Q
-		Iterator<Vector> it = EP.keySet().iterator();
-		Vector fini_sol = new BasicVector();
-		double Q = 0; //modularity
-		Node[] nodes = MCR.getNodeArray();
-		double edgeNr = MCR.edgeCount();  
-		while(it.hasNext()) { 
-			Vector i = it.next();
-			Vector curr = EP.get(i); 
-			double Q_new = 0;
-			boolean first = true; 
-			
-			for(Node n1: nodes) {
-				for(Node n2: nodes) {
-					if(curr.get(n1.index()) == curr.get(n2.index()) && !n1.equals(n2)) { // nodes are in the same community 
-						if(MCR.containsEdge(n1,n2)) {
-							Q_new += 1;
-						}
-						Q_new -= n1.inDegree()*n2.inDegree()/edgeNr; // - k_j*k_i/(edges)
-					}
-				}
-			}
-			Q_new = Q_new/edgeNr; // new modularity
-			
-			if(Q_new > Q || first == true) {
-				Q = Q_new; 
-				fini_sol = curr; 
-				first = false;
-			}
-		}
-		System.out.println(Q);
-		System.out.println(EP.size());
-		System.out.println(fini_sol);
-		return decodeMaximalCliques(graph, fini_sol);
-		
+		return decodeMaximalCliques(graph);	
 	}
 	
 // --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -960,58 +926,74 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 // decoding the maximal clique graph into the original graph
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 	/**
-	 * Transfer the solution of the Maximal Clique Graph into a solution for the original graph
+	 * Transfer the solutions of the Maximal Clique Graph into a solution for the original graph
+	 * Since we created the Pareto Front of optimal solutions, we choose here the solution which has the highest modularity after the decoding
 	 * @param graph original graph (not Maximal Clique Graph!)
 	 * @param sol solution vector of the best solution
 	 * @return Cover of the original graph 
 	 * @throws OcdAlgorithmException if no solution is found
+	 * @throws InterruptedException if thread was interrupted
 	 */
-	protected Cover decodeMaximalCliques(CustomGraph graph, Vector sol) throws OcdAlgorithmException {
-		// find out how many communities are there
-		List<Vector> membershipMatrixVectors = new ArrayList<Vector>(nodeNr);
-		List<Integer> com = new ArrayList<Integer>();
-		
+	protected Cover decodeMaximalCliques(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
+		System.out.println("Number of Solutions: " + EP.size());
+
 		if(EP.isEmpty()) {
 			throw new OcdAlgorithmException(); 
 		}
 		
-		for(int i = 0; i < nodeNr; i++) {
-			int com1 = (int) sol.get(i);
-			if(!com.contains(com1)) {
-				com.add(com1);	
+		Cover bestCov = new Cover(graph); 
+		double Q = 0; 
+		ExtendedModularityMetric EM = new ExtendedModularityMetric(); 
+		for(Vector sol: EP.values()) {
+			// find out how many communities are there
+			List<Vector> membershipMatrixVectors = new ArrayList<Vector>(nodeNr);
+			List<Integer> com = new ArrayList<Integer>();
+	
+			for(int i = 0; i < nodeNr; i++) {
+				int com1 = (int) sol.get(i);
+				if(!com.contains(com1)) {
+					com.add(com1);	
+				}
+			}
+		
+			for(int i = 0; i < nodeNr; i++) {
+				Vector v = new BasicVector(graph.nodeCount());
+				membershipMatrixVectors.add(i,v);
+			}
+	
+			// prepare membership matrix
+			Iterator<Integer> it = maxClq.keySet().iterator();
+			while(it.hasNext()) {
+				int ind = it.next(); // index of clique
+				HashSet<Node> clique = maxClq.get(ind); 
+				int member = (int) sol.get(ind); // index of the solution community
+				for(Node n: clique){ 
+					Vector v = membershipMatrixVectors.get(member);
+					v.set(n.index(), 1);
+					membershipMatrixVectors.set(member, v);  // set node in community 
+				}
+			}
+			
+			Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),com.size());
+			int i = 0;
+			for(int cNr: com) {
+				membershipMatrix.setColumn(i, membershipMatrixVectors.get(cNr));
+				i++;
+			}
+			
+			//generate Cover
+			Cover c = new Cover(graph); 
+			c.setMemberships(membershipMatrix);
+			
+			double Q_c = EM.measure(c);
+			System.out.println("modularity: " + Q_c);
+			if(Q < Q_c) {
+				Q = Q_c; 
+				bestCov = c; 
 			}
 		}
 		
-		for(int i = 0; i < nodeNr; i++) {
-			Vector v = new BasicVector(graph.nodeCount());
-			membershipMatrixVectors.add(i,v);
-		}
-
-		// prepare membership matrix
-		Iterator<Integer> it = maxClq.keySet().iterator();
-		while(it.hasNext()) {
-			int ind = it.next(); // index of clique
-			HashSet<Node> clique = maxClq.get(ind); 
-			int member = (int) sol.get(ind); // index of the solution community
-			for(Node n: clique){ 
-				Vector v = membershipMatrixVectors.get(member);
-				v.set(n.index(), 1);
-				membershipMatrixVectors.set(member, v);  // set node in community 
-			}
-		}
-		
-		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),com.size());
-		int i = 0;
-		for(int cNr: com) {
-			membershipMatrix.setColumn(i, membershipMatrixVectors.get(cNr));
-			i++;
-		}
-		
-		//generate Cover
-		Cover c = new Cover(graph); 
-		c.setMemberships(membershipMatrix);
-		
-		return c;
+		return bestCov;
 	}
 	
 // --------------------------------------------------------------------------------------------------------------------------------------------------

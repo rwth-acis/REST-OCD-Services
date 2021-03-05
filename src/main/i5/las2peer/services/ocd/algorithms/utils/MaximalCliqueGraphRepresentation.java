@@ -38,9 +38,9 @@ public class MaximalCliqueGraphRepresentation{
 	 * @param graph: the graph in which to find the all maximal cliques
 	 */
 	public HashMap<Integer,HashSet<Node>> cliques(CustomGraph graph) {
-		Node[] nodes = graph.getNodeArray();
-		List<Node> subgr = new ArrayList<Node>(Arrays.asList(nodes));
-		List<Node> cand = new ArrayList<Node>(Arrays.asList(nodes));
+		List<Node> nodes = Arrays.asList(graph.getNodeArray());
+		List<Node> subgr = new ArrayList<Node>(nodes);
+		List<Node> cand = new ArrayList<Node>(nodes);
 		maxClq = new HashSet<Node>();
 		maxCliques = new HashMap<Integer,HashSet<Node>>();
 		clqNr = 0; 
@@ -74,19 +74,13 @@ public class MaximalCliqueGraphRepresentation{
 				HashSet<Node> overlap = new HashSet<Node>(); 
 				
 				// find nodes that are neighbors of the current node and the current subset
-				for(int i = 0 ; i <neighbors.size(); i++) {
+				while(neighbors.ok()) {
 					Node u = neighbors.node();
-					
 					if(cand.contains(u)) {
 						count++;
 						overlap.add(u);
 					}
-				    if(neighbors.ok()== true){
-				    	neighbors.cyclicNext();
-				    }
-				    else {
-				    	break;
-				    }
+					neighbors.next(); 
 				}
 				// to find the maximum neighborhood overlap with the current subgraph
 				if(count >= maxcount){
@@ -105,14 +99,9 @@ public class MaximalCliqueGraphRepresentation{
 					maxClq.add(q); // current clique (not maximal yet)
 					NodeCursor n = q.neighbors();
 					
-					for(int i = 0 ; i <n.size(); i++) { // find neighbors
+					while(n.ok()) { // find neighbors
 						q_neighbors.add(n.node());
-						if(n.ok()== true){
-							n.cyclicNext();
-						}
-						else {
-							break;
-						}
+						n.next();
 					}
 					
 					//update the candidate and the subgraph set to the neighbors of q
