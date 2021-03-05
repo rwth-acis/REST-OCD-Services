@@ -9,6 +9,7 @@ import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueGraphRepresentatio
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -40,7 +41,7 @@ import y.base.NodeCursor;
 public class Ant {
 	 
 	private Vector lambda; 
-	private ArrayList<Integer> neighbors;	 
+	private Collection<Integer> neighbors;	 
 	private int group; // number of group in which ant is
 	private Vector solution;   
 	public int number; 
@@ -59,7 +60,7 @@ public class Ant {
 		return lambda;
 	}
 	
-	public ArrayList<Integer> getNeighbors() {
+	public Collection<Integer> getNeighbors() {
 		return neighbors;
 	}
 	 
@@ -87,8 +88,8 @@ public class Ant {
 		this.lambda = weight; 
 	 }
 	 
-	 public void setNeighbors(ArrayList<Integer> neighbors) {
-		this.neighbors = neighbors; 
+	 public void setNeighbors(Collection<Integer> collection) {
+		this.neighbors = collection; 
 	 }
 	 
 	 public void setGroup(int group) {
