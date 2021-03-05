@@ -282,19 +282,15 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			a1.setSolution(sol);
 				
 			// fitness of the solution
-			Vector fitness = new BasicVector(2); 
-			double NRA = negativeRatioAssociation(graph, sol);
-			double CR = cutRatio(graph, sol);
-			fitness.set(0, NRA);
-			fitness.set(1, CR);
+			Vector fitness = fitnessCalculations(graph, sol);
 			a1.setFitness(fitness);
 			
 			//set reference point
-			if (NRA < refPoint.get(0)) {
-				refPoint.set(0, NRA); 
+			if (fitness.get(0) < refPoint.get(0)) {
+				refPoint.set(0, fitness.get(0)); 
 			}
-			if (CR < refPoint.get(1)) {
-				refPoint.set(1, CR); 
+			if (fitness.get(1) < refPoint.get(1)) {
+				refPoint.set(1, fitness.get(1)); 
 			}	
 			
 			// grouping the ants in K groups
@@ -502,7 +498,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	protected void constructSolution(CustomGraph graph, List<Ant> ants) throws InterruptedException {
 		Random rand = new Random();
 		Node[] nodes = graph.getNodeArray(); 
-		for(int i = 0; i < M; i++) {
+		for(int i = 0; i < ants.size(); i++) {
 			Ant ant = ants.get(i); 
 			ant.setFalseNew_sol();
 			Matrix phi = new Basic2DMatrix(nodeNr,nodeNr); 
@@ -522,38 +518,37 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				}
 			}
 				
-			for(int i = 0; i<nodeNr; i++) {
+			for(int j = 0; j<nodeNr; j++) {
 				int maxId = 0; 
 				Vector new_sol = sol.copy(); 
 				
 				if(rand.nextFloat() < R) {
 					double maxphi = 0; 
-					for(int j = 0; j < nodeNr; j++) {
-						double phi_ij = phi.get(i, j);
-						if(phi_ij >= maxphi) { // find maximum in phi
-							maxphi = phi_ij; 
-							maxId = j;
+					for(int k = 0; k < nodeNr; k++) {
+						double phi_jk = phi.get(j, k);
+						if(phi_jk >= maxphi) { // find maximum in phi
+							maxphi = phi_jk; 
+							maxId = k;
 						}
 					}
 				} else {// calculate the probability to put node i into the community of node j
 					
-					Set<Node> nbors = graph.getNeighbours(nodes[i]); 
+					Set<Node> nbors = graph.getNeighbours(nodes[j]); 
 					double sum_nbor = 0; 
-					for(int j = 0; j < nodeNr; j++) {
-						if(nbors.contains(nodes[j])) {
-							sum_nbor += phi.get(i, j); // sum all values in phi 
+					for(int k = 0; k < nodeNr; k++) {
+						if(nbors.contains(nodes[k])) {
+							sum_nbor += phi.get(j, k); // sum all values in phi 
 						}
 					}
 					// probability to put node i in community of node j
 					HashMap<Double,Integer> v = new HashMap<Double, Integer>(); 
-					for(int j = 0; j < nodeNr; j++) {
-						if(nbors.contains(nodes[j])) {
-							v.put(phi.get(i, j)/sum_nbor,j);
+					for(int k = 0; k < nodeNr; k++) {
+						if(nbors.contains(nodes[k])) {
+							v.put(phi.get(j, k)/sum_nbor,k);
 						}
 					}
 					
 					// select object according to probability
-					Iterator<Double> it = v.keySet().iterator();
 					double sum = 0; 
 					for(double n: v.keySet()) {
 						sum += n; 
@@ -569,20 +564,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 						}
 					}
 				}
-				new_sol.set(i, sol.get(maxId));				
-				Vector fitness = new BasicVector(2);
-				fitness.set(0, negativeRatioAssociation(graph, new_sol));
-				fitness.set(1, cutRatio(graph, new_sol));
-				new_solutions.put(fitness, new_sol);
+				new_sol.set(j, sol.get(maxId));				
+				new_solutions.put(fitnessCalculations(graph,new_sol), new_sol);
 			}
-			Iterator<Vector> it = new_solutions.keySet().iterator();
-			Vector bestFit = it.next(); 
-			while(it.hasNext()) {
-				Vector v = it.next();
-				double NRA = v.get(0); 
-				double CR = v.get(1); 
-				if(NRA <= bestFit.get(0) && CR <= bestFit.get(1)) {
-					bestFit = v; 
+			boolean first = true; 
+			Vector bestFit = new BasicVector(2); 
+			for(Vector key: new_solutions.keySet()) {
+				double NRA = key.get(0); 
+				double CR = key.get(1); 
+				if(NRA <= bestFit.get(0) && CR <= bestFit.get(1)|| first == true) {
+					bestFit = key; 
+					first = false;
 				}
 			}
 			ant.setSolution(new_solutions.get(bestFit));
@@ -601,6 +593,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		for(Ant ant: ants) {
 			Vector fitness = ant.getFitness(); 
 			Vector new_sol = ant.getSolution();
+			
 			if(EP.isEmpty()) {
 				EP.put(fitness, new_sol); 
 				return; 
@@ -644,19 +637,20 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException 
 	 */
 	protected void localSearch(CustomGraph graph, List<Ant> ants) throws InterruptedException {
-		for(Ant ant: ants) {
-			List<Ant> ant_help = new ArrayList<Ant>(); 
+		for(int i = 0; i < M; i++) {
+			Ant ant = ants.get(i); 
+			List<Ant> ants_help = new ArrayList<Ant>(); 
 			Random rand = new Random(); 
-			ant_help.add(ant);
+			ants_help.add(ant);
 			Vector old_sol = ant.getSolution();
 			Vector old_fit = ant.getFitness(); 
 			Vector new_fit =  new BasicVector(); ;
 			Vector weight = ant.getFitness(); 
 			Vector new_sol = new BasicVector(); 
-			for(double T = 100; T > 0.4;){ // 8 iterations
+			for(double T = 100; T > 0.4;){ // 8 iterations + parameter from the paper
 				T = 0.5*T; 
 				for(int j = 0; j < 5; j++) {
-					constructSolution(graph, ant_help); 
+					constructSolution(graph, ants_help); 
 					new_sol = ant.getSolution();
 					new_fit = ant.getFitness();
 					Vector VectorF = weight.multiply(TchebyehoffDecomposition(new_fit, weight)-TchebyehoffDecomposition(old_fit, weight)); 
@@ -671,7 +665,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 					
 				}
 			}
-			
 			ant.setSolution(new_sol);
 			ant.setFitness(new_fit);
 		}
@@ -680,14 +673,14 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 // metric calculations 	
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 	/**
-	 * Evaluation of the cover of a graph. This measures the intra-link sparesity and should be minimized. 
+	 * Evaluation of the cover of a graph. This measures the intra-link sparesity and should be minimized (Negative Ratio Association).  
+	 * This measures the inter-link density and should be minimized (Cut Ratio). 
 	 * @param graph
 	 * @param cover to evaluate on the graph
-	 * @return negative Ratio Association
+	 * @return Vector v of the two metrics: v(0) = Negative Ratio Association, v(1) = Cut Ratio 
 	 */
-	protected double negativeRatioAssociation(CustomGraph graph, Vector sol) {
-		double NRA = 0; 
-		int comNr = (int) sol.max() +1; // starts with community 0
+	protected Vector fitnessCalculations(CustomGraph graph, Vector sol) {
+		int comNr = (int) sol.max() + 1; // starts with community 0
 		
 		List<Vector> members= new ArrayList<Vector>(); // prepare arrays of member of each community
 		Vector v_hlp = new BasicVector(nodeNr);
@@ -695,63 +688,34 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			members.add(v_hlp);
 		}
 		
+		double[] ones = new double[nodeNr]; // complementary vector 1-vector
+		Arrays.fill(ones, 1);
+		Vector one = new BasicVector(ones);
 		for(int j = 0; j < nodeNr; j++) {
 			int com = (int)sol.get(j);
-			Vector v = new BasicVector();
-			v = members.get(com).copy(); //separate the vector per community
-			v.set(j, 1);
-			members.set(com, v);
+			Vector comVec = new BasicVector();
+			comVec = members.get(com).copy(); //separate the vector per community
+			comVec.set(j, 1);
+			members.set(com, comVec);
 		}
-		
+			
+		double NRA = 0; 
+		double CR = 0;
 		for(int i = 0; i < comNr; i++) {
 			Vector v = members.get(i);
+			Vector v_compl = one.subtract(v); // calculate inverse of v
 			if(v.sum() == 0) {  // community vanished in the process of OCD
 				continue; 
 			}
 			NRA -= cliqueInterconectivity(graph, v, v)/v.sum();
-		}
-		
-		return NRA;
-	}
-	
-	/**
-	 * Evaluation of the cover of a graph. This measures the inter-link density and should be minimized. 
-	 * @param graph
-	 * @param cover to evaluate on the graph
-	 * @return Cut Ratio
-	 */
-	protected double cutRatio(CustomGraph graph, Vector sol) {
-		double CR = 0; 
-		int comNr = (int) sol.max()+1; 
-		
-		// help list to identify which node is in which community
-		List<Vector> members= new ArrayList<Vector>();
-		Vector v_hlp = new BasicVector(nodeNr);
-		for(int j = 0; j < comNr; j++) {
-			members.add(v_hlp);
-		}
-		
-		// complementary vector 1-vector
-		double[] ones = new double[nodeNr];
-		Arrays.fill(ones, 1);
-		Vector one = new BasicVector(ones);
-		for(int j = 0; j < sol.length(); j++) {
-			int com = (int)sol.get(j);
-			Vector v = members.get(com).copy(); //separate the vector per community
-			v.set(j, 1);
-			members.set(com, v);
-		}
-
-		for(int i = 0; i<comNr; i++) {
-			Vector v = members.get(i); 
-			Vector v_compl = one.subtract(v); // calculate inverse of v
-			if(v.sum() == 0) {
-				continue; 
-			}
 			CR += cliqueInterconectivity(graph, v, v_compl)/v.sum();
 		}
 		
-		return CR;
+		Vector fitness = new BasicVector(2); 
+		fitness.set(0, NRA); 
+		fitness.set(1, CR);
+		
+		return fitness;
 	}
 	
 	/** 
