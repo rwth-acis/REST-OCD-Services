@@ -52,11 +52,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * number of ants/subproblems to solve. Default value: 1000
 	 */
 	private static int M = 10;
-	  
-	/**
-	 * Positive integer associated with M. Helps to find uniformly distributed weight vector. Should be at least as large as M.  
-	 */
-	private static int H = M*100; 
 	
 	/**
 	 * Number of groups to cluser the ants in. The value should be in between 0 and M. 
@@ -234,53 +229,55 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	protected List<Ant> initialization(CustomGraph graph) throws InterruptedException {
 		EP = new HashMap<Vector,Vector>(); 
-		
-		// initializing the values to choose weight vectors from 
-		List<Double> H_values = new ArrayList<Double>();
-		for(int i = 0; i <= H; i++) {
-			double hlp = ((double)i)/H;
-			H_values.add(i,hlp);
-		}	
-		
-		// creating ants and setting weight vectors for ants
-		Random rand = new Random();
-		List<Vector> lambdas = new ArrayList<Vector>(); 
+
+		// creating ants and setting parameters
+		Random rand = new Random(); 
 		List<Ant> ants = new ArrayList<Ant>(); 
+		refPoint = new BasicVector(2);
+		int preGroup = 0; // group of the previous ant 
 		for(int i = 0; i < M; i++) {
 			// creating ants 
-			Ant a = new Ant(i);
-			ants.add(a);
+			Ant a1 = new Ant(i);
+			ants.add(a1);
+			
 			// setting weight vectors
-			double rVal = H_values.get(rand.nextInt(H));
+			double rVal = (double)i/(M-1);
 			double[] hlp = {rVal,1-rVal};
-			Vector v = new BasicVector(hlp);
-			ants.get(i).setWeight(v);
-			lambdas.add(v);
-		}
-		
-		//initialization of help weight vectors of the group generation
-		List<Vector> hlp_lambdas = new ArrayList<Vector>(); 
-		for(int i = 0; i <= K; i++) {
-			double rVal = H_values.get(rand.nextInt(H));
-			double[] hlp = {rVal,1-rVal};
-			Vector v = new BasicVector(hlp);
-			hlp_lambdas.add(v);
-		}
-	
-		// find the T closest neighbors and cluster ants into groups
-		refPoint = new BasicVector(2);
-		for(int i = 0; i < M; i++) {
-			Ant a1 = ants.get(i); 
-			Map<Double,Integer> euclDist = new HashMap<Double,Integer>(); 
-			Vector lda1 = a1.getWeight(); 
+			Vector weight = new BasicVector(hlp);
+			a1.setWeight(weight);
+			
+			//initialization of the groups
+			double eucl1 = Math.sqrt(Math.pow((double) preGroup/(K-1) - weight.get(0), 2) + Math.pow(1-preGroup/(K-1) - weight.get(1), 2));
+			double eucl2 = Math.sqrt(Math.pow((double)(preGroup+1)/(K-1) - weight.get(0), 2) + Math.pow(1 - (preGroup+1)/(K-1) - weight.get(1), 2));
+			if(eucl1 <= eucl2) {
+				a1.setGroup(preGroup);	  
+			} else {
+				a1.setGroup(preGroup+1);
+				preGroup++; 
+			}
+			
+			// neighborhood computations
+			Collection<Integer> neighbors = new HashSet<Integer>();
+			
+			for(int j = 1; j <= nearNbors;) {
+				if(i-j >= 0) {
+					neighbors.add(i-j); 
+					j++; 
+				}
+				if((i+j) <= nodeNr && nearNbors+1 >= j) {
+					neighbors.add(i+j); 
+					j++;
+				}	
+			}	
+			a1.setNeighbors(neighbors);
 			
 			//initial solution
 			Vector sol = new BasicVector(nodeNr);
-			for(int j = 0; j < nodeNr; j++) { // generate random communities 
-				sol.set(j, rand.nextInt(nodeNr)); 
+			for(int k = 0; k < nodeNr; k++) { // generate random communities 
+				sol.set(k, rand.nextInt(nodeNr)); 
 			}
-			a1.setSolution(sol);
-				
+			a1.setSolution(sol);	
+			
 			// fitness of the solution
 			Vector fitness = fitnessCalculations(graph, sol);
 			a1.setFitness(fitness);
@@ -292,56 +289,12 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			if (fitness.get(1) < refPoint.get(1)) {
 				refPoint.set(1, fitness.get(1)); 
 			}	
-			
-			// grouping the ants in K groups
-			int minID = 0; 
-			double minEucl = Math.sqrt(Math.pow(hlp_lambdas.get(0).get(0) - lda1.get(0), 2) + Math.pow(hlp_lambdas.get(0).get(1) - lda1.get(1), 2)); 
-			for(int j = 1; j < K; j++) { // calculate the euclidian distance for two vectors  
-				Vector v = hlp_lambdas.get(j);
-				double eucl = Math.sqrt(Math.pow(v.get(0) - lda1.get(0), 2) + Math.pow(v.get(1) - lda1.get(1), 2));
-				if(minEucl > eucl) {
-					minID = j;
-					minEucl = eucl; 
-				}
-			}
-			a1.setGroup(minID);
-	
-			// neighborhood computations
-			for(int j = 0; j < M; j++) { // calculate the euclidian distance for two vectors  
-				Ant a2 = ants.get(j); 
-				if(i == j) {
-					continue; 
-				}
-				int ind = a2.number; 
-				Vector lda2 = a2.getWeight();
-				double eucl = Math.sqrt(Math.pow(lda2.get(0) - lda1.get(0), 2) + Math.pow(lda2.get(1) - lda1.get(1), 2));
-				if(euclDist.size() < nearNbors) { // if not nearNbors solutions have been found
-					euclDist.put(eucl,ind);
-				} else {
-					boolean replace = false; 
-					double maxEucl = 0; 
-					for(double comp_eucl: euclDist.keySet()) { // compare the entries found so far to the current vector
-						if(comp_eucl > eucl) { // as soon as the euclidian distance of the current vector is smaller then the entry in the table -> replace that entry
-							if(comp_eucl > maxEucl) { // make sure to replace the biggest euclidian dist
-								maxEucl = comp_eucl; 
-							}
-							replace = true; 
-						}
-					}	
-					if(replace == true) {
-						euclDist.remove(maxEucl);
-						euclDist.put(eucl,ind); 
-					}
-				}
-			}
-			a1.setNeighbors(euclDist.values());
 		}	
 		
 		// fill in the heuristic information matrix and the pheromone matrix
 		heuristic = new Basic2DMatrix(nodeNr,nodeNr);  //  heuristic information matrix
 		Matrix neighbors = graph.getNeighbourhoodMatrix();
 		Node[] nodes = graph.getNodeArray();		
-
 		pheromones = new ArrayList<Matrix>(); 
 		double[][] p = new double[nodeNr][nodeNr]; 
 		for(int i = 0; i < nodeNr-1; i++) {
