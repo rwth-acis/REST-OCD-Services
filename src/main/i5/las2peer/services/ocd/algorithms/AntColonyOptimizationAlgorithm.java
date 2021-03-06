@@ -247,8 +247,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			a1.setWeight(weight);
 			
 			//initialization of the groups
-			double eucl1 = Math.sqrt(Math.pow((double) preGroup/(K-1) - weight.get(0), 2) + Math.pow(1-preGroup/(K-1) - weight.get(1), 2));
-			double eucl2 = Math.sqrt(Math.pow((double)(preGroup+1)/(K-1) - weight.get(0), 2) + Math.pow(1 - (preGroup+1)/(K-1) - weight.get(1), 2));
+			double eucl1 = Math.sqrt(Math.pow((double) preGroup/(K-1) - weight.get(0), 2) + Math.pow(1-(double)preGroup/(K-1) - weight.get(1), 2));
+			double eucl2 = Math.sqrt(Math.pow((double)(preGroup+1)/(K-1) - weight.get(0), 2) + Math.pow(1 - (double)(preGroup+1)/(K-1) - weight.get(1), 2));
 			if(eucl1 <= eucl2) {
 				a1.setGroup(preGroup);	  
 			} else {
@@ -258,16 +258,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			
 			// neighborhood computations
 			Collection<Integer> neighbors = new HashSet<Integer>();
-			
+			int dis = 1; // distance to the value 
 			for(int j = 1; j <= nearNbors;) {
-				if(i-j >= 0) {
-					neighbors.add(i-j); 
+				if(i-dis >= 0) {
+					neighbors.add(i-dis); 
 					j++; 
 				}
-				if((i+j) <= nodeNr && nearNbors+1 >= j) {
-					neighbors.add(i+j); 
+				if((i+dis) < M && nearNbors >= j) {
+					neighbors.add(i+dis); 
 					j++;
 				}	
+				dis++; 
 			}	
 			a1.setNeighbors(neighbors);
 			
