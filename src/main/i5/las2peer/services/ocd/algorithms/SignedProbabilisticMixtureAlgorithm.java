@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.apache.commons.exec.CommandLine;
@@ -124,19 +125,22 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		synchronized (executor) {
 			try {				
-				//TODO: Function to calculate initial probabilities
-				
-				
+				initialProbabilitiesRandom(graph); //TODO: Function to calculate initial probabilities other than completely random
+								
 				double logLikelihoodPrev = 0.0;
 				double logLikelihood = 0.0;
 				while(Math.abs(logLikelihood - logLikelihoodPrev) >= 0.01) { //TODO: Necessary difference subject to change, maybe let the user choose?
 					emStep(graph);
 					logLikelihoodPrev = logLikelihood;
 					logLikelihood = calculateLikelihood(graph);
+					
+					if(Thread.interrupted()) {
+						throw new InterruptedException();
+					}
 				}
 
-				Matrix membershipMatrix = getMembershipMatrix();
-				Cover cover = new Cover(graph, membershipMatrix); //TODO: Function for membership matrix creation
+				Matrix membershipMatrix = getMembershipMatrix(graph);
+				Cover cover = new Cover(graph, membershipMatrix);
 				return cover;
 			} catch (InterruptedException e) {
 				throw e;
@@ -150,6 +154,52 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 
 		}
 	}		
+	
+	/**
+	 * Sets the initial edge and node selection probabilities with random values based on system time in milliseconds
+	 * @param graph The graph the algorithm runs on
+	 */
+	public void initialProbabilitiesRandom(CustomGraph graph) {
+		Random rndGenerator = new Random();
+		
+		edgeProbabilities = new CCSMatrix(k,k);
+		nodeProbabilities = new CCSMatrix(k,graph.nodeCount());
+		
+		// Set w_rs
+		double edgeRestProbability = 1.0;
+		for(int r=0; r<k; r++) {
+			for(int s=0; s<k; s++) {
+				if(r<k && s<k)
+				{
+					rndGenerator.setSeed(System.currentTimeMillis());
+					edgeProbabilities.set(r, s, rndGenerator.nextDouble() * edgeRestProbability);				
+					edgeRestProbability -= edgeProbabilities.get(r, s);
+				}				
+				else
+				{
+					edgeProbabilities.set(r, s, edgeRestProbability);
+				}
+			}
+		}
+		
+		// Set 0_ri
+		Node nodes[] = graph.getNodeArray();
+		for(int r=0; r<k; r++) {
+			double nodeRestProbability = 1.0;
+			for(int i=0; i<graph.getNodeArray().length; i++) {
+				if(i < nodes.length -1)
+				{
+					rndGenerator.setSeed(System.currentTimeMillis());
+					nodeProbabilities.set(r, nodes[i].index(), rndGenerator.nextDouble() * nodeRestProbability);
+					nodeRestProbability -= nodeProbabilities.get(r, nodes[i].index());
+				}
+				else
+				{
+					nodeProbabilities.set(r, nodes[i].index(), nodeRestProbability);
+				}
+			}
+		}
+	}
 	
 	/**
 	 * Calculates the membership values for every node by dividing the product between all outgoing edge probabilities and the selection probability for this node through the sum of all those products 
