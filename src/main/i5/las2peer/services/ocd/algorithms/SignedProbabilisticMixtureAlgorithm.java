@@ -21,11 +21,16 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import y.base.Node;
 import y.base.Edge;
 import y.base.EdgeCursor;
 
+import java.security.SecureRandom;
+
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
+import org.la4j.vector.Vector;
+import org.la4j.vector.dense.*;
 
 /**
  * @author YLi
@@ -42,33 +47,23 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 	/**
 	 * Path of the application for Linux based on the source codes of Chen et. al.
 	 */
-	private static String linuxApplicationPath = "./SpmLinux";
-	/**
-	 * Path of the application for Windows based on the source codes of Chen et
-	 * al.
-	 */
-	private static String windowsApplicationPath = DirectoryPath + "SpmWindows.exe";
-	/**
-	 * Path of tuple file.
-	 */
-	private static final String graphPath = DirectoryPath + "network.tuple";
-	/**
-	 * Name of tuple file.
-	 */
-	private static final String graphName = "network.tuple";
-	/**
-	 * Path of the output of last generation.
-	 */
-	private static String LastResultPath = DirectoryPath + "result.txt";
 	/**
 	 * The number of trials. The default value is 3. Must be greater than 0.
 	 */
 	private int n = 3;
+	/**
+	 * The number of communities to assign nodes to. The default value is 6. Must be greater than 0.
+	 */
+	private int k = 6;
+	
+	private Matrix edgeProbabilities;	 // edge_community wrs
+	private Matrix nodeProbabilities; // community_node 0ri
 
 	/*
 	 * PARAMETER NAMES
 	 */
 	protected final String TRIALCOUNT_NAME = "n";
+	protected final String COMMUNITYCOUNT_NAME = "k";
 
 	@Override
 	public CoverCreationType getAlgorithmType() {
@@ -80,7 +75,14 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 		if (parameters.containsKey(TRIALCOUNT_NAME)) {
 			n = Integer.parseInt(parameters.get(TRIALCOUNT_NAME));
 			parameters.remove(TRIALCOUNT_NAME);
-			if (n < 0) {
+			if (n <= 0) {
+				throw new IllegalArgumentException();
+			}
+		}
+		if (parameters.containsKey(COMMUNITYCOUNT_NAME)) {
+			k = Integer.parseInt(parameters.get(COMMUNITYCOUNT_NAME));
+			parameters.remove(COMMUNITYCOUNT_NAME);
+			if (k <= 0) {
 				throw new IllegalArgumentException();
 			}
 		}
@@ -93,6 +95,7 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 	public Map<String, String> getParameters() {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(TRIALCOUNT_NAME, Integer.toString(n));
+		parameters.put(COMMUNITYCOUNT_NAME, Integer.toString(k));
 		return parameters;
 	}
 
@@ -112,44 +115,27 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 
 	}
 
-	public SignedProbabilisticMixtureAlgorithm(int n) {
+	public SignedProbabilisticMixtureAlgorithm(int n, int k) {
 		this.n = n;
+		this.k = k;
 	}
 
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		synchronized (executor) {
-			try {
-				String executorFilename;
-				if (SystemUtils.IS_OS_LINUX) {
-					executorFilename = linuxApplicationPath;
-				} else if (SystemUtils.IS_OS_WINDOWS) {
-					executorFilename = windowsApplicationPath;
+			try {				
+				//TODO: Function to calculate initial probabilities
+				
+				
+				double logLikelihoodPrev = 0.0;
+				double logLikelihood = 0.0;
+				while(Math.abs(logLikelihood - logLikelihoodPrev) >= 0.01) { //TODO: Necessary difference subject to change, maybe let the user choose?
+					emStep(graph);
+					logLikelihoodPrev = logLikelihood;
+					logLikelihood = calculateLikelihood(graph);
 				}
-				/*
-				 * Benchmark not implemented for this operating system.
-				 */
-				else {
-					throw new OcdAlgorithmException();
-				}
-				writeNetworkFile(graph);
-				CommandLine cmdLine = new CommandLine(executorFilename);
-				cmdLine.addArgument(graphName);
-				cmdLine.addArgument(Integer.toString(n));
-				File workingDirectory = new File(DirectoryPath);
-				executor.setWorkingDirectory(workingDirectory);
-				DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-				executor.execute(cmdLine, resultHandler);
-				resultHandler.waitFor();
-				if (resultHandler.getExitValue() != 0) {
-					System.out.println(resultHandler.getException());
-					throw new OcdBenchmarkException("MEA Process exit value: " + resultHandler.getExitValue());
-				}
-				// read result file and generate membershipMatrix
-				File resultFile = new File(LastResultPath);
-				Integer nodeCount = graph.nodeCount();
-				Matrix membershipMatrix = getMembershipMatrix(resultFile, nodeCount);
-				Cover cover = new Cover(graph, membershipMatrix);
+
+				Cover cover = new Cover(graph, membershipMatrix); //TODO: Function for membership matrix creation
 				return cover;
 			} catch (InterruptedException e) {
 				throw e;
@@ -162,91 +148,130 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 			}
 
 		}
-	}
-
-	/** translate graph into tuple file
-	 * 
-	 * @param graph
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	protected void writeNetworkFile(CustomGraph graph) throws IOException, InterruptedException {
-		FileWriter networkFile = new FileWriter(graphPath);
-		try {
-			networkFile.write(Integer.toString(graph.nodeCount()));
-			networkFile.write(System.lineSeparator());
-			EdgeCursor edges = graph.edges();
-			Edge edge;
-			while (edges.ok()) {
-				if (Thread.interrupted()) {
-					throw new InterruptedException();
-				}
-				edge = edges.edge();
-				/*
-				 * The algorithm reads network files starting with node 1.
-				 */
-				if (edge.source().index() <= edge.target().index()) {
-					networkFile.write(Integer.toString(edge.source().index() + 1));
-					networkFile.write("\t");
-					networkFile.write(Integer.toString(edge.target().index() + 1));
-					networkFile.write("\t");
-					networkFile.write(Double.toString(graph.getEdgeWeight(edge)));
-					networkFile.write(System.lineSeparator());
-				}
-				edges.next();
-			}
-		} finally {
-			networkFile.close();
-		}
-	}
-
+	}		
+	
 	/**
-	 * Transform the results written by the executable file into the membership matrix.
-	 * @param resultFile
-	 * @param nodeCount
-	 * @return matrix
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * Calculates the E and the M Step for the algorithm.
+	 * In the E step, the probability for a positive and a negative edge for a given community or between two given communities are calculated
+	 * In the M step, the probabilities for each edge to select each two or one communities and the probability for each community to select each node are then re-calculated
+	 * @param graph The graph the algorithm is run on
 	 */
-	protected Matrix getMembershipMatrix(File resultFile, int nodeCount) throws IOException, InterruptedException {
-		Scanner communityResult = new Scanner(resultFile);
-		int communityCount = 0;
-		try {
-
-			if (communityResult.next().equals("theta:")) {
-				if (communityResult.hasNextInt()) {
-					communityResult.next();
-					while (!communityResult.hasNextInt()) {
-						communityCount++;
-						communityResult.next();
+	public void emStep(CustomGraph graph) {
+		
+		//E STEP
+		HashMap<Edge, Vector> posEdgeHiddenCommProbs = new HashMap<Edge, Vector>(); //q_ijr
+		HashMap<Edge, Matrix> negEdgeHiddenCommProbs = new HashMap<Edge, Matrix>(); //Q_ijrs (r!=s), 0 (r=s)
+		for(Edge edge : graph.getEdgeArray()) {			
+			if(graph.getEdgeWeight(edge) >= 0) {
+				Vector positiveProbabilities = new BasicVector(k);
+				//Matrix edgeProbabilityMatrix = edgeProbabilities.get(edge);
+				double previousEdgeProbsSum = 0.0;
+				for(int r=0; r<k; r++) {
+					previousEdgeProbsSum += edgeProbabilities.get(r, r)*nodeProbabilities.get(r, edge.source().index())*nodeProbabilities.get(r, edge.target().index()); //E_r(wrr*0ri*0rj)
+				}
+				for(int r=0; r<k; r++) {
+					positiveProbabilities.set(r, edgeProbabilities.get(r, r)*nodeProbabilities.get(r, edge.source().index())*nodeProbabilities.get(r, edge.target().index()) / previousEdgeProbsSum); // wrr*0ri*0rj / E_r(wrr*0ri*0rj)
+				}
+				posEdgeHiddenCommProbs.put(edge, positiveProbabilities);
+			}
+			else {
+				Matrix negativeProbabilities = new CCSMatrix(k,k);
+				//Matrix edgeProbabilityMatrix = edgeProbabilities.get(edge);
+				double previousEdgeProbsSum = 0.0;
+				for(int r=0; r<k; r++) {
+					for(int s=0; s<k; s++) {
+						previousEdgeProbsSum += edgeProbabilities.get(r, s)*nodeProbabilities.get(r, edge.source().index())*nodeProbabilities.get(s, edge.target().index()); // E_rs(wrs*0ri*0sj)
+					}
+				}
+				for(int r=0; r<k; r++) {
+					for(int s=0; s<k; s++) {
+						if(r!=s) {
+							negativeProbabilities.set(r,s, edgeProbabilities.get(r, s)*nodeProbabilities.get(r, edge.source().index())*nodeProbabilities.get(s, edge.target().index()) / previousEdgeProbsSum); // wrs*0ri*0sj / E_rs(wrs*0ri*0sj)
+						}
+						else 
+						{
+							negativeProbabilities.set(r,s,0); //case for r==s
+						}
+					}
+				}
+				negEdgeHiddenCommProbs.put(edge, negativeProbabilities);
+			}
+		}
+		
+		//M STEP TODO:
+		Matrix edgeHiddenProbSums = new CCSMatrix(k,k); // w_rs, on diagonal: w_rr
+		Matrix nodeHiddenProbSums = new CCSMatrix(k,graph.nodeCount()); // 0_ri
+		for(int r=0; r<k; r++) {
+			for(int s=0; s<k; s++) {				
+				for(Edge edge : graph.getEdgeArray()) {			
+					if(r!=s && graph.getEdgeWeight(edge) < 0)
+					{
+						edgeHiddenProbSums.set(r,s, edgeHiddenProbSums.get(r, s) + negEdgeHiddenCommProbs.get(edge).get(r,s) * graph.getEdgeWeight(edge)); // E_ij(Q_ijrs * A^-_ij) for w_rs
+						
+						nodeHiddenProbSums.set(r, edge.source().index(), nodeHiddenProbSums.get(r, edge.source().index()) + negEdgeHiddenCommProbs.get(edge).get(r,s) * graph.getEdgeWeight(edge)); // E_js(Q_ijrs * A^-_ij) for 0_ri
+					}
+					else if(r==s && graph.getEdgeWeight(edge) >= 0)
+					{
+						edgeHiddenProbSums.set(r,r, edgeHiddenProbSums.get(r, r) + posEdgeHiddenCommProbs.get(edge).get(r) * graph.getEdgeWeight(edge)); // E_ij(q_ijr * A^+_ij) for w_rr
+						
+						nodeHiddenProbSums.set(r, edge.source().index(), nodeHiddenProbSums.get(r, edge.source().index()) + posEdgeHiddenCommProbs.get(edge).get(r) * graph.getEdgeWeight(edge)); // E_j(q_ijr * A^+_ij) for 0_ri
 					}
 				}
 			}
-
-			Matrix membershipMatrix = new CCSMatrix(nodeCount, communityCount);
-			while (communityResult.hasNext()) {
-				if (communityResult.next().equals("alpha/beta:")) {
-					for (int i = 0; i < nodeCount; i++) {
-						int nodeID = communityResult.nextInt();
-						for (int j = 0; j < communityCount; j++) {
-							/*
-							 * result file of the executable file with nodes starting from 1
-							 */
-							membershipMatrix.set(nodeID - 1, j, communityResult.nextDouble());
+		}
+		
+		double edgeHiddenProbSumsSum = edgeHiddenProbSums.sum(); // E_ijr(Q_ijrs * A^-_ij) + E_ijr(q_ijr * A^+_ij)
+		
+		for(int r=0; r<k; r++) {
+			for(int s=0; s<k; s++) {
+				// No distinction between pos/neg necessary, values of matrix already take that into account
+				edgeProbabilities.set(r, s, edgeHiddenProbSums.get(r,s) / edgeHiddenProbSumsSum); // Calculate w_rr and w_rs
+			}
+		}
+		
+		double nodeHiddenProbSumsSum[] = new double[k];
+		for(int r=0; r<k; r++) {
+			nodeHiddenProbSumsSum[r] = nodeHiddenProbSums.getRow(r).sum(); // E_ij(Q_ijrs * A^-_ij) + E_ij(q_ijr * A^+_ij) for each r
+		}
+		
+		for(int r=0; r<k; r++) {
+			for(Node node : graph.getNodeArray()) {
+				nodeProbabilities.set(r, node.index(), nodeHiddenProbSums.get(r, node.index()) / nodeHiddenProbSumsSum[r] ); // Calculate 0_ri
+			}
+		}
+		
+	}
+	
+	/**
+	 * Calculates the log-likelihood for the current cover, this is used as a stop criterion for the EM-Step
+	 * @param graph The graph the algorithm is run on
+	 * @return the log-likelihood for the current cover (double)
+	 */
+	public double calculateLikelihood(CustomGraph graph) {
+		double logLikelihood = 0.0;
+		
+		for(Edge edge : graph.getEdgeArray()) {
+			double communityProbSum = 0.0;
+			if(graph.getEdgeWeight(edge) < 0) 
+			{
+				for(int r=0; r<k; r++) {
+					for(int s=0; s<k; s++) {
+						if(r!=s) 
+						{
+							communityProbSum += edgeProbabilities.get(r, s) * nodeProbabilities.get(r, edge.source().index()) * nodeProbabilities.get(s, edge.target().index());
 						}
 					}
 				}
 			}
-			return membershipMatrix;
-		} catch (Exception e) {
-			throw new IOException(e);
-		} finally {
-			try {
-				communityResult.close();
-			} catch (Exception e) {
+			else 
+			{
+				for(int r=0; r<k; r++) {
+					communityProbSum += edgeProbabilities.get(r, r) * nodeProbabilities.get(r, edge.source().index()) * nodeProbabilities.get(r, edge.target().index());
+				}
 			}
+			logLikelihood += graph.getEdgeWeight(edge) * Math.log(communityProbSum);
 		}
-
+		
+		return logLikelihood;
 	}
-
 }
