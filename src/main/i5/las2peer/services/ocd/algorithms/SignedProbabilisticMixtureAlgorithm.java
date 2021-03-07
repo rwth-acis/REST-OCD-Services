@@ -135,6 +135,7 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 					logLikelihood = calculateLikelihood(graph);
 				}
 
+				Matrix membershipMatrix = getMembershipMatrix();
 				Cover cover = new Cover(graph, membershipMatrix); //TODO: Function for membership matrix creation
 				return cover;
 			} catch (InterruptedException e) {
@@ -149,6 +150,33 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 
 		}
 	}		
+	
+	/**
+	 * Calculates the membership values for every node by dividing the product between all outgoing edge probabilities and the selection probability for this node through the sum of all those products 
+	 * @param graph The graph the algorithm is run on
+	 * @return the membership matrix. Nodes are rows, communities columns
+	 */
+	public Matrix getMembershipMatrix(CustomGraph graph) {
+		Matrix membershipMatrix = new CCSMatrix(graph.nodeCount(), k);
+		for(Node node : graph.getNodeArray()) {
+			double outgoingProbSum[] = new double[k];
+			double allProbSum = 0.0;
+			
+			for(int r=0; r<k; r++) {
+				outgoingProbSum[r] = 0.0;
+				for(int s=0; s<k; s++) {
+					outgoingProbSum[r] += edgeProbabilities.get(r, s) * nodeProbabilities.get(r, node.index());
+				}
+				allProbSum += outgoingProbSum[r];
+			}
+			
+			for(int r=0; r<k; r++) {
+				membershipMatrix.set(node.index(), r, outgoingProbSum[r] / allProbSum);
+			}
+		}
+		
+		return membershipMatrix;
+	}
 	
 	/**
 	 * Calculates the E and the M Step for the algorithm.
