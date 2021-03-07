@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
@@ -126,7 +127,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * threshold to filter out path randomly. Used in solution construction and between 0 and 1
 	 */
-	private static double R = 0.7;
+	private static double R = 0;
 	
 	/*
 	 * PARAMETER NAMES
@@ -159,17 +160,12 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		CustomGraph MCR = representationScheme(graph);
 		List<Ant> ants = initialization(MCR);
 		
-		// constructions of the Pareto Front (Pareto optimal solutions) 
-		for(int i = 0; i < maxIterations; i++) {
+		for(int i = 0; i < maxIterations; i++) {// constructions of the Pareto Front (Pareto optimal solutions) 
 			HashMap<Vector, Vector> EP_old = (HashMap<Vector, Vector>) EP.clone();
 			//if(i > maxIterations/4) {
 			//	R = 0;
 			//}
-			updateEP(MCR,ants);	
-			//if(EP_old.equals(EP)) { // stops if no new solutions have been found
-				//System.out.println(i);
-				//break; 
-			//}
+			update(MCR,ants);	
 			updatePheromoneMatrix(MCR, ants); 
 		}
 		return decodeMaximalCliques(graph);	
@@ -212,9 +208,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				}
 			}
 		}
-		
 		return encoding; 
-				
 	}
 
 	/**
@@ -231,7 +225,19 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		Random rand = new Random(); 
 		List<Ant> ants = new ArrayList<Ant>(); 
 		refPoint = new BasicVector(2);
-		int preGroup = 0; // group of the previous ant 
+		int preGroup = 0; // group of the previous ant 			
+
+		// generate initial communities
+		Vector sol = new BasicVector(nodeNr);
+		for(int j = 0; j < nodeNr; j++) { //each node has its own community
+				sol.set(j,j); 
+		}
+		// compute initial fitness of the solution 
+		Vector fitness = fitnessCalculations(graph, sol);
+		
+		//set reference point
+		refPoint = fitness; 
+		
 		for(int i = 0; i < M; i++) {
 			// creating ants 
 			Ant a1 = new Ant(i);
@@ -269,24 +275,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}	
 			a1.setNeighbors(neighbors);
 			
-			//initial solution
-			Vector sol = new BasicVector(nodeNr);
-			for(int k = 0; k < nodeNr; k++) { // generate random communities 
-				sol.set(k, rand.nextInt(nodeNr)); 
-			}
+			//set initial solution
 			a1.setSolution(sol);	
 			
 			// fitness of the solution
-			Vector fitness = fitnessCalculations(graph, sol);
 			a1.setFitness(fitness);
-			
-			//set reference point
-			if (fitness.get(0) < refPoint.get(0)) {
-				refPoint.set(0, fitness.get(0)); 
-			}
-			if (fitness.get(1) < refPoint.get(1)) {
-				refPoint.set(1, fitness.get(1)); 
-			}	
 		}	
 		
 		// fill in the heuristic information matrix and the pheromone matrix
@@ -300,9 +293,12 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			Vector nbor1 = neighbors.getRow(i);
 			double nborsum1 = nbor1.sum(); // sum(A_i) --> edge weights considered
 			double mu1 = nborsum1/nodeNr; // mean
-			double deg1 = n1.inDegree(); // number of neighbors
-			double std1 = (deg1*Math.pow(1-mu1, 2)+(nodeNr-deg1)*Math.pow(mu1, 2))/nodeNr; //variance
-			std1 = Math.sqrt(std1); // standard deviation
+			double std1 = 0; 
+			for(int j = 0; j < nodeNr; j++) {
+				double nbor = nbor1.get(j); 
+				std1 += Math.pow(nbor-mu1, 2);
+			} 
+			std1 = Math.sqrt(std1/nodeNr); // standard deviation
 			
 			nbor1 = nbor1.subtract(mu1); // preparation for the covariance 
 			for(int j = i+1; j < nodeNr; j++) {
@@ -314,9 +310,12 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				Vector nbor2 = neighbors.getRow(j); 
 				double nborsum2 = nbor2.sum(); // sum(A_j) --> edge weights considered
 				double mu2 = nborsum2/nodeNr; // mean
-				double deg2 = nodes[j].inDegree(); // number of neighbors
-				double std2 = (deg2*Math.pow(1-mu2, 2)+(nodeNr-deg2)*Math.pow(mu2, 2))/nodeNr;  //variance
-				std2 = Math.sqrt(std2); // standard deviation
+				double std2 = 0; 
+				for(int k = 0; k < nodeNr; k++) {
+					double nbor = nbor2.get(k); 
+					std2 += Math.pow(nbor-mu2, 2);
+				} 
+				std2 = Math.sqrt(std2/nodeNr); // standard deviation
 				
 				// compute covariance
 				nbor2 = nbor2.subtract(mu2); // preparation for the covariance 
@@ -531,17 +530,22 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	}
 	
 	/**
-	 * Updates the set of the Pareto front/ optimal solutions EP. Checks whether the new solution is dominated 
-	 * by old solutions in EP. If the new solution is not dominated by any of the old solutions, add the new solution
-	 * to EP and remove all solutions dominated by the new solution. 
+	 * Searches for better solutions by local annealing and updates if a better solution is found. Updates the set of 
+	 * the Pareto front/ optimal solutions EP. Checks whether the new solution is dominated by old solutions in EP. 
+	 * If the new solution is not dominated by any of the old solutions, add the new solution to EP and remove all 
+	 * solutions dominated by the new solution. Also computes the limits of the pheromone matrix the next iteration 
+	 * of the algorithm. 
 	 * @param new_sol new found solution
 	 * @param fitness fitness value of the found solution
 	 * @throws InterruptedException 
 	 */
-	protected void updateEP(CustomGraph graph, List<Ant> ants) throws InterruptedException {	
+	protected void update(CustomGraph graph, List<Ant> ants) throws InterruptedException {	
+		double g_min = 0; // Minimum Tchebyeheff Decomposition
+		double newSolNr = 0; // number of solutions added in EP
 		for(int i = 0; i < M; i++) {
 			Ant ant = ants.get(i); 
 			constructSolution(graph, ant);
+			ant.setFalseNew_sol();
 			// weighted annealing local search
 			Random rand = new Random(); 
 			Vector old_sol = ant.getSolution();
@@ -549,26 +553,33 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			Vector new_fit =  new BasicVector(); ;
 			Vector weight = ant.getFitness(); 
 			Vector new_sol = new BasicVector(); 
+			double tc_final = TchebyehoffDecomposition(old_fit, weight);
 			for(double T = 100; T > 0.4;){ // parameter from the paper
 				T = 0.5*T; 
 				for(int j = 0; j < 5; j++) {
 					constructSolution(graph, ant); 
 					new_sol = ant.getSolution();
 					new_fit = ant.getFitness();
-					Vector VectorF = weight.multiply(TchebyehoffDecomposition(new_fit, weight)-TchebyehoffDecomposition(old_fit, weight)); 
+					double tc_new = TchebyehoffDecomposition(new_fit, weight);
+					Vector VectorF = weight.multiply(tc_new-TchebyehoffDecomposition(old_fit, weight)); 
 					double F = VectorF.sum();
-					if(F >= 0) {
+					if(F >= 0 || rand.nextDouble() < Math.pow(Math.E,(-F/T))) {
 						old_sol = new_sol; 
-						ant.setSolution(new_sol);
-					} else if (rand.nextDouble() < Math.pow(Math.E,(-F/T))){
-						old_sol = new_sol;
-						ant.setSolution(new_sol);
+						old_fit = new_fit;
+						tc_final = tc_new;
 					}
-					
 				}
 			}
-			ant.setSolution(new_sol);
-			ant.setFitness(new_fit);
+			ant.setSolution(old_sol);
+			ant.setFitness(old_fit);
+			
+			if (ant.number == 0) { // minimum Tchebyehoff Decomposition
+				g_min = tc_final; 
+			} else {
+				if(g_min > tc_final) {
+					g_min = tc_final; 
+				}
+			}
 			
 			//update EP 
 			if(EP.isEmpty()) {
@@ -597,6 +608,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 			EP = EP_new; 
 			EP.put(new_fit, new_sol); 
+			newSolNr++;
 			ant.setTrueNew_sol();
 			
 			//update reference point
@@ -607,6 +619,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				refPoint.set(1, new_fit.get(1));
 			}
 		}
+		limits[1] = newSolNr + 1/(1 - rho)*(1 + g_min); 
+		limits[0] =	0.001 * limits[1]; 	
 	}
 	
 // --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -697,8 +711,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	protected void updatePheromoneMatrix(CustomGraph graph, List<Ant> ants) {
 		List<Double> tcList = new ArrayList<Double>(); 
-		double g_min = 0; // Minimum Tchebyeheff Decomposition
-		double B = 0;
 		List<Ant> used = new ArrayList<Ant>(); 
 		for(int i = 0; i < M; i++) {
 			Ant ant = ants.get(i);
@@ -708,16 +720,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			// get the parameter for setting the limits of the pheromone level in this iteration
 			double tc = TchebyehoffDecomposition(fit, weight);
 			tcList.add(tc); 
-			if (ant.number == 0) { // minimum Tchebyehoff Decomposition
-				g_min = tc; 
-			} else {
-				if(g_min > tc) {
-					g_min = tc; 
-				}
-			}
-			if(ant.getNew_sol()) { // number of new solutions
-				B++;
-			}
 			
 			// exchange of neighborhood information and getting better results
 			Collection<Integer> neighbors = ant.getNeighbors();
@@ -730,12 +732,10 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				if(tc > tc_nbor && !used.contains(neighbor)) { 
 					ant.setSolution(neighbor.getSolution());
 					used.add(neighbor); // solution cannot be used to replace twice
+					break;
 				}
 			}
 		}
-		limits[1] = B + 1/(1 - rho)*(1 + g_min); 
-		limits[0] =	0.001 * limits[1]; 	
-		
 		for(int k = 0; k < K; k++) {
 			Matrix m = new Basic2DMatrix(nodeNr, nodeNr);
 			Matrix persist = pheromones.get(k).multiply(rho); // persistence of the pheromones on a path
@@ -745,10 +745,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 					for(int l = 0; l < M; l++) {
 						Ant ant = ants.get(l);
 						if(ant.getGroup() == k && ant.getNew_sol()) {
-							Vector weight = ant.getWeight();
-							Vector fit = ant.getFitness();
 							Vector sol = ant.getSolution(); 
-							delta += 1/(1 + tcList.get(l)) * isEdgeinSol(graph, sol, i, j); // changed pheromones on a path 
+							delta +=  isEdgeinSol(graph, sol, i, j)/(1. + tcList.get(l)); // changed pheromones on a path
 						}
 					}
 					double result = delta + persist.get(i, j);
@@ -840,12 +838,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 	
 			// prepare membership matrix
-			Iterator<Integer> it = maxClq.keySet().iterator();
-			while(it.hasNext()) {
-				int ind = it.next(); // index of clique
-				HashSet<Node> clique = maxClq.get(ind); 
-				int member = (int) sol.get(ind); // index of the solution community
-				for(Node n: clique){ 
+			for(Entry<Integer, HashSet<Node>> entry: maxClq.entrySet()) {
+				int member = (int) sol.get(entry.getKey()); // index of the solution community
+				for(Node n: entry.getValue()){ 
 					Vector v = membershipMatrixVectors.get(member);
 					v.set(n.index(), 1);
 					membershipMatrixVectors.set(member, v);  // set node in community 
@@ -853,10 +848,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 			
 			Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),com.size());
-			int i = 0;
-			for(int cNr: com) {
-				membershipMatrix.setColumn(i, membershipMatrixVectors.get(cNr));
-				i++;
+			for(int i = 0; i < com.size(); i++) {
+				membershipMatrix.setColumn(i, membershipMatrixVectors.get(com.get(i)));
 			}
 			
 			//generate Cover
