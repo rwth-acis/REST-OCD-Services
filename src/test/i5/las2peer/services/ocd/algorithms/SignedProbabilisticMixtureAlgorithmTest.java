@@ -32,11 +32,23 @@ public class SignedProbabilisticMixtureAlgorithmTest {
 		System.out.println(cover.toString());
 	}
 	
-	@Ignore
 	@Test
 	public void testLfrSmall()
 			throws FileNotFoundException, AdapterException, OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrSixNodesGraph();
+		SignedProbabilisticMixtureAlgorithm algo = new SignedProbabilisticMixtureAlgorithm();
+		GraphProcessor processor = new GraphProcessor();
+		processor.makeUndirected(graph);
+		Cover cover = algo.detectOverlappingCommunities(graph);
+		System.out.println("Detected Cover:");
+		System.out.println(cover.toString());
+	}
+	
+	@Ignore
+	@Test
+	public void testWikiElec()
+			throws FileNotFoundException, AdapterException, OcdAlgorithmException, InterruptedException {
+		CustomGraph graph = OcdTestGraphFactory.getWikiElecGraph();
 		SignedProbabilisticMixtureAlgorithm algo = new SignedProbabilisticMixtureAlgorithm();
 		GraphProcessor processor = new GraphProcessor();
 		processor.makeUndirected(graph);

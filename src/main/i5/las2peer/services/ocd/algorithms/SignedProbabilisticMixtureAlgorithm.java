@@ -46,9 +46,6 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 	 */
 	private static DefaultExecutor executor = new DefaultExecutor();
 	/**
-	 * Path of the application for Linux based on the source codes of Chen et. al.
-	 */
-	/**
 	 * The number of trials. The default value is 3. Must be greater than 0.
 	 */
 	private int n = 3;
@@ -124,21 +121,39 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		synchronized (executor) {
-			try {				
-				initialProbabilitiesRandom(graph); //TODO: Function to calculate initial probabilities other than completely random
-								
-				double logLikelihoodPrev = 0.0;
-				double logLikelihood = 0.0;
-				while(Math.abs(logLikelihood - logLikelihoodPrev) >= 0.01) { //TODO: Necessary difference subject to change, maybe let the user choose?
-					emStep(graph);
-					logLikelihoodPrev = logLikelihood;
-					logLikelihood = calculateLikelihood(graph);
-					
-					if(Thread.interrupted()) {
-						throw new InterruptedException();
+			try {	
+				initialProbabilitiesRandom(graph);//TODO: Function to calculate initial probabilities other than completely random
+				Matrix bestEdgeProbabilities = new CCSMatrix(edgeProbabilities);	 // edge_community wrs
+				Matrix bestNodeProbabilities = new CCSMatrix(nodeProbabilities); 
+				
+				double maxLogLikelihood = 0.0;
+				
+				for(int i=0; i<n; i++) {				
+					double logLikelihoodPrev = -100000000000001.0;
+					double logLikelihood = -100000000000000.0;
+					while(logLikelihood > logLikelihoodPrev && Math.abs(logLikelihood - logLikelihoodPrev) >= 0.001) { //TODO: Necessary difference subject to change, maybe let the user choose?																		
+						emStep(graph);
+						logLikelihoodPrev = logLikelihood;
+						logLikelihood = calculateLikelihood(graph);
+						
+						//DEBUG: System.out.println(i + ": " + logLikelihood);
+												
+						if(Thread.interrupted()) 
+						{
+							throw new InterruptedException();
+						}
 					}
-				}
-
+					if(logLikelihood > maxLogLikelihood) {
+						maxLogLikelihood = logLikelihood;
+						bestEdgeProbabilities = new CCSMatrix(edgeProbabilities);
+						bestNodeProbabilities = new CCSMatrix(nodeProbabilities);
+					}
+					
+					initialProbabilitiesRandom(graph); //TODO: Function to calculate initial probabilities other than completely random
+				}				
+				edgeProbabilities = bestEdgeProbabilities;
+				nodeProbabilities = bestNodeProbabilities;
+				
 				Matrix membershipMatrix = getMembershipMatrix(graph);
 				Cover cover = new Cover(graph, membershipMatrix);
 				return cover;
@@ -166,38 +181,22 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 		nodeProbabilities = new CCSMatrix(k,graph.nodeCount());
 		
 		// Set w_rs
-		double edgeRestProbability = 1.0;
 		for(int r=0; r<k; r++) {
 			for(int s=0; s<k; s++) {
-				if(r<k && s<k)
-				{
-					rndGenerator.setSeed(System.currentTimeMillis());
-					edgeProbabilities.set(r, s, rndGenerator.nextDouble() * edgeRestProbability);				
-					edgeRestProbability -= edgeProbabilities.get(r, s);
-				}				
-				else
-				{
-					edgeProbabilities.set(r, s, edgeRestProbability);
-				}
+				rndGenerator.setSeed(System.nanoTime());
+				edgeProbabilities.set(r, s, rndGenerator.nextDouble()+1.0);
 			}
 		}
+		edgeProbabilities = edgeProbabilities.multiply(1.0 / edgeProbabilities.sum());
 		
 		// Set 0_ri
 		Node nodes[] = graph.getNodeArray();
 		for(int r=0; r<k; r++) {
-			double nodeRestProbability = 1.0;
 			for(int i=0; i<graph.getNodeArray().length; i++) {
-				if(i < nodes.length -1)
-				{
-					rndGenerator.setSeed(System.currentTimeMillis());
-					nodeProbabilities.set(r, nodes[i].index(), rndGenerator.nextDouble() * nodeRestProbability);
-					nodeRestProbability -= nodeProbabilities.get(r, nodes[i].index());
-				}
-				else
-				{
-					nodeProbabilities.set(r, nodes[i].index(), nodeRestProbability);
-				}
+					rndGenerator.setSeed(System.nanoTime());
+					nodeProbabilities.set(r, nodes[i].index(), rndGenerator.nextDouble()+1.0);
 			}
+			nodeProbabilities.setRow(r, nodeProbabilities.getRow(r).multiply(1.0 / nodeProbabilities.getRow(r).sum()));			
 		}
 	}
 	
@@ -242,7 +241,6 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 		for(Edge edge : graph.getEdgeArray()) {			
 			if(graph.getEdgeWeight(edge) >= 0) {
 				Vector positiveProbabilities = new BasicVector(k);
-				//Matrix edgeProbabilityMatrix = edgeProbabilities.get(edge);
 				double previousEdgeProbsSum = 0.0;
 				for(int r=0; r<k; r++) {
 					previousEdgeProbsSum += edgeProbabilities.get(r, r)*nodeProbabilities.get(r, edge.source().index())*nodeProbabilities.get(r, edge.target().index()); //E_r(wrr*0ri*0rj)
@@ -254,7 +252,6 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 			}
 			else {
 				Matrix negativeProbabilities = new CCSMatrix(k,k);
-				//Matrix edgeProbabilityMatrix = edgeProbabilities.get(edge);
 				double previousEdgeProbsSum = 0.0;
 				for(int r=0; r<k; r++) {
 					for(int s=0; s<k; s++) {
@@ -276,7 +273,7 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 			}
 		}
 		
-		//M STEP TODO:
+		//M STEP
 		Matrix edgeHiddenProbSums = new CCSMatrix(k,k); // w_rs, on diagonal: w_rr
 		Matrix nodeHiddenProbSums = new CCSMatrix(k,graph.nodeCount()); // 0_ri
 		for(int r=0; r<k; r++) {
@@ -284,9 +281,9 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 				for(Edge edge : graph.getEdgeArray()) {			
 					if(r!=s && graph.getEdgeWeight(edge) < 0)
 					{
-						edgeHiddenProbSums.set(r,s, edgeHiddenProbSums.get(r, s) + negEdgeHiddenCommProbs.get(edge).get(r,s) * graph.getEdgeWeight(edge)); // E_ij(Q_ijrs * A^-_ij) for w_rs
+						edgeHiddenProbSums.set(r,s, edgeHiddenProbSums.get(r, s) + negEdgeHiddenCommProbs.get(edge).get(r,s) * -graph.getEdgeWeight(edge)); // E_ij(Q_ijrs * A^-_ij) for w_rs
 						
-						nodeHiddenProbSums.set(r, edge.source().index(), nodeHiddenProbSums.get(r, edge.source().index()) + negEdgeHiddenCommProbs.get(edge).get(r,s) * graph.getEdgeWeight(edge)); // E_js(Q_ijrs * A^-_ij) for 0_ri
+						nodeHiddenProbSums.set(r, edge.source().index(), nodeHiddenProbSums.get(r, edge.source().index()) + negEdgeHiddenCommProbs.get(edge).get(r,s) * -graph.getEdgeWeight(edge)); // E_js(Q_ijrs * A^-_ij) for 0_ri
 					}
 					else if(r==s && graph.getEdgeWeight(edge) >= 0)
 					{
@@ -347,7 +344,7 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 					communityProbSum += edgeProbabilities.get(r, r) * nodeProbabilities.get(r, edge.source().index()) * nodeProbabilities.get(r, edge.target().index());
 				}
 			}
-			logLikelihood += graph.getEdgeWeight(edge) * Math.log(communityProbSum);
+			logLikelihood += (graph.getEdgeWeight(edge) > 0 ? graph.getEdgeWeight(edge) : -graph.getEdgeWeight(edge)) * Math.log(communityProbSum);			
 		}
 		
 		return logLikelihood;
