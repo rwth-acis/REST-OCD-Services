@@ -1,12 +1,6 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import i5.las2peer.services.ocd.adapters.coverInput.CommunityMemberListsCoverInputAdapter;
-import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapterFactory;
-import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
-import i5.las2peer.services.ocd.adapters.graphOutput.DocaGraphOutputAdapter;
-import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapter;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
@@ -14,25 +8,18 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Edge;
 import y.base.Node;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecuteResultHandler;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.lang3.SystemUtils;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
 /**
- * This class is an implementation of the DetectingOverlappingCommunities algorithm from 
- * and based on their C++ implementation
+ * This class is an implementation of the algorithm from "Overlapping community structures and their detection on social networks" of Nam P. Nguyen, Thang N. Dinh, Dung T. Nguyen, My T. Thai
+ * and based on the C++ implementation Nam P. Nguyen
  */
 public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 
@@ -97,11 +84,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	
 	@Override
 	public CoverCreationType getAlgorithmType() {
-		/*
-		 * TODO reinsert for use on Windows / when implemented for Linux
-		 */
-		// return CoverCreationType.DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM;
-		return null;
+		return CoverCreationType.DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM;
 	}
 
 	@Override
@@ -134,7 +117,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	}
 	
 	public Matrix getMembershipMatrix(CustomGraph graph) {
-		System.out.println(communities);
+//DEBUG		System.out.println(communities);
 		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communities.size());
 		
 		int j=0;
@@ -146,14 +129,24 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		}
 		
 		for(int i=0; i<membershipMatrix.rows(); i++) {
-			membershipMatrix.setRow(i, membershipMatrix.getRow(i).divide(membershipMatrix.getRow(i).sum())); // Set correct ratios
+			double rowSum = membershipMatrix.getRow(i).sum();
+			if(rowSum != 0) {
+				membershipMatrix.setRow(i, membershipMatrix.getRow(i).divide(rowSum)); // Set ratios
+			}			 
 		}
-		
+				
 		return membershipMatrix;
 	}
 	
+	/**
+	 * Main procedure of the Algorithm, consists of variable initialization, finding the graphs dense communities(those over 3 nodes), merging similar ones,
+	 * finding tiny communities and a final refinement
+	 * @param graph The graph the algorithm is run on
+	 * @throws OcdAlgorithmException
+	 * @throws InterruptedException
+	 */
 	public void findOverlappingCommunityStructures(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
-		communityIntersections = new ArrayList<Integer>();//initialize communityIntersections
+		communityIntersections = new ArrayList<Integer>(); // initialize communityIntersections
 		nodeDegrees = new HashMap<Integer, Integer>(graph.nodeCount());
 		adjacencyList = new  HashMap<Integer, ArrayList<Integer>>(graph.nodeCount());
 		for(Node node : graph.getNodeArray()) {// Initialize nodeDegree, maxDegree, AdjacencyList
@@ -174,8 +167,14 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		visitUnAssignedVertices(graph);
 	}
 	
+	/**
+	 * Finds communities with over 3 members through analyzing node intersections
+	 * @param graph
+	 * @throws OcdAlgorithmException
+	 * @throws InterruptedException
+	 */
 	public void findDenseCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
-		//init nodeCommunities, communityNumbers, intersectionCounters
+		// initialize nodeCommunities, communityNumbers, intersectionCounters
 		communityNumbers = new ArrayList<Integer>(graph.nodeCount());
 		intersectionCounters = new HashMap<Integer,Integer>();
 		nodeCommunities = new HashMap<Integer, HashMap<Integer, Integer>>(graph.nodeCount());
@@ -183,14 +182,11 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 			nodeCommunities.put(i, new HashMap<Integer, Integer>());
 			communityNumbers.add(0);
 		}
-		//memset(intersectionCounters, 0, UINT_SIZE*(MULTI_N)); // set up the intersectionCounters array
 				
-		//init communities, communityNodeSizes, communityEdgeSizes
+		// initialize communities, communityNodeSizes, communityEdgeSizes
 		communities = new HashMap<Integer, HashMap<Integer, Integer>>();
 		communityNodeSizes = new HashMap<Integer, Integer>();
-		//memset(communityNodeSizes, 0, UINT_SIZE*MULTI_N); // memset ComID counter, make sure it contains all 0's at the beginning
 		communityEdgeSizes = new HashMap<Integer, Integer>();
-		//memset(communityEdgeSizes, 0, UINT_SIZE*MULTI_N);		
 		
 		int numEdge=0;
 		for(Edge edge : graph.getEdgeArray()) { // reading from the beginning of file
@@ -205,20 +201,28 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		//resizeComID_n_ComID(); // resize ComID[][] and n_ComID[] arrays
 	}
 	
+	/**
+	 * Checks whether two nodes(represented by their indices) belong to a same community:
+	 * Thus, if there exists an (active) community that is in both of their nodeCommunities
+	 * @param nodeA The first node
+	 * @param nodeB The second node
+	 * @return true if yes, false if no
+	 * @throws OcdAlgorithmException
+	 */
 	public boolean sameCommunity(int nodeA, int nodeB) throws OcdAlgorithmException {
 		updateCounter();
 		if (communityNumbers.get(nodeA)<=0 || communityNumbers.get(nodeB)<=0) { // if one of them is fresh
 			return false; // then they will not be
 		}
-		for(int i=0; i<communityNumbers.get(nodeA); i++) { // otherwise, mark all Cid(s) of node A
+		for(int i=0; i<communityNumbers.get(nodeA); i++) { // otherwise, nodeCommunities of node A
 			if (nodeCommunities.get(nodeA).get(i) > communityCount || nodeCommunities.get(nodeA).get(i) <=0) { // safety check
-				throw new OcdAlgorithmException("Error: Cid[a][i] > numCOM || Cid[a][i] <=0 in isInSameCS()");
+				throw new OcdAlgorithmException("Error: nodeCommunities.get(nodeA).get(i) > communityCount || nodeCommunities.get(nodeA).get(i) <=0 in isInSameCS()");
 			}
 			intersectionCounters.put(nodeCommunities.get(nodeA).get(i), intersectionCounter);
 		}
-		for(int i=0; i<communityNumbers.get(nodeB); i++) { // and then, mark Cid(s) of node B
+		for(int i=0; i<communityNumbers.get(nodeB); i++) { // and then, mark nodeCommunities of node B
 			if (nodeCommunities.get(nodeB).get(i) > communityCount || nodeCommunities.get(nodeB).get(i) <=0) {
-				throw new OcdAlgorithmException("Error: Cid[b][i] > numCOM || Cid[b][i] <=0 in isInSameCS()");
+				throw new OcdAlgorithmException("Error: nodeCommunities.get(nodeB).get(i) > communityCount || nodeCommunities.get(nodeB).get(i) <=0 in isInSameCS()");
 			}
 			if (intersectionCounters.get(nodeCommunities.get(nodeB).get(i)) == intersectionCounter) { // if we find a common community
 				return true; // return true
@@ -227,28 +231,38 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		return false; // otherwise, return false
 	}
 
+	/** 
+	 * Tries to form a new community off of two nodes, that is, if they share an intersection of over three nodes
+	 * @param nodeA The first node
+	 * @param nodeB The second node
+	 * @param graph The graph the algorithm is run on
+	 * @throws OcdAlgorithmException
+	 */
 	public void tryFormingNewCommunity(int nodeA, int nodeB, CustomGraph graph) throws OcdAlgorithmException {
-		int numEdge=0, sufficeEdge=0;
-		findIntersectionLinearG(nodeA, nodeB, graph); // find adjList[nodeA] intersect adjList[nodeB], the result is in interG[] and n_interG	
-		if ( nodeIntersectionCounter > minNode ) { // if they have something in common
-			numEdge = findTotalNumberOfEdges(nodeIntersections, nodeIntersectionCounter); // find number of edges in the intersection
-			boolean isOK = (numEdge>=findTau(nodeIntersectionCounter, graph)); //1000 maximum for dense communities
-			if (isOK) { // if we can form a new community
+		int numEdge=0;
+		findIntersectionLinearG(nodeA, nodeB, graph); // Find the intersection of both nodes adjacencyLists, the result is in nodeIntersections and the nodeIntersectionCounter	
+		if ( nodeIntersectionCounter > minNode ) { // If they have something in common
+			numEdge = findTotalNumberOfEdges(nodeIntersections, nodeIntersectionCounter); // Find number of edges in the intersection
+			boolean isOK = (numEdge>=findTau(nodeIntersectionCounter, graph)); // Checks whether a maximum size for dense communities is met
+			if (isOK) { // If we can form a new community
 				communityCount++;
-				markNodes(communityCount); // mark all nodes in the intersection interG[]			
+				markNodes(communityCount); // Mark all nodes in the nodeIntersection			
 				communities.put(communityCount, new HashMap<Integer, Integer>(nodeIntersections.size())); // initialize ComID[numCOM]
 				for(int i=0; i<nodeIntersections.size(); i++) {
 					communities.get(communityCount).put(i, nodeIntersections.get(i));
 				}
-				//memcpy(ComID[numCOM], nodeIntersections, nodeIntersectionCounter * UINT_SIZE); // copy data from interG[]
-				communityEdgeSizes.put(communityCount,numEdge); // set the number of edges in numEdgeList[numCOM]
+				communityEdgeSizes.put(communityCount,numEdge); // Set the number of edges in numEdgeList[numCOM]
 				communityNodeSizes.put(communityCount, nodeIntersectionCounter); // n_interG is the number of nodes inside this community
 			}
 		}
 	}
 	
-	// Find the intersection of adjacencyList[nodeA] and adjacencyList[nodeB].
-	// In the end, we put *nodeA* and *nodeB* to the end of the intersection
+	/**
+	 * Finds the intersection of two nodes adjacencyLists (with both of them included)
+	 * @param nodeA The first node
+	 * @param nodeB The second node
+	 * @param graph The graph the algorithm is run on
+	 */
 	public void findIntersectionLinearG(int nodeA, int nodeB, CustomGraph graph) {
 		nodeIntersections = new ArrayList<Integer>(); //init/clear nodeIntersections
 		nodeIntersectionCounter = 0; // the number of elements in the intersection is 0 at beginning
@@ -270,23 +284,27 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 			nodeIntersections.add(nodeB);
 			nodeIntersectionCounter++;
 		}
-		System.out.println(nodeIntersections);
+//DEBUG		System.out.println(nodeIntersections);
 	}
 	
-	// This function finds the number of edges within the set nodes[] of n nodes
+	/**
+	 * Finds the number of edges between a set of n nodes
+	 * @param nodes The set of nodes
+	 * @param n The number of nodes
+	 * @return The number of edges within the set
+	 */
 	public int findTotalNumberOfEdges(ArrayList<Integer> nodes, int n) {
-		System.out.println(nodes.size() + " " + n);
-		if (n <= 1) { // if there is no more than a node, return 0
+		if (n <= 1) { // If there is no more than one node, return 0
 			return 0;
 		}
-		updateCounter(); // update the counter
+		updateCounter(); // Update the counter
 		int i=0, j=0, numEdges=0;
 		for(i=0; i<n; i++) { // first mark all the nodes in the current list
 			intersectionCounters.put(nodes.get(i), intersectionCounter);
 		}
 		for(i=0; i<n; i++) { // now, iterate through all elements in the list
 			for(j=0; j<nodeDegrees.get(nodes.get(i)); j++) {
-				if ( intersectionCounters.get(adjacencyList.get(nodes.get(i)).get(j)) == intersectionCounter ) {
+				if ( intersectionCounters.get(adjacencyList.get(nodes.get(i)).get(j)) != null && intersectionCounters.get(adjacencyList.get(nodes.get(i)).get(j)) == intersectionCounter ) {
 					numEdges++;
 				}
 			}
@@ -294,25 +312,29 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		return numEdges/2;
 	}
 	
+	/**
+	 * Combines all communities that have an overlappingScore greater than the overlappingThreshold
+	 * @param graph The graph the algorithm is run on
+	 * @throws OcdAlgorithmException
+	 */
 	public void combineOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException {
 		boolean done=false;	
 		double overlappingScore;
 		HashMap<Integer, Integer> communityAdjacencyList = new HashMap<Integer, Integer>();
-		int comI=0, j=0, round=1, comA=0, foundAdjacencies=0;
-		Integer totalEdges = new Integer(0);
-		 // initialize the comAdjList[]
-		while (!done) { // start checking overlapped communities
+		int comI=0, j=0, comA=0, foundAdjacencies=0;
+		Integer totalEdges = new Integer(0);		
+		while (!done) { // Start checking for overlapped communities
 			done = true;
 			realCommunityCount = communityCount; // make a copy of the current number of communities
 			for(comI = communityCount; comI >= 1; comI--) { // we start from bottom - up
-				foundAdjacencies = findCommunityAdjacencyList(comI, communityAdjacencyList, foundAdjacencies, graph); // find the adjacent list of community comI, the result is in comAdjList[] and n_comAdjList
+				foundAdjacencies = findCommunityAdjacencyList(comI, communityAdjacencyList, foundAdjacencies, graph); // find the adjacent list of community comI, the result is given in communityAdjacencyList and communityCount
 				if (foundAdjacencies <= 0) { // if this community does not overlap with any other community
 					continue;
 				}
 				for(j=0; j<foundAdjacencies; j++) { // if this community is adjacent to at least a community
 					comA = communityAdjacencyList.get(j);				
-					overlappingScore = findOverlappingScore(comI, comA, totalEdges, graph); // find the overlapping score of the two ComID
-					if (overlappingScore >= overlappingThreshold) { // if the overlapping score is too big										
+					overlappingScore = findOverlappingScore(comI, comA, totalEdges, graph); // find the overlapping score of the two communities
+					if (overlappingScore >= overlappingThreshold) { // if the overlapping score is big enough									
 						if (overlappingScore >= 2) { // If score means full overlap
 							swapAndDeleteComID(comA, comI);
 							realCommunityCount--; // update the real number of communities
@@ -367,6 +389,16 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		return foundAdjacencies;
 	}
 	
+	/**
+	 * Finds the overlappingScore for two communities(represented by their indexes), they overlap if they have more than 3 nodes in common or 
+	 * if the sum of the fraction of shared nodes through the minimal number of shared nodes(3) and the fraction of edges in between the two through the minimal number of edges(edges of smaller community edge-wise) is greater than the overlapping threshold
+	 * @param comA The first community
+	 * @param comB The second community
+	 * @param totalEdges The total number of edges in between the two communities
+	 * @param graph The graph the algorithm is run on
+	 * @return The overlapping score(Exactly 0 if no overlap, 2 if full overlap)
+	 * @throws OcdAlgorithmException
+	 */
 	double findOverlappingScore(int comA, int comB, Integer totalEdges, CustomGraph graph) throws OcdAlgorithmException {
 		int minNode = 0, minEdge = 0;
 		minNode = Math.min(communityNodeSizes.get(comA) == null ? -1 : communityNodeSizes.get(comA), communityNodeSizes.get(comB) == null ? -1 : communityNodeSizes.get(comB)); // find the smaller set cardinality
@@ -374,7 +406,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		if (minNode<=0 || minEdge<=0) {
 			return 0; // <-- here, we don't output error since some merged communities may vanish and the system has not been updated yet
 		}
-		findComIDIntersectionH(comA, comB); // find the intersection of ComID[comA] and ComID[comB]
+		findCommunityIntersection(comA, comB); // find the intersection of comA and comB
 		if (communityIntersectionCounter <= 1) {// if the intersection has less than one element
 			return 0;
 		}
@@ -390,89 +422,95 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	}
 	
 	//TODO: Check if that goes well
-	public void swapAndDeleteComID(int i, int j) { // swap communities i and j if they overlap too much. The community with bigger ID will be deleted
-		int bigger = Math.max(i,j),smaller = Math.min(i,j);
-		if (communityNodeSizes.get(bigger) > communityNodeSizes.get(smaller)) { // if ComID[bigger] has more data than ComID[smaller], we copy ComID[smaller] <-- ComID[bigger]
+	/**
+	 * Swaps two communities(represented by their indices) if they overlap too much. The community with bigger ID will be deleted
+	 * @param comA The first community
+	 * @param comB The second community
+	 */
+	public void swapAndDeleteComID(int comA, int comB) {
+		int bigger = Math.max(comA,comB),smaller = Math.min(comA,comB);
+		if (communityNodeSizes.get(bigger) > communityNodeSizes.get(smaller)) { // if the bigger community has more data than the smaller one, we copy its data
 			communityNodeSizes.put(smaller,communityNodeSizes.get(bigger));
 			communityEdgeSizes.put(smaller, communityEdgeSizes.get(bigger));
 			communities.put(smaller, communities.get(bigger)); // create new memory allocation
 		}	
-		// else, what we simply do is to get rid of the bigger community ComID[bigger]
-		// Remove all links to to-be-deleted community and decrease communityNumber for contained nodes TODO: Was not here before, check if ok
-		//for(int nodeIndex : communities.get(bigger).values()) {
-		//	System.out.print(nodeIndex + " ");
-		//	nodeCommunities.get(nodeIndex).remove(bigger);
-		//	communityNumbers.set(nodeIndex, communityNumbers.get(nodeIndex) - 1);
-		//}
-		//System.out.println();
-		
-		communityNodeSizes.remove(bigger); // we need to free up n_ComID[bigger]
-		communityEdgeSizes.remove(bigger); // and NumEdgeList[bigger]
+		// Else, what we simply do is to get rid of the bigger community		
+		communityNodeSizes.remove(bigger); 
+		communityEdgeSizes.remove(bigger);
 		communities.remove(bigger);
-		System.out.println("DELETED COMM " + bigger);
+//DEBUG		System.out.println("DELETED COMM " + bigger);
 	}
 	
-	//TODO: Also storage-critical, check!
-	// Here bb > aa. This is a very important step
-	public void unionComID(int aa, int bb, ArrayList<Integer> inter, int n_inter, int interEdges) throws OcdAlgorithmException {
-		int a = Math.min(aa, bb), b = Math.max(aa, bb);
-		int i=0, n_tmp=0, nA = communityNodeSizes.get(a)-n_inter;
+	/**
+	 * (Here comBb > comAa. This is a very important step)
+	 * Merges two communities(represented by their indices) by emptying the one with the bigger index and copying its values into the one with the smaller index
+	 * @param comAa The first community
+	 * @param comBb The second Community
+	 * @param inter The intersection between the two communities
+	 * @param n_inter The size of the intersection between the two communities
+	 * @param interEdges The edges in the intersection between the two communities
+	 * @throws OcdAlgorithmException
+	 */
+	public void unionComID(int comAa, int comBb, ArrayList<Integer> inter, int n_inter, int interEdges) throws OcdAlgorithmException {
+		int comA = Math.min(comAa, comBb), comB = Math.max(comAa, comBb);
+		int i=0, n_tmp=0, nA = communityNodeSizes.get(comA)-n_inter;
 		int tmp[] = new int[nA]; // create tmp[], a new array for ComID[a] \ ComID[b]
-		int moreEdges = findExtraEdges(a, b, inter, n_inter); // find extra edges going between comA and comB
+		int moreEdges = findExtraEdges(comA, comB, inter, n_inter); // find extra edges going between comA and comB
 		updateCounter(); // update the counter
-		for(i=0; i<communityNodeSizes.get(b); i++){
-			intersectionCounters.put(communities.get(b).get(i), intersectionCounter); // mark elements in the bigger array
-			nodeCommunities.get(communities.get(b).get(i)).put(communityNumbers.get(communities.get(b).get(i)), a); // assign new community ID for ComID[b][i]
-			communityNumbers.set(communities.get(b).get(i), communityNumbers.get(communities.get(b).get(i)) +1);
+		for(i=0; i<communityNodeSizes.get(comB); i++){
+			intersectionCounters.put(communities.get(comB).get(i), intersectionCounter); // mark elements in the bigger array
+			nodeCommunities.get(communities.get(comB).get(i)).put(communityNumbers.get(communities.get(comB).get(i)), comA); // assign new community ID for ComID[b][i]
+			communityNumbers.set(communities.get(comB).get(i), communityNumbers.get(communities.get(comB).get(i)) +1);
 		}
 		n_tmp = 0;
-		for(i=0; i<communityNodeSizes.get(a); i++) { // mark elements in ComID[a] only
-			if (intersectionCounters.get(communities.get(a).get(i)) != intersectionCounter) { // find ComID[a] \ ComID[b]
+		for(i=0; i<communityNodeSizes.get(comA); i++) { // mark elements in ComID[a] only
+			if (intersectionCounters.get(communities.get(comA).get(i)) != intersectionCounter) { // find ComID[a] \ ComID[b]
 				if (n_tmp >= nA) { // Safety check
 					throw new OcdAlgorithmException("Error: n_tmp >= n_ComID[a] - n_inter + 1 in unionComID()");
 				}
-				tmp[ n_tmp++ ] = communities.get(a).get(i); // copy to tmp			
+				tmp[ n_tmp++ ] = communities.get(comA).get(i); // copy to tmp			
 			}
 		}
-		communityNodeSizes.put(a, communityNodeSizes.get(a) + communityNodeSizes.get(b) - n_inter); // update the number of vertices in ComID[a]
-		communities.put(a, new HashMap<Integer, Integer>(communityNodeSizes.get(a))); // restore ComID[a]
+		communityNodeSizes.put(comA, communityNodeSizes.get(comA) + communityNodeSizes.get(comB) - n_inter); // update the number of vertices in ComID[a]
+		communities.put(comA, new HashMap<Integer, Integer>(communityNodeSizes.get(comA))); // restore ComID[a]
 		for(i=0; i<n_tmp; i++) { // copy elements in ComID[a] \ ComID[b]
-			communities.get(a).put(i,tmp[i]);
+			communities.get(comA).put(i,tmp[i]);
 		}
-		for(i=0; i<communityNodeSizes.get(b); i++) { // copy elements in ComID[b]
-			communities.get(a).put(i+n_tmp, communities.get(b).get(i));
+		for(i=0; i<communityNodeSizes.get(comB); i++) { // copy elements in ComID[b]
+			communities.get(comA).put(i+n_tmp, communities.get(comB).get(i));
 		}
-		communityNodeSizes.put(b,0); // now, there should be no elements in ComID[b]
-		communityEdgeSizes.put(a, communityEdgeSizes.get(a) + communityEdgeSizes.get(b) - interEdges + moreEdges); // update the numEdgeList
+		communityNodeSizes.put(comB,0); // now, there should be no elements in ComID[b]
+		communityEdgeSizes.put(comA, communityEdgeSizes.get(comA) + communityEdgeSizes.get(comB) - interEdges + moreEdges); // update communityEdgeSizes
 		
-		// Remove all links to to-be-deleted community and decrease communityNumber for contained nodes TODO: Was not here before, check if ok
-		//for(int nodeIndex : communities.get(b).values()) {
-		//	System.out.print(nodeIndex + " " + nodeCommunities.get(nodeIndex).remove(b) + " ");
-		//
-		//	communityNumbers.set(nodeIndex, communityNumbers.get(nodeIndex) - 1);
-		//}
-		//System.out.println();
-		communityEdgeSizes.remove(b);
-		communities.remove(b);
-		System.out.println("UNIFIED COMMS, DELETED: " + b + " " + communities.get(a) + " " + communities.get(b));
+		// Remove all links to to-be-deleted community and decrease communityNumber for contained nodes
+		communityEdgeSizes.remove(comB);
+		communities.remove(comB);
+//DEBUG		System.out.println("UNIFIED COMMS, DELETED: " + comB + " " + communities.get(comA) + " " + communities.get(comB));
 	}
 	
-	// Function to find the extra edges that comA had to comB, other than the intersected edges arr[]
-	int findExtraEdges(int comA, int comB, ArrayList<Integer> arr, int n_arr) {
+	/**
+	 * Finds extra edges between two communities
+	 * @param comA The first community
+	 * @param comB The second community
+	 * @param comIntersection The intersection between the two communities
+	 * @param commIntersectionCounter The size of the intersection
+	 * @return The number of extra edges between the two communities
+	 */
+	public int findExtraEdges(int comA, int comB, ArrayList<Integer> comIntersection, int commIntersectionCounter) {
 		updateCounter();
 		int i=0, j=0, id=0, old=0, numExtra=0;
-		for(i=0; i<n_arr; i++) { // first mark nodes in the intersection
-			intersectionCounters.put(arr.get(i), intersectionCounter);
+		for(i=0; i<commIntersectionCounter; i++) { // first mark nodes in the intersection
+			intersectionCounters.put(comIntersection.get(i), intersectionCounter);
 		}
 		old = intersectionCounter + 1;
-		for(i=0; i<communityNodeSizes.get(comA); i++) {// then mark nodes in comA[] with the new counter
+		for(i=0; i<communityNodeSizes.get(comA); i++) {// then mark nodes in comA with the new counter
 			if ( intersectionCounters.get(communities.get(comA).get(i)) != intersectionCounter ) {
-				intersectionCounters.put(communities.get(comA).get(i), old); // just for speed up, should be countInt[ ComID[comA][i] ] = n_countInt + 1
+				intersectionCounters.put(communities.get(comA).get(i), old);
 			}
 		}
 		old = intersectionCounter;
-		updateCounter(); // now, n_countInt <-- n_countInt + 1;
-		for(i=0; i<communityNodeSizes.get(comB); i++) { // next, mark nodes in comB[]
+		updateCounter();
+		for(i=0; i<communityNodeSizes.get(comB); i++) { // next, mark nodes in comB
 			id = communities.get(comB).get(i);
 			if (intersectionCounters.get(id) == old) { // skip over nodes in the intersection
 				continue;
@@ -487,14 +525,17 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	}
 	
 	//TODO: Check if sensible
-	public boolean reassignCommunityID() { // here ncomid2[] is the array with the exact number of node in each community
+	/** 
+	 * Reassigns a community to another id
+	 */
+	public void reassignCommunityID() {
 		int i=1, id=2, j=0, x=0; // **** very important initial parameters ****
 		for(int index=0; index<communityNumbers.size(); index++) {
 			communityNumbers.set(index, 0);
-		}		
-		//------------------------------------//
+		}	
+		
 		updateCounter();
-		for(j=0; j<communityNodeSizes.get(1); j++) { // refine all duplicate community ID for ComID[1]
+		for(j=0; j<communityNodeSizes.get(1); j++) { // refine all duplicate community IDs for the first community
 			x = communities.get(1).get(j);
 			if (intersectionCounters.get(x) != intersectionCounter ) {
 				nodeCommunities.get(x).put(communityNumbers.get(x), 1); // assign community id for x TODO: Check if that will always go well as we don't address any id directly
@@ -502,7 +543,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 				intersectionCounters.put(x,intersectionCounter); // mark x so that we dont have duplicates
 			}
 		}
-		//------------------------------------//
+
 		while (i <= communityCount) { // reassign new community ID
 			for(i=i+1; i<=communityCount && communityNodeSizes.get(i)<=0; i++); // skip over communities that were combined
 			if (i > communityCount) {
@@ -512,19 +553,19 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 				communities.put(id, new HashMap<Integer, Integer>(communityNodeSizes.get(i))); // initialize new memory allocation
 				updateCounter();
 				communityNodeSizes.put(id,0);
-				for(j=0; j<communityNodeSizes.get(i); j++) { // copy nodes from ComID[i] to ComID[id]
+				for(j=0; j<communityNodeSizes.get(i); j++) { // copy nodes from community i to to community id
 					x = communities.get(i).get(j);
-					if ( intersectionCounters.get(x) != intersectionCounter ) { // make sure that we dont have a duplicate
+					if ( intersectionCounters.get(x) != intersectionCounter ) { // make sure that we don't have a duplicate
 						intersectionCounters.put(x, intersectionCounter);
-						communities.get(id).put(communityNodeSizes.get(id), x); // inlude x into ComID[id]						
+						communities.get(id).put(communityNodeSizes.get(id), x); // include x into community id					
 						communityNodeSizes.put(id, communityNodeSizes.get(id) +1);
 						nodeCommunities.get(x).put(communityNumbers.get(x), id); //TODO: Check if that will always go well as we don't address any id directly
 						communityNumbers.set(x, communityNumbers.get(x) +1); //TODO: Check if that will always go well as we don't address any id directly
 					}
 				}		
-				communityEdgeSizes.put(id, communityEdgeSizes.get(i)); // update numEdgeList[id];
-				communityEdgeSizes.remove(i); // update numEdgeList[i]
-				communityNodeSizes.put(i,0); // clear the number of nodes in community ith
+				communityEdgeSizes.put(id, communityEdgeSizes.get(i)); // update the edge sizes of community id;
+				communityEdgeSizes.remove(i); // update the edge sizes of community i
+				communityNodeSizes.put(i,0); // clear the number of nodes in community i
 				communities.remove(i);
 			} else {
 				updateCounter();			
@@ -537,16 +578,19 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 					}
 				}
 			}
-			//------------------------------//
 			id++;
-			//------------------------------//
 		}
 		communityCount = realCommunityCount; // Update the real number of community;
-		return true;
 	}
 	
-	public int findComIDIntersectionH(int comA, int comB) {
-		System.out.println("Checking CommIntersection for " + comA + ":" + communities.get(comA) + ", " + comB + ":" + communities.get(comB));
+	/**
+	 * Finds the intersection between two communities
+	 * @param comA The first community
+	 * @param comB The second community
+	 * @return
+	 */
+	public void findCommunityIntersection(int comA, int comB) {
+//DEBUG		System.out.println("Checking CommIntersection for " + comA + ":" + communities.get(comA) + ", " + comB + ":" + communities.get(comB));
 		communityIntersectionCounter = 0; // the default number of nodes in the intersection is set to 0
 		int j=0;
 		updateCounter(); // update the counter
@@ -555,7 +599,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		}
 		for(j=0; j<communityNodeSizes.get(comB); j++) { // scan comB to get the intersection
 			if ( intersectionCounters.get(communities.get(comB).get(j)) == intersectionCounter) { // if there is a common node in comB[]
-				System.out.println(communities.get(comB).get(j) + " is in");
+//DEBUG				System.out.println(communities.get(comB).get(j) + " is in");
 				if(communityIntersectionCounter < communityIntersections.size()) {
 					communityIntersections.set(communityIntersectionCounter, communities.get(comB).get(j)); // include this node to the intersection
 				}
@@ -566,66 +610,67 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 				communityIntersectionCounter++;
 			}
 		}
-		return 1;
 	}
 	
+	/**
+	 * Finds tiny communities, i.e. those with less than minNode(3) nodes
+	 * @param graph The graph the algorithm is run on
+	 * @throws OcdAlgorithmException
+	 */
 	public void findTinyCommunities(CustomGraph graph) throws OcdAlgorithmException {
 		realCommunityCount = communityCount;
 		for(Edge edge : graph.getEdgeArray()) { // Read the adjacent list to find N and M
 			if ( communityNumbers.get(edge.source().index())>0 || communityNumbers.get(edge.target().index())>0 ) {
 				continue;
 			}
-			findIntersectionLinearG(edge.source().index(), edge.target().index(), graph); // Find the intersection of adjList[a] and adjList[b]
+			findIntersectionLinearG(edge.source().index(), edge.target().index(), graph); // Find the intersection of the two adjacencyLists
 			if (nodeIntersectionCounter == 3) { // If we find a triangle
-				if (communityCount >= graph.nodeCount()) { // If numCOM exceed the upper bound, return error
+				if (communityCount >= graph.nodeCount()) { // If communityCount exceeds the upper bound, return error
 					throw new OcdAlgorithmException("Error : numCOM >= MULTI_N in findTinyCommunities()" + " " + communities.size() + " " + graph.nodeCount() + "\n" + communities);
 				}
-				markNodes(communityCount + 1); // Mark all the node in the intersection
+				markNodes(communityCount + 1); // Mark all the nodes in the intersection
 				communityCount++;
-				communities.put(communityCount, new HashMap<Integer, Integer>(nodeIntersections.size())); // Locate the memory for this tiny com
-				System.out.println("BEFORETINY: " + communities.get(communityCount));
+				communities.put(communityCount, new HashMap<Integer, Integer>(nodeIntersections.size()));
 				for(int i=0; i<nodeIntersections.size(); i++) {					
 					communities.get(communityCount).put(i, nodeIntersections.get(i));				
 				}
-				System.out.println("AFTERTINY: " + communities.get(communityCount));
-				communityNodeSizes.put(communityCount, 3); // Update n_ComID[numCOM]
-				communityEdgeSizes.put(communityCount, 3); // Update the numEdgeList
+				communityNodeSizes.put(communityCount, 3); // Update the communityNodeSize at communityCount
+				communityEdgeSizes.put(communityCount, 3); // Update the communityEdgeSizes at communityCount
 			}
 		}	
 	}
 	
 	//TODO: Check datatypes here
-	// This function assign community IDs for vertices that have not been assigned ones yet
+	/**
+	 * Assigns community IDs for vertices that have not been assigned ones yet
+	 * @param graph The graph the algorithm is run on
+	 * @throws OcdAlgorithmException
+	 */
 	public void visitUnAssignedVertices(CustomGraph graph) throws OcdAlgorithmException {
 		int i, j, id, x, k, n_res;
 		int mark[] = new int[communityCount+1];
-		HashMap<Integer, ArrayList<Integer>> res = new HashMap<Integer, ArrayList<Integer>>();
-		res.put(0, new ArrayList<Integer>(communityCount+1));
-		res.put(1, new ArrayList<Integer>(communityCount+1));	
+		HashMap<Integer, HashMap<Integer, Integer>> res = new HashMap<Integer, HashMap<Integer, Integer>>();
+		res.put(0, new HashMap<Integer, Integer>(communityCount+1));
+		res.put(1, new HashMap<Integer, Integer>(communityCount+1));	
 		HashMap<Integer, Integer> oldCommunityNodeSizes;
 		HashMap<Integer, Integer> numDegList = new HashMap<Integer, Integer>(communityCount+1);
 		maxOutliers = 0; // The number of outliers	
-		//memset(numDegList, 0, UINT_SIZE*(communities.size()+1)); // Initialize the numDegList array
 		findNumDegList(numDegList); // Find the numDegList;
 		oldCommunityNodeSizes = new HashMap<Integer, Integer>(communityNodeSizes);
 		for(i=0; i<graph.nodeCount(); i++) { // Begin to find
 			if (communityNumbers.get(i) > 0) {
 				continue;
 			}
-			//memset(res[0], 0, (communities.size()+1)*UINT_SIZE);
-			//memset(res[1], 0, (communities.size()+1)*UINT_SIZE);
-			//memset(mark, 0, (communities.size()+1)*UINT_SIZE);
 			n_res = 0;
-			System.out.println(i);
-			for(j=0; j<nodeDegrees.get(i); j++) { // Find the Cids of communities that are adjacent to vertex i and the number of edges i connects to them
+			for(j=0; j<nodeDegrees.get(i); j++) { // Find the communityNumbers of communities that are adjacent to vertex i and the number of edges i connects to them
 				x = adjacencyList.get(i).get(j); // x is the vertex number
 				for(k=0; k<communityNumbers.get(x); k++) { // Iterate from all community IDs that x may have
 					id = nodeCommunities.get(x).get(k);
 					if ( mark[id] == 0 ) {
-						mark[id] = n_res++;
-						res.get(0).add(id);
+						mark[id] = ++n_res;
+						res.get(0).put(n_res, id);
 					}
-					res.get(1).set(mark[id], res.get(1).get(mark[id])+1); ///<--- Remember to replace by weight here, if necessary -->///
+					res.get(1).put(mark[id], (res.get(1).get(mark[id]) == null ? 0 : res.get(1).get(mark[id])) +1); ///<--- Remember to replace by weight here, if necessary -->///
 				}
 			}
 			if (n_res <= 0) { // If this node doesn't connect to any other community
@@ -649,7 +694,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 				}
 			}		
 		}
-		finalRefinement(oldCommunityNodeSizes, graph); // Final refinement
+		//finalRefinement(oldCommunityNodeSizes, graph); // Final refinement TODO: Remove
 		for(i=1;i<=graph.nodeCount();i++) {
 			maxCommunityNumber = Math.max( maxCommunityNumber, communityNumbers.get(i) );
 		}
@@ -658,6 +703,9 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		}
 	}
 	
+	/**
+	 * Updates the intersectionCounter
+	 */
 	private void updateCounter() {
 		//TODO: Check whether this safety check is still necessary;
 		//if (nodeIntersectionCounter >= SAFE_ULONGMAX) { // if the counter gets too large...
@@ -667,16 +715,26 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		intersectionCounter++; // increase the counter
 	}
 	
-	//TODO: Check if that monster of an assignment was done correctly
-	private void markNodes(int communityID) {
+	/**
+	 * Marks nodes in a community(represented by index)
+	 * @param communityId The community index
+	 */
+	private void markNodes(int communityId) {
 		for(int i=0; i<nodeIntersectionCounter; i++) {
-			System.out.println("Marking for " + nodeIntersections.get(i));
-			System.out.println(nodeCommunities.get(nodeIntersections.get(i)) + " " + communityNumbers.get(nodeIntersections.get(i)));
-			nodeCommunities.get(nodeIntersections.get(i)).put(communityNumbers.get(nodeIntersections.get(i)), communityID); // mark nodes with their corresponding comID
+//DEBUG			System.out.println("Marking for " + nodeIntersections.get(i));
+//DEBUG			System.out.println(nodeCommunities.get(nodeIntersections.get(i)) + " " + communityNumbers.get(nodeIntersections.get(i)));
+			nodeCommunities.get(nodeIntersections.get(i)).put(communityNumbers.get(nodeIntersections.get(i)), communityId); // mark nodes with their corresponding comID
 			communityNumbers.set(nodeIntersections.get(i), communityNumbers.get(nodeIntersections.get(i)) + 1);
 		}
 	}
 
+	/**
+	 * Finds the tau to calculate the maximum number of nodes in a community
+	 * @param n The number of nodes
+	 * @param graph The graph the algorithm is run on
+	 * @return tau
+	 * @throws OcdAlgorithmException
+	 */
 	private int findTau(int n, CustomGraph graph) throws OcdAlgorithmException { // find the suffice number of edges
 		if (n <= 3) { // if we dont have enough nodes
 			return 0;
@@ -695,30 +753,6 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 				arr.put(i, (i>=arr.size() ? 0 : arr.get(i)) + nodeDegrees.get(communities.get(i).get(j)));				
 			}
 		}
-	}
-	
-	private void finalRefinement(HashMap<Integer, Integer> oldCommunityNodeSizes, CustomGraph graph) throws OcdAlgorithmException {
-		int i, j;
-		
-		for(i=1; i<=communityCount; i++) {
-			if (oldCommunityNodeSizes.get(i) == communityNodeSizes.get(i) || communityNodeSizes.get(i) <=0 ) { // if nothing changes, we skip
-				continue;
-			}
-			// else, we need to do reallocate memory
-			communities.put(i, new HashMap<Integer, Integer>(communityNodeSizes.get(i))); // allocate new memory
-		}
-		for(Integer key : communityNodeSizes.keySet()) {
-			communityNodeSizes.put(key,0);
-		}
-		for(i=0; i<graph.nodeCount(); i++) { // refining all Cid(s) of all nodes TODO: Remove, this is just ordering of the nodes in the community lists and essentially completely worthless for us as we use a membership matrix
-			for(j=0; j<communityNumbers.get(i); j++) {
-				if (nodeCommunities.get(i).get(j) > communityCount) {
-					throw new OcdAlgorithmException("Error: Cid[i][j] > numCOM in finalRefinement() " + nodeCommunities.get(i).get(j) + " " + communityCount);
-				}
-				communities.get(nodeCommunities.get(i).get(j)).put(communityNodeSizes.get(nodeCommunities.get(i).get(j)), i);
-				communityNodeSizes.put(nodeCommunities.get(i).get(j), communityNodeSizes.get(nodeCommunities.get(i).get(j))+1);
-			}
-		}
-	}
+	}	
 
 }
