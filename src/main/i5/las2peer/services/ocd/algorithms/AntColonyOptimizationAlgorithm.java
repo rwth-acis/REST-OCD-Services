@@ -41,7 +41,7 @@ import y.base.NodeCursor;
 public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	
-	private static int maxIterations = 5;
+	private static int maxIterations = 1;
 	
 	/**
 	 * maximal clique encoding. the integer represents the number of the clique and the Hashset stores the 
@@ -50,33 +50,20 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private HashMap<Integer,HashSet<Node>> maxClq;
 	
 	/**
-	 * number of ants/subproblems to solve. Default value: 1000
+	 * number of ants/subproblems to solve. Must be at least 2 (Otherwise it will result in a division by 0). 
 	 */
-	private static int M = 10;
+	private static int M = 2;
 	
 	/**
-	 * Number of groups to cluser the ants in. The value should be in between 0 and M. 
+	 * Number of groups to cluster the ants in. The value should be in between 2 and M. Must be at least 2 
 	 */
-	private static int K = 5; 
-	
-	/**
-	 * number of nodes in the graph
-	 */
-	private static int nodeNr;
+	private static int K = 2; 
 	  
 	/**
 	 * Rate of the pheromone persistence
 	 */
 	private static double rho = 0.8;
 
-	/**
-	 * Threshold determines the edges which are in the clique graph. It should be in between 0 and 1 with
-	 * 1 being no edges in the clique graph and 0 being no edge will be left out. Setting this threshold 
-	 * to 0 will slow down the performance. Since good thresholds are not stated in the paper the threshold 
-	 * should be proven experimentally. 
-	 */
-	private double threshold = 0.2; 
-	
 	/**
 	 * Contains pheromones matrix of each group of ants to get hold of the current pheromones in the graph. 
 	 * Each cell of the matrix stands for an edge. The higher the pheromone concentration the more likely it will be 
@@ -88,11 +75,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * initial pheromone level
 	 */
 	private static int initialPheromones = 100; 
-	
-	/**
-	 * Limits of pheromones to avoid stagnation because of excessive accumulation
-	 */
-	private double[] limits = {0 , initialPheromones}; 
+	  
 	/**
 	 * saves all best found community solutions (Pareto-Front)
 	 */
@@ -107,17 +90,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	* The number of nearest neighbors considered in a neighborhood
 	*/
-	private static int nearNbors = 2; 
-	
-	/**
-	 * Indicates the influence of the pheromone information matrix to the solution construction. The higher alpha the bigger is the influence.
-	 */
-	private static double alpha = 5; 
-	
-	/**
-	 * Indicates the influence of the heuristic information matrix to the solution construction. The higher beta the bigger is the influence. 
-	 */
-	private static double beta = 4; 
+	private static int nearNbors = 1; 
 	
 	/**
 	 * reference point for the minimal objective function values found so far 
@@ -125,9 +98,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	private static Vector refPoint;
 	
 	/**
-	 * threshold to filter out path randomly. Used in solution construction and between 0 and 1
+	 * This treshold is used to speed up the Used in update and has to be between 0 and 1
 	 */
-	private static double R = 0;
+	private static double R = 0.2;
 	
 	/*
 	 * PARAMETER NAMES
@@ -137,8 +110,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	protected static final String NUMBER_OF_ANTS = "number of ants/subproblems";
 			
 	protected static final String EVAPORATION_FACTOR = "evaportation factor";
-	
-	protected static final String MCR_THRESHOLD = "Threshold to filter out edges";
 	
 	protected static final String NUMMER_OF_NEIGHBORS = "Number of nearest neighbors to be considered in a neighborhood";
 	
@@ -158,23 +129,26 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		// construct the maximal clique graph and initialize the parameters
 		CustomGraph MCR = representationScheme(graph);
-		List<Ant> ants = initialization(MCR);
+		int nodeNr = MCR.nodeCount(); 
+		List<Ant> ants = initialization(MCR, nodeNr);
 		
 		for(int i = 0; i < maxIterations; i++) {// constructions of the Pareto Front (Pareto optimal solutions) 
-			HashMap<Vector, Vector> EP_old = (HashMap<Vector, Vector>) EP.clone();
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			//if(i > maxIterations/4) {
 			//	R = 0;
 			//}
-			update(MCR,ants);	
-			updatePheromoneMatrix(MCR, ants); 
+			update(MCR, ants, nodeNr);	
 		}
-		return decodeMaximalCliques(graph);	
+		return decodeMaximalCliques(graph, nodeNr);	
 	}
 	
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 // preparations Maximal Clique Graph construction and initialization of the parameters
 // --------------------------------------------------------------------------------------------------------------------------------------------------
-/**
+
+	/**
  	* The Representation Scheme of this algorithm is a Maximal Clique Scheme. This is done to have a less complex community search process, since cliques in the 
 	 * original graph tend to be in the same community anyways. After the search for maximal cliques, inter-clique edges are filtered out if the cliques are loosly
 	 * connected.
@@ -190,9 +164,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		Matrix lkstrgth = linkStrength(graph, maxClq);
 				
 		//creating the encoding
-		nodeNr = maxClq.size(); 
+		int nodes = maxClq.size(); 
 		CustomGraph encoding = new CustomGraph(); 
-		for(int i = 0; i < nodeNr; i++) {//creating clique nodes
+		for(int i = 0; i < nodes; i++) {//creating clique nodes
 				encoding.createNode(); 
 		}
 		for(Node n1: encoding.getNodeArray()) { // creating clique edges 
@@ -200,7 +174,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			for(Node n2: encoding.getNodeArray()) {
 				int i2 = n2.index();
 				double ls = lkstrgth.get(i1, i2);
-				if(ls>=threshold) { // leaving out weak edges
+				if(ls>=0.2) { // leaving out weak edges
 					Edge e1 = encoding.createEdge(n1, n2);
 					Edge e2 = encoding.createEdge(n2, n1);
 					encoding.setEdgeWeight(e1, ls);
@@ -210,7 +184,97 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		}
 		return encoding; 
 	}
+	
+	/** Measures the link strength in between the maximal cliques. 
+	 * 
+	 * @param graph
+	 * @param maxClq output of the MaximalCliqueGraphRepresentation
+	 * @return Matrix of link strength in  between the nodes
+	 */
+	protected Matrix linkStrength(CustomGraph graph, HashMap<Integer,HashSet<Node>> maxClq) {
+		int clqNr = maxClq.size(); 
+		Matrix lkstrgth = new Basic2DMatrix(clqNr,clqNr);
+		
+		for(int i = 0; i < clqNr-1; i++) { 
+			HashSet<Node> clq1 = maxClq.get(i); // select clique 1
+			double clq1Size = clq1.size();
+			for(int j = i + 1; j < clqNr; j++) {
+				HashSet<Node> clq2 = maxClq.get(j); // select clique 2
+				double clq2Size = clq2.size();
+				
+				HashSet<Node> diff12 = new HashSet<Node>(clq1); 
+				diff12.removeAll(clq2); 
+				double diff12size = diff12.size(); // size of clique 1 without nodes from clique 2
+				
+				double cdDist1 = 0;
+				for(Node v1: diff12) {
+					for(Node v2: clq2) {
+						cdDist1 += CzechkanowskiDice(graph, v1, v2);  // Czechkanowski Dice Distance of the difference and clique 2
+					}
+				}
+				
+				HashSet<Node> diff21 = new HashSet<Node>(clq2); 
+				diff21.removeAll(clq1);
+				double diff21size = diff21.size(); // size of clique 2 without nodes from clique 1 
+				
+				double cdDist2 = 0;
+				for(Node v1: diff21) {
+					for(Node v2: clq1) {
+						cdDist2 += CzechkanowskiDice(graph, v1, v2); // Czechkanowski Dice Distance of the difference and clique 1
+					}
+				}
+				
+				double lstr = Math.sqrt(cdDist2/(diff21size*clq1Size)*cdDist1/(diff12size*clq2Size));
+				lkstrgth.set(i, j, lstr); // set matrix (entries have a triangular form)
+				lkstrgth.set(j, i, lstr);
+			}
+		}
+		return lkstrgth;
+	}
+	
+	/**
+	 * Version of the adjusted Czechkanowski/Sorensen Dice Distance. The number of neighbors is changed to the average if it lay below the average. 
+	 * @param graph a graph from which v1 and v2 are taken
+	 * @param v1 node which is in a clique
+	 * @param v2 node which is not in the same clique as v1
+	 * @return adjusted Czechkanowski Dice distance
+	 */
+	protected double CzechkanowskiDice(CustomGraph graph, Node v1, Node v2) {
+		NodeCursor nbors1 = v1.neighbors();
+		NodeCursor nbors2 = v2.neighbors(); 
 
+		int nbor1size = nbors1.size()/2; 
+		int nbor2size = nbors2.size()/2; 
+		
+		double olapsize = 0; 
+		
+		for(int i = 0 ; i <nbors1.size(); i++) {
+			Node n1 = nbors1.node();
+			for(int j = 0 ; j <nbors1.size(); j++) {
+				Node n2 = nbors2.node(); 
+			
+				if(n2 == n1) {
+					olapsize++;
+					break; 
+				}
+				
+				nbors2.cyclicNext();
+			}
+
+			nbors1.cyclicNext();
+		}
+		double edgeNr = graph.edgeCount()/2;
+		double nodeNr = graph.nodeCount(); 
+		double avgDegr = 2*edgeNr/nodeNr;
+		double tmp1 = avgDegr - nbor1size; 
+		double tmp2 = avgDegr - nbor2size; 
+		
+		double lmbd1 = Double.max(0, tmp1);
+		double lmbd2 = Double.max(0, tmp2);
+		
+		return olapsize/(lmbd1 + nbor1size + lmbd2 + nbor2size);
+	}
+	
 	/**
 	 * Initialization of ants, the weight vector, pheromone information matrix, heuristic information matrix and initial solutions
 	 * "MOEA/D: A Multiobjective Evolutionary Algorithm Based on Decomposition" by Qingfu Zhang et al. for reference.
@@ -218,11 +282,10 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param nodes
 	 * @throws InterruptedException 
 	 */
-	protected List<Ant> initialization(CustomGraph graph) throws InterruptedException {
+	protected List<Ant> initialization(CustomGraph graph, int nodeNr) throws InterruptedException {
 		EP = new HashMap<Vector,Vector>(); 
 
 		// creating ants and setting parameters
-		Random rand = new Random(); 
 		List<Ant> ants = new ArrayList<Ant>(); 
 		refPoint = new BasicVector(2);
 		int preGroup = 0; // group of the previous ant 			
@@ -233,7 +296,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				sol.set(j,j); 
 		}
 		// compute initial fitness of the solution 
-		Vector fitness = fitnessCalculations(graph, sol);
+		Vector fitness = fitnessCalculations(graph, sol, nodeNr);
 		
 		//set reference point
 		refPoint = fitness; 
@@ -345,189 +408,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return ants; 
 	}
 	
-	/** Measures the link strength in between the maximal cliques. 
-	 * 
-	 * @param graph
-	 * @param maxClq output of the MaximalCliqueGraphRepresentation
-	 * @return Matrix of link strength in  between the nodes
-	 */
-	protected Matrix linkStrength(CustomGraph graph, HashMap<Integer,HashSet<Node>> maxClq) {
-		int clqNr = maxClq.size(); 
-		Matrix lkstrgth = new Basic2DMatrix(clqNr,clqNr);
-		
-		for(int i = 0; i < clqNr-1; i++) { 
-			HashSet<Node> clq1 = maxClq.get(i); // select clique 1
-			double clq1Size = clq1.size();
-			for(int j = i + 1; j < clqNr; j++) {
-				HashSet<Node> clq2 = maxClq.get(j); // select clique 2
-				double clq2Size = clq2.size();
-				
-				HashSet<Node> diff12 = new HashSet<Node>(clq1); 
-				diff12.removeAll(clq2); 
-				double diff12size = diff12.size(); // size of clique 1 without nodes from clique 2
-				
-				double cdDist1 = 0;
-				for(Node v1: diff12) {
-					for(Node v2: clq2) {
-						cdDist1 += CzechkanowskiDice(graph, v1, v2);  // Czechkanowski Dice Distance of the difference and clique 2
-					}
-				}
-				
-				HashSet<Node> diff21 = new HashSet<Node>(clq2); 
-				diff21.removeAll(clq1);
-				double diff21size = diff21.size(); // size of clique 2 without nodes from clique 1 
-				
-				double cdDist2 = 0;
-				for(Node v1: diff21) {
-					for(Node v2: clq1) {
-						cdDist2 += CzechkanowskiDice(graph, v1, v2); // Czechkanowski Dice Distance of the difference and clique 1
-					}
-				}
-				
-				double lstr = Math.sqrt(cdDist2/(diff21size*clq1Size)*cdDist1/(diff12size*clq2Size));
-				lkstrgth.set(i, j, lstr); // set matrix (entries have a triangular form)
-				lkstrgth.set(j, i, lstr);
-			}
-		}
-		return lkstrgth;
-	}
-	
-	/**
-	 * Version of the adjusted Czechkanowski/Sorensen Dice Distance. The number of neighbors is changed to the average if it lay below the average. 
-	 * @param graph a graph from which v1 and v2 are taken
-	 * @param v1 node which is in a clique
-	 * @param v2 node which is not in the same clique as v1
-	 * @return adjusted Czechkanowski Dice distance
-	 */
-	protected double CzechkanowskiDice(CustomGraph graph, Node v1, Node v2) {
-		NodeCursor nbors1 = v1.neighbors();
-		NodeCursor nbors2 = v2.neighbors(); 
-
-		int nbor1size = nbors1.size()/2; 
-		int nbor2size = nbors2.size()/2; 
-		
-		double olapsize = 0; 
-		
-		for(int i = 0 ; i <nbors1.size(); i++) {
-			Node n1 = nbors1.node();
-			for(int j = 0 ; j <nbors1.size(); j++) {
-				Node n2 = nbors2.node(); 
-			
-				if(n2 == n1) {
-					olapsize++;
-					break; 
-				}
-				
-				nbors2.cyclicNext();
-			}
-
-			nbors1.cyclicNext();
-		}
-		double edgeNr = graph.edgeCount()/2;
-		double nodeNr = graph.nodeCount(); 
-		double avgDegr = 2*edgeNr/nodeNr;
-		double tmp1 = avgDegr - nbor1size; 
-		double tmp2 = avgDegr - nbor2size; 
-		
-		double lmbd1 = Double.max(0, tmp1);
-		double lmbd2 = Double.max(0, tmp2);
-		
-		return olapsize/(lmbd1 + nbor1size + lmbd2 + nbor2size);
-	}
-	
 // --------------------------------------------------------------------------------------------------------------------------------------------------
-// construction of the solutions und update of Pareto Front
+// construction of the solutions and update of Pareto Front
 // --------------------------------------------------------------------------------------------------------------------------------------------------
-/**
- 	* construct a new solution for each ant
-	 * @param graph to find new soutions on 
-	 * @param ants population of ants
-	 * @throws InterruptedException 
-	 */
-	protected void constructSolution(CustomGraph graph, Ant ant) throws InterruptedException {
-		Random rand = new Random();
-		Node[] nodes = graph.getNodeArray(); 
-		
-		ant.setFalseNew_sol();
-		Matrix phi = new Basic2DMatrix(nodeNr,nodeNr); 
-		int group = ant.getGroup();
-		Matrix m = pheromones.get(group); 
-		Vector weight = ant.getWeight();
-		Vector fit = ant.getFitness(); 
-		Vector sol = ant.getSolution(); 
-		double tc = 1+TchebyehoffDecomposition(fit, weight); // Tchebyehoff Decomposition + 1
-		HashMap<Vector, Vector> new_solutions = new HashMap<Vector,Vector>();
-		for(int j = 0; j<nodeNr; j++) {
-			for(int k = j+1; k < nodeNr; k++) {
-				double update = m.get(j, k)+1/tc*isEdgeinSol(graph, sol, j, k);
-				double result = Math.pow(update, alpha)* Math.pow(heuristic.get(j, k), beta); 
-				phi.set(k, j, result);
-				phi.set(j, k, result);
-			}
-		}
-			
-		for(int j = 0; j<nodeNr; j++) {
-			int maxId = 0; 
-			Vector new_sol = sol.copy(); 
-			
-			if(rand.nextFloat() < R) {
-				double maxphi = 0; 
-				for(int k = 0; k < nodeNr; k++) {
-					double phi_jk = phi.get(j, k);
-					if(phi_jk >= maxphi) { // find maximum in phi
-						maxphi = phi_jk; 
-						maxId = k;
-					}
-				}
-			} else {// calculate the probability to put node i into the community of node j
-				
-				Set<Node> nbors = graph.getNeighbours(nodes[j]); 
-				double sum_nbor = 0; 
-				for(int k = 0; k < nodeNr; k++) {
-					if(nbors.contains(nodes[k])) {
-						sum_nbor += phi.get(j, k); // sum all values in phi 
-					}
-				}
-				// probability to put node i in community of node j
-				HashMap<Double,Integer> v = new HashMap<Double, Integer>(); 
-				for(int k = 0; k < nodeNr; k++) {
-					if(nbors.contains(nodes[k])) {
-						v.put(phi.get(j, k)/sum_nbor,k);
-					}
-				}
-				
-				// select object according to probability
-				double sum = 0; 
-				for(double n: v.keySet()) {
-					sum += n; 
-				}
-				double r = rand.nextDouble()*sum;
-				double cumsum = 0; 
-				for(double n: v.keySet()) {
-					cumsum += n; 
-					if(r < cumsum) {
-						maxId = v.get(n); 
-					} else {
-						break; 
-					}
-				}
-			}
-			new_sol.set(j, sol.get(maxId));				
-			new_solutions.put(fitnessCalculations(graph,new_sol), new_sol);
-		}
-		boolean first = true; 
-		Vector bestFit = new BasicVector(2); 
-		for(Vector key: new_solutions.keySet()) {
-			double NRA = key.get(0); 
-			double CR = key.get(1); 
-			if(NRA <= bestFit.get(0) && CR <= bestFit.get(1)|| first == true) {
-				bestFit = key; 
-				first = false;
-			}
-		}
-		ant.setSolution(new_solutions.get(bestFit));
-		ant.setFitness(bestFit);
-	}
 	
 	/**
 	 * Searches for better solutions by local annealing and updates if a better solution is found. Updates the set of 
@@ -539,12 +422,12 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param fitness fitness value of the found solution
 	 * @throws InterruptedException 
 	 */
-	protected void update(CustomGraph graph, List<Ant> ants) throws InterruptedException {	
+	protected void update(CustomGraph graph, List<Ant> ants, int nodeNr) throws InterruptedException {	
 		double g_min = 0; // Minimum Tchebyeheff Decomposition
 		double newSolNr = 0; // number of solutions added in EP
 		for(int i = 0; i < M; i++) {
 			Ant ant = ants.get(i); 
-			constructSolution(graph, ant);
+			constructSolution(graph, ant, nodeNr);
 			ant.setFalseNew_sol();
 			// weighted annealing local search
 			Random rand = new Random(); 
@@ -557,7 +440,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			for(double T = 100; T > 0.4;){ // parameter from the paper
 				T = 0.5*T; 
 				for(int j = 0; j < 5; j++) {
-					constructSolution(graph, ant); 
+					constructSolution(graph, ant, nodeNr); 
 					new_sol = ant.getSolution();
 					new_fit = ant.getFitness();
 					double tc_new = TchebyehoffDecomposition(new_fit, weight);
@@ -619,97 +502,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				refPoint.set(1, new_fit.get(1));
 			}
 		}
-		limits[1] = newSolNr + 1/(1 - rho)*(1 + g_min); 
+		double[] limits = new double[2]; 
+		limits[1] = (newSolNr + 1)/((1 - rho)*(1 + g_min)); 
 		limits[0] =	0.001 * limits[1]; 	
-	}
-	
-// --------------------------------------------------------------------------------------------------------------------------------------------------
-// metric calculations 	
-// --------------------------------------------------------------------------------------------------------------------------------------------------
-	/**
-	 * Evaluation of the cover of a graph. This measures the intra-link sparesity and should be minimized (Negative Ratio Association).  
-	 * This measures the inter-link density and should be minimized (Cut Ratio). 
-	 * @param graph
-	 * @param cover to evaluate on the graph
-	 * @return Vector v of the two metrics: v(0) = Negative Ratio Association, v(1) = Cut Ratio 
-	 */
-	protected Vector fitnessCalculations(CustomGraph graph, Vector sol) {
-		int comNr = (int) sol.max() + 1; // starts with community 0
 		
-		List<Vector> members= new ArrayList<Vector>(); // prepare arrays of member of each community
-		Vector v_hlp = new BasicVector(nodeNr);
-		for(int j = 0; j < comNr; j++) {
-			members.add(v_hlp);
-		}
-		
-		double[] ones = new double[nodeNr]; // complementary vector 1-vector
-		Arrays.fill(ones, 1);
-		Vector one = new BasicVector(ones);
-		for(int j = 0; j < nodeNr; j++) {
-			int com = (int)sol.get(j);
-			Vector comVec = new BasicVector();
-			comVec = members.get(com).copy(); //separate the vector per community
-			comVec.set(j, 1);
-			members.set(com, comVec);
-		}
-			
-		double NRA = 0; 
-		double CR = 0;
-		for(int i = 0; i < comNr; i++) {
-			Vector v = members.get(i);
-			Vector v_compl = one.subtract(v); // calculate inverse of v
-			if(v.sum() == 0) {  // community vanished in the process of OCD
-				continue; 
-			}
-			NRA -= cliqueInterconectivity(graph, v, v)/v.sum();
-			CR += cliqueInterconectivity(graph, v, v_compl)/v.sum();
-		}
-		
-		Vector fitness = new BasicVector(2); 
-		fitness.set(0, NRA); 
-		fitness.set(1, CR);
-		
-		return fitness;
-	}
-	
-	/** 
-	 * Measure for the interconnectivity of two communities (can also be the same communities!)
-	 * @param graph 
-	 * @param com1 - community 1
-	 * @param com2 - community 2
-	 * @return shared edges between two communities
-	 */
-	protected double cliqueInterconectivity(CustomGraph graph, Vector com1, Vector com2) {
-			double L = 0; // counter of edges in between the communities
-			Node[] nodes = graph.getNodeArray(); 
-			for(int i = 0; i < nodeNr; i++) { // iterates over all nodes
-				if(com1.get(i) == 0) { // filters out all nodes within a community from the community vector
-					continue;
-				}
-				Node n1 = nodes[i]; 
-				for(int j = 0; j < nodeNr; j++) { // iterates over all nodes
-					if(com2.get(j) == 0) { // filters out all nodes within a community from the community vector
-						continue;
-					}
-					Node n2 = nodes[j];
-					if (graph.containsEdge(n1, n2)) { // if two nodes from these two communities are connected by an edge
-						L += graph.getEdgeWeight(n1.getEdgeTo(n2)); 
-					}
-				}
-			}
-			return L;
-		}
-
-// --------------------------------------------------------------------------------------------------------------------------------------------------
-// update of pheromones and simulation of the interaction between the neighbors
-// --------------------------------------------------------------------------------------------------------------------------------------------------
-	/**
-	 * Updates the pheromone matrix: two mechanisms
-	 * 1) pheromone evaporation on an edge
-	 * 2) pheromone deposit on an edge
-	 * @param ants implemented ants
-	 */
-	protected void updatePheromoneMatrix(CustomGraph graph, List<Ant> ants) {
+		// neighborhood interaction
 		List<Double> tcList = new ArrayList<Double>(); 
 		List<Ant> used = new ArrayList<Ant>(); 
 		for(int i = 0; i < M; i++) {
@@ -723,6 +520,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			
 			// exchange of neighborhood information and getting better results
 			Collection<Integer> neighbors = ant.getNeighbors();
+			Ant replNeigh = new Ant();
+			boolean replace = false; 
 			for(int j: neighbors) { 
 				Ant neighbor = ants.get(j);
 				Vector fit_nbor = neighbor.getFitness();
@@ -731,11 +530,16 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				// solution was not used before and neighbor solution is better -> replace solution
 				if(tc > tc_nbor && !used.contains(neighbor)) { 
 					ant.setSolution(neighbor.getSolution());
-					used.add(neighbor); // solution cannot be used to replace twice
-					break;
+					replNeigh = neighbor;
+					replace = true; 
 				}
 			}
+			if(replace) {
+				used.add(replNeigh); // solution cannot be used to replace twice
+			}
 		}
+		
+		// set pheormone matrix
 		for(int k = 0; k < K; k++) {
 			Matrix m = new Basic2DMatrix(nodeNr, nodeNr);
 			Matrix persist = pheromones.get(k).multiply(rho); // persistence of the pheromones on a path
@@ -768,7 +572,98 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 			pheromones.set(k, m);
 		}
+	}
+	
+ 	/** construct a new solution for each ant
+	 * @param graph to find new soutions on 
+	 * @param ants population of ants
+	 * @throws InterruptedException 
+	 */
+	protected void constructSolution(CustomGraph graph, Ant ant, int nodeNr) throws InterruptedException {
+		Random rand = new Random();
+		Node[] nodes = graph.getNodeArray(); 
 		
+		ant.setFalseNew_sol();
+		Matrix phi = new Basic2DMatrix(nodeNr,nodeNr); 
+		int group = ant.getGroup();
+		Matrix m = pheromones.get(group); 
+		Vector weight = ant.getWeight();
+		Vector fit = ant.getFitness(); 
+		Vector sol = ant.getSolution(); 
+		double tc = 1+TchebyehoffDecomposition(fit, weight); // Tchebyehoff Decomposition + 1
+		HashMap<Vector, Vector> new_solutions = new HashMap<Vector,Vector>();
+		for(int j = 0; j<nodeNr; j++) {
+			for(int k = j+1; k < nodeNr; k++) {
+				double mq = m.get(j, k);
+				double es = isEdgeinSol(graph, sol, j, k);
+				double update = mq + es/tc;
+				double result = Math.pow(update, 5)* Math.pow(heuristic.get(j, k), 4); 
+				phi.set(k, j, result);
+				phi.set(j, k, result);
+			}
+		}
+			
+		for(int j = 0; j<nodeNr; j++) {
+			int maxId = 0; 
+			Vector new_sol = sol.copy(); 
+			
+			if(rand.nextFloat() < R) {
+				double maxphi = 0; 
+				for(int k = 0; k < nodeNr; k++) {
+					double phi_jk = phi.get(j, k);
+					if(phi_jk >= maxphi) { // find maximum in phi
+						maxphi = phi_jk; 
+						maxId = k;
+					}
+				}
+			} else {// calculate the probability to put node i into the community of node j
+				
+				Set<Node> nbors = graph.getNeighbours(nodes[j]); 
+				double sum_nbor = 0; 
+				for(int k = 0; k < nodeNr; k++) {
+					if(nbors.contains(nodes[k])) {
+						sum_nbor += phi.get(j, k); // sum all values in phi 
+					}
+				}
+				// probability to put node i in community of node j
+				HashMap<Double,Integer> v = new HashMap<Double, Integer>(); 
+				for(int k = 0; k < nodeNr; k++) {
+					if(nbors.contains(nodes[k])) {
+						v.put(phi.get(j, k)/sum_nbor,k);
+					}
+				}
+				
+				// select object according to probability
+				double sum = 0; 
+				for(double n: v.keySet()) {
+					sum += n; 
+				}
+				double r = rand.nextDouble()*sum;
+				double cumsum = 0; 
+				for(double n: v.keySet()) {
+					cumsum += n; 
+					if(r < cumsum) {
+						maxId = v.get(n); 
+					} else {
+						break; 
+					}
+				}
+			}
+			new_sol.set(j, sol.get(maxId));				
+			new_solutions.put(fitnessCalculations(graph,new_sol, nodeNr), new_sol);
+		}
+		boolean first = true; 
+		Vector bestFit = new BasicVector(2); 
+		for(Vector key: new_solutions.keySet()) {
+			double NRA = key.get(0); 
+			double CR = key.get(1); 
+			if(NRA <= bestFit.get(0) && CR <= bestFit.get(1)|| first == true) {
+				bestFit = key; 
+				first = false;
+			}
+		}
+		ant.setSolution(new_solutions.get(bestFit));
+		ant.setFitness(bestFit);
 	}
 	
 	/**
@@ -796,7 +691,84 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			return 1; 
 		}
 		return 0;  
+	}	
+	
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+// metric calculations 	
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+	/**
+	 * Evaluation of the cover of a graph. This measures the intra-link sparesity and should be minimized (Negative Ratio Association).  
+	 * This measures the inter-link density and should be minimized (Cut Ratio). 
+	 * @param graph
+	 * @param cover to evaluate on the graph
+	 * @return Vector v of the two metrics: v(0) = Negative Ratio Association, v(1) = Cut Ratio 
+	 */
+	protected Vector fitnessCalculations(CustomGraph graph, Vector sol, int nodeNr) {
+		int comNr = (int) sol.max() + 1; // starts with community 0
+		
+		List<Vector> members= new ArrayList<Vector>(); // prepare arrays of member of each community
+		Vector v_hlp = new BasicVector(nodeNr);
+		for(int j = 0; j < comNr; j++) {
+			members.add(v_hlp);
+		}
+		
+		double[] ones = new double[nodeNr]; // complementary vector 1-vector
+		Arrays.fill(ones, 1);
+		Vector one = new BasicVector(ones);
+		for(int j = 0; j < nodeNr; j++) {
+			int com = (int)sol.get(j);
+			Vector comVec = new BasicVector();
+			comVec = members.get(com).copy(); //separate the vector per community
+			comVec.set(j, 1);
+			members.set(com, comVec);
+		}
+			
+		double NRA = 0; 
+		double CR = 0;
+		for(int i = 0; i < comNr; i++) {
+			Vector v = members.get(i);
+			Vector v_compl = one.subtract(v); // calculate inverse of v
+			if(v.sum() == 0) {  // community vanished in the process of OCD
+				continue; 
+			}
+			NRA -= cliqueInterconectivity(graph, v, v, nodeNr)/v.sum();
+			CR += cliqueInterconectivity(graph, v, v_compl, nodeNr)/v.sum();
+		}
+		
+		Vector fitness = new BasicVector(2); 
+		fitness.set(0, NRA); 
+		fitness.set(1, CR);
+		
+		return fitness;
 	}
+	
+	/** 
+	 * Measure for the interconnectivity of two communities (can also be the same communities!)
+	 * @param graph 
+	 * @param com1 - community 1
+	 * @param com2 - community 2
+	 * @return shared edges between two communities
+	 */
+	protected double cliqueInterconectivity(CustomGraph graph, Vector com1, Vector com2, int nodeNr) {
+			double L = 0; // counter of edges in between the communities
+			Node[] nodes = graph.getNodeArray(); 
+			for(int i = 0; i < nodeNr; i++) { // iterates over all nodes
+				if(com1.get(i) == 0) { // filters out all nodes within a community from the community vector
+					continue;
+				}
+				Node n1 = nodes[i]; 
+				for(int j = 0; j < nodeNr; j++) { // iterates over all nodes
+					if(com2.get(j) == 0) { // filters out all nodes within a community from the community vector
+						continue;
+					}
+					Node n2 = nodes[j];
+					if (graph.containsEdge(n1, n2)) { // if two nodes from these two communities are connected by an edge
+						L += graph.getEdgeWeight(n1.getEdgeTo(n2)); 
+					}
+				}
+			}
+			return L;
+		}
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------
 // decoding the maximal clique graph into the original graph
@@ -810,7 +782,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @throws OcdAlgorithmException if no solution is found
 	 * @throws InterruptedException if thread was interrupted
 	 */
-	protected Cover decodeMaximalCliques(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
+	protected Cover decodeMaximalCliques(CustomGraph graph, int nodeNr) throws OcdAlgorithmException, InterruptedException {
 		System.out.println("Number of Solutions: " + EP.size());
 
 		if(EP.isEmpty()) {
@@ -896,7 +868,6 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		parameters.put(MAX_ITERATIONS, Double.toString(maxIterations));
 		parameters.put(NUMBER_OF_ANTS, Integer.toString(M));
 		parameters.put(EVAPORATION_FACTOR, Double.toString(rho));
-		parameters.put(MCR_THRESHOLD, Double.toString(threshold));
 		return parameters;
 	}
 
@@ -924,17 +895,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			parameters.remove(EVAPORATION_FACTOR);
 		}
 		
-		if(parameters.containsKey(MCR_THRESHOLD)) {
-			threshold = Double.parseDouble(parameters.get(MCR_THRESHOLD));
-			if(threshold < 0 || threshold > 1) {
-				throw new IllegalArgumentException();
-			}
-			parameters.remove(MCR_THRESHOLD);
-		}
-		
 		if(parameters.containsKey(NUMMER_OF_NEIGHBORS)) {
 			nearNbors = Integer.parseInt(parameters.get(NUMMER_OF_NEIGHBORS));
-			if(nearNbors < 0 || nearNbors >= nodeNr) {
+			if(nearNbors < 1 || nearNbors > M) {
 				throw new IllegalArgumentException();
 			}
 			parameters.remove(NUMMER_OF_NEIGHBORS);

@@ -19,6 +19,7 @@ import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueGraphRepresentatio
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import y.base.Edge;
 import y.base.Node;
@@ -59,39 +60,48 @@ public class AntColonyOptimizationTest {
 	
 	@Test
 	public void testAllSteps() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
-		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
+		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph();
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		CustomGraph MCR = ACO.representationScheme(graph);
-		List<Ant> ants = ACO.initialization(MCR);
-		ACO.constructSolution(MCR, ants);
-		ACO.updatePheromoneMatrix(MCR, ants);	
-		ACO.updateCurrentSolution(ants);
+		List<Ant> ants = ACO.initialization(MCR, 5);
+		for(Ant a: ants) {
+			ACO.constructSolution(MCR, a, 5);
+		}
+		ACO.update(MCR, ants, 5);	
 	}
 	
 	@Test
 	public void testACO() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
-		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph();
+		CustomGraph graph = OcdTestGraphFactory.getDolphinsGraph();
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		Cover c = ACO.detectOverlappingCommunities(graph);
+		//ClizzAlgorithm CA = new ClizzAlgorithm(); 
+		//Cover c1 = CA.detectOverlappingCommunities(graph);
 		System.out.print(c);
+		ExtendedModularityMetric mod = new ExtendedModularityMetric();
+		//System.out.println(mod.measure(c1)); 
+		System.out.println(mod.measure(c));
 	}
 	
+	@Ignore
 	@Test
 	public void testDecoding() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
-		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
+		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph();
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		CustomGraph MCR = ACO.representationScheme(graph);
+		List<Ant> ants = ACO.initialization(MCR, 5);
 		Vector cover = new BasicVector(5);
 		cover.set(0, 0);
 		cover.set(1, 0);
 		cover.set(2, 1);
 		cover.set(3, 1);
 		cover.set(4, 1);
-		ACO.decodeMaximalCliques(graph, cover);
+		ACO.decodeMaximalCliques(graph, 5);
 	}
 	
+	@Ignore
 	@Test
-	public void testNegativeRatioAssociation() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
+	public void testFitnessComputations() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph();
 		
 		Vector cover = new BasicVector(5);
@@ -102,25 +112,10 @@ public class AntColonyOptimizationTest {
 		cover.set(4, 1);
 		
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
-		double NRC = ACO.negativeRatioAssociation(graph, cover);
-		System.out.println("Negative Ratio Association:");
+		Vector NRC = ACO.fitnessCalculations(graph, cover, 5);
+		System.out.println("Fitness values: ");
 		System.out.println(NRC);
 		
 	}
-	
-	@Test
-	public void testCutRatio() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
-		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph();
-		Vector cover = new BasicVector(5);
-		cover.set(0, 0);
-		cover.set(1, 0);
-		cover.set(2, 1);
-		cover.set(3, 1);
-		cover.set(4, 1);
-		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
-		double CR = ACO.cutRatio(graph, cover);
-		System.out.println("Cut Ratio");
-		System.out.println(CR);
-		
-	}
+
 }
