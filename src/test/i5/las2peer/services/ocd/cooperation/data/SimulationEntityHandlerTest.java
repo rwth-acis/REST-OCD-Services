@@ -63,11 +63,11 @@ public class SimulationEntityHandlerTest {
 		SimulationSeries series = new SimulationSeries();
 		series.setCooperationEvaluation(new Evaluation(new double[]{1.0,2.0,3.0}));
 		long userId = 7;
-		series.setUserId(userId);
+		series.setUserId(Long.toString(userId));
 
 		long seriesId = 0;
 		try {
-			seriesId = entityHandler.store(series, userId);
+			seriesId = entityHandler.store(series, Long.toString(userId));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -103,11 +103,11 @@ public class SimulationEntityHandlerTest {
 		list.add(d2);
 		series.setSimulationDatasets(list);
 		long userId = 7;
-		series.setUserId(userId);
+		series.setUserId(Long.toString(userId));
 
 		long seriesId = 0;
 		try {
-			seriesId = entityHandler.store(series, userId);
+			seriesId = entityHandler.store(series, Long.toString(userId));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -136,7 +136,7 @@ public class SimulationEntityHandlerTest {
 
 		SimulationSeries series = new SimulationSeries();
 		long userId = 7;
-		series.setUserId(7);
+		series.setUserId(Integer.toString(7));
 
 		EntityManager em = factory.createEntityManager();
 		em.getTransaction().begin();
@@ -164,7 +164,7 @@ public class SimulationEntityHandlerTest {
 
 		SimulationSeries series = new SimulationSeries();
 		long userId = 7;
-		series.setUserId(7);
+		series.setUserId(Integer.toString(7));
 
 		SimulationDataset d1 = new SimulationDataset();
 		d1.setName("da1");
@@ -203,7 +203,7 @@ public class SimulationEntityHandlerTest {
 
 		SimulationSeries series = new SimulationSeries();
 		long userId = 7;
-		series.setUserId(7);
+		series.setUserId(Integer.toString(7));
 
 		SimulationSeriesParameters parameters = new SimulationSeriesParameters();
 		parameters.setGraphId(23);
@@ -220,7 +220,7 @@ public class SimulationEntityHandlerTest {
 
 		List<SimulationSeries> resultSeries = null;
 		try {
-			resultSeries = entityHandler.getSimulationSeriesByUser(7, 23, 0, 10);
+			resultSeries = entityHandler.getSimulationSeriesByUser(Integer.toString(7), 23, 0, 10);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -239,7 +239,7 @@ public class SimulationEntityHandlerTest {
 		CustomGraph graph = new CustomGraph();
 		graph.setName("testGraphName");
 		long userId = 7;
-		series.setUserId(7);
+		series.setUserId(Integer.toString(7));
 		series.setNetwork(graph);
 
 		EntityManager em = factory.createEntityManager();
@@ -302,16 +302,16 @@ public class SimulationEntityHandlerTest {
 		long userId = 23;
 		
 		SimulationSeries series1 = new SimulationSeries();
-		series1.setUserId(userId);
+		series1.setUserId(Long.toString(userId));
 		
 		SimulationSeries series2 = new SimulationSeries();
-		series2.setUserId(userId);
+		series2.setUserId(Long.toString(userId));
 		
 		SimulationSeries series3 = new SimulationSeries();
-		series3.setUserId(22);
+		series3.setUserId(Integer.toString(22));
 		
 		SimulationSeries series4 = new SimulationSeries();
-		series4.setUserId(userId);
+		series4.setUserId(Long.toString(userId));
 		
 		EntityManager em = factory.createEntityManager();
 		em.getTransaction().begin();
@@ -325,7 +325,7 @@ public class SimulationEntityHandlerTest {
 
 		List<SimulationSeries> resultSeries = null;
 		try {
-			resultSeries = entityHandler.getSimulationSeriesByUser(userId);
+			resultSeries = entityHandler.getSimulationSeriesByUser(Long.toString(userId));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -344,7 +344,7 @@ public class SimulationEntityHandlerTest {
 		SimulationSeriesGroup simulation = new SimulationSeriesGroup();
 		long Id = 0;
 		try {
-			Id = entityHandler.store(simulation, Id);
+			Id = entityHandler.store(simulation, Long.toString(Id));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -427,16 +427,16 @@ public class SimulationEntityHandlerTest {
 		long userId = 25;
 		
 		SimulationSeriesGroup s1 = new SimulationSeriesGroup();
-		s1.setUserId(userId);
+		s1.setUserId(Long.toString(userId));
 		
 		SimulationSeriesGroup s2 = new SimulationSeriesGroup();
-		s2.setUserId(12);
+		s2.setUserId(Integer.toString(12));
 		
 		SimulationSeriesGroup s3 = new SimulationSeriesGroup();
-		s3.setUserId(userId);
+		s3.setUserId(Long.toString(userId));
 		
 		SimulationSeriesGroup s4 = new SimulationSeriesGroup();
-		s4.setUserId(15);
+		s4.setUserId(Integer.toString(15));
 		
 		EntityManager em = factory.createEntityManager();
 		em.getTransaction().begin();
@@ -450,7 +450,7 @@ public class SimulationEntityHandlerTest {
 
 		List<SimulationSeriesGroup> resultList = null;
 		try {
-			resultList = entityHandler.getSimulationSeriesGroups(userId);
+			resultList = entityHandler.getSimulationSeriesGroups(Long.toString(userId));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

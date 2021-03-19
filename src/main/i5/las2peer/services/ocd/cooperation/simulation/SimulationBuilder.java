@@ -3,7 +3,7 @@ package i5.las2peer.services.ocd.cooperation.simulation;
 import java.util.ArrayList;
 import java.util.List;
 
-import i5.las2peer.api.exceptions.ServiceInvocationException;
+import i5.las2peer.api.execution.ServiceInvocationException;
 import i5.las2peer.services.ocd.cooperation.data.simulation.AgentData;
 import i5.las2peer.services.ocd.cooperation.data.simulation.GroupType;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationDataset;

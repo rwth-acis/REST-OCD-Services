@@ -10,7 +10,7 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 
 import i5.las2peer.logging.L2pLogger;
-import i5.las2peer.p2p.AgentNotKnownException;
+import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.graphs.Cover;
@@ -195,7 +195,7 @@ public class EntityHandler {
 	 * @return graph list
 	 * @throws AgentNotKnownException
 	 */
-	public List<CustomGraph> getGraphs(String username) throws AgentNotKnownException {
+	public List<CustomGraph> getGraphs(String username) throws AgentNotRegisteredException {
 
 		List<CustomGraph> queryResults;
 		EntityManager em = getEntityManager();

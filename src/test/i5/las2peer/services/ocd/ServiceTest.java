@@ -17,9 +17,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import i5.las2peer.p2p.LocalNode;
-import i5.las2peer.p2p.ServiceNameVersion;
-import i5.las2peer.security.ServiceAgent;
-import i5.las2peer.security.UserAgent;
+import i5.las2peer.p2p.LocalNodeManager;
+import i5.las2peer.api.p2p.ServiceNameVersion;
+import i5.las2peer.api.security.ServiceAgent;
+import i5.las2peer.api.security.UserAgent;
+import i5.las2peer.security.MessageReceiver;
+import i5.las2peer.security.ServiceAgentImpl;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
@@ -27,9 +30,10 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.EntityHandler;
 import i5.las2peer.services.ocd.utils.RequestHandler;
 import i5.las2peer.testing.MockAgentFactory;
-import i5.las2peer.webConnector.WebConnector;
-import i5.las2peer.webConnector.client.ClientResponse;
-import i5.las2peer.webConnector.client.MiniClient;
+import i5.las2peer.tools.LocalNodeStarter;
+import i5.las2peer.connectors.webConnector.WebConnector;
+import i5.las2peer.connectors.webConnector.client.ClientResponse;
+import i5.las2peer.connectors.webConnector.client.MiniClient;
 
 /**
  * Test service calls
@@ -69,19 +73,25 @@ public class ServiceTest {
 	public static void startServer() throws Exception {
 
 		// start node
-		node = LocalNode.newNode();
+		node = (new LocalNodeManager()).newNode(); //TODO: Check if sensible
 		testAgent = MockAgentFactory.getAdam();
-		testAgent.unlockPrivateKey(testPass); // agent must be unlocked in order
+		testAgent.unlock(testPass); // agent must be unlocked in order
 												// to be stored
 		node.storeAgent(testAgent);
 		node.launch();
 
 		// during testing, the specified service version does not matter
-		ServiceAgent testService = ServiceAgent
+		ServiceAgent testService = ServiceAgentImpl
 				.createServiceAgent(ServiceNameVersion.fromString(ServiceClass.class.getName() + "@1.0"), "a pass");
-		testService.unlockPrivateKey("a pass");
+		testService.unlock("a pass");
 
-		node.registerReceiver(testService);
+		if(testService instanceof MessageReceiver) {
+			node.registerReceiver((MessageReceiver) testService);
+		}
+		else {
+			throw new Exception("Error: testService is not an instance of MessageReceiver");
+		}
+		
 
 		// start connector
 		logStream = new ByteArrayOutputStream();
@@ -161,7 +171,7 @@ public class ServiceTest {
 	 */
 	public static long createSimulation(SimulationSeries simulation)
 			throws AdapterException, FileNotFoundException, ParserConfigurationException {
-		simulation.setUserId(testAgent.getId());
+		simulation.setUserId(testAgent.getIdentifier());
 		EntityManager em = entityHandler.getEntityManager();
 		EntityTransaction tx = em.getTransaction();
 		long sId;
@@ -196,7 +206,7 @@ public class ServiceTest {
 		connector = null;
 		node = null;
 
-		LocalNode.reset();
+		//node.reset(); TODO: Should not be needed anymore, check if NodeManager needs to be remembered and thus reset here
 
 		System.out.println("Connector-Log:");
 		System.out.println("--------------");
@@ -213,10 +223,10 @@ public class ServiceTest {
 	@Test
 	public void validateLogin() {
 		MiniClient c = new MiniClient();
-		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
+		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
 
 		try {
-			c.setLogin(Long.toString(testAgent.getId()), testPass);
+			c.setLogin(testAgent.getIdentifier(), testPass);
 			ClientResponse result = c.sendRequest("GET", mainPath + "validate", "");
 			assertEquals(200, result.getHttpCode());
 			System.out.println("Result of 'testValidateLogin': " + result.getResponse().trim());
@@ -232,9 +242,9 @@ public class ServiceTest {
 	@Test
 	public void getGraphMetaXMLFormat() throws AdapterException, FileNotFoundException {
 		MiniClient c = new MiniClient();
-		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
+		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
 		try {
-			c.setLogin(Long.toString(testAgent.getId()), testPass);
+			c.setLogin(testAgent.getIdentifier(), testPass);
 
 			ClientResponse result = c.sendRequest("GET",
 					mainPath + "graphs/" + SawmillGraphId + "?outputFormat=META_XML", "");
@@ -258,9 +268,9 @@ public class ServiceTest {
 	@Test
 	public void getGraphPropertiesXMLFormat() throws AdapterException, FileNotFoundException {
 		MiniClient c = new MiniClient();
-		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
+		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
 		try {
-			c.setLogin(Long.toString(testAgent.getId()), testPass);
+			c.setLogin(testAgent.getIdentifier(), testPass);
 
 			ClientResponse result = c.sendRequest("GET",
 					mainPath + "graphs/" + DolphinsGraphId + "?outputFormat=PROPERTIES_XML", "");
@@ -276,9 +286,9 @@ public class ServiceTest {
 	@Test
 	public void getGraphInvalidID() throws AdapterException, FileNotFoundException {
 		MiniClient c = new MiniClient();
-		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
+		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
 		try {
-			c.setLogin(Long.toString(testAgent.getId()), testPass);
+			c.setLogin(testAgent.getIdentifier(), testPass);
 
 			ClientResponse result = c.sendRequest("GET", mainPath + "graphs/" + 999 + "?outputFormat=META_XML", "");
 			System.out.println("Result of 'testGetGraphs' on Sawmill: " + result.getResponse().trim());
@@ -297,9 +307,9 @@ public class ServiceTest {
 	@Test
 	public void getEnumListingProperties() throws AdapterException, FileNotFoundException {
 		MiniClient c = new MiniClient();
-		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
+		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
 		try {
-			c.setLogin(Long.toString(testAgent.getId()), testPass);
+			c.setLogin(testAgent.getIdentifier(), testPass);
 			ClientResponse result = c.sendRequest("GET", mainPath + "graphs/properties", "");
 			assertEquals(200, result.getHttpCode());
 
@@ -314,7 +324,7 @@ public class ServiceTest {
 	@Test
 	public void getSimulation() throws AdapterException, FileNotFoundException {
 		MiniClient c = new MiniClient();
-		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
+		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
 		
 		SimulationSeries s1 = new SimulationSeries();
 		s1.setName("name");
@@ -332,7 +342,7 @@ public class ServiceTest {
 		System.out.print(id1);
 		
 		try {
-			c.setLogin(Long.toString(testAgent.getId()), testPass);
+			c.setLogin(testAgent.getIdentifier(), testPass);
 
 			ClientResponse result = c.sendRequest("GET",
 					mainPath + "simulation/" + 124, "");
@@ -358,16 +368,16 @@ public class ServiceTest {
 	@Test
 	public void startSimulation() throws AdapterException, FileNotFoundException {
 		MiniClient c = new MiniClient();
-		c.setAddressPort(HTTP_ADDRESS, HTTP_PORT);
+		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
 		
 		try {
-			c.setLogin(Long.toString(testAgent.getId()), testPass);
+			c.setLogin(testAgent.getIdentifier(), testPass);
 			ClientResponse result = c.sendRequest("POST",
 					mainPath + "simulation" , "{\"graphId\":2,\"dynamic\":\"Moran\",\"dynamicValues\":[],\"payoffCC\":1.0,\"payoffCD\":1.0,\"payoffDC\":1.0,\"payoffDD\":1.0,\"iterations\":20}", "application/json", "", new HashMap<>());
 			System.out.println("Result of 'startSimulation' " + result.getResponse().trim());
 			assertEquals(400, result.getHttpCode());
 			
-			c.setLogin(Long.toString(testAgent.getId()), testPass);
+			c.setLogin(testAgent.getIdentifier(), testPass);
 			result = c.sendRequest("POST",
 					mainPath + "simulation" , "{\"graphId\":2,\"dynamic\":\"Moran\",\"dynamicValues\":[],\"payoffValues\":[1.0,2.0,3.1,0.0],\"iterations\":20}", "application/json", "", new HashMap<>());
 			System.out.println("Result of 'startSimulation' " + result.getResponse().trim());
