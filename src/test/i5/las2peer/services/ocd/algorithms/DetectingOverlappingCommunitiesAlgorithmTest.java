@@ -15,13 +15,11 @@ public class DetectingOverlappingCommunitiesAlgorithmTest {
 
 	@Test
 	public void test() throws OcdAlgorithmException, InterruptedException, FileNotFoundException, AdapterException {
-		if (SystemUtils.IS_OS_WINDOWS) {//TODO: Just to prevent junit test from failing on linux. Remove once linux version implemented
-			OcdAlgorithm algo = new DetectingOverlappingCommunitiesAlgorithm();
-			CustomGraph graph = OcdTestGraphFactory.getDocaTestGraph();
-			System.out.println("Nodes " + graph.nodeCount() + " Edges " + graph.edgeCount());
-			Cover cover = algo.detectOverlappingCommunities(graph);
-			System.out.println(cover.toString());
-		}
+		OcdAlgorithm algo = new DetectingOverlappingCommunitiesAlgorithm();
+		CustomGraph graph = OcdTestGraphFactory.getDocaTestGraph();
+		System.out.println("Nodes " + graph.nodeCount() + " Edges " + graph.edgeCount());
+		Cover cover = algo.detectOverlappingCommunities(graph);
+		System.out.println(cover.toString());
 	}
 
 }

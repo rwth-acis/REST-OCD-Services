@@ -17,6 +17,7 @@ import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WordClusteringRefinementAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LocalSpectralClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LouvainAlgorithm;
+import i5.las2peer.services.ocd.algorithms.DetectingOverlappingCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
@@ -97,11 +98,6 @@ public enum CoverCreationType {
 	 */
 	COST_FUNC_OPT_CLUSTERING_ALGORITHM(CostFunctionOptimizationClusteringAlgorithm.class, 13),
 	/**
-	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
-	 * Cannot be used for algorithm instantiation.
-	 */
-	//DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 13);
-	/**
 	 * Type corresponding to the SignedDMIDAlgorithm.
 	 */
 	SIGNED_DMID_ALGORITHM(SignedDMIDAlgorithm.class, 14),
@@ -131,13 +127,12 @@ public enum CoverCreationType {
 	/**
 	 * Type corresponding to the Louvain method algorithm.	
 	 */
-	LOUVAIN_ALGORITHM(LouvainAlgorithm.class, 19);
+	LOUVAIN_ALGORITHM(LouvainAlgorithm.class, 19),
 	
 	/**
-	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
-	 * Cannot be used for algorithm instantiation.
+	 * Type corresponding to the DetectingOverlappingCommunities Algorithm.
 	 */
-	//DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 13);
+	DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 20);
 
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
