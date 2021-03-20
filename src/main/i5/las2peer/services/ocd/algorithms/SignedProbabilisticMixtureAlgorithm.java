@@ -38,14 +38,6 @@ import org.la4j.vector.dense.*;
  */
 public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 	/**
-	 * Path of the directory reserved for the application.
-	 */
-	private static final String DirectoryPath = "ocd/spm/";
-	/**
-	 * Used for synchronization purposes. Executes the application execution.
-	 */
-	private static DefaultExecutor executor = new DefaultExecutor();
-	/**
 	 * The number of trials. The default value is 3. Must be greater than 0.
 	 */
 	private int trialCount = 3;
@@ -135,7 +127,6 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
-		synchronized (executor) {
 			try {	
 				initialProbabilitiesRandom(graph);//TODO: Function to calculate initial probabilities other than completely random
 				Matrix bestEdgeProbabilities = new CCSMatrix(edgeProbabilities);	 // edge_community wrs
@@ -196,9 +187,7 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 					throw new InterruptedException();
 				}
 				throw new OcdAlgorithmException(e);
-			}
-
-		}
+			}		
 	}		
 	
 	/**
