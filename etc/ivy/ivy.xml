@@ -28,6 +28,10 @@
 		<dependency org="org.apache.poi" name="poi-ooxml" rev="3.13" conf="platform->default" />
 		<dependency org="org.ejml" name="ejml" rev="0.7" conf="platform->default" />
 		<dependency org="org.hsqldb" name="hsqldb" rev="2.3.4" conf="platform->default" />
+		<dependency org="org.apache.xmlgraphics" name="batik-svggen" rev="1.14" conf="platform->default" />
+		<dependency org="org.apache.xmlgraphics" name="batik-bridge" rev="1.14" conf="platform->default" >
+			<exclude org="xml-apis" />
+		</dependency>
 		<dependency org="org.mockito" name="mockito-all" rev="1.9.5" conf="platform->default"/>
 		<dependency org="fr.irit.smac.thirdparty.edu.gmu.cs" name="mason" rev="19" conf="platform->default"/>
 		<dependency org="org.ojalgo" name="ojalgo" rev="48.3.2" conf="platform->default"/>

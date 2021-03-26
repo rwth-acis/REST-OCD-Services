@@ -39,6 +39,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.api.Context;
+import i5.las2peer.api.ManualDeployment;
 import i5.las2peer.api.security.UserAgent;
 import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
 import i5.las2peer.api.logging.MonitoringEvent;
@@ -136,6 +137,7 @@ import y.base.Graph;
  *
  */
 
+@ManualDeployment
 @ServicePath("ocd")
 @Api
 @SwaggerDefinition(info = @Info(title = "LAS2peer OCD Service", version = "1.0", description = "A RESTful service for overlapping community detection.", termsOfService = "sample-tos.io", contact = @Contact(name = "Sebastian Krott", email = "sebastian.krott@rwth-aachen.de"), license = @License(name = "Apache License 2", url = "http://www.apache.org/licenses/LICENSE-2.0")))
