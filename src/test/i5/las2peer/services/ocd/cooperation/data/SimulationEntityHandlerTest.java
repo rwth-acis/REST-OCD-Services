@@ -86,7 +86,7 @@ public class SimulationEntityHandlerTest {
 		em.close();
 
 		assertNotNull(resultSeries);
-		assertEquals(userId, resultSeries.getUserId());
+		assertEquals(Long.toString(userId), resultSeries.getUserId());
 		assertEquals(seriesId, resultSeries.getId());
 	}
 
@@ -154,7 +154,7 @@ public class SimulationEntityHandlerTest {
 		}
 
 		assertNotNull(resultSeries);
-		assertEquals(userId, resultSeries.getUserId());
+		assertEquals(Long.toString(userId), resultSeries.getUserId());
 		assertEquals(seriesId, resultSeries.getId());
 
 	}
@@ -259,7 +259,7 @@ public class SimulationEntityHandlerTest {
 		}
 
 		assertNotNull(resultSeries);
-		assertEquals(userId, resultSeries.getUserId());
+		assertEquals(Long.toString(userId), resultSeries.getUserId());
 		assertEquals(seriesId, resultSeries.getId());
 		assertNotNull(resultSeries.getNetwork());
 		assertEquals("testGraphName", resultSeries.getNetwork().getName());
