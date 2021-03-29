@@ -48,6 +48,10 @@ public class Ant {
 	private Vector fitness; 
 	private boolean new_sol; // was new solution added?
 	
+	public Ant(){
+		
+	}
+	
 	public Ant(int i){
 		this.number = i; 
 	}

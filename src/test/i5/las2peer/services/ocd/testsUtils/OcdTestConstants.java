@@ -106,11 +106,13 @@ public class OcdTestConstants {
 	public static final String sloveneParliamentaryPartyGraphName = "Slovene Parliamentary Party Graph";
 	public static final String wikiElecGraphName = "Wiki Elec Graph";
 	public static final String epinionsGraphName = "Epinions Graph";
-	public static final String slashDotGraphName = "Slash Dot Graph";
+	public static final String slashDotGraphName = "Slash Dot Graph";	
+	public static final String Linkgraph = null;
 	
 	/*
 	 * others
 	 */
 	public static final String spmResultFilePath = outputFolderPath + "spmResultPartyNetwork.txt";
 	public static final String meaResultFilePath = outputFolderPath + "meaSignedLfrGraphCommunityResult.pop";
+
 }

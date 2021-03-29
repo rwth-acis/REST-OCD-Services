@@ -41,7 +41,7 @@ import y.base.NodeCursor;
 public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	
-	private static int maxIterations = 1;
+	private static int maxIterations = 5;
 	
 	/**
 	 * maximal clique encoding. the integer represents the number of the clique and the Hashset stores the 
@@ -105,13 +105,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/*
 	 * PARAMETER NAMES
 	 */
-	protected static final String MAX_ITERATIONS = "maximum iterations";
+	protected static final String MAX_ITERATIONS = "Number of iterations";
 	
-	protected static final String NUMBER_OF_ANTS = "number of ants/subproblems";
+	protected static final String NUMBER_OF_ANTS = "Number of ants/subproblems";
 			
-	protected static final String EVAPORATION_FACTOR = "evaportation factor";
+	protected static final String PERSISTANCE_FACTOR = "Persistence of the pheromones on the graph";
 	
 	protected static final String NUMMER_OF_NEIGHBORS = "Number of nearest neighbors to be considered in a neighborhood";
+	
+	protected static final String INITIAL_PHEROMONES = "Intial pheormone concentration";
+	
+	protected static final String NUMBER_OF_GROUP = "Number of ants in a group";
 	
 	public AntColonyOptimizationAlgorithm() {}
 	
@@ -159,10 +163,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		// maximal clique search 
 		MaximalCliqueGraphRepresentation MCR = new MaximalCliqueGraphRepresentation();
 		maxClq = MCR.cliques(graph);
-				
+			
 		// determining the link strength in between the cliques
 		Matrix lkstrgth = linkStrength(graph, maxClq);
-				
+		double wtr = lkstrgth.sum()/(lkstrgth.rows()*(lkstrgth.columns()-1)); // threshold to filter out weak links
+		
 		//creating the encoding
 		int nodes = maxClq.size(); 
 		CustomGraph encoding = new CustomGraph(); 
@@ -174,7 +179,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			for(Node n2: encoding.getNodeArray()) {
 				int i2 = n2.index();
 				double ls = lkstrgth.get(i1, i2);
-				if(ls>=0.2) { // leaving out weak edges
+				if(ls>=wtr) { // leaving out weak edges
 					Edge e1 = encoding.createEdge(n1, n2);
 					Edge e2 = encoding.createEdge(n2, n1);
 					encoding.setEdgeWeight(e1, ls);
@@ -471,6 +476,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}		
 			HashMap<Vector, Vector> EP_new = new HashMap<Vector, Vector>(); // updated EP
 			Iterator<Vector> it = EP.keySet().iterator(); 
+			boolean added = true; 
 			while(it.hasNext()) {// is the new solution dominated by any vector in EP 
 				Vector fitEP = it.next(); 
 				// fitness of the solution in EP
@@ -481,30 +487,30 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				double CR = new_fit.get(1);
 				// new_sol is dominated (already found a better solution) -> new solution will not be added to EP
 				if((NRAEP < NRA && CREP <= CR) || (CREP < CR && NRAEP <= NRA)) {
-					return; 
+					added = false; 
+					break; 
 				}
 				// vectors not dominated by fitness stay in EP
 				if((NRAEP > NRA && CREP < CR) || (CREP > CR && NRAEP < NRA)) {
 					EP_new.put(fitEP, EP.get(fitEP));  
 				}
 			}
-	
-			EP = EP_new; 
-			EP.put(new_fit, new_sol); 
-			newSolNr++;
-			ant.setTrueNew_sol();
 			
-			//update reference point
-			if(refPoint.get(0) > new_fit.get(0)) {
-				refPoint.set(0, new_fit.get(0));
-			}
-			if(refPoint.get(1) > new_fit.get(1)) {
-				refPoint.set(1, new_fit.get(1));
+			if(added == true) {//change EP
+				EP = EP_new; 
+				EP.put(new_fit, new_sol); 
+				newSolNr++;
+				ant.setTrueNew_sol();
+				
+				//update reference point
+				if(refPoint.get(0) > new_fit.get(0)) {
+					refPoint.set(0, new_fit.get(0));
+				}
+				if(refPoint.get(1) > new_fit.get(1)) {
+					refPoint.set(1, new_fit.get(1));
+				}
 			}
 		}
-		double[] limits = new double[2]; 
-		limits[1] = (newSolNr + 1)/((1 - rho)*(1 + g_min)); 
-		limits[0] =	0.001 * limits[1]; 	
 		
 		// neighborhood interaction
 		List<Double> tcList = new ArrayList<Double>(); 
@@ -539,7 +545,10 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 		}
 		
-		// set pheormone matrix
+	    // set pheromone matrix
+		double[] limits = new double[2]; 
+		limits[1] = (newSolNr + 1)/((1 - rho)*(1 + g_min)); 
+		limits[0] =	0.001 * limits[1]; 	
 		for(int k = 0; k < K; k++) {
 			Matrix m = new Basic2DMatrix(nodeNr, nodeNr);
 			Matrix persist = pheromones.get(k).multiply(rho); // persistence of the pheromones on a path
@@ -792,11 +801,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		Cover bestCov = new Cover(graph); 
 		double Q = 0; 
 		ExtendedModularityMetric EM = new ExtendedModularityMetric(); 
+		HashSet<Node> inCommunity = new HashSet<Node>();
+		Node[] nodes = graph.getNodeArray();
 		for(Vector sol: EP.values()) {
 			// find out how many communities are there
 			List<Vector> membershipMatrixVectors = new ArrayList<Vector>(nodeNr);
 			List<Integer> com = new ArrayList<Integer>();
-	
+			
+			for(int i = 0; i < graph.nodeCount(); i++) {
+				inCommunity.add(nodes[i]);
+			}
+			
 			for(int i = 0; i < nodeNr; i++) {
 				int com1 = (int) sol.get(i);
 				if(!com.contains(com1)) {
@@ -813,10 +828,27 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			for(Entry<Integer, HashSet<Node>> entry: maxClq.entrySet()) {
 				int member = (int) sol.get(entry.getKey()); // index of the solution community
 				for(Node n: entry.getValue()){ 
+					inCommunity.remove(n);  
 					Vector v = membershipMatrixVectors.get(member);
 					v.set(n.index(), 1);
 					membershipMatrixVectors.set(member, v);  // set node in community 
 				}
+			}
+			
+			System.out.print(inCommunity);
+			for(Node n: inCommunity) {
+				Set<Node> neighbors = graph.getNeighbours(n); 
+				for(Node neighbor: neighbors) {
+					int id = neighbor.index();
+					for(int i = 0; i < membershipMatrixVectors.size(); i++) {
+						Vector v = membershipMatrixVectors.get(i);
+						if(v.get(id) == 1) {
+							v.set(n.index(), 1); 
+							break; 
+						}
+					}
+				}
+				
 			}
 			
 			Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),com.size());
@@ -825,8 +857,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 			
 			//generate Cover
-			Cover c = new Cover(graph); 
-			c.setMemberships(membershipMatrix);
+			Cover c = new Cover(graph,membershipMatrix); 
 			
 			double Q_c = EM.measure(c);
 			System.out.println("modularity: " + Q_c);
@@ -865,9 +896,12 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	@Override
 	public Map<String,String> getParameters(){
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(MAX_ITERATIONS, Double.toString(maxIterations));
+		parameters.put(MAX_ITERATIONS, Integer.toString(maxIterations));
 		parameters.put(NUMBER_OF_ANTS, Integer.toString(M));
-		parameters.put(EVAPORATION_FACTOR, Double.toString(rho));
+		parameters.put(PERSISTANCE_FACTOR, Double.toString(rho));
+		parameters.put(NUMMER_OF_NEIGHBORS, Integer.toString(nearNbors));
+		parameters.put(INITIAL_PHEROMONES, Integer.toString(initialPheromones));
+		parameters.put(NUMBER_OF_GROUP, Integer.toString(K));
 		return parameters;
 	}
 
@@ -882,17 +916,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		}
 		if(parameters.containsKey(NUMBER_OF_ANTS)) {
 			M = Integer.parseInt(parameters.get(NUMBER_OF_ANTS));
-			if(M <= 0) {
+			if(M <= 1) {
 				throw new IllegalArgumentException();
 			}
 			parameters.remove(NUMBER_OF_ANTS);
 		}
-		if(parameters.containsKey(EVAPORATION_FACTOR)) {
-			rho = Double.parseDouble(parameters.get(EVAPORATION_FACTOR));
+		if(parameters.containsKey(PERSISTANCE_FACTOR)) {
+			rho = Double.parseDouble(parameters.get(PERSISTANCE_FACTOR));
 			if(rho < 0 || rho > 1) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(EVAPORATION_FACTOR);
+			parameters.remove(PERSISTANCE_FACTOR);
 		}
 		
 		if(parameters.containsKey(NUMMER_OF_NEIGHBORS)) {
@@ -903,10 +937,25 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			parameters.remove(NUMMER_OF_NEIGHBORS);
 		}
 	
+		if(parameters.containsKey(INITIAL_PHEROMONES)) {
+			initialPheromones = Integer.parseInt(parameters.get(INITIAL_PHEROMONES));
+			if(initialPheromones < 100) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(INITIAL_PHEROMONES);
+		}
+		
+		if(parameters.containsKey(NUMBER_OF_GROUP)) {
+			K = Integer.parseInt(parameters.get(NUMBER_OF_GROUP));
+			if(K < 1) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(NUMBER_OF_GROUP);
+		}
+		
 		if(parameters.size() > 0) {
 			throw new IllegalArgumentException();
 		}
 	}
-	
 }
 

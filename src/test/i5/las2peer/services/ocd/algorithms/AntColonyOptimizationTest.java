@@ -48,14 +48,14 @@ public class AntColonyOptimizationTest {
 	 */
 	@Test
 	public void testLinkStrenghTest() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
-		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
+		CustomGraph graph = OcdTestGraphFactory.getLinkgraph();
 		MaximalCliqueGraphRepresentation MCl = new MaximalCliqueGraphRepresentation();
 		HashMap<Integer, HashSet<Node>> maxClq = MCl.cliques(graph);
-
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		Matrix linkStr = ACO.linkStrength(graph, maxClq);
 		System.out.println("Link Strength Matrix:");
 		System.out.println(linkStr);
+		System.out.println(maxClq);
 	}
 	
 	@Test

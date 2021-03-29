@@ -813,4 +813,51 @@ public class OcdTestGraphFactory {
 		graph.setCreationMethod(log);
 		return graph;
 	}
+	
+	public static CustomGraph getLinkgraph() {
+		// Creates new graph
+		CustomGraph graph = new CustomGraph();
+		graph.setName(OcdTestConstants.Linkgraph);
+		// Creates nodes
+		Node n[] = new Node[8];  
+		for (int i = 0; i < 8; i++) {
+			n[i] = graph.createNode();
+		}
+		// Creates edges
+		graph.createEdge(n[0], n[1]);
+		graph.createEdge(n[0], n[3]);
+		graph.createEdge(n[0], n[2]);
+		graph.createEdge(n[1], n[0]);
+		graph.createEdge(n[1], n[2]);
+		graph.createEdge(n[2], n[0]);
+		graph.createEdge(n[2], n[1]);
+		graph.createEdge(n[2], n[3]);
+		graph.createEdge(n[3], n[2]);
+		graph.createEdge(n[3], n[4]);
+		graph.createEdge(n[3], n[5]);
+		graph.createEdge(n[3], n[6]);
+		graph.createEdge(n[4], n[3]);
+		graph.createEdge(n[4], n[5]);
+		graph.createEdge(n[4], n[6]);
+		graph.createEdge(n[5], n[3]);
+		graph.createEdge(n[5], n[4]);
+		graph.createEdge(n[5], n[6]);
+		graph.createEdge(n[5], n[7]);
+		graph.createEdge(n[6], n[3]);
+		graph.createEdge(n[6], n[4]);
+		graph.createEdge(n[6], n[5]);
+		graph.createEdge(n[6], n[7]);
+		graph.createEdge(n[7], n[5]);
+		graph.createEdge(n[7], n[6]);
+		EdgeCursor edges = graph.edges();
+		while(edges.ok()) {
+			Edge edge = edges.edge();
+			graph.setEdgeWeight(edge, 1);
+			edges.next();
+		}
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
 }
