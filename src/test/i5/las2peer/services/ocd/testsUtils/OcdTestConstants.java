@@ -107,12 +107,14 @@ public class OcdTestConstants {
 	public static final String wikiElecGraphName = "Wiki Elec Graph";
 	public static final String epinionsGraphName = "Epinions Graph";
 	public static final String slashDotGraphName = "Slash Dot Graph";	
-	public static final String Linkgraph = null;
+	public static final String Linkgraph = null;	
+	public static final String ModularityTestGraph = "Undirected Unweighted Graph for Modularity testing";
 	
 	/*
 	 * others
 	 */
 	public static final String spmResultFilePath = outputFolderPath + "spmResultPartyNetwork.txt";
 	public static final String meaResultFilePath = outputFolderPath + "meaSignedLfrGraphCommunityResult.pop";
+
 
 }

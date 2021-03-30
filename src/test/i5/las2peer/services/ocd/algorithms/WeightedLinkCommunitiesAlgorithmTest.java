@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import org.junit.Test;
@@ -15,7 +16,7 @@ import y.base.EdgeCursor;
 public class WeightedLinkCommunitiesAlgorithmTest {
 
 	@Test
-	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException {
+	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory
 				.getAperiodicTwoCommunitiesGraph();
 		OcdAlgorithm algo = new WeightedLinkCommunitiesAlgorithm();
@@ -27,7 +28,7 @@ public class WeightedLinkCommunitiesAlgorithmTest {
 	 * Tests link communities on the test graph given in the original paper.
 	 */
 	@Test
-	public void testOnLinkCommunitiesTestGraph() throws OcdAlgorithmException, InterruptedException {
+	public void testOnLinkCommunitiesTestGraph() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getLinkCommunitiesTestGraph();
 		EdgeCursor edges = graph.edges();
 		while (edges.ok()) {

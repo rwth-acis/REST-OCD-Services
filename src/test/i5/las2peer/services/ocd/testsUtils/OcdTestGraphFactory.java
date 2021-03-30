@@ -860,4 +860,36 @@ public class OcdTestGraphFactory {
 		graph.setCreationMethod(log);
 		return graph;
 	}
+	
+	public static CustomGraph getModularityTestGraph() {
+		// Creates new graph
+		CustomGraph graph = new CustomGraph();
+		graph.setName(OcdTestConstants.ModularityTestGraph);
+		// Creates nodes
+		Node n[] = new Node[4];  
+		for (int i = 0; i < 4; i++) {
+			n[i] = graph.createNode();
+		}
+		// Creates edges
+		graph.createEdge(n[0], n[1]);
+		graph.createEdge(n[0], n[2]);
+		graph.createEdge(n[1], n[0]);
+		graph.createEdge(n[1], n[2]);
+		graph.createEdge(n[2], n[0]);
+		graph.createEdge(n[2], n[1]);
+		graph.createEdge(n[2], n[3]);
+		graph.createEdge(n[3], n[2]);
+
+	
+		EdgeCursor edges = graph.edges();
+		while(edges.ok()) {
+			Edge edge = edges.edge();
+			graph.setEdgeWeight(edge, 1);
+			edges.next();
+		}
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
 }

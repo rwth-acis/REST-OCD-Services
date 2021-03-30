@@ -7,6 +7,7 @@ import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
+import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.Pair;
 
@@ -37,8 +38,9 @@ public class OcdAlgorithmExecutor {
 	 * @return A cover of the graph calculated by the algorithm.
 	 * @throws OcdAlgorithmException In case of an algorithm failure.
 	 * @throws InterruptedException In case of an algorithm interrupt.
+	 * @throws OcdMetricException 
 	 */
-	public Cover execute(CustomGraph graph, OcdAlgorithm algorithm, int componentNodeCountFilter) throws OcdAlgorithmException, InterruptedException {
+	public Cover execute(CustomGraph graph, OcdAlgorithm algorithm, int componentNodeCountFilter) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		CustomGraph graphCopy = new CustomGraph(graph);
 		GraphProcessor processor = new GraphProcessor();
 		processor.makeCompatible(graphCopy, algorithm.compatibleGraphTypes());
@@ -74,9 +76,10 @@ public class OcdAlgorithmExecutor {
 	 * @return The covers of the connected components each with a node mapping from the component nodes to the original graph nodes.
 	 * @throws OcdAlgorithmException In case of an algorithm failure.
 	 * @throws InterruptedException In case of an algorithm interrupt.
+	 * @throws OcdMetricException 
 	 */
 	private List<Pair<Cover, Map<Node, Node>>> calculateComponentCovers(List<Pair<CustomGraph, Map<Node, Node>>> components,
-			OcdAlgorithm algorithm, int componentNodeCountFilter, ExecutionTime executionTime) throws OcdAlgorithmException, InterruptedException {
+			OcdAlgorithm algorithm, int componentNodeCountFilter, ExecutionTime executionTime) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		List<Pair<Cover, Map<Node, Node>>> componentCovers = new ArrayList<Pair<Cover, Map<Node, Node>>>();
 		CustomGraph component;
 		Cover componentCover;

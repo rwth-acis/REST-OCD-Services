@@ -15,15 +15,15 @@ import org.la4j.vector.dense.BasicVector;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.Ant;
-import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueGraphRepresentation;
+import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueSearch;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
+import i5.las2peer.services.ocd.metrics.ModularityMetric;
+import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import y.base.Edge;
 import y.base.Node;
-
 
 public class AntColonyOptimizationTest {
 	
@@ -49,7 +49,7 @@ public class AntColonyOptimizationTest {
 	@Test
 	public void testLinkStrenghTest() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getLinkgraph();
-		MaximalCliqueGraphRepresentation MCl = new MaximalCliqueGraphRepresentation();
+		MaximalCliqueSearch MCl = new MaximalCliqueSearch();
 		HashMap<Integer, HashSet<Node>> maxClq = MCl.cliques(graph);
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		Matrix linkStr = ACO.linkStrength(graph, maxClq);
@@ -71,21 +71,21 @@ public class AntColonyOptimizationTest {
 	}
 	
 	@Test
-	public void testACO() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
+	public void testACO() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getDolphinsGraph();
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		Cover c = ACO.detectOverlappingCommunities(graph);
 		//ClizzAlgorithm CA = new ClizzAlgorithm(); 
 		//Cover c1 = CA.detectOverlappingCommunities(graph);
 		System.out.print(c);
-		ExtendedModularityMetric mod = new ExtendedModularityMetric();
+		ModularityMetric mod = new ModularityMetric();
 		//System.out.println(mod.measure(c1)); 
 		System.out.println(mod.measure(c));
 	}
 	
 	@Ignore
 	@Test
-	public void testDecoding() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
+	public void testDecoding() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph();
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		CustomGraph MCR = ACO.representationScheme(graph);

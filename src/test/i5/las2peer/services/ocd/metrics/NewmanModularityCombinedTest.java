@@ -19,7 +19,7 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 public class NewmanModularityCombinedTest {
 	@Ignore
 	@Test
-	public void testOnJmol() throws AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdAlgorithmException, InterruptedException{
+	public void testOnJmol() throws AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdAlgorithmException, InterruptedException, OcdMetricException{
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();
 		OcdAlgorithm algo = new CostFunctionOptimizationClusteringAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
