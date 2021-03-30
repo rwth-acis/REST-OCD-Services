@@ -23,13 +23,13 @@ import y.base.NodeCursor;
  * @author Marlene Damm
  *
  */
-public class MaximalCliqueGraphRepresentation{
+public class MaximalCliqueSearch{
 	
 	private HashMap<Integer,HashSet<Node>> maxCliques; // saves the maximal cliques by a numbered key
 	private HashSet<Node> maxClq; // hold the current complete subgraph 
 	private int clqNr; // number of the clique and also key of the HashMap
 	
-	public MaximalCliqueGraphRepresentation() {
+	public MaximalCliqueSearch() {
 		
 	}
 	
@@ -39,12 +39,12 @@ public class MaximalCliqueGraphRepresentation{
 	 */
 	public HashMap<Integer,HashSet<Node>> cliques(CustomGraph graph) {
 		List<Node> nodes = Arrays.asList(graph.getNodeArray());
-		List<Node> subgr = new ArrayList<Node>(nodes);
+		List<Node> subg = new ArrayList<Node>(nodes);
 		List<Node> cand = new ArrayList<Node>(nodes);
 		maxClq = new HashSet<Node>();
 		maxCliques = new HashMap<Integer,HashSet<Node>>();
 		clqNr = 0; 
-		expand(subgr,cand);
+		expand(subg,cand);
 		return maxCliques;
 	}
 	
@@ -55,8 +55,8 @@ public class MaximalCliqueGraphRepresentation{
 	 * the set of all vertices with are not neighbors of the current largest complete subgraph. 
 	 * @param cand: All the vertices which not have been processed by the algorithm
 	 */
-	protected void expand(List<Node> subgr, List<Node> cand){
-		if(subgr.isEmpty() == true) {// found a maximal connected subgraph
+	protected void expand(List<Node> subg, List<Node> cand){
+		if(subg.isEmpty() == true) {// found a maximal connected subgraph
 			if(maxClq.size() < 3) {
 				return; 
 			}
@@ -68,7 +68,7 @@ public class MaximalCliqueGraphRepresentation{
 			// find the node is most connected in the current subset (subgr)
 			int maxcount = 0; 
 			HashSet<Node> maxOverlap = new HashSet<Node>();
-			for(Node v: subgr) {
+			for(Node v: subg) {
 				NodeCursor neighbors = v.neighbors();
 				int count = 0;
 				HashSet<Node> overlap = new HashSet<Node>(); 
@@ -105,7 +105,7 @@ public class MaximalCliqueGraphRepresentation{
 					}
 					
 					//update the candidate and the subgraph set to the neighbors of q
-					List<Node> subgr2 = new ArrayList<Node>(subgr);
+					List<Node> subgr2 = new ArrayList<Node>(subg);
 					List<Node> cand2 = new ArrayList<Node>(cand);
 					subgr2.retainAll(q_neighbors);
 					cand2.retainAll(q_neighbors);
