@@ -567,7 +567,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 					double result = delta + persist.get(i, j);
 					if (result > limits[0]) {
 						if(result < limits[1]) {
-							m.set(i, j, result); // deposit+ evaporation 
+							m.set(i, j, result); // deposit + evaporation 
 							m.set(j, i, result);
 						}
 						else { // too high pheromone concentration

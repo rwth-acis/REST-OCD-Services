@@ -52,15 +52,14 @@ public class ModularityMetric implements StatisticalMeasure {
 			    com2.retainAll(com1);
 				if(com2.size() != 0) {
 					double deg2 = graph.getNeighbours(n2).size();
+					modularity -= deg1*deg2/(2*edgeCount);
 					if(adjacency.get(i, j) > 0){
 						modularity += 1;
 					} 
-					modularity -= deg1*deg2/(2*edgeCount);
 				}
 			}
 		}
-				
-				
+						
 		return modularity/edgeCount; 
 	}
 	
