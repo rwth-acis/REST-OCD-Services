@@ -666,7 +666,10 @@ public class ServiceClass extends RESTService {
 					entityHandler.deleteGraph(username, graphId, threadHandler);
 
 				} catch (Exception e) {
-					return requestHandler.writeError(Error.INTERNAL, "Graph not found");
+					if(e.getMessage() != null) {
+						requestHandler.writeError(Error.INTERNAL, "Graph could not be deleted: " + e.getMessage());
+					}
+					requestHandler.writeError(Error.INTERNAL, "Graph not found");
 				}
 
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
@@ -1160,16 +1163,16 @@ public class ServiceClass extends RESTService {
 									"Invalid graph creation method status for metric execution: "
 											+ graph.getCreationMethod().getStatus().name());
 						}
-						boolean weight = Boolean.parseBoolean(contentWeighting);
+						boolean weight = Boolean.parseBoolean(contentWeighting);					
 						if (weight && (algorithm
 								.getAlgorithmType() == CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM
 								|| algorithm.getAlgorithmType() == CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM)) {
 							requestHandler.log(Level.WARNING,
 									"user: " + username + ", "
-											+ "Invalid algorihtm in combination of weighting requested: "
+											+ "Invalid algorithm in combination of weighting requested: "
 											+ algorithm.getAlgorithmType().toString());
 							return requestHandler.writeError(Error.PARAMETER_INVALID,
-									"Invalid algorihtm in combination of weighting requested:"
+									"Invalid algorihtm in combination of weighting requested: "
 											+ algorithm.getAlgorithmType().toString());
 						}
 						if (weight) {
