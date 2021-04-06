@@ -33,6 +33,6 @@
 		<dependency org="org.ojalgo" name="ojalgo" rev="48.3.2" conf="platform->default"/>
 		<dependency org="net.sbbi" name="sbbi-upnplib" rev="1.0.4" conf="platform->default"/>
 		<dependency org="org.la4j" name="la4j" rev="0.4.9" conf="platform->default"/>
-
+		<exclude org="xml-apis" />
     </dependencies>
 </ivy-module>
