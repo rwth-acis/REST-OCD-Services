@@ -106,17 +106,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/*
 	 * PARAMETER NAMES
 	 */
-	protected static final String MAX_ITERATIONS = "Number of iterations";
+	protected static final String MAX_ITERATIONS = "number of iterations";
 	
-	protected static final String NUMBER_OF_ANTS = "Number of ants/subproblems";
+	protected static final String NUMBER_OF_ANTS = "number of ants/subproblems";
 			
-	protected static final String PERSISTANCE_FACTOR = "Persistence of the pheromones on the graph";
+	protected static final String PERSISTANCE_FACTOR = "persistence of the pheromones on the graph";
 	
-	protected static final String NUMMER_OF_NEIGHBORS = "Number of nearest neighbors to be considered in a neighborhood";
+	protected static final String NUMMER_OF_NEIGHBORS = "number of nearest neighbors to be considered in a neighborhood";
 	
-	protected static final String INITIAL_PHEROMONES = "Intial pheormone concentration";
+	protected static final String INITIAL_PHEROMONES = "intial pheormone concentration";
 	
-	protected static final String NUMBER_OF_GROUP = "Number of ants in a group";
+	protected static final String NUMBER_OF_GROUP = "number of groups";
 	
 	public AntColonyOptimizationAlgorithm() {}
 	
@@ -477,15 +477,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}		
 			HashMap<Vector, Vector> EP_new = new HashMap<Vector, Vector>(); // updated EP
 			Iterator<Vector> it = EP.keySet().iterator(); 
+			// fitness of the new solution
+			double NRA = new_fit.get(0); 
+			double CR = new_fit.get(1);
 			boolean added = true; 
+			
 			while(it.hasNext()) {// is the new solution dominated by any vector in EP 
 				Vector fitEP = it.next(); 
 				// fitness of the solution in EP
 				double NRAEP = fitEP.get(0);
 				double CREP = fitEP.get(1);
-				// fitness of the new solution
-				double NRA = new_fit.get(0); 
-				double CR = new_fit.get(1);
+
 				// new_sol is dominated (already found a better solution) -> new solution will not be added to EP
 				if((NRAEP < NRA && CREP <= CR) || (CREP < CR && NRAEP <= NRA)) {
 					added = false; 

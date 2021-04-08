@@ -17,7 +17,7 @@ import y.base.NodeCursor;
 
 /**
  * Implementation of LocalRank.
- * See: Chen, Duanbing and Lü, Linyuan and Shang, Ming-Sheng and Zhang, Yi-Cheng and Zhou, Tao. 2012. Identifying influential nodes in complex networks.
+ * See: Chen, Duanbing and LÃ¼, Linyuan and Shang, Ming-Sheng and Zhang, Yi-Cheng and Zhou, Tao. 2012. Identifying influential nodes in complex networks.
  * @author Tobias
  *
  */
