@@ -70,21 +70,19 @@ public class MaximalCliqueSearch{
 			HashSet<Node> maxOverlap = new HashSet<Node>();
 			for(Node v: subg) {
 				NodeCursor neighbors = v.neighbors();
-				int count = 0;
 				HashSet<Node> overlap = new HashSet<Node>(); 
 				
 				// find nodes that are neighbors of the current node and the current subset
 				while(neighbors.ok()) {
 					Node u = neighbors.node();
 					if(cand.contains(u)) {
-						count++;
 						overlap.add(u);
 					}
 					neighbors.next(); 
 				}
 				// to find the maximum neighborhood overlap with the current subgraph
-				if(count >= maxcount){
-				    maxcount = count; 
+				if(overlap.size() >= maxcount){
+				    maxcount = overlap.size(); 
 				    maxOverlap = overlap; 
 				}
 			}
