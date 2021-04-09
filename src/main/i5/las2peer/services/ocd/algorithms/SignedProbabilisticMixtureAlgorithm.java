@@ -204,17 +204,16 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 		for(int r=0; r<communityCount; r++) {
 			for(int s=0; s<communityCount; s++) {
 				rndGenerator.setSeed(System.nanoTime());
-				edgeProbabilities.set(r, s, rndGenerator.nextDouble() *100 +1.0);
+				edgeProbabilities.set(r, s, rndGenerator.nextDouble() *100 + 1.0);
 			}
 		}
-		edgeProbabilities = edgeProbabilities.multiply(1.0 / edgeProbabilities.sum());
 		
 		// Set 0_ri
 		Node nodes[] = graph.getNodeArray();
 		for(int r=0; r<communityCount; r++) {
 			for(int i=0; i<graph.getNodeArray().length; i++) {
 					rndGenerator.setSeed(System.nanoTime());
-					nodeProbabilities.set(r, nodes[i].index(), rndGenerator.nextDouble() *100 +1.0);
+					nodeProbabilities.set(r, nodes[i].index(), rndGenerator.nextDouble() *100 + 1.0);
 			}
 			nodeProbabilities.setRow(r, nodeProbabilities.getRow(r).multiply(1.0 / nodeProbabilities.getRow(r).sum()));			
 		}
@@ -243,7 +242,6 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 				membershipMatrix.set(node.index(), r, (allProbSum != 0 ? outgoingProbSum[r] / allProbSum : 1.0/communityCount));
 			}
 		}
-		
 		return membershipMatrix;
 	}
 	
