@@ -407,6 +407,17 @@ public class OcdTestGraphFactory {
 		return graph;
 	}
 	
+	public static CustomGraph getSignedGahukuGamaTestGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.gahukuGamaWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.gahukuGamaGraphName);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+	
 	public static CustomGraph getLfrGraph() throws FileNotFoundException, AdapterException {
 		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
 		adapter.setReader(new FileReader(OcdTestConstants.lfrUnweightedEdgeListInputPath));
