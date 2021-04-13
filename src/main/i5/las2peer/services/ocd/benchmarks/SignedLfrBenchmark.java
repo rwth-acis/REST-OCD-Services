@@ -28,7 +28,7 @@ import org.la4j.matrix.Matrix;
 
 /**
  * The signed LFR benchmark model for signed and directed graphs. Makes use of
- * an LFR benchmark application written by Lancichinetti.
+ * an LFR benchmark application written by Lancichinetti (the one for directed networks).
  * 
  * @author YLi
  *
