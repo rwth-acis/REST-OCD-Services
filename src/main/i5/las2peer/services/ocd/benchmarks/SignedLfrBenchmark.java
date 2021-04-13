@@ -139,7 +139,7 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 		parameters.put(ON_NAME, Integer.toString(on));
 		parameters.put(OM_NAME, Integer.toString(om));
 		parameters.put(NEG_NAME, Double.toString(neg));
-		parameters.put(POS_NAME, Double.toString(neg));
+		parameters.put(POS_NAME, Double.toString(pos));
 		return parameters;
 	}
 
@@ -216,7 +216,7 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 				throw new IllegalArgumentException();
 			}
 		}
-		if (parameters.containsKey(POS_NAME)) {
+		if (parameters.containsKey(NEG_NAME)) {
 			neg = Double.parseDouble(parameters.get(NEG_NAME));
 			parameters.remove(NEG_NAME);
 			if (neg < 0 || neg > 1) {
@@ -224,6 +224,7 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 			}
 		}
 		if (parameters.size() > 0) {
+			System.out.println(parameters);
 			throw new IllegalArgumentException();
 		}
 	}

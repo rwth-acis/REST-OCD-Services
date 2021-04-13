@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
+import i5.las2peer.services.ocd.benchmarks.SignedLfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmark;
@@ -38,7 +39,9 @@ public enum GraphCreationType {
 	/**
 	 * Type corresponding to the LfrBenchmark.
 	 */
-	LFR (LfrBenchmark.class, 3);
+	LFR (LfrBenchmark.class, 3),
+	
+	SIGNED_LFR(SignedLfrBenchmark.class, 4);
 	
 	/**
 	 * For persistence and other purposes.
