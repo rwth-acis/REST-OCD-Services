@@ -99,6 +99,7 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
+import i5.las2peer.services.ocd.metrics.NewmanModularityCombined;
 import i5.las2peer.services.ocd.metrics.OcdMetricFactory;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
@@ -670,7 +671,10 @@ public class ServiceClass extends RESTService {
 					entityHandler.deleteGraph(username, graphId, threadHandler);
 
 				} catch (Exception e) {
-					return requestHandler.writeError(Error.INTERNAL, "Graph not found");
+					if(e.getMessage() != null) {
+						requestHandler.writeError(Error.INTERNAL, "Graph could not be deleted: " + e.getMessage());
+					}
+					requestHandler.writeError(Error.INTERNAL, "Graph not found");
 				}
 
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
@@ -1165,16 +1169,25 @@ public class ServiceClass extends RESTService {
 											+ graph.getCreationMethod().getStatus().name());
 						}
 						boolean weight = Boolean.parseBoolean(contentWeighting);
+						if(!graph.isOfType(GraphType.CONTENT_LINKED) && !graph.isOfType(GraphType.CONTENT_UNLINKED) && (weight || (algorithm
+								.getAlgorithmType() == CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM
+								|| algorithm.getAlgorithmType() == CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM))) {
+							requestHandler.log(Level.WARNING,
+									"user: " + username + ", "
+											+ "Content weighted algorithm chosen for non-content graph: "
+											+ algorithm.getAlgorithmType().toString() + " " + graph.getTypes() + " " + graph.getPath());
+							return requestHandler.writeError(Error.PARAMETER_INVALID,
+									"Content weighted algorithm chosen for non-content graph");
+						}
 						if (weight && (algorithm
 								.getAlgorithmType() == CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM
 								|| algorithm.getAlgorithmType() == CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM)) {
 							requestHandler.log(Level.WARNING,
 									"user: " + username + ", "
-											+ "Invalid algorihtm in combination of weighting requested: "
+											+ "Invalid algorithm in combination of weighting requested: "
 											+ algorithm.getAlgorithmType().toString());
 							return requestHandler.writeError(Error.PARAMETER_INVALID,
-									"Invalid algorihtm in combination of weighting requested:"
-											+ algorithm.getAlgorithmType().toString());
+									"Invalid algorithm in combination of weighting requested");
 						}
 						if (weight) {
 							ContentBasedWeightingAlgorithm weightAlgo = new ContentBasedWeightingAlgorithm();
@@ -2404,6 +2417,33 @@ public class ServiceClass extends RESTService {
 	    							"Invalid cover creation method status for metric execution: "
 	    									+ cover.getCreationMethod().getStatus().name());
 	    				}
+	    				
+	    				boolean compatibleType = false;
+	    				for(GraphType type : cover.getGraph().getTypes()) {
+	    					if(metric.compatibleGraphTypes().contains(type))
+	    					{
+	    						compatibleType = true;
+	    						break;
+	    					}
+	    				}
+	    				if(!compatibleType) {
+							requestHandler.log(Level.WARNING,
+									"user: " + username + ", "
+											+ "Metric not applicable with graph, needs one of these types: "
+											+  metric.compatibleGraphTypes().toString());
+							return requestHandler.writeError(Error.PARAMETER_INVALID,
+									"Metric not applicable with graph, needs one of these types: " + metric.compatibleGraphTypes().toString());
+						}
+	    				else if (metric instanceof NewmanModularityCombined && !cover.getGraph().isOfType(GraphType.CONTENT_LINKED) && !cover.getGraph().isOfType(GraphType.CONTENT_UNLINKED))
+	    				{
+	    					requestHandler.log(Level.WARNING,
+									"user: " + username + ", "
+											+ "Metric not applicable with graph, needs to be a graph with node content "
+											+  metric.compatibleGraphTypes().toString());
+							return requestHandler.writeError(Error.PARAMETER_INVALID,
+									"Metric not applicable with graph, needs to be a graph with node content");
+	    				}
+	    				
 	    				log = new OcdMetricLog(metricType, 0, parameters, cover);
 	    				log.setStatus(ExecutionStatus.WAITING);
 	    				cover.addMetric(log);

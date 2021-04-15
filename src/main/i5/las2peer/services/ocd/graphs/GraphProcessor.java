@@ -56,8 +56,17 @@ public class GraphProcessor {
 			reverseEdge = edge.target().getEdgeTo(edge.source());
 			if (reverseEdge == null || graph.getEdgeWeight(reverseEdge) != edgeWeight) {
 				graph.addType(GraphType.DIRECTED);
-			}
+			}			
 			edges.next();
+		}
+		if (graph.getPath() != "" && graph.getPath() != null) {
+			if (graph.edgeCount() == 0) {
+				graph.addType(GraphType.CONTENT_UNLINKED);
+			}
+			else 
+			{
+				graph.addType(GraphType.CONTENT_LINKED);
+			}
 		}
 	}
 
