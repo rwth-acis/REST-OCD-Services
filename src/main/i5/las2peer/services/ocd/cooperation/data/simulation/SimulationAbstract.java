@@ -49,7 +49,7 @@ public abstract class SimulationAbstract implements TableInterface {
 	 * The Id of the owning user
 	 */
 	@Basic
-	private long userId;
+	private String userId;
 
 	/**
 	 * cooperativity the simulation
@@ -132,7 +132,7 @@ public abstract class SimulationAbstract implements TableInterface {
 	}
 
 	@JsonIgnore
-	public long getUserId() {
+	public String getUserId() {
 		return this.userId;
 	}
 
@@ -179,7 +179,7 @@ public abstract class SimulationAbstract implements TableInterface {
 		this.name = name;
 	}
 
-	public void setUserId(long userId) {
+	public void setUserId(String userId) {
 		this.userId = userId;
 	}
 

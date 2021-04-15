@@ -54,7 +54,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * @param series the simulation series
 	 * @return the persistence id
 	 */
-	public synchronized long store(SimulationSeries series, long userId) {
+	public synchronized long store(SimulationSeries series, String userId) {
 		
 		series.setUserId(userId);
 		EntityManager em = getEntityManager();
@@ -96,7 +96,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	/**
 	 * @return all SimulationSeries of a specific user
 	 */
-	public List<SimulationSeries> getSimulationSeriesByUser(long userId) {
+	public List<SimulationSeries> getSimulationSeriesByUser(String userId) {
 
 		EntityManager em = getEntityManager();
 		TypedQuery<SimulationSeries> query = em.createQuery("SELECT s FROM SimulationSeries s WHERE s.userId = :id", SimulationSeries.class);
@@ -111,7 +111,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * @param length Number of simulations
 	 * @return List of SimulationSeries of a specific user
 	 */
-	public List<SimulationSeries> getSimulationSeriesByUser(long userId, int firstIndex, int length) {
+	public List<SimulationSeries> getSimulationSeriesByUser(String userId, int firstIndex, int length) {
 		
 		EntityManager em = getEntityManager();
 		TypedQuery<SimulationSeries> query = em.createQuery("SELECT s FROM SimulationSeries s WHERE s.userId = :id", SimulationSeries.class);
@@ -128,7 +128,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * @param parameters
 	 * @return List of SimulationsSeries
 	 */
-	public List<SimulationSeries> getSimulationSeries(long userId, long graphId, DynamicType dynamic, GameType game) {
+	public List<SimulationSeries> getSimulationSeries(String userId, long graphId, DynamicType dynamic, GameType game) {
 
 		EntityManager em = getEntityManager();				 
 		TypedQuery<SimulationSeries> query = em.createQuery(
@@ -152,7 +152,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * @param graphId
 	 * @return simulation series list
 	 */
-	public List<SimulationSeries> getSimulationSeriesByUser(long userId, long graphId, int firstIndex, int length) {
+	public List<SimulationSeries> getSimulationSeriesByUser(String userId, long graphId, int firstIndex, int length) {
 
 		List<SimulationSeries> seriesList = getSimulationSeriesByUser(userId, firstIndex, length);
 		List<SimulationSeries> resultList = new ArrayList<>();
@@ -189,7 +189,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * @param group
 	 * @return
 	 */
-	public synchronized long store(SimulationSeriesGroup group, long userId) {
+	public synchronized long store(SimulationSeriesGroup group, String userId) {
 		
 		group.setUserId(userId);
 		EntityManager em = getEntityManager();
@@ -259,7 +259,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	/**
 	 * @return all SimulationSeriesGroups of a specific user
 	 */
-	public List<SimulationSeriesGroup> getSimulationSeriesGroups(long userId) {
+	public List<SimulationSeriesGroup> getSimulationSeriesGroups(String userId) {
 		
 		EntityManager em = getEntityManager();
 		TypedQuery<SimulationSeriesGroup> query = em.createQuery("SELECT s FROM SimulationSeriesGroup s WHERE s.userId = :id", SimulationSeriesGroup.class);
@@ -276,7 +276,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * @param length Number of entries
 	 * @return simulationSeriesGroups
 	 */
-	public List<SimulationSeriesGroup> getSimulationSeriesGroups(long userId, int firstIndex, int length) {
+	public List<SimulationSeriesGroup> getSimulationSeriesGroups(String userId, int firstIndex, int length) {
 		
 		EntityManager em = getEntityManager();
 		TypedQuery<SimulationSeriesGroup> query = em.createQuery("SELECT s FROM SimulationSeriesGroup s WHERE s.userId = :id", SimulationSeriesGroup.class);

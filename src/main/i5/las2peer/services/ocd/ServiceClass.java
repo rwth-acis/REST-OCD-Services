@@ -39,12 +39,15 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.api.Context;
+import i5.las2peer.api.ManualDeployment;
+import i5.las2peer.api.security.UserAgent;
+import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
+import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.logging.L2pLogger;
-import i5.las2peer.logging.NodeObserver.Event;
-import i5.las2peer.p2p.AgentNotKnownException;
+import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.security.UserAgent;
+import i5.las2peer.execution.ExecutionContext;
 import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -135,6 +138,7 @@ import y.base.Graph;
  *
  */
 
+@ManualDeployment
 @ServicePath("ocd")
 @Api
 @SwaggerDefinition(info = @Info(title = "LAS2peer OCD Service", version = "1.0", description = "A RESTful service for overlapping community detection.", termsOfService = "sample-tos.io", contact = @Contact(name = "Sebastian Krott", email = "sebastian.krott@rwth-aachen.de"), license = @License(name = "Apache License 2", url = "http://www.apache.org/licenses/LICENSE-2.0")))
@@ -214,8 +218,8 @@ public class ServiceClass extends RESTService {
 		return ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	}
 
-	public static long getUserId() {
-		return Context.getCurrent().getMainAgent().getId();
+	public static String getUserId() {
+		return Context.getCurrent().getMainAgent().getIdentifier();
 	}
 
 	//////////////////////////////////////////////////////////////////
@@ -3749,13 +3753,14 @@ public class ServiceClass extends RESTService {
 		public Response getSimulations(SimulationSeriesParameters parameters) {
 	
 			List<SimulationSeries> series = new ArrayList<>();
-			long userId = getUserId();
+			String userId = getUserId();
 			try {
 	
 				series = entityHandler.getSimulationSeriesByUser(userId);
 	
 			} catch (Exception e) {
-				L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				//L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
 			}
@@ -3793,7 +3798,8 @@ public class ServiceClass extends RESTService {
 					}
 				}
 			} catch (Exception e) {
-				L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				//L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
 			}
@@ -4073,7 +4079,8 @@ public class ServiceClass extends RESTService {
 					simulations = entityHandler.getSimulationSeriesGroups(getUserId(), firstIndex, length);
 				}
 			} catch (Exception e) {
-				L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				//L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
 			}
@@ -4152,7 +4159,8 @@ public class ServiceClass extends RESTService {
 					simulation.evaluate();
 	
 			} catch (Exception e) {
-				L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				//L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
 			}
@@ -4399,7 +4407,7 @@ public class ServiceClass extends RESTService {
 	 * @return HashMap
 	 * 
 	 */
-	public List<Long> getGraphIds() throws AgentNotKnownException {
+	public List<Long> getGraphIds() throws AgentNotRegisteredException {
 
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 		List<Long> graphIdList = new ArrayList<Long>();

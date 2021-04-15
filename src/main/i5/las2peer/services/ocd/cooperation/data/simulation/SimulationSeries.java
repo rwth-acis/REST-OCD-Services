@@ -41,7 +41,7 @@ public class SimulationSeries extends SimulationAbstract {
 	 * The id of the owner
 	 */
 	@Basic
-	private long userId;
+	private String userId;
 
 	/**
 	 * The simulation parameters used for this simulation series
@@ -121,7 +121,7 @@ public class SimulationSeries extends SimulationAbstract {
 
 	@Override
 	@JsonIgnore
-	public long getUserId() {
+	public String getUserId() {
 		return userId;
 	}
 
@@ -161,7 +161,7 @@ public class SimulationSeries extends SimulationAbstract {
 
 	@Override
 	@JsonSetter
-	public void setUserId(long userId) {
+	public void setUserId(String userId) {
 		this.userId = userId;
 	}
 
