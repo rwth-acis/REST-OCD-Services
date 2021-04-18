@@ -22,8 +22,8 @@
 		<dependency org="org.apache.commons" name="commons-dbcp2" rev="2.0" conf="platform->default" />
 		<dependency org="org.apache.commons" name="commons-math3" rev="3.5" conf="platform->default" />
 		<dependency org="org.apache.geronimo.specs" name="geronimo-jpa_2.0_spec" rev="1.1" conf="platform->default" />
-		<dependency org="org.apache.lucene" name="lucene-core" rev="5.3.1" conf="platform->default" />
-		<dependency org="org.apache.lucene" name="lucene-analyzers-common" rev="5.3.1" conf="platform->default" />
+		<dependency org="org.apache.lucene" name="lucene-core" rev="8.8.2" conf="platform->default" />
+		<dependency org="org.apache.lucene" name="lucene-analyzers-common" rev="8.8.2" conf="platform->default" />
 		<dependency org="org.apache.poi" name="poi" rev="3.13" conf="platform->default" />
 		<dependency org="org.apache.poi" name="poi-ooxml" rev="3.13" conf="platform->default" />
 		<dependency org="org.ejml" name="ejml" rev="0.7" conf="platform->default" />
