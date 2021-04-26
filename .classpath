@@ -125,10 +125,13 @@
 	<classpathentry kind="lib" path="lib/serializer-2.7.2.jar"/>
 	<classpathentry kind="lib" path="lib/xalan-2.7.2.jar"/>
 	<classpathentry kind="lib" path="lib/xmlgraphics-commons-2.6.jar"/>
+	<classpathentry kind="lib" path="lib/jena-arq-4.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/jena-core-4.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/jena-base-4.0.0.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk-14.0.2">
-               <attributes>
-                   <attribute name="module" value="true"/>
-               </attributes>
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/lucene-analyzers-common-8.8.2.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-core-8.8.2.jar"/>
