@@ -18,7 +18,7 @@ import y.base.NodeCursor;
 /**
  * Implementation of the H-index.
  * See: Hirsch, J. E. 2005. An index to quantify an individual's scientific research output.
- * Lü, Linyuan and Chen, Duanbing and Ren, Xiao-Long and Zhang, Qian-Ming and Zhang, Yi-Cheng and Zhou, Tao. 2016. Vital nodes identification in complex networks.
+ * LÃ¼, Linyuan and Chen, Duanbing and Ren, Xiao-Long and Zhang, Qian-Ming and Zhang, Yi-Cheng and Zhou, Tao. 2016. Vital nodes identification in complex networks.
  * @author Tobias
  *
  */

@@ -62,19 +62,9 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 	 */
 	private String key = "";
 
-	private String filePath = null;
-
-	private String indexPath = null;
-
 	@Override
 	public void setParameter(Map<String, String> param) throws IllegalArgumentException, ParseException {
 
-		if (param.containsKey("filePath")) {
-			filePath = param.get("filePath");
-		}
-		if (param.containsKey("indexPath")) {
-			indexPath = param.get("indexPath");
-		}
 //		if (param.containsKey("key")) {
 //			key = param.get("key");
 //		}
@@ -144,10 +134,6 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 		// Map<String, String> nodeContents = new HashMap<String, String>();
 
 		try {
-			if (indexPath == null) {
-				throw new AdapterException("No path for saving index");
-			}
-			graph.setPath(indexPath);
 			// File file = new File(filePath);
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder;

@@ -17,8 +17,11 @@ import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WordClusteringRefinementAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LocalSpectralClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.AntColonyOptimizationAlgorithm;
+import i5.las2peer.services.ocd.algorithms.LouvainAlgorithm;
+import i5.las2peer.services.ocd.algorithms.DetectingOverlappingCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
+import i5.las2peer.services.ocd.benchmarks.SignedLfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
 
 import java.security.InvalidParameterException;
@@ -94,25 +97,25 @@ public enum CoverCreationType {
 	 */
 	NEWMAN(NewmanBenchmark.class, 12),
 	/**
-	 */
-	COST_FUNC_OPT_CLUSTERING_ALGORITHM(CostFunctionOptimizationClusteringAlgorithm.class, 13),
-	/**
-	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
+	 * Type corresponding to the LfrBenchmark, which is a ground truth benchmark.
 	 * Cannot be used for algorithm instantiation.
 	 */
-	//DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 13);
+	SIGNED_LFR(SignedLfrBenchmark.class, 13),
+	/**
+	 */
+	COST_FUNC_OPT_CLUSTERING_ALGORITHM(CostFunctionOptimizationClusteringAlgorithm.class, 14),
 	/**
 	 * Type corresponding to the SignedDMIDAlgorithm.
 	 */
-	SIGNED_DMID_ALGORITHM(SignedDMIDAlgorithm.class, 14),
+	SIGNED_DMID_ALGORITHM(SignedDMIDAlgorithm.class, 15),
 	/**
 	 * Type corresponding to the EvolutionaryAlgorithmBasedOnSimilarity.
 	 */	
-	EVOLUTIONARY_ALGORITHM_BASED_ON_SIMILARITY(EvolutionaryAlgorithmBasedOnSimilarity.class,15),
+	EVOLUTIONARY_ALGORITHM_BASED_ON_SIMILARITY(EvolutionaryAlgorithmBasedOnSimilarity.class,16),
 	/**
 	 * Type corresponding to the SignedProbabilisticMixtureAlgorithm.
 	 */	
-	SIGNED_PROBABILISTIC_MIXTURE_ALGORITHM(SignedProbabilisticMixtureAlgorithm.class,16),
+	SIGNED_PROBABILISTIC_MIXTURE_ALGORITHM(SignedProbabilisticMixtureAlgorithm.class,17),
 //	/**
 //	 * Type corresponding to the SignedDMIDExtendedAlgorithm.
 //	 */	
@@ -121,23 +124,25 @@ public enum CoverCreationType {
 	/**
 	 * Type corresponding to the wordclustering algorithm with refinement.	
 	 */
-	WORD_CLUSTERING_REF_ALGORITHM(WordClusteringRefinementAlgorithm.class, 17), 
-	
-	/**
-	 * Type corresponding to the LocalSpectralClustering algorithm with refinement.	
-	 */
-	LOCAL_SPECTRAL_CLUSTERING_ALGORITHM(LocalSpectralClusteringAlgorithm.class, 18),
-	
+	WORD_CLUSTERING_REF_ALGORITHM(WordClusteringRefinementAlgorithm.class, 18), 	
 	/**
 	 * Type corresponding to the AntColonyOptimization algorithm 
 	 */
-	ANT_COLONY_OPTIMIZATION(AntColonyOptimizationAlgorithm.class, 19);
+	ANT_COLONY_OPTIMIZATION(AntColonyOptimizationAlgorithm.class, 19),
+	/**
+	 * Type corresponding to the LocalSpectralClustering algorithm.	
+	 */
+	LOCAL_SPECTRAL_CLUSTERING_ALGORITHM(LocalSpectralClusteringAlgorithm.class, 20),
 	
 	/**
-	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
-	 * Cannot be used for algorithm instantiation.
+	 * Type corresponding to the Louvain method algorithm.	
 	 */
-	//DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 13);
+	LOUVAIN_ALGORITHM(LouvainAlgorithm.class, 21),
+	
+	/**
+	 * Type corresponding to the DetectingOverlappingCommunities Algorithm.
+	 */
+	DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 22);
 
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.

@@ -120,6 +120,96 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	public AntColonyOptimizationAlgorithm() {}
 	
+	// --------------------------------------------------------------------------------------------------------------------------------------------------
+	// override important methods from the parent class
+	// --------------------------------------------------------------------------------------------------------------------------------------------------
+	
+	/**
+	 * Returns all graph types the algorithm is compatible with.
+	 * @return The compatible graph types.
+	 * An empty set if the algorithm is not compatible with any type.
+	 */
+	public Set<GraphType> compatibleGraphTypes(){
+		Set<GraphType> compatibilities = new HashSet<GraphType>();
+		compatibilities.add(GraphType.ZERO_WEIGHTS);
+		compatibilities.add(GraphType.SELF_LOOPS);
+		return compatibilities;
+	};	
+	
+	@Override
+	public Map<String,String> getParameters(){
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put(MAX_ITERATIONS, Integer.toString(maxIterations));
+		parameters.put(NUMBER_OF_ANTS, Integer.toString(M));
+		parameters.put(PERSISTANCE_FACTOR, Double.toString(rho));
+		parameters.put(NUMMER_OF_NEIGHBORS, Integer.toString(nearNbors));
+		parameters.put(INITIAL_PHEROMONES, Integer.toString(initialPheromones));
+		parameters.put(NUMBER_OF_GROUP, Integer.toString(K));
+		return parameters;
+	}
+	@Override
+	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
+		if(parameters.containsKey(MAX_ITERATIONS)) {
+			maxIterations = Integer.parseInt(parameters.get(MAX_ITERATIONS));
+			if(maxIterations <= 0) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(MAX_ITERATIONS);
+		}
+		if(parameters.containsKey(NUMBER_OF_ANTS)) {
+			M = Integer.parseInt(parameters.get(NUMBER_OF_ANTS));
+			if(M <= 1) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(NUMBER_OF_ANTS);
+		}
+		if(parameters.containsKey(PERSISTANCE_FACTOR)) {
+			rho = Double.parseDouble(parameters.get(PERSISTANCE_FACTOR));
+			if(rho < 0 || rho > 1) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(PERSISTANCE_FACTOR);
+		}
+		
+		if(parameters.containsKey(NUMMER_OF_NEIGHBORS)) {
+			nearNbors = Integer.parseInt(parameters.get(NUMMER_OF_NEIGHBORS));
+			if(nearNbors < 1 || nearNbors > M) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(NUMMER_OF_NEIGHBORS);
+		}
+	
+		if(parameters.containsKey(INITIAL_PHEROMONES)) {
+			initialPheromones = Integer.parseInt(parameters.get(INITIAL_PHEROMONES));
+			if(initialPheromones < 100) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(INITIAL_PHEROMONES);
+		}
+		
+		if(parameters.containsKey(NUMBER_OF_GROUP)) {
+			K = Integer.parseInt(parameters.get(NUMBER_OF_GROUP));
+			if(K < 1) {
+				throw new IllegalArgumentException();
+			}
+			parameters.remove(NUMBER_OF_GROUP);
+		}
+		
+		if(parameters.size() > 0) {
+			throw new IllegalArgumentException();
+		}
+	}
+	
+	/**
+	 * Returns a log representing the concrete algorithm execution.
+	 * @return The log.
+	 */
+	@Override
+	public CoverCreationType getAlgorithmType(){
+		return CoverCreationType.ANT_COLONY_OPTIMIZATION;
+	}
+	
+	
 	/**
 	 * Executes the algorithm on a connected graph.
 	 * Implementations of this method should allow to be interrupted.
@@ -882,93 +972,5 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		return bestCov;
 	}
 	
-// --------------------------------------------------------------------------------------------------------------------------------------------------
-// override important methods from the parent class
-// --------------------------------------------------------------------------------------------------------------------------------------------------
-	/**
-	 * Returns a log representing the concrete algorithm execution.
-	 * @return The log.
-	 */
-	@Override
-	public CoverCreationType getAlgorithmType(){
-		return CoverCreationType.ANT_COLONY_OPTIMIZATION;
-	}
-	
-	/**
-	 * Returns all graph types the algorithm is compatible with.
-	 * @return The compatible graph types.
-	 * An empty set if the algorithm is not compatible with any type.
-	 */
-	public Set<GraphType> compatibleGraphTypes(){
-		Set<GraphType> compatibilities = new HashSet<GraphType>();
-		compatibilities.add(GraphType.ZERO_WEIGHTS);
-		compatibilities.add(GraphType.SELF_LOOPS);
-		return compatibilities;
-	};	
-	
-	@Override
-	public Map<String,String> getParameters(){
-		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(MAX_ITERATIONS, Integer.toString(maxIterations));
-		parameters.put(NUMBER_OF_ANTS, Integer.toString(M));
-		parameters.put(PERSISTANCE_FACTOR, Double.toString(rho));
-		parameters.put(NUMMER_OF_NEIGHBORS, Integer.toString(nearNbors));
-		parameters.put(INITIAL_PHEROMONES, Integer.toString(initialPheromones));
-		parameters.put(NUMBER_OF_GROUP, Integer.toString(K));
-		return parameters;
-	}
-
-	@Override
-	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
-		if(parameters.containsKey(MAX_ITERATIONS)) {
-			maxIterations = Integer.parseInt(parameters.get(MAX_ITERATIONS));
-			if(maxIterations <= 0) {
-				throw new IllegalArgumentException();
-			}
-			parameters.remove(MAX_ITERATIONS);
-		}
-		if(parameters.containsKey(NUMBER_OF_ANTS)) {
-			M = Integer.parseInt(parameters.get(NUMBER_OF_ANTS));
-			if(M <= 1) {
-				throw new IllegalArgumentException();
-			}
-			parameters.remove(NUMBER_OF_ANTS);
-		}
-		if(parameters.containsKey(PERSISTANCE_FACTOR)) {
-			rho = Double.parseDouble(parameters.get(PERSISTANCE_FACTOR));
-			if(rho < 0 || rho > 1) {
-				throw new IllegalArgumentException();
-			}
-			parameters.remove(PERSISTANCE_FACTOR);
-		}
-		
-		if(parameters.containsKey(NUMMER_OF_NEIGHBORS)) {
-			nearNbors = Integer.parseInt(parameters.get(NUMMER_OF_NEIGHBORS));
-			if(nearNbors < 1 || nearNbors > M) {
-				throw new IllegalArgumentException();
-			}
-			parameters.remove(NUMMER_OF_NEIGHBORS);
-		}
-	
-		if(parameters.containsKey(INITIAL_PHEROMONES)) {
-			initialPheromones = Integer.parseInt(parameters.get(INITIAL_PHEROMONES));
-			if(initialPheromones < 100) {
-				throw new IllegalArgumentException();
-			}
-			parameters.remove(INITIAL_PHEROMONES);
-		}
-		
-		if(parameters.containsKey(NUMBER_OF_GROUP)) {
-			K = Integer.parseInt(parameters.get(NUMBER_OF_GROUP));
-			if(K < 1) {
-				throw new IllegalArgumentException();
-			}
-			parameters.remove(NUMBER_OF_GROUP);
-		}
-		
-		if(parameters.size() > 0) {
-			throw new IllegalArgumentException();
-		}
-	}
 }
 

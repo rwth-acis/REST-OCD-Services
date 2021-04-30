@@ -21,7 +21,7 @@ import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
@@ -354,7 +354,7 @@ public class Termmatrix {
 						termEnum = contentTerms.iterator();
 						
 						long noOfTerms = contentTerms.size();
-						DefaultSimilarity sim = new DefaultSimilarity();
+						ClassicSimilarity sim = new ClassicSimilarity();
 			            for (int i = 0; i < noOfTerms; i++) {
 			            	//compute string for each term in the termvector and add to the wordlist of the term matrix
 			            	BytesRef termBytes = termEnum.next();

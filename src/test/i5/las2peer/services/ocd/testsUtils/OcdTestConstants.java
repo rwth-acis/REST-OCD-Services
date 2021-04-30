@@ -38,6 +38,7 @@ public class OcdTestConstants {
 			+ "signedLfrBlurredWeightedEdgeList.txt";
 	public static final String sloveneParliamentaryPartyWeightedEdgeListInputPath = inputFolderPath
 			+ "sloveneParliamentaryPartyWeightedEdgeList.txt";
+	public static final String gahukuGamaWeightedEdgeListInputPath = inputFolderPath + "GahukuGamaWeightedEdgeList.txt";
 	public static final String wikiElecWeightedEdgeListInputPath = inputFolderPath + "wikiElecWeightedEdgeList.txt";
 	public static final String epinionsWeightedEdgeListInputPath = inputFolderPath + "epinionsWeightedEdgeList.txt";
 	public static final String slashDotWeightedEdgeListInputPath = inputFolderPath + "slashDotWeightedEdgeList.txt";
@@ -107,8 +108,9 @@ public class OcdTestConstants {
 	public static final String wikiElecGraphName = "Wiki Elec Graph";
 	public static final String epinionsGraphName = "Epinions Graph";
 	public static final String slashDotGraphName = "Slash Dot Graph";	
-	public static final String Linkgraph = null;	
-	public static final String ModularityTestGraph = "Undirected Unweighted Graph for Modularity testing";
+	public static final String LinkGraphName = "Link Graph";	
+	public static final String ModularityTestGraphName = "Undirected Unweighted Graph for Modularity testing";
+	public static final String gahukuGamaGraphName = "Gahuku Gama Graph";
 	
 	/*
 	 * others

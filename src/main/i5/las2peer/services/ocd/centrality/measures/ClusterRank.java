@@ -18,7 +18,7 @@ import y.base.NodeCursor;
 
 /**
  * Implementation of ClusterRank.
- * See: Chen, Duan-Bing and Gao, Hui and Lü, Linyuan and Zhou, Tao. 2013. Identifying influential nodes in large-scale directed networks: the role of clustering.
+ * See: Chen, Duan-Bing and Gao, Hui and LÃ¼, Linyuan and Zhou, Tao. 2013. Identifying influential nodes in large-scale directed networks: the role of clustering.
  * @author Tobias
  *
  */

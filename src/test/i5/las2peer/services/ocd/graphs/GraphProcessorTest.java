@@ -198,6 +198,20 @@ public class GraphProcessorTest {
 		assertTrue(graph.isOfType(GraphType.ZERO_WEIGHTS));
 		assertTrue(graph.isOfType(GraphType.DIRECTED));
 		assertTrue(graph.isOfType(GraphType.NEGATIVE_WEIGHTS));		
+		/*
+		 * Undirected edge, 0 weight self loop and directed negative edge.
+		 */
+		graph.setPath("testPath");
+		processor.determineGraphTypes(graph);
+		System.out.println("Undirected edge, 0 weight self loop and directed negative edge.");
+		System.out.println(graph.getTypes());
+		assertEquals(6, graph.getTypes().size());
+		assertTrue(graph.isOfType(GraphType.SELF_LOOPS));
+		assertTrue(graph.isOfType(GraphType.WEIGHTED));
+		assertTrue(graph.isOfType(GraphType.ZERO_WEIGHTS));
+		assertTrue(graph.isOfType(GraphType.DIRECTED));
+		assertTrue(graph.isOfType(GraphType.NEGATIVE_WEIGHTS));		
+		assertTrue(graph.isOfType(GraphType.CONTENT_LINKED));		
 	}
 	
 	@Test

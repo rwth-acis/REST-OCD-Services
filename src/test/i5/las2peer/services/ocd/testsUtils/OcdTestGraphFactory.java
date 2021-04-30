@@ -407,6 +407,17 @@ public class OcdTestGraphFactory {
 		return graph;
 	}
 	
+	public static CustomGraph getSignedGahukuGamaTestGraph() throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
+		adapter.setReader(new FileReader(OcdTestConstants.gahukuGamaWeightedEdgeListInputPath));
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(OcdTestConstants.gahukuGamaGraphName);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+	
 	public static CustomGraph getLfrGraph() throws FileNotFoundException, AdapterException {
 		GraphInputAdapter adapter = new WeightedEdgeListGraphInputAdapter();
 		adapter.setReader(new FileReader(OcdTestConstants.lfrUnweightedEdgeListInputPath));
@@ -817,7 +828,7 @@ public class OcdTestGraphFactory {
 	public static CustomGraph getLinkgraph() {
 		// Creates new graph
 		CustomGraph graph = new CustomGraph();
-		graph.setName(OcdTestConstants.Linkgraph);
+		graph.setName(OcdTestConstants.LinkGraphName);
 		// Creates nodes
 		Node n[] = new Node[8];  
 		for (int i = 0; i < 8; i++) {
@@ -864,7 +875,7 @@ public class OcdTestGraphFactory {
 	public static CustomGraph getModularityTestGraph() {
 		// Creates new graph
 		CustomGraph graph = new CustomGraph();
-		graph.setName(OcdTestConstants.ModularityTestGraph);
+		graph.setName(OcdTestConstants.ModularityTestGraphName);
 		// Creates nodes
 		Node n[] = new Node[4];  
 		for (int i = 0; i < 4; i++) {

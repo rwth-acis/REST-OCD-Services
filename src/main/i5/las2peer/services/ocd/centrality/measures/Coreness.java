@@ -19,7 +19,7 @@ import y.base.NodeCursor;
 
 /**
  * Implementation of Coreness.
- * See: Kitsak, Maksim and Gallos, Lazaros K. and Havlin, Shlomo and Liljeros, Fredrik and Muchnik, Lev and Stanley, H. Eugene and Makse, Hern·n A. 2010. Identification of influential spreaders in complex networks. 
+ * See: Kitsak, Maksim and Gallos, Lazaros K. and Havlin, Shlomo and Liljeros, Fredrik and Muchnik, Lev and Stanley, H. Eugene and Makse, Hern√°n A. 2010. Identification of influential spreaders in complex networks. 
  * @author Tobias
  *
  */

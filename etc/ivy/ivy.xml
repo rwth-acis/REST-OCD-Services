@@ -10,8 +10,10 @@
 	</publications>
     <dependencies>
       <!-- LAS2Peer -->
-		<dependency org="i5" name="las2peer" rev="0.6.4" changing="true" conf="platform->*" />
-		<dependency org="i5" name="las2peer-web-connector" rev="0.6.4" changing="true" conf="platform->*" />
+		<dependency org="i5" name="las2peer" rev="1.1.0" changing="true" conf="platform->*" >
+			<exclude org="javax.xml.parsers" /> <!-- for jaxp-api -->
+		</dependency>
+		<dependency org="i5" name="las2peer-web-connector" rev="1.1.0" changing="true" conf="platform->*" />
 		<dependency org="junit" name="junit" rev="4.12" conf="platform->default" />
       <!-- OCD Service -->
 		<dependency org="net.minidev" name="json-smart" rev="1.3.1" conf="platform->default" />
@@ -20,18 +22,20 @@
 		<dependency org="org.apache.commons" name="commons-dbcp2" rev="2.0" conf="platform->default" />
 		<dependency org="org.apache.commons" name="commons-math3" rev="3.5" conf="platform->default" />
 		<dependency org="org.apache.geronimo.specs" name="geronimo-jpa_2.0_spec" rev="1.1" conf="platform->default" />
-		<dependency org="org.apache.lucene" name="lucene-core" rev="5.3.1" conf="platform->default" />
-		<dependency org="org.apache.lucene" name="lucene-analyzers-common" rev="5.3.1" conf="platform->default" />
+		<dependency org="org.apache.lucene" name="lucene-core" rev="8.8.2" conf="platform->default" />
+		<dependency org="org.apache.lucene" name="lucene-analyzers-common" rev="8.8.2" conf="platform->default" />
 		<dependency org="org.apache.poi" name="poi" rev="3.13" conf="platform->default" />
 		<dependency org="org.apache.poi" name="poi-ooxml" rev="3.13" conf="platform->default" />
 		<dependency org="org.ejml" name="ejml" rev="0.7" conf="platform->default" />
 		<dependency org="org.hsqldb" name="hsqldb" rev="2.3.4" conf="platform->default" />
-		<dependency org="batik" name="batik" rev="1.5" conf="platform->default" />
-		<dependency org="i5" name="batik" rev="1.0" conf="platform->default" />
+		<dependency org="org.apache.xmlgraphics" name="batik-svggen" rev="1.14" conf="platform->default" />
+		<dependency org="org.apache.xmlgraphics" name="batik-bridge" rev="1.14" conf="platform->default" >
+			<exclude org="xml-apis" />
+		</dependency>
 		<dependency org="org.mockito" name="mockito-all" rev="1.9.5" conf="platform->default"/>
 		<dependency org="fr.irit.smac.thirdparty.edu.gmu.cs" name="mason" rev="19" conf="platform->default"/>
 		<dependency org="org.ojalgo" name="ojalgo" rev="48.3.2" conf="platform->default"/>
 		<dependency org="net.sbbi" name="sbbi-upnplib" rev="1.0.4" conf="platform->default"/>
-		
+		<dependency org="org.la4j" name="la4j" rev="0.4.9" conf="platform->default"/>
     </dependencies>
 </ivy-module>

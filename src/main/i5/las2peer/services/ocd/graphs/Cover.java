@@ -499,6 +499,20 @@ public class Cover {
 	public Color getCommunityColor(int communityIndex) {
 		return communities.get(communityIndex).getColor();
 	}
+	
+	/**
+	 * Checks whether the cover has been painted already
+	 * 
+	 * @return false if not painted(everything white), true if not
+	 */
+	public boolean isPainted() {
+		for(Community comm : communities) {
+			if( !(comm.getColor().equals(new Color(Color.WHITE.getRGB()))) ) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Setter for the color of a certain community.

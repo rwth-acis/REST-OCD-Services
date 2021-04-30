@@ -70,7 +70,7 @@
 	
 	<target name="get_deps" depends="las2peer.get_deps" description="--> resolve dependencies">
         <ivy:settings>
-            <credentials host="role.dbis.rwth-aachen.de:9911/archiva"  realm="Repository internal"/>
+            <credentials host="https://archiva.dbis.rwth-aachen.de:9911"  realm="Repository internal"/>
         </ivy:settings>
         <ivy:resolve file="${ocd.ivy.dep}" type="jar" />
         <ivy:retrieve pattern="${lib}/[artifact]-[revision].[ext]" conf="standard"/>
@@ -112,7 +112,7 @@ cd ..
 set BASE=%CD%
 set CLASSPATH="%BASE%/lib/*;%BASE%/service/*;"
 
-java -cp %CLASSPATH% i5.las2peer.tools.L2pNodeLauncher -w -p 9011 uploadStartupDirectory('etc/startup') startService('${service.name}.${service.class}@${service.version}') startWebConnector interactive
+java -cp %CLASSPATH% i5.las2peer.tools.L2pNodeLauncher -p 9011 uploadStartupDirectory('etc/startup') startService('${service.name}.${service.class}@${service.version}') startWebConnector interactive
 pause
 
 </echo>
@@ -224,6 +224,6 @@ pause
 	    </target>
 	
 	
-    <target name="all" depends="clean_before_build, generate_configs, startscripts, junit, jar, obfuscate, clean_after_build "/>
+    <target name="all" depends="clean_before_build, get_deps, generate_configs, startscripts, junit, jar, obfuscate, clean_after_build "/>
 	
 </project>

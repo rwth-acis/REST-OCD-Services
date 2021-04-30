@@ -10,7 +10,7 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 
 import i5.las2peer.logging.L2pLogger;
-import i5.las2peer.p2p.AgentNotKnownException;
+import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.graphs.Cover;
@@ -20,6 +20,12 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.CustomGraphId;
 import i5.las2peer.services.ocd.graphs.GraphCreationLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+
+import org.apache.commons.io.FileUtils;
 
 /**
  * Manages the access on persisted data for the Service Class.
@@ -170,18 +176,32 @@ public class EntityHandler {
 					throw e;
 				}
 			}
-
+			
 			EntityTransaction tx = em.getTransaction();
 			try {
 				tx = em.getTransaction();
 				tx.begin();
-				em.remove(em.getReference(CustomGraph.class, id));
+				
+				CustomGraph graph = em.getReference(CustomGraph.class, id);
+				
+				if(graph.getPath() != "" && graph.getPath() != null) { // Delete index folder if graph is content graph
+				    File file = new File(graph.getPath());
+				    FileUtils.deleteDirectory(file);
+				}
+				
+				em.remove(graph);
 				tx.commit();
 			} catch (RuntimeException e) {
 				if (tx != null && tx.isActive()) {
 					tx.rollback();
 				}
 				throw e;
+			} catch (IOException e) {
+				if (tx != null && tx.isActive()) {
+					tx.rollback();
+				}
+				
+				throw new RuntimeException("Could not delete folder of content graph");
 			}
 		}
 
@@ -195,7 +215,7 @@ public class EntityHandler {
 	 * @return graph list
 	 * @throws AgentNotKnownException
 	 */
-	public List<CustomGraph> getGraphs(String username) throws AgentNotKnownException {
+	public List<CustomGraph> getGraphs(String username) throws AgentNotRegisteredException {
 
 		List<CustomGraph> queryResults;
 		EntityManager em = getEntityManager();

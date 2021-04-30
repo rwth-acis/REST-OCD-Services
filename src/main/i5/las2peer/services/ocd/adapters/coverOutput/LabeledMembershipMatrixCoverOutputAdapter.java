@@ -42,7 +42,7 @@ public class LabeledMembershipMatrixCoverOutputAdapter extends AbstractCoverOutp
 				}
 				writer.write(nodeName + " ");
 				for(int i=0; i<cover.communityCount(); i++) {
-					writer.write(String.format("%.4f ", cover.getBelongingFactor(node, i)));
+					writer.write(String.format("%.4f ", cover.getBelongingFactor(node, i)).replace(",", "."));
 				}
 				nodes.next();
 				if(nodes.ok()) {

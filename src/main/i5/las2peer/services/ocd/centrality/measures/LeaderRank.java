@@ -19,7 +19,7 @@ import y.base.NodeCursor;
 
 /**
  * Implementation of LeaderRank.
- * See: Lü, Linyuan and Zhang, Yi-Cheng and Yeung, Chi Ho and Zhou, Tao. 2011. Leaders in social networks, the delicious case. 
+ * See: LÃ¼, Linyuan and Zhang, Yi-Cheng and Yeung, Chi Ho and Zhou, Tao. 2011. Leaders in social networks, the delicious case. 
  * @author Tobias
  *
  */
