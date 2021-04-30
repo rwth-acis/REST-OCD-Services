@@ -16,6 +16,7 @@ import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WordClusteringRefinementAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LocalSpectralClusteringAlgorithm;
+import i5.las2peer.services.ocd.algorithms.AntColonyOptimizationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LouvainAlgorithm;
 import i5.las2peer.services.ocd.algorithms.DetectingOverlappingCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
@@ -123,22 +124,25 @@ public enum CoverCreationType {
 	/**
 	 * Type corresponding to the wordclustering algorithm with refinement.	
 	 */
-	WORD_CLUSTERING_REF_ALGORITHM(WordClusteringRefinementAlgorithm.class, 18), 
-	
+	WORD_CLUSTERING_REF_ALGORITHM(WordClusteringRefinementAlgorithm.class, 18), 	
+	/**
+	 * Type corresponding to the AntColonyOptimization algorithm 
+	 */
+	ANT_COLONY_OPTIMIZATION(AntColonyOptimizationAlgorithm.class, 19),
 	/**
 	 * Type corresponding to the LocalSpectralClustering algorithm.	
 	 */
-	LOCAL_SPECTRAL_CLUSTERING_ALGORITHM(LocalSpectralClusteringAlgorithm.class, 19),
+	LOCAL_SPECTRAL_CLUSTERING_ALGORITHM(LocalSpectralClusteringAlgorithm.class, 20),
 	
 	/**
 	 * Type corresponding to the Louvain method algorithm.	
 	 */
-	LOUVAIN_ALGORITHM(LouvainAlgorithm.class, 20),
+	LOUVAIN_ALGORITHM(LouvainAlgorithm.class, 21),
 	
 	/**
 	 * Type corresponding to the DetectingOverlappingCommunities Algorithm.
 	 */
-	DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 21);
+	DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 22);
 
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.

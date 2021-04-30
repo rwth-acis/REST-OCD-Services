@@ -11,6 +11,7 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.Pair;
 
@@ -105,7 +106,7 @@ public class GraphProcessorTest {
 	 * Tests the component division and cover remerge on simple two components.
 	 */
 	@Test
-	public void testDivideAndMergeConnectedComponents() throws OcdAlgorithmException, InterruptedException {
+	public void testDivideAndMergeConnectedComponents() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSimpleTwoComponentsGraph();
 		GraphProcessor processor = new GraphProcessor();
 		List<Pair<CustomGraph, Map<Node, Node>>> components = processor.divideIntoConnectedComponents(graph);

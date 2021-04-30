@@ -13,6 +13,7 @@ import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.metrics.OcdMetricException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,7 @@ import y.base.Node;
 public class AlgorithmsBoundaryTest {
 
 	@Test
-	public void testAlgorithmsBoundaries() throws OcdAlgorithmException, InterruptedException {
+	public void testAlgorithmsBoundaries() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		List<OcdAlgorithm> algos = new ArrayList<OcdAlgorithm>();
 		algos.add(new ClizzAlgorithm());
 		algos.add(new RandomWalkLabelPropagationAlgorithm());

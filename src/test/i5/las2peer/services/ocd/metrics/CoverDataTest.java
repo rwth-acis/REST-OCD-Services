@@ -18,7 +18,7 @@ public class CoverDataTest {
 	
 	@Ignore
 	@Test
-	public void testOnJmolSLPA() throws AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdAlgorithmException, InterruptedException{
+	public void testOnJmolSLPA() throws AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdAlgorithmException, InterruptedException, OcdMetricException{
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();
 		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);

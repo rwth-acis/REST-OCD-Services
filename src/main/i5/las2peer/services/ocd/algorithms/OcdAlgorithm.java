@@ -7,6 +7,7 @@ import i5.las2peer.services.ocd.graphs.CoverCreationMethod;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.utils.Parameterizable;
 
 import java.util.Set;
@@ -20,6 +21,7 @@ import java.util.Set;
 public interface OcdAlgorithm extends Parameterizable, CoverCreationMethod {
 
 	/**
+	 * @throws OcdMetricException 
 	 * Executes the algorithm on a connected graph.
 	 * Implementations of this method should allow to be interrupted.
 	 * I.e. they should periodically check the thread for interrupts
@@ -28,8 +30,9 @@ public interface OcdAlgorithm extends Parameterizable, CoverCreationMethod {
 	 * @return A cover for the input graph containing the community structure.
 	 * @throws OcdAlgorithmException If the execution failed.
 	 * @throws InterruptedException If the executing thread was interrupted.
+	 * @throws  
 	 */
-	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException;
+	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException;
 	
 	/**
 	 * Returns a log representing the concrete algorithm execution.

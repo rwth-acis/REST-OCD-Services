@@ -43,7 +43,7 @@ public class ExtendedModularityMetricTest {
 	
 	@Ignore
 	@Test
-	public void testExtendedModularityOnSawmillSLPA() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
+	public void testExtendedModularityOnSawmillSLPA() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);

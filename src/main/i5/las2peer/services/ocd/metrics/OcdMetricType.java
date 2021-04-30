@@ -45,7 +45,12 @@ public enum OcdMetricType {
 	/**
 	 * Type corresponding to the ExtendedModularity using co memberships, a statistical measure.
 	 */
-	CO_MEMBERSHIP_MODULARITY (ExtendedModularityMetricCoMembership.class, 6);
+	CO_MEMBERSHIP_MODULARITY (ExtendedModularityMetricCoMembership.class, 6),
+	
+	/**
+	 * Type corresponding to Newmans Modularity, a statistical measure.
+	 */
+	NEWMAN_MODULARITY (ModularityMetric.class, 7);
 	
 	/**
 	 * For persistence and other purposes.
