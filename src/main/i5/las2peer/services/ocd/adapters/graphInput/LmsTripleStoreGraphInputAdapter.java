@@ -7,6 +7,7 @@ import java.util.Map;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import y.base.Edge;
 import y.base.Node;
 
 import org.apache.jena.query.Query;
@@ -26,7 +27,7 @@ import org.apache.jena.sparql.core.DatasetImpl;
 import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
 
 /**
- * A graph input adapter for importing graphs of relations between LMS users on the tech4comp LMS Triplestore. This will not import from a file but by queries
+ * A graph input adapter for importing graphs of relations between LMS users from the tech4comp LMS Triplestore. This will NOT import from a file.
  *
  */
 public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
@@ -40,6 +41,25 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 		CustomGraph graph = new CustomGraph();
 		Map<String, Node> nodeIds = new HashMap<String, Node>();
 		
+		HashMap<String, String> users = getUsers();
+		
+		//create nodes for all users
+		for(Map.Entry<String, String> user : users.entrySet()) {
+			Node userNode = graph.createNode(); 
+			graph.setNodeName(userNode, user.getValue());
+			nodeIds.put(user.getKey(), userNode);
+		}
+		
+		//Iterate through each user, get their created resources. Then get the other users that interacted with those and draw edges from them to the user
+		for(Map.Entry<String, Node> user : nodeIds.entrySet()) { 
+			ArrayList<String> resources = getCreatedResources(user.getKey());
+			ArrayList<String> interactingUsers = getInteractingUsers(resources);
+			
+			for(String interactingUser : interactingUsers) {
+				//System.out.println("USERS: " + user.getKey() + " " + interactingUser);
+				graph.createEdge(nodeIds.get(interactingUser), user.getValue());
+			}
+		}
 		
 		return graph;
 	}
@@ -51,9 +71,9 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 	private HashMap<String, String> getUsers() {
 				
 		String usersQueryString = 
-			    "PREFIX w3: <http://www.w3.org/2000/01/rdf-schema#>" +
+			    "PREFIX w3: <http://www.w3.org/2000/01/rdf-schema#> " +
 			    "PREFIX leip: <http://uni-leipzig.de/tech4comp/ontology/> " +
-			    "SELECT ?profile ?user " +
+			    "SELECT DISTINCT ?profile ?user " +
 			    "WHERE { " +
 			    " GRAPH <https://triplestore.tech4comp.dbis.rwth-aachen.de/LMSData/data> { " +
 			    "      ?profile a leip:user . " +
@@ -70,7 +90,7 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 		
 		HashMap<String, String> users = new HashMap<String, String>();
 		for(QuerySolution sol : ResultSetFormatter.toList(res)) {
-			users.put(sol.getLiteral("profile").getString(), sol.getLiteral("user").getString());
+			users.put(sol.getResource("profile").getURI(), sol.getLiteral("user").getString());
 		}
 		
 		qexec.close();
@@ -86,17 +106,17 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 				
 		//Query to get all resources a user is involved in through posts or completions
 		String userResourcesQueryString = 
-		    "PREFIX w3: <http://www.w3.org/2000/01/rdf-schema#>" +
-		    "PREFIX leip: <http://uni-leipzig.de/tech4comp/ontology/> " +
+			"PREFIX w3: <http://www.w3.org/2000/01/rdf-schema#> " +
+			"PREFIX leip: <http://uni-leipzig.de/tech4comp/ontology/> " +
 		    "SELECT DISTINCT ?link " +
 		    "WHERE { " +
 		    " GRAPH <https://triplestore.tech4comp.dbis.rwth-aachen.de/LMSData/data> { " +
-		    "      " + profile + " w3:label ?user . " +
-		    "      " + profile + " ?interaction ?post . " +
+		    "      <" + profile + "> w3:label ?user . " +
+		    "      <" + profile + "> ?interaction ?post . " +
 		    "	   ?post leip:interactionResource ?link . " +
 		    "      } " +
-		    "	   FILTER (?interaction != leip:posted || ?interaction != leip:completed) " +	
-		    "	}";
+		    "	   FILTER (?interaction = leip:posted || ?interaction = leip:completed) " +	
+		    "	} ";
 		
 		Query q = QueryFactory.create(userResourcesQueryString);
 		QueryEngineHTTP qexec = new QueryEngineHTTP("https://triplestore.tech4comp.dbis.rwth-aachen.de/LMSData/query", q);
@@ -107,7 +127,7 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 		
 		ArrayList<String> resources = new ArrayList<String>();
 		for(QuerySolution sol : ResultSetFormatter.toList(res)) {
-			resources.add(sol.getLiteral("link").getString());
+			resources.add(sol.getResource("link").getURI());
 		}
 		
 		qexec.close();
@@ -127,25 +147,26 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 			return new ArrayList<String>();
 		}
 		
-		String resourcesCommaSep = resources.get(0);
+		String resourcesCommaSep = "<" + resources.get(0) + ">";
 		for(int i=1; i<resources.size(); i++) {
-			resourcesCommaSep += ", " + resources.get(i);
+			resourcesCommaSep += ", <" + resources.get(i) + ">";
 		}
 				
 		String resourcesUserQueryStringInteract = 
-		    "PREFIX w3: <http://www.w3.org/2000/01/rdf-schema#>" +
-		    "PREFIX leip: <http://uni-leipzig.de/tech4comp/ontology/> " +
-		    "SELECT DISTINCT ?profile " +
-		    "WHERE { " +
-		    " GRAPH <https://triplestore.tech4comp.dbis.rwth-aachen.de/LMSData/data> { " +
-		    "      ?profile w3:label ?user . " +
-		    "      ?profile ?interaction ?post . " +
-		    "	   ?post leip:interactionResource ?link . " +
-		    "      } " +
-		    "	   FILTER ((?interaction != leip:posted && ?interaction != leip:completed)" +
-		    "	   		&& (?link IN (" + resourcesCommaSep + ")) " +	
-		    "	}";
+				"PREFIX w3: <http://www.w3.org/2000/01/rdf-schema#>" +
+				"PREFIX leip: <http://uni-leipzig.de/tech4comp/ontology/> " +
+				"SELECT DISTINCT ?profile " +
+				"WHERE { " +
+				" GRAPH <https://triplestore.tech4comp.dbis.rwth-aachen.de/LMSData/data> { " +
+				"      ?profile w3:label ?user . " +
+				"      ?profile ?interaction ?post . " +
+				"	   ?post leip:interactionResource ?link . " +
+				"      } " +
+				"	   FILTER ((?interaction != leip:posted && ?interaction != leip:completed)" +
+				"	   		&& ?link IN (" + resourcesCommaSep + ")) " +
+				"	}";
 		
+		System.out.println(resourcesUserQueryStringInteract);
 		Query q = QueryFactory.create(resourcesUserQueryStringInteract);
 		QueryEngineHTTP qexec = new QueryEngineHTTP("https://triplestore.tech4comp.dbis.rwth-aachen.de/LMSData/query", q);
 		qexec.addParam("Content-Type", "application/sparql-query");
@@ -155,7 +176,7 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 		
 		ArrayList<String> users = new ArrayList<String>();
 		for(QuerySolution sol : ResultSetFormatter.toList(res)) {
-			users.add(sol.getLiteral("link").getString());
+			users.add(sol.getResource("profile").getURI());
 		}
 		
 		qexec.close();
