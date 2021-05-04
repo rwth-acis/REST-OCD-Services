@@ -89,47 +89,57 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 		Map<String, Node> nodeIds = new HashMap<String, Node>();
 		
 		HashMap<String, String> users = getUsers();
-		if(!involvedUsers.isEmpty()) {
-			for(String userUri : involvedUsers) {
-				if(users.containsKey(userUri)) {
+		try {
+			if(!involvedUsers.isEmpty()) {
+				for(String userUri : involvedUsers) {
+					if(users.containsKey(userUri)) {
+						Node userNode = graph.createNode(); 
+						if(showUserNames) {
+							graph.setNodeName(userNode, users.get(userUri));
+						}
+						else {
+							graph.setNodeName(userNode, userUri);
+						}
+						
+						nodeIds.put(userUri, userNode);
+					}
+				}
+			}
+			else {
+				//create nodes for all users
+				for(Map.Entry<String, String> user : users.entrySet()) {
 					Node userNode = graph.createNode(); 
 					if(showUserNames) {
-						graph.setNodeName(userNode, users.get(userUri));
+						graph.setNodeName(userNode, user.getValue());
 					}
 					else {
-						graph.setNodeName(userNode, userUri);
+						graph.setNodeName(userNode, user.getKey());
 					}
 					
-					nodeIds.put(userUri, userNode);
+					nodeIds.put(user.getKey(), userNode);
 				}
 			}
 		}
-		else {
-			//create nodes for all users
-			for(Map.Entry<String, String> user : users.entrySet()) {
-				Node userNode = graph.createNode(); 
-				if(showUserNames) {
-					graph.setNodeName(userNode, user.getValue());
-				}
-				else {
-					graph.setNodeName(userNode, user.getKey());
-				}
-				
-				nodeIds.put(user.getKey(), userNode);
-			}
+		catch (Exception e) {
+			throw new AdapterException("Could not parse users");
 		}
 		
-		//Iterate through each user, get their created resources. Then get the other users that interacted with those and draw edges from them to the user
-		for(Map.Entry<String, Node> user : nodeIds.entrySet()) { 
-			ArrayList<String> resources = getCreatedResources(user.getKey());
-			ArrayList<String> interactingUsers = getInteractingUsers(resources);
-			
-			for(String interactingUser : interactingUsers) {
-				//System.out.println("USERS: " + user.getKey() + " " + interactingUser);
-				if(nodeIds.containsKey(interactingUser)) {
-					graph.createEdge(nodeIds.get(interactingUser), user.getValue());
+		try {
+			//Iterate through each user, get their created resources. Then get the other users that interacted with those and draw edges from them to the user
+			for(Map.Entry<String, Node> user : nodeIds.entrySet()) { 
+				ArrayList<String> resources = getCreatedResources(user.getKey());
+				ArrayList<String> interactingUsers = getInteractingUsers(resources);
+				
+				for(String interactingUser : interactingUsers) {
+					//System.out.println("USERS: " + user.getKey() + " " + interactingUser);
+					if(nodeIds.containsKey(interactingUser)) {
+						graph.createEdge(nodeIds.get(interactingUser), user.getValue());
+					}
 				}
 			}
+		}
+		catch (Exception e) {
+			throw new AdapterException("Could not parse resources");
 		}
 		
 		return graph;
