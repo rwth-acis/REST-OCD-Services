@@ -1,7 +1,9 @@
 package i5.las2peer.services.ocd.adapters.graphInput;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,11 +19,6 @@ import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.riot.RDFLanguages;
-import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.sparql.core.DatasetImpl;
 import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
@@ -31,9 +28,59 @@ import org.apache.jena.sparql.engine.http.QueryEngineHTTP;
  *
  */
 public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
+	
+	/////////////////
+	//// Variables////
+	/////////////////
+	/**
+	* Boolean for showing usernames or URIs as node names
+	*/
+	private Boolean showUserNames = false;
+	
+	/**
+	* Comma separated string of URIs of users to be in the graph. If empty, all users will be
+	*/
+	private String involvedUserURIs = "";
+	private ArrayList<String> involvedUsers = new ArrayList<String>();
+	
+	/**
+	 * Starting date of posts to be considered
+	 */
+	private Date startDate = null;
+	
+	/**
+	 * Ending date of posts to be considered
+	 */
+	private Date endDate = null;
+	
 	@Override
 	public void setParameter(Map<String, String> param) throws IllegalArgumentException, ParseException {
-		
+		if (param.containsKey("showUserNames")) {
+			showUserNames = Boolean.parseBoolean(param.get("showUserNames"));
+			param.remove("showUserNames");
+		}
+		if (param.containsKey("involvedUserURIs")) {
+			involvedUserURIs = param.get("involvedUserURIs");
+			involvedUsers = new ArrayList<String>();
+
+			String[] userUriArray = involvedUserURIs.split(",");
+			for (String str : userUriArray) {
+				involvedUsers.add(str);
+			}
+			param.remove("involvedUserURIs");
+		}
+		SimpleDateFormat df = new SimpleDateFormat ("yyyy-MM-dd");		
+		if(param.containsKey("startDate")){
+			startDate = df.parse(param.get("startDate"));
+			param.remove("startDate");
+		}
+		if(param.containsKey("endDate")){
+			endDate = df.parse(param.get("endDate"));
+			param.remove("endDate");
+		}
+		if(!param.isEmpty()) {
+			throw new IllegalArgumentException();
+		}
 	}
 	
 	@Override
@@ -42,12 +89,34 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 		Map<String, Node> nodeIds = new HashMap<String, Node>();
 		
 		HashMap<String, String> users = getUsers();
-		
-		//create nodes for all users
-		for(Map.Entry<String, String> user : users.entrySet()) {
-			Node userNode = graph.createNode(); 
-			graph.setNodeName(userNode, user.getValue());
-			nodeIds.put(user.getKey(), userNode);
+		if(!involvedUsers.isEmpty()) {
+			for(String userUri : involvedUsers) {
+				if(users.containsKey(userUri)) {
+					Node userNode = graph.createNode(); 
+					if(showUserNames) {
+						graph.setNodeName(userNode, users.get(userUri));
+					}
+					else {
+						graph.setNodeName(userNode, userUri);
+					}
+					
+					nodeIds.put(userUri, userNode);
+				}
+			}
+		}
+		else {
+			//create nodes for all users
+			for(Map.Entry<String, String> user : users.entrySet()) {
+				Node userNode = graph.createNode(); 
+				if(showUserNames) {
+					graph.setNodeName(userNode, user.getValue());
+				}
+				else {
+					graph.setNodeName(userNode, user.getKey());
+				}
+				
+				nodeIds.put(user.getKey(), userNode);
+			}
 		}
 		
 		//Iterate through each user, get their created resources. Then get the other users that interacted with those and draw edges from them to the user
@@ -57,7 +126,9 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 			
 			for(String interactingUser : interactingUsers) {
 				//System.out.println("USERS: " + user.getKey() + " " + interactingUser);
-				graph.createEdge(nodeIds.get(interactingUser), user.getValue());
+				if(nodeIds.containsKey(interactingUser)) {
+					graph.createEdge(nodeIds.get(interactingUser), user.getValue());
+				}
 			}
 		}
 		
@@ -108,14 +179,17 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 		String userResourcesQueryString = 
 			"PREFIX w3: <http://www.w3.org/2000/01/rdf-schema#> " +
 			"PREFIX leip: <http://uni-leipzig.de/tech4comp/ontology/> " +
-		    "SELECT DISTINCT ?link " +
+		    "SELECT DISTINCT ?link ?time " +
 		    "WHERE { " +
 		    " GRAPH <https://triplestore.tech4comp.dbis.rwth-aachen.de/LMSData/data> { " +
 		    "      <" + profile + "> w3:label ?user . " +
 		    "      <" + profile + "> ?interaction ?post . " +
 		    "	   ?post leip:interactionResource ?link . " +
+		    "	   ?post leip:timestamp ?time . " +
 		    "      } " +
-		    "	   FILTER (?interaction = leip:posted || ?interaction = leip:completed) " +	
+		    "	   FILTER ((?interaction = leip:posted || ?interaction = leip:completed) " +	
+		    //"	   		&& (?time >= " + (startDate != null ? startDate.getTime() : 0) + " && ?time <= " + (endDate != null ? endDate.getTime() : Long.MAX_VALUE) + ") " + (This is not used until there are actual numbers instead of a string) 
+		    "	 )" +
 		    "	} ";
 		
 		Query q = QueryFactory.create(userResourcesQueryString);
@@ -127,7 +201,9 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 		
 		ArrayList<String> resources = new ArrayList<String>();
 		for(QuerySolution sol : ResultSetFormatter.toList(res)) {
-			resources.add(sol.getResource("link").getURI());
+			if((startDate == null || sol.getLiteral("time").getLong() >= startDate.getTime()/1000) && (endDate == null || sol.getLiteral("time").getLong()/1000 <= endDate.getTime())) {
+				resources.add(sol.getResource("link").getURI());
+			}
 		}
 		
 		qexec.close();
@@ -166,7 +242,7 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 				"	   		&& ?link IN (" + resourcesCommaSep + ")) " +
 				"	}";
 		
-		System.out.println(resourcesUserQueryStringInteract);
+		//System.out.println(resourcesUserQueryStringInteract);
 		Query q = QueryFactory.create(resourcesUserQueryStringInteract);
 		QueryEngineHTTP qexec = new QueryEngineHTTP("https://triplestore.tech4comp.dbis.rwth-aachen.de/LMSData/query", q);
 		qexec.addParam("Content-Type", "application/sparql-query");
