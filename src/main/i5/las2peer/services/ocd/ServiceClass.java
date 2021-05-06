@@ -277,6 +277,10 @@ public class ServiceClass extends RESTService {
 		 * @param endDateStr
 		 *            Optional query parameter. For big graphs end date is the
 		 *            date till which the file will parse.
+		 * @param involvedUserURIs
+		 * 			  Optional query parameter. Users to consider for LMS Triplestore import
+		 * @param showUserNames
+		 * 			  Optional query parameter. Whether to show usernames as node names for LMS Triplestore import
 		 * @param indexPathStr
 		 *            Optional query parameter. Set index directory.
 		 * @param filePathStr
@@ -298,7 +302,9 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
 				@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
 				@DefaultValue("2004-01-01") @QueryParam("startDate") String startDateStr,
-				@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,				
+				@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
+				@DefaultValue("") @QueryParam("involvedUserURIs") String involvedUserURIsStr,
+				@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
 				String contentStr) {
@@ -338,24 +344,25 @@ public class ServiceClass extends RESTService {
 				}
 				try {
 					Map<String, String> param = new HashMap<String, String>();
-					if (format == GraphInputFormat.NODE_CONTENT_EDGE_LIST || format == GraphInputFormat.XML) {
+					if (format == GraphInputFormat.NODE_CONTENT_EDGE_LIST || format == GraphInputFormat.XML || format == GraphInputFormat.LMS_TRIPLESTORE) {
 						param.put("startDate", startDateStr);
 						param.put("endDate", endDateStr);
 						if (format == GraphInputFormat.XML) {
 							param.put("indexPath", indexPathStr);
 							param.put("filePath", filePathStr);
+						} else if(format == GraphInputFormat.LMS_TRIPLESTORE) {
+							param.put("showUserNames", showUserNamesStr);
+							param.put("involvedUserURIs", involvedUserURIsStr);
 						} else {
 							param.put("path", indexPathStr);
 						}
 					}
-					else if (format == GraphInputFormat.XGMML) {
-						param.put("indexPath", indexPathStr);
-						param.put("filePath", filePathStr);
+					//else if (format == GraphInputFormat.XGMML) {
 						//param.put("key", keyStr);
 						//param.put("type1", type1Str);
 						//param.put("type2", type2Str);
 						//param.put("type3", type3Str);
-					}
+					//}
 					graph = requestHandler.parseGraph(contentStr, format, param);
 
 				} catch (Exception e) {
@@ -453,6 +460,10 @@ public class ServiceClass extends RESTService {
 		 * @param endDateStr
 		 *            Optional query parameter. For big graphs end date is the
 		 *            date till which the file will parse.
+		 * @param involvedUserURIs
+		 * 			  Optional query parameter. Users to consider for LMS Triplestore import
+		 * @param showUserNames
+		 * 			  Optional query parameter. Whether to show usernames as node names for LMS Triplestore import
 		 * @param indexPathStr
 		 *            Optional query parameter. Set index directory.
 		 * @param filePathStr
@@ -473,6 +484,8 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
 				@DefaultValue("2004-01-01") @QueryParam("startDate") String startDateStr,
 				@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
+				@DefaultValue("") @QueryParam("involvedUserURIs") String involvedUserURIsStr,
+				@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr) {
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -495,7 +508,7 @@ public class ServiceClass extends RESTService {
 			}
 			graphFile.delete();
 			return createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
-					endDateStr, indexPathStr, filePathStr, contentStr.toString());
+					endDateStr,involvedUserURIsStr, showUserNamesStr, indexPathStr, filePathStr, contentStr.toString());
 		}
 
 		/**

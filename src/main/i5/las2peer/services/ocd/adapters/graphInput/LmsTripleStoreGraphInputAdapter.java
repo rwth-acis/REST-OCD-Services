@@ -61,11 +61,14 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 		}
 		if (param.containsKey("involvedUserURIs")) {
 			involvedUserURIs = param.get("involvedUserURIs");
-			involvedUsers = new ArrayList<String>();
-
-			String[] userUriArray = involvedUserURIs.split(",");
-			for (String str : userUriArray) {
-				involvedUsers.add(str);
+		
+			if(!involvedUserURIs.equals("")) {
+				involvedUsers = new ArrayList<String>();
+				
+				String[] userUriArray = involvedUserURIs.split(",");
+				for (String str : userUriArray) {
+					involvedUsers.add(str);
+				}			
 			}
 			param.remove("involvedUserURIs");
 		}
@@ -91,6 +94,7 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 		HashMap<String, String> users = getUsers();
 		try {
 			if(!involvedUsers.isEmpty()) {
+				//System.out.println("Users: " + involvedUsers + " " + involvedUsers.size() + " <" + involvedUserURIs + ">");
 				for(String userUri : involvedUsers) {
 					if(users.containsKey(userUri)) {
 						Node userNode = graph.createNode(); 
