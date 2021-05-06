@@ -26,6 +26,7 @@
 		<dependency org="org.apache.lucene" name="lucene-analyzers-common" rev="8.8.2" conf="platform->default" />
 		<dependency org="org.apache.poi" name="poi" rev="3.13" conf="platform->default" />
 		<dependency org="org.apache.poi" name="poi-ooxml" rev="3.13" conf="platform->default" />
+		<dependency org="org.apache.jena" name="apache-jena" rev="4.0.0" conf="platform->default" />
 		<dependency org="org.ejml" name="ejml" rev="0.7" conf="platform->default" />
 		<dependency org="org.hsqldb" name="hsqldb" rev="2.3.4" conf="platform->default" />
 		<dependency org="org.apache.xmlgraphics" name="batik-svggen" rev="1.14" conf="platform->default" />

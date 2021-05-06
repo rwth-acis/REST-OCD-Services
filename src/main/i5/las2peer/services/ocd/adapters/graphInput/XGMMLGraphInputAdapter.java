@@ -157,7 +157,7 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 
 			NodeList nodeList = docElement.getElementsByTagName("node");
 			int nodeListLength = nodeList.getLength();
-			System.out.println("GRAPH LEN: " + nodeListLength);
+			//System.out.println("GRAPH LEN: " + nodeListLength);
 
 			for (int i = 0; i < nodeListLength; i++) {
 				Element e = (Element) nodeList.item(i);
