@@ -17,13 +17,7 @@ public class FormatterTest {
 		
 		insert="0.242352356";
 		result=formatter.decimals(insert, 4);
-		try {
-			assertEquals("0,2424", result);
-		}
-		catch (Exception e) {
-			assertEquals("0.2424", result);
-		}
-		
+		assertTrue(result.equals("0,2424") || result.equals("0.2424"));		
 	}
 	
 	
