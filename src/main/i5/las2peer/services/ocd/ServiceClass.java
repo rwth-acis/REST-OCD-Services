@@ -3346,6 +3346,46 @@ public class ServiceClass extends RESTService {
 		}
 	
 		/**
+		 * Returns compatible graph types of an algorithm.
+		 * 
+		 * @param coverCreationTypeStr
+		 *            A cover creation type corresponding to an ocd algorithm.
+		 * @return A graph type xml. Or an error xml.
+		 */
+		@GET
+		@Path("algorithms/{CoverCreationType}/graphTypes")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(value = "", notes = "Returns the default parameters of an algorithm.")
+		public Response getAlgorithmCompatibleGraphTypes(@PathParam("CoverCreationType") String coverCreationTypeStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				CoverCreationType creationType;
+				try {
+					creationType = CoverCreationType.valueOf(coverCreationTypeStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified cover creation type does not exist.");
+				}
+				if (!algorithmFactory.isInstantiatable(creationType)) {
+					requestHandler.log(Level.WARNING, "user: " + username + ", "
+							+ "Specified cover creation type is not instantiatable: " + creationType.name());
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified cover creation type is not instantiatable: " + creationType.name());
+				} else {
+					OcdAlgorithm defaultInstance = algorithmFactory.getInstance(creationType,
+							new HashMap<String, String>());
+					return Response.ok(requestHandler.writeSpecificEnumNames(defaultInstance.compatibleGraphTypes())).build();
+				}
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+		
+		/**
 		 * Returns all algorithm type names.
 		 * 
 		 * @return The types in a names xml. Or an error xml.

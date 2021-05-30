@@ -27,6 +27,7 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphCreationType;
+import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 
@@ -40,6 +41,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -867,6 +869,28 @@ public class RequestHandler {
 		Document doc = getDocument();
 		Element namesElt = doc.createElement("Names");
 		for (E e : enumClass.getEnumConstants()) {
+			Element nameElt = doc.createElement("Name");
+			nameElt.appendChild(doc.createTextNode(e.name()));
+			namesElt.appendChild(nameElt);
+		}
+		doc.appendChild(namesElt);
+		return writeDoc(doc);
+	}
+	
+	/**
+	 * Creates an XML document containing all enum constant names from a given set of a specific enum class.
+	 * 
+	 * @param chosenConstants            
+	 *            The constants to be printed
+	 * @param <E>
+	 *            An enum subclass type.
+	 * @return The document.
+	 * @throws ParserConfigurationException
+	 */
+	public <E extends Enum<E>> String writeSpecificEnumNames(Set<E> chosenConstants) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element namesElt = doc.createElement("Names");
+		for (E e : chosenConstants) {
 			Element nameElt = doc.createElement("Name");
 			nameElt.appendChild(doc.createTextNode(e.name()));
 			namesElt.appendChild(nameElt);
