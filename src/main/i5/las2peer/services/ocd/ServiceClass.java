@@ -3430,6 +3430,46 @@ public class ServiceClass extends RESTService {
 	    }
 	    
 	    /**
+		 * Returns compatible graph types of a centrality measure.
+		 * 
+		 * @param centralityMeasureTypeStr
+		 *            A centrality creation type corresponding to a centrality calculation algorithm.
+		 * @return A graph type xml. Or an error xml.
+		 */
+		@GET
+		@Path("centralities/{CentralityMeasureType}/graphTypes")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(value = "", notes = "Returns the default parameters of an algorithm.")
+		public Response getCentralityCompatibleGraphTypes(@PathParam("CentralityMeasureType") String centralityMeasureTypeStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				CentralityMeasureType centralityType;
+				try {
+					centralityType = CentralityMeasureType.lookupType(centralityMeasureTypeStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified cover creation type does not exist.");
+				}
+				if (!centralityAlgorithmFactory.isInstantiatable(centralityType)) {
+					requestHandler.log(Level.WARNING, "user: " + username + ", "
+							+ "Specified cover creation type is not instantiatable: " + centralityType.name());
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified cover creation type is not instantiatable: " + centralityType.name());
+				} else {
+					CentralityAlgorithm defaultInstance = centralityAlgorithmFactory.getInstance(centralityType,
+							new HashMap<String, String>());
+					return Response.ok(requestHandler.writeSpecificEnumNames(defaultInstance.compatibleGraphTypes())).build();
+				}
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+	    
+	    /**
 	     * Returns all CentralitySimulation names.
 	     * 
 	     * @return The simulation names in an xml. Or an error xml.
@@ -3452,6 +3492,46 @@ public class ServiceClass extends RESTService {
 	    		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 	    	}
 	    }
+	    
+	    /**
+		 * Returns compatible graph types of a centrality simulation.
+		 * 
+		 * @param centralitySimulationTypeStr
+		 *            A centrality creation type corresponding to a centrality simulation algorithm.
+		 * @return A graph type xml. Or an error xml.
+		 */
+		@GET
+		@Path("centralitysimulations/{CentralitySimulationType}/graphTypes")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(value = "", notes = "Returns the default parameters of an algorithm.")
+		public Response getCentralitySimulationCompatibleGraphTypes(@PathParam("CentralitySimulationType") String centralitySimulationTypeStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				CentralitySimulationType simulationType;
+				try {
+					simulationType = CentralitySimulationType.lookupType(centralitySimulationTypeStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified cover creation type does not exist.");
+				}
+				if (!centralitySimulationFactory.isInstantiatable(simulationType)) {
+					requestHandler.log(Level.WARNING, "user: " + username + ", "
+							+ "Specified cover creation type is not instantiatable: " + simulationType.name());
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified cover creation type is not instantiatable: " + simulationType.name());
+				} else {
+					CentralitySimulation defaultInstance = centralitySimulationFactory.getInstance(simulationType,
+							new HashMap<String, String>());
+					return Response.ok(requestHandler.writeSpecificEnumNames(defaultInstance.compatibleGraphTypes())).build();
+				}
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
 	
 		/**
 		 * Returns all ground truth benchmark type names.
