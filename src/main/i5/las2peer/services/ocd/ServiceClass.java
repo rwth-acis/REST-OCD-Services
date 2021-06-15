@@ -3346,7 +3346,7 @@ public class ServiceClass extends RESTService {
 		}
 	
 		/**
-		 * Returns compatible graph types of an algorithm.
+		 * Returns compatible graph types, e.g. directed, of an algorithm. 
 		 * 
 		 * @param coverCreationTypeStr
 		 *            A cover creation type corresponding to an ocd algorithm.
@@ -3430,7 +3430,7 @@ public class ServiceClass extends RESTService {
 	    }
 	    
 	    /**
-		 * Returns compatible graph types of a centrality measure.
+		 * Returns compatible graph types, e.g. directed, of a centrality measure.
 		 * 
 		 * @param centralityMeasureTypeStr
 		 *            A centrality creation type corresponding to a centrality calculation algorithm.
