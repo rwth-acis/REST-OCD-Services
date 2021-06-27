@@ -55,6 +55,7 @@ public class MetaXmlCentralityOutputAdapter extends AbstractCentralityOutputAdap
 			Element creationMethodElt = doc.createElement("CreationMethod");
 			Element creationMethodTypeElt = doc.createElement("Type");
 			creationMethodTypeElt.appendChild(doc.createTextNode(map.getCreationMethod().getCreationType().name()));
+			creationMethodTypeElt.setAttribute("displayName", map.getCreationMethod().getCreationType().getDisplayName());
 			creationMethodElt.appendChild(creationMethodTypeElt);
 			/*
 			 * Parameters

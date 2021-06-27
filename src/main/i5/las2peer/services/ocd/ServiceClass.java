@@ -1501,7 +1501,7 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
 	    		}
 	    		try {
-	    			centralityMeasureType = CentralityMeasureType.lookupType(centralityMeasureTypeStr);
+	    			centralityMeasureType = CentralityMeasureType.valueOf(centralityMeasureTypeStr);
 	    			if(centralityMeasureType == CentralityMeasureType.UNDEFINED) {
 	    				requestHandler.log(Level.WARNING, "user: " + username + ", " + "Specified centrality measure type is not valid for this request: " + centralityMeasureType.getDisplayName());
 	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified centrality measure type is not valid for this request: " + centralityMeasureType.getDisplayName());
@@ -1821,7 +1821,7 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
 	    		}
 	    		try {
-	    			simulationType = CentralitySimulationType.lookupType(simulationTypeStr);
+	    			simulationType = CentralitySimulationType.valueOf(simulationTypeStr);
 	    		}
 		    	catch (Exception e) {
 		    		requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -3173,7 +3173,7 @@ public class ServiceClass extends RESTService {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		CentralityMeasureType centralityMeasureType;
 	    		try {
-	    			centralityMeasureType = CentralityMeasureType.lookupType(centralityMeasureTypeStr);
+	    			centralityMeasureType = CentralityMeasureType.valueOf(centralityMeasureTypeStr);
 	    		}
 		    	catch (Exception e) {
 		    		requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -3216,7 +3216,7 @@ public class ServiceClass extends RESTService {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		CentralitySimulationType simulationType;
 	    		try {
-	    			simulationType = CentralitySimulationType.lookupType(simulationTypeStr);
+	    			simulationType = CentralitySimulationType.valueOf(simulationTypeStr);
 	    		}
 		    	catch (Exception e) {
 		    		requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -3453,7 +3453,7 @@ public class ServiceClass extends RESTService {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				CentralityMeasureType centralityType;
 				try {
-					centralityType = CentralityMeasureType.lookupType(centralityMeasureTypeStr);
+					centralityType = CentralityMeasureType.valueOf(centralityMeasureTypeStr);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
@@ -3517,7 +3517,7 @@ public class ServiceClass extends RESTService {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				CentralitySimulationType simulationType;
 				try {
-					simulationType = CentralitySimulationType.lookupType(centralitySimulationTypeStr);
+					simulationType = CentralitySimulationType.valueOf(centralitySimulationTypeStr);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID,

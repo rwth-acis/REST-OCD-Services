@@ -3,7 +3,9 @@ package i5.las2peer.services.ocd.adapters.centralityInput;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
-public enum CentralityInputFormat {
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
+
+public enum CentralityInputFormat implements EnumDisplayNames {
 
 	/*
 	 * Each enum constant is instantiated with a corresponding CentralityInputAdapter class object and a UNIQUE id.
@@ -12,12 +14,17 @@ public enum CentralityInputFormat {
 	/**
 	 * Format corresponding the NodeValueInputAdapter.
 	 */
-	NODE_VALUE_LIST (NodeValueListInputAdapter.class, 0);
+	NODE_VALUE_LIST ("Node Value List", NodeValueListInputAdapter.class, 0);
 	
 	/**
 	 * Reserved for persistence or other purposes.
 	 */
 	private final int id;
+	
+	/**
+	 * A display name for web frontends and more
+	 */
+	private final String displayName;
 	
 	/**
 	 * The adapter class corresponding to the format.
@@ -29,7 +36,8 @@ public enum CentralityInputFormat {
 	 * @param adapterClass Defines the adapterClass attribute.
 	 * @param id Defines the id attribute.
 	 */
-	private CentralityInputFormat(Class<? extends CentralityInputAdapter> adapterClass, int id) {
+	private CentralityInputFormat(String displayName, Class<? extends CentralityInputAdapter> adapterClass, int id) {
+		this.displayName = displayName;
 		this.id = id;
 		this.adapterClass = adapterClass;
 	}
@@ -48,6 +56,14 @@ public enum CentralityInputFormat {
 	 */
 	public int getId() {
 		return id;
+	}
+	
+	/**
+	 * Returns the display name of the type.
+	 * @return The name.
+	 */
+	public String getDisplayName() {
+		return displayName;
 	}
 	
 	/**

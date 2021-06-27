@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.SignedLfrBenchmark;
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmark;
@@ -15,7 +16,7 @@ import java.util.Locale;
  * @author Sebastian
  *
  */
-public enum GraphCreationType {
+public enum GraphCreationType implements EnumDisplayNames {
 
 	/*
 	 * Each enum constant is instantiated with a corresponding OcdBenchmark class object and a UNIQUE id.
@@ -26,27 +27,32 @@ public enum GraphCreationType {
 	 * Abstract type usable e.g. for importing covers that were calculated externally by other benchmarks.
 	 * Cannot be used for benchmark instantiation.
 	 */
-	UNDEFINED (GraphCreationMethod.class, 0),
+	UNDEFINED ("Undefined", GraphCreationMethod.class, 0),
 	/**
 	 * Abstract type mainly intended for importing real world covers.
 	 * Cannot be used for benchmark instantiation.
 	 */
-	REAL_WORLD (GraphCreationMethod.class, 1),
+	REAL_WORLD ("Real World", GraphCreationMethod.class, 1),
 	/**
 	 * Type corresponding to the NewmanBenchmark.
 	 */
-	NEWMAN (NewmanBenchmark.class, 2),
+	NEWMAN ("Newman", NewmanBenchmark.class, 2),
 	/**
 	 * Type corresponding to the LfrBenchmark.
 	 */
-	LFR (LfrBenchmark.class, 3),
+	LFR ("LFR", LfrBenchmark.class, 3),
 	
-	SIGNED_LFR(SignedLfrBenchmark.class, 4);
+	SIGNED_LFR("Signed LFR", SignedLfrBenchmark.class, 4);
 	
 	/**
 	 * For persistence and other purposes.
 	 */
 	private final int id;
+	
+	/**
+	 * A display name for web frontends and more
+	 */
+	private final String displayName;
 	
 	/**
 	 * The class corresponding to the type.
@@ -59,7 +65,8 @@ public enum GraphCreationType {
 	 * @param creationMethodClass Defines the creationMethodClass attribute.
 	 * @param id Defines the id attribute.
 	 */
-	private GraphCreationType(Class<? extends GraphCreationMethod> creationMethodClass, int id) {
+	private GraphCreationType(String displayName, Class<? extends GraphCreationMethod> creationMethodClass, int id) {
+		this.displayName = displayName;
 		this.creationMethodClass = creationMethodClass;
 		this.id = id;
 	}
@@ -70,6 +77,14 @@ public enum GraphCreationType {
 	 */
 	public int getId() {
 		return id;
+	}
+	
+	/**
+	 * Returns the display name of the type.
+	 * @return The name.
+	 */
+	public String getDisplayName() {
+		return displayName;
 	}
 	
 	/**

@@ -510,6 +510,7 @@ public class RequestHandler {
 			if(e.correspondsStatisticalMeasure()) {
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
+				nameElt.setAttribute("displayName", e.getDisplayName());
 				namesElt.appendChild(nameElt);
 			}
 		}
@@ -529,6 +530,7 @@ public class RequestHandler {
 			if(e.correspondsKnowledgeDrivenMeasure()) {
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
+				nameElt.setAttribute("displayName", e.getDisplayName());
 				namesElt.appendChild(nameElt);
 			}
 		}
@@ -548,6 +550,7 @@ public class RequestHandler {
 			if(e.correspondsGroundTruthBenchmark()) {
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
+				nameElt.setAttribute("displayName", e.getDisplayName());
 				namesElt.appendChild(nameElt);
 			}
 		}
@@ -567,6 +570,7 @@ public class RequestHandler {
 			if(e.correspondsAlgorithm()) {
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
+				nameElt.setAttribute("displayName", e.getDisplayName());
 				namesElt.appendChild(nameElt);
 			}
 		}
@@ -584,7 +588,8 @@ public class RequestHandler {
 		Element namesElt = doc.createElement("Names");
 		for(CentralityMeasureType e : CentralityMeasureType.class.getEnumConstants()) {
 			Element nameElt = doc.createElement("Name");
-			nameElt.appendChild(doc.createTextNode(e.getDisplayName()));
+			nameElt.appendChild(doc.createTextNode(e.name()));
+			nameElt.setAttribute("displayName", e.getDisplayName());
 			namesElt.appendChild(nameElt);
 		}
 		doc.appendChild(namesElt);
@@ -601,7 +606,8 @@ public class RequestHandler {
 		Element namesElt = doc.createElement("Names");
 		for(CentralitySimulationType e : CentralitySimulationType.class.getEnumConstants()) {
 			Element nameElt = doc.createElement("Name");
-			nameElt.appendChild(doc.createTextNode(e.getDisplayName()));
+			nameElt.appendChild(doc.createTextNode(e.name()));
+			nameElt.setAttribute("displayName", e.getDisplayName());
 			namesElt.appendChild(nameElt);
 		}
 		doc.appendChild(namesElt);
@@ -871,6 +877,9 @@ public class RequestHandler {
 		for (E e : enumClass.getEnumConstants()) {
 			Element nameElt = doc.createElement("Name");
 			nameElt.appendChild(doc.createTextNode(e.name()));
+			if(e instanceof EnumDisplayNames) {
+				nameElt.setAttribute("displayName", ((EnumDisplayNames)e).getDisplayName());
+			}
 			namesElt.appendChild(nameElt);
 		}
 		doc.appendChild(namesElt);
@@ -893,6 +902,9 @@ public class RequestHandler {
 		for (E e : chosenConstants) {
 			Element nameElt = doc.createElement("Name");
 			nameElt.appendChild(doc.createTextNode(e.name()));
+			if(e instanceof EnumDisplayNames) {
+				nameElt.setAttribute("displayName", ((EnumDisplayNames)e).getDisplayName());
+			}
 			namesElt.appendChild(nameElt);
 		}
 		doc.appendChild(namesElt);

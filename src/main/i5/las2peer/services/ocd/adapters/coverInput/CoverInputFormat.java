@@ -3,13 +3,15 @@ package i5.las2peer.services.ocd.adapters.coverInput;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
+
 /**
  * CoverInputAdapter registry.
  * Used for factory instantiation, persistence or other context.
  * @author Sebastian
  *
  */
-public enum CoverInputFormat {
+public enum CoverInputFormat implements EnumDisplayNames {
 
 	/*
 	 * Each enum constant is instantiated with a corresponding CoverInputAdapter class object and a UNIQUE id.
@@ -18,20 +20,25 @@ public enum CoverInputFormat {
 	/**
 	 * Format corresponding the CommunityMemberListsCoverInputAdapter.
 	 */
-	COMMUNITY_MEMBERS_LISTS (CommunityMemberListsCoverInputAdapter.class, 0),
+	COMMUNITY_MEMBERS_LISTS ("Community Member Lists", CommunityMemberListsCoverInputAdapter.class, 0),
 	/**
 	 * Format corresponding the NodeCommunityListsCoverInputAdapter.
 	 */
-	NODE_COMMUNITY_LISTS (NodeCommunityListsCoverInputAdapter.class, 1),
+	NODE_COMMUNITY_LISTS ("Node Community Lists", NodeCommunityListsCoverInputAdapter.class, 1),
 	/**
 	 * Format corresponding the LabeledMembershipMatrixCoverInputAdapter.
 	 */
-	LABELED_MEMBERSHIP_MATRIX (LabeledMembershipMatrixCoverInputAdapter.class, 2);
+	LABELED_MEMBERSHIP_MATRIX ("Labeled Membership Matrix", LabeledMembershipMatrixCoverInputAdapter.class, 2);
 	
 	/**
 	 * Reserved for persistence or other purposes.
 	 */
 	private final int id;
+	
+	/**
+	 * A display name for web frontends and more
+	 */
+	private final String displayName;
 	
 	/**
 	 * The adapter class corresponding to the format.
@@ -43,7 +50,8 @@ public enum CoverInputFormat {
 	 * @param adapterClass Defines the adapterClass attribute.
 	 * @param id Defines the id attribute.
 	 */
-	private CoverInputFormat(Class<? extends CoverInputAdapter> adapterClass, int id) {
+	private CoverInputFormat(String displayName, Class<? extends CoverInputAdapter> adapterClass, int id) {
+		this.displayName = displayName;
 		this.id = id;
 		this.adapterClass = adapterClass;
 	}
@@ -62,6 +70,14 @@ public enum CoverInputFormat {
 	 */
 	public int getId() {
 		return id;
+	}
+
+	/**
+	 * Returns the display name of the type.
+	 * @return The name.
+	 */
+	public String getDisplayName() {
+		return displayName;
 	}
 	
 	/**
