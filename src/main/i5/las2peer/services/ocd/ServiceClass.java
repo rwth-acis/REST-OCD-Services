@@ -2432,12 +2432,18 @@ public class ServiceClass extends RESTService {
 	    				}
 	    				
 	    				boolean compatibleType = false;
-	    				for(GraphType type : cover.getGraph().getTypes()) {
-	    					if(metric.compatibleGraphTypes().contains(type))
-	    					{
-	    						compatibleType = true;
-	    						break;
-	    					}
+	    				if(cover.getGraph().getTypes().isEmpty()) 
+	    				{
+	    					compatibleType = true;
+	    				}
+	    				else {
+		    				for(GraphType type : cover.getGraph().getTypes()) {
+		    					if(metric.compatibleGraphTypes().contains(type))
+		    					{
+		    						compatibleType = true;
+		    						break;
+		    					}	    					
+		    				}
 	    				}
 	    				if(!compatibleType) {
 							requestHandler.log(Level.WARNING,
