@@ -4,6 +4,7 @@ import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.coverInput.NodeCommunityListsCoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.WeightedEdgeListGraphInputAdapter;
+import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.lfr.benchm;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
@@ -343,14 +344,19 @@ public class LfrBenchmark implements GroundTruthBenchmark {
 				cmdLine.addArgument("-t2");
 				cmdLine.addArgument(Double.toString( - this.t2));
 				File workingDirectory = new File(lfrDirectoryPath);
-				executor.setWorkingDirectory(workingDirectory);
-				DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-				executor.execute(cmdLine, resultHandler);
-				resultHandler.waitFor();
-				if(resultHandler.getExitValue() != 0) {
-					System.out.println(resultHandler.getException());
-					throw new OcdBenchmarkException("LFR Process exit value: " + resultHandler.getExitValue());
-				}
+				
+				
+		        ///////////COMMENTED OUT WHEN C++ BASED ALGORITHM IS USED//////////////////
+//				executor.setWorkingDirectory(workingDirectory);
+//				DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
+//				executor.execute(cmdLine, resultHandler); 
+//				resultHandler.waitFor();
+//				if(resultHandler.getExitValue() != 0) {
+//					System.out.println(resultHandler.getException());
+//					throw new OcdBenchmarkException("LFR Process exit value: " + resultHandler.getExitValue());
+//				}
+				benchm.weighted_directed_network_benchmark(false, false, n, k, maxk, t1, t2, mut, muw, beta, on, om, minc, maxc, false); // LFR algorithm based on C++ 
+				
 				GraphInputAdapter graphAdapter = new WeightedEdgeListGraphInputAdapter(new FileReader(graphPath));
 				CustomGraph graph = graphAdapter.readGraph();
 				graph.addType(GraphType.DIRECTED);
@@ -360,9 +366,9 @@ public class LfrBenchmark implements GroundTruthBenchmark {
 				cover.setCreationMethod(new CoverCreationLog(CoverCreationType.GROUND_TRUTH, new HashMap<String, String>(), new HashSet<GraphType>()));
 				return cover;
 			}
-			catch(InterruptedException e) {
-				throw e;
-			}
+//			catch(InterruptedException e) {
+//				throw e;
+//			}
 			catch (Exception e) {
 				e.printStackTrace();
 				if(Thread.interrupted()) {

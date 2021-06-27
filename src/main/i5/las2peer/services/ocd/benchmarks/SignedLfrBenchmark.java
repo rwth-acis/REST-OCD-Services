@@ -4,6 +4,7 @@ import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.coverInput.NodeCommunityListsCoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
+import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.signedlfr.benchm;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
@@ -334,14 +335,19 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 				if (networkFile.exists()) {
 					networkFile.delete();
 				}
-				executor.setWorkingDirectory(workingDirectory);
-				DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-				executor.execute(cmdLine, resultHandler);
-				resultHandler.waitFor();
-				if (resultHandler.getExitValue() != 0) {
-					System.out.println(resultHandler.getException());
-					throw new OcdBenchmarkException("LFR Process exit value: " + resultHandler.getExitValue());
-				}
+				
+                ///////////COMMENTED OUT WHEN C++ BASED ALGORITHM IS USED//////////////////
+//				executor.setWorkingDirectory(workingDirectory);
+//				DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
+//				executor.execute(cmdLine, resultHandler);
+//				resultHandler.waitFor();
+//				if (resultHandler.getExitValue() != 0) {
+//					System.out.println(resultHandler.getException());
+//					throw new OcdBenchmarkException("LFR Process exit value: " + resultHandler.getExitValue());
+//				}
+				
+				
+				benchm.directed_network_benchmark(false, false, n, k, maxk, t1, t2, mu, on, om, minc, maxc, false); // Algorithm based on C++ 
 				GraphInputAdapter graphAdapter = new UnweightedEdgeListGraphInputAdapter(new FileReader(graphPath));
 				CustomGraph graph = graphAdapter.readGraph();
 				graph.addType(GraphType.DIRECTED);
