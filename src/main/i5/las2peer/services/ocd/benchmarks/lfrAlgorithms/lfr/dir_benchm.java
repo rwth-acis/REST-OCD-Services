@@ -399,9 +399,7 @@ public class dir_benchm {
 
 			}
 
-			System.out.println("num_seq is: " + num_seq.toString());
-			System.out.println("num_seq_size after while(true) loop: " + num_seq.size());
-			System.out.println();
+			
 			int num_seq_min_index = num_seq.indexOf(Collections.min(num_seq)); // index of min element, to imitate C++ method 'min_element' from original code
 			num_seq.set(num_seq_min_index, num_seq.get(num_seq_min_index) + num_nodes + overlapping_nodes * (max_mem_num - 1) - _num_);
 
