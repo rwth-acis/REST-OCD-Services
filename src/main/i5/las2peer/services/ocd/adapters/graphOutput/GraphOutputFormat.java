@@ -3,13 +3,15 @@ package i5.las2peer.services.ocd.adapters.graphOutput;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
+
 /**
  * GraphOutputAdapter registry.
  * Used for factory instantiation, persistence or other context.
  * @author Sebastian
  *
  */
-public enum GraphOutputFormat {
+public enum GraphOutputFormat implements EnumDisplayNames{
 
 	/*
 	 * Each enum constant is instantiated with a corresponding GraphOutputAdapter class object and a UNIQUE id.
@@ -18,19 +20,19 @@ public enum GraphOutputFormat {
 	/**
 	 * Format corresponding to the GraphMlGraphOutputAdapter.
 	 */
-	GRAPH_ML (GraphMlGraphOutputAdapter.class, 0),
+	GRAPH_ML ("GraphML", GraphMlGraphOutputAdapter.class, 0),
 	/**
 	 * Format corresponding to the WeightedEdgeListGraphOutputAdapter.
 	 */
-	WEIGHTED_EDGE_LIST (WeightedEdgeListGraphOutputAdapter.class, 1),
+	WEIGHTED_EDGE_LIST ("Weighted Edge List", WeightedEdgeListGraphOutputAdapter.class, 1),
 	/**
 	 * Format corresponding to the MetaXmlGraphOutputAdapter.
 	 */
-	META_XML (MetaXmlGraphOutputAdapter.class, 2),
+	META_XML ("Meta XML", MetaXmlGraphOutputAdapter.class, 2),
 	/**
 	 * Format corresponding to the PropertiesXMLGraphOutputAdapter.
 	 */
-	PROPERTIES_XML (PropertiesXmlGraphOutputAdapter.class, 3);
+	PROPERTIES_XML ("Properties XML", PropertiesXmlGraphOutputAdapter.class, 3);
 	/**
 	 * The adapter class corresponding to the format.
 	 */
@@ -42,11 +44,17 @@ public enum GraphOutputFormat {
 	private final int id;
 	
 	/**
+	 * A display name for web frontends and more
+	 */
+	private final String displayName;
+	
+	/**
 	 * Creates a new instance.
 	 * @param adapterClass Defines the adapterClass attribute.
 	 * @param id Defines the id attribute.
 	 */
-	private GraphOutputFormat(Class<? extends GraphOutputAdapter> adapterClass, int id) {
+	private GraphOutputFormat(String displayName, Class<? extends GraphOutputAdapter> adapterClass, int id) {
+		this.displayName = displayName;
 		this.adapterClass = adapterClass;
 		this.id = id;
 	}
@@ -65,6 +73,14 @@ public enum GraphOutputFormat {
 	 */
 	public int getId() {
 		return id;
+	}
+	
+	/**
+	 * Returns the display name of the type.
+	 * @return The name.
+	 */
+	public String getDisplayName() {
+		return displayName;
 	}
 	
 	/**

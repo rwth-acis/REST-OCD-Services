@@ -62,6 +62,7 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 			for(GraphType type : graph.getTypes()) {
 				Element typeElt = doc.createElement("Type");
 				typeElt.appendChild(doc.createTextNode(type.name()));
+				typeElt.setAttribute("displayName", type.getDisplayName());
 				typesElt.appendChild(typeElt);
 			}
 			graphElt.appendChild(typesElt);
@@ -71,6 +72,7 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 			Element creationMethodElt = doc.createElement("CreationMethod");
 			Element creationMethodTypeElt = doc.createElement("Type");
 			creationMethodTypeElt.appendChild(doc.createTextNode(graph.getCreationMethod().getType().name()));
+			creationMethodTypeElt.setAttribute("displayName", graph.getCreationMethod().getType().getDisplayName());
 			creationMethodElt.appendChild(creationMethodTypeElt);
 			Element creationMethodStatus = doc.createElement("Status");
 			creationMethodStatus.appendChild(doc.createTextNode(graph.getCreationMethod().getStatus().name()));

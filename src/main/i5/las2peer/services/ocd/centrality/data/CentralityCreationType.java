@@ -3,29 +3,31 @@ package i5.las2peer.services.ocd.centrality.data;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
-public enum CentralityCreationType implements CentralityType {
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
+
+public enum CentralityCreationType implements CentralityType, EnumDisplayNames {
 	
-	UNDEFINED(0),
+	UNDEFINED("Undefined", 0),
 	
 	/**
 	 * Type corresponding to centrality measures
 	 */
-	CENTRALITY_MEASURE(1),
+	CENTRALITY_MEASURE("Centrality Measure", 1),
 	
 	/**
 	 * Type corresponding to simulations, e.g. of the spreading influence of nodes
 	 */
-	SIMULATION(2),
+	SIMULATION("Simulation", 2),
 	
 	/**
 	 * Abstract type for ground-truth centrality maps
 	 */
-	GROUND_TRUTH(3),
+	GROUND_TRUTH("Ground Truth", 3),
 	
 	/**
 	 * Type corresponding to averaging of centrality values
 	 */
-	AVERAGE(4);
+	AVERAGE("Average", 4);
 	
 	/**
 	 * For persistence and other purposes.
@@ -33,10 +35,16 @@ public enum CentralityCreationType implements CentralityType {
 	private final int id;
 	
 	/**
+	 * A display name for web frontends and more
+	 */
+	private final String displayName;
+	
+	/**
 	 * Creates a new instance.
 	 * @param id The creation type id
 	 */
-	CentralityCreationType(int id) {
+	CentralityCreationType(String displayName, int id) {
+		this.displayName = displayName;
 		this.id = id;
 	}
 	
@@ -46,6 +54,14 @@ public enum CentralityCreationType implements CentralityType {
 	 */
 	public int getId() {
 		return id;
+	}
+	
+	/**
+	 * Returns the display name of the type.
+	 * @return The name.
+	 */
+	public String getDisplayName() {
+		return displayName;
 	}
 	
 	/**

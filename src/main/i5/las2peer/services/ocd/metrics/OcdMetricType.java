@@ -3,11 +3,13 @@ package i5.las2peer.services.ocd.metrics;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
+
 /**
  * OcdMetric registry.
  * Used for factory instantiation, persistence or other context.
  */
-public enum OcdMetricType {
+public enum OcdMetricType implements EnumDisplayNames{
 
 	/*
 	 * Each enum constant is instantiated with a corresponding OcdMetric class object and a UNIQUE id.
@@ -17,45 +19,50 @@ public enum OcdMetricType {
 	 * Abstract type usable e.g. for metrics calculated externally.
 	 * Cannot be used for metric instantiation.
 	 */
-	UNDEFINED (OcdMetric.class, 0),
+	UNDEFINED ("Undefined", OcdMetric.class, 0),
 	/**
 	 * Abstract type for the algorithm execution time.
 	 * Cannot be used for metric instantiation.
 	 * An execution time metric entry is automatically added to any cover calculated by a framework algorithm.
 	 */
-	EXECUTION_TIME (OcdMetric.class, 1),
+	EXECUTION_TIME ("Execution Time", OcdMetric.class, 1),
 	/**
 	 * Type corresponding to the ExtendedModularityMetric, a statistical measure.
 	 */
-	EXTENDED_MODULARITY (ExtendedModularityMetric.class, 2),
+	EXTENDED_MODULARITY ("Extended Modularity", ExtendedModularityMetric.class, 2),
 	/**
 	 * Type corresponding to the ExtendedNormalizedMutualInformationMetric, a knowledge-driven measure.
 	 */
-	EXTENDED_NORMALIZED_MUTUAL_INFORMATION (ExtendedNormalizedMutualInformationMetric.class, 3),
+	EXTENDED_NORMALIZED_MUTUAL_INFORMATION ("Extended Normalized Mutual Information", ExtendedNormalizedMutualInformationMetric.class, 3),
 	/**
 	 * Type corresponding to the OmegaIndex, a knowledge-driven measure.
 	 */
-	OMEGA_INDEX (OmegaIndex.class, 4),
+	OMEGA_INDEX ("Omega Index", OmegaIndex.class, 4),
 	
 	/**
 	 * Type corresponding to the Combined Newman Modularity, a statistical measure.
 	 */
-	COMBINED_MODULARITY (NewmanModularityCombined.class, 5),
+	COMBINED_MODULARITY ("Combined Newman Modularity", NewmanModularityCombined.class, 5),
 	
 	/**
 	 * Type corresponding to the ExtendedModularity using co memberships, a statistical measure.
 	 */
-	CO_MEMBERSHIP_MODULARITY (ExtendedModularityMetricCoMembership.class, 6),
+	CO_MEMBERSHIP_MODULARITY ("Extended Modularity with Co-Memberships", ExtendedModularityMetricCoMembership.class, 6),
 	
 	/**
 	 * Type corresponding to Newmans Modularity, a statistical measure.
 	 */
-	NEWMAN_MODULARITY (ModularityMetric.class, 7);
+	NEWMAN_MODULARITY ("Newman Modularity", ModularityMetric.class, 7);
 	
 	/**
 	 * For persistence and other purposes.
 	 */
 	private final int id;
+	
+	/**
+	 * A display name for web frontends and more
+	 */
+	private final String displayName;
 	
 	/**
 	 * The class corresponding to the type.
@@ -68,7 +75,8 @@ public enum OcdMetricType {
 	 * @param metricClass Defines the metricClass attribute.
 	 * @param id Defines the id attribute.
 	 */
-	private OcdMetricType(Class<? extends OcdMetric> metricClass, int id) {
+	private OcdMetricType(String displayName, Class<? extends OcdMetric> metricClass, int id) {
+		this.displayName = displayName;
 		this.metricClass = metricClass;
 		this.id = id;
 	}
@@ -87,6 +95,14 @@ public enum OcdMetricType {
 	 */
 	public int getId() {
 		return id;
+	}
+	
+	/**
+	 * Returns the display name of the type.
+	 * @return The name.
+	 */
+	public String getDisplayName() {
+		return displayName;
 	}
 	
 	/**

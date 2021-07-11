@@ -68,6 +68,7 @@ public class MetaXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 			Element creationMethodTypeElt = doc.createElement("Type");
 			creationMethodTypeElt.appendChild(doc.createTextNode(cover.getCreationMethod().getType().name()));
 			creationMethodElt.appendChild(creationMethodTypeElt);
+			creationMethodElt.setAttribute("displayName", cover.getCreationMethod().getType().getDisplayName());
 			Element creationMethodStatusElt = doc.createElement("Status");
 			creationMethodStatusElt.appendChild(doc.createTextNode(cover.getCreationMethod().getStatus().name()));
 			creationMethodElt.appendChild(creationMethodStatusElt);
@@ -84,6 +85,7 @@ public class MetaXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 				metricElt.appendChild(metricIdElt);
 				Element metricTypeElt = doc.createElement("Type");
 				metricTypeElt.appendChild(doc.createTextNode(metric.getType().name()));
+				metricTypeElt.setAttribute("displayName", metric.getType().getDisplayName());
 				metricElt.appendChild(metricTypeElt);
 				Element metricStatusElt = doc.createElement("Status");
 				metricStatusElt.appendChild(doc.createTextNode(metric.getStatus().name()));

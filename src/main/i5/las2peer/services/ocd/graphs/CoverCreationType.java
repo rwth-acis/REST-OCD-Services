@@ -22,6 +22,7 @@ import i5.las2peer.services.ocd.algorithms.DetectingOverlappingCommunitiesAlgori
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.SignedLfrBenchmark;
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
 
 import java.security.InvalidParameterException;
@@ -33,7 +34,7 @@ import java.util.Locale;
  * @author Sebastian
  *
  */
-public enum CoverCreationType {
+public enum CoverCreationType implements EnumDisplayNames {
 
 	/*
 	 * Each enum constant is instantiated with a corresponding CoverCreationMethod class object (typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass) and a UNIQUE id.
@@ -44,78 +45,78 @@ public enum CoverCreationType {
 	 * Abstract type usable e.g. for importing covers that were calculated externally by other algorithms.
 	 * Cannot be used for algorithm instantiation.
 	 */
-	UNDEFINED (CoverCreationMethod.class, 0),
+	UNDEFINED ("Undefined", CoverCreationMethod.class, 0),
 	/**
 	 * Abstract type mainly intended for importing ground truth covers.
 	 * Cannot be used for algorithm instantiation.
 	 */
-	GROUND_TRUTH (CoverCreationMethod.class, 1),
+	GROUND_TRUTH ("Ground Truth", CoverCreationMethod.class, 1),
 	/**
 	 * Type corresponding to the RandomWalkLabelPropagationAlgorithm.
 	 */
-	RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM (RandomWalkLabelPropagationAlgorithm.class, 2),
+	RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM ("Random Walk Label Propagation Algorithm", RandomWalkLabelPropagationAlgorithm.class, 2),
 	/**
 	 * Type corresponding to the SpeakerListenerLabelPropagationAlgorithm.
 	 */
-	SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM (SpeakerListenerLabelPropagationAlgorithm.class, 3),
+	SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM ("Speaker Listener Label Propagation Algorithm", SpeakerListenerLabelPropagationAlgorithm.class, 3),
 	/**
 	 * Type corresponding to the ExtendedSpeakerListenerLabelPropagationAlgorithm.
 	 */
-	EXTENDED_SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM(ExtendedSpeakerListenerLabelPropagationAlgorithm.class, 4),
+	EXTENDED_SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM("Extended Speaker Listener Label Propagation Algorithm", ExtendedSpeakerListenerLabelPropagationAlgorithm.class, 4),
 	/**
 	 * Type corresponding to the SskAlgorithm.
 	 */
-	SSK_ALGORITHM (SskAlgorithm.class, 5),
+	SSK_ALGORITHM ("SSK Algorithm", SskAlgorithm.class, 5),
 	/**
 	 * Type corresponding to the LinkCommunitiesAlgorithm.
 	 */
-	LINK_COMMUNITIES_ALGORITHM (LinkCommunitiesAlgorithm.class, 6),
+	LINK_COMMUNITIES_ALGORITHM ("Link Communities Algorithm", LinkCommunitiesAlgorithm.class, 6),
 	/**
 	 * Type corresponding to the WeightedLinkCommunitiesAlgorithm.
 	 */
-	WEIGHTED_LINK_COMMUNITIES_ALGORITHM (WeightedLinkCommunitiesAlgorithm.class, 7),
+	WEIGHTED_LINK_COMMUNITIES_ALGORITHM ("Weighted Link Communities Algorithm", WeightedLinkCommunitiesAlgorithm.class, 7),
 	/**
 	 * Type corresponding to the ClizzAlgorithm.
 	 */
-	CLIZZ_ALGORITHM (ClizzAlgorithm.class, 8),
+	CLIZZ_ALGORITHM ("CliZZ Algorithm", ClizzAlgorithm.class, 8),
 	/**
 	 * Type corresponding to the MergingOfOverlappingCommunitiesAlgorithm.
 	 */
-	MERGING_OF_OVERLAPPING_COMMUNITIES_ALGORITHM(MergingOfOverlappingCommunitiesAlgorithm.class, 9),
+	MERGING_OF_OVERLAPPING_COMMUNITIES_ALGORITHM("Merging Of Overlapping Communities Algorithm", MergingOfOverlappingCommunitiesAlgorithm.class, 9),
 	/**
 	 * Type corresponding to the BinarySearchRandomWalkLabelPropagationAlgorithm.
 	 */
-	BINARY_SEARCH_RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM(BinarySearchRandomWalkLabelPropagationAlgorithm.class, 10),
+	BINARY_SEARCH_RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM("Binary Search Random Walk Label Propagation Algorithm", BinarySearchRandomWalkLabelPropagationAlgorithm.class, 10),
 	/**
 	 * Type corresponding to the LfrBenchmark, which is a ground truth benchmark.
 	 * Cannot be used for algorithm instantiation.
 	 */
-	LFR(LfrBenchmark.class, 11),
+	LFR("LFR Benchmark", LfrBenchmark.class, 11),
 	/**
 	 * Type corresponding to the NewmanBenchmark, which is a ground truth benchmark.
 	 * Cannot be used for algorithm instantiation.
 	 */
-	NEWMAN(NewmanBenchmark.class, 12),
+	NEWMAN("Newman Benchmark", NewmanBenchmark.class, 12),
 	/**
 	 * Type corresponding to the LfrBenchmark, which is a ground truth benchmark.
 	 * Cannot be used for algorithm instantiation.
 	 */
-	SIGNED_LFR(SignedLfrBenchmark.class, 13),
+	SIGNED_LFR("Signed LFR Benchmark", SignedLfrBenchmark.class, 13),
 	/**
 	 */
-	COST_FUNC_OPT_CLUSTERING_ALGORITHM(CostFunctionOptimizationClusteringAlgorithm.class, 14),
+	COST_FUNC_OPT_CLUSTERING_ALGORITHM("Cost Function Optimization Clustering Algorithm", CostFunctionOptimizationClusteringAlgorithm.class, 14),
 	/**
 	 * Type corresponding to the SignedDMIDAlgorithm.
 	 */
-	SIGNED_DMID_ALGORITHM(SignedDMIDAlgorithm.class, 15),
+	SIGNED_DMID_ALGORITHM("Signed DMID Algorithm", SignedDMIDAlgorithm.class, 15),
 	/**
 	 * Type corresponding to the EvolutionaryAlgorithmBasedOnSimilarity.
 	 */	
-	EVOLUTIONARY_ALGORITHM_BASED_ON_SIMILARITY(EvolutionaryAlgorithmBasedOnSimilarity.class,16),
+	EVOLUTIONARY_ALGORITHM_BASED_ON_SIMILARITY("Evolutionary Algorithm Based On Similarity", EvolutionaryAlgorithmBasedOnSimilarity.class,16),
 	/**
 	 * Type corresponding to the SignedProbabilisticMixtureAlgorithm.
 	 */	
-	SIGNED_PROBABILISTIC_MIXTURE_ALGORITHM(SignedProbabilisticMixtureAlgorithm.class,17),
+	SIGNED_PROBABILISTIC_MIXTURE_ALGORITHM("Signed Probabilistic Mixture Algorithm", SignedProbabilisticMixtureAlgorithm.class,17),
 //	/**
 //	 * Type corresponding to the SignedDMIDExtendedAlgorithm.
 //	 */	
@@ -124,25 +125,25 @@ public enum CoverCreationType {
 	/**
 	 * Type corresponding to the wordclustering algorithm with refinement.	
 	 */
-	WORD_CLUSTERING_REF_ALGORITHM(WordClusteringRefinementAlgorithm.class, 18), 	
+	WORD_CLUSTERING_REF_ALGORITHM("Word Clustering Refinement Algorithm", WordClusteringRefinementAlgorithm.class, 18), 	
 	/**
 	 * Type corresponding to the AntColonyOptimization algorithm 
 	 */
-	ANT_COLONY_OPTIMIZATION(AntColonyOptimizationAlgorithm.class, 19),
+	ANT_COLONY_OPTIMIZATION("Ant Colony Optimization Algorithm", AntColonyOptimizationAlgorithm.class, 19),
 	/**
 	 * Type corresponding to the LocalSpectralClustering algorithm.	
 	 */
-	LOCAL_SPECTRAL_CLUSTERING_ALGORITHM(LocalSpectralClusteringAlgorithm.class, 20),
+	LOCAL_SPECTRAL_CLUSTERING_ALGORITHM("Local Spectral Clustering Algorithm", LocalSpectralClusteringAlgorithm.class, 20),
 	
 	/**
 	 * Type corresponding to the Louvain method algorithm.	
 	 */
-	LOUVAIN_ALGORITHM(LouvainAlgorithm.class, 21),
+	LOUVAIN_ALGORITHM("Louvain Algorithm", LouvainAlgorithm.class, 21),
 	
 	/**
 	 * Type corresponding to the DetectingOverlappingCommunities Algorithm.
 	 */
-	DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM(DetectingOverlappingCommunitiesAlgorithm.class, 22);
+	DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM("Detecting Overlapping Communities Algorithm", DetectingOverlappingCommunitiesAlgorithm.class, 22);
 
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
@@ -156,11 +157,18 @@ public enum CoverCreationType {
 	private final int id;
 	
 	/**
+	 * A display name for web frontends and more
+	 */
+	private final String displayName;
+	
+	/**
 	 * Creates a new instance.
+	 * @param displayName Defines the displayName attribute
 	 * @param creationMethodClass Defines the creationMethodClass attribute.
 	 * @param id Defines the id attribute.
 	 */
-	private CoverCreationType(Class<? extends CoverCreationMethod> creationMethodClass, int id) {
+	private CoverCreationType(String displayName, Class<? extends CoverCreationMethod> creationMethodClass, int id) {
+		this.displayName = displayName;
 		this.creationMethodClass = creationMethodClass;
 		this.id = id;
 	}
@@ -179,6 +187,14 @@ public enum CoverCreationType {
 	 */
 	public int getId() {
 		return id;
+	}
+	
+	/**
+	 * Returns the display name of the type.
+	 * @return The name.
+	 */
+	public String getDisplayName() {
+		return displayName;
 	}
 	
 	/**

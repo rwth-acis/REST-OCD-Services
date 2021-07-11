@@ -3,12 +3,14 @@ package i5.las2peer.services.ocd.adapters.centralityOutput;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
+
 /**
  * CentralityOutputAdapter registry.
  * Used for factory instantiation, persistence or other context.
  *
  */
-public enum CentralityOutputFormat {
+public enum CentralityOutputFormat implements EnumDisplayNames {
 
 	/*
 	 * Each enum constant is instantiated with a corresponding CentralityOutputAdapter class object and a UNIQUE id.
@@ -17,9 +19,9 @@ public enum CentralityOutputFormat {
 	/**
 	 * Format corresponding to the MetaXmlCentralityOutputAdapter.
 	 */
-	META_XML (MetaXmlCentralityOutputAdapter.class, 0),
+	META_XML ("Meta XML", MetaXmlCentralityOutputAdapter.class, 0),
 	
-	DEFAULT_XML (DefaultXmlCentralityOutputAdapter.class, 1);
+	DEFAULT_XML ("Default XML", DefaultXmlCentralityOutputAdapter.class, 1);
 	
 	/**
 	 * The adapter class corresponding to the format.
@@ -32,11 +34,17 @@ public enum CentralityOutputFormat {
 	private final int id;
 	
 	/**
+	 * A display name for web frontends and more
+	 */
+	private final String displayName;
+	
+	/**
 	 * Creates a new instance.
 	 * @param adapterClass Defines the adapterClass attribute.
 	 * @param id Defines the id attribute.
 	 */
-	private CentralityOutputFormat(Class<? extends CentralityOutputAdapter> adapterClass, int id) {
+	private CentralityOutputFormat(String displayName, Class<? extends CentralityOutputAdapter> adapterClass, int id) {
+		this.displayName = displayName;
 		this.adapterClass = adapterClass;
 		this.id = id;
 	}
@@ -55,6 +63,14 @@ public enum CentralityOutputFormat {
 	 */
 	public int getId() {
 		return id;
+	}
+	
+	/**
+	 * Returns the display name of the type.
+	 * @return The name.
+	 */
+	public String getDisplayName() {
+		return displayName;
 	}
 	
 	/**
