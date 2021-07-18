@@ -150,7 +150,6 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.ZERO_WEIGHTS);
-		compatibilities.add(GraphType.DIRECTED);
 		return compatibilities;
 	}
 

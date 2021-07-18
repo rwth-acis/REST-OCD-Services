@@ -4,8 +4,9 @@ import java.security.InvalidParameterException;
 import java.util.Locale;
 
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
 
-public enum CentralityMeasureType implements CentralityType {
+public enum CentralityMeasureType implements CentralityType, EnumDisplayNames {
 	
 	UNDEFINED("Undefined", CentralityCreationMethod.class, 0),
 	
@@ -189,10 +190,14 @@ public enum CentralityMeasureType implements CentralityType {
 	 */
 	private final int id;
 	
+	/**
+	 * A display name for web frontends and more
+	 */
 	private final String displayName;
 	
 	/**
 	 * Creates a new instance.
+	 * @param displayName Defines the displayName attribute
 	 * @param creationMethodClass Defines the creationMethodClass attribute.
 	 * @param id Defines the id attribute.
 	 */
@@ -234,20 +239,6 @@ public enum CentralityMeasureType implements CentralityType {
 	public static CentralityMeasureType lookupType(int id) {
         for (CentralityMeasureType type : CentralityMeasureType.values()) {
             if (id == type.getId()) {
-                return type;
-            }
-        }
-        throw new InvalidParameterException();
-	}
-	
-	/**
-	 * Returns the type corresponding to the given display name.
-	 * @param displayName The display name.
-	 * @return The corresponding type.
-	 */
-	public static CentralityMeasureType lookupType(String displayName) {
-		for (CentralityMeasureType type : CentralityMeasureType.values()) {
-            if (displayName.equals(type.getDisplayName())) {
                 return type;
             }
         }

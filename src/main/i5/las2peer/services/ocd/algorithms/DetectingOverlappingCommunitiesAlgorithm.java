@@ -327,7 +327,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		double overlappingScore;
 		HashMap<Integer, Integer> communityAdjacencyList = new HashMap<Integer, Integer>();
 		int comI=0, j=0, comA=0, foundAdjacencies=0;
-		Integer totalEdges = new Integer(0);		
+		Integer totalEdges = Integer.valueOf(0);		
 		while (!done) { // Start checking for overlapped communities
 			done = true;
 			realCommunityCount = communityCount; // make a copy of the current number of communities

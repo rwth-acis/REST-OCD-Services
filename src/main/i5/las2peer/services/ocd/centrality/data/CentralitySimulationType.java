@@ -7,8 +7,9 @@ import i5.las2peer.services.ocd.centrality.simulations.RandomPackageTransmission
 import i5.las2peer.services.ocd.centrality.simulations.RandomPackageTransmissionWeighted;
 import i5.las2peer.services.ocd.centrality.simulations.SirSimulation;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
 
-public enum CentralitySimulationType implements CentralityType {
+public enum CentralitySimulationType implements CentralityType, EnumDisplayNames {
 	
 	UNDEFINED("Undefined", CentralitySimulation.class, 0),
 	
@@ -82,20 +83,6 @@ public enum CentralitySimulationType implements CentralityType {
 	public static CentralitySimulationType lookupType(int id) {
         for (CentralitySimulationType type : CentralitySimulationType.values()) {
             if (id == type.getId()) {
-                return type;
-            }
-        }
-        throw new InvalidParameterException();
-	}
-	
-	/**
-	 * Returns the type corresponding to the given display name.
-	 * @param displayName The display name.
-	 * @return The corresponding type.
-	 */
-	public static CentralitySimulationType lookupType(String displayName) {
-        for (CentralitySimulationType type : CentralitySimulationType.values()) {
-            if (displayName.equals(type.getDisplayName())) {
                 return type;
             }
         }

@@ -3,13 +3,15 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
+
 /**
  * GraphInputAdapter registry.
  * Used for factory instantiation, persistence or other context.
  * @author Sebastian
  *
  */
-public enum GraphInputFormat {
+public enum GraphInputFormat implements EnumDisplayNames {
 
 	/*
 	 * Each enum constant is instantiated with a corresponding GraphInputAdapter class object and a UNIQUE id.
@@ -18,43 +20,43 @@ public enum GraphInputFormat {
 	/**
 	 * Format corresponding to the GraphMlGraphInputAdapter.
 	 */
-	GRAPH_ML (GraphMlGraphInputAdapter.class, 0),
+	GRAPH_ML ("GraphML", GraphMlGraphInputAdapter.class, 0),
 	/**
 	 * Format corresponding to the WeightedEdgeListGraphInputAdapter.
 	 */
-	WEIGHTED_EDGE_LIST (WeightedEdgeListGraphInputAdapter.class, 1),
+	WEIGHTED_EDGE_LIST ("Weighted Edge List", WeightedEdgeListGraphInputAdapter.class, 1),
 	/**
 	 * Format corresponding to the UnweightedEdgeListGraphInputAdapter.
 	 */
-	UNWEIGHTED_EDGE_LIST (UnweightedEdgeListGraphInputAdapter.class, 2),
+	UNWEIGHTED_EDGE_LIST ("Unweighted Edge List", UnweightedEdgeListGraphInputAdapter.class, 2),
 	/**
 	 * Format corresponding to the NodeWeightedEdgeListGraphInputAdapter.
 	 */
-	NODE_WEIGHTED_EDGE_LIST (NodeWeightedEdgeListGraphInputAdapter.class, 3),
+	NODE_WEIGHTED_EDGE_LIST ("Node Weighted Edge List", NodeWeightedEdgeListGraphInputAdapter.class, 3),
 	/**
 	 * Format corresponding to the GmlGraphInputAdapter.
 	 */
-	GML (GmlGraphInputAdapter.class, 4),
+	GML ("GML", GmlGraphInputAdapter.class, 4),
 	/**
 	 * Format corresponding to the NodeContentListGraphInputAdapter.
 	 */
-	NODE_CONTENT_EDGE_LIST (NodeContentEdgeListGraphInputAdapter.class,5),	
+	NODE_CONTENT_EDGE_LIST ("Node Content Edge List", NodeContentEdgeListGraphInputAdapter.class,5),	
 	/**
 	 * Format corresponding to the XMLGraphInputAdapter.
 	 */
-	XML (XMLGraphInputAdapter.class, 6),
+	XML ("XML", XMLGraphInputAdapter.class, 6),
 	/**
 	 * Format corresponding to the XGMMLGraphInputAdapter.
 	 */
-	XGMML (XGMMLGraphInputAdapter.class, 7),
+	XGMML ("XGMML", XGMMLGraphInputAdapter.class, 7),
 	/**
 	 * Format corresponding to the AdjacencyMatrixGraphInputAdapter.
 	 */
-	ADJACENCY_MATRIX (AdjacencyMatrixGraphInputAdapter.class, 8),
+	ADJACENCY_MATRIX ("Adjacency Matrix", AdjacencyMatrixGraphInputAdapter.class, 8),
 	/**
 	 * Format corresponding to the LmsTripleStoreGraphInputAdapter.
 	 */
-	LMS_TRIPLESTORE (LmsTripleStoreGraphInputAdapter.class, 9);
+	LMS_TRIPLESTORE ("Fetched from LMS Triplestore", LmsTripleStoreGraphInputAdapter.class, 9);
 	
 	/**
 	 * The adapter class corresponding to the format.
@@ -67,11 +69,17 @@ public enum GraphInputFormat {
 	private final int id;
 	
 	/**
+	 * A display name for web frontends and more
+	 */
+	private final String displayName;
+	
+	/**
 	 * Creates a new instance.
 	 * @param adapterClass Defines the adapterClass attribute.
 	 * @param id Defines the id attribute.
 	 */
-	private GraphInputFormat(Class<? extends GraphInputAdapter> adapterClass, int id) {
+	private GraphInputFormat(String displayName, Class<? extends GraphInputAdapter> adapterClass, int id) {
+		this.displayName = displayName;
 		this.id = id;
 		this.adapterClass = adapterClass;
 	}
@@ -90,6 +98,14 @@ public enum GraphInputFormat {
 	 */
 	public int getId() {
 		return id;
+	}
+	
+	/**
+	 * Returns the display name of the type.
+	 * @return The name.
+	 */
+	public String getDisplayName() {
+		return displayName;
 	}
 	
 	/**

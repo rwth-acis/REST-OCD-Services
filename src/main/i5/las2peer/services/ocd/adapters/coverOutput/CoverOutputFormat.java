@@ -3,13 +3,15 @@ package i5.las2peer.services.ocd.adapters.coverOutput;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
+import i5.las2peer.services.ocd.utils.EnumDisplayNames;
+
 /**
  * CoverOutputAdapter registry.
  * Used for factory instantiation, persistence or other context.
  * @author Sebastian
  *
  */
-public enum CoverOutputFormat {
+public enum CoverOutputFormat implements EnumDisplayNames{
 
 	/*
 	 * Each enum constant is instantiated with a corresponding CoverOutputAdapter class object and a UNIQUE id.
@@ -18,15 +20,15 @@ public enum CoverOutputFormat {
 	/**
 	 * Format corresponding to the MetaXmlCoverOutputAdapter.
 	 */
-	META_XML (MetaXmlCoverOutputAdapter.class, 0),
+	META_XML ("Meta XML", MetaXmlCoverOutputAdapter.class, 0),
 	/**
 	 * Format corresponding to the DefaultXmlCoverOutputAdapter.
 	 */
-	DEFAULT_XML (DefaultXmlCoverOutputAdapter.class, 1),
+	DEFAULT_XML ("Default XML", DefaultXmlCoverOutputAdapter.class, 1),
 	/**
 	 * Format corresponding to the LabeledMembershipMatrixCoverOutputAdapter.
 	 */
-	LABELED_MEMBERSHIP_MATRIX (LabeledMembershipMatrixCoverOutputAdapter.class, 2);
+	LABELED_MEMBERSHIP_MATRIX ("Labeled Membership Matrix", LabeledMembershipMatrixCoverOutputAdapter.class, 2);
 	
 	/**
 	 * The adapter class corresponding to the format.
@@ -39,11 +41,17 @@ public enum CoverOutputFormat {
 	private final int id;
 	
 	/**
+	 * A display name for web frontends and more
+	 */
+	private final String displayName;
+	
+	/**
 	 * Creates a new instance.
 	 * @param adapterClass Defines the adapterClass attribute.
 	 * @param id Defines the id attribute.
 	 */
-	private CoverOutputFormat(Class<? extends CoverOutputAdapter> adapterClass, int id) {
+	private CoverOutputFormat(String displayName, Class<? extends CoverOutputAdapter> adapterClass, int id) {
+		this.displayName = displayName;
 		this.adapterClass = adapterClass;
 		this.id = id;
 	}
@@ -62,6 +70,14 @@ public enum CoverOutputFormat {
 	 */
 	public int getId() {
 		return id;
+	}
+	
+	/**
+	 * Returns the display name of the type.
+	 * @return The name.
+	 */
+	public String getDisplayName() {
+		return displayName;
 	}
 	
 	/**
