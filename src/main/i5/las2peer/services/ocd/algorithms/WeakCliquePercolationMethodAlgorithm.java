@@ -33,7 +33,7 @@ public class WeakCliquePercolationMethodAlgorithm implements OcdAlgorithm {
 	/**
 	 * Threshold to use for merging the weak cliques, which should be at least 0
 	 */
-	private double threshold = 1.5;
+	private double threshold = 2.5;
 	
 	/*
 	 * PARAMETER NAMES

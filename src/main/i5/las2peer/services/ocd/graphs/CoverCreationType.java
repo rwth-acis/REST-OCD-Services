@@ -14,7 +14,7 @@ import i5.las2peer.services.ocd.algorithms.SignedDMIDAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SignedProbabilisticMixtureAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
-import i5.las2peer.services.ocd.algorithms.WeakCliquePercolationMethodAlgorithm
+import i5.las2peer.services.ocd.algorithms.WeakCliquePercolationMethodAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WordClusteringRefinementAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LocalSpectralClusteringAlgorithm;
