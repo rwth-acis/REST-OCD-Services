@@ -32,6 +32,7 @@ public class AlgorithmsBoundaryTest {
 		algos.add(new RandomWalkLabelPropagationAlgorithm());
 		algos.add(new ExtendedSpeakerListenerLabelPropagationAlgorithm());
 		algos.add(new LinkCommunitiesAlgorithm());
+		algos.add(new NISEAlgorithm());
 		algos.add(new SpeakerListenerLabelPropagationAlgorithm());
 		algos.add(new SskAlgorithm());
 		algos.add(new WeightedLinkCommunitiesAlgorithm());
