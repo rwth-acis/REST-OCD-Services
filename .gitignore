@@ -21,6 +21,7 @@ restMapping.xml
 /ocd/lfr/time_seed.dat
 /ocd/lfr/community.dat
 /ocd/yGuard
+/rest_ocd_services/export/jars/
 /indexes/
 *.jdbc
 
