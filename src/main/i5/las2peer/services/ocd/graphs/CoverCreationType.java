@@ -7,6 +7,7 @@ import i5.las2peer.services.ocd.algorithms.EvolutionaryAlgorithmBasedOnSimilarit
 import i5.las2peer.services.ocd.algorithms.ExtendedSpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.MergingOfOverlappingCommunitiesAlgorithm;
+import i5.las2peer.services.ocd.algorithms.NISEAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SignedDMIDAlgorithm;
@@ -143,8 +144,13 @@ public enum CoverCreationType implements EnumDisplayNames {
 	/**
 	 * Type corresponding to the DetectingOverlappingCommunities Algorithm.
 	 */
-	DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM("Detecting Overlapping Communities Algorithm", DetectingOverlappingCommunitiesAlgorithm.class, 22);
+	DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM("Detecting Overlapping Communities Algorithm", DetectingOverlappingCommunitiesAlgorithm.class, 22),
 
+	/**
+	 * Type corresponding to the NISE Algorithm.
+	 */
+	NISE_ALGORITHM("Neighborhood-Inflated Seed Expansion Algorithm", NISEAlgorithm.class, 23);
+	
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
 	 * Abstract types correspond to the CoverCreationMethod interface itself.
