@@ -91,7 +91,7 @@ public class WeakCliquePercolationMethodAlgorithm implements OcdAlgorithm {
 		
 		Cover resulting_cover = new Cover(graph, community_matrix);
 		
-		
+		System.out.println("****** Number of found communities: " + identified_communities.size() + " ******");
 		return resulting_cover;
 		
 	}
@@ -304,14 +304,21 @@ public class WeakCliquePercolationMethodAlgorithm implements OcdAlgorithm {
 				W_u.addAll(findSharedNeighbors(network, u, v)); // add nodes shared by u and v
 				
 				for (int key : W_u.getNodes()) {
+					
 					SI.remove(key);
-					P.remove(key);
+			
 				}
 				
 			}
 						
 			WClique.add(W_u);  // add weak clique W_u to the set of found weak cliques WClique
 			V.removeAll(W_u.getNodes()); // remove the nodes already considered from the set of nodes
+			for (int key : W_u.getNodes()) {
+				
+				// remove nodes that were already considered from P so that they are not selected again
+				P.remove(key);
+				
+			}
 			
 		}
 		
@@ -380,7 +387,7 @@ public class WeakCliquePercolationMethodAlgorithm implements OcdAlgorithm {
 	 * This method is a helper method to identify neighbouring weak cliques of a
 	 * given weak clique. This is necessary in order to find the candidates with
 	 * which wclique can be merged. Weak cliques A and B are defined as neighbours
-	 * if there is at least one edge between them
+	 * if they share at least one node.
 	 * 
 	 * @param wclique         Weak clique neighbours of which should be found
 	 * @param all_wcliques    Set of all weak cliques found in the network
@@ -402,26 +409,12 @@ public class WeakCliquePercolationMethodAlgorithm implements OcdAlgorithm {
 				
 				for (int i : potential_neighbor.getNodes()) {
 					
-					for (int j : wclique.getNodes()) {
-						
-						if (network.get(i, j) > 0) {
-							
-							neighbors.add(potential_neighbor);
-							proceed = false;
-							break;
-							
-						}
-						
-					}
-					if (!proceed) {
-						
-						// if code came here, then potential_neighbor is already identified as neighbor,
-						// so there's no point in checking further links between this potential_neighbor
-						// and wclique. So set proceed to true for next potential_neighbor and exit loop
-						proceed = true;
+					// if at least one node is shared, weak cliques are considered as neighbors
+					if(wclique.contains(i)) {
+						neighbors.add(potential_neighbor);
 						break;
-						
 					}
+
 				}
 				
 			}

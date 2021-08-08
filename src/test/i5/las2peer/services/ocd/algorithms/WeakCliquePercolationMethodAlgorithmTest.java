@@ -135,17 +135,26 @@ public class WeakCliquePercolationMethodAlgorithmTest {
 		for (int i = 0; i < 3; i ++) {
 			WeakClique wclique_to_add = new WeakClique();
 			wclique_to_add.add(i);
+			
+
+			if(i == 2) {
+				
+				// create weak clique with two nodes: 0 and 2
+				wclique_to_add.add(0);
+				
+			}
+			
 			all_wcliques.add(wclique_to_add);
+			
 		}
 		
 		HashSet<WeakClique> S = new HashSet<WeakClique>();
 		
-		double threshold = 0.5;
-		
+		double threshold = 0.5;	
 		
 		
 		/*
-		 * Try to merge WeakClique with only node 0, with all its neighbouring WeakCliques, which are WeakCliques that have only node 1 and node 2.
+		 * Try to merge WeakClique with only node 0, with all its neighbouring WeakCliques, which are WeakCliques that have only node 1 and nodes 0, 2.
 		 */
 		wcpm.Merge(wclique, S, threshold, all_wcliques, network);
 		
@@ -153,10 +162,14 @@ public class WeakCliquePercolationMethodAlgorithmTest {
 		Iterator<WeakClique> it = S.iterator();
 		
 		/*
-		 * Since threshold is 0.5 and all 3 nodes have similarity of 1.0 with one another, all 3 nodes should be merged into one WeakClique of size 3
+		 * Since threshold is 0.5 and the only neighbor of wclique is weak clique with
+		 * nodes 0 and 2 (because they share node 0) with a similarity of 1.0, wclique
+		 * which consisting only of the node 0 and its neighbor which consists of nodes 0
+		 * and 2 will be merged
 		 */
+		
 		WeakClique the_only_weakclique_in_merged_cliques = it.next();
-		assertEquals(3, the_only_weakclique_in_merged_cliques.size(), 0.01);
+		assertEquals(2, the_only_weakclique_in_merged_cliques.size(), 0.01);
 		
 	}
 	
