@@ -41,7 +41,7 @@ public class OcdMetricExecutor {
 	 * @return The metric log of the execution.
 	 * @throws OcdMetricException In case of a metric failure.
 	 * @throws InterruptedException In case of a metric interrupt.
-	 * @throws OcdAlgorithmException 
+	 * @throws OcdAlgorithmException If the execution failed.
 	 */
 	public OcdMetricLog executeStatisticalMeasure(Cover cover, StatisticalMeasure metric) throws OcdMetricException, InterruptedException, OcdAlgorithmException {
 		GraphProcessor processor = new GraphProcessor();

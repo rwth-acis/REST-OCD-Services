@@ -109,7 +109,7 @@ public class SimulationBuilder {
 	/**
 	 * Set the simulation parameters regarding the dynamic.
 	 * 
-	 * @param parameters
+	 * @param parameters the parameters
 	 * @return Dynamic
 	 */
 	public Dynamic setDynamicParameters(SimulationSeriesParameters parameters) {
@@ -126,7 +126,7 @@ public class SimulationBuilder {
 	/**
 	 * Set the simulation parameters regarding the break condition.
 	 * 
-	 * @param parameters
+	 * @param parameters the parameters
 	 * @return Condition
 	 */
 	public Condition setConditionParameters(SimulationSeriesParameters parameters) {
@@ -143,7 +143,7 @@ public class SimulationBuilder {
 	/**
 	 * Set the Graph
 	 * 
-	 * @param network
+	 * @param network the network
 	 */
 	public void setNetwork(CustomGraph network) {
 
@@ -156,8 +156,8 @@ public class SimulationBuilder {
 	/**
 	 * Set the number of simulations
 	 * 
-	 * @param number
-	 *            of simulations
+	 * @param value
+	 *            number of simulations
 	 */
 	public void setIterations(int value) {
 
@@ -170,7 +170,7 @@ public class SimulationBuilder {
 	/**
 	 * Set the name of the simulation
 	 * 
-	 * @param name
+	 * @param name the name to be set
 	 */
 	public void setName(String name) {
 		this.name = name;
@@ -179,7 +179,7 @@ public class SimulationBuilder {
 	/**
 	 * Checks if all informations are available to create a legal simulation
 	 * 
-	 * @throws IllegalStateException
+	 * @throws IllegalStateException if an information is not defined
 	 */
 	protected void validate() throws IllegalStateException {
 
@@ -200,8 +200,8 @@ public class SimulationBuilder {
 	 * Start a simulation series
 	 * 
 	 * @return SimulationSeries
-	 * @throws IllegalStateException
-	 * @throws ServiceInvocationException
+	 * @throws IllegalStateException if validation failed
+	 * @throws ServiceInvocationException if service invocation failed
 	 */
 	public SimulationSeries simulate() throws IllegalStateException, ServiceInvocationException {
 
@@ -271,7 +271,8 @@ public class SimulationBuilder {
 
 	/**
 	 * Returns the results of a simulation as {@link SimulationDataset}
-	 * 
+	 *
+	 * @param simulation the simulation
 	 * @return SimulationData
 	 */
 	public SimulationDataset getSimulationData(Simulation simulation) {

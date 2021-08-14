@@ -312,7 +312,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * @param graph A graph
 	 * 
 	 * @return Adjacency Matrix with self-directed edges
-	 * 
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public Matrix getAdjacencyMatrixWithIdentity(CustomGraph graph) throws InterruptedException {
 
@@ -446,8 +446,11 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * 
 	 * @param graphAdjacencyMatrix A graphs adjacency matrix (with self directed edges)
 	 * @param cluster A node cluster given by a list of indices
+	 * @param graphAdjacencyMatrixRowSums Row sums of the graphs adajacency matrix
+	 * @param graphAdjacencyMatrixSum Sum of the adjacency matrix's values
 	 * 
 	 * @return A conductance of floating point value
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public double calculateConductance(Matrix graphAdjacencyMatrix, List<Integer> cluster, double graphAdjacencyMatrixSum, double[] graphAdjacencyMatrixRowSums) throws InterruptedException{
 
@@ -492,6 +495,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * @param matrix A matrix
 	 * 
 	 * @return A matrix of orthonormal vectors
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public Matrix createOrthonormal(Matrix matrix) throws InterruptedException{
 		// DEBUG: System.out.println("Mat\n" + matrix.toString() + "mat\n");
@@ -551,6 +555,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * @param randomWalkSteps Number of random walk steps that are going to be taken 
 	 * 
 	 * @return The probability matrix with n probability vectors resulting from n random walks
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public Matrix randomWalk(Matrix graphAdjacencyMatrix, Vector initialProbability, int subspaceDimension, int randomWalkSteps) throws InterruptedException{
 		Matrix normalizedAdjacencyMatrix = adjToNormAdj(graphAdjacencyMatrix);
@@ -582,14 +587,15 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * Computes the minimum one norm for a subgraph and its seed nodes, essentially solves the linear programming problem:
 	 * 		min ||y||_1
 	 * 		y == V_k,l * x
-	 * 		y >= 0
-	 * 		y_initialSeed >= 1
-	 * 		y_seed >= 1 + weightLaterAdded*difference
+	 * 		y &gt;= 0
+	 * 		y_initialSeed &gt;= 1
+	 * 		y_seed &gt;= 1 + weightLaterAdded*difference
 	 * from the paper.
 	 * 
 	 * @param matrix A probability matrix
 	 * @param initialSeed A vector of the initial seed node indices
 	 * @param seed A vector of the all seed node indices
+	 * @param graphAdjacencyMatrix the graphs adjacency matrix
 	 * 
 	 * @return A vector which entries signify the likelihood for nodes to belong in a community (the larger the number the larger the likelihood, not a probability vector)
 	 */
@@ -780,6 +786,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * @param iteration The current iteration number of the algorithm
 	 * 
 	 * @return The global minimum of the sequence
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public int globalMinimum(ArrayList<Double> sequence, int startIndex, double[] globalConductance, int iteration) throws InterruptedException{
 
@@ -836,6 +843,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * @param biased Boolean to tell whether node degree is taken into account for initial probabilities or not
 	 * 
 	 * @return A map of node indices and their likelihood to be in a community
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public Map<Integer, Double> seedSetExpansion(Matrix graphAdjacencyMatrix, ArrayList<Integer> seedset,
 			int minimumCommunitySize, int maximumCommunitySize, int expansionStepSize, int subspaceDimension, int randomWalkSteps, boolean biased) throws InterruptedException{

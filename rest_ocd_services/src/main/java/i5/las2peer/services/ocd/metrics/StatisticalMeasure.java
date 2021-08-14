@@ -20,9 +20,9 @@ public interface StatisticalMeasure extends OcdMetric {
 	 * and throw an InterruptedException if an interrupt was detected.
 	 * @param cover The cover which is evaluated. It must also contain the corresponding graph.
 	 * @return The calculated metric value.
-	 * @throws OcdMetricException If the execution failed.
+	 * @throws OcdMetricException If the metric execution failed.
 	 * @throws InterruptedException If the executing thread was interrupted.
-	 * @throws OcdAlgorithmException 
+	 * @throws OcdAlgorithmException If the execution failed.
 	 */
 	public double measure(Cover cover) throws OcdMetricException, InterruptedException, OcdAlgorithmException;
 	

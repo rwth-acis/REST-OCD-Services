@@ -19,7 +19,7 @@ public class Formatter {
 	///// Decimals /////	
 	
 	/**
-	 * @param string 
+	 * @param string the string
 	 * @param places the amount of decimal places
 	 * @return modified string
 	 */

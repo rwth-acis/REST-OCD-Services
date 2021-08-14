@@ -56,10 +56,10 @@ public class Simulation extends SimState {
 	/**
 	 * Creates a Simulation with parameters. Used by SimulationBuilder.
 	 * 
-	 * @param seed
-	 * @param network
-	 * @param game
-	 * @param dynamic
+	 * @param seed the seed
+	 * @param network the network
+	 * @param game the game
+	 * @param dynamic the dynamic
 	 */
 	public Simulation(long seed, Network network, Game game, Dynamic dynamic, Condition condition) {
 		super(seed);
@@ -75,7 +75,7 @@ public class Simulation extends SimState {
 	/**
 	 * Creates a Simulation with default parameters. Used by SimulationWithUI
 	 * 
-	 * @param seed
+	 * @param seed the seed
 	 */
 	public Simulation(long seed) {
 		super(seed);
@@ -91,6 +91,7 @@ public class Simulation extends SimState {
 	
 	/**
 	 * the main loop. Used in stand alone mode
+	 * @param args the arguments for main
 	 */
 	public static void main(String[] args) {
 		doLoop(Simulation.class, args);
@@ -236,6 +237,8 @@ public class Simulation extends SimState {
 			
 	/**
 	 * Hides SimulationData UI element. Used only in UI mode.
+	 *
+	 * @return true
 	 */
 	public boolean hideSimulationData() {
 		return true;
@@ -274,6 +277,8 @@ public class Simulation extends SimState {
 	
 	/**
 	 * Hides Game UI element. Used only in UI mode.
+	 *
+	 * @return true
 	 */
 	public boolean hideGame() {
 		return true;
@@ -288,6 +293,8 @@ public class Simulation extends SimState {
 	
 	/**
 	 * Hides Dynamic UI element. Used only in UI mode.
+	 *
+	 * @return true
 	 */
 	public boolean hideDynamic() {
 		return true;
@@ -302,6 +309,8 @@ public class Simulation extends SimState {
 	
 	/**
 	 * Hides DataRecorder UI element. Used only in UI mode.
+	 *
+	 * @return true
 	 */
 	public boolean hideDataRecorder() {
 		return true;

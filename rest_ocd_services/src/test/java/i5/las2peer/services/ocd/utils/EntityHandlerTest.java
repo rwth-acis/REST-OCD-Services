@@ -253,7 +253,7 @@ public class EntityHandlerTest {
 	}
 	
 	@Test
-	public void deleteCoverNotFound() {
+	public void deleteCoverNotFound() throws Exception {
 		 
 		exception.expect(IllegalArgumentException.class);
 		exception.expectMessage("Cover not found");

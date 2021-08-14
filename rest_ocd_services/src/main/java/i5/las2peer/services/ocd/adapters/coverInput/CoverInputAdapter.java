@@ -16,7 +16,7 @@ public interface CoverInputAdapter extends InputAdapter {
 	 * Reads a cover and closes the reader.
 	 * @param graph The graph to which the cover belongs.
 	 * @return The cover.
-	 * @throws AdapterException
+	 * @throws AdapterException if the adapter failed
 	 */
 	public Cover readCover(CustomGraph graph) throws AdapterException;
 	

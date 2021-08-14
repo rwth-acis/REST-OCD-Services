@@ -15,7 +15,7 @@ public interface CentralityInputAdapter extends InputAdapter {
 	 * Reads centrality input and closes the reader.
 	 * @param graph The graph which the centrality values are based on.
 	 * @return The read CentralityMap.
-	 * @throws AdapterException
+	 * @throws AdapterException if the reading failed
 	 */
 	public CentralityMap readCentrality(CustomGraph graph) throws AdapterException;
 	

@@ -163,9 +163,9 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 	/** 
 	 * translate graph into paj file
 	 * 
-	 * @param graph
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * @param graph the examined graph
+	 * @throws IOException if the reading of the file failed
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected void writeNetworkFile(CustomGraph graph) throws IOException, InterruptedException {
 		FileWriter networkFile = new FileWriter(graphPath);
@@ -200,11 +200,11 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 
 	/**
 	 * Transform the results written by the executable file into the membership matrix.
-	 * @param LastResultPath
-	 * @param nodeCount
-	 * @return matrix
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * @param LastResultPath the path of the last result
+	 * @param nodeCount the number of nodes for the matrix
+	 * @return matrix the membership matrix
+	 * @throws IOException if the file reading failed
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix translateCommunityFile(String LastResultPath, int nodeCount)
 			throws IOException, InterruptedException {

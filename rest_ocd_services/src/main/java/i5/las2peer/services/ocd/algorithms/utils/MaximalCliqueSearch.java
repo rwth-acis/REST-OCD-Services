@@ -36,6 +36,8 @@ public class MaximalCliqueSearch{
 	/**
 	 * Method to find all maximal cliques of a graph.  
 	 * @param graph: the graph in which to find the all maximal cliques
+	 *
+	 * @return the maximal cliques in a hashmap
 	 */
 	public HashMap<Integer,HashSet<Node>> cliques(CustomGraph graph) {
 		List<Node> nodes = Arrays.asList(graph.getNodeArray());
@@ -51,7 +53,7 @@ public class MaximalCliqueSearch{
 	/**
 	 * Recursive function to find all the maximal cliques in depth-first search approach with pruning 
 	 * to make it more usable on big graphs
-	 * @param subgr: set of vertices in which is needed to find a complete subgraph. It is defined as
+	 * @param subg: set of vertices in which is needed to find a complete subgraph. It is defined as
 	 * the set of all vertices with are not neighbors of the current largest complete subgraph. 
 	 * @param cand: All the vertices which not have been processed by the algorithm
 	 */

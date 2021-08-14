@@ -144,6 +144,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @param graph The graph being analyzed.
 	 * @param leaders A mapping from the community leader nodes to the indices of their communities.
 	 * @return The membership matrix.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix calculateMemberships(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
 		Matrix memberships;
@@ -193,6 +194,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @param matA The first matrix.
 	 * @param matB The second matrix.
 	 * @return The maximum difference.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected double getMaxDifference(Matrix matA, Matrix matB) throws InterruptedException {
 		Matrix diffMatrix = matA.subtract(matB);
@@ -218,6 +220,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @param graph The graph being analyzed.
 	 * @param leaders A mapping from the leader nodes to their community indices.
 	 * @return The initial membership matrix.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix initMembershipMatrix(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
 		int communityCount = Collections.max(leaders.values()) + 1;
@@ -249,6 +252,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @param leadershipValues A mapping from the graph's nodes to their leadership values.
 	 * @return A mapping from the leader nodes to their community indices. Note that multiple
 	 * leaders may have the same community index.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Integer> determineCommunityLeaders(CustomGraph graph, Matrix distances, Map<Node, Double> leadershipValues) throws InterruptedException {
 		Node[] nodeArray = graph.getNodeArray();
@@ -287,6 +291,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @param distances The distance matrix.
 	 * @param leadershipValues The nodes' leadership values.
 	 * @return The nodes which are community leaders.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Set<Node> determineLeaders(CustomGraph graph, Matrix distances, Map<Node, Double> leadershipValues) throws InterruptedException {
 		Set<Node> leaders = new HashSet<Node>();
@@ -324,6 +329,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * If two nodes are further apart than the distance defined through the influence factor,
 	 * their distance is 0 but to be interpreted as infinity.
 	 * @return The leadership indices of all nodes.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Double> calculateLeadershipValues(CustomGraph graph, Matrix distances) throws InterruptedException {
 		NodeCursor nodes = graph.nodes();
@@ -347,6 +353,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @param graph The graph being analyzed.
 	 * @return A matrix d containing the distance from node i to node j in the entry d_ij, 
 	 * where i and j are node indices.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix calculateNodeDistances(CustomGraph graph) throws InterruptedException {
 		NodeCursor nodes = graph.nodes();
@@ -477,6 +484,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @param edgeWeight The original edge weight.
 	 * @param minEdgeWeight The smallest edge weight greater 0 of the examined graph.
 	 * @param maxEdgeWeight The maximum edge weight of the examined graph.
+	 * @return The calculated edge length
 	 */
 	protected double getEdgeLength(double edgeWeight, double minEdgeWeight, double maxEdgeWeight) {
 		return maxEdgeWeight + minEdgeWeight - edgeWeight;

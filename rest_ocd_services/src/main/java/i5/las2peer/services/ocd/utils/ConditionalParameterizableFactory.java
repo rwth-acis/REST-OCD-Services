@@ -24,8 +24,8 @@ public interface ConditionalParameterizableFactory<T extends Parameterizable, D>
 	 * @param descriptor The descriptor defining the subclass to instantiate.
 	 * @param parameters The parameters to pass to the created object.
 	 * @return The created object.
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access of the instance occured
 	 */
 	public T getInstance(D descriptor, Map<String, String> parameters) throws InstantiationException, IllegalAccessException;
 	

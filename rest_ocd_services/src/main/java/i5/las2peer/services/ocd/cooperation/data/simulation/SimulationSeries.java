@@ -95,8 +95,9 @@ public class SimulationSeries extends SimulationAbstract {
 	/**
 	 * Creates a instance with datasets, parameters and graph.
 	 * 
-	 * @param parameters
-	 * @param simulationDatasets
+	 * @param parameters the parameters
+	 * @param datasets the datasets
+	 * @param graph the graph
 	 */
 	public SimulationSeries(SimulationSeriesParameters parameters, List<SimulationDataset> datasets, CustomGraph graph) {
 		this.setParameters(parameters);
@@ -106,9 +107,9 @@ public class SimulationSeries extends SimulationAbstract {
 	
 	/**
 	 * Creates a instance with datasets and parameters
-	 * 
-	 * @param parameters
-	 * @param simulationDatasets
+	 *
+	 * @param parameters the parameters
+	 * @param datasets the datasets
 	 */
 	public SimulationSeries(SimulationSeriesParameters parameters, List<SimulationDataset> datasets) {
 		this.setParameters(parameters);
@@ -286,7 +287,7 @@ public class SimulationSeries extends SimulationAbstract {
 	 * Returns the average community cooperation value of the SimulationDatasets
 	 * *
 	 * 
-	 * @param list
+	 * @param community
 	 *            the Community
 	 * @return average cooperation value
 	 */

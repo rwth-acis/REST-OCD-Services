@@ -14,8 +14,8 @@ public interface SimpleFactory<T, D> {
 	 * Produces a new object instance.
 	 * @param descriptor The descriptor defining the subclass to instantiate.
 	 * @return The created object.
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occured on the instance
 	 */
 	public T getInstance(D descriptor) throws InstantiationException, IllegalAccessException;
 	

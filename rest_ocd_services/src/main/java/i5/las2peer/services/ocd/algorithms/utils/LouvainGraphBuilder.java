@@ -51,8 +51,8 @@ public class LouvainGraphBuilder {
    * Builds Louvain graphs from the graph used in the ocd service
    * @param graph A graph
    * @return A corresponding louvain graph
-   * @throws InterruptedException
-   * @throws OcdAlgorithmException
+   * @throws InterruptedException if the thread was interrupted
+   * @throws OcdAlgorithmException if the execution failed
    */
   public LouvainGraph fromGraph(CustomGraph graph) 
 		  throws InterruptedException, OcdAlgorithmException{
@@ -137,7 +137,7 @@ public class LouvainGraphBuilder {
    * @param n2 A second node
    * @param weight An edge weight
    * @return This LouvaingraphBuilder
-   * @throws OcdAlgorithmException
+   * @throws OcdAlgorithmException if the execution failed
    */
   public LouvainGraphBuilder addEdge(int n1, int n2, int weight) 
 		  throws OcdAlgorithmException {
@@ -163,7 +163,8 @@ public class LouvainGraphBuilder {
    * @param g A louvain graph
    * @param map A mapping
    * @return The processed louvain graph
-   * @throws OcdAlgorithmException
+   * @throws OcdAlgorithmException if the execution failed
+   * @throws InterruptedException if the thread was interrupted
    */
   public LouvainGraph coarseGrain(LouvainGraph g, HashMap<Integer,Integer> map) 
 		  throws OcdAlgorithmException, InterruptedException {
@@ -201,7 +202,8 @@ public class LouvainGraphBuilder {
    * Builds a louvain graph from an existing louvain graph and a list of community members
    * @param g A louvain graph
    * @param members A list of community member indexes
-   * @return
+   * @return the louvain graph
+   * @throws InterruptedException if the thread was interrupted
    */
   public LouvainGraph fromCommunity(LouvainGraph g, ArrayList<Integer> members) 
 		  throws InterruptedException {

@@ -63,6 +63,8 @@ public class FrustrationMetric implements StatisticalMeasure {
 	/**
 	 * Creates an instance of the frustration metric with a predefined
 	 * parameter.
+	 *
+	 * @param weightingParameter the weighting parameter
 	 */
 
 	public FrustrationMetric(double weightingParameter) {

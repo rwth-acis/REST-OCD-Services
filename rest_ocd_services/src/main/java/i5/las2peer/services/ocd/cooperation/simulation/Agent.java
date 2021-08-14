@@ -32,14 +32,14 @@ public class Agent implements Steppable {
 	private Bag neighbours;
 
 	/**
-	 * This list records the strategy of the agent in every round. A {@link Dynamic} may use this
+	 * This list records the strategy of the agent in every round. A Dynamic may use this
 	 * information to determine the new strategy. Further This list can
 	 * be used for further evaluation after the simulation.
 	 */
 	private List<Boolean> strategies;
 	
 	/**
-	 * This list records the payoff of the agent in every round. A {@link Dynamic} may use this
+	 * This list records the payoff of the agent in every round. A Dynamic may use this
 	 * information to determine the new strategy. Further This list can
 	 * be used for further evaluation after the simulation.
 	 */
@@ -88,6 +88,8 @@ public class Agent implements Steppable {
 
 	/**
 	 * Update the agents payoff. Called every round.
+	 *
+	 * @param state the simulation state
 	 */
 	@Override
 	public void step(SimState state) {
@@ -98,6 +100,8 @@ public class Agent implements Steppable {
 
 	/**
 	 * Update the agents strategy. Called every round.
+	 *
+	 * @param state the simulation state
 	 */
 	public void updateDynamicStep(SimState state) {
 		Simulation simulation = (Simulation) state;
@@ -125,7 +129,8 @@ public class Agent implements Steppable {
 
 	/**
 	 * Calculate the neighbourhood of this agent by the given network.
-	 * 
+	 *
+	 * @param network the network
 	 * @return agent
 	 */
 	protected Bag calculateNeighbourhood(Network network) {
@@ -142,7 +147,7 @@ public class Agent implements Steppable {
 
 	
 	/**
-	 * Returns the Neighbourhood of this agent. A {@link Game} use this method to determine the agents new payoff. A {@link Dynamic} may use this
+	 * Returns the Neighbourhood of this agent. A Game use this method to determine the agents new payoff. A Dynamic may use this
 	 * method to determine the agents new strategy.
 	 * 
 	 * @return the neighbours of this agent

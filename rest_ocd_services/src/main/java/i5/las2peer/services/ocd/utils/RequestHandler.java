@@ -172,9 +172,9 @@ public class RequestHandler {
 	 * @param content
 	 *            A parameter xml.
 	 * @return The corresponding parameter map.
-	 * @throws SAXException
-	 * @throws IOException
-	 * @throws ParserConfigurationException
+	 * @throws SAXException if parsing failed
+	 * @throws IOException if reading failed
+	 * @throws ParserConfigurationException if parser configuration failed
 	 */
 	public Map<String, String> parseParameters(String content)
 			throws SAXException, IOException, ParserConfigurationException {
@@ -200,7 +200,7 @@ public class RequestHandler {
 	 *            A parameter mapping from the name of each parameter to the
 	 *            corresponding value.
 	 * @return The corresponding parameter xml.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parser config failed
 	 */
 	public String writeParameters(Map<String, String> parameters) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -223,7 +223,7 @@ public class RequestHandler {
 	 * Creates a standard XML document used for confirmation responses.
 	 * 
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parser config failed
 	 */
 	public String writeConfirmationXml() throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -236,7 +236,7 @@ public class RequestHandler {
 	 * 
 	 * @param value The value that is written to the document.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parser config failed
 	 */
 	public String writeValueXml(double value) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -252,7 +252,7 @@ public class RequestHandler {
 	 * @param graphs
 	 *            The graphs.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parser config failed
 	 */
 	public String writeGraphIds(List<CustomGraph> graphs) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -270,7 +270,7 @@ public class RequestHandler {
 	 * @param covers
 	 *            The covers.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parser config failed
 	 */
 	public String writeCoverIds(List<Cover> covers) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -286,7 +286,7 @@ public class RequestHandler {
 	 * Creates an XML document containing multiple CentralityMap ids.
 	 * @param maps The CentralityMaps.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parser config failed
 	 */
 	public String writeCentralityMapIds(List<CentralityMap> maps) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -304,12 +304,12 @@ public class RequestHandler {
 	 * 
 	 * @param graphs The graphs.
 	 * @return The document.
-	 * @throws AdapterException
-	 * @throws ParserConfigurationException
-	 * @throws IOException
-	 * @throws SAXException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public String writeGraphMetas(List<CustomGraph> graphs) throws AdapterException, ParserConfigurationException,
 			IOException, SAXException, InstantiationException, IllegalAccessException {
@@ -332,12 +332,12 @@ public class RequestHandler {
 	 * @param covers
 	 *            The covers.
 	 * @return The document.
-	 * @throws AdapterException
-	 * @throws ParserConfigurationException
-	 * @throws IOException
-	 * @throws SAXException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public String writeCoverMetas(List<Cover> covers) throws AdapterException, ParserConfigurationException,
 			IOException, SAXException, InstantiationException, IllegalAccessException {
@@ -357,12 +357,12 @@ public class RequestHandler {
 	 * Creates an XML document containing meta information about multiple centrality maps.
 	 * @param maps The centrality maps.
 	 * @return The document.
-	 * @throws AdapterException
-	 * @throws ParserConfigurationException
-	 * @throws IOException
-	 * @throws SAXException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public String writeCentralityMapMetas(List<CentralityMap> maps) throws AdapterException, ParserConfigurationException, IOException, SAXException, InstantiationException, IllegalAccessException {
 		Document doc = getDocument();
@@ -383,7 +383,7 @@ public class RequestHandler {
 	 * @param graph
 	 *            The graph.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writeId(CustomGraph graph) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -397,7 +397,7 @@ public class RequestHandler {
 	 * @param cover
 	 *            The cover.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writeId(Cover cover) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -409,7 +409,7 @@ public class RequestHandler {
 	 * Creates an XML document containing the id of a single CentralityMap.
 	 * @param map The CentralityMap.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writeId(CentralityMap map) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -423,7 +423,7 @@ public class RequestHandler {
 	 * @param metricLog
 	 *            The metric log.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writeId(OcdMetricLog metricLog) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -439,9 +439,9 @@ public class RequestHandler {
 	 * @param outputFormat
 	 *            The format.
 	 * @return The graph output.
-	 * @throws AdapterException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public String writeGraph(CustomGraph graph, GraphOutputFormat outputFormat)
 			throws AdapterException, InstantiationException, IllegalAccessException {
@@ -460,9 +460,9 @@ public class RequestHandler {
 	 * @param outputFormat
 	 *            The format.
 	 * @return The cover output.
-	 * @throws AdapterException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public String writeCover(Cover cover, CoverOutputFormat outputFormat)
 			throws AdapterException, InstantiationException, IllegalAccessException {
@@ -477,10 +477,10 @@ public class RequestHandler {
 	 * Creates a CentralityMap output.
 	 * @param map The CentralityMap.
 	 * @return The CentralityMap output.
-	 * @throws AdapterException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 * @throws ParserConfigurationException 
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public String writeCentralityMap(CentralityMap map, CentralityOutputFormat outputFormat) throws AdapterException, InstantiationException, IllegalAccessException, ParserConfigurationException {
 		Writer writer = new StringWriter();
@@ -501,7 +501,7 @@ public class RequestHandler {
 	/**
 	 * Creates an XML document containing all statistical measure names.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writeStatisticalMeasureNames() throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -521,7 +521,7 @@ public class RequestHandler {
 	/**
 	 * Creates an XML document containing all knowledge-driven measure names.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writeKnowledgeDrivenMeasureNames() throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -541,7 +541,7 @@ public class RequestHandler {
 	/**
 	 * Creates an XML document containing all ground truth benchmark names.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writeGroundTruthBenchmarkNames() throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -561,7 +561,7 @@ public class RequestHandler {
 	/**
 	 * Creates an XML document containing all ocd algorithm names.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writeAlgorithmNames() throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -581,7 +581,7 @@ public class RequestHandler {
 	/**
 	 * Creates an XML document containing all centrality measure names.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writeCentralityMeasureNames() throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -599,7 +599,7 @@ public class RequestHandler {
 	/**
 	 * Creates an XML document containing all CentralitySimulation names.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writeCentralitySimulationNames() throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -622,9 +622,9 @@ public class RequestHandler {
 	 * @param inputFormat
 	 *            The format.
 	 * @return The graph.
-	 * @throws AdapterException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public CustomGraph parseGraph(String contentStr, GraphInputFormat inputFormat)
 			throws AdapterException, InstantiationException, IllegalAccessException {
@@ -644,11 +644,10 @@ public class RequestHandler {
 	 * @param param
 	 *            Parametes that are passed to the adapters.
 	 * @return The graph.
-	 * @throws AdapterException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 * @throws ParseException
-	 * @throws IllegalArgumentException
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 * @throws IllegalArgumentException if arguments were faulty
 	 */
 	public CustomGraph parseGraph(String contentStr, GraphInputFormat inputFormat, Map<String, String> param)
 			throws AdapterException, InstantiationException, IllegalAccessException, IllegalArgumentException,
@@ -670,9 +669,9 @@ public class RequestHandler {
 	 * @param inputFormat
 	 *            The format.
 	 * @return The cover.
-	 * @throws AdapterException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public Cover parseCover(String contentStr, CustomGraph graph, CoverInputFormat inputFormat)
 			throws AdapterException, InstantiationException, IllegalAccessException {
@@ -690,9 +689,9 @@ public class RequestHandler {
 	 * @param graph
 	 *            The graph the centrality values are based on.
 	 * @return The CentralityMap.
-	 * @throws AdapterException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public CentralityMap parseCentralityMap(String contentStr, CustomGraph graph, CentralityInputFormat inputFormat)
 			throws AdapterException, InstantiationException, IllegalAccessException {
@@ -743,7 +742,7 @@ public class RequestHandler {
 
 	/**
 	 * Returns an XML element node representing the id of a CentralityMap.
-	 * @param cover The CentralityMap.
+	 * @param map The CentralityMap.
 	 * @param doc The document to create the element node for.
 	 * @return The element node.
 	 */
@@ -802,7 +801,7 @@ public class RequestHandler {
 	 * Creates an empty document.
 	 * 
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	protected Document getDocument() throws ParserConfigurationException {
 		DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -815,9 +814,9 @@ public class RequestHandler {
 	 * @param docString
 	 *            The document string.
 	 * @return The node.
-	 * @throws ParserConfigurationException
-	 * @throws IOException
-	 * @throws SAXException
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
 	 */
 	protected Node parseDocumentToNode(String docString)
 			throws ParserConfigurationException, IOException, SAXException {
@@ -831,9 +830,9 @@ public class RequestHandler {
 	 * @param docString
 	 *            The document string.
 	 * @return The document.
-	 * @throws SAXException
-	 * @throws IOException
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
 	 */
 	protected Document parseDocument(String docString) throws SAXException, IOException, ParserConfigurationException {
 		DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -869,7 +868,7 @@ public class RequestHandler {
 	 * @param <E>
 	 *            An enum subclass type.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public <E extends Enum<E>> String writeEnumNames(final Class<E> enumClass) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -894,7 +893,7 @@ public class RequestHandler {
 	 * @param <E>
 	 *            An enum subclass type.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public <E extends Enum<E>> String writeSpecificEnumNames(Set<E> chosenConstants) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -929,7 +928,7 @@ public class RequestHandler {
 	 * @param mapIds The list of centrality map ids.
 	 * @param correlationMatrix The matrix containing the correlations for each pair of centrality maps.
 	 * @return The document.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writeCorrelationMatrix(List<Integer> mapIds, RealMatrix correlationMatrix) throws ParserConfigurationException {
 		Document doc = getDocument();
@@ -957,7 +956,7 @@ public class RequestHandler {
 	 * @param maps The list of centrality maps whose precision was calculated.
 	 * @param precisionVector The vector of precision values.
 	 * @return The XML document as a String.
-	 * @throws ParserConfigurationException
+	 * @throws ParserConfigurationException if parsing failed
 	 */
 	public String writePrecisionResult(List<CentralityMap> maps, double[] precisionVector) throws ParserConfigurationException {
 		Document doc = getDocument();

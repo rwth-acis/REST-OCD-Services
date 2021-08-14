@@ -10,10 +10,11 @@ public class DynamicFactory {
 	}
 
 	/**
-	 * Creates a {@link Dynamic} matching the specified {@link ConditionType} and
+	 * Creates a {@link Dynamic} matching the specified ConditionType and
 	 * parameter values.
 	 * 
 	 * @param dynamicType
+	 * 			  the dynamic type
 	 * @param values
 	 *            parameters values
 	 * @return Dynamic
@@ -42,21 +43,23 @@ public class DynamicFactory {
 	}
 
 	/**
-	 * Creates a {@link Dynamic} matching the specified {@link ConditionType} with
+	 * Creates a {@link Dynamic} matching the specified ConditionType with
 	 * default parameters.
 	 * 
 	 * @param dynamicType
-	 * @return
+	 * 			  the dynamic type
+	 * @return the matching
 	 */
 	public Dynamic build(DynamicType dynamicType) {
 		return build(dynamicType, new double[] { 1.5 });
 	}
 
 	/**
-	 * Creates a {@link Dynamic} matching the specified {@link ConditionType} and
+	 * Creates a {@link Dynamic} matching the specified ConditionType and
 	 * the parameter value.
 	 * 
 	 * @param dynamicType
+	 * 			  the dynamic type
 	 * @param value
 	 *            parameter value
 	 * @return dynamic

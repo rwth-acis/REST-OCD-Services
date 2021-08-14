@@ -32,6 +32,7 @@ public class Adapters {
 	 * Reads in the next line from a reader.
 	 * @param reader The reader from which the next line is read.
 	 * @return The line as a list of strings which were separated by white space.
+	 * @throws java.io.IOException in case the reading fails
 	 */
 	public static List<String> readLine(Reader reader) throws IOException {
 		List<String> line = new ArrayList<String>();
@@ -73,6 +74,7 @@ public class Adapters {
 	 * Reads in the next line from a reader.
 	 * @param reader The reader from which the next line is read.
 	 * @return The line as a list of strings which were separated by tab stop.
+	 * @throws java.io.IOException in case the reading fails
 	 */
 	public static List<String> readLineTab(Reader reader) throws IOException {
 		List<String> line = new ArrayList<String>();
@@ -113,7 +115,9 @@ public class Adapters {
 	/**
 	 * Reads in the next line from a reader.
 	 * @param reader The reader from which the next line is read.
+	 * @param lineLength the expected length of the line
 	 * @return The line as a list of strings which were separated by tab stop and ignores some linebreaks.
+	 * @throws java.io.IOException in case the reading fails
 	 */
 	public static List<String> readLineTabIgnoreLineBreak(Reader reader, int lineLength) throws IOException {
 		List<String> line = new ArrayList<String>();

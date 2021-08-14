@@ -51,7 +51,7 @@ public class Evaluation implements Serializable {
 	/**
 	 * Creates a new instance and initialize it with a double array.
 	 * 
-	 * @param values 
+	 * @param values the values to evaluate with
 	 */
 	public Evaluation(double[] values) {
 
@@ -61,7 +61,7 @@ public class Evaluation implements Serializable {
 	/**
 	 * Creates a new instance and initialize it with a double list.
 	 * 
-	 * @param values 
+	 * @param list the list of values to evaluate with
 	 */
 	public Evaluation(List<Double> list) {
 

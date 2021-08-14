@@ -67,7 +67,7 @@ public enum GraphProperty {
 	/**
 	 * Return the Property as human readable string
 	 * 
-	 * @return
+	 * @return the property string
 	 */
 	public String humanRead() {
 		return this.humanRead;

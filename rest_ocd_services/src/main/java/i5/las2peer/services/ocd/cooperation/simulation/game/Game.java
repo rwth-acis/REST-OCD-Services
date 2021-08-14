@@ -46,6 +46,10 @@ public class Game implements Serializable {
 	
 	/**
 	 * Initialize with the specified payoff parameters
+	 * @param aa aa parameter
+	 * @param ab ab parameter
+	 * @param ba ba parameter
+	 * @param bb bb parameter
 	 */
 	protected Game(double aa, double ab, double ba, double bb) {
 
@@ -60,8 +64,7 @@ public class Game implements Serializable {
 	/**
 	 * Determine the total Payoff for a agent of all neighbour games
 	 * 
-	 * @param agent
-	 * @param neighbours
+	 * @param agent the agent
 	 * @return payoff
 	 */
 	public double getPayoff(Agent agent) {
@@ -79,8 +82,8 @@ public class Game implements Serializable {
 	/**
 	 * Determine the Payoff between two Strategies
 	 * 
-	 * @param myStrategy
-	 * @param otherStrategy
+	 * @param myStrategy the first strategy
+	 * @param otherStrategy the second strategy
 	 * @return payoff
 	 */
 	public double getPayoff(boolean myStrategy, boolean otherStrategy) {

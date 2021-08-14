@@ -158,6 +158,10 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	/**
 	 * Returns the next label to be received by the listener according to the speaker
 	 * and the listener rule.
+	 * @param graph the examined graph
+	 * @param memories the speakers memories
+	 * @param listener the listener
+	 * @return the next label
 	 */
 	protected int getNextLabel(CustomGraph graph, List<List<Integer>> memories, Node listener) {
 		Map<Node, Integer> receivedLabels = new HashMap<Node, Integer>();
@@ -173,6 +177,10 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	
 	/**
 	 * Calculates a cover with the membership degrees for all nodes based on the node memories.
+	 * @param graph the examined graph
+	 * @param memories the nodes memories
+	 * @return the cover
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Cover calculateMembershipDegrees(CustomGraph graph, List<List<Integer>> memories) throws InterruptedException {
 		Matrix membershipMatrix = new Basic2DMatrix();
@@ -207,6 +215,9 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	/**
 	 * Creates a histogram of the occurrence frequency based on the labels in the node memory.
 	 * Manipulates labelCount to track the total number of labels represented in the histogram.
+	 * @param memory the node memory
+	 * @param labelCount the number of labels
+	 * @return the histogram
 	 */
 	protected Map<Integer, Integer> getNodeHistogram(List<Integer> memory, int labelCount) {
 		Map<Integer, Integer> histogram = new HashMap<Integer, Integer>();
@@ -245,6 +256,10 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	/**
 	 * Returns a vector of the membership degrees of a single node, calculated from its histogram.
 	 * Manipulates the communities list to identify communities.
+	 * @param histogram the histogram
+	 * @param communities the communities
+	 * @param labelCount the number of labels
+	 * @return the membership vector
 	 */
 	protected Vector calculateMembershipsFromHistogram(Map<Integer, Integer> histogram, List<Integer> communities, int labelCount) {
 		Vector membershipDegrees = new CompressedVector(communities.size());

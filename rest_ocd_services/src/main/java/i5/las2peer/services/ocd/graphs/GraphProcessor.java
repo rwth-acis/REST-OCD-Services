@@ -366,6 +366,8 @@ public class GraphProcessor {
 	 * 
 	 * @param graph
 	 *            The graph to be copied.
+	 * @return
+	 * 		  	  The graph
 	 * @author YLi
 	 */
 	public CustomGraph copyGraph(CustomGraph graph) {

@@ -85,11 +85,11 @@ public enum Correlation {
 	/**
 	 * Correlates two double arrays
 	 * 
-	 * @param val1
-	 * @param val2
+	 * @param val1 first array
+	 * @param val2 second array
 	 * @return correlation value
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws InstantiationException if instance creation failed
+	 * @throws IllegalAccessException if an illegal access occured on the instance
 	 */
 	public double correlate(double[] val1, double[] val2) throws InstantiationException, IllegalAccessException {
 		return this.getCorrelationClass().newInstance().correlate(val1, val2);

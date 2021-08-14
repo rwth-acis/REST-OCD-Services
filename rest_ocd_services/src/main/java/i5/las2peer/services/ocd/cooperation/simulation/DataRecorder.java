@@ -24,6 +24,8 @@ public class DataRecorder implements Steppable {
 	
 	/**
 	 * Creates a DataRecorder with preset list sizes.
+	 *
+	 * @param maxIterations maximum number of iterations
 	 */
 	public DataRecorder(int maxIterations) {
 
@@ -33,6 +35,9 @@ public class DataRecorder implements Steppable {
 	
 	/**
 	 * Creates a DataRecorder with injected data. This Constructor is used for testing purpose.
+	 *
+	 * @param cooperationValues the cooperation values
+	 * @param payoffValues the payoff values
 	 */
 	public DataRecorder(List<Double> cooperationValues, List<Double> payoffValues) {
 
@@ -45,6 +50,8 @@ public class DataRecorder implements Steppable {
 	/**
 	 * Stores the average cooperation and average payoff value every time it is
 	 * stepped.
+	 *
+	 * @param state the simulation state
 	 */
 	@Override
 	public void step(SimState state) {
@@ -56,8 +63,9 @@ public class DataRecorder implements Steppable {
 
 	///// Methods /////
 	/**
-	 * 
-	 * @return
+	 * @param generations the generations
+	 * @param threshold  the threshold
+	 * @return whether steady or not
 	 */
 	public boolean isSteady(int generations, double threshold) {
 		

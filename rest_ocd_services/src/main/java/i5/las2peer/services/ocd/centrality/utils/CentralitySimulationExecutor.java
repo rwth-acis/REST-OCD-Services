@@ -14,7 +14,6 @@ public class CentralitySimulationExecutor {
 	 * @param graph The graph.
 	 * @param simulation The algorithm.
 	 * @return A CentralityMap of the graph calculated by the algorithm.
-	 * @throws CentralityAlgorithmException In case of an algorithm failure.
 	 * @throws InterruptedException In case of an algorithm interrupt.
 	 */
 	public CentralityMap execute(CustomGraph graph, CentralitySimulation simulation) throws InterruptedException {

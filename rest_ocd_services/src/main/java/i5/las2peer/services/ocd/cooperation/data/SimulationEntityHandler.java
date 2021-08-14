@@ -52,6 +52,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * Persists a SimulationSeries
 	 * 
 	 * @param series the simulation series
+	 * @param userId the users id
 	 * @return the persistence id
 	 */
 	public synchronized long store(SimulationSeries series, String userId) {
@@ -71,7 +72,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	/**
 	 * Removes a SimulatioSeries from the database
 	 * 
-	 * @param series SimulationSeries
+	 * @param Id SimulationSeries id
 	 */
 	public void deleteSeries(long Id) {
 
@@ -94,6 +95,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	}
 	
 	/**
+	 * @param userId the users id
 	 * @return all SimulationSeries of a specific user
 	 */
 	public List<SimulationSeries> getSimulationSeriesByUser(String userId) {
@@ -124,8 +126,10 @@ public class SimulationEntityHandler extends EntityHandler {
 	
 	/**
 	 * Returns a list of SimulationSeries filtered by their parameters
-	 * 
-	 * @param parameters
+	 * @param userId the users id
+	 * @param dynamic the type of dynamic
+	 * @param game the game used
+	 * @param graphId the graphs id
 	 * @return List of SimulationsSeries
 	 */
 	public List<SimulationSeries> getSimulationSeries(String userId, long graphId, DynamicType dynamic, GameType game) {
@@ -146,10 +150,10 @@ public class SimulationEntityHandler extends EntityHandler {
 	/**
 	 * Returns a list of SimulationSeries filtered by the graphId
 	 * 
-	 * @param userId
-	 * @param firstIndex
-	 * @param length
-	 * @param graphId
+	 * @param userId the users id
+	 * @param firstIndex the first index
+	 * @param length the length of the result set
+	 * @param graphId the graphs id
 	 * @return simulation series list
 	 */
 	public List<SimulationSeries> getSimulationSeriesByUser(String userId, long graphId, int firstIndex, int length) {
@@ -167,8 +171,8 @@ public class SimulationEntityHandler extends EntityHandler {
 	/**
 	 * Returns the parameters of a simulation series
 	 * 
-	 * @param seriesId
-	 * @return
+	 * @param seriesId the id of the series
+	 * @return the series parameters
 	 */
 	public SimulationSeriesParameters getSimulationParameters(long seriesId) {
 
@@ -185,9 +189,10 @@ public class SimulationEntityHandler extends EntityHandler {
 	
 	/**
 	 * Persists a SimulationSeriesGroup
-	 * 
-	 * @param group
-	 * @return
+	 *
+	 * @param userId the users id
+	 * @param group the SimulationSeriesGroup
+	 * @return its id
 	 */
 	public synchronized long store(SimulationSeriesGroup group, String userId) {
 		
@@ -208,7 +213,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * Returns a persisted SimulationSeriesGroup
 	 * 
 	 * @param id SimulationSeriesGroup Id
-	 * @return 
+	 * @return its id
 	 */
 	public SimulationSeriesGroup getSimulationSeriesGroup(long id) {
 		
@@ -228,7 +233,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	/**
 	 * Removes a SimulatioSeriesGroup from the database
 	 * 
-	 * @param simulation SimulationSeriesGroup
+	 * @param id the id of the SimulationSeriesGroup
 	 */
 	public void deleteGroup(long id) {
 
@@ -257,6 +262,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	
 	
 	/**
+	 * @param userId the users id
 	 * @return all SimulationSeriesGroups of a specific user
 	 */
 	public List<SimulationSeriesGroup> getSimulationSeriesGroups(String userId) {
@@ -272,7 +278,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * Return a list of SimulationSeriesGroups.
 	 * 
 	 * @param userId Id of owner
-	 * @param firstIndex 
+	 * @param firstIndex the first index
 	 * @param length Number of entries
 	 * @return simulationSeriesGroups
 	 */

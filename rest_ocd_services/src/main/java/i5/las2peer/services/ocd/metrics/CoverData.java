@@ -18,7 +18,7 @@ public class CoverData {
 	
 	/**
 	 * computes the number of overlapping nodes (nodes that belong to more than one community)	
-	 * @param cover
+	 * @param cover the cover
 	 * @return number of overlapping nodes
 	 */
 	public double noOverlappNodes(Cover cover){

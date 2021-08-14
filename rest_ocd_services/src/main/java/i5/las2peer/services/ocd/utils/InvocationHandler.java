@@ -28,7 +28,7 @@ public class InvocationHandler {
 	 * every node of the graph. The inner list contains the Indices of the
 	 * connected nodes. *
 	 * 
-	 * @param CustomGraph
+	 * @param graph the graph
 	 * 
 	 * @return Adjacency list
 	 * 
@@ -66,7 +66,7 @@ public class InvocationHandler {
 	 * entry for every community of the cover. The inner list contains the
 	 * Indices of the member nodes.
 	 * 
-	 * @param CustomGraph
+	 * @param cover the cover
 	 * 
 	 * @return community member list
 	 * 

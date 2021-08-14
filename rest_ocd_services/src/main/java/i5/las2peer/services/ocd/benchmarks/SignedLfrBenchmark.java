@@ -275,6 +275,10 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 	 *            Sets on.
 	 * @param om
 	 *            Sets om.
+	 * @param pos
+	 * 			  Sets pos.
+	 * @param neg
+	 * 			  Sets neg.
 	 */
 	public SignedLfrBenchmark(int n, int k, int maxk, double mu, double t1, double t2, int minc, int maxc, int on,
 			int om, double pos, double neg) {
@@ -371,6 +375,7 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 	 * @param neg The fraction of intra-edges which are negative.	 
 	 * @param pos The fraction of inter-edges which are positive.	 
 	 * @return The adapted cover.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	protected Cover setWeightSign(Cover cover, double pos, double neg) throws InterruptedException {

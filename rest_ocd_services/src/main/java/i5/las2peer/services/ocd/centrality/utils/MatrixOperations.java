@@ -16,7 +16,7 @@ public class MatrixOperations {
 	 * 
 	 * @param matrix Matrix used for the calculation
 	 * @return Principal eigenvector
-	 * @throws InterruptedException
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public static Vector calculatePrincipalEigenvector(Matrix matrix) throws InterruptedException {
 		Vector x = new BasicVector(matrix.columns());
@@ -40,7 +40,7 @@ public class MatrixOperations {
 	 * 
 	 * @param matrix Matrix used for the calculation
 	 * @return Absolute value of the principal eigenvalue
-	 * @throws InterruptedException
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public static double calculateAbsolutePrincipalEigenvalue(Matrix matrix) throws InterruptedException {
 		Vector x = calculatePrincipalEigenvector(matrix);
@@ -53,7 +53,7 @@ public class MatrixOperations {
 	 * 
 	 * @param matrix Transition matrix of the Markov chain
 	 * @return Stationary distribution of the Markov chain as a vector
-	 * @throws InterruptedException
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public static Vector calculateStationaryDistribution(Matrix matrix) throws InterruptedException {
 		// The matrix is transposed so the power iteration gives us a left eigenvector

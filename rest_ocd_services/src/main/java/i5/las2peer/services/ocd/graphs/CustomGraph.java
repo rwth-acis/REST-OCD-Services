@@ -824,6 +824,7 @@ public class CustomGraph extends Graph2D {
 	 * @return The neighbourhood matrix.
 	 * 
 	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Matrix getNeighbourhoodMatrix() throws InterruptedException {
@@ -851,6 +852,7 @@ public class CustomGraph extends Graph2D {
 	 * @return The neighbour set of the given node.
 	 * 
 	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public Set<Node> getNeighbours(Node node) throws InterruptedException {
 		Set<Node> neighbourSet = new HashSet<Node>();
@@ -878,6 +880,7 @@ public class CustomGraph extends Graph2D {
 	 * @return The positive neighbour set of the given node.
 	 * 
 	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public Set<Node> getPositiveNeighbours(Node node) throws InterruptedException {
 		Set<Node> positiveNeighbour = new HashSet<Node>();
@@ -912,6 +915,7 @@ public class CustomGraph extends Graph2D {
 	 * @return The negative neighbour set of the given node.
 	 * 
 	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Node> getNegativeNeighbours(Node node) throws InterruptedException {
@@ -949,6 +953,7 @@ public class CustomGraph extends Graph2D {
 	 * @return The positive edge set of the given node.
 	 * 
 	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getPositiveEdges(Node node) throws InterruptedException {
@@ -977,6 +982,7 @@ public class CustomGraph extends Graph2D {
 	 * @return The positive incoming edge set of the given node.
 	 * 
 	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getPositiveInEdges(Node node) throws InterruptedException {
@@ -1005,6 +1011,7 @@ public class CustomGraph extends Graph2D {
 	 * @return The positive outgoing edge set of the given node.
 	 * 
 	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getPositiveOutEdges(Node node) throws InterruptedException {
@@ -1033,6 +1040,7 @@ public class CustomGraph extends Graph2D {
 	 * @return The negative edge set of the given node.
 	 * 
 	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getNegativeEdges(Node node) throws InterruptedException {
@@ -1061,6 +1069,7 @@ public class CustomGraph extends Graph2D {
 	 * @return The negative incoming edge set of the given node.
 	 * 
 	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getNegativeInEdges(Node node) throws InterruptedException {
@@ -1089,6 +1098,7 @@ public class CustomGraph extends Graph2D {
 	 * @return The negative outgoing edge set of the given node.
 	 * 
 	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getNegativeOutEdges(Node node) throws InterruptedException {
@@ -1122,7 +1132,7 @@ public class CustomGraph extends Graph2D {
 	/**	 
 	 * Returns a specific graph property
 	 *  
-	 * @param the requested property
+	 * @param property requested property
 	 * 
 	 * @return the graph property
 	 * 
@@ -1152,7 +1162,6 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * Returns a new sub graph of a CustomGraph
 	 * 
-	 * @param graph CustomGraph
 	 * @param nodeIds The node ids for the sub graph
 	 * @return sub graph
 	 */
@@ -1278,6 +1287,7 @@ public class CustomGraph extends Graph2D {
 	 * Removes the mappings between a node and its custom node object.
 	 * 
 	 * @param node
+	 * 		  the node
 	 */
 	protected void removeCustomNode(Node node) {
 		CustomNode customNode = this.getCustomNode(node);
@@ -1304,6 +1314,7 @@ public class CustomGraph extends Graph2D {
 	 * Removes the mapping from an edge to its custom edge.
 	 * 
 	 * @param edge
+	 * 		  the edge
 	 */
 	protected void removeCustomEdge(Edge edge) {
 		int id = this.edgeIds.get(edge);

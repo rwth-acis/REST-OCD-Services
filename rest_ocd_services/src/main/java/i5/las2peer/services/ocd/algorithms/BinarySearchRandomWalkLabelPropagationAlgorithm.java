@@ -118,6 +118,8 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * @param graph The graph whose leaders will be detected.
 	 * 
 	 * @return A list containing all nodes which are global leaders.
+	 * @throws OcdAlgorithmException if the execution failed
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected List<Node> randomWalkPhase(CustomGraph graph)
 			throws OcdAlgorithmException, InterruptedException {
@@ -137,6 +139,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * @param graph The graph whose disassortativity matrix will be derived.
 	 * 
 	 * @return The transposed normalized disassortativity matrix.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix getTransposedDisassortativityMatrix(CustomGraph graph) throws InterruptedException {
 		/*
@@ -187,6 +190,8 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * random walk will be performed.
 	 * 
 	 * @return The resulting disassortativity vector.
+	 * @throws OcdAlgorithmException if the execution failed
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Vector executeRandomWalk(Matrix disassortativityMatrix)
 			throws OcdAlgorithmException, InterruptedException {
@@ -223,6 +228,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * 
 	 * @return A vector containing the leadership value of each node in the
 	 * entry given by the node index.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Vector getLeadershipValues(CustomGraph graph,
 			Vector disassortativityVector) throws InterruptedException {
@@ -256,6 +262,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * the random walk phase.
 	 * 
 	 * @return A mapping from the nodes to the corresponding follower degrees.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Double> getFollowerDegrees(CustomGraph graph,
 			Vector leadershipVector) throws InterruptedException {
@@ -332,6 +339,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * 
 	 * @return A list containing all nodes which are considered to be global
 	 * leaders.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected List<Node> getGlobalLeaders(Map<Node, Double> followerMap) throws InterruptedException {
 		double averageFollowerDegree = 0;
@@ -363,6 +371,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * walk phase.
 	 * 
 	 * @return A cover containing the detected communities.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Cover labelPropagationPhase(CustomGraph graph, List<Node> leaders) throws InterruptedException {
 		/*
@@ -414,6 +423,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * @return A mapping containing the iteration count for each node that is a
 	 * community member. The iteration count indicates, in which iteration the
 	 * corresponding node has joint the community.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Integer> executeLabelPropagation(CustomGraph graph,
 			Node leader, double profitabilityThreshold) throws InterruptedException {
@@ -477,6 +487,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * 
 	 * @return A set containing all nodes that have not yet assumed leader
 	 * behavior, but are predecessors of a node with leader behavior.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Set<Node> getBehaviorPredecessors(CustomGraph graph,
 			Map<Node, Integer> memberships, Node leader) throws InterruptedException {
@@ -523,6 +534,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * 
 	 * @return TRUE when each node has been assigned to at least one community,
 	 * and FALSE otherwise.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected boolean areAllNodesAssigned(CustomGraph graph,
 			Map<Node, Map<Node, Integer>> communities) throws InterruptedException {
@@ -562,6 +574,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * mapping of their community members.
 	 * 
 	 * @return A cover containing each nodes membership degree
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Cover getMembershipDegrees(CustomGraph graph,
 			Map<Node, Map<Node, Integer>> communities) throws InterruptedException {

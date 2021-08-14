@@ -34,6 +34,7 @@ public final class LouvainArrayUtils {
    * @param a An array
    * @param n A value
    * @return The last occuring index of a value in an array
+   * @throws InterruptedException if the thread was interrupted
    */
   public static int lastIndexOf(double[] a, double n) 
 		  throws InterruptedException {
@@ -56,6 +57,7 @@ public final class LouvainArrayUtils {
   /**
    * Shuffles the values in an integer array randomly
    * @param a An array
+   * @throws InterruptedException if the thread was interrupted
    */
   public static void shuffle(int[] a) 
 		  throws InterruptedException {
@@ -74,6 +76,7 @@ public final class LouvainArrayUtils {
   /**
    * Fills an integer array with random values
    * @param a An array
+   * @throws InterruptedException if the thread was interrupted
    */
   public static void fillRandomly(int[] a) 
 		  throws InterruptedException {

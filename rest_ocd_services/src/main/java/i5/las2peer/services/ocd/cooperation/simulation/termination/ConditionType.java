@@ -94,7 +94,7 @@ public enum ConditionType {
 	/**
 	 * Returns the ConditionType of its corresponding class.
 	 * 
-	 * @param enumClass
+	 * @param enumClass the enum class
 	 * @return the enumType
 	 */
 	public static ConditionType getType(Class<? extends Condition> enumClass) {

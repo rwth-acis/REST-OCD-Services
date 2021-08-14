@@ -59,8 +59,8 @@ public class LayoutHandler {
 	 * @param doLabelEdges Defines whether edges will receive labels with their weights (TRUE) or not (FALSE).
 	 * @param minNodeSize Defines the minimum size of a node. Must be greater than 0.
 	 * @param maxNodeSize Defines the maximum size of a node. Must be at least as high as the defined minimum size.
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public void doLayout(CustomGraph graph, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges, 
 			double minNodeSize, double maxNodeSize) throws InstantiationException, IllegalAccessException {
@@ -160,8 +160,6 @@ public class LayoutHandler {
 	 * @param layoutType The layout type defining which graph layouter to use.
 	 * @param doLabelNodes Defines whether nodes will receive labels with their names (TRUE) or not (FALSE).
 	 * @param doLabelEdges Defines whether edges will receive labels with their weights (TRUE) or not (FALSE).
-	 * @param minNodeSize Defines the minimum size of a node. Must be greater than 0.
-	 * @param maxNodeSize Defines the maximum size of a node. Must be at least as high as the defined minimum size.
 	 * @param centralityVisualizationType The type of visualization to represent the centrality values.
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException

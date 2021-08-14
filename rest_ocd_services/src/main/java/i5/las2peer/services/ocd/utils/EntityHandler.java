@@ -113,7 +113,6 @@ public class EntityHandler {
 	 *            id of the graph
 	 * @return the found CustomGraph instance or null if the CustomGraph does
 	 *         not exist
-	 * @throws Exception
 	 */
 	public CustomGraph getGraph(String username, long graphId) {
 
@@ -148,9 +147,10 @@ public class EntityHandler {
 	 * @param graphId
 	 *            id of the graph
 	 * @param threadHandler
-	 * @throws Exception
+	 * 			  the threadhandler
+	 * @throws Exception if cover deletion failed
 	 */
-	public void deleteGraph(String username, long graphId, ThreadHandler threadHandler) {
+	public void deleteGraph(String username, long graphId, ThreadHandler threadHandler) throws Exception {
 
 		EntityManager em = getEntityManager();
 		CustomGraphId id = new CustomGraphId(graphId, username);
@@ -213,7 +213,7 @@ public class EntityHandler {
 	 * @param username
 	 *            graphs owner
 	 * @return graph list
-	 * @throws AgentNotKnownException
+	 * @throws AgentNotRegisteredException if the agent was not registered
 	 */
 	public List<CustomGraph> getGraphs(String username) throws AgentNotRegisteredException {
 
@@ -232,12 +232,14 @@ public class EntityHandler {
 	 * Return a list of specific graphs of a user
 	 * 
 	 * @param username
+	 * 			  the users username
 	 * @param firstIndex
 	 *            id of the first graph
 	 * @param length
 	 *            number of graphs
 	 * @param executionStatusIds
-	 * @return
+	 * 			  the execution status ids of the graphs
+	 * @return the list of graphs
 	 */
 	public List<CustomGraph> getGraphs(String username, int firstIndex, int length, List<Integer> executionStatusIds) {
 
@@ -261,13 +263,14 @@ public class EntityHandler {
 
 	/**
 	 * Get a stored community-cover of a graph by its index
-	 * 
+	 *
+	 * @param username
+	 * 			  the name of the user
 	 * @param coverId
 	 *            id of the cover
 	 * @param graphId
 	 *            id of the graph
 	 * @return the found Cover instance or null if the Cover does not exist
-	 * @throws Exception
 	 */
 	public Cover getCover(String username, long graphId, long coverId) {
 
@@ -307,10 +310,13 @@ public class EntityHandler {
 	 * @param graphId
 	 *            id of the graph
 	 * @param threadHandler
+	 * 			  the thread handler
 	 * @throws IllegalArgumentException
-	 *             cover does not exists
+	 *             cover does not exist
+	 * @throws Exception
+	 * 			   if cover deletion failed
 	 */
-	public void deleteCover(String username, long graphId, long coverId, ThreadHandler threadHandler) {
+	public void deleteCover(String username, long graphId, long coverId, ThreadHandler threadHandler) throws Exception {
 
 		Cover cover = getCover(username, graphId, coverId);
 		if (cover == null)
@@ -330,11 +336,10 @@ public class EntityHandler {
 	 * 
 	 * @param username
 	 *            owner of the cover
-	 * @param coverId
-	 *            id of the cover
-	 * @param graphId
-	 *            id of the graph
+	 * @param cover
+	 *            the cover
 	 * @param threadHandler
+	 * 			  the threadhandler
 	 */
 	public void deleteCover(String username, Cover cover, ThreadHandler threadHandler) {
 
@@ -382,13 +387,20 @@ public class EntityHandler {
 
 	/**
 	 * @param username
+	 * 		  the name of the user
 	 * @param graphId
+	 * 		  the id of the graph
 	 * @param executionStatusIds
+	 * 		  the ids of the execution statuses
 	 * @param metricExecutionStatusIds
+	 * 		  the ids of the metric execution statuses
 	 * @param firstIndex
+	 * 		  the first index
 	 * @param length
+	 * 		  the length of the result set
 	 * @param includeMeta
-	 * @return
+	 * 		  boolean whether to include meta info or not
+	 * @return a cover list
 	 */
 	public List<Cover> getCovers(String username, long graphId, List<Integer> executionStatusIds,
 			List<Integer> metricExecutionStatusIds, int firstIndex, int length, boolean includeMeta) {
@@ -476,6 +488,7 @@ public class EntityHandler {
 	 *            Id of the CentralityMap
 	 * @param threadHandler
 	 *            The ThreadHandler for algorithm execution
+	 * @throws IllegalArgumentException if the centrality map was not found
 	 */
 	public void deleteCentralityMap(String username, long graphId, long mapId, ThreadHandler threadHandler) {
 		CentralityMap map = getCentralityMap(username, graphId, mapId);		

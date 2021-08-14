@@ -30,7 +30,7 @@ public interface OcdAlgorithm extends Parameterizable, CoverCreationMethod {
 	 * @return A cover for the input graph containing the community structure.
 	 * @throws OcdAlgorithmException If the execution failed.
 	 * @throws InterruptedException If the executing thread was interrupted.
-	 * @throws  
+	 * @throws OcdMetricException If the metric execution failed.
 	 */
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException;
 	

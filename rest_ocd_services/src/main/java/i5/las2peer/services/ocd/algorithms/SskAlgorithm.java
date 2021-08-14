@@ -147,6 +147,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @param graph The graph being analyzed.
 	 * @param leaders A mapping from the community leader nodes to the indices of their communities.
 	 * @return The membership matrix.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix calculateMemberships(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
 		Matrix coefficients = initMembershipCoefficientMatrix(graph, leaders);
@@ -199,6 +200,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @param matA The first matrix.
 	 * @param matB The second matrix.
 	 * @return The maximum difference.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected double getMaxDifference(Matrix matA, Matrix matB) throws InterruptedException {
 		Matrix diffMatrix = matA.subtract(matB);
@@ -224,6 +226,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @param graph The graph being analyzed.
 	 * @param leaders A mapping from the leader nodes to their community indices.
 	 * @return The initial membership matrix.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix initMembershipMatrix(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
 		int communityCount = Collections.max(leaders.values()) + 1;
@@ -255,6 +258,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @param graph The graph being analyzed.
 	 * @param leaders A mapping from the leader nodes to their community indices.
 	 * @return The membership coefficient matrix.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix initMembershipCoefficientMatrix(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
 		Matrix coefficients = new CCSMatrix(graph.nodeCount(), graph.nodeCount());
@@ -291,6 +295,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @return The global leaders of the graph. The community index of each leader node is 
 	 * derivable from the mapping. Note that several leaders may belong to the same
 	 * community.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Integer> determineGlobalLeaders(CustomGraph graph, Matrix transitionMatrix, Vector totalInfluences) throws InterruptedException{
 		NodeCursor nodes = graph.nodes();
@@ -376,6 +381,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * Executes a random walk on the transition matrix and returns the total node influences. 
 	 * @param transitionMatrix The transition matrix.
 	 * @return A vector containing the total influence of each node under the corresponding node index.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Vector executeRandomWalk(Matrix transitionMatrix) throws InterruptedException {
 		Vector vec1 = new BasicVector(transitionMatrix.columns());
@@ -398,6 +404,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * Calculates the transition matrix for the random walk phase. 
 	 * @param graph The graph being analyzed.
 	 * @return The normalized transition matrix.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix calculateTransitionMatrix(CustomGraph graph) throws InterruptedException {
 		Matrix transitionMatrix = new CCSMatrix(graph.nodeCount(), graph.nodeCount());

@@ -46,13 +46,17 @@ public abstract class Dynamic implements Serializable {
 	/**
 	 * determines the concrete update rule dynamic it have to be
 	 * implemented in the sub classes
-	 * 	 
+	 *
+	 * @param agent the agent
+	 * @param simulation the simulation for the strategy
+	 * @return the update rule
 	 */
 	public abstract boolean getNewStrategy(Agent agent, Simulation simulation);
 	
 	
 	/**
-	 * assign a dynamic type to a concrete subclass 
+	 * assign a dynamic type to a concrete subclass
+	 * @return the dynamic type
 	 */
 	public DynamicType getDynamicType() {
 		return DynamicType.getType(this.getClass());

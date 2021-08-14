@@ -25,6 +25,8 @@ public class FixedIterationsCondition extends Condition {
 
 	/**
 	 * Instantiates a new FixedIterationsCondition. Sets the number of iterations.
+	 *
+	 * @param iterations the number of iterations
 	 */
 	public FixedIterationsCondition(int iterations) {
 		this.maxIterations = iterations;
@@ -34,7 +36,7 @@ public class FixedIterationsCondition extends Condition {
 	/**
 	 * checks if the break condition is fulfilled
 	 * 
-	 * @param simulation
+	 * @param simulation the simulation
 	 * @return break condition fulfilled
 	 */
 	@Override

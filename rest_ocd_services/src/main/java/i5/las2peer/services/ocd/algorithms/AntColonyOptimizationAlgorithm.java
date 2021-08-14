@@ -219,7 +219,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @return A cover for the input graph containing the community structure.
 	 * @throws OcdAlgorithmException If the execution failed.
 	 * @throws InterruptedException If the executing thread was interrupted.
-	 * @throws OcdMetricException 
+	 * @throws OcdMetricException If the metric execution failed.
 	 */
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
@@ -378,8 +378,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * Initialization of ants, the weight vector, pheromone information matrix, heuristic information matrix and initial solutions, fitness values 
 	 * and the set for the Pareto front
 	 * @param graph Maximal Clique Graph
-	 * @param nodes number of nodes
+	 * @param nodeNr number of nodes
 	 * @throws InterruptedException if interrupted
+	 * @return A list of initialized ants
 	 */
 	protected List<Ant> initialization(CustomGraph graph, int nodeNr) throws InterruptedException {
 		EP = new HashMap<Vector,Vector>(); 
@@ -520,7 +521,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param graph Maximal clique graph
 	 * @param ants List of all ants
 	 * @param nodeNr number of nodes
-	 * @throws InterruptedException 
+	 * @throws InterruptedException  If the thread was interrupted.
 	 */
 	protected void update(CustomGraph graph, List<Ant> ants, int nodeNr) throws InterruptedException {	
 		double g_min = 0; // Minimum Tchebyeheff Decomposition
@@ -685,7 +686,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param graph maximal clique graph
 	 * @param ant a single ant
 	 * @param nodeNr number of nodes
-	 * @throws InterruptedException 
+	 * @throws InterruptedException If the thread was interrupted.
 	 */
 	protected void constructSolution(CustomGraph graph, Ant ant, int nodeNr) throws InterruptedException {
 		Random rand = new Random();
@@ -778,7 +779,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 *  computes the Tchebycheff decomposition of a solution
 	 * @param fitness vector of the solution
-	 * @param lambdas weight vector of the solution
+	 * @param lambda weight vector of the solution
 	 * @return result of the Tschebyeheff decomposition
 	 */
 	protected double tchebycheffDecomposition(Vector fitness, Vector lambda) {
@@ -790,6 +791,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	
 	/**
 	 * Checks whether the edge (k,l) is contained in solution
+	 * @param graph the examined graph
 	 * @param sol solution vector
 	 * @param k index of a node
 	 * @param l index of another node
@@ -809,7 +811,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * Evaluation of the cover of a graph. This measures the intra-link sparesity and should be minimized (Negative Ratio Association).  
 	 * This measures the inter-link density and should be minimized (Cut Ratio). 
 	 * @param graph maximal clique graph
-	 * @param cover to evaluate on the graph
+	 * @param sol solution vector
+	 * @param nodeNr number of nodes
 	 * @return Vector v of the two metrics: v(0) = Negative Ratio Association, v(1) = Cut Ratio 
 	 */
 	protected Vector fitnessCalculations(CustomGraph graph, Vector sol, int nodeNr) {
@@ -856,6 +859,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param graph maximal clique graph
 	 * @param com1 - community 1
 	 * @param com2 - community 2
+	 * @param nodeNr number of nodes
 	 * @return shared edges between two communities
 	 */
 	protected double cliqueInterconectivity(CustomGraph graph, Vector com1, Vector com2, int nodeNr) {
@@ -886,11 +890,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * Transfer the solutions of the maximal clique graph into a solution for the original graph
 	 * Since we created the Pareto Front of optimal solutions, we choose here the solution which has the highest modularity after the decoding
 	 * @param graph original graph (not Maximal Clique Graph!)
-	 * @param sol solution vector of the best solution
-	 * @return Cover of the original graph 
+	 * @param nodeNr number of nodes
+	 * @return Cover of the original graph
 	 * @throws OcdAlgorithmException if no solution is found
 	 * @throws InterruptedException if thread was interrupted
-	 * @throws OcdMetricException 
+	 * @throws OcdMetricException if the metric execution failed
 	 */
 	protected Cover decodeMaximalCliques(CustomGraph graph, int nodeNr) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		//System.out.println("Number of Solutions: " + EP.size());

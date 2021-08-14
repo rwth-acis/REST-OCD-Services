@@ -142,8 +142,8 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 * Main procedure of the Algorithm, consists of variable initialization, finding the graphs dense communities(those over 3 nodes), merging similar ones,
 	 * finding tiny communities and a final refinement
 	 * @param graph The graph the algorithm is run on
-	 * @throws OcdAlgorithmException
-	 * @throws InterruptedException
+	 * @throws OcdAlgorithmException if the execution failed
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public void findOverlappingCommunityStructures(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		communityIntersections = new ArrayList<Integer>(); // initialize communityIntersections
@@ -169,9 +169,9 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	
 	/**
 	 * Finds communities with over 3 members through analyzing node intersections
-	 * @param graph
-	 * @throws OcdAlgorithmException
-	 * @throws InterruptedException
+	 * @param graph the examined graph
+	 * @throws OcdAlgorithmException if the execution failed
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public void findDenseCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		// initialize nodeCommunities, communityNumbers, intersectionCounters
@@ -212,7 +212,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 * @param nodeA The first node
 	 * @param nodeB The second node
 	 * @return true if yes, false if no
-	 * @throws OcdAlgorithmException
+	 * @throws OcdAlgorithmException if the execution failed
 	 */
 	public boolean sameCommunity(int nodeA, int nodeB) throws OcdAlgorithmException {
 		updateCounter();
@@ -241,7 +241,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 * @param nodeA The first node
 	 * @param nodeB The second node
 	 * @param graph The graph the algorithm is run on
-	 * @throws OcdAlgorithmException
+	 * @throws OcdAlgorithmException if the execution failed
 	 */
 	public void tryFormingNewCommunity(int nodeA, int nodeB, CustomGraph graph) throws OcdAlgorithmException {
 		int numEdge=0;
@@ -320,7 +320,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	/**
 	 * Combines all communities that have an overlappingScore greater than the overlappingThreshold
 	 * @param graph The graph the algorithm is run on
-	 * @throws OcdAlgorithmException
+	 * @throws OcdAlgorithmException if the execution failed
 	 */
 	public void combineOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException {
 		boolean done=false;	
@@ -402,7 +402,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 * @param totalEdges The total number of edges in between the two communities
 	 * @param graph The graph the algorithm is run on
 	 * @return The overlapping score(Exactly 0 if no overlap, 2 if full overlap)
-	 * @throws OcdAlgorithmException
+	 * @throws OcdAlgorithmException if the execution failed
 	 */
 	double findOverlappingScore(int comA, int comB, Integer totalEdges, CustomGraph graph) throws OcdAlgorithmException {
 		int minNode = 0, minEdge = 0;
@@ -447,14 +447,14 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	}
 	
 	/**
-	 * (Here comBb > comAa. This is a very important step)
+	 * (Here comBb is greater than comAa. This is a very important step)
 	 * Merges two communities(represented by their indices) by emptying the one with the bigger index and copying its values into the one with the smaller index
 	 * @param comAa The first community
 	 * @param comBb The second Community
 	 * @param inter The intersection between the two communities
 	 * @param n_inter The size of the intersection between the two communities
 	 * @param interEdges The edges in the intersection between the two communities
-	 * @throws OcdAlgorithmException
+	 * @throws OcdAlgorithmException if the execution failed
 	 */
 	public void mergeCommunities(int comAa, int comBb, ArrayList<Integer> inter, int n_inter, int interEdges) throws OcdAlgorithmException {
 		int comA = Math.min(comAa, comBb), comB = Math.max(comAa, comBb);
@@ -592,7 +592,6 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 * Finds the intersection between two communities
 	 * @param comA The first community
 	 * @param comB The second community
-	 * @return
 	 */
 	public void findCommunityIntersection(int comA, int comB) {
 //DEBUG		System.out.println("Checking CommIntersection for " + comA + ":" + communities.get(comA) + ", " + comB + ":" + communities.get(comB));
@@ -620,7 +619,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	/**
 	 * Finds tiny communities, i.e. those with less than minNode(3) nodes
 	 * @param graph The graph the algorithm is run on
-	 * @throws OcdAlgorithmException
+	 * @throws OcdAlgorithmException if the execution failed
 	 */
 	public void findTinyCommunities(CustomGraph graph) throws OcdAlgorithmException {
 		realCommunityCount = communityCount;
@@ -649,7 +648,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	/**
 	 * Assigns community IDs for vertices that have not been assigned ones yet
 	 * @param graph The graph the algorithm is run on
-	 * @throws OcdAlgorithmException
+	 * @throws OcdAlgorithmException if the execution failed
 	 */
 	public void visitUnAssignedVertices(CustomGraph graph) throws OcdAlgorithmException {		
 		int i, j, id, x, k, n_res;

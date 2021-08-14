@@ -37,12 +37,12 @@ public enum GameType {
 	INVALID("Invalid", "INVALID", "");
 	
 	/**
-	 * @return the human readable string representation
+	 * the human readable string representation
 	 */
 	public final String humanread;
 	
 	/**
-	 * @return the shortcut representation
+	 * the shortcut representation
 	 */
 	public final String shortcut;
 	
@@ -68,7 +68,7 @@ public enum GameType {
 	/**
 	 * Parse the GameType from a string
 	 * 
-	 * @param string 
+	 * @param string the string
 	 * @return gameType
 	 */
 	public static GameType fromString(String string) {
@@ -84,10 +84,10 @@ public enum GameType {
 	/**
 	 * Determine the GameType by the game parameters
 	 * 
-	 * @param payoffCC
-	 * @param payoffCD
-	 * @param payoffDC
-	 * @param payoffDD
+	 * @param payoffCC cc payoff
+	 * @param payoffCD cd payoff
+	 * @param payoffDC dc payoff
+	 * @param payoffDD dd payoff
 	 * @return gameType
 	 */
 	public static GameType getGameType(double payoffCC, double payoffCD, double payoffDC, double payoffDD) {

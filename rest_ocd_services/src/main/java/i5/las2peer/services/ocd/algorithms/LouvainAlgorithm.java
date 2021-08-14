@@ -125,6 +125,7 @@ public class LouvainAlgorithm implements OcdAlgorithm {
    * @param graph The graph the community detection was done on
    * @param communitiesPerNode An int array of which community belongs to which node, the node indexes correspond to the array indexes and the values to the community number
    * @return The membership matrix
+   * @throws InterruptedException if the thread was interrupted
    */
   public Matrix getMembershipMatrix(CustomGraph graph, int[] communitiesPerNode)
 		  throws InterruptedException {
@@ -171,7 +172,8 @@ public class LouvainAlgorithm implements OcdAlgorithm {
   /**
    * Computes an array of community belonging for each node, default if maxLayers is undefined
    * @return An int array of community belonging for each node, the node indexes correspond to the array indexes and the values to the community number
-   * @throws OcdAlgorithmException
+   * @throws OcdAlgorithmException if the execution failed
+   * @throws InterruptedException if the thread was interrupted
    */
   public int[] cluster() 
 		  throws OcdAlgorithmException, InterruptedException {
@@ -182,7 +184,8 @@ public class LouvainAlgorithm implements OcdAlgorithm {
    * Computes an array of community belonging for each node and produces at maximum as many community layers as it is allowed
    * @param maxLayers Maximum number of community layers allowed
    * @return An int array of community belonging for each node, the node indexes correspond to the array indexes and the values to the community number
-   * @throws OcdAlgorithmException
+   * @throws OcdAlgorithmException if the execution failed
+   * @throws InterruptedException if the thread was interrupted
    */
   public int[] cluster(int maxLayers) 
 		  throws OcdAlgorithmException, InterruptedException {
@@ -235,6 +238,7 @@ public class LouvainAlgorithm implements OcdAlgorithm {
   /**
    * Get the modularity of the highest layer of the graph. If called before the clusterer has run, will throw
    * an {@link IndexOutOfBoundsException}.
+   * @return the modularity
    */
   public double modularity() {
     return graphs.get(layer).partitioning().modularity();
@@ -245,7 +249,7 @@ public class LouvainAlgorithm implements OcdAlgorithm {
    * an exception
    * @param l the index of the layer.
    * @return The modularity of a specific layer of the graph
-   * @throws IndexOutOfBoundsException
+   * @throws IndexOutOfBoundsException if the array index went out of bounds
    */
   public double modularity(int l) {
     if (l >= graphs.size()) {

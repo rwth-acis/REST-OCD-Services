@@ -29,8 +29,8 @@ public class Replicator extends Dynamic {
 	 * Determine the new strategy of a agent by calling
 	 * {@link #getNewStrategy(boolean, boolean, double, double, MersenneTwisterFast, int, int, double)}
 	 * 
-	 * @param agent
-	 * @param simulation
+	 * @param agent the agent
+	 * @param simulation the simulation for the strategy
 	 *
 	 * @return new strategy
 	 */

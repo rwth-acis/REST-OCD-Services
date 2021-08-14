@@ -17,10 +17,10 @@ public class GameFactory {
 	/**
 	 * Builds a game based on the four specified payoff values.
 	 * 
-	 * @param AA
-	 * @param AB
-	 * @param BA
-	 * @param BB
+	 * @param AA aa parameter
+	 * @param AB ab parameter
+	 * @param BA ba parameter
+	 * @param BB bb parameter
 	 * @return Game
 	 */
 	public Game build(double AA, double AB, double BA, double BB) {
@@ -35,9 +35,9 @@ public class GameFactory {
 	 * Builds the cost variant of a game based on the cost, benefit values and
 	 * the specified game type.
 	 * 
-	 * @param gameType
-	 * @param cost
-	 * @param benefit
+	 * @param gameType the type of the game
+	 * @param cost the cost
+	 * @param benefit the benefit
 	 * @return Game
 	 */
 	public Game build(GameType gameType, double cost, double benefit) {
@@ -60,8 +60,8 @@ public class GameFactory {
 	/**
 	 * Builds the cost variant of a Prisoner's Dilemma.
 	 * 
-	 * @param cost
-	 * @param benefit
+	 * @param cost the cost
+	 * @param benefit the benefit
 	 * @return Prisoner's dilemma game
 	 */
 	protected Game buildCostPD(double cost, double benefit) {
@@ -77,8 +77,8 @@ public class GameFactory {
 	/**
 	 * Builds the cost variant of a Snow Drift / Chicken game.
 	 * 
-	 * @param cost
-	 * @param benefit
+	 * @param cost the cost
+	 * @param benefit the benefit
 	 * @return Snow Drift game
 	 */
 	protected Game buildCostSD(double cost, double benefit) {

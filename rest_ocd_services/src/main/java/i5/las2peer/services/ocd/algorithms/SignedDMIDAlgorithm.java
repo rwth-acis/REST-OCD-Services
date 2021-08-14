@@ -111,9 +111,10 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * @param leadershipVector vector 
 	 * 
 	 * @return A list containing all nodes which are global leaders.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected List<Node> leaderFindingPhase(CustomGraph graph, Vector leadershipVector)
-			throws OcdAlgorithmException, InterruptedException {
+			throws InterruptedException {
 		Map<Node, Integer> localLeader = getLocalLeader(graph, leadershipVector);
 		return getGlobalLeader(localLeader);
 	}
@@ -125,6 +126,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * 
 	 * @return A list containing all nodes which are considered to be global
 	 * leaders.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected List<Node> getGlobalLeader(Map<Node, Integer> localLeader) throws InterruptedException {
 		double averageFollowerDegree = 0;
@@ -160,7 +162,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * @param leadershipVector The leadership vector.
 	 * 
 	 * @return A mapping from the local leaders to the corresponding follower degrees.
-	 * 
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Integer> getLocalLeader(CustomGraph graph, Vector leadershipVector)
 			throws InterruptedException {
@@ -223,6 +225,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * @param graph The graph under observation.
 	 * 
 	 * @return The leadership value vector.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Vector getLeadershipVector(CustomGraph graph) throws InterruptedException {
 		int nodeCount = graph.nodeCount();
@@ -279,7 +282,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * algorithm.
 	 * 
 	 * @return A cover containing the detected communities.
-	 * 
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Cover labelPropagationPhase(CustomGraph graph, List<Node> leaders, Vector ProfitabilityThreshold)
 			throws InterruptedException {
@@ -312,6 +315,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * @return A mapping containing the iteration count for each node that is a
 	 * community member. The iteration count indicates, in which iteration the
 	 * corresponding node has joined the community.
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Integer> executeLabelPropagation(CustomGraph graph, Node leader, Vector profitabilityThreshold)
 			throws InterruptedException {
@@ -375,7 +379,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * new label.
 	 * 
 	 * @return The set of positive neighbours with the new label of a give node.
-	 * 
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	protected int getPosNodesWithNewLabel(CustomGraph graph, Node node, Set<Node> nodesNewLabel)
@@ -405,7 +409,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * new label.
 	 * 
 	 * @return The set of negative neighbours with the new label of a give node.
-	 * 
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	protected int getNegNodesWithNewLabel(CustomGraph graph, Node node, Set<Node> nodesNewLabel)
@@ -432,6 +436,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * mapping of their community members.
 	 * 
 	 * @return A cover containing each node's membership degree
+	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Cover getMembershipDegrees(CustomGraph graph, Map<Node, Map<Node, Integer>> communities)
 			throws InterruptedException {

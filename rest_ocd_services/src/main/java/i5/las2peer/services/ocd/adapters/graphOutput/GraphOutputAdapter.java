@@ -14,7 +14,7 @@ public interface GraphOutputAdapter extends OutputAdapter {
 	/**
 	 * Writes a graph and closes the writer.
 	 * @param graph The graph to write.
-	 * @throws AdapterException
+	 * @throws AdapterException if the adapter failed
 	 */
 	public void writeGraph(CustomGraph graph) throws AdapterException;
 	

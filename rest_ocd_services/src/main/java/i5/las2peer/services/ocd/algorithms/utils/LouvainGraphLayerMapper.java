@@ -40,7 +40,8 @@ public class LouvainGraphLayerMapper {
    * Maps nodes from a community to the corresponding node on the layer above
    * @param g A community in the form of a Louvain graph
    * @return The mapping
-   * @throws OcdAlgorithmException
+   * @throws OcdAlgorithmException if the execution failed
+   * @throws InterruptedException if the thread was interrupted
    */
   public HashMap<Integer,Integer> createLayerMap(LouvainGraph g) 
 		  throws OcdAlgorithmException, InterruptedException {
@@ -75,6 +76,7 @@ public class LouvainGraphLayerMapper {
   /**
    * Uses the layer maps to assign a community from each layer to the base layer graph.
    * @return A list of community belongings per layer
+   * @throws InterruptedException if the thread was interrupted
    */
   public List<int[]> run() 
 		  throws InterruptedException {
@@ -106,6 +108,7 @@ public class LouvainGraphLayerMapper {
    * @param layer A specified layer
    * @param rawComms The basic communities per layer
    * @return The mapping from nodes of the specified layer to the base layer
+   * @throws InterruptedException if the thread was interrupted
    */
   private int[] mapToBaseLayer(int layer, List<int[]> rawComms) 
 		  throws InterruptedException {
@@ -131,6 +134,7 @@ public class LouvainGraphLayerMapper {
    * @param map A mapping "function"
    * @param commsL2 The community in a layer above the first
    * @return The mapping
+   * @throws InterruptedException if the thread was interrupted
    */
   private int[] mapToNextLayer(LouvainGraph g, HashMap<Integer,Integer> map, int[] commsL2) 
 		  throws InterruptedException {

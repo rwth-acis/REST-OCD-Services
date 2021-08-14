@@ -14,7 +14,7 @@ public interface CentralitySimulation extends Parameterizable {
 	 * Calculates centrality values for all the nodes in the graph by running simulations.
 	 * @param graph The graph on which the centrality values are calculated
 	 * @return A map containing the centrality values
-	 * @throws InterruptedException 
+	 * @throws InterruptedException if thread was interrupted
 	 */
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException;
 	

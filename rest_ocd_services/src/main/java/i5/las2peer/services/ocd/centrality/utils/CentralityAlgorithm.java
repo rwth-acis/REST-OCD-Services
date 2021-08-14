@@ -15,8 +15,8 @@ public interface CentralityAlgorithm extends Parameterizable, CentralityCreation
 	 * Calculates the centrality values for all the nodes in the graph
 	 * @param graph The graph on which the centrality values are calculated
 	 * @return A map containing the centrality values
-	 * @throws InterruptedException 
-	 * @throws CentralityAlgorithmException 
+	 * @throws InterruptedException if the thread was interrupted
+	 * @throws CentralityAlgorithmException if the execution failed
 	 */
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException, CentralityAlgorithmException;
 	

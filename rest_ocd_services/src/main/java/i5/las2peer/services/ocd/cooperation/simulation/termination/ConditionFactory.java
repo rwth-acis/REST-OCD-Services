@@ -5,8 +5,8 @@ public class ConditionFactory {
 	/**
 	 * Creates a break condition with default parameters
 	 * 
-	 * @param condition
-	 * @return
+	 * @param conditionEnum the condition enum
+	 * @return the condition
 	 */
 	public Condition build(ConditionType conditionEnum) {
 
@@ -26,8 +26,9 @@ public class ConditionFactory {
 	/**
 	 * Creates a break condition with given parameters
 	 * 
-	 * @param condition
-	 * @return
+	 * @param conditionEnum the condition enum
+	 * @param parameters the parameters
+	 * @return the condition
 	 */
 	public Condition build(ConditionType conditionEnum, int[] parameters) {
 

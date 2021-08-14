@@ -38,7 +38,7 @@ public class OcdAlgorithmExecutor {
 	 * @return A cover of the graph calculated by the algorithm.
 	 * @throws OcdAlgorithmException In case of an algorithm failure.
 	 * @throws InterruptedException In case of an algorithm interrupt.
-	 * @throws OcdMetricException 
+	 * @throws OcdMetricException if the metric execution failed
 	 */
 	public Cover execute(CustomGraph graph, OcdAlgorithm algorithm, int componentNodeCountFilter) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		CustomGraph graphCopy = new CustomGraph(graph);

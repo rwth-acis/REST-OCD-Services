@@ -181,7 +181,7 @@ public abstract class MappingAbstract implements TableInterface, TableLineInterf
 	/**
 	 * Checks if the the correlation lists are set
 	 * 
-	 * @return
+	 * @return true if they are set, false if not
 	 */
 	public boolean isEvaluated() {
 		if (sizeCorrelation != null && densityCorrelation != null && averageDegreeCorrelation != null) {

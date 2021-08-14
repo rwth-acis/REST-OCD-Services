@@ -46,8 +46,8 @@ public class ClusteringCoefficient extends AbstractProperty {
 	/**
 	 *  * Returns the local clustering coefficient of a node
 	 *  	 
-	 * @param node
-	 * @param graph
+	 * @param node the node
+	 * @param graph the containing graph
 	 * @return the local clustering coefficient 
 	 */
 	protected double calculateLocal(Node node, CustomGraph graph) {
@@ -75,7 +75,7 @@ public class ClusteringCoefficient extends AbstractProperty {
 	 * 
 	 * @param links the number of connected neighbours 
 	 * @param degree the degree of a node
-	 * @return
+	 * @return the coefficient
 	 */
 	protected double localUndirected(int links, int degree) {
 
@@ -91,7 +91,7 @@ public class ClusteringCoefficient extends AbstractProperty {
 	 * 
 	 * @param links the number of connected neighbours 
 	 * @param degree the degree of a node
-	 * @return
+	 * @return the coefficient
 	 */
 	protected double localDirected(int links, int degree) {
 

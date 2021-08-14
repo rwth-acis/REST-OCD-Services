@@ -56,7 +56,9 @@ public class LouvainGraph {
 
   /**
    * Loads a partition set.
-   * @param The partition set
+   * @param partitioning The partition set
+   * @throws OcdAlgorithmException if the execution failed
+   * @throws InterruptedException if the thread was interrupted
    */
   public void loadPartitioning(int[] partitioning) 
 		  throws OcdAlgorithmException, InterruptedException {
@@ -144,7 +146,8 @@ public class LouvainGraph {
      * Moves a node to a new community
      * @param node A node
      * @param newComm The new community
-     * @throws OcdAlgorithmException
+     * @throws OcdAlgorithmException if the execution failed
+     * @throws InterruptedException if the thread was interrupted
      */
     public void moveToComm(int node, int newComm) 
     		throws OcdAlgorithmException, InterruptedException {
@@ -204,6 +207,7 @@ public class LouvainGraph {
      * @param node A node
      * @param comm A community
      * @return The weight between a community and a node
+     * @throws InterruptedException if the thread was interrupted
      */
     public int dnodecomm(int node, int comm) 
     		throws InterruptedException {

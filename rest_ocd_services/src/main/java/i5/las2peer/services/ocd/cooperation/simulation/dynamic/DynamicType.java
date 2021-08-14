@@ -123,7 +123,7 @@ public enum DynamicType {
 	/**
 	 * Returns the ConditionType of its corresponding class.
 	 * 
-	 * @param dynamicClass
+	 * @param dynamicClass the class
 	 * @return the dynamicType
 	 */
 	public static DynamicType getType(Class<? extends Dynamic> dynamicClass) {

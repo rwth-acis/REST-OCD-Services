@@ -228,6 +228,7 @@ public class Cover {
 
 	/**
 	 * Setter for the simulation costs.
+	 * @param costs the costs
 	 */
 	public void setSimCosts(double costs) {
 		this.simCosts = costs;
@@ -541,7 +542,8 @@ public class Cover {
 	
 	/**
 	 * Returns the indices of all nodes that have a belonging to the community
-	 * 
+	 *
+	 * @param communityIndex the index of the community
 	 * @return member indices list
 	 */
 	public List<Integer> getCommunityMemberIndices(int communityIndex) {
@@ -582,6 +584,7 @@ public class Cover {
 	/**
 	 * Get the community structure of a cover, i.e. the number of communities of
 	 * a certain size YLi
+	 * @return a map of community ids and structures
 	 */
 	public Map<Integer, Integer> getCommunityStructure() {
 		Map<Integer, Integer> communityStructure = new HashMap<Integer, Integer>();

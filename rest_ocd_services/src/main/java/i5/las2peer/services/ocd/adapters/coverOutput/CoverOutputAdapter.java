@@ -14,7 +14,7 @@ public interface CoverOutputAdapter extends OutputAdapter {
 	/**
 	 * Writes a cover and closes the writer.
 	 * @param cover The cover.
-	 * @throws AdapterException
+	 * @throws AdapterException if the adapter failed
 	 */
 	public void writeCover(Cover cover) throws AdapterException;
 	

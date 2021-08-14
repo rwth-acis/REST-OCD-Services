@@ -19,7 +19,7 @@ public abstract class Condition implements Steppable {
 	/**
 	 * checks if the break condition is fulfilled
 	 * 
-	 * @param simulation
+	 * @param simulation the simulation
 	 * @return break condition fulfilled
 	 */
 	public abstract boolean isFullfilled(Simulation simulation);
@@ -61,7 +61,7 @@ public abstract class Condition implements Steppable {
 	/**
 	 * Set parameters
 	 * 
-	 * @param parameters
+	 * @param parameters the parameters
 	 */
 	public void setParameters(int[] parameters) {
 

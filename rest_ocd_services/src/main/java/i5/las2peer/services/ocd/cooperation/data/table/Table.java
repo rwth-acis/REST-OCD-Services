@@ -30,6 +30,7 @@ public class Table {
 	 * 
 	 * @param tableRow
 	 *            the TableRow
+	 * @return the table
 	 */
 	public Table add(TableRow tableRow) {
 		rows.add(tableRow);
@@ -40,8 +41,9 @@ public class Table {
 	 * Add a object that implements the {@link TableInterface} to the end of the
 	 * Table.
 	 * 
-	 * @param tableRow
+	 * @param row
 	 *            the TableRow
+	 * @return the table
 	 */
 	public Table add(TableLineInterface row) {
 		add(row.toTableLine());
@@ -51,8 +53,9 @@ public class Table {
 	/**
 	 * Creates a new TableRow consisting of one column of the given string
 	 * 
-	 * @param tableRow
-	 *            the TableRow
+	 * @param string
+	 *            the string
+	 * @return the table
 	 */
 	public Table add(String string) {
 		rows.add(new TableRow().add(string));

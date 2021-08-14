@@ -39,7 +39,7 @@ public class StationaryStateCondition extends Condition {
 	/**
 	 * checks if the break condition is fulfilled
 	 * 
-	 * @param simulation
+	 * @param simulation the simulation
 	 * @return break condition fulfilled
 	 */
 	@Override

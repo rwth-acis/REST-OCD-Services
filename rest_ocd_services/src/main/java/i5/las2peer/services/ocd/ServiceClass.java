@@ -277,9 +277,9 @@ public class ServiceClass extends RESTService {
 		 * @param endDateStr
 		 *            Optional query parameter. For big graphs end date is the
 		 *            date till which the file will parse.
-		 * @param involvedUserURIs
+		 * @param involvedUserURIsStr
 		 * 			  Optional query parameter. Users to consider for LMS Triplestore import
-		 * @param showUserNames
+		 * @param showUserNamesStr
 		 * 			  Optional query parameter. Whether to show usernames as node names for LMS Triplestore import
 		 * @param indexPathStr
 		 *            Optional query parameter. Set index directory.
@@ -460,9 +460,9 @@ public class ServiceClass extends RESTService {
 		 * @param endDateStr
 		 *            Optional query parameter. For big graphs end date is the
 		 *            date till which the file will parse.
-		 * @param involvedUserURIs
+		 * @param involvedUserURIsStr
 		 * 			  Optional query parameter. Users to consider for LMS Triplestore import
-		 * @param showUserNames
+		 * @param showUserNamesStr
 		 * 			  Optional query parameter. Whether to show usernames as node names for LMS Triplestore import
 		 * @param indexPathStr
 		 *            Optional query parameter. Set index directory.
@@ -1902,6 +1902,8 @@ public class ServiceClass extends RESTService {
 	     *            The id of the graph that the centrality maps are based on.
 	     * @param ids 
 	     *            The list of centrality map ids.
+		 * @param averageMapName
+		 * 			  The average name of a mao
 	     * @return The id of the calculated average centrality map.
 	     */
 	    @GET
@@ -3878,7 +3880,8 @@ public class ServiceClass extends RESTService {
 		
 		/**
 		 * Gets all the simulations performed by the user
-		 * 
+		 *
+		 * @param parameters the parameters
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -3966,7 +3969,8 @@ public class ServiceClass extends RESTService {
 	
 		/**
 		 * Gets the results of a performed simulation series on a network
-		 * 
+		 *
+		 * @param seriesId the id of the series
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -4003,7 +4007,8 @@ public class ServiceClass extends RESTService {
 	
 		/**
 		 * Gets the results of a performed simulation series on a network
-		 * 
+		 *
+		 * @param seriesId the id of the series
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -4045,7 +4050,8 @@ public class ServiceClass extends RESTService {
 	
 		/**
 		 * Gets the parameters of a simulation
-		 * 
+		 *
+		 * @param seriesId the id of the series
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -4071,7 +4077,8 @@ public class ServiceClass extends RESTService {
 	
 		/**
 		 * Deletes a performed simulation series on a network
-		 * 
+		 *
+		 * @param seriesId the id of the series
 		 * @return HttpResponse with the returnString
 		 */
 		@DELETE
@@ -4096,7 +4103,7 @@ public class ServiceClass extends RESTService {
 		/**
 		 * Starts the simulation of a cooperation and defection game simulation
 		 * 
-		 * @param JSON
+		 * @param parameters the parameters
 		 * 
 		 * @return HttpResponse with the returnString
 		 */
@@ -4242,7 +4249,8 @@ public class ServiceClass extends RESTService {
 	
 		/**
 		 * Gets the results of a performed simulation series group on a network
-		 * 
+		 *
+		 * @param groupId the id of the group
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -4312,7 +4320,8 @@ public class ServiceClass extends RESTService {
 	
 		/**
 		 * Deletes a a simulation series group
-		 * 
+		 *
+		 * @param groupId the id of the group
 		 * @return HttpResponse with the returnString
 		 */
 		@DELETE
@@ -4437,7 +4446,7 @@ public class ServiceClass extends RESTService {
 	
 		/**
 		 * Returns all available dynamics
-		 * 
+		 *
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -4454,7 +4463,7 @@ public class ServiceClass extends RESTService {
 	
 		/**
 		 * Returns all available games
-		 * 
+		 *
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -4540,11 +4549,9 @@ public class ServiceClass extends RESTService {
 
 	/**
 	 * Get a List of all graph indices of a user
-	 * 
-	 * @param graphId
-	 *            Id of the requested stored graph
-	 * @return HashMap
-	 * 
+	 *
+	 * @return List
+	 * @throws AgentNotRegisteredException if the agent was not registered
 	 */
 	public List<Long> getGraphIds() throws AgentNotRegisteredException {
 

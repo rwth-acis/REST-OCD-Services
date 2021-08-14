@@ -13,7 +13,7 @@ public interface CentralityOutputAdapter extends OutputAdapter {
 	/**
 	 * Writes a CentralityMap and closes the writer.
 	 * @param map The CentralityMap.
-	 * @throws AdapterException
+	 * @throws AdapterException if the adapter failed
 	 */
 	public void writeCentralityMap(CentralityMap map) throws AdapterException;
 	
