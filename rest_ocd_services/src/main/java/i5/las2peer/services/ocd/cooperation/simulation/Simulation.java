@@ -60,6 +60,7 @@ public class Simulation extends SimState {
 	 * @param network the network
 	 * @param game the game
 	 * @param dynamic the dynamic
+	 * @param condition the condition
 	 */
 	public Simulation(long seed, Network network, Game game, Dynamic dynamic, Condition condition) {
 		super(seed);
@@ -263,6 +264,8 @@ public class Simulation extends SimState {
 	
 	/**
 	 * Hides network UI element. Used only in UI mode.
+	 *
+	 * @return true
 	 */
 	public boolean hideNetwork() {
 		return true;

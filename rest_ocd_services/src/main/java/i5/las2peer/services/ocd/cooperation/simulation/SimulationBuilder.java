@@ -79,7 +79,7 @@ public class SimulationBuilder {
 	/**
 	 * Set the simulation parameters regarding the game.
 	 * 
-	 * @param parameters
+	 * @param parameters the parameters
 	 * @return Game
 	 */
 	public Game setGameParameters(SimulationSeriesParameters parameters) {

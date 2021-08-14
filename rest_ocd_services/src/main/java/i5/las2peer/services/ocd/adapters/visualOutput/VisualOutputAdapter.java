@@ -14,7 +14,7 @@ public interface VisualOutputAdapter extends OutputAdapter {
 	/**
 	 * Writes a graph and closes the writer.
 	 * @param graph The graph to write.
-	 * @throws AdapterException
+	 * @throws AdapterException if the adapter failed
 	 */
 	public void writeGraph(Graph2D graph) throws AdapterException;
 	

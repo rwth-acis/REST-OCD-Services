@@ -476,6 +476,7 @@ public class RequestHandler {
 	/**
 	 * Creates a CentralityMap output.
 	 * @param map The CentralityMap.
+	 * @param outputFormat the output format for the centrality
 	 * @return The CentralityMap output.
 	 * @throws AdapterException if adapter failed
 	 * @throws ParserConfigurationException if parser config failed
@@ -648,6 +649,7 @@ public class RequestHandler {
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 * @throws IllegalArgumentException if arguments were faulty
+	 * @throws ParseException if parsing failed
 	 */
 	public CustomGraph parseGraph(String contentStr, GraphInputFormat inputFormat, Map<String, String> param)
 			throws AdapterException, InstantiationException, IllegalAccessException, IllegalArgumentException,
@@ -688,6 +690,8 @@ public class RequestHandler {
 	 *            The centrality input
 	 * @param graph
 	 *            The graph the centrality values are based on.
+	 * @param inputFormat
+	 * 			  The input format for the centrality
 	 * @return The CentralityMap.
 	 * @throws AdapterException if adapter failed
 	 * @throws InstantiationException if instantiation failed

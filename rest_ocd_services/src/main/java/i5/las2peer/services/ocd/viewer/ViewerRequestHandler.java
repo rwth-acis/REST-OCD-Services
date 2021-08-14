@@ -32,9 +32,9 @@ public class ViewerRequestHandler extends RequestHandler {
 	 * @param graph The graph.
 	 * @param outputFormat The format.
 	 * @return The visual graph output.
-	 * @throws AdapterException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws AdapterException if the adapter failed
+	 * @throws InstantiationException if the instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public Response writeGraph(CustomGraph graph, VisualOutputFormat outputFormat) throws AdapterException, InstantiationException, IllegalAccessException {
 		VisualOutputAdapter adapter = visualOutputAdapterFactory.getInstance(outputFormat);
@@ -49,9 +49,9 @@ public class ViewerRequestHandler extends RequestHandler {
 	 * @param cover The cover.
 	 * @param outputFormat The format.
 	 * @return The visual cover output.
-	 * @throws AdapterException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws AdapterException if the adapter failed
+	 * @throws InstantiationException if the instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public Response writeCover(Cover cover, VisualOutputFormat outputFormat) throws AdapterException, InstantiationException, IllegalAccessException {
 		return writeGraph(cover.getGraph(), outputFormat);
@@ -62,9 +62,9 @@ public class ViewerRequestHandler extends RequestHandler {
 	 * @param map The CentralityMap.
 	 * @param outputFormat The format.
 	 * @return The visual CentralityMap output.
-	 * @throws AdapterException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws AdapterException if the adapter failed
+	 * @throws InstantiationException if the instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public Response writeCentralityMap(CentralityMap map, VisualOutputFormat outputFormat) throws AdapterException, InstantiationException, IllegalAccessException {
 		return writeGraph(map.getGraph(), outputFormat);

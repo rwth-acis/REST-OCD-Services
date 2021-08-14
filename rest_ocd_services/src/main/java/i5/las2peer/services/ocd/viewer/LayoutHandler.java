@@ -73,7 +73,7 @@ public class LayoutHandler {
 	
 	/**
 	 * Sets the default layout attributes for a graph, such as node and edge shapes and node sizes.
-	 * @param graph
+	 * @param graph the graph
 	 */
 	private void setLayoutDefaults(CustomGraph graph, double minNodeSize, double maxNodeSize) {
 		NodeCursor nodes = graph.nodes();
@@ -138,8 +138,8 @@ public class LayoutHandler {
 	 * @param minNodeSize Defines the minimum size of a node. Must be greater than 0.
 	 * @param maxNodeSize Defines the maximum size of a node. Must be at least as high as the defined minimum size.
 	 * @param paintingType The painting type defining which cover painter to use.
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public void doLayout(Cover cover, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges, 
 			double minNodeSize, double maxNodeSize, CoverPaintingType paintingType) throws InstantiationException, IllegalAccessException {
@@ -161,8 +161,8 @@ public class LayoutHandler {
 	 * @param doLabelNodes Defines whether nodes will receive labels with their names (TRUE) or not (FALSE).
 	 * @param doLabelEdges Defines whether edges will receive labels with their weights (TRUE) or not (FALSE).
 	 * @param centralityVisualizationType The type of visualization to represent the centrality values.
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public void doLayout(CentralityMap map, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges, 
 			CentralityVisualizationType centralityVisualizationType) throws InstantiationException, IllegalAccessException {
@@ -187,7 +187,7 @@ public class LayoutHandler {
 	
 	/**
 	 * Sets the view default attributes, such as the rendering order.
-	 * @param view
+	 * @param view the graph view
 	 */
 	private void setViewDefaults(Graph2DView view) {
 		DefaultGraph2DRenderer renderer = new DefaultGraph2DRenderer();
