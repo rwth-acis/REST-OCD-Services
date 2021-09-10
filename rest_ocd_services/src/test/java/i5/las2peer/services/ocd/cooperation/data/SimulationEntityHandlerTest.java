@@ -29,7 +29,7 @@ public class SimulationEntityHandlerTest {
 
 	private static final String PERSISTENCE_UNIT_NAME = "ocd";
 	private static final EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME,
-			Collections.singletonMap(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML, "META-INF/persistenceTesting.xml"));
+			Collections.singletonMap(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML, "META-INF/testing/persistence.xml"));
 	private SimulationEntityHandler entityHandler = new SimulationEntityHandler();
 
 	@After

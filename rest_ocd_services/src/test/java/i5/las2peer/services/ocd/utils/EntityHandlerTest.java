@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.utils;
 import static org.junit.Assert.*;
 
 import java.io.FileNotFoundException;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class EntityHandlerTest {
 
 	private static final String PERSISTENCE_UNIT_NAME = "ocd";
 	private static final EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME,
-			Collections.singletonMap(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML, "META-INF/persistenceTesting.xml"));
+			Collections.singletonMap(PersistenceUnitProperties.ECLIPSELINK_PERSISTENCE_XML, "META-INF/testing/persistence.xml"));
 	private EntityHandler entityHandler = new EntityHandler();
 
 	@Before
