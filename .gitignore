@@ -21,5 +21,15 @@ restMapping.xml
 /ocd/lfr/time_seed.dat
 /ocd/lfr/community.dat
 /ocd/yGuard
+/rest_ocd_services/export
 /indexes/
 *.jdbc
+/.settings/
+
+/yFiles/*.jar
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
