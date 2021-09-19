@@ -1,41 +1,47 @@
 ---
 layout: page
-title: Docsy Jekyll Theme
+title: REST-OCD-Service
 permalink: /
 ---
 
-# Welcome to Docsy Jekyll
+# REST-OCD-Service
 
-This is a starter template for a docsy jekyll theme.
+Welcome to the Wiki of the RESTful Overlapping Community Detection (OCD) Service!
 
-![assets/img/docsy-jekyll.png](assets/img/docsy-jekyll.png)
+The OCD Service provides means for
 
-## Purpose
++ storing and retrieving graphs and covers in different formats
++ calculating covers based on OCD algorithms
++ creating test graphs and covers based on benchmark models
++ executing metrics for measuring cover quality
 
-GitHub pages uses Jekyll natively, so when I make documentation, I typically
-look for Jekyll templates. Why? Using Jekyll means that I can use markdown,
-and allow for users to easily contribute, and build automatically just by
-way of pushing to a master branch (or general GitHub pages).
-I found Docsy, a beautiful Hugo template, but it requires hugo with GoLang
-which doesn't render natively on GitHub pages. For this reason, I've spent
-some time creating a custom Jekyll template that is (almost) as beautiful,
-and includes all the features that I might want.
+In combination with the service we also provide a corresponding viewer service that creates illustrations of graphs and covers in svg format and a web frontend to facilitate the access and provide further foce graph visualizations.
 
-## Features
+Note that this service is based on the [LAS2peer Template Project](https://github.com/rwth-acis/LAS2peer-Template-Project). For general information on LAS2peer services, please refer also to that project and to the documentation of the underlying [LAS2peer framework](https://github.com/rwth-acis/LAS2peer). This includes e.g. more detailed information in particular on user management, running LAS2peer services or Swagger Documentation.
 
-What are these features? You should see the {% include doc.html name="Getting Started" path="getting-started" %}
-guide for a complete summary. Briefly:
+## The OCD Service API and Web Client
 
- - *User interaction* including consistent permalinks, links to ask questions via GitHub issues, and edit the file on GitHub directly.
- - *Search* across posts, documentation, and other site pages, with an ability to exclude from search.
- - *External Search* meaning an ability to link any page tag to trigger an external search.
- - *Documentation* A documentation collection that was easy to organize on the filesystem, render with nested headings for the user, and refer to in markdown.
- - *Pages* A separate folder for more traditional pages (e.g, about).
- - *Navigation*: Control over the main navigation on the left of the page, and automatic generation of table of contents for each page on the right.
- - *News* A posts feed for news and updates, along with an archive (organized by year).
- - *Templates* or specifically, "includes" that make it easy to create an alert, documentation link, or other content.
- - *Continuous Integration* recipes to preview the site
+The OCD Service is publicly accessible via this [link](https://webocd.dbis.rwth-aachen.de/OCDWebClient/login.html). Please note that you should get a Learning Layers account to use the service. This is to ensure that your data is safe since otherwise anybody can access, alter and delete it anonymously. For information on user authentication please refer to [User Management and Authentication](https://github.com/rwth-acis/REST-OCD-Services/wiki/User-Management-and-Authentication).
+
+Along with the service we provide a web client which also has its own [project](https://github.com/rwth-acis/OCD-Web-Client). The client can only be used with a valid Learning Layers account. We recommend to use the service along with the web client.
 
 
-For features, getting started with development, see the {% include doc.html name="Getting Started" path="getting-started" %} page. Would you like to request a feature or contribute?
-[Open an issue]({{ site.repo }}/issues)
+We additionally provide a brief [Integration Tutorial](/integration/) that shows you the usage of the most important requests so that you can get started with the OCD Service more quickly.
+
+## The OCD Service
+The service is developed using the Eclipse IDE, so we recommend you to stick to that tool for any work on this project.
+
+Please refer to the following pages in order to obtain more information about the OCD Service.
+
++ [Project Structure](https://github.com/rwth-acis/REST-OCD-Services/wiki/Project-Structure)
++ [Build Process](https://github.com/rwth-acis/REST-OCD-Services/wiki/Build-Process)
++ [Running the OCD Service](https://github.com/rwth-acis/REST-OCD-Services/wiki/Running-the-OCD-Service)
++ [User Management and Authentication](https://github.com/rwth-acis/REST-OCD-Services/wiki/User-Management-and-Authentication)
++ [Deploying the OCD Service](https://github.com/rwth-acis/REST-OCD-Services/wiki/Deploying-the-OCD-Service)
++ [Database Configuration](https://github.com/rwth-acis/REST-OCD-Services/wiki/Database-Configuration)
+
+### Important
+The OCD Service is largely based on the commercial **yFiles** library. You will only be able to run it yourself if you have access to the archive _y.jar_. The Chair i5 of RWTH Aachen University has a license for that library. If you are affiliated with that institute, please contact somebody to obtain the library. Also, keep in mind that the archive mentioned above must under no circumstances be publicly deployed or otherwise made publicly available. Please refer to [Deploying the OCD Service](https://github.com/rwth-acis/REST-OCD-Services/wiki/Deploying-the-OCD-Service) for more information.
+
+The service also currently requires **Java JDK 14** to be built and most likely also to run it. However, there also exists an older version for JDK 8 (tag [1.0.0](https://github.com/rwth-acis/REST-OCD-Services/tree/1.0.0)) which is still functional in case you need it.
+
