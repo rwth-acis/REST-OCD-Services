@@ -161,6 +161,9 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 		parameters.put(OM_NAME, Integer.toString(om));
 		parameters.put(NEG_NAME, Double.toString(neg));
 		parameters.put(POS_NAME, Double.toString(pos));
+		parameters.put(EXCESS_NAME, Boolean.toString(excess));
+		parameters.put(DEFECT_NAME, Boolean.toString(defect));
+		parameters.put(FIXED_RANGE_NAME, Boolean.toString(fixed_range));
 		return parameters;
 	}
 
@@ -244,6 +247,18 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 				throw new IllegalArgumentException();
 			}
 		}
+		if(parameters.containsKey(EXCESS_NAME)) {
+			excess = Boolean.parseBoolean(EXCESS_NAME);
+			parameters.remove(EXCESS_NAME);
+		}
+		if(parameters.containsKey(DEFECT_NAME)) {
+			defect = Boolean.parseBoolean(DEFECT_NAME);
+			parameters.remove(DEFECT_NAME);
+		}
+		if(parameters.containsKey(FIXED_RANGE_NAME )) {
+			fixed_range = Boolean.parseBoolean(FIXED_RANGE_NAME );
+			parameters.remove(FIXED_RANGE_NAME );
+		}
 		if (parameters.size() > 0) {
 			System.out.println(parameters);
 			throw new IllegalArgumentException();
@@ -271,6 +286,9 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 	protected final String OM_NAME = "om";
 	protected final String POS_NAME = "pos";
 	protected final String NEG_NAME = "neg";
+	protected final String EXCESS_NAME = "excess";
+	protected final String DEFECT_NAME = "defect";
+	protected final String FIXED_RANGE_NAME = "fixed_range";
 
 	/**
 	 * Creates a customized instance of the benchmark model. The parameters must
