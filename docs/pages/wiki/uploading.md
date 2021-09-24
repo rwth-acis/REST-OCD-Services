@@ -11,7 +11,7 @@
 
 ## XML Content
 
-### For xml data the following parameters are mandatory for the post request:
+**For xml data the following parameters are mandatory for the post request:**
 
 * _inputFormat_: XML (The value XML will select the _XMLGraphInputAdapter_ to parse the xml data)
 * _startDate_: 2004-01-01 (Starting date from which the data rows are considered)
@@ -36,7 +36,7 @@ _N.B._: Id and ParentId are mandatory for the structural method and creates eagl
 
 
 ## Text Content / Node Content Edgelist
-### For text files the following parameters are mandatory for the post request:
+**For text files the following parameters are mandatory for the post request:**
 
 * _inputFormat_: NODE_CONTENT_EDGE_LIST (The value NODE_CONTENT_EDGE_LIST will select NodeContentEdgeListGraphInputAdapter to parse plain text file)
 * _startDate_: 2004-01-01 (Starting date from which the data rows are considered)
@@ -66,9 +66,9 @@ Parameters:
 * _body_: The content of the graph which will append with the previous content.
 For example, a graph of 360000 lines could be divided into any number of lines. For instance, that graph is divided into 36 parts and each part contains 10000 lines. Now, those parts could be sent step by step. Initially, the name and the content of the first part should send to the 'ocd/storegraph' API. For rest of the parts, the name should be same and the content should be the text of corresponding the pats.
 
-### Process(Save in database): 
+### Process (Save in database): 
 
-The API `POST /ocd/processgraph` can be used to insert the stored graph into the database. The processgraph API is same as uploading graph methods as described before in [this](https://github.com/rwth-acis/REST-OCD-Services/wiki/Integration-Tutorial#upload) page. But the graph name should be same as the name by which the graph was stored. And there is no _body_ parameter of the request. After sending this request, A graph id will be generated.
+The API `POST /ocd/processgraph` can be used to insert the stored graph into the database. The processgraph API is same as uploading graph methods as described before in [this](/REST-OCD-Services/pages/wiki/integration#upload) page. But the graph name should be same as the name by which the graph was stored. And there is no _body_ parameter of the request. After sending this request, A graph id will be generated.
 
 # Cover Formats
 

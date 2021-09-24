@@ -21,7 +21,7 @@ Note that this service is based on the [LAS2peer Template Project](https://githu
 
 ## The OCD Service API and Web Client
 
-The OCD Service is publicly accessible via this [link](https://webocd.dbis.rwth-aachen.de/OCDWebClient/login.html). Please note that you should get a Learning Layers account to use the service. This is to ensure that your data is safe since otherwise anybody can access, alter and delete it anonymously. For information on user authentication please refer to [User Management and Authentication](https://github.com/rwth-acis/REST-OCD-Services/wiki/User-Management-and-Authentication).
+The OCD Service is publicly accessible via this [link](https://webocd.dbis.rwth-aachen.de/OCDWebClient/login.html). Please note that you should get a Learning Layers account to use the service. This is to ensure that your data is safe since otherwise anybody can access, alter and delete it anonymously. For information on user authentication please refer to [User Management and Authentication](/REST-OCD-Services/pages/wiki/user-management-and-authentication).
 
 Along with the service we provide a web client which also has its own [project](https://github.com/rwth-acis/OCD-Web-Client). The client can only be used with a valid Learning Layers account. We recommend to use the service along with the web client.
 
@@ -33,15 +33,15 @@ The service is developed using the Eclipse IDE, so we recommend you to stick to 
 
 Please refer to the following pages in order to obtain more information about the OCD Service.
 
-+ [Project Structure](https://github.com/rwth-acis/REST-OCD-Services/wiki/Project-Structure)
-+ [Build Process](https://github.com/rwth-acis/REST-OCD-Services/wiki/Build-Process)
-+ [Running the OCD Service](https://github.com/rwth-acis/REST-OCD-Services/wiki/Running-the-OCD-Service)
-+ [User Management and Authentication](https://github.com/rwth-acis/REST-OCD-Services/wiki/User-Management-and-Authentication)
-+ [Deploying the OCD Service](https://github.com/rwth-acis/REST-OCD-Services/wiki/Deploying-the-OCD-Service)
-+ [Database Configuration](https://github.com/rwth-acis/REST-OCD-Services/wiki/Database-Configuration)
++ [Project Structure](/REST-OCD-Services/pages/wiki/project-structure)
++ [Build Process](/REST-OCD-Services/pages/wiki/build-process)
++ [Running the OCD Service](/REST-OCD-Services/pages/wiki/running)
++ [User Management and Authentication](/REST-OCD-Services/pages/wiki/user-management-and-authentication)
++ [Deploying the OCD Service](/REST-OCD-Services/pages/wiki/service-deployment)
++ [Database Configuration](/REST-OCD-Services/pages/wiki/database-configuration)
 
 ### Important
-The OCD Service is largely based on the commercial **yFiles** library. You will only be able to run it yourself if you have access to the archive _y.jar_. The Chair i5 of RWTH Aachen University has a license for that library. If you are affiliated with that institute, please contact somebody to obtain the library. Also, keep in mind that the archive mentioned above must under no circumstances be publicly deployed or otherwise made publicly available. Please refer to [Deploying the OCD Service](https://github.com/rwth-acis/REST-OCD-Services/wiki/Deploying-the-OCD-Service) for more information.
+The OCD Service is largely based on the commercial **yFiles** library. You will only be able to run it yourself if you have access to the archive _y.jar_. The Chair i5 of RWTH Aachen University has a license for that library. If you are affiliated with that institute, please contact somebody to obtain the library. Also, keep in mind that the archive mentioned above must under no circumstances be publicly deployed or otherwise made publicly available. Please refer to [Deploying the OCD Service](/REST-OCD-Services/pages/wiki/service-deployment) for more information.
 
 The service also currently requires **Java JDK 14** to be built and most likely also to run it. However, there also exists an older version for JDK 8 (tag [1.0.0](https://github.com/rwth-acis/REST-OCD-Services/tree/1.0.0)) which is still functional in case you need it.
 

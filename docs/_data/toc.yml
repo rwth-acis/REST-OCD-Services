@@ -17,11 +17,13 @@
       children:
         - title: Introduction
           url: "pages/wiki/build-process#introduction"
+        - title: Build Process
+          url: "pages/wiki/build-process#executing-the-build-process"
         - title: Potential Issues
           url: "pages/wiki/build-process#potential-issues"  
-        - title: Executing the Old Ant Build Process
+        - title: Old Ant Build Process
           url: "pages/wiki/build-process#executing-the-old-ant-build-process"
-    - title: Running the OCD Service
+    - title: Running the Service
       url: "pages/wiki/running"
       children:      
         - title: Making Preparations
@@ -44,7 +46,7 @@
           url: "pages/wiki/service-deployment#public-deployment-obfuscation"
         - title: Additional Aspects
           url: "pages/wiki/service-deployment#additional-aspects"
-    - title: Uploading graphs, Covers and Centralities
+    - title: Uploading Data
       url: "pages/wiki/uploading"
       children:      
         - title: Graph Formats
@@ -77,27 +79,27 @@
           url: "pages/wiki/integration#introduction" 
     - title: Possible Requests
       url: "pages/wiki/requests" 
-      children:
-        - title: Algorithms
-          url: "pages/wiki/requests#algorithms"
-        - title: Benchmarks
-          url: "pages/wiki/requests#benchmarks"
-        - title: Centralities
-          url: "pages/wiki/requests#centralities"
-        - title: Covers
-          url: "pages/wiki/requests#covers"
-        - title: Evaluation
-          url: "pages/wiki/requests#evaluation"
-        - title: Graphs
-          url: "pages/wiki/requests#graphs"
-        - title: Visualization
-          url: "pages/wiki/requests#visualization"
-        - title: Metrics
-          url: "pages/wiki/requests#metrics"
-        - title: Simulation
-          url: "pages/wiki/requests#simulation"
-        - title: Various
-          url: "pages/wiki/requests#various"
+      #children:
+        #- title: Algorithms
+        #  url: "pages/wiki/requests#algorithms"
+        #- title: Benchmarks
+        #  url: "pages/wiki/requests#benchmarks"
+        #- title: Centralities
+        #  url: "pages/wiki/requests#centralities"
+        #- title: Covers
+        #  url: "pages/wiki/requests#covers"
+        #- title: Evaluation
+        #  url: "pages/wiki/requests#evaluation"
+        #- title: Graphs
+        #  url: "pages/wiki/requests#graphs"
+        #- title: Visualization
+        #  url: "pages/wiki/requests#visualization"
+        #- title: Metrics
+        #  url: "pages/wiki/requests#metrics"
+        #- title: Simulation
+        #  url: "pages/wiki/requests#simulation"
+        #- title: Various
+        #  url: "pages/wiki/requests#various"
     - title: JMOL Dataset
       url: "pages/wiki/jmol" 
     - title: Cooperation Simulations

@@ -18,13 +18,13 @@ Both libraries then have to be placed into the _yFiles_ folder.
 
 Now, you just have to import the project as a gradle project via eclipse or simply open in via IntelliJ. After the first build, eclipse might still give you errors saying the yFiles jars are missing. To fix this, simply refresh the gradle project via the option you get from right clicking the folder. 
 
-After the build, you can then either start the _start_network.bat_ or _start_network.sh_ files in the bin folder to get the service running, see [Running the OCD Service](https://github.com/rwth-acis/REST-OCD-Services/wiki/Running-the-OCD-Service) for more information.
+After the build, you can then either start the _start_network.bat_ or _start_network.sh_ files in the bin folder to get the service running, see [Running the OCD Service](/REST-OCD-Services/pages/wiki/running) for more information.
 
 ## General Build
 There are numerous targets which can be run. This summarizes the most important ones:
 + _jar_: Generates the service jar in the _service_ and a copy in the _rest\_ocd\_services/export/jars_ directory. This archive is required for running the service.
 + _test_: Runs all jUnit tests . The test reports are stored in _rest\_ocd\_services/export/test_reports_.
-+ _yguard_: Generates an obfuscated service jar in the _rest\_ocd\_services/export/obfuscated_ directory. This is required for public service deployment. Please refer to [Deploying the OCD Service](https://github.com/rwth-acis/REST-OCD-Services/wiki/Deploying-the-OCD-Service) for more information. A log file of the obfuscation process is stored under _ocd/yGuard/log.xml_.
++ _yguard_: Generates an obfuscated service jar in the _rest\_ocd\_services/export/obfuscated_ directory. This is required for public service deployment. Please refer to [Deploying the OCD Service](/REST-OCD-Services/pages/wiki/service-deployment) for more information. A log file of the obfuscation process is stored under _ocd/yGuard/log.xml_.
 + _build_: The target you'll likely be running most of the time. This executes the build process and generates a jar as well as the executables.
 
 # Potential Issues
@@ -42,7 +42,7 @@ When you are going to run the build process the very first time, please make sur
 
 Due to the yFiles library being commercial, there are three dependencies which will be missing and must be added manually to the _lib_ folder:
 + _y.jar_ forms part of the commercial yFiles library by yWorks which is not publicly available. Therefore you will have to add it manually to the project. The Chair i5 of RWTH Aachen University has a license for the library, so please contact somebody to obtain access. This will obviously only be possible if you are somehow affiliated with the Chair.
-+ _yguard.jar_ is a free obfuscation tool by yWorks which is only required for public deployment of the service. Anybody can download it from this [link](https://www.yworks.com/downloads#yGuard). Refer to [Deploying the OCD Service](https://github.com/rwth-acis/REST-OCD-Services/wiki/Deploying-the-OCD-Service) for more information. You can probably do without it.
++ _yguard.jar_ is a free obfuscation tool by yWorks which is only required for public deployment of the service. Anybody can download it from this [link](https://www.yworks.com/downloads#yGuard). Refer to [Deploying the OCD Service](/REST-OCD-Services/pages/wiki/service-deployment) for more information. You can probably do without it.
 + _ysvg.jar_ is an SVG writer for yFiles Graph2D objects that makes it possible to add useful features to generated SVG diagrams. The library is used for the visualization of graphs and covers.
 
 ## Linux Users
@@ -54,7 +54,7 @@ There are numerous targets which can be run. This summarizes the most important 
 + _generate_configs_: Generates the user and service agents as specified in _etc/ant_configuration_. The users will be loaded when the service (or more precisely the underlying LAS2peer node) is launched.
 + _junit_: Runs all jUnit tests (except _src/test/i5/las2peer/services/ocd/DatabaseInitializer.java_, take look at the target _setup_database_ for more information). The test reports are stored in _export/test_reports_.
 + _startscripts:_ Generates startscripts into the bin folder that are used to start the service.
-+ _obfuscate_: Generates an obfuscated service jar in the _export/obfuscated_ directory. This is required for public service deployment. Please refer to [Deploying the OCD Service](https://github.com/rwth-acis/REST-OCD-Services/wiki/Deploying-the-OCD-Service) for more information. A log file of the obfuscation process is stored under _ocd/yGuard/log.xml_.
++ _obfuscate_: Generates an obfuscated service jar in the _export/obfuscated_ directory. This is required for public service deployment. Please refer to [Deploying the OCD Service](/REST-OCD-Services/pages/wiki/service-deployment) for more information. A log file of the obfuscation process is stored under _ocd/yGuard/log.xml_.
 + _setup_database_: This is intended for automatically populating the database for presentation or debugging purposes. It is not required in any way to actually make the database work. The database is set up by running _src/test/i5/las2peer/services/ocd/DatabaseInitializer.java_ as a jUnit test. You can adapt the code in any way that suits your needs.
 + _all_: Runs all of the above except _setup_database_.
 
