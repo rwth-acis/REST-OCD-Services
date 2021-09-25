@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.helpers;
 
 /**
  * The purpose of this class is to imitate Pair type from C++, with adjustments
- * that allows 'second' to be of any type <T>, while 'first' is an integer
+ * that allows 'second' to be of any type, while 'first' is an integer
  */
 public class Pair<T> {
 	private Integer first;

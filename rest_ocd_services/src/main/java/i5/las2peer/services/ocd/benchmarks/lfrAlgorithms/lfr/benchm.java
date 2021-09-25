@@ -747,6 +747,7 @@ public class benchm {
 	 * @param fixed_range        To have a random network: using this option will
 	 *                           set muw=0, mut=0, and minc=maxc=N, i.e. there will
 	 *                           be one only community.
+	 * @return                   integer representing if execution status
 	 */
 	public static int weighted_directed_network_benchmark(boolean excess, boolean defect, int num_nodes, double average_k, int max_degree, double tau, double tau2, double mixing_parameter,
 			double mixing_parameter2, double beta, int overlapping_nodes, int overlap_membership, int nmin, int nmax, boolean fixed_range) {

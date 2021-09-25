@@ -29,6 +29,7 @@ public class ReadWrite {
 	 * Print out ArrayList of ArrayLists of Doubles
 	 * @param arar     ArrayList of ArrayLists of Doubles to print out
 	 * @param name     Name of the file where results will be printed
+	 * @param round    Whether to round the values
 	 */
 	public static void arar(ArrayList<ArrayList<Double>> arar, String name, boolean round) {
 
@@ -67,8 +68,8 @@ public class ReadWrite {
 
 	/**
 	 * Print out ArrayList of ArrayList of Integers
-	 * @param arar     ArrayList of ArrayLists of Integers to print out
-	 * @param name     Name of the file where results will be printed
+	 * @param member_matrix     ArrayList of ArrayLists of Integers to print out
+	 * @param name              Name of the file where results will be printed
 	 */
 	public static void arar_int(ArrayList<ArrayList<Integer>> member_matrix, String name) {
 
@@ -182,6 +183,7 @@ public class ReadWrite {
 	 * Print out ArrayList of Pairs
 	 * @param arpair ArrayList of Pairs to print out
 	 * @param name   Name of the file where results will be printed
+	 * @return       Prints out Arraylist of Pairs 
 	 */
 	public static int ar_pair(ArrayList<Pair<Integer>> arpair, String name) {
 		try {
@@ -212,6 +214,7 @@ public class ReadWrite {
 	 * Print out CustomMultiMap
 	 * @param multimap CustomMultiMap of Pairs to print out
 	 * @param name     Name of the file where results will be printed
+	 * @return         Prints out CustomMultiMap
 	 */
 	public static int printCustomMultiMap(CustomMultiMap<Integer> multimap, String name) {
 
@@ -246,7 +249,7 @@ public class ReadWrite {
 	/**
 	 * Read in a CustomMultiMap
 	 * @param path Location of C++ MultiMap to read
-	 * @return CustomMultiMap<Integer> equivalent to C++ MultiMap
+	 * @return CustomMultiMap equivalent to C++ MultiMap
 	 */
 	public static CustomMultiMap<Integer> readMultimap(String path) {
 		File file = new File(path);
@@ -279,9 +282,9 @@ public class ReadWrite {
 	}
 
 	/**
-	 * Read in deque<int> as ArrayList<Integer>
-	 * @param path Location of C++ deque<int> to read
-	 * @return ArrayList<Integer> equivalent to C++ deque<int>
+	 * Read in deque of integers as ArrayList of integers
+	 * @param path Location of C++ deque of integers to read
+	 * @return Integer ArrayList equivalent to C++ integer deque
 	 */
 	public static ArrayList<Integer> readArrayList(String path) {
 		File file = new File(path);
@@ -306,9 +309,9 @@ public class ReadWrite {
 	}
 
 	/**
-	 * Read in deque<double> as ArrayList<Double>
-	 * @param path Location of C++ deque<double> to read
-	 * @return ArrayList<Double> equivalent to C++ deque<double>
+	 * Read in deque as ArrayList
+	 * @param path Location of C++ deque to read
+	 * @return Double ArrayList equivalent to C++ double deque
 	 */
 	public static ArrayList<Double> readArrayList_double(String path) {
 		File file = new File(path);
@@ -332,9 +335,9 @@ public class ReadWrite {
 	}
 
 	/**
-	 * Read in deque<deque<int>> as ArrayList<ArrayList<Integer>>
-	 * @param path Location of C++ deque<deque<int> to read
-	 * @return ArrayList<ArrayList<Integer> equivalent to C++ deque<deque<int>>
+	 * Read in deque of deques as ArrayList of ArrayList
+	 * @param path Location of C++ deque of deques to read
+	 * @return ArrayList of ArrayList equivalent to C++ deque of deque
 	 */
 	public static ArrayList<ArrayList<Integer>> readArrayListArrayList(String path) {
 		File file = new File(path);
@@ -367,9 +370,9 @@ public class ReadWrite {
 	}
 
 	/**
-	 * Read in deque of pairs as ArrayList<Pair<Integer>>
-	 * @param path Location of C++ deque<pair<int, int>> to read
-	 * @return ArrayList<Pair<Integer> equivalent to C++ deque<deque<int,int>>
+	 * Read in deque of deques as ArrayList of pairs
+	 * @param path Location of C++ deque of pairs to read
+	 * @return ArrayList of pairs equivalent to C++ deque of deques
 	 */
 	public static ArrayList<Pair<Integer>> readArrayListPair(String path) {
 		File file = new File(path);
@@ -401,9 +404,9 @@ public class ReadWrite {
 	}
 
 	/**
-	 * Read in deque<set<int>> as ArrayList<TreeSet<Integer>>
-	 * @param path Location of C++ deque<set<int>> to read
-	 * @return ArrayList<TreeSet<Integer> equivalent to C++ deque<set<int>>
+	 * Read in deque of sets as ArrayList of TreeSets
+	 * @param path Location of C++ deque of sets to read
+	 * @return ArrayList of TreeSets quivalent to C++ deque of sets
 	 */
 	public static ArrayList<TreeSet<Integer>> readArrTreeSet(String path) {
 		File file = new File("stuff/" + path);

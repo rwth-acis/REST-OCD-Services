@@ -58,6 +58,7 @@ public class WeakClique {
 	/**
 	 * Removes input node (node index) from the weak clique
 	 * @param i     A node to be removed from the weak clique
+	 * @return      true if removal was successful
 	 */
 	public boolean remove(Integer i) {
 		
@@ -68,6 +69,7 @@ public class WeakClique {
 	/**
 	 * Adds all elements of the input set (node indices) to the weak clique
 	 * @param set     A set of nodes to be added to the weak clique
+	 * @return        true if addition was successful
 	 */
 	public boolean addAll(HashSet<Integer> set) {
 		
@@ -77,7 +79,7 @@ public class WeakClique {
 
 	/**
 	 * Finds the size of a weak clique
-	 * @return
+	 * @return    Weak clique size
 	 */
 	public int size() {
 		

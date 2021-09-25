@@ -12,7 +12,7 @@ public class HelperMethods {
 	 * This method returns index of the first occurrence of the Double value at
 	 * least as high as the threshold. It imitates C++ method with the same name
 	 * 
-	 * @param arr       ArrayList<Double> to which the lower bound should be found
+	 * @param arr       ArrayList to which the lower bound should be found
 	 * @param first     index from which the search should occur
 	 * @param last      index to which the search should occur
 	 * @param threshold value the found element should be at least as large as
@@ -46,7 +46,7 @@ public class HelperMethods {
 	 * This method returns index of the first occurrence of the Integer value at
 	 * least as high as the threshold. It imitates C++ method with the same name
 	 * 
-	 * @param arr       ArrayList<Integer> to which the lower bound should be found
+	 * @param arr       ArrayList to which the lower bound should be found
 	 * @param first     index from which the search should occur
 	 * @param last      index to which the search should occur
 	 * @param threshold value the found element should be at least as large as

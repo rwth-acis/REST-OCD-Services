@@ -393,7 +393,7 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * diagonal entries, which hold the sum of weights of edges for each node
 	 * 
 	 * @param A     Adjacency matrix based on which the diagonal matrix should be created
-	 * @return      
+	 * @return      Created diagonal matrix 
 	 */
 	public Matrix createDiagonalMatrix(Matrix A) {
 		
@@ -561,11 +561,11 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 	
 
 	/**
-	 * This method clusterer (FuzzyKMeansClusterer<CoordinatePoint>) output which can be used to get either the membership matrix to be used with custom threshold or to get clusters that were built without custom threshold when customTreshold = 0.0;
+	 * This method FuzzyKMeansClsuter, which can be used to get either the membership matrix to be used with custom threshold or to get clusters that were built without custom threshold when customTreshold = 0.0;
 	 * @param M          Matrix of sorted eigenvectors
 	 * @param K          Cluster size
 	 * @param fuzziness  Degree of fuzziness
-	 * @return           Clusterer (FuzzyKMeansClusterer<CoordinatePoint>) holding clustering results
+	 * @return           FuzzyKMeansClsuter that holds clustering results
 	 */
 	public FuzzyKMeansClusterer<CoordinatePoint> getClustererOutput(Matrix M, int K, double fuzziness) {
 		
@@ -606,7 +606,7 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 	
 	/**
 	 * This method converts output clusters from FuzzyKMeansClusterer into a membership matrix of type Matrix
-	 * @param clusterer     FuzzyKMeansClusterer<CoordinatePoint> that holds chosen clusters
+	 * @param clusterer     FuzzyKMeansClusterer that holds chosen clusters
 	 * @return              Matrix representing memberships to different clusters
 	 */
 	public Matrix getMembershipMatrixFromClusters(FuzzyKMeansClusterer<CoordinatePoint> clusterer) {

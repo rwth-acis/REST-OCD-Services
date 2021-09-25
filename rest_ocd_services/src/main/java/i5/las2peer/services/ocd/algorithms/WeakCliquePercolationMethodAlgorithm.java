@@ -436,8 +436,8 @@ public class WeakCliquePercolationMethodAlgorithm implements OcdAlgorithm {
 	 * 
 	 * @param network          Matrix representation of the network
 	 * @param threshold        Threshold value to determined whether similarity between two weak cliques warrants the merge
-	 * @return
-	 * @throws InterruptedException 
+	 * @return                 Set of weak cliques that represent communities
+	 * @throws InterruptedException when the method execution is interrupted
 	 */
 	public HashSet<WeakClique> wCPM(Matrix network, double threshold) throws InterruptedException {
 		

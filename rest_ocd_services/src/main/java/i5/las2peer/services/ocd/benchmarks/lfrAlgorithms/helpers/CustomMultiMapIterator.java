@@ -17,7 +17,7 @@ public class CustomMultiMapIterator<T extends Comparable<T>> implements Iterator
 	 * Constructor for the iterator that starts at the end of the multimap (iterator
 	 * goes backwards)
 	 * 
-	 * @param map CustomMultiMap<T> to which the iterator should be created
+	 * @param map CustomMultiMap to which the iterator should be created
 	 */
 	public CustomMultiMapIterator(CustomMultiMap<T> map) {
 		this.map = map;
@@ -33,7 +33,7 @@ public class CustomMultiMapIterator<T extends Comparable<T>> implements Iterator
 	 * Constructor for the iterator that starts at a specified index (iterator goes
 	 * backwards)
 	 * 
-	 * @param map   CustomMultiMap<T> to which the iterator should bne created
+	 * @param map   CustomMultiMap to which the iterator should bne created
 	 * @param index index at which the iterator should start
 	 */
 	public CustomMultiMapIterator(CustomMultiMap<T> map, int index) {
@@ -61,7 +61,7 @@ public class CustomMultiMapIterator<T extends Comparable<T>> implements Iterator
 	/**
 	 * Returns the next element and moves the index of the iterator
 	 * 
-	 * @return Pair<T> that is next for the iterator (iterator goes backwards, so
+	 * @return Pair that is next for the iterator (iterator goes backwards, so
 	 *         'next' is actually 'previous')
 	 */
 	@Override

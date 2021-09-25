@@ -1626,7 +1626,6 @@ public class benchm {
 	 * @param tau                exponent for the degree sequence
 	 * @param tau2               exponent for the community size distribution
 	 * @param mixing_parameter   mixing parameter for the topology
-	 * @param beta               exponent for the weight distribution
 	 * @param overlapping_nodes  number of overlapping nodes
 	 * @param overlap_membership number of memberships of overlapping nodes
 	 * @param nmin               minimum for the community sizes
@@ -1634,6 +1633,7 @@ public class benchm {
 	 * @param fixed_range        To have a random network: using this option will
 	 *                           set muw=0, mut=0, and minc=maxc=N, i.e. there will
 	 *                           be one only community.
+	 * @return                   integer representing execution status
 	 */
 	public static int directed_network_benchmark(boolean excess, boolean defect, int num_nodes, double average_k, int max_degree, double tau, double tau2, double mixing_parameter,
 			int overlapping_nodes, int overlap_membership, int nmin, int nmax, boolean fixed_range){
