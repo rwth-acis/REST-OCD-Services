@@ -25,6 +25,8 @@ import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.SignedLfrBenchmark;
 import i5.las2peer.services.ocd.utils.EnumDisplayNames;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
+import i5.las2peer.services.ocd.algorithms.FuzzyCMeansSpectralClusteringAlgorithm;
+import i5.las2peer.services.ocd.algorithms.WeakCliquePercolationMethodAlgorithm;
 
 import java.security.InvalidParameterException;
 import java.util.Locale;
