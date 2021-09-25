@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.algorithms.ClizzAlgorithm;
 import i5.las2peer.services.ocd.algorithms.CostFunctionOptimizationClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.EvolutionaryAlgorithmBasedOnSimilarity;
 import i5.las2peer.services.ocd.algorithms.ExtendedSpeakerListenerLabelPropagationAlgorithm;
+import i5.las2peer.services.ocd.algorithms.FuzzyCMeansSpectralClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.MergingOfOverlappingCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
@@ -13,6 +14,7 @@ import i5.las2peer.services.ocd.algorithms.SignedDMIDAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SignedProbabilisticMixtureAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
+import i5.las2peer.services.ocd.algorithms.WeakCliquePercolationMethodAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WordClusteringRefinementAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LocalSpectralClusteringAlgorithm;
@@ -143,7 +145,17 @@ public enum CoverCreationType implements EnumDisplayNames {
 	/**
 	 * Type corresponding to the DetectingOverlappingCommunities Algorithm.
 	 */
-	DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM("Detecting Overlapping Communities Algorithm", DetectingOverlappingCommunitiesAlgorithm.class, 22);
+	DETECTING_OVERLAPPING_COMMUNITIES_ALGORITHM("Detecting Overlapping Communities Algorithm", DetectingOverlappingCommunitiesAlgorithm.class, 22),
+	
+	/**
+	 * Type corresponding to the FuzzyCMeansSpectralClustering Algorithm.
+	 */
+	FUZZY_C_MEANS_SPECTRAL_CLUSTERING_ALGORITHM("Fuzzy C Means Spectral Clustering Algorithm", FuzzyCMeansSpectralClusteringAlgorithm.class, 23),
+	
+	/**
+	 * Type corresponding to the WeakCliquePercolationMethodAlgorithm Algorithm.
+	 */
+	WEAK_CLIQUE_PERCOLATION_METHOD_ALGORITHM("Weak Clique Percolation Method Algorithm", WeakCliquePercolationMethodAlgorithm.class, 24);
 
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
