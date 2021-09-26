@@ -51,7 +51,7 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 	/**
 	 * Maximum number of clusters the algorithm should consider
 	 */
-	private int K = 2;
+	private int K = 20;
 	
 
 	/**
