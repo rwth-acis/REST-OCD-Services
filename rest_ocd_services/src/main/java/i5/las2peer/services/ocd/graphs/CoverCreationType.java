@@ -25,6 +25,8 @@ import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.SignedLfrBenchmark;
 import i5.las2peer.services.ocd.utils.EnumDisplayNames;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
+import i5.las2peer.services.ocd.algorithms.FuzzyCMeansSpectralClusteringAlgorithm;
+import i5.las2peer.services.ocd.algorithms.WeakCliquePercolationMethodAlgorithm;
 
 import java.security.InvalidParameterException;
 import java.util.Locale;
@@ -149,7 +151,17 @@ public enum CoverCreationType implements EnumDisplayNames {
 	/**
 	 * Type corresponding to the NISE Algorithm.
 	 */
-	NISE_ALGORITHM("Neighborhood-Inflated Seed Expansion Algorithm", NISEAlgorithm.class, 23);
+	NISE_ALGORITHM("Neighborhood-Inflated Seed Expansion Algorithm", NISEAlgorithm.class, 23),
+
+        /**
+	 * Type corresponding to the FuzzyCMeansSpectralClustering Algorithm.
+	 */
+	FUZZY_C_MEANS_SPECTRAL_CLUSTERING_ALGORITHM("Fuzzy C Means Spectral Clustering Algorithm", FuzzyCMeansSpectralClusteringAlgorithm.class, 24),
+	
+	/**
+	 * Type corresponding to the WeakCliquePercolationMethodAlgorithm Algorithm.
+	 */
+	WEAK_CLIQUE_PERCOLATION_METHOD_ALGORITHM("Weak Clique Percolation Method Algorithm", WeakCliquePercolationMethodAlgorithm.class, 25);
 	
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.

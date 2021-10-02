@@ -4,6 +4,7 @@ import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.coverInput.NodeCommunityListsCoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
+import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.signedlfr.benchm;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
@@ -123,7 +124,27 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 	 * The fraction of inter-edges which are positive. The default value is
 	 * 0.05.
 	 */
-	private double pos = 0.05;
+	private double pos = 0.05;	
+	/**
+	 * This variable is used to produce a benchmark whose distribution of the ratio of external
+	 * in-degree/total in-degree is superiorly (inferiorly) bounded by the mixing
+	 * parameter (only for the topology). In other words, if you use one of these
+	 * options, the mixing parameter is not the average ratio of external
+	 * degree/total degree (as it used to be) but the maximum (or the minimum) of
+	 * that distribution. When using one of these options, what the program
+	 * essentially does is to approximate the external degree always by excess (or
+	 * by defect) and if necessary to modify the degree distribution. Nevertheless,
+	 * this last possibility occurs for a few nodes and numerical simulations show
+	 * that it does not affect the degree distribution
+	 */
+	private boolean excess = false;
+	private boolean defect = false;
+	
+	/**
+	 * To have a random network: using this option will set muw=0, mut=0, and
+	 * minc=maxc=N, i.e. there will be one only community.
+	 */
+	private boolean fixed_range = false;
 
 	@Override
 	public Map<String, String> getParameters() {
@@ -140,6 +161,9 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 		parameters.put(OM_NAME, Integer.toString(om));
 		parameters.put(NEG_NAME, Double.toString(neg));
 		parameters.put(POS_NAME, Double.toString(pos));
+		parameters.put(EXCESS_NAME, Boolean.toString(excess));
+		parameters.put(DEFECT_NAME, Boolean.toString(defect));
+		parameters.put(FIXED_RANGE_NAME, Boolean.toString(fixed_range));
 		return parameters;
 	}
 
@@ -223,6 +247,18 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 				throw new IllegalArgumentException();
 			}
 		}
+		if(parameters.containsKey(EXCESS_NAME)) {
+			excess = Boolean.parseBoolean(EXCESS_NAME);
+			parameters.remove(EXCESS_NAME);
+		}
+		if(parameters.containsKey(DEFECT_NAME)) {
+			defect = Boolean.parseBoolean(DEFECT_NAME);
+			parameters.remove(DEFECT_NAME);
+		}
+		if(parameters.containsKey(FIXED_RANGE_NAME )) {
+			fixed_range = Boolean.parseBoolean(FIXED_RANGE_NAME );
+			parameters.remove(FIXED_RANGE_NAME );
+		}
 		if (parameters.size() > 0) {
 			System.out.println(parameters);
 			throw new IllegalArgumentException();
@@ -250,6 +286,9 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 	protected final String OM_NAME = "om";
 	protected final String POS_NAME = "pos";
 	protected final String NEG_NAME = "neg";
+	protected final String EXCESS_NAME = "excess";
+	protected final String DEFECT_NAME = "defect";
+	protected final String FIXED_RANGE_NAME = "fixed_range";
 
 	/**
 	 * Creates a customized instance of the benchmark model. The parameters must
@@ -275,10 +314,10 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 	 *            Sets on.
 	 * @param om
 	 *            Sets om.
-	 * @param pos
-	 * 			  Sets pos.
+	 * @param pos 
+	 *            Value for pos.
 	 * @param neg
-	 * 			  Sets neg.
+	 *            Value for neg.
 	 */
 	public SignedLfrBenchmark(int n, int k, int maxk, double mu, double t1, double t2, int minc, int maxc, int on,
 			int om, double pos, double neg) {
@@ -295,6 +334,63 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 		this.pos = pos;
 		this.neg = neg;
 	}
+	
+	/**
+	 * Creates a customized instance of the benchmark model, including setting boolean parameters excess, defect, fixed_range. The parameters must
+	 * be values which are valid for the LFR model.
+	 * 
+	 * @param n
+	 *            Sets n.
+	 * @param k
+	 *            Sets k.
+	 * @param maxk
+	 *            Sets maxk.
+	 * @param mu
+	 *            Sets mu.
+	 * @param t1
+	 *            Sets t1.
+	 * @param t2
+	 *            Sets t2.
+	 * @param minc
+	 *            Sets minc.
+	 * @param maxc
+	 *            Sets maxc.
+	 * @param on
+	 *            Sets on.
+	 * @param om
+	 *            Sets om.
+	 * @param pos 
+	 *            Value for pos.
+	 * @param neg
+	 *            Value for neg.
+	 * @param excesss
+	 *            Sets excess.
+	 * @param defect 
+	 *            Sets defect.
+	 * @param fixed_range
+	 *            Sets fixed_range.
+	 *        
+	 */
+	public SignedLfrBenchmark(int n, int k, int maxk, double mu, double t1, double t2, int minc, int maxc, int on,
+			int om, double pos, double neg, boolean excesss, boolean defect, boolean fixed_range) {
+		this.minc = minc;
+		this.mu = mu;
+		this.n = n;
+		this.k = k;
+		this.maxk = maxk;
+		this.on = on;
+		this.maxc = maxc;
+		this.om = om;
+		this.t1 = t1;
+		this.t2 = t2;
+		this.pos = pos;
+		this.neg = neg;
+		this.excess = excesss;
+		this.defect = defect;
+		this.fixed_range = fixed_range;
+	}
+	
+	
 
 	@Override
 	public Cover createGroundTruthCover() throws OcdBenchmarkException, InterruptedException {
@@ -338,14 +434,19 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 				if (networkFile.exists()) {
 					networkFile.delete();
 				}
-				executor.setWorkingDirectory(workingDirectory);
-				DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-				executor.execute(cmdLine, resultHandler);
-				resultHandler.waitFor();
-				if (resultHandler.getExitValue() != 0) {
-					System.out.println(resultHandler.getException());
-					throw new OcdBenchmarkException("LFR Process exit value: " + resultHandler.getExitValue());
-				}
+				
+                ///////////COMMENTED OUT WHEN C++ BASED ALGORITHM IS USED//////////////////
+//				executor.setWorkingDirectory(workingDirectory);
+//				DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
+//				executor.execute(cmdLine, resultHandler);
+//				resultHandler.waitFor();
+//				if (resultHandler.getExitValue() != 0) {
+//					System.out.println(resultHandler.getException());
+//					throw new OcdBenchmarkException("LFR Process exit value: " + resultHandler.getExitValue());
+//				}
+				
+				
+				benchm.directed_network_benchmark(excess, defect, n, k, maxk, t1, t2, mu, on, om, minc, maxc, fixed_range); // Signed LFR algorithm based on C++ directed network algorithm
 				GraphInputAdapter graphAdapter = new UnweightedEdgeListGraphInputAdapter(new FileReader(graphPath));
 				CustomGraph graph = graphAdapter.readGraph();
 				graph.addType(GraphType.DIRECTED);
@@ -375,7 +476,7 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 	 * @param neg The fraction of intra-edges which are negative.	 
 	 * @param pos The fraction of inter-edges which are positive.	 
 	 * @return The adapted cover.
-	 * @throws InterruptedException if the thread was interrupted
+	 * @throws java.lang.InterruptedException when method execution is interrupted
 	 */
 
 	protected Cover setWeightSign(Cover cover, double pos, double neg) throws InterruptedException {
