@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.TreeSet;
 
+import org.la4j.matrix.Matrix;
+import org.la4j.matrix.dense.Basic2DMatrix;
 
 import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.containerclasses.BuildSubgraphsContainer;
 import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.containerclasses.EinEoutContainer;
@@ -21,6 +23,10 @@ import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.helpers.PairComparator;
 import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.helpers.ReadWrite;
 import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.util.Combinatorics;
 import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.util.Random;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import y.base.Edge;
+import y.base.Node;
 
 /**
  * This class is Java implementation of directed networks which is equivalent to signed LFR algorithm 
@@ -1635,7 +1641,7 @@ public class benchm {
 	 *                           be one only community.
 	 * @return                   integer representing execution status
 	 */
-	public static int directed_network_benchmark(boolean excess, boolean defect, int num_nodes, double average_k, int max_degree, double tau, double tau2, double mixing_parameter,
+	public static Cover directed_network_benchmark(boolean excess, boolean defect, int num_nodes, double average_k, int max_degree, double tau, double tau2, double mixing_parameter,
 			int overlapping_nodes, int overlap_membership, int nmin, int nmax, boolean fixed_range){
 
 		
@@ -1661,7 +1667,7 @@ public class benchm {
 
 		double dmin = solve_dmin(max_degree, average_k, -tau);
 		if (dmin == -1) {
-			return -1; 
+			return null; 
 		}
 
 		int min_degree = (int) (dmin);
@@ -1722,7 +1728,7 @@ public class benchm {
 				num_nodes, member_matrix, excess, defect, degree_seq_in, degree_seq_out, num_seq, internal_degree_seq_in, internal_degree_seq_out, fixed_range, nmin, nmax, tau2); // added variable to hold output of the internal_degree_and_membership method (since Java doesn't use pointer inputs like C++ does)
 
 		if (internal_degree_and_membership_output == null) {
-			return 0; 
+			return null; 
 		}
 
 
@@ -1748,7 +1754,7 @@ public class benchm {
 				internal_degree_seq_out, degree_seq_out, excess, defect); // added variable to hold output of the build_subgraphs method (since Java doesn't use pointer inputs like C++ does)
 
 		if (build_subgraphs_output == null) {
-			return -1; 
+			return null; 
 		}
 
 
@@ -1775,7 +1781,7 @@ public class benchm {
 
 		EinEoutContainer erase_links_output = erase_links(Ein, Eout, member_list, excess, defect, mixing_parameter);
 		if (erase_links_output == null) {
-			return -1; 
+			return null; 
 		}
 
 		// following are added lines that overwrite variables that were modified by erase_links method, by the modified values (in C++ version of the code, pointers were given to the method as input)
@@ -1783,17 +1789,68 @@ public class benchm {
 		Eout = erase_links_output.getEout();
 		// ------------------------------------------------------------------------------------------------
 
-		
-		
-		
-		
-		try {
-			print_network(Ein, Eout, member_list, member_matrix, num_seq);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		///// create a cover to be returned /////
 
-		return 0;
+		CustomGraph graph = new CustomGraph();
+
+		/*
+		 *  create graph nodes
+		 */
+		for (int u = 0; u < Eout.size(); u++) {
+			Node node = graph.createNode();
+			graph.setNodeName(node, Integer.toString(u));
+
+		}
+		
+		/*
+		 *  create weighted edges between the nodes
+		 */
+		Node[] nodes = graph.getNodeArray();
+		for (int u = 0; u < Eout.size(); u++) {
+			for (Iterator<Integer> itb = Eout.get(u).iterator(); itb.hasNext();) {
+
+				Integer itb_current = itb.next();
+				Edge edge = graph.createEdge(nodes[u], nodes[itb_current]);
+				
+			}
+		}
+		
+		/*
+		 *  matrix row count corresponds to node count	
+		 */
+		int node_count = member_list.size(); 	
+		/*
+		 * matrix column count correspond to highest community id. This is because
+		 * communities are counted up and highest community id will correspond to number
+		 * of columns in a memership matrix
+		 */
+		int community_count = 0; 
+		for (int i = 0; i < member_list.size(); i++) {
+			int curr = Collections.max(member_list.get(i));
+			if (curr > community_count) {
+				community_count = curr;
+			}
+		}	
+	
+
+		// populate membership matrix for cover creation
+		Matrix memberships = new Basic2DMatrix(node_count, community_count+1);
+
+		for (int i = 0; i < node_count; i++) {
+			for (int j = 0; j < member_list.get(i).size(); j++) {
+				
+				/*
+				 * assign memberships of nodes. Since matrix columns start with index 0,
+				 * subtract 1 column coordinate
+				 */
+				memberships.set(i, member_list.get(i).get(j), 1); 
+				
+			}
+		}
+		
+		Cover c = new Cover(graph, memberships);
+		
+		return c;
 	}
 
 

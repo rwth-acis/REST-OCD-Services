@@ -1,9 +1,5 @@
 package i5.las2peer.services.ocd.benchmarks;
 
-import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
-import i5.las2peer.services.ocd.adapters.coverInput.NodeCommunityListsCoverInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.signedlfr.benchm;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationLog;
@@ -13,18 +9,13 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import y.base.Edge;
 import y.base.EdgeCursor;
 
-import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.lang3.SystemUtils;
 import org.la4j.matrix.Matrix;
 
 /**
@@ -35,35 +26,6 @@ import org.la4j.matrix.Matrix;
  *
  */
 public class SignedLfrBenchmark implements GroundTruthBenchmark {
-	/**
-	 * Path of the directory reserved for the signed LFR benchmark application.
-	 */
-	private static final String SignedLfrDirectoryPath = "ocd/signedLfr/";
-	/**
-	 * Used for synchronization purposes. Executes the benchmark graph
-	 * calculation.
-	 */
-	private static DefaultExecutor executor = new DefaultExecutor();
-	/**
-	 * Path of the file holding an application developed by Lancichinetti that
-	 * calculates LFR benchmark graphs. For Windows.
-	 */
-	private static String windowsBenchmarkGeneratorPath = SignedLfrDirectoryPath + "SignedLfrBenchmarkWindows.exe";
-	/**
-	 * Path of the file holding an application developed by Lancichinetti that
-	 * calculates LFR benchmark graphs. For Linux.
-	 */
-	private static String linuxBenchmarkGeneratorPath = "./SignedLfrBenchmarkLinux";
-	/**
-	 * Path of the file containing the calculated benchmark graph.
-	 */
-	private static final String graphPath = SignedLfrDirectoryPath + "network.dat";
-	/**
-	 * Path of the file containing the ground truth cover of the benchmark
-	 * graph.
-	 */
-	private static final String coverPath = SignedLfrDirectoryPath + "community.dat";
-
 	/**
 	 * The node count of the benchmark graphs. The default value is 1000. Must
 	 * be greater than 0.
@@ -394,78 +356,22 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 
 	@Override
 	public Cover createGroundTruthCover() throws OcdBenchmarkException, InterruptedException {
-		synchronized (executor) {
-			try {
-				String executorFilename;
-				if (SystemUtils.IS_OS_WINDOWS) {
-					executorFilename = windowsBenchmarkGeneratorPath;
-				} else if (SystemUtils.IS_OS_LINUX) {
-					executorFilename = linuxBenchmarkGeneratorPath;
-				}
-				/*
-				 * Benchmark not implemented for this operating system.
-				 */
-				else {
-					throw new OcdBenchmarkException();
-				}
-				CommandLine cmdLine = new CommandLine(executorFilename);
-				cmdLine.addArgument("-N");
-				cmdLine.addArgument(Integer.toString(this.n));
-				cmdLine.addArgument("-k");
-				cmdLine.addArgument(Integer.toString(this.k));
-				cmdLine.addArgument("-maxk");
-				cmdLine.addArgument(Integer.toString(this.maxk));
-				cmdLine.addArgument("-mu");
-				cmdLine.addArgument(Double.toString(this.mu));
-				cmdLine.addArgument("-minc");
-				cmdLine.addArgument(Integer.toString(this.minc));
-				cmdLine.addArgument("-maxc");
-				cmdLine.addArgument(Integer.toString(this.maxc));
-				cmdLine.addArgument("-on");
-				cmdLine.addArgument(Integer.toString(this.on));
-				cmdLine.addArgument("-om");
-				cmdLine.addArgument(Integer.toString(this.om));
-				cmdLine.addArgument("-t1");
-				cmdLine.addArgument(Double.toString(-this.t1));
-				cmdLine.addArgument("-t2");
-				cmdLine.addArgument(Double.toString(-this.t2));
-				File workingDirectory = new File(SignedLfrDirectoryPath);
-				File networkFile = new File(graphPath);
-				if (networkFile.exists()) {
-					networkFile.delete();
-				}
-				
-                ///////////COMMENTED OUT WHEN C++ BASED ALGORITHM IS USED//////////////////
-//				executor.setWorkingDirectory(workingDirectory);
-//				DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-//				executor.execute(cmdLine, resultHandler);
-//				resultHandler.waitFor();
-//				if (resultHandler.getExitValue() != 0) {
-//					System.out.println(resultHandler.getException());
-//					throw new OcdBenchmarkException("LFR Process exit value: " + resultHandler.getExitValue());
-//				}
-				
-				
-				benchm.directed_network_benchmark(excess, defect, n, k, maxk, t1, t2, mu, on, om, minc, maxc, fixed_range); // Signed LFR algorithm based on C++ directed network algorithm
-				GraphInputAdapter graphAdapter = new UnweightedEdgeListGraphInputAdapter(new FileReader(graphPath));
-				CustomGraph graph = graphAdapter.readGraph();
-				graph.addType(GraphType.DIRECTED);
-				graph.addType(GraphType.NEGATIVE_WEIGHTS);
-				CoverInputAdapter coverAdapter = new NodeCommunityListsCoverInputAdapter(new FileReader(coverPath));
-				Cover cover = coverAdapter.readCover(graph);
-				Cover signedCover = setWeightSign(cover, pos, neg);
-				cover.setCreationMethod(new CoverCreationLog(CoverCreationType.GROUND_TRUTH,
-						new HashMap<String, String>(), new HashSet<GraphType>()));
-				return signedCover;
-			} catch (InterruptedException e) {
-				throw e;
-			} catch (Exception e) {
-				e.printStackTrace();
-				if (Thread.interrupted()) {
-					throw new InterruptedException();
-				}
-				throw new OcdBenchmarkException(e);
+		try {
+			Cover resulting_cover = benchm.directed_network_benchmark(excess, defect, n, k, maxk, t1, t2, mu, on, om, minc, maxc, fixed_range); // Signed LFR algorithm based on C++ directed network algorithm
+			resulting_cover.getGraph().addType(GraphType.DIRECTED);
+			resulting_cover.getGraph().addType(GraphType.NEGATIVE_WEIGHTS);
+			Cover signedCover = setWeightSign(resulting_cover, pos, neg);
+			signedCover.setCreationMethod(new CoverCreationLog(CoverCreationType.GROUND_TRUTH,
+					new HashMap<String, String>(), new HashSet<GraphType>()));
+			return signedCover;
+		} catch (InterruptedException e) {
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
 			}
+			throw new OcdBenchmarkException(e);
 		}
 	}
 
