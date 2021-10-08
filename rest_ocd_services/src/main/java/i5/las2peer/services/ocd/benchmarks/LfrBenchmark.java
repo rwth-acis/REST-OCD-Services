@@ -433,7 +433,7 @@ public class LfrBenchmark implements GroundTruthBenchmark {
 //					System.out.println(resultHandler.getException());
 //					throw new OcdBenchmarkException("LFR Process exit value: " + resultHandler.getExitValue());
 //				}
-				benchm.weighted_directed_network_benchmark(excess, defect, n, k, maxk, t1, t2, mut, muw, beta, on, om, minc, maxc, fixed_range); // LFR algorithm based on C++ weighted, directed network benchmark
+				Cover resulting_cover = benchm.weighted_directed_network_benchmark(excess, defect, n, k, maxk, t1, t2, mut, muw, beta, on, om, minc, maxc, fixed_range); // LFR algorithm based on C++ weighted, directed network benchmark
 				
 				GraphInputAdapter graphAdapter = new WeightedEdgeListGraphInputAdapter(new FileReader(graphPath));
 				CustomGraph graph = graphAdapter.readGraph();
@@ -442,7 +442,7 @@ public class LfrBenchmark implements GroundTruthBenchmark {
 				CoverInputAdapter coverAdapter = new NodeCommunityListsCoverInputAdapter(new FileReader(coverPath));
 				Cover cover = coverAdapter.readCover(graph);
 				cover.setCreationMethod(new CoverCreationLog(CoverCreationType.GROUND_TRUTH, new HashMap<String, String>(), new HashSet<GraphType>()));
-				return cover;
+				return resulting_cover;
 			}
 //			catch(InterruptedException e) {
 //				throw e;
