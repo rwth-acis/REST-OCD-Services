@@ -943,15 +943,6 @@ public class benchm {
 		neigh_weigh_out = weights_output.getNeigh_weigh_out();
 		// ------------------------------------------------------------------------------------------------
 
-
-		
-		try {
-			System.out.println("recording network...");
-			print_network(Ein, Eout, member_list, member_matrix, num_seq, neigh_weigh_in, neigh_weigh_out, beta, mixing_parameter2, mixing_parameter);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 	///// create a cover to be returned /////
 		
 		CustomGraph graph = new CustomGraph();

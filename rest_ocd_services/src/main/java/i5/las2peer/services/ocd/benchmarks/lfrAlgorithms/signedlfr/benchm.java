@@ -1789,16 +1789,6 @@ public class benchm {
 		Eout = erase_links_output.getEout();
 		// ------------------------------------------------------------------------------------------------
 
-		
-		
-		
-		
-		try {
-			print_network(Ein, Eout, member_list, member_matrix, num_seq);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 		///// create a cover to be returned /////
 
 		CustomGraph graph = new CustomGraph();
