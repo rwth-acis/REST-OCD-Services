@@ -219,7 +219,7 @@ public class EntityHandler {
 
 		List<CustomGraph> queryResults;
 		EntityManager em = getEntityManager();
-		String queryStr = "SELECT g FROM CustomGraph g WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username";
+		String queryStr = "SELECT g FROM " + CustomGraph.class.getName() + " g WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username";
 		TypedQuery<CustomGraph> query = em.createQuery(queryStr, CustomGraph.class);
 		query.setParameter("username", username);
 		queryResults = query.getResultList();
@@ -245,7 +245,7 @@ public class EntityHandler {
 
 		List<CustomGraph> queryResults;
 		EntityManager em = getEntityManager();
-		String queryStr = "SELECT g FROM CustomGraph g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
+		String queryStr = "SELECT g FROM " + CustomGraph.class.getName() + " g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
 				+ " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND b."
 				+ GraphCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
 		TypedQuery<CustomGraph> query = em.createQuery(queryStr, CustomGraph.class);
