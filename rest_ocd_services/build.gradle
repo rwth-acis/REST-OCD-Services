@@ -306,14 +306,10 @@ task yguard {
             rename(logfile: "${rootDir}/ocd/yGuard/log.xml", replaceClassNameStrings: "true") {
                 property(name: "obfuscation-prefix", value: "yguard")
                 keep {
-                    patternset {
-                        include(name: "org.**")
-                        include(name: "com.**")
-                    }
                     'class'(classes: "private", methods: "private", fields: "private") {
                         patternset {
                             //< !--define classes / methods / fields not to be renamed-- >
-                            exclude(name: "y.**")
+                            include(name: "i5.**")
                             //< !--exlude custom classes extending / implementing yFiles classes-->
                             exclude(name: "i5.las2peer.services.ocd.graphs.CustomGraph")
                             exclude(name: "i5.las2peer.services.ocd.graphs.CustomGraphListener")
