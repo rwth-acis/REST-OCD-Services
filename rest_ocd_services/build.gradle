@@ -292,6 +292,7 @@ task yguard {
             // see the yGuard task documentation for information about the yGuard element
             // Obfuscate the yFiles Jar.
             inoutpair(in: "${yFiles}/y.jar", out: "./export/obfuscated/y.jar")
+            inoutpair(in: "${yFiles}/ysvg.jar", out: "./export/obfuscated/ysvg.jar")
             // While obfuscating, adjust the names of yFiles features in the
             // application's Jar file.
             inoutpair(in: "${export}/jars/rest_ocd_services.jar", out: "${export}/obfuscated/rest_ocd_services.jar")
