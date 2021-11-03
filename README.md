@@ -1,6 +1,6 @@
 OCD Service - WebOCD
 
-This is a RESTful web service for overlapping community detection. The service is developed with the Eclipse IDE, so we recommend you to use this tool to work on the project.
+This is a RESTful web service for overlapping community detection. The service is developed with the Eclipse IDE and IntelliJ, so we recommend you to use one of these tools to work on the project.
 It works best with the corresponding web client which you can find at https://github.com/rwth-acis/OCD-Web-Client
 
 A running instance of WebOCD can be found at http://webocd.dbis.rwth-aachen.de/OCDWebClient/
