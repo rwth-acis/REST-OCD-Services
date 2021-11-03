@@ -60,7 +60,11 @@ dependencies {
     compileOnly "org.apache.poi:poi-ooxml:3.13"
 
     compileOnly "org.apache.jena:jena-core:4.0.0"
-    compileOnly "org.apache.jena:jena-arq:4.0.0"
+    //Exclude jackson modules as they are already included by las2peer and newer versions may break things like swagger
+    compileOnly ("org.apache.jena:jena-arq:4.0.0") {
+        exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+        exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    }
 
     compileOnly "org.ejml:ejml:0.7"
     compileOnly "org.hsqldb:hsqldb:2.3.4"
