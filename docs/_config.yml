@@ -24,11 +24,11 @@ description: > # this means to ignore newlines until "baseurl:"
 baseurl: "/REST-OCD-Services" # the subpath of your site, e.g. /blog
 
 # This is mostly for testing
-url: "https://maxkissgen.github.io" # the base hostname & protocol for your site
+url: "https://rwth-acis.github.io" # the base hostname & protocol for your site
 
 # Social (First three Required)
-repo: "https://github.com/MaxKissgen/REST-OCD-Services"
-github_user: "MaxKissgen"
+repo: "https://github.com/rwth-acis/REST-OCD-Services"
+github_user: "rwth-acis"
 github_repo: "REST-OCD-Services"
 github_branch: "master"
 

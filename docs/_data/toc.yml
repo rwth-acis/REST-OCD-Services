@@ -79,27 +79,6 @@
           url: "pages/wiki/integration#introduction" 
     - title: Possible Requests
       url: "pages/wiki/requests" 
-      #children:
-        #- title: Algorithms
-        #  url: "pages/wiki/requests#algorithms"
-        #- title: Benchmarks
-        #  url: "pages/wiki/requests#benchmarks"
-        #- title: Centralities
-        #  url: "pages/wiki/requests#centralities"
-        #- title: Covers
-        #  url: "pages/wiki/requests#covers"
-        #- title: Evaluation
-        #  url: "pages/wiki/requests#evaluation"
-        #- title: Graphs
-        #  url: "pages/wiki/requests#graphs"
-        #- title: Visualization
-        #  url: "pages/wiki/requests#visualization"
-        #- title: Metrics
-        #  url: "pages/wiki/requests#metrics"
-        #- title: Simulation
-        #  url: "pages/wiki/requests#simulation"
-        #- title: Various
-        #  url: "pages/wiki/requests#various"
     - title: JMOL Dataset
       url: "pages/wiki/jmol" 
     - title: Cooperation Simulations
@@ -112,23 +91,5 @@
 - title: Documentation
   url: docs
   links:
-    - title: "Getting Started"
-      url: "docs/getting-started"
-      children:
-        - title: Features
-          url: "docs/getting-started#getting-started"
-        - title: Development
-          url: "docs/getting-started#development"
-        - title: Customization
-          url: "docs/getting-started#customization"
     - title: "About"
       url: "about"
-    - title: "News"
-      url: "news"  
-- title: "Extras"
-  url: "docs/extras"
-  links:
-    - title: Quizzes
-      url: "docs/extras/example-quiz"
-    - title: Tags Page
-      url: "tags"
