@@ -8,6 +8,8 @@ permalink: /
 
 Welcome to the Wiki of the RESTful Overlapping Community Detection (OCD) Service!
 
+![karate-2D](/REST-OCD-Services/assets/img/karate-2D.jpg "Communities in the karate graph"){: width="640"; height="auto"}
+
 The OCD Service provides means for
 
 + storing and retrieving graphs and covers in different formats
@@ -21,7 +23,7 @@ Note that this service is based on the [LAS2peer Template Project](https://githu
 
 ## The OCD Service API and Web Client
 
-The OCD Service is publicly accessible via this [link](https://webocd.dbis.rwth-aachen.de/OCDWebClient/login.html). Please note that you should get a Learning Layers account to use the service. This is to ensure that your data is safe since otherwise anybody can access, alter and delete it anonymously. For information on user authentication please refer to [User Management and Authentication](/REST-OCD-Services/pages/wiki/user-management-and-authentication).
+The OCD Service is publicly accessible via this [link](http://webocd.dbis.rwth-aachen.de/OCDWebClient/login.html). Please note that you should get a Learning Layers account to use the service. This is to ensure that your data is safe since otherwise anybody can access, alter and delete it anonymously. For information on user authentication please refer to [User Management and Authentication](/REST-OCD-Services/pages/wiki/user-management-and-authentication).
 
 Along with the service we provide a web client which also has its own [project](https://github.com/rwth-acis/OCD-Web-Client). The client can only be used with a valid Learning Layers account. We recommend to use the service along with the web client.
 
