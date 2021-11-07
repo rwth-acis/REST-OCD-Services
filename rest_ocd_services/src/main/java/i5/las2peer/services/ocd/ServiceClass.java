@@ -139,9 +139,8 @@ import y.base.Graph;
  */
 
 @ManualDeployment
-@ServicePath("ocd")
+@ServicePath("/ocd")
 @Api
-@SwaggerDefinition(info = @Info(title = "LAS2peer OCD Service", version = "1.0", description = "A RESTful service for overlapping community detection.", termsOfService = "sample-tos.io", contact = @Contact(name = "Sebastian Krott", email = "sebastian.krott@rwth-aachen.de"), license = @License(name = "Apache License 2", url = "http://www.apache.org/licenses/LICENSE-2.0")))
 public class ServiceClass extends RESTService {
 
 	///////////////////////////////////////////////////
@@ -226,7 +225,17 @@ public class ServiceClass extends RESTService {
 	///////// REST Service Methods
 	//////////////////////////////////////////////////////////////////
 
+	@Api
 	@Path("/")
+	@SwaggerDefinition(info =
+		@Info(title = "LAS2peer OCD Service",
+				version = "1.0",
+				description = "A RESTful service for overlapping community detection.",
+				//termsOfService = "sample-tos.io",
+				contact = @Contact(name = "Maximilian Kissgen", email = "maximilian.kissgen@rwth-aachen.de"),
+				license = @License(name = "Apache License 2", url = "http://www.apache.org/licenses/LICENSE-2.0")),
+			schemes = {SwaggerDefinition.Scheme.HTTP, SwaggerDefinition.Scheme.HTTPS}
+	)
 	public static class RootResource {
 
 		// get access to the service class
@@ -296,7 +305,7 @@ public class ServiceClass extends RESTService {
 		@Consumes(MediaType.TEXT_PLAIN)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "User validation", notes = "Imports a graph.")
+		@ApiOperation(value = "Graph import", notes = "Imports a graph with various formats possible.")
 		public Response createGraph(@DefaultValue("unnamed") @QueryParam("name") String nameStr,
 				@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
 				@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
@@ -418,7 +427,7 @@ public class ServiceClass extends RESTService {
 		@Consumes(MediaType.TEXT_PLAIN)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "User validation", notes = "Stores a graph step by step.")
+		@ApiOperation(value = "Big Graph Import", notes = "Stores a graph step by step.")
 		public Response storeGraph(@DefaultValue("unnamed") @QueryParam("name") String nameStr, String contentStr) {
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 			File graphDir = new File("tmp" + File.separator + username);
@@ -477,7 +486,7 @@ public class ServiceClass extends RESTService {
 		@Consumes(MediaType.TEXT_PLAIN)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "User validation", notes = "Process the stored graph.")
+		@ApiOperation(value = "Process Big Graph", notes = "Process the stored graph.")
 		public Response processStoredGraph(@DefaultValue("unnamed") @QueryParam("name") String nameStr,
 				@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
 				@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
@@ -536,7 +545,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "Manage graphs", notes = "Returns the ids or meta information of multiple graphs.")
+		@ApiOperation(value = "Get Graphs Info", notes = "Returns the ids or meta information of multiple graphs.")
 		public Response getGraphs(@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
 				@DefaultValue("0") @QueryParam("length") String lengthStr,
 				@DefaultValue("FALSE") @QueryParam("includeMeta") String includeMetaStr,
@@ -618,7 +627,7 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@Path("graphs/{graphId}")
-		@ApiOperation(value = "", notes = "Returns a graph in a specified output format.")
+		@ApiOperation(value = "Export Graph", notes = "Returns a graph in a specified output format.")
 		public Response getGraph(@DefaultValue("GRAPH_ML") @QueryParam("outputFormat") String graphOutputFormatStr,
 				@PathParam("graphId") String graphIdStr) {
 			try {
@@ -668,7 +677,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Deletes a graph.")
+		@ApiOperation(value = "Delete Graph", notes = "Deletes a graph.")
 		public Response deleteGraph(@PathParam("graphId") String graphIdStr) {
 			try {
 				long graphId;
@@ -722,7 +731,7 @@ public class ServiceClass extends RESTService {
 		@Consumes(MediaType.TEXT_PLAIN)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Imports a cover for an existing graph.")
+		@ApiOperation(value = "Import Cover", notes = "Imports a cover for an existing graph.")
 		public Response createCover(@PathParam("graphId") String graphIdStr,
 				@DefaultValue("unnamed") @QueryParam("name") String nameStr,
 				@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
@@ -836,7 +845,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") 
 		})
-		@ApiOperation(value = "Manage covers", 
+		@ApiOperation(value = "Get Covers Info",
 			notes = "Returns the ids (or meta information) of multiple covers.")
 		public Response getCovers(
 				@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
@@ -973,7 +982,7 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@Path("covers/{coverId}/graphs/{graphId}")
-		@ApiOperation(value = "", notes = "Returns a cover in a specified format.")
+		@ApiOperation(value = "Export Cover", notes = "Returns a cover in a specified format.")
 		public Response getCover(@PathParam("graphId") String graphIdStr, @PathParam("coverId") String coverIdStr,
 				@DefaultValue("LABELED_MEMBERSHIP_MATRIX") @QueryParam("outputFormat") String coverOutputFormatStr) {
 			try {
@@ -1043,7 +1052,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Deletes a cover.")
+		@ApiOperation(value = "Delete Cover", notes = "Deletes a cover.")
 		public Response deleteCover(@PathParam("coverId") String coverIdStr, @PathParam("graphId") String graphIdStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -1110,7 +1119,7 @@ public class ServiceClass extends RESTService {
 		@Consumes(MediaType.TEXT_PLAIN)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Creates a new cover by running an algorithm on an existing graph.")
+		@ApiOperation(value = "Run OCD", notes = "Creates a new cover by running an algorithm on an existing graph.")
 		public Response runAlgorithm(@PathParam("graphId") String graphIdStr,
 				@DefaultValue("unnamed") @QueryParam("name") String nameStr,
 				@DefaultValue("SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM") @QueryParam("algorithm") String creationTypeStr,
@@ -1256,7 +1265,7 @@ public class ServiceClass extends RESTService {
 		@Consumes(MediaType.TEXT_PLAIN)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Imports a centrality map for an existing graph.")
+		@ApiOperation(value = "Import Centrality", notes = "Imports a centrality map for an existing graph.")
 		public Response importCentralityMap(@PathParam("graphId") String graphIdStr,
 				@DefaultValue("unnamed") @QueryParam("name") String nameStr,
 				@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
@@ -1356,7 +1365,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
-		@ApiOperation(value = "Manage centrality maps",
+		@ApiOperation(value = "Get Centralities Info",
 			notes = "Returns the ids (or meta information) of multiple centrality maps.")
 	    public Response getCentralityMaps(
 	    		@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
@@ -1483,7 +1492,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
-		@ApiOperation(value = "",
+		@ApiOperation(value = "Run Centrality",
 			notes = "Creates a new centrality map by running a centrality algorithm on an existing graph.")
 	    public Response calculateCentrality(
 	    		@PathParam("graphId") String graphIdStr,
@@ -1599,7 +1608,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
 	    @Path("centrality/{mapId}/graphs/{graphId}")
-		@ApiOperation(value = "",
+		@ApiOperation(value = "Export Centrality",
 			notes = "Returns a centrality map in a specified format.")
 	    public Response getCentralityMap(
 	    		@PathParam("graphId") String graphIdStr,
@@ -1678,7 +1687,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
-		@ApiOperation(value = "",
+		@ApiOperation(value = "Delete Centrality",
 			notes = "Deletes a centrality map.")
 	    public Response deleteCentralityMap(
 	    		@PathParam("mapId") String mapIdStr,
@@ -1726,7 +1735,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
-		@ApiOperation(value = "",
+		@ApiOperation(value = "Get Graph Eigenvalue",
 			notes = "Get the absolute principal eigenvalue of the adjacency matrix of the given graph.")
 	    public Response getAdjacencyMatrixEigenvalue(
 	    		@PathParam("graphId") String graphIdStr)
@@ -1802,7 +1811,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
-		@ApiOperation(value = "",
+		@ApiOperation(value = "Run Centrality Simulation",
 			notes = "Runs a centrality simulation on the specified graph.")
 	    public Response runCentralitySimulation(
 	    		@PathParam("graphId") String graphIdStr, 
@@ -1914,7 +1923,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
-		@ApiOperation(value = "",
+		@ApiOperation(value = "Get Average Centrality",
 			notes = "Calculates the average centrality values from a list of centrality maps of the same graph.")
 	    public Response getAverageCentralityMap(
 	    		@PathParam("graphId") String graphIdStr, 
@@ -2034,7 +2043,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
-		@ApiOperation(value = "",
+		@ApiOperation(value = "Get Centrality Correlation Matrix",
 			notes = "Calculates a correlation matrix from a list of centrality maps on the same graph.")
 	    public Response getCorrelation(
 	    		@PathParam("coefficient") String correlationCoefficientStr,
@@ -2137,7 +2146,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
-		@ApiOperation(value = "",
+		@ApiOperation(value = "get Centrality Precision",
 			notes = "Calculates the precision.")
 	    public Response getPrecision(
 	    		@PathParam("k") String kStr,
@@ -2251,7 +2260,7 @@ public class ServiceClass extends RESTService {
 	    @Consumes(MediaType.TEXT_PLAIN)
 	    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized") })
-	    @ApiOperation(value = "", notes = "Creates a ground truth benchmark cover.")
+	    @ApiOperation(value = "Run Benchmark", notes = "Creates a ground truth benchmark cover.")
 	    public Response runGroundTruthBenchmark(@DefaultValue("unnamed") @QueryParam("coverName") String coverNameStr,
 	    		@DefaultValue("unnamed") @QueryParam("graphName") String graphNameStr,
 	    		@DefaultValue("LFR") @QueryParam("benchmark") String creationTypeStr, String contentStr) {
@@ -2355,7 +2364,7 @@ public class ServiceClass extends RESTService {
 	    @Consumes(MediaType.TEXT_PLAIN)
 	    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized") })
-	    @ApiOperation(value = "", notes = "Runs a statistical measure on a cover and creates the corresponding log.")
+	    @ApiOperation(value = "Run Statistical Measure", notes = "Runs a statistical measure on a cover and creates the corresponding log.")
 	    public Response runStatisticalMeasure(@PathParam("coverId") String coverIdStr,
 	    		@PathParam("graphId") String graphIdStr,
 	    		@DefaultValue("EXTENDED_MODULARITY") @QueryParam("metricType") String metricTypeStr,
@@ -2514,7 +2523,7 @@ public class ServiceClass extends RESTService {
 	    @Consumes(MediaType.TEXT_PLAIN)
 	    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized") })
-	    @ApiOperation(value = "", notes = "Runs a knowledge-driven measure on a cover and creates the corresponding log.")
+	    @ApiOperation(value = "Run Knowledge-Driven Measure", notes = "Runs a knowledge-driven measure on a cover and creates the corresponding log.")
 	    public Response runKnowledgeDrivenMeasure(@PathParam("coverId") String coverIdStr,
 	    		@PathParam("graphId") String graphIdStr,
 	    		@DefaultValue("EXTENDED_NORMALIZED_MUTUAL_INFORMATION") @QueryParam("metricType") String metricTypeStr,
@@ -2658,7 +2667,7 @@ public class ServiceClass extends RESTService {
 	    @Produces(MediaType.TEXT_XML)
 	    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized") })
-	    @ApiOperation(value = "", notes = "Deletes a metric.")
+	    @ApiOperation(value = "Delete Metric", notes = "Deletes a metric.")
 	    public Response deleteMetric(@PathParam("coverId") String coverIdStr, @PathParam("graphId") String graphIdStr,
 	    		@PathParam("metricId") String metricIdStr) {
 	    	try {
@@ -3124,7 +3133,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns the default parameters of an algorithm.")
+		@ApiOperation(value = "Return Default Algo Params", notes = "Returns the default parameters of an algorithm.")
 		public Response getAlgorithmDefaultParams(@PathParam("CoverCreationType") String coverCreationTypeStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -3166,7 +3175,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
-		@ApiOperation(value = "",
+		@ApiOperation(value = "Return Default Centrality params",
 			notes = "Returns the default parameters of a centrality measure.")
 	    public Response getCentralityAlgorithmDefaultParams(
 	    		@PathParam("CentralityMeasureType") String centralityMeasureTypeStr)
@@ -3209,7 +3218,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
-		@ApiOperation(value = "",
+		@ApiOperation(value = "Return Default CentralitySim Params",
 			notes = "Returns the default parameters of a centrality simulation.")
 	    public Response getSimulationDefaultParams(
 	    		@PathParam("SimulationType") String simulationTypeStr)
@@ -3251,7 +3260,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns the default parameters of a benchmark.")
+		@ApiOperation(value = "Return default benchmark Params", notes = "Returns the default parameters of a benchmark.")
 		public Response getBenchmarkDefaultParams(@PathParam("GraphCreationType") String graphCreationTypeStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -3294,7 +3303,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns the default parameters of a metric.")
+		@ApiOperation(value = "Return Default metric Params", notes = "Returns the default parameters of a metric.")
 		public Response getMetricDefaultParameters(@PathParam("OcdMetricType") String ocdMetricTypeStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -3343,7 +3352,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns all cover creation type names.")
+		@ApiOperation(value = "Return Cover Creation Types", notes = "Returns all cover creation type names.")
 		public Response getCoverCreationMethodNames() {
 			try {
 				return Response.ok(requestHandler.writeEnumNames(CoverCreationType.class)).build();
@@ -3365,7 +3374,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns the default parameters of an algorithm.")
+		@ApiOperation(value = "Return Covers Compatible Graph Types", notes = "Returns the graph types compatible for the specified occd algorithm type.")
 		public Response getAlgorithmCompatibleGraphTypes(@PathParam("CoverCreationType") String coverCreationTypeStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -3449,7 +3458,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns the default parameters of an algorithm.")
+		@ApiOperation(value = "Return Centrality's Graph Types", notes = "Returns the possible graph types for a specified centrality type.")
 		public Response getCentralityCompatibleGraphTypes(@PathParam("CentralityMeasureType") String centralityMeasureTypeStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -3513,7 +3522,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns the default parameters of an algorithm.")
+		@ApiOperation(value = "Get CentralitySims Graph Types", notes = "Returns the possible graph types for a specified centrality simulation type.")
 		public Response getCentralitySimulationCompatibleGraphTypes(@PathParam("CentralitySimulationType") String centralitySimulationTypeStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -3551,7 +3560,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "Algorithms information", notes = "Returns all ground truth benchmark type names.")
+		@ApiOperation(value = "Benchmarks information", notes = "Returns all ground truth benchmark type names.")
 		public Response getGroundTruthBenchmarkNames() {
 			try {
 				return Response.ok(requestHandler.writeGroundTruthBenchmarkNames()).build();
@@ -3571,7 +3580,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns all graph creation type names.")
+		@ApiOperation(value = "Get Graph Creation Types", notes = "Returns all graph creation type names.")
 		public Response getGraphCreationMethodNames() {
 			try {
 				return Response.ok(requestHandler.writeEnumNames(GraphCreationType.class)).build();
@@ -3591,7 +3600,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns all graph input format names.")
+		@ApiOperation(value = "Get Graph Input Formats", notes = "Returns all graph input format names.")
 		public Response getGraphInputFormatNames() {
 			try {
 				return Response.ok(requestHandler.writeEnumNames(GraphInputFormat.class)).build();
@@ -3611,7 +3620,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns all graph output format names.")
+		@ApiOperation(value = "Get Graph Output Formats", notes = "Returns all graph output format names.")
 		public Response getGraphOutputFormatNames() {
 			try {
 				return Response.ok(requestHandler.writeEnumNames(GraphOutputFormat.class)).build();
@@ -3631,7 +3640,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "Graph Property information", notes = "Returns all graph property names.")
+		@ApiOperation(value = "Get Graph Property Information", notes = "Returns all graph property names.")
 		public Response getProperties() {
 			try {
 				return Response.ok(requestHandler.writeEnumNames(GraphProperty.class)).build();
@@ -3652,7 +3661,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns all cover creation type names.")
+		@ApiOperation(value = "Get Cover Output Types", notes = "Returns all cover output type names.")
 		public Response getCoverOutputFormatNames() {
 			try {
 				return Response.ok(requestHandler.writeEnumNames(CoverOutputFormat.class)).build();
@@ -3672,7 +3681,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns all cover creation type names.")
+		@ApiOperation(value = "Get Cover Input Types", notes = "Returns all cover input type names.")
 		public Response getCoverInputFormatNames() {
 			try {
 				return Response.ok(requestHandler.writeEnumNames(CoverInputFormat.class)).build();
@@ -3692,7 +3701,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns all centrality creation type names.")
+		@ApiOperation(value = "Get Centrality's Creation Types", notes = "Returns all centrality creation type names.")
 		public Response getCentralityCreationMethodNames() {
 			try {
 				return Response.ok(requestHandler.writeEnumNames(CentralityCreationType.class)).build();
@@ -3712,7 +3721,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns all centrality output format names.")
+		@ApiOperation(value = "Get Centrality Output Formats", notes = "Returns all centrality output format names.")
 		public Response getCentralityOutputFormatNames() {
 			try {
 				return Response.ok(requestHandler.writeEnumNames(CentralityOutputFormat.class)).build();
@@ -3732,7 +3741,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns all cover creation type names.")
+		@ApiOperation(value = "Get Centrality Input Formats", notes = "Returns all centrality input format names.")
 		public Response getCentralityInputFormatNames() {
 			try {
 				return Response.ok(requestHandler.writeEnumNames(CentralityInputFormat.class)).build();
@@ -3752,7 +3761,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns all statistical measure type names.")
+		@ApiOperation(value = "Statistical Measure Information", notes = "Returns all statistical measure type names.")
 		public Response getStatisticalMeasureNames() {
 			try {
 				return Response.ok(requestHandler.writeStatisticalMeasureNames()).build();
@@ -3772,7 +3781,7 @@ public class ServiceClass extends RESTService {
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(value = "", notes = "Returns all knowledge-driven measure type names.")
+		@ApiOperation(value = "Knowledge Driven Measure Information", notes = "Returns all knowledge-driven measure type names.")
 		public Response getKnowledgeDrivenMeasureNames() {
 			try {
 				return Response.ok(requestHandler.writeKnowledgeDrivenMeasureNames()).build();
@@ -3888,7 +3897,7 @@ public class ServiceClass extends RESTService {
 		@Path("/simulation/")
 		@Consumes(MediaType.APPLICATION_JSON)
 		@Produces(MediaType.APPLICATION_JSON)
-		@ApiOperation(value = "GET ALL SIMULATIONS", notes = "Gets all the simulations performed by the user")
+		@ApiOperation(value = "Get Simulations Info", notes = "Gets all the simulations performed by the user")
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
@@ -3915,7 +3924,7 @@ public class ServiceClass extends RESTService {
 		@Path("/simulation/meta")
 		@Consumes(MediaType.APPLICATION_JSON)
 		@Produces(MediaType.APPLICATION_JSON)
-		@ApiOperation(value = "GET ALL SIMULATIONS", notes = "Gets all the simulations performed by the user")
+		@ApiOperation(value = "Get Simulations Meta Info", notes = "Gets meta information of all the simulations performed by the user")
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
@@ -3976,7 +3985,7 @@ public class ServiceClass extends RESTService {
 		@GET
 		@Path("/simulation/{seriesId}")
 		@Produces(MediaType.APPLICATION_JSON)
-		@ApiOperation(value = "GET SIMULATION", notes = "Gets the results of a performed simulation")
+		@ApiOperation(value = "Get Simulation Results", notes = "Gets the results of a performed simulation")
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
@@ -4014,7 +4023,7 @@ public class ServiceClass extends RESTService {
 		@GET
 		@Path("/simulation/{seriesId}/table")
 		@Produces(MediaType.TEXT_PLAIN)
-		@ApiOperation(value = "GET SIMULATION", notes = "Gets the results of a performed simulation")
+		@ApiOperation(value = "Get Simulation Result Table", notes = "Gets the results of a performed simulation in a table")
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
@@ -4057,7 +4066,7 @@ public class ServiceClass extends RESTService {
 		@GET
 		@Path("/simulation/{seriesId}/parameters")
 		@Produces(MediaType.APPLICATION_JSON)
-		@ApiOperation(value = "GET SIMULATION PARAMETERS", notes = "Gets the parameters of a simulation")
+		@ApiOperation(value = "Get Simulation Parameters", notes = "Gets the parameters of a simulation")
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
@@ -4084,7 +4093,7 @@ public class ServiceClass extends RESTService {
 		@DELETE
 		@Path("/simulation/{seriesId}")
 		@Produces(MediaType.TEXT_PLAIN)
-		@ApiOperation(value = "DELETE SIMULATION", notes = "Deletes a performed simulation")
+		@ApiOperation(value = "Delete Simulation", notes = "Deletes a performed simulation")
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
@@ -4113,7 +4122,7 @@ public class ServiceClass extends RESTService {
 		@Consumes(MediaType.APPLICATION_JSON)
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		@ApiOperation(value = "POST SIMULATION", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
+		@ApiOperation(value = "Run Simulation", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
 		public Response postSimulation(SimulationSeriesParameters parameters) {
 	
 			String username = getUserName();
@@ -4177,7 +4186,7 @@ public class ServiceClass extends RESTService {
 		@Consumes(MediaType.APPLICATION_JSON)
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		@ApiOperation(value = "POST SIMULATION", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
+		@ApiOperation(value = "Run simulation group", notes = " Starts a simulation group of evolutionary cooperation or defection games ")
 		public Response putSimulationGroup(@DefaultValue("") @QueryParam("name") String name,
 				List<Integer> seriesIds) {
 	
@@ -4213,7 +4222,7 @@ public class ServiceClass extends RESTService {
 		@Consumes(MediaType.TEXT_PLAIN)
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		@ApiOperation(value = "POST SIMULATION", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
+		@ApiOperation(value = "Get Simulation Group Meta", notes = "Returns the meta information for a performed group of simulations")
 		public Response getSimulationGroups(@DefaultValue("0") @QueryParam("firstIndex") int firstIndex,
 				@DefaultValue("0") @QueryParam("length") int length) {
 	
@@ -4256,7 +4265,7 @@ public class ServiceClass extends RESTService {
 		@GET
 		@Path("/simulation/group/{groupId}/table")
 		@Produces(MediaType.TEXT_PLAIN)
-		@ApiOperation(value = "GET SIMULATION", notes = "Gets the results of a performed simulation")
+		@ApiOperation(value = "Get Simulation Group Result Table", notes = "Gets the results of a performed simulation group in a table")
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
@@ -4296,7 +4305,7 @@ public class ServiceClass extends RESTService {
 		@Consumes(MediaType.TEXT_PLAIN)
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		@ApiOperation(value = "POST SIMULATION", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
+		@ApiOperation(value = "Get a Simulation Group", notes = "Returns a performed simulation group")
 		public Response getSimulationGroup(@PathParam("groupId") long groupId) {
 	
 			SimulationSeriesGroup simulation = null;
@@ -4327,7 +4336,7 @@ public class ServiceClass extends RESTService {
 		@DELETE
 		@Path("/simulation/group/{groupId}")
 		@Produces(MediaType.TEXT_PLAIN)
-		@ApiOperation(value = "DELETE SIMULATION", notes = "Deletes a performed simulation")
+		@ApiOperation(value = "Delete Simulation", notes = "Deletes a performed simulation")
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
@@ -4348,7 +4357,7 @@ public class ServiceClass extends RESTService {
 		@GET
 		@Path("/simulation/group/{groupId}/mapping/")
 		@Produces(MediaType.APPLICATION_JSON)
-		@ApiOperation(value = "GET SIMULATION", notes = "Gets the results of a performed simulation")
+		@ApiOperation(value = "Get Simulation Results", notes = "Gets the results of a performed simulation")
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
@@ -4394,7 +4403,7 @@ public class ServiceClass extends RESTService {
 		@Path("/simulation/group/mapping/")
 		@Consumes(MediaType.APPLICATION_JSON)
 		@Produces(MediaType.APPLICATION_JSON)
-		@ApiOperation(value = "GET SIMULATION", notes = "Gets the results of a performed simulation")
+		@ApiOperation(value = "Get Simulation Groups Results", notes = "Gets the results of multiple simulation groups")
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "REPLACE THIS WITH YOUR OK MESSAGE"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
@@ -4452,7 +4461,7 @@ public class ServiceClass extends RESTService {
 		@GET
 		@Path("/simulation/dynamics")
 		@Produces(MediaType.APPLICATION_JSON)
-		@ApiOperation(value = "GET Dynamic", notes = "Get all available evolutionary dynamics")
+		@ApiOperation(value = "Get Dynamics", notes = "Get all available evolutionary dynamics")
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getDynamics() {
@@ -4469,7 +4478,7 @@ public class ServiceClass extends RESTService {
 		@GET
 		@Path("/simulation/games")
 		@Produces(MediaType.APPLICATION_JSON)
-		@ApiOperation(value = "GET Game", notes = "Get all available games")
+		@ApiOperation(value = "Get Games", notes = "Get all available (simulation) games")
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getGames() {
@@ -4486,7 +4495,7 @@ public class ServiceClass extends RESTService {
 		@GET
 		@Path("/simulation/conditions")
 		@Produces(MediaType.APPLICATION_JSON)
-		@ApiOperation(value = "GET Condition", notes = "Get all available break conditions")
+		@ApiOperation(value = "Get Condition", notes = "Get all available break conditions")
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getBreakConditions() {
