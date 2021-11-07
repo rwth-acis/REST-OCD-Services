@@ -1,0 +1,95 @@
+- title: Wiki
+  url: index
+  links:
+    - title: Project Structure
+      url: "pages/wiki/project-structure"
+      children:
+        - title: Introduction
+          url: "pages/wiki/project-structure#introduction"
+        - title: Source Code
+          url: "pages/wiki/project-structure#source-code"  
+        - title: OCD Directory
+          url: "pages/wiki/project-structure#ocd-directory"
+        - title: Other Important Resources
+          url: "pages/wiki/project-structure#other-important-resources"
+    - title: Build Process
+      url: "pages/wiki/build-process"
+      children:
+        - title: Introduction
+          url: "pages/wiki/build-process#introduction"
+        - title: Build Process
+          url: "pages/wiki/build-process#executing-the-build-process"
+        - title: Potential Issues
+          url: "pages/wiki/build-process#potential-issues"  
+        - title: Old Ant Build Process
+          url: "pages/wiki/build-process#executing-the-old-ant-build-process"
+    - title: Running the Service
+      url: "pages/wiki/running"
+      children:      
+        - title: Making Preparations
+          url: "pages/wiki/running#making-preparations"  
+        - title: Running The Service
+          url: "pages/wiki/running#running-the-service"
+        - title: Potential Issues
+          url: "pages/wiki/running#potential-issues"
+    - title: Database Configuration
+      url: "pages/wiki/database-configuration" 
+      children:    
+        - title: JPA and persistence.xml
+          url: "pages/wiki/database-configuration#jpa-and-persistence-xml"  
+    - title: Deploying the Service
+      url: "pages/wiki/service-deployment" 
+      children:    
+        - title: Building
+          url: "pages/wiki/service-deployment#building"  
+        - title: Public Deployment through Obfuscation
+          url: "pages/wiki/service-deployment#public-deployment-obfuscation"
+        - title: Additional Aspects
+          url: "pages/wiki/service-deployment#additional-aspects"
+    - title: Uploading Data
+      url: "pages/wiki/uploading"
+      children:      
+        - title: Graph Formats
+          url: "pages/wiki/uploading#graph-formats"  
+        - title: Big Graphs
+          url: "pages/wiki/uploading#big-graph"
+        - title: Cover Formats
+          url: "pages/wiki/uploading#cover-formats"
+        - title: Centrality Formats
+          url: "pages/wiki/uploading#centrality-formats"
+    - title: User Management and Authentication
+      url: pages/wiki/user-management-and-authentication
+      children:
+        - title: Introduction
+          url: "pages/wiki/user-management-and-authentication#introduction"
+        - title: User Management
+          url: "pages/wiki/user-management-and-authentication#user-management"
+        - title: Authentication
+          url: "pages/wiki/user-management-and-authentication#authentication"
+    - title: Integration Tutorial
+      url: "pages/wiki/integration" 
+      children:    
+        - title: Introduction
+          url: "pages/wiki/integration#introduction"  
+        - title: Graphs
+          url: "pages/wiki/integration#graphs"
+        - title: Covers
+          url: "pages/wiki/integration#covers"
+        - title: Introduction
+          url: "pages/wiki/integration#introduction" 
+    - title: Possible Requests
+      url: "pages/wiki/requests" 
+    - title: JMOL Dataset
+      url: "pages/wiki/jmol" 
+    - title: Cooperation Simulations
+      url: "pages/wiki/cooperation-simulations"
+      children:
+        - title: Cooperation and Defection
+          url: "pages/wiki/cooperation-simulations#cooperation-and-defection"
+        - title: Deployment
+          url: "pages/wiki/cooperation-simulations#Deployment"
+- title: Documentation
+  url: docs
+  links:
+    - title: "About"
+      url: "about"
