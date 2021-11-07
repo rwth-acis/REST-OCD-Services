@@ -141,7 +141,6 @@ import y.base.Graph;
 @ManualDeployment
 @ServicePath("/ocd")
 @Api
-@SwaggerDefinition(info = @Info(title = "LAS2peer OCD Service", version = "1.0", description = "A RESTful service for overlapping community detection.", termsOfService = "sample-tos.io", contact = @Contact(name = "Sebastian Krott", email = "sebastian.krott@rwth-aachen.de"), license = @License(name = "Apache License 2", url = "http://www.apache.org/licenses/LICENSE-2.0")))
 public class ServiceClass extends RESTService {
 
 	///////////////////////////////////////////////////
@@ -228,6 +227,15 @@ public class ServiceClass extends RESTService {
 
 	@Api
 	@Path("/")
+	@SwaggerDefinition(info =
+		@Info(title = "LAS2peer OCD Service",
+				version = "1.0",
+				description = "A RESTful service for overlapping community detection.",
+				//termsOfService = "sample-tos.io",
+				contact = @Contact(name = "Maximilian Kissgen", email = "maximilian.kissgen@rwth-aachen.de"),
+				license = @License(name = "Apache License 2", url = "http://www.apache.org/licenses/LICENSE-2.0")),
+			schemes = {SwaggerDefinition.Scheme.HTTP, SwaggerDefinition.Scheme.HTTPS}
+	)
 	public static class RootResource {
 
 		// get access to the service class
