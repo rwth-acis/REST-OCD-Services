@@ -37,7 +37,7 @@ dependencies {
 
     //ocd service deps
     compileOnly "org.apache.commons:commons-exec:1.3"
-    compileOnly "com.google.guava:guava:18.0"
+    compileOnly "com.google.guava:guava:31.0.1-jre"
     compileOnly "org.la4j:la4j:0.4.9"
     compileOnly "org.eclipse.persistence:eclipselink:2.7.9"
     compileOnly "org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.1"
@@ -46,35 +46,35 @@ dependencies {
         exclude group: 'xerces', module: 'xerces'
     }
     compileOnly "commons-logging:commons-logging:1.2"
-    compileOnly "org.bouncycastle:bcprov-jdk15on:1.50"
+    compileOnly "org.bouncycastle:bcprov-jdk15on:1.70"
 
-    compileOnly "net.minidev:json-smart:1.3.1"
+    compileOnly "net.minidev:json-smart:2.4.7"
     compileOnly "com.googlecode.json-simple:json-simple:1.1.1"
-    compileOnly "org.apache.commons:commons-pool2:2.2"
-    compileOnly "org.apache.commons:commons-dbcp2:2.0"
-    compileOnly "org.apache.commons:commons-math3:3.5"
+    compileOnly "org.apache.commons:commons-pool2:2.11.1"
+    compileOnly "org.apache.commons:commons-dbcp2:2.9.0"
+    compileOnly "org.apache.commons:commons-math3:3.6.1"
     compileOnly "org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.1"
-    compileOnly "org.apache.lucene:lucene-core:8.8.2"
-    compileOnly "org.apache.lucene:lucene-analyzers-common:8.8.2"
-    compileOnly "org.apache.poi:poi:3.13"
-    compileOnly "org.apache.poi:poi-ooxml:3.13"
+    compileOnly "org.apache.lucene:lucene-core:8.9.1"
+    compileOnly "org.apache.lucene:lucene-analyzers-common:8.11.1"
+    compileOnly "org.apache.poi:poi:5.1.0"
+    compileOnly "org.apache.poi:poi-ooxml:5.1.0"
 
-    compileOnly "org.apache.jena:jena-core:4.0.0"
+    compileOnly "org.apache.jena:jena-core:4.3.2"
     //Exclude jackson modules as they are already included by las2peer and newer versions may break things like swagger
-    compileOnly ("org.apache.jena:jena-arq:4.0.0") {
+    compileOnly ("org.apache.jena:jena-arq:4.3.2") {
         exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
         exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     }
 
-    compileOnly "org.ejml:ejml:0.7"
-    compileOnly "org.hsqldb:hsqldb:2.3.4"
+    compileOnly "org.ejml:ejml-core:0.41"
+    compileOnly "org.hsqldb:hsqldb:2.6.1"
     compileOnly "org.apache.xmlgraphics:batik-svggen:1.14"
     compileOnly("org.apache.xmlgraphics:batik-bridge:1.14") {
         exclude group: 'xml-apis', module: 'xml-apis'
     }
     compileOnly "org.mockito:mockito-all:1.9.5"
     compileOnly "fr.irit.smac.thirdparty.edu.gmu.cs:mason:19"
-    compileOnly "org.ojalgo:ojalgo:48.3.2"
+    compileOnly "org.ojalgo:ojalgo:50.0.0"
     compileOnly "net.sbbi:sbbi-upnplib:1.0.4"
 
     //yFiles
