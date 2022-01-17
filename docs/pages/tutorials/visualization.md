@@ -19,7 +19,7 @@ below you can see how each of these formats looks. Using the network generated i
 
 _SVG_ format provides a static image of the underlying network or a cover. As you can see on the gif below, you can zoom in on any area to get a more detailed view of that area. 
 
-![SVG-network-view](/REST-OCD-Services/assets/gifs/svg.gif "SVG Network View")
+![svg-network-view](/REST-OCD-Services/assets/gifs/svg_view.gif "Svg Network View")
 
 # 2D Interactive
 

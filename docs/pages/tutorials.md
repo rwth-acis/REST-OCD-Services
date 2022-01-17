@@ -5,7 +5,7 @@ permalink: /tutorials/
 ---
 # Tutorials
 
-Here you can find tutorials about how to use WebOCD Service. It is suggested to first read the <a href="/REST-OCD-Services/pages/tutorials/login">login</a> tutorial. Afterwards, you can check out the rest of the tutorials in any order. 
+Here you can find tutorials about how to use WebOCD Service. It is suggested to first read the <a href="/REST-OCD-Services/pages/tutorials/login">login</a> tutorial. Afterwards, you can check out rest of the tutorials in any order. 
 
 <ul>
    <li> <a href="/REST-OCD-Services/pages/tutorials/login"> Login </a></li>
