@@ -8,7 +8,7 @@ In WebOCD you have an option to calculate various centrality values on the avail
 
 ![centrality-measure-selection](/REST-OCD-Services/assets/img/centrality_measure_selection.png "Centrality Measure Selection"){: width="900"; height="auto"}
 
-After you finish the selection, clicking the &nbsp; ![run-btn](/REST-OCD-Services/assets/img/run_btn.png "Run Button") &nbsp; button calculates the centrality. To view the centralities, you need to click on the _Centrality_ button on the navbar. You will be redirected to a page that lists all the available centrality calculation results. In the example below, we only have one such result.
+After you finish the selection, clicking the &nbsp; ![run-btn](/REST-OCD-Services/assets/img/run_btn.png "Run Button") &nbsp; button calculates the centrality. To view the centralities, you need to click on the _Centrality_ button on the navbar. This will redirect you to a page that lists all the available centrality calculation results. In the example below, we only have two such result.
 
 ![centrality-page](/REST-OCD-Services/assets/img/centrality_page.png "Centrality Page"){: width="900"; height="auto"}
 
@@ -16,13 +16,17 @@ By clicking on the desired centrality result, you go to the page of that specifi
 
 # Display Centrality Values
 
-In order to view centrality measurements for each node, you can click on the _Centrality Values_ tab. Here you have a choice to display values for all nodes, or values for top K nodes. It can be practical not to display all values when the network is large. 
+In order to view centrality measurements for each node, you can click on the _Centrality Values_ tab.
+
+![centrality-values-tab](/REST-OCD-Services/assets/img/centrality_values_tab.png "Centrality Values Tab"){: width="900"; height="auto"}
+
+Here you have a choice to display values for all nodes, or values for top K nodes. It can be practical not to display all values when the network is large. 
 
 <p align="center">
     <img width="50%" height="auto" src="/REST-OCD-Services/assets/img/show_all_nodes.png">
 </p>
 
-This process is shown in the gif below. Here we select to display degree centrality values of the top 10 nodes. We also tick the _High Precision_ box to increase the decimal precision of displayed values. As you can see on the gif below, node 99 has the highest value for a given centrality.
+This process is shown in the gif below. Here we select to display _Degree Centrality_ values of the top 10 nodes. We also tick the _High Precision_ box to increase the decimal precision of displayed values. As you can see on the gif below, node 99 has the highest value for a given centrality.
 
 ![centrality-values](/REST-OCD-Services/assets/gifs/centrality_values.gif "Centrality Values")
 
@@ -44,7 +48,7 @@ WebOCD gives you the option to compare and evaluate different centrality measure
     <img width="70%" height="auto" src="/REST-OCD-Services/assets/img/evaluation_mode.png">
 </p>
 
-Below you can see a small demo of calculating the _Pearson correlation_ matrix of  _Degree Centrality_ and _In-Degree_ centrality of a network.
+Below you can see a small demo of calculating the _Pearson correlation_ matrix of  _Degree Centrality_ and _In-Degree_ centrality values of a network.
 
 
 ![evaluation-mode](/REST-OCD-Services/assets/gifs/evaluation_mode.gif "Evaluation Mode")

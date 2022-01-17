@@ -15,7 +15,7 @@ Here you need to select what you want to import. You also need to specify the fi
     <img width="70%" height="auto" src="/REST-OCD-Services/assets/img/import_selection.png">
 </p>
 
-For whatever you are importing, you need to select from the available import formats. You also need to select the creation method for the imported graph or cover, e.g. this could be LFR Benchmark. Below you can see available import formats and creation types.
+For whatever you are importing, you need to select from the available import formats. You also need to select the creation method for the imported graph or cover. Alternatively, you also have an option to choose _undefined_. Below you can see available import formats and creation types.
 
 Networks (Graphs)
 
