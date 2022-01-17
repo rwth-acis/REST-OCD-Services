@@ -93,3 +93,62 @@
   links:
     - title: "About"
       url: "about"
+- title: Tutorials
+  url: tutorials
+  links:
+    - title: Login
+      url: "pages/tutorials/login"
+      children:
+        - title: Login
+          url: "pages/tutorials/login"
+        - title: Network Analysis Page
+          url: "pages/tutorials/login#network-analysis-page"
+    - title: View Networks and Covers
+      url: "pages/tutorials/networks-covers-view"
+      children:
+        - title: Networks
+          url: "pages/tutorials/networks-covers-view#networks"
+        - title: Specific Network
+          url: "pages/tutorials/networks-covers-view#specific-network"
+        - title: Community Detection
+          url: "pages/tutorials/networks-covers-view#community-detection"
+        - title: All Covers of a Network
+          url: "pages/tutorials/networks-covers-view#all-covers-of-a-network"
+        - title: Specific Cover
+          url: "pages/tutorials/networks-covers-view#specific-cover"
+    - title: Benchmarks
+      url: "pages/tutorials/benchmarks" 
+    - title: OCD Algorithms
+      url: "pages/tutorials/ocd-algorithms"
+    - title: Metrics
+      url: "pages/tutorials/metrics"
+    - title: Simulations
+      url: "pages/tutorials/cooperation-simulation"
+      children:
+        - title: Cooperation Simulation
+          url: "pages/tutorials/cooperation-simulation#cooperation-simulation"
+        - title: Simulation Groups
+          url: "pages/tutorials/cooperation-simulation#simulation-groups"
+        - title: View Simulations
+          url: "pages/tutorials/cooperation-simulation#view-simulation"
+    - title: Centrality
+      url: "pages/tutorials/centrality"
+      children:
+        - title: Display Centrality Values
+          url: "pages/tutorials/centrality#display-centrality-values"
+        - title: Visualize Centrality Values
+          url: "pages/tutorials/centrality#visualize-centrality-values"
+        - title: Evaluation Mode
+          url: "pages/tutorials/centrality#evaluation-mode"
+    - title: Visualization
+      url: "pages/tutorials/visualization"
+      children: 
+        - title: SVG
+          url: "pages/tutorials/visualization#svg"
+        - title: 2D Interactive 
+          url: "pages/tutorials/visualization#2d-interactive"
+        - title: 3D Interactive
+          url: "pages/tutorials/visualization#3d-interactive"
+    - title: Import
+      url: "pages/tutorials/import"
+
