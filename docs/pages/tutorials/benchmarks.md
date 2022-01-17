@@ -31,4 +31,4 @@ Here we choose one of the available algorithms, in this case, __LFR__. This open
 Here, under the _Running Benchmarks and Algorithms_ tab, we can see that the algorithm is running. After several seconds we refresh the page and see that the _Running Benchmarks and Algorithms_ tab is empty. This indicates that the algorithm execution is finished and there are no running algorithms. To view our freshly generated LFR network and cover, we click the _Community Detection_ button which displays the [page](/REST-OCD-Services/pages/tutorials/networks-covers-view#community-detection) with all the covers (in this case only one).
 
 
-![benchmark-aglrothm-execution](/REST-OCD-Services/assets/gifs/benchmark.gif "Benchmark Algorithm Execution")
+![benchmark-algorithm-execution](/REST-OCD-Services/assets/gifs/benchmark_demo.gif "Benchmark Algorithm Execution")
