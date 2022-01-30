@@ -156,7 +156,7 @@ public class InactivityHandler {
         List<InactivityData> queryResults = query.getResultList();
 
         if (queryResults.isEmpty()) {
-            System.out.println("username " + username + " unknown. creating entry for it");
+            System.out.println("username " + username + " unknown. creating entry for it.");
             // user unknown, create user entry.
             Pair<LocalDate, LocalDate> userInactivityTracker = new Pair(currentDate, deletionDate);
             InactivityData inData = new InactivityData(username, userInactivityTracker);

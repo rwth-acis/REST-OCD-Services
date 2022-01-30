@@ -65,16 +65,18 @@ public class InactivityData {
     /**
      * Getter for system-generated user  inactivity entry id.
      *
-     * @return
+     * @return       return auto-generated unique id of InactivityData entry.
      */
     public Long getId() {
+
         return id;
+
     }
 
     /**
      * Setter for system-generated user inactivity entry id.
      *
-     * @param id
+     * @param id      id value to set.
      */
     public void setId(Long id) {
         this.id = id;

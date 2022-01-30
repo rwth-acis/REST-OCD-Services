@@ -107,6 +107,10 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
+import i5.las2peer.services.ocd.utils.Error;
+import i5.las2peer.services.ocd.utils.ExecutionStatus;
+import i5.las2peer.services.ocd.utils.InvocationHandler;
+import i5.las2peer.services.ocd.utils.ThreadHandler;
 import i5.las2peer.services.ocd.viewer.LayoutHandler;
 import i5.las2peer.services.ocd.viewer.ViewerRequestHandler;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayoutType;
@@ -151,10 +155,11 @@ public class ServiceClass extends RESTService {
 	}
 
 	public ServiceClass() {
+
 		setFieldValues();
-		System.out.println("################## Creating ServiceClass instance  ###########"); //TODO:DELETE
+
 		// instantiate inactivityHandler to regularly remove content of inactive users.
-		inactivityHandler = new InactivityHandler(entityHandler, threadHandler); //TODO:new
+		inactivityHandler = new InactivityHandler(entityHandler, threadHandler);
 	}
 
 	///////////////////////////////////////////////////////////
