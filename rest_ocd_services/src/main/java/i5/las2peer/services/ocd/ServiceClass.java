@@ -34,6 +34,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.utils.*;
+import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -105,10 +107,6 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.utils.Error;
-import i5.las2peer.services.ocd.utils.ExecutionStatus;
-import i5.las2peer.services.ocd.utils.InvocationHandler;
-import i5.las2peer.services.ocd.utils.ThreadHandler;
 import i5.las2peer.services.ocd.viewer.LayoutHandler;
 import i5.las2peer.services.ocd.viewer.ViewerRequestHandler;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayoutType;
@@ -154,6 +152,9 @@ public class ServiceClass extends RESTService {
 
 	public ServiceClass() {
 		setFieldValues();
+		System.out.println("################## Creating ServiceClass instance  ###########"); //TODO:DELETE
+		// instantiate inactivityHandler to regularly remove content of inactive users.
+		inactivityHandler = new InactivityHandler(entityHandler, threadHandler); //TODO:new
 	}
 
 	///////////////////////////////////////////////////////////
@@ -209,6 +210,11 @@ public class ServiceClass extends RESTService {
 	 */
 	private final static LayoutHandler layoutHandler = new LayoutHandler();
 
+	/**
+	 * The inactivity handler for removing content of inactive users.
+	 */
+	private static InactivityHandler inactivityHandler;
+
 	//////////////////////////////////////////////////////////////////
 	///////// Utility Methods
 	//////////////////////////////////////////////////////////////////
@@ -257,6 +263,8 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"special"}, value = "User validation", notes = "Simple function to validate a user login.")
 		public Response validateLogin() {
 			try {
+				// update user inactivity info when user logs in.
+				inactivityHandler.refreshUserInactivityData(getUserName());
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
