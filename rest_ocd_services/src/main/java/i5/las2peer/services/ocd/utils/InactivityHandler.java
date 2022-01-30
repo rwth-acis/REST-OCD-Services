@@ -160,7 +160,7 @@ public class InactivityHandler {
             // user unknown, create user entry.
             Pair<LocalDate, LocalDate> userInactivityTracker = new Pair(currentDate, deletionDate);
             InactivityData inData = new InactivityData(username, userInactivityTracker);
-            System.out.println("created entry " + inData.getUsername() + " " + inData.getLastLoginDate() + " " + inData.getDeletionDate());
+            System.out.println("created entry " + inData.getUsername() + " last login date: " + inData.getLastLoginDate() + " content deletion date: " + inData.getDeletionDate());
             em.persist(inData);
 
         } else {
