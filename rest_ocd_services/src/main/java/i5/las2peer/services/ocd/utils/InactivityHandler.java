@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.utils;
 
 
+import i5.las2peer.services.ocd.ServiceClass;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 
@@ -49,23 +50,25 @@ public class InactivityHandler {
      */
     HashMap<String, Pair<LocalDate, LocalDate>> inactivityTracker = new HashMap<String, Pair<LocalDate, LocalDate>>();
 
+    /**
+     * ServiceClass instance from which to regularly fetch the max allowed inactivity data.
+     */
+    ServiceClass service;
+
 
     /**
      * Constructor for InactivityHandler
      *
      * @param entityHandler EntityHandler passed from ServiceClass
      * @param threadHandler ThreadHandler passed from ServiceClass
+     * @param serviceClass  ServiceClass instance
      */
-    public InactivityHandler(EntityHandler entityHandler, ThreadHandler threadHandler) {
+    public InactivityHandler(EntityHandler entityHandler, ThreadHandler threadHandler, ServiceClass serviceClass) {
         this.entityHandler = entityHandler;
         this.threadHandler = threadHandler;
         this.executor = ThreadHandler.getExecutor();
-
-        try {
-            maxInactiveDays = this.readAllowedInactivityDays();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.service = serviceClass;
+        this.maxInactiveDays = this.readAllowedInactivityDays();
 
 
         // part of the code that will be executed regularly
@@ -91,7 +94,7 @@ public class InactivityHandler {
                         // get all graphs of a user to delete
                         List<CustomGraph> userGraphs = entityHandler.getGraphs(user);
 
-                        System.out.println("need to delete " + user + " data. which has " + userGraphs.size() + " graphs."); //TODO:DELETE
+                        System.out.println("need to delete " + user + " data. which has " + userGraphs.size() + " graphs.");
 
                         // check that user has graphs, to avoid unnecessary computations
                         if (userGraphs.size() > 0) {
@@ -205,18 +208,20 @@ public class InactivityHandler {
 
     /**
      * Reads in value of allowed inactivity days before user content gets removed.
-     *
+     * This value can be adjusted in i5.las2peer.services.ocd.ServiceClass.properties
      * @return Number of days allowed for user to be inactive, before content deletion.
-     * @throws IOException when it was not possible to read allowed inactivity day count from a file.
      */
-    public int readAllowedInactivityDays() throws IOException {
+    public int readAllowedInactivityDays() {
 
         int allowed_inactivity_days = 30;
-        BufferedReader allowed_inactivity_days_reader = null;
 
-        allowed_inactivity_days_reader = new BufferedReader(new FileReader("allowed_inactivity_days.dat"));
-        allowed_inactivity_days = Integer.parseInt(allowed_inactivity_days_reader.readLine());
+        service.setFreshFieldValues(); // update field values in case modifications were made
 
+        int read_MaxInactivityValue = service.getMaxInactiveDays();
+
+        if (read_MaxInactivityValue >= 0) {
+            allowed_inactivity_days = read_MaxInactivityValue;
+        }
 
         return allowed_inactivity_days;
     }

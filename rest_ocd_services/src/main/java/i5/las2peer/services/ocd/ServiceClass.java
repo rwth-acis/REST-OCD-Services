@@ -159,7 +159,7 @@ public class ServiceClass extends RESTService {
 		setFieldValues();
 
 		// instantiate inactivityHandler to regularly remove content of inactive users.
-		inactivityHandler = new InactivityHandler(entityHandler, threadHandler);
+		inactivityHandler = new InactivityHandler(entityHandler, threadHandler, this);
 	}
 
 	///////////////////////////////////////////////////////////
@@ -220,6 +220,12 @@ public class ServiceClass extends RESTService {
 	 */
 	private static InactivityHandler inactivityHandler;
 
+
+	/**
+	 * Number of days of inactivity allowed, before user content gets removed.
+	 */
+	private int maxInactiveDays;
+
 	//////////////////////////////////////////////////////////////////
 	///////// Utility Methods
 	//////////////////////////////////////////////////////////////////
@@ -231,6 +237,17 @@ public class ServiceClass extends RESTService {
 	public static String getUserId() {
 		return Context.getCurrent().getMainAgent().getIdentifier();
 	}
+
+	public int getMaxInactiveDays() { return this.maxInactiveDays; }
+
+	/**
+	 * This method is used to set fresh field values, in case modifications were made in
+	 * i5.las2peer.services.ocd.ServiceClass.properties file
+	 */
+	public void setFreshFieldValues() {
+		setFieldValues();
+	}
+
 
 	//////////////////////////////////////////////////////////////////
 	///////// REST Service Methods
