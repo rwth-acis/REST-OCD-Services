@@ -153,7 +153,6 @@ public class EntityHandler {
 		try{
 			tx.begin();
 			graph = em.find(CustomGraph.class, identity);
-			System.out.println(graph.getId());
 			graph.setStructureFrom(newGraph);
 
 			tx.commit();
