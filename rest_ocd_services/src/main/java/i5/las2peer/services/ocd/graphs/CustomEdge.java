@@ -10,8 +10,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.implementations.AbstractEdge;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * Custom edge extension.
@@ -22,7 +23,7 @@ import y.base.Node;
 @Entity
 @IdClass(CustomEdgeId.class)
 public class CustomEdge {
-	
+
 	/*
 	 * Database column name definitions.
 	 */
@@ -31,8 +32,8 @@ public class CustomEdge {
 	private static final String targetIndexColumnName = "TARGET_INDEX";
 	protected static final String graphIdColumnName = "GRAPH_ID";
 	protected static final String graphUserColumnName = "USER_NAME";
-	private static final String weightColumnName = "WEIGHT";	
-	
+	private static final String weightColumnName = "WEIGHT";
+
 	/**
 	 * System generated persistence id.
 	 */
@@ -40,70 +41,70 @@ public class CustomEdge {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name = idColumnName)
 	private int id;
-	
+
 	/**
 	 * The graph that the edge belongs to.
 	 */
 	@Id
 	@ManyToOne//(fetch=FetchType.LAZY)
 	@JoinColumns({
-		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
-		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
+			@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
+			@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
 	})
 	private CustomGraph graph;
-	
+
 	/**
 	 * The edge weight.
 	 */
 	@Column(name = weightColumnName)
 	private double weight = 1;
-	
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	/////////// The following attributes are only of internal use for persistence purposes.
 	/////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	/*
 	 * The source custom node.
 	 * Only for persistence purposes.
 	 */
 	@ManyToOne//(cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
 	@JoinColumns( {
-		@JoinColumn(name = sourceIndexColumnName, referencedColumnName = CustomNode.idColumnName),
-		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomNode.graphIdColumnName, insertable=false, updatable=false),
-		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomNode.graphUserColumnName, insertable=false, updatable=false)
+			@JoinColumn(name = sourceIndexColumnName, referencedColumnName = CustomNode.idColumnName),
+			@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomNode.graphIdColumnName, insertable=false, updatable=false),
+			@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomNode.graphUserColumnName, insertable=false, updatable=false)
 	} )
 	private CustomNode source;
-	
+
 	/*
 	 * The target custom node.
 	 * Only for persistence purposes.
 	 */
 	@ManyToOne//(cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
 	@JoinColumns( {
-		@JoinColumn(name = targetIndexColumnName, referencedColumnName = CustomNode.idColumnName),
-		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomNode.graphIdColumnName, insertable=false, updatable=false),
-		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomNode.graphUserColumnName, insertable=false, updatable=false)
+			@JoinColumn(name = targetIndexColumnName, referencedColumnName = CustomNode.idColumnName),
+			@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomNode.graphIdColumnName, insertable=false, updatable=false),
+			@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomNode.graphUserColumnName, insertable=false, updatable=false)
 	} )
 	private CustomNode target;
-	
+
 //	/*
 //	 * The points of the visual edge layout.
 //	 * Only for persistence purposes.
 //	 */
 //	@ElementCollection
 //	private List<PointEntity> points;
-	
-	
+
+
 	//////////////////////////////////////////////////////////////////
 	//////// Methods
 	//////////////////////////////////////////////////////////////////
-	
+
 	/**
 	 * Creates a new instance.
 	 */
 	protected CustomEdge() {
 	}
-	
+
 	/**
 	 * Copy constructor.
 	 * @param customEdge The custom edge to copy.
@@ -111,7 +112,7 @@ public class CustomEdge {
 	protected CustomEdge(CustomEdge customEdge) {
 		this.weight = customEdge.weight;
 	}
-	
+
 	/**
 	 * Getter for the id.
 	 * @return The id.
@@ -139,7 +140,7 @@ public class CustomEdge {
 	/////////////////////////////////////////////////////////////////////////////////////////
 	/////////// The following methods are only of internal use for persistence purposes.
 	/////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	/**
 	 * Getter for the source node.
 	 * Only for persistence purposes.
@@ -157,7 +158,7 @@ public class CustomEdge {
 	protected void setSource(CustomNode source) {
 		this.source = source;
 	}
-	
+
 	/**
 	 * Getter for the target node.
 	 * Only for persistence purposes.
@@ -175,7 +176,7 @@ public class CustomEdge {
 	protected void setTarget(CustomNode target) {
 		this.target = target;
 	}
-	
+
 //	/*
 //	 * Getter for the points of the visual edge layout.
 //	 * Only for persistence purposes.
@@ -193,7 +194,7 @@ public class CustomEdge {
 //	protected void setPoints(List<PointEntity> points) {
 //		this.points = points;
 //	}
-	
+
 	/**
 	 * Updates a custom edge before it is being persistence.
 	 * Only for persistence purposes.
@@ -201,8 +202,8 @@ public class CustomEdge {
 	 * @param edge The corresponding yFiles edge.
 	 */
 	protected void update(CustomGraph graph, Edge edge) {
-		this.source = graph.getCustomNode(edge.source());
-		this.target = graph.getCustomNode(edge.target());
+		this.source = graph.getCustomNode(edge.getSourceNode());
+		this.target = graph.getCustomNode(edge.getTargetNode());
 //		EdgeRealizer eRealizer = graph.getRealizer(edge);
 //		this.points = new ArrayList<PointEntity>();
 //		this.points.add(new PointEntity(eRealizer.getSourcePoint()));
@@ -222,7 +223,8 @@ public class CustomEdge {
 	 * @return The edge.
 	 */
 	protected Edge createEdge(CustomGraph graph, Node source, Node target) {
-		Edge edge = graph.createEdge(source, target);
+		//TODO: Again figure out how to name edges
+		Edge edge = graph.addEdge("ROLF", source, target);
 //		EdgeRealizer eRealizer = graph.getRealizer(edge);
 //		eRealizer.setSourcePoint(points.get(0).createPoint());
 //		eRealizer.setTargetPoint(points.get(1).createPoint());

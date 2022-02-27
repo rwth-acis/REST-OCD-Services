@@ -12,7 +12,10 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
-import y.base.Node;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomNodeId;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiNode;
 
 /**
  * Custom node expansion.
@@ -24,7 +27,7 @@ import y.base.Node;
 @IdClass(CustomNodeId.class)
 @Table(
 		uniqueConstraints=
-            @UniqueConstraint(columnNames={CustomNode.idColumnName, CustomNode.graphIdColumnName, CustomNode.nameColumnName})
+		@UniqueConstraint(columnNames={CustomNode.idColumnName, CustomNode.graphIdColumnName, CustomNode.nameColumnName})
 )
 public class CustomNode {
 
@@ -40,7 +43,7 @@ public class CustomNode {
 //	private static final String widthColumnName = "WIDTH";
 //	private static final String heightColumnName = "HEIGHT";
 //	private static final String colorColumnName = "COLOR";
-	
+
 	/**
 	 * System generated persistence id.
 	 */
@@ -55,67 +58,67 @@ public class CustomNode {
 	@Id
 	@ManyToOne
 	@JoinColumns({
-		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
-		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
+			@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
+			@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
 	})
 	private CustomGraph graph;
-	
+
 	/**
 	 * The name of then node.
 	 */
 	@Column(name = nameColumnName)
 	private String name;
-	
-			
+
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	/////////// The following attributes are only of internal use for persistence purposes.
 	/////////////////////////////////////////////////////////////////////////////////////////
-	
+
 //	/*
 //	 * The x coordinate of the visual node representation.
 //	 * Only for persistence purposes.
 //	 */
 //	@Column(name = xColumnName)
 //	private double x;
-//	
+//
 //	/*
 //	 * The y coordinate of the visual node representation.
 //	 * Only for persistence purposes.
 //	 */
 //	@Column(name = yColumnName)
 //	private double y;
-//	
+//
 //	/*
 //	 * The height of the visual node representation.
 //	 * Only for persistence purposes.
 //	 */
 //	@Column(name = heightColumnName)
 //	private double height;
-//	
+//
 //	/*
 //	 * The width of the visual node representation.
 //	 * Only for persistence purposes.
 //	 */
 //	@Column(name = widthColumnName)
 //	private double width;
-//	
+//
 //	/*
 //	 * The color of the visual node representation.
 //	 * Only for persistence purposes.
 //	 */
 //	@Column(name = colorColumnName)
-//	private int color;  
-	
+//	private int color;
+
 	//////////////////////////////////////////////////////////////////
 	//////// Methods
 	//////////////////////////////////////////////////////////////////
-	
+
 	/**
 	 * Creates a new instance.
 	 */
 	protected CustomNode(){
 	}
-	
+
 	/**
 	 * Copy constructor.
 	 * @param customNode The custom node to copy.
@@ -123,15 +126,15 @@ public class CustomNode {
 	protected CustomNode(CustomNode customNode) {
 		this.name = customNode.name;
 	}
-	
+
 	/**
 	 * Getter for the id.
 	 * @return The id.
 	 */
 	public int getId() {
 		return this.id;
-	}	
-	
+	}
+
 	/**
 	 * Getter for the node name.
 	 * @return The node name.
@@ -147,11 +150,11 @@ public class CustomNode {
 	protected void setName(String name) {
 		this.name = name;
 	}
-	
+
 	/////////////////////////////////////////////////////////////////////////////////////////
 	/////////// The following attributes are only of internal use for persistence purposes.
 	/////////////////////////////////////////////////////////////////////////////////////////
-	
+
 //	protected double getX() {
 //		return this.x;
 //	}
@@ -200,7 +203,7 @@ public class CustomNode {
 	protected CustomGraph getGraph() {
 		return graph;
 	}
-	
+
 	/*
 	 * Updates a custom node before it is being persisted.
 	 * Only for persistence purposes.
@@ -216,15 +219,16 @@ public class CustomNode {
 //		this.color = nRealizer.getFillColor().getRGB();
 		this.graph = graph;
 	}
-	
+
 	/*
- 	 * Creates a corresponding node after the custom node was loaded from persistence.
+	 * Creates a corresponding node after the custom node was loaded from persistence.
 	 * Only for persistence purposes.
 	 * @param graph The graph that the (custom) node is part of.
 	 * @return The created node.
 	 */
 	protected Node createNode(CustomGraph graph) {
-		Node node = graph.createNode();
+		//TODO: Check whether it made sense to replace this here but the previous createNode definitely also didnt seem right as this doesnt even add a custom node
+		Node node = graph.addNode(this.name);
 //		NodeRealizer nRealizer = graph.getRealizer(node);
 //		nRealizer.setX(this.x);
 //		nRealizer.setY(this.y);
@@ -233,5 +237,6 @@ public class CustomNode {
 //		nRealizer.setFillColor(new Color(this.color));
 		return node;
 	}
-	
+
 }
+
