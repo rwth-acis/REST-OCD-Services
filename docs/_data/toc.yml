@@ -93,6 +93,15 @@
   links:
     - title: "About"
       url: "about"
+    - title: Class Models
+      url: "pages/wiki/class-models"
+      children:
+        - title: Algorithms
+          url: "pages/wiki/class-models#algorithms"
+        - title: Centralities
+          url: "pages/wiki/class-models#centrality"  
+        - title: Cooperation Simulations
+          url: "pages/wiki/class-models#simulation"
 - title: Tutorials
   url: tutorials
   links:
