@@ -54,10 +54,10 @@ import org.graphstream.graph.Edge;
 @Entity
 @IdClass(CustomGraphId.class)
 //TODO: Getters for positive edges/neighbours were for non-zero ones before. I have changed this to >=0 but it might be good to keep that functionality through extra methods
-//TODO: IMPORTANT, figure out how to handle node names now since indexes seem to be generated automatically by graphstream and the __id__ now just seems to mean something like a name.
 //TODO: Check whether UUIDs work out as unique graph IDs, collision chances should however be extremely low
 //TODO: Check whether UUIDs work out as unique edge IDs, collision chances should however be extremely low
-//TODO: Figure out what to do with the GraphListener stuff, proooobably not needed anymore???? #unsure
+//TODO: Check whether UUIDs work out as unique node IDs, collision chances should however be extremely low. Check whether this could actually replace the current node names. Would however break style with the naming of the other classes.
+//TODO: Figure out what how to replace the GraphListener stuff, likely only relevant for SVG Viz.
 //TODO: Integrate graphstream attributes into persistence
 public class CustomGraph extends MultiGraph {
 
@@ -1127,7 +1127,7 @@ public class CustomGraph extends MultiGraph {
 			if (nodeId > graphSize)
 				throw new IllegalArgumentException("Invalid node id; id to high");
 
-			nodeMap.put(nodeId, subGraph.addNode(Integer.toString(nodeId)));
+			nodeMap.put(nodeId, subGraph.addNode(UUID.randomUUID().toString()));
 		}
 
 		for (Edge edge : (Edge[]) edges().toArray()) {
