@@ -96,6 +96,8 @@
     - title: Class Models
       url: "pages/wiki/class-models"
       children:
+        - title: Service Architecture
+          url: "pages/wiki/class-models#service-architecture"
         - title: Algorithms
           url: "pages/wiki/class-models#algorithms"
         - title: Centralities
