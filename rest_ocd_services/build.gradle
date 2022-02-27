@@ -76,6 +76,7 @@ dependencies {
     compileOnly "fr.irit.smac.thirdparty.edu.gmu.cs:mason:19"
     compileOnly "org.ojalgo:ojalgo:50.0.0"
     compileOnly "net.sbbi:sbbi-upnplib:1.0.4"
+    compileOnly "org.graphstream:gs-core:2.0"
 
     //yFiles
     compileOnly fileTree(dir: "${yFiles}", include: '*.jar')
