@@ -53,7 +53,6 @@ import org.graphstream.graph.Edge;
  */
 @Entity
 @IdClass(CustomGraphId.class)
-//TODO: Getters for positive edges/neighbours were for non-zero ones before. I have changed this to >=0 but it might be good to keep that functionality through extra methods
 //TODO: Check whether UUIDs work out as unique graph IDs, collision chances should however be extremely low
 //TODO: Check whether UUIDs work out as unique edge IDs, collision chances should however be extremely low
 //TODO: Check whether UUIDs work out as unique node IDs, collision chances should however be extremely low. Check whether this could actually replace the current node names. Would however break style with the naming of the other classes.
@@ -936,6 +935,30 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	/**
+	 * Returns the set of all positive edges incident to a given node.
+	 *
+	 * @param node
+	 *            The node under observation.
+	 *
+	 * @return The positive edge set of the given node.
+	 *
+	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
+	 */
+
+	public Set<Edge> getPositiveEdgesAboveZero(MultiNode node) throws InterruptedException {
+		Set<Edge> positiveEdges = new HashSet<Edge>();
+		Edge[] edges = (Edge[]) node.edges().toArray();
+		for (Edge edge : edges) {
+			if (this.getEdgeWeight(edge) > 0) {
+				positiveEdges.add(edge);
+				break;
+			}
+		}
+		return positiveEdges;
+	}
+
+	/**
 	 * Returns the set of all positive incoming edges for a given node.
 	 *
 	 * @param node
@@ -962,6 +985,32 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	/**
+	 * Returns the set of all positive incoming edges for a given node.
+	 *
+	 * @param node
+	 *            The node under observation.
+	 *
+	 * @return The positive incoming edge set of the given node.
+	 *
+	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
+	 */
+
+	public Set<Edge> getPositiveInEdgesAboveZero(MultiNode node) throws InterruptedException {
+		Set<Edge> positiveInEdges = new HashSet<Edge>();
+		Edge[] incidentInEdges = (Edge[]) node.enteringEdges().toArray();
+		for (Edge incidentInEdge : incidentInEdges) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			if (getCustomEdge(incidentInEdge).getWeight() > 0) {
+				positiveInEdges.add(incidentInEdge);
+			}
+		}
+		return positiveInEdges;
+	}
+
+	/**
 	 * Returns the set of all positive outgoing edges for a given node.
 	 *
 	 * @param node
@@ -981,6 +1030,32 @@ public class CustomGraph extends MultiGraph {
 				throw new InterruptedException();
 			}
 			if (getCustomEdge(incidentOutEdge).getWeight() >= 0) {
+				positiveOutEdges.add(incidentOutEdge);
+			}
+		}
+		return positiveOutEdges;
+	}
+
+	/**
+	 * Returns the set of all positive outgoing edges for a given node.
+	 *
+	 * @param node
+	 *            The node under observation.
+	 *
+	 * @return The positive outgoing edge set of the given node.
+	 *
+	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
+	 */
+
+	public Set<Edge> getPositiveOutEdgesAboveZero(MultiNode node) throws InterruptedException {
+		Set<Edge> positiveOutEdges = new HashSet<Edge>();
+		Edge[] incidentOutEdges = (Edge[]) node.leavingEdges().toArray();
+		for (Edge incidentOutEdge : incidentOutEdges) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			if (getCustomEdge(incidentOutEdge).getWeight() > 0) {
 				positiveOutEdges.add(incidentOutEdge);
 			}
 		}
