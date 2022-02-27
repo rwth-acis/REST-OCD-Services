@@ -14,6 +14,8 @@ import org.graphstream.graph.implementations.AbstractEdge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
+import java.util.UUID;
+
 /**
  * Custom edge extension.
  * Holds edge meta information and is used for edge persistence.
@@ -22,6 +24,7 @@ import org.graphstream.graph.Edge;
  */
 @Entity
 @IdClass(CustomEdgeId.class)
+//TODO: Integrate graphstream attributes into persistence
 public class CustomEdge {
 
 	/*
@@ -224,7 +227,7 @@ public class CustomEdge {
 	 */
 	protected Edge createEdge(CustomGraph graph, Node source, Node target) {
 		//TODO: Again figure out how to name edges
-		Edge edge = graph.addEdge("ROLF", source, target);
+		Edge edge = graph.addEdge(UUID.randomUUID().toString(), source, target);
 //		EdgeRealizer eRealizer = graph.getRealizer(edge);
 //		eRealizer.setSourcePoint(points.get(0).createPoint());
 //		eRealizer.setTargetPoint(points.get(1).createPoint());

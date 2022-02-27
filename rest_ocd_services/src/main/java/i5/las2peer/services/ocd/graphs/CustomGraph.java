@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -54,9 +55,10 @@ import org.graphstream.graph.Edge;
 @IdClass(CustomGraphId.class)
 //TODO: Getters for positive edges/neighbours were for non-zero ones before. I have changed this to >=0 but it might be good to keep that functionality through extra methods
 //TODO: IMPORTANT, figure out how to handle node names now since indexes seem to be generated automatically by graphstream and the __id__ now just seems to mean something like a name.
-//TODO: ALSO figure out how to do edge names/__ids__ since they do need to exist now
-//TODO: Figure out how to convert the empty constructors. graphstream has no empty graph constructors by default
+//TODO: Check whether UUIDs work out as unique graph IDs, collision chances should however be extremely low
+//TODO: Check whether UUIDs work out as unique edge IDs, collision chances should however be extremely low
 //TODO: Figure out what to do with the GraphListener stuff, proooobably not needed anymore???? #unsure
+//TODO: Integrate graphstream attributes into persistence
 public class CustomGraph extends MultiGraph {
 
 	/////////////////// DATABASE COLUMN NAMES
@@ -210,11 +212,12 @@ public class CustomGraph extends MultiGraph {
 	//////////////////////////////////////////////////////////////////
 
 	/**
-	 * Creates a new instance.
+	 * Creates a new instance. The name attribute will be a random UUID
 	 */
-//    public CustomGraph() {
-//        this.addGraphListener(new CustomGraphListener());
-//    }
+    public CustomGraph() {
+		super(UUID.randomUUID().toString());
+        this.addGraphListener(new CustomGraphListener());
+    }
 
 	/**
 	 * Copy constructor.
@@ -223,7 +226,7 @@ public class CustomGraph extends MultiGraph {
 	 *            The graph to copy.
 	 */
 	public CustomGraph(AbstractGraph graph) {
-		super("ROLF"); //TODO: CHANGE to correct super execution
+		super(UUID.randomUUID().toString()); //TODO: CHANGE to correct super execution
 		//super(graph);
 		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray();
 		for(MultiNode node : nodes) {
@@ -248,7 +251,7 @@ public class CustomGraph extends MultiGraph {
 	 *            The graph to copy.
 	 */
 	public CustomGraph(CustomGraph graph) {
-		super("ROLF"); //TODO: CHANGE to correct super execution
+		super(UUID.randomUUID().toString());
 		this.creationMethod = new GraphCreationLog(graph.creationMethod.getType(),
 				graph.creationMethod.getParameters());
 		this.creationMethod.setStatus(graph.creationMethod.getStatus());
@@ -1132,7 +1135,7 @@ public class CustomGraph extends MultiGraph {
 			int target = edge.getTargetNode().getIndex();
 
 			if (nodeIds.contains(source) && nodeIds.contains(target)) {
-				subGraph.addEdge("ROLF", nodeMap.get(source), nodeMap.get(target));
+				subGraph.addEdge(UUID.randomUUID().toString(), nodeMap.get(source), nodeMap.get(target));
 			}
 		}
 		return subGraph;
