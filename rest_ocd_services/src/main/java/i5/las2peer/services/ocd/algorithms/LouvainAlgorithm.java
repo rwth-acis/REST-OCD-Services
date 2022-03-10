@@ -45,8 +45,10 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- * Implementation of the Louvain method of non-overlapping community detection. This implementation is based on the definition by Vincent D. Blondel, Jean-Loup Guillaume, Renaud Lambiotte, Etienne Lefebvre from 2008 
- * and largely corresponds to the one at https://github.com/neil-justice/louvain.
+ * Implementation of the Louvain method of non-overlapping community detection. This implementation is based on the definition by Vincent D. Blondel, Jean-Loup Guillaume, Renaud Lambiotte, Etienne Lefebvre:
+ * Fast unfolding of communities in large networks
+ * https://doi.org/10.1088/1742-5468/2008/10/p10008
+ * Largely corresponds to the one at https://github.com/neil-justice/louvain.
  * Handles undirected graphs(makes them undirected if not)
  */
 public class LouvainAlgorithm implements OcdAlgorithm {

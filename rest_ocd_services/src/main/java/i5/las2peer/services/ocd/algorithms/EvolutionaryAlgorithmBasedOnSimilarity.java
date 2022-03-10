@@ -32,6 +32,9 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
+ * Implements the algorithm by C. Liu, J. Liu, and Z. Jiang:
+ * A multiobjective evolutionary algorithm based on similarity for community detection from signed social networks
+ * https://doi.org/10.1109/TCYB.2017.2693558
  * @author YLi
  */
 public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {

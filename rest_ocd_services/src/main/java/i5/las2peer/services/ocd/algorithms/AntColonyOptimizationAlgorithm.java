@@ -34,8 +34,9 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
-* The original version of the overlapping community detection algorithm introduced in 2020
-* by Ping Ji, Shanxin Zhang, Zhiping Zhou.
+* The original version of the overlapping community detection algorithm introduced in 2020 by Ping Ji, Shanxin Zhang, Zhiping Zhou:
+* Overlapping  community detection based on maximal clique and multi-objective ant colony optimization
+* https://doi.org/10.1109/CCDC49329.2020.9164506
 * @author Marlene Damm
 */
 //TODO description of the algorithm

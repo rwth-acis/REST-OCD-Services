@@ -28,8 +28,11 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
- * Implements a custom extended version of the original Speaker Listener Label Propagation Algorithm
- * using the Uniform Speaker Rule and the Popularity Listener Rule.
+ * Implements a custom extended version of the original Speaker Listener Label Propagation Algorithm by J. Xie, B. K. Szymanski, and X. Liu:
+ * Slpa: Uncovering overlapping communities in social networks via a speaker-listener interaction dynamic process
+ * https://doi.org/10.1109/ICDMW.2011.154
+ *
+ * Using the Uniform Speaker Rule and the Popularity Listener Rule:
  * Handles directed and unweighted graphs. For unweighted and undirected graphs,
  * it behaves the same as the original algorithm.
  */
