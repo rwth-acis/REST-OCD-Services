@@ -28,8 +28,10 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
- * Implements the original version of the Speaker Listener Label Propagation Algorithm
- * using the Uniform Speaker Rule and the Popularity Listener Rule.
+ * Implements the original version of the Speaker Listener Label Propagation Algorithm by J. Xie, B. K. Szymanski, and X. Liu:
+ * Slpa: Uncovering overlapping communities in social networks via a speaker-listener interaction dynamic process
+ * https://doi.org/10.1109/ICDMW.2011.154
+ * Using the Uniform Speaker Rule and the Popularity Listener Rule.
  */
 public class SpeakerListenerLabelPropagationAlgorithm implements
 		OcdAlgorithm {

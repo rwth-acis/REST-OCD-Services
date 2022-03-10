@@ -35,15 +35,13 @@ import y.base.EdgeCursor;
 
 /**
  * This class holds spectral clustering algorithm which uses fuzzy clustering to
- * detect overlapping communities. The algorithm implementation is heavily based
- * on the paper "Identification of overlapping community structure in complex
- * networks using fuzzy c-means clustering" written by Shihua Zhang, Rui-Sheng
- * Wang and Xiang-Sun Zhang. It also uses modifications based on the paper "A
- * Tutorial on Spectral Clustering" written by Ulrike von Luxburg. The algorithm
- * also has some extra modifications such as giving the user a choice between
+ * detect overlapping communities by Shihua Zhang, Rui-Sheng, Wang and Xiang-Sun Zhang:
+ * Identification of overlapping community structure in complex networks using fuzzy c-means clustering
+ * https://doi.org/10.1016/j.physa.2006.07.023
+ * It also uses modifications based on the paper "A Tutorial on Spectral Clustering" written by Ulrike von Luxburg.
+ * The algorithm also has some extra modifications such as giving the user a choice between
  * optimizing the cluster quantity or not, as well as using a custom threshold
- * for creating clusters or alternatively creating clusters through apache
- * commons FuzzyKMeansClusterer class
+ * for creating clusters or alternatively creating clusters through apache commons FuzzyKMeansClusterer class
  *
  */
 public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
