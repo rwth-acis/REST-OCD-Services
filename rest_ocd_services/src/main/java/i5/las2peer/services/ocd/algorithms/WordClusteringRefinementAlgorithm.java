@@ -22,7 +22,8 @@ import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
-import y.base.Node;
+
+import org.graphstream.graph.Node;
 
 public class WordClusteringRefinementAlgorithm implements OcdAlgorithm{
 	

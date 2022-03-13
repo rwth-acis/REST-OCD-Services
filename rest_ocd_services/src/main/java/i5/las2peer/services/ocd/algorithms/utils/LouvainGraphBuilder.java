@@ -23,9 +23,9 @@ import i5.las2peer.services.ocd.algorithms.utils.LouvainGraph;
 import i5.las2peer.services.ocd.algorithms.utils.LouvainSparseIntMatrix;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -56,20 +56,20 @@ public class LouvainGraphBuilder {
    */
   public LouvainGraph fromGraph(CustomGraph graph) 
 		  throws InterruptedException, OcdAlgorithmException{
-	order = graph.nodeCount();
+	order = graph.getNodeCount();
 	initialise();
-	
-	for (EdgeCursor ec = graph.edges(); ec.ok(); ec.next()) {		
+    Iterator<Edge> ec = graph.edges().iterator();
+	while (ec.hasNext()) {
 		if(Thread.interrupted()) {
 			throw new InterruptedException();
 		}
 		
-		Edge edge = ec.edge();
-		Node source = edge.source();
-		Node target = edge.target();
+		Edge edge = ec.next();
+		Node source = edge.getSourceNode();
+		Node target = edge.getTargetNode();
 		
-		if (matrix.get(source.index(), target.index()) == 0) {
-			insertEdgeSym(source.index(), target.index(), (int) graph.getEdgeWeight(edge));
+		if (matrix.get(source.getIndex(), target.getIndex()) == 0) {
+			insertEdgeSym(source.getIndex(), target.getIndex(), (int) graph.getEdgeWeight(edge));
 		}
 	}
 	

@@ -21,7 +21,7 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.vector.Vector;
 
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 /*
 LDAV=ones(1,num_vertices(SparseGraph));

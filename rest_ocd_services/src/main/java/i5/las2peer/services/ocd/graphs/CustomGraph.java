@@ -215,7 +215,7 @@ public class CustomGraph extends MultiGraph {
 	 */
     public CustomGraph() {
 		super(UUID.randomUUID().toString());
-        this.addGraphListener(new CustomGraphListener());
+        //this.addGraphListener(new CustomGraphListener()); //TODO: Put corresponding listener here (if needed)
     }
 
 	/**
@@ -227,11 +227,11 @@ public class CustomGraph extends MultiGraph {
 	public CustomGraph(AbstractGraph graph) {
 		super(UUID.randomUUID().toString()); //TODO: CHANGE to correct super execution
 		//super(graph);
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray();
+		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
 		for(MultiNode node : nodes) {
 			this.addCustomNode(node);
 		}
-		Edge[] edges = (Edge[]) this.edges().toArray();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
 		for(Edge edge : edges) {
 			this.addCustomEdge(edge);
 		}
@@ -283,7 +283,7 @@ public class CustomGraph extends MultiGraph {
 	 */
 	//TODO: Figure out what this was supposed to be once, doesn't even use our custom nodes.
 	public void setStructureFrom(CustomGraph graph) {
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray();
+		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
 		/*
 		 * Removes all nodes and edges including their custom information.
 		 */
@@ -532,7 +532,7 @@ public class CustomGraph extends MultiGraph {
 	 *            The node.
 	 * @return The node name.
 	 */
-	public String getNodeName(MultiNode node) {
+	public String getNodeName(Node node) {
 		return getCustomNode(node).getName();
 	}
 
@@ -544,11 +544,11 @@ public class CustomGraph extends MultiGraph {
 	 * @param name
 	 *            The node name.
 	 */
-	public void setNodeName(MultiNode node, String name) {
+	public void setNodeName(Node node, String name) {
 		getCustomNode(node).setName(name);
 	}
 
-	public int getNodeId(MultiNode node) {
+	public int getNodeId(Node node) {
 		return getCustomNode(node).getId();
 	}
 
@@ -563,8 +563,8 @@ public class CustomGraph extends MultiGraph {
 	 * @return The weighted in-degree.
 	 */
 	//TODO: Check whether we need to account extra for parallel edges here (and in all other edge methods)
-	public double getWeightedInDegree(MultiNode node) throws InterruptedException {
-		Edge[] inEdges = (Edge[]) Stream.concat(this.getPositiveInEdges(node).stream(), this.getNegativeInEdges(node).stream()).toArray();
+	public double getWeightedInDegree(Node node) throws InterruptedException {
+		Edge[] inEdges = Stream.concat(this.getPositiveInEdges(node).stream(), this.getNegativeInEdges(node).stream()).toArray(Edge[]::new);
 		double inDegree = 0;
 		for (Edge edge : inEdges) {
 			inDegree += getCustomEdge(edge).getWeight();
@@ -582,8 +582,8 @@ public class CustomGraph extends MultiGraph {
 	 *
 	 * @author YLi
 	 */
-	public double getPositiveInDegree(MultiNode node) throws InterruptedException {
-		Edge[] inEdges = (Edge[]) this.getPositiveInEdges(node).toArray();
+	public double getPositiveInDegree(Node node) throws InterruptedException {
+		Edge[] inEdges = this.getPositiveInEdges(node).toArray(Edge[]::new);
 		double inDegree = 0;
 		for (Edge edge : inEdges) {
 			inDegree += getCustomEdge(edge).getWeight();
@@ -601,8 +601,8 @@ public class CustomGraph extends MultiGraph {
 	 *
 	 * @author YLi
 	 */
-	public double getPositiveOutDegree(MultiNode node) throws InterruptedException {
-		Edge[] outEdges = (Edge[]) this.getPositiveOutEdges(node).toArray();
+	public double getPositiveOutDegree(Node node) throws InterruptedException {
+		Edge[] outEdges = this.getPositiveOutEdges(node).toArray(Edge[]::new);
 		double outDegree = 0;
 		for (Edge edge : outEdges) {
 			outDegree += getCustomEdge(edge).getWeight();
@@ -620,8 +620,8 @@ public class CustomGraph extends MultiGraph {
 	 *
 	 * @author YLi
 	 */
-	public double getNegativeInDegree(MultiNode node) throws InterruptedException {
-		Edge[] inEdges = (Edge[]) this.getNegativeInEdges(node).toArray();
+	public double getNegativeInDegree(Node node) throws InterruptedException {
+		Edge[] inEdges = this.getNegativeInEdges(node).toArray(Edge[]::new);
 		double inDegree = 0;
 		for (Edge edge : inEdges) {
 			inDegree += getCustomEdge(edge).getWeight();
@@ -639,8 +639,8 @@ public class CustomGraph extends MultiGraph {
 	 *
 	 * @author YLi
 	 */
-	public double getNegativeOutDegree(MultiNode node) throws InterruptedException {
-		Edge[] outEdges = (Edge[]) this.getNegativeOutEdges(node).toArray();
+	public double getNegativeOutDegree(Node node) throws InterruptedException {
+		Edge[] outEdges = this.getNegativeOutEdges(node).toArray(Edge[]::new);
 		double outDegree = 0;
 		for (Edge edge : outEdges) {
 			outDegree += getCustomEdge(edge).getWeight();
@@ -657,7 +657,7 @@ public class CustomGraph extends MultiGraph {
 	 * @return The weighted out-degree.
 	 */
 	public double getWeightedOutDegree(MultiNode node) throws InterruptedException {
-		Edge[] outEdges = (Edge[]) Stream.concat(this.getPositiveOutEdges(node).stream(), this.getNegativeOutEdges(node).stream()).toArray();
+		Edge[] outEdges = Stream.concat(this.getPositiveOutEdges(node).stream(), this.getNegativeOutEdges(node).stream()).toArray(Edge[]::new);
 		double outDegree = 0;
 		for (Edge edge : outEdges) {
 			outDegree += getCustomEdge(edge).getWeight();
@@ -674,7 +674,7 @@ public class CustomGraph extends MultiGraph {
 	 * @return The weighted degree.
 	 */
 	public double getWeightedNodeDegree(MultiNode node) throws InterruptedException {
-		Edge[] edges = (Edge[]) this.edges().toArray();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
 		double degree = 0;
 		for (Edge edge : edges) {
 			degree += getCustomEdge(edge).getWeight();
@@ -693,7 +693,7 @@ public class CustomGraph extends MultiGraph {
 	 * @author YLi
 	 */
 	public double getAbsoluteNodeDegree(MultiNode node) throws InterruptedException {
-		Edge[] edges = (Edge[]) this.edges().toArray();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
 		double degree = 0;
 		for (Edge edge : edges) {
 			degree += Math.abs(getCustomEdge(edge).getWeight());
@@ -709,7 +709,7 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public double[] getEdgeWeights() {
 		double[] res = new double[this.edgeCount];
-		Edge[] edges = (Edge[]) this.edges().toArray();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
 
 		int i = 0;
 		for (Edge edge : edges) {
@@ -728,7 +728,7 @@ public class CustomGraph extends MultiGraph {
 	public double getMaxEdgeWeight() {
 		double maxWeight = Double.NEGATIVE_INFINITY;
 		double edgeWeight;
-		Edge[] edges = (Edge[]) this.edges().toArray();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
 
 		for (Edge edge : edges) {
 			edgeWeight = getCustomEdge(edge).getWeight();
@@ -748,7 +748,7 @@ public class CustomGraph extends MultiGraph {
 	public double getMinEdgeWeight() {
 		double minWeight = Double.POSITIVE_INFINITY;
 		double edgeWeight;
-		Edge[] edges = (Edge[]) this.edges().toArray();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
 
 		for (Edge edge : edges) {
 			edgeWeight = getCustomEdge(edge).getWeight();
@@ -767,7 +767,7 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public double getMinWeightedInDegree() throws InterruptedException {
 		double minDegree = Double.POSITIVE_INFINITY;
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray();
+		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
 		double curDegree;
 		for (MultiNode node : nodes) {
 			curDegree = getWeightedInDegree(node);
@@ -786,7 +786,7 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public double getMaxWeightedInDegree() throws InterruptedException {
 		double maxDegree = Double.NEGATIVE_INFINITY;
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray();
+		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
 		double curDegree;
 		for (MultiNode node : nodes) {
 			curDegree = getWeightedInDegree(node);
@@ -810,7 +810,7 @@ public class CustomGraph extends MultiGraph {
 	public Matrix getNeighbourhoodMatrix() throws InterruptedException {
 		int nodeNumber = this.nodeCount;
 		Matrix neighbourhoodMatrix = new CCSMatrix(nodeNumber, nodeNumber);
-		Edge[] edges = (Edge[]) this.edges().toArray();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
 		for (Edge edge : edges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
@@ -832,15 +832,67 @@ public class CustomGraph extends MultiGraph {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	//TODO: Currently redundant, optimize
-	public Set<Node> getNeighbours(MultiNode node) throws InterruptedException {
+	public Set<Node> getNeighbours(Node node) throws InterruptedException {
 		Set<Node> neighbourSet = new HashSet<Node>();
-		MultiNode[] neighbours = (MultiNode[]) node.neighborNodes().toArray();
+		Node[] neighbours = node.neighborNodes().toArray(Node[]::new);
 
-		for (MultiNode neighbour : neighbours) {
+		for (Node neighbour : neighbours) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
 			if (!neighbourSet.contains(neighbour)) {
+				neighbourSet.add(neighbour);
+			}
+		}
+		return neighbourSet;
+	}
+
+	/**
+	 * Returns the set of all neighbours of a given node.
+	 *
+	 * @param node
+	 *            The node under observation.
+	 *
+	 * @return The neighbour set of the given node.
+	 *
+	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
+	 */
+	public Set<Node> getSuccessorNeighbours(Node node) throws InterruptedException {
+		Set<Node> neighbourSet = new HashSet<Node>();
+		Node[] neighbours = node.neighborNodes().toArray(Node[]::new);
+
+		for (Node neighbour : neighbours) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			if (!neighbourSet.contains(neighbour) && neighbour.hasEdgeToward(node)) {
+				neighbourSet.add(neighbour);
+			}
+		}
+		return neighbourSet;
+	}
+
+	/**
+	 * Returns the set of all neighbours of a given node.
+	 *
+	 * @param node
+	 *            The node under observation.
+	 *
+	 * @return The neighbour set of the given node.
+	 *
+	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
+	 */
+	public Set<Node> getPredecessorNeighbours(Node node) throws InterruptedException {
+		Set<Node> neighbourSet = new HashSet<Node>();
+		Node[] neighbours = node.neighborNodes().toArray(Node[]::new);
+
+		for (Node neighbour : neighbours) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			if (!neighbourSet.contains(neighbour) && neighbour.hasEdgeFrom(node)) {
 				neighbourSet.add(neighbour);
 			}
 		}
@@ -860,13 +912,13 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public Set<Node> getPositiveNeighbours(MultiNode node) throws InterruptedException {
 		Set<Node> positiveNeighbourSet = new HashSet<Node>();
-		MultiNode[] neighbours = (MultiNode[]) node.neighborNodes().toArray();
+		MultiNode[] neighbours = (MultiNode[]) node.neighborNodes().toArray(Node[]::new);
 
 		for (MultiNode neighbour : neighbours) {
 			/*
 			 * if node a->b positive or node b->a positive
 			 */
-			Edge[] edges = (Edge[]) node.getEdgeSetBetween(neighbour).toArray();
+			Edge[] edges = node.getEdgeSetBetween(neighbour).toArray(Edge[]::new);
 			for (Edge edge : edges) {
 				if (this.getEdgeWeight(edge) >= 0) {
 					positiveNeighbourSet.add(neighbour);
@@ -891,13 +943,13 @@ public class CustomGraph extends MultiGraph {
 
 	public Set<Node> getNegativeNeighbours(MultiNode node) throws InterruptedException {
 		Set<Node> negativeNeighbourSet = new HashSet<Node>();
-		MultiNode[] neighbours = (MultiNode[]) node.neighborNodes().toArray();
+		MultiNode[] neighbours = (MultiNode[]) node.neighborNodes().toArray(Node[]::new);
 
 		for (MultiNode neighbour : neighbours) {
 			/*
 			 * if node a->b negative or node b->a negative
 			 */
-			Edge[] edges = (Edge[]) node.getEdgeSetBetween(neighbour).toArray();
+			Edge[] edges = node.getEdgeSetBetween(neighbour).toArray(Edge[]::new);
 			for (Edge edge : edges) {
 				if (this.getEdgeWeight(edge) < 0) {
 					negativeNeighbourSet.add(neighbour);
@@ -922,9 +974,9 @@ public class CustomGraph extends MultiGraph {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
-	public Set<Edge> getPositiveEdges(MultiNode node) throws InterruptedException {
+	public Set<Edge> getPositiveEdges(Node node) throws InterruptedException {
 		Set<Edge> positiveEdges = new HashSet<Edge>();
-		Edge[] edges = (Edge[]) node.edges().toArray();
+		Edge[] edges = node.edges().toArray(Edge[]::new);
 		for (Edge edge : edges) {
 			if (this.getEdgeWeight(edge) >= 0) {
 				positiveEdges.add(edge);
@@ -946,9 +998,9 @@ public class CustomGraph extends MultiGraph {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
-	public Set<Edge> getPositiveEdgesAboveZero(MultiNode node) throws InterruptedException {
+	public Set<Edge> getPositiveEdgesAboveZero(Node node) throws InterruptedException {
 		Set<Edge> positiveEdges = new HashSet<Edge>();
-		Edge[] edges = (Edge[]) node.edges().toArray();
+		Edge[] edges = node.edges().toArray(Edge[]::new);
 		for (Edge edge : edges) {
 			if (this.getEdgeWeight(edge) > 0) {
 				positiveEdges.add(edge);
@@ -970,9 +1022,9 @@ public class CustomGraph extends MultiGraph {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
-	public Set<Edge> getPositiveInEdges(MultiNode node) throws InterruptedException {
+	public Set<Edge> getPositiveInEdges(Node node) throws InterruptedException {
 		Set<Edge> positiveInEdges = new HashSet<Edge>();
-		Edge[] incidentInEdges = (Edge[]) node.enteringEdges().toArray();
+		Edge[] incidentInEdges = node.enteringEdges().toArray(Edge[]::new);
 		for (Edge incidentInEdge : incidentInEdges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
@@ -996,9 +1048,9 @@ public class CustomGraph extends MultiGraph {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
-	public Set<Edge> getPositiveInEdgesAboveZero(MultiNode node) throws InterruptedException {
+	public Set<Edge> getPositiveInEdgesAboveZero(Node node) throws InterruptedException {
 		Set<Edge> positiveInEdges = new HashSet<Edge>();
-		Edge[] incidentInEdges = (Edge[]) node.enteringEdges().toArray();
+		Edge[] incidentInEdges = node.enteringEdges().toArray(Edge[]::new);
 		for (Edge incidentInEdge : incidentInEdges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
@@ -1022,9 +1074,9 @@ public class CustomGraph extends MultiGraph {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
-	public Set<Edge> getPositiveOutEdges(MultiNode node) throws InterruptedException {
+	public Set<Edge> getPositiveOutEdges(Node node) throws InterruptedException {
 		Set<Edge> positiveOutEdges = new HashSet<Edge>();
-		Edge[] incidentOutEdges = (Edge[]) node.leavingEdges().toArray();
+		Edge[] incidentOutEdges = node.leavingEdges().toArray(Edge[]::new);
 		for (Edge incidentOutEdge : incidentOutEdges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
@@ -1048,9 +1100,9 @@ public class CustomGraph extends MultiGraph {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
-	public Set<Edge> getPositiveOutEdgesAboveZero(MultiNode node) throws InterruptedException {
+	public Set<Edge> getPositiveOutEdgesAboveZero(Node node) throws InterruptedException {
 		Set<Edge> positiveOutEdges = new HashSet<Edge>();
-		Edge[] incidentOutEdges = (Edge[]) node.leavingEdges().toArray();
+		Edge[] incidentOutEdges = node.leavingEdges().toArray(Edge[]::new);
 		for (Edge incidentOutEdge : incidentOutEdges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
@@ -1074,9 +1126,9 @@ public class CustomGraph extends MultiGraph {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
-	public Set<Edge> getNegativeEdges(MultiNode node) throws InterruptedException {
+	public Set<Edge> getNegativeEdges(Node node) throws InterruptedException {
 		Set<Edge> negativeEdges = new HashSet<Edge>();
-		Edge[] edges = (Edge[]) node.edges().toArray();
+		Edge[] edges = node.edges().toArray(Edge[]::new);
 		for (Edge edge : edges) {
 			if (this.getEdgeWeight(edge) < 0) {
 				negativeEdges.add(edge);
@@ -1098,9 +1150,9 @@ public class CustomGraph extends MultiGraph {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
-	public Set<Edge> getNegativeInEdges(MultiNode node) throws InterruptedException {
+	public Set<Edge> getNegativeInEdges(Node node) throws InterruptedException {
 		Set<Edge> negativeInEdges = new HashSet<Edge>();
-		Edge[] incidentInEdges = (Edge[]) node.enteringEdges().toArray();
+		Edge[] incidentInEdges = node.enteringEdges().toArray(Edge[]::new);
 		for (Edge incidentInEdge : incidentInEdges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
@@ -1124,9 +1176,9 @@ public class CustomGraph extends MultiGraph {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
-	public Set<Edge> getNegativeOutEdges(MultiNode node) throws InterruptedException {
+	public Set<Edge> getNegativeOutEdges(Node node) throws InterruptedException {
 		Set<Edge> negativeOutEdges = new HashSet<Edge>();
-		Edge[] incidentOutEdges = (Edge[]) node.leavingEdges().toArray();
+		Edge[] incidentOutEdges = node.leavingEdges().toArray(Edge[]::new);
 		for (Edge incidentOutEdge : incidentOutEdges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
@@ -1205,7 +1257,7 @@ public class CustomGraph extends MultiGraph {
 			nodeMap.put(nodeId, subGraph.addNode(UUID.randomUUID().toString()));
 		}
 
-		for (Edge edge : (Edge[]) edges().toArray()) {
+		for (Edge edge : edges().toArray(Edge[]::new)) {
 			int source = edge.getSourceNode().getIndex();
 			int target = edge.getTargetNode().getIndex();
 
@@ -1240,15 +1292,15 @@ public class CustomGraph extends MultiGraph {
 		for (Map.Entry<Integer, CustomEdge> entry : customEdges.entrySet()) {
 			this.customEdges.put(entry.getKey(), new CustomEdge(entry.getValue()));
 		}
-		MultiNode[] nodeArr = (MultiNode[]) this.nodes().toArray();
+		MultiNode[] nodeArr = (MultiNode[]) this.nodes().toArray(Node[]::new);
 		for (Map.Entry<MultiNode, Integer> entry : nodeIds.entrySet()) {
 			this.nodeIds.put(nodeArr[entry.getKey().getIndex()], entry.getValue());
 		}
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray();
+		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
 		for (MultiNode node : nodes) {
 			this.reverseNodeMap.put(this.getCustomNode(node), node);
 		}
-		Edge[] edgeArr = (Edge[]) this.edges().toArray();
+		Edge[] edgeArr = this.edges().toArray(Edge[]::new);
 		for (Map.Entry<Edge, Integer> entry : edgeIds.entrySet()) {
 			this.edgeIds.put(edgeArr[entry.getKey().getIndex()], entry.getValue());
 		}
@@ -1389,11 +1441,11 @@ public class CustomGraph extends MultiGraph {
 	@PrePersist
 	@PreUpdate
 	protected void prePersist() {
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray();
+		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
 		for (MultiNode node : nodes) {
 			this.getCustomNode(node).update(this, (Node)node);
 		}
-		Edge[] edges = (Edge[]) this.edges().toArray();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
 		for (Edge edge : edges) {
 			this.getCustomEdge(edge).update(this, edge);
 		}

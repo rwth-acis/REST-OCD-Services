@@ -2,7 +2,8 @@ package i5.las2peer.services.ocd.algorithms.utils;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 
-import y.base.Node;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 
 public class Point {
 	private Node node;

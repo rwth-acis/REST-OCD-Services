@@ -15,12 +15,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.ml.clustering.CentroidCluster;
@@ -29,8 +24,9 @@ import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.la4j.decomposition.EigenDecompositor;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 
 /**
@@ -367,20 +363,17 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 */
 	public Matrix createAdjacencyMatrix(CustomGraph graph) {
 
-		Matrix A = new Basic2DMatrix(graph.nodeCount(), graph.nodeCount());
+		Matrix A = new Basic2DMatrix(graph.getNodeCount(), graph.getNodeCount());
 
 		A = A.blank(); // create an empty matrix of size n
 
-		EdgeCursor edge_list = graph.edges(); // added
+		Iterator<Edge> edge_list = graph.edges().iterator(); // added
 
-		while (edge_list.ok()) {
+		while (edge_list.hasNext()) {
 
-			Edge edge = edge_list.edge();
+			Edge edge = edge_list.next();
 
-			A.set(edge.source().index(), edge.target().index(), graph.getEdgeWeight(edge));
-
-			edge_list.next();
-			
+			A.set(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex(), graph.getEdgeWeight(edge));
 		}
 
 		return A;

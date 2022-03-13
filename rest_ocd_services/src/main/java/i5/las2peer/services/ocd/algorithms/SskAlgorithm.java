@@ -5,13 +5,7 @@ import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -21,10 +15,9 @@ import org.la4j.vector.dense.BasicVector;
 import org.la4j.vector.functor.VectorAccumulator;
 import org.la4j.vector.sparse.CompressedVector;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 public class SskAlgorithm implements OcdAlgorithm {
 	
@@ -155,38 +148,36 @@ public class SskAlgorithm implements OcdAlgorithm {
 		Matrix updatedMemberships = initMembershipMatrix(graph, leaders);
 		Vector membershipContributionVector;
 		Vector updatedMembershipVector;
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodesIt = graph.nodes().iterator();
 		Node node;
-		NodeCursor successors;
+		Iterator<Node> successorsIt;
 		Node successor;
 		double coefficient;
 		int iteration = 0;
 		do {
 			memberships = updatedMemberships;
 			updatedMemberships = new CCSMatrix(memberships.rows(), memberships.columns());
-			while(nodes.ok()) {
+			while(nodesIt.hasNext()) {
 				if(Thread.interrupted()) {
 					throw new InterruptedException();
 				}
-				node = nodes.node();
+				node = nodesIt.next();
 				if(!leaders.keySet().contains(node)) {
-					successors = node.successors();
+					successorsIt = graph.getSuccessorNeighbours(node).iterator();
 					updatedMembershipVector = new CompressedVector(memberships.columns());
-					while(successors.ok()) {
-						successor = successors.node();
-						coefficient = coefficients.get(successor.index(), node.index());
-						membershipContributionVector = memberships.getRow(successor.index()).multiply(coefficient);
+					while(successorsIt.hasNext()) {
+						successor = successorsIt.next();
+						coefficient = coefficients.get(successor.getIndex(), node.getIndex());
+						membershipContributionVector = memberships.getRow(successor.getIndex()).multiply(coefficient);
 						updatedMembershipVector = updatedMembershipVector.add(membershipContributionVector);
-						successors.next();
 					}
-					updatedMemberships.setRow(node.index(), updatedMembershipVector);
+					updatedMemberships.setRow(node.getIndex(), updatedMembershipVector);
 				}
 				else {
-					updatedMemberships.set(node.index(), leaders.get(node), 1);
+					updatedMemberships.set(node.getIndex(), leaders.get(node), 1);
 				}
-				nodes.next();
 			}
-			nodes.toFirst();
+			nodesIt = graph.nodes().iterator();
 			iteration++;
 		} while (getMaxDifference(updatedMemberships, memberships) > membershipsPrecisionFactor
 				&& iteration < membershipsIterationBound);
@@ -230,23 +221,22 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 */
 	protected Matrix initMembershipMatrix(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
 		int communityCount = Collections.max(leaders.values()) + 1;
-		Matrix memberships = new CCSMatrix(graph.nodeCount(), communityCount);
-		NodeCursor nodes = graph.nodes();
+		Matrix memberships = new CCSMatrix(graph.getNodeCount(), communityCount);
+		Iterator<Node> nodesIt = graph.nodes().iterator();
 		Node node;
-		while(nodes.ok()) {
+		while(nodesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			node = nodes.node();
+			node = nodesIt.next();
 			if(leaders.keySet().contains(node)) {
-				memberships.set(node.index(), leaders.get(node), 1);
+				memberships.set(node.getIndex(), leaders.get(node), 1);
 			}
 			else {
 				for(int i=0; i<memberships.columns(); i++) {
-					memberships.set(node.index(), i, 1d / communityCount);
+					memberships.set(node.getIndex(), i, 1d / communityCount);
 				}
 			}
-			nodes.next();
 		}
 		return memberships;
 	}
@@ -261,16 +251,15 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix initMembershipCoefficientMatrix(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
-		Matrix coefficients = new CCSMatrix(graph.nodeCount(), graph.nodeCount());
-		EdgeCursor edges = graph.edges();
+		Matrix coefficients = new CCSMatrix(graph.getNodeCount(), graph.getNodeCount());
+		Iterator<Edge> edgesIt = graph.edges().iterator();
 		Edge edge;
-		while(edges.ok()) {
+		while(edgesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			edge = edges.edge();
-			coefficients.set(edge.target().index(), edge.source().index(), graph.getEdgeWeight(edge));
-			edges.next();
+			edge = edgesIt.next();
+			coefficients.set(edge.getTargetNode().getIndex(), edge.getSourceNode().getIndex(), graph.getEdgeWeight(edge));
 		}
 		Vector column;
 		double norm;
@@ -298,9 +287,9 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Integer> determineGlobalLeaders(CustomGraph graph, Matrix transitionMatrix, Vector totalInfluences) throws InterruptedException{
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodesIt = graph.nodes().iterator();
 		Node node;
-		NodeCursor successors;
+		Iterator<Node> successorsIt;
 		Node successor;
 		double relativeInfluence;
 		double maxRelativeInfluence;
@@ -310,17 +299,17 @@ public class SskAlgorithm implements OcdAlgorithm {
 		double nodeInfluenceOnNeighbor;
 		double neighborInfluenceOnNode;
 		int communityCount = 0;
-		while(nodes.ok()) {
+		while(nodesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			node = nodes.node();
-			successors = node.successors();
+			node = nodesIt.next();
+			successorsIt = graph.getSuccessorNeighbours(node).iterator();
 			maxRelativeInfluence = Double.NEGATIVE_INFINITY;
 			maxRelativeInfluenceNeighbors = new ArrayList<Node>();
-			while(successors.ok()) {
-				successor = successors.node();
-				relativeInfluence = transitionMatrix.get(successor.index(), node.index());
+			while(successorsIt.hasNext()) {
+				successor = successorsIt.next();
+				relativeInfluence = transitionMatrix.get(successor.getIndex(), node.getIndex());
 				if(relativeInfluence >= maxRelativeInfluence) {
 					if(relativeInfluence > maxRelativeInfluence) {
 						maxRelativeInfluenceNeighbors.clear();
@@ -328,15 +317,14 @@ public class SskAlgorithm implements OcdAlgorithm {
 					}
 					maxRelativeInfluenceNeighbors.add(successor);
 				}
-				successors.next();
 			}
 			currentCommunityLeaders = new ArrayList<Node>();
 			currentCommunityLeaders.add(node);
 			for(int i=0; i<maxRelativeInfluenceNeighbors.size(); i++) {
 				Node maxRelativeInfluenceNeighbor = maxRelativeInfluenceNeighbors.get(i);
-				nodeInfluenceOnNeighbor = totalInfluences.get(node.index())
-						* transitionMatrix.get(node.index(), maxRelativeInfluenceNeighbor.index());
-				neighborInfluenceOnNode = totalInfluences.get(maxRelativeInfluenceNeighbor.index())
+				nodeInfluenceOnNeighbor = totalInfluences.get(node.getIndex())
+						* transitionMatrix.get(node.getIndex(), maxRelativeInfluenceNeighbor.getIndex());
+				neighborInfluenceOnNode = totalInfluences.get(maxRelativeInfluenceNeighbor.getIndex())
 						* maxRelativeInfluence;
 				if(neighborInfluenceOnNode > nodeInfluenceOnNeighbor) {
 					/*
@@ -349,7 +337,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 					/*
 					 * There are potentially several community leaders.
 					 */
-					if(maxRelativeInfluenceNeighbor.index() < node.index()) {
+					if(maxRelativeInfluenceNeighbor.getIndex() < node.getIndex()) {
 						/*
 						 * Will detected community leaders only once in the iteration over the
 						 * node with the lowest index.
@@ -372,7 +360,6 @@ public class SskAlgorithm implements OcdAlgorithm {
 			if(currentCommunityLeaders.size() > 0) {
 				communityCount++;
 			}
-			nodes.next();
 		}
 		return communityLeaders;
 	}
@@ -407,23 +394,21 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix calculateTransitionMatrix(CustomGraph graph) throws InterruptedException {
-		Matrix transitionMatrix = new CCSMatrix(graph.nodeCount(), graph.nodeCount());
-		NodeCursor nodes = graph.nodes();
+		Matrix transitionMatrix = new CCSMatrix(graph.getNodeCount(), graph.getNodeCount());
+		Iterator<Node> nodesIt = graph.nodes().iterator();
 		Node node;
-		NodeCursor predecessors;
+		Iterator<Node> predecessorsIt;
 		Node predecessor;
-		while(nodes.ok()) {
+		while(nodesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			node = nodes.node();
-			predecessors = node.predecessors();
-			while(predecessors.ok()) {
-				predecessor = predecessors.node();
-				transitionMatrix.set(node.index(), predecessor.index(), calculateTransitiveLinkWeight(graph, node, predecessor));
-				predecessors.next();
+			node = nodesIt.next();
+			predecessorsIt = graph.getPredecessorNeighbours(node).iterator();
+			while(predecessorsIt.hasNext()) {
+				predecessor = predecessorsIt.next();
+				transitionMatrix.set(node.getIndex(), predecessor.getIndex(), calculateTransitiveLinkWeight(graph, node, predecessor));
 			}
-			nodes.next();
 		}
 		Vector column;
 		double norm;
@@ -448,30 +433,29 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @param source The link source.
 	 * @return The transitive link weight from source to target.
 	 */
-	protected double calculateTransitiveLinkWeight(CustomGraph graph, Node target, Node source) {
-		NodeCursor successors = source.successors();
+	protected double calculateTransitiveLinkWeight(CustomGraph graph, Node target, Node source) throws InterruptedException {
+		Iterator<Node> successorsIt = graph.getSuccessorNeighbours(source).iterator();
 		Node successor;
 		double transitiveLinkWeight = 0;
 		double linkWeight;
 		Edge targetEdge;
-		while(successors.ok()) {
-			successor = successors.node();
+		while(successorsIt.hasNext()) {
+			successor = successorsIt.next();
 			if(successor != target) {
-				targetEdge = successor.getEdgeTo(target);
+				targetEdge = successor.getEdgeToward(target);
 				if(targetEdge != null) {
 					/*
 					 * Contribution to the transitive link weight is chosen as the minimum weight
 					 * of the two triangle edges.
 					 */
-					linkWeight = graph.getEdgeWeight(source.getEdgeTo(successor));
+					linkWeight = graph.getEdgeWeight(source.getEdgeToward(successor));
 					linkWeight = Math.min(linkWeight, graph.getEdgeWeight(targetEdge));
 					transitiveLinkWeight += linkWeight;
 				}
 			}
 			else {
-				transitiveLinkWeight += graph.getEdgeWeight(source.getEdgeTo(target));
+				transitiveLinkWeight += graph.getEdgeWeight(source.getEdgeToward(target));
 			}
-			successors.next();
 		}
 		return transitiveLinkWeight;
 	}

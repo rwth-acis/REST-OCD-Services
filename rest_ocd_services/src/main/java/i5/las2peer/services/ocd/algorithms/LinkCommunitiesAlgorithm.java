@@ -6,14 +6,8 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.utils.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -21,10 +15,9 @@ import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 import org.la4j.vector.sparse.CompressedVector;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * The original standard version of the Link Communities Algorithm.
@@ -132,63 +125,60 @@ public class LinkCommunitiesAlgorithm implements
 	}
 
 private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkageDegrees) throws InterruptedException {
-		Matrix similarities = new CCSMatrix(graph.edgeCount(), graph.edgeCount());
-		EdgeCursor rowEdges = graph.edges();
+		Matrix similarities = new CCSMatrix(graph.getEdgeCount(), graph.getEdgeCount());
+		Iterator<Edge> rowEdgesIt = graph.edges().iterator();
 		Edge rowEdge;
 		Node source;
 		Node target;
 		List<Integer> edgeIndices = new ArrayList<Integer>();
-		EdgeCursor columnEdges;
+		Iterator<Edge>  columnEdges;
 		Edge columnEdge;
 		Edge reverseRowEdge;
 		Edge reverseColumnEdge;
 		double similarity;
-		while(rowEdges.ok()) {
+		while(rowEdgesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			rowEdge = rowEdges.edge();
-			source = rowEdge.source();
-			target = rowEdge.target();
-			reverseRowEdge = target.getEdgeTo(source);
+			rowEdge = rowEdgesIt.next();
+			source = rowEdge.getSourceNode();
+			target = rowEdge.getTargetNode();
+			reverseRowEdge = target.getEdgeToward(source);
 			/*
 			 * Sets similarities only if they have not been set already for the reverse Edge.
 			 */
-			if(reverseRowEdge == null || rowEdge.index() < reverseRowEdge.index()) {
+			if(reverseRowEdge == null || rowEdge.getIndex() < reverseRowEdge.getIndex()) {
 				/*
 				 * Sets similarities for in and out edges of the row edge target node.
 				 */
-				edgeIndices.add(rowEdge.index());
-				columnEdges = target.edges();
-				while(columnEdges.ok()) {
-					columnEdge = columnEdges.edge();
-					if(columnEdge.index() < rowEdge.index()) {
-						reverseColumnEdge = columnEdge.target().getEdgeTo(columnEdge.source());
-						if(reverseColumnEdge == null || columnEdge.index() < reverseColumnEdge.index()) {
-							similarity = getSimpleSimilarity(source, columnEdge.opposite(target));
-							similarities.set(rowEdge.index(), columnEdge.index(), similarity);
+				edgeIndices.add(rowEdge.getIndex());
+				columnEdges = target.edges().iterator();
+				while(columnEdges.hasNext()) {
+					columnEdge = columnEdges.next();
+					if(columnEdge.getIndex() < rowEdge.getIndex()) {
+						reverseColumnEdge = columnEdge.getTargetNode().getEdgeToward(columnEdge.getSourceNode());
+						if(reverseColumnEdge == null || columnEdge.getIndex() < reverseColumnEdge.getIndex()) {
+							similarity = getSimpleSimilarity(source, columnEdge.getOpposite(target));
+							similarities.set(rowEdge.getIndex(), columnEdge.getIndex(), similarity);
 						}
 					}
-					columnEdges.next();
 				}
 				/*
 				 * Sets similarities for in edges of the row edge source node.
 				 * If a reverse edge of the row edge exists, it is set for the out edges also.
 				 */
-				columnEdges = source.edges();
-				while(columnEdges.ok()) {
-					columnEdge = columnEdges.edge();
-					if(columnEdge.index() < rowEdge.index() && columnEdge.source() != target) {
-						reverseColumnEdge = columnEdge.target().getEdgeTo(columnEdge.source());
-						if(reverseColumnEdge == null || columnEdge.index() < reverseColumnEdge.index()) {
-							similarity = getSimpleSimilarity(target, columnEdge.opposite(source));
-							similarities.set(rowEdge.index(), columnEdge.index(), similarity);
+				columnEdges = source.edges().iterator();
+				while(columnEdges.hasNext()) {
+					columnEdge = columnEdges.next();
+					if(columnEdge.getIndex() < rowEdge.getIndex() && columnEdge.getSourceNode() != target) {
+						reverseColumnEdge = columnEdge.getTargetNode().getEdgeToward(columnEdge.getSourceNode());
+						if(reverseColumnEdge == null || columnEdge.getIndex() < reverseColumnEdge.getIndex()) {
+							similarity = getSimpleSimilarity(target, columnEdge.getOpposite(source));
+							similarities.set(rowEdge.getIndex(), columnEdge.getIndex(), similarity);
 						}
 					}
-					columnEdges.next();
 				}
 			}
-			rowEdges.next();
 		}
 		int[] indices = new int[edgeIndices.size()];
 		for(int i=0; i<edgeIndices.size(); i++) {
@@ -212,29 +202,28 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 	 */
 	private List<Vector> calculateLinkageDegrees(CustomGraph graph) throws InterruptedException {
 		List<Vector> linkageDegrees = new ArrayList<Vector>();
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodesIt = graph.nodes().iterator();
 		Vector degreeVector;
 		Node node;
 		Node neighbor;
-		EdgeCursor edges;
+		Iterator<Edge> edgesIt;
 		Edge edge;
 		double linkageDegree;
 		double neutral;
 		double averageWeight;
-		while(nodes.ok()) {
-			degreeVector = new CompressedVector(graph.nodeCount());
-			node = nodes.node();
-			edges = node.edges();
-			while(edges.ok()) {
+		while(nodesIt.hasNext()) {
+			degreeVector = new CompressedVector(graph.getNodeCount());
+			node = nodesIt.next();
+			edgesIt = node.edges().iterator();
+			while(edgesIt.hasNext()) {
 				if(Thread.interrupted()) {
 					throw new InterruptedException();
 				}
-				edge = edges.edge();
-				neighbor = edges.edge().opposite(node);
-				linkageDegree = degreeVector.get(neighbor.index());
-				linkageDegree += graph.getEdgeWeight(edge) / node.degree();
-				degreeVector.set(neighbor.index(), linkageDegree);
-				edges.next();
+				edge = edgesIt.next();
+				neighbor = edge.getOpposite(node);
+				linkageDegree = degreeVector.get(neighbor.getIndex());
+				linkageDegree += graph.getEdgeWeight(edge) / node.getDegree();
+				degreeVector.set(neighbor.getIndex(), linkageDegree);
 			}
 			/*
 			 * Calculates the entry corresponding the node index as the average weight
@@ -242,9 +231,8 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 			 */
 			neutral = 0;
 			averageWeight = degreeVector.fold(Vectors.asSumAccumulator(neutral));
-			degreeVector.set(node.index(), averageWeight);
+			degreeVector.set(node.getIndex(), averageWeight);
 			linkageDegrees.add(degreeVector);
-			nodes.next();
 		}
 		return linkageDegrees;
 	}
@@ -370,18 +358,18 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 	 */
 	private void initDendrogramCreation(CustomGraph graph, List<Set<Edge>> communityEdges,
 			List<Set<Node>> communityNodes, List<Double> communityLinkDensities) throws InterruptedException {
-		EdgeCursor edges = graph.edges();
+		Iterator<Edge> edgesIt = graph.edges().iterator();
 		Set<Edge> initEdgeSet;
 		Set<Node> initNodeSet;
 		Edge edge;
 		Edge reverseEdge;
-		while(edges.ok()) {
+		while(edgesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			edge = edges.edge();
-			reverseEdge = edge.target().getEdgeTo(edge.source());
-			if(reverseEdge == null || edge.index() < reverseEdge.index()) {
+			edge = edgesIt.next();
+			reverseEdge = edge.getTargetNode().getEdgeToward(edge.getSourceNode());
+			if(reverseEdge == null || edge.getIndex() < reverseEdge.getIndex()) {
 				initEdgeSet = new HashSet<Edge>();
 				initEdgeSet.add(edge);
 				if(reverseEdge != null) {
@@ -389,12 +377,11 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 				}
 				communityEdges.add(initEdgeSet);
 				initNodeSet = new HashSet<Node>();
-				initNodeSet.add(edge.source());
-				initNodeSet.add(edge.target());
+				initNodeSet.add(edge.getSourceNode());
+				initNodeSet.add(edge.getTargetNode());
 				communityNodes.add(initNodeSet);
 				communityLinkDensities.add(0d);
 			}
-			edges.next();
 		}
 	}
 	
@@ -416,7 +403,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 	 * @return A normalized cover of the graph.
 	 */
 	private Cover calculatePartitionCover(CustomGraph graph, List<Set<Edge>> partition) throws InterruptedException {
-		Matrix memberships = new CCSMatrix(graph.nodeCount(), partition.size());
+		Matrix memberships = new CCSMatrix(graph.getNodeCount(), partition.size());
 		double belongingFactor;
 		double edgeWeight;
 		for(int i=0; i<partition.size(); i++) {
@@ -425,10 +412,10 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 					throw new InterruptedException();
 				}
 				edgeWeight = graph.getEdgeWeight(edge);
-				belongingFactor = memberships.get(edge.target().index(), i) + edgeWeight;
-				memberships.set(edge.target().index(), i, belongingFactor);
-				belongingFactor = memberships.get(edge.source().index(), i) + edgeWeight;
-				memberships.set(edge.source().index(), i, belongingFactor);
+				belongingFactor = memberships.get(edge.getTargetNode().getIndex(), i) + edgeWeight;
+				memberships.set(edge.getTargetNode().getIndex(), i, belongingFactor);
+				belongingFactor = memberships.get(edge.getSourceNode().getIndex(), i) + edgeWeight;
+				memberships.set(edge.getSourceNode().getIndex(), i, belongingFactor);
 			}
 		}
 		return new Cover(graph, memberships);
@@ -437,7 +424,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 	private double getSimpleSimilarity(Node nodeA, Node nodeB) {
 		Set<Node> commonNeighbors = new HashSet<Node>();
 		Set<Node> totalNeighbors = new HashSet<Node>();
-		if(nodeB.getEdgeTo(nodeA) != null) {
+		if(nodeB.getEdgeToward(nodeA) != null) {
 			commonNeighbors.add(nodeA);
 			commonNeighbors.add(nodeB);
 		}
@@ -446,23 +433,21 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 		/*
 		 * Check nodeA neighbors.
 		 */
-		NodeCursor neighbors = nodeA.neighbors();
+		Iterator<Node> neighborsIt = nodeA.neighborNodes().iterator();
 		Node neighbor;
-		while(neighbors.ok()) {
-			neighbor = neighbors.node();
-			if(neighbor.getEdge(nodeB) != null) {
+		while(neighborsIt.hasNext()) {
+			neighbor = neighborsIt.next();
+			if(neighbor.getEdgeBetween(nodeB) != null) {
 				commonNeighbors.add(neighbor);
 			}
 			totalNeighbors.add(neighbor);
-			neighbors.next();
 		}
 		/*
 		 * Checks nodeB neighbors.
 		 */
-		neighbors = nodeB.neighbors();
-		while(neighbors.ok()) {
-			totalNeighbors.add(neighbors.node());
-			neighbors.next();
+		neighborsIt = nodeB.neighborNodes().iterator();
+		while(neighborsIt.hasNext()) {
+			totalNeighbors.add(neighborsIt.next());
 		}
 		return (double)commonNeighbors.size() / (double)totalNeighbors.size();
 	}

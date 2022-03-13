@@ -35,7 +35,6 @@ import y.base.NodeCursor;
  * @author YLi
  */
 public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
-
 	/**
 	 * Path of the directory reserved for the application.
 	 */

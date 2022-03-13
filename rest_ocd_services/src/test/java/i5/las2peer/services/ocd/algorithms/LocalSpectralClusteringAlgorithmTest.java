@@ -18,8 +18,6 @@ import org.junit.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.*;
 
-import y.base.Node;
-
 public class LocalSpectralClusteringAlgorithmTest {
 
 	/*

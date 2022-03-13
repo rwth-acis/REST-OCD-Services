@@ -22,9 +22,9 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.Edge;
-import y.base.EdgeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 import java.security.SecureRandom;
 
@@ -198,7 +198,7 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 		Random rndGenerator = new Random();
 		
 		edgeProbabilities = new CCSMatrix(communityCount,communityCount);
-		nodeProbabilities = new CCSMatrix(communityCount,graph.nodeCount());
+		nodeProbabilities = new CCSMatrix(communityCount,graph.getNodeCount());
 		
 		// Set w_rs
 		for(int r=0; r<communityCount; r++) {
@@ -209,11 +209,11 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 		}
 		
 		// Set 0_ri
-		Node nodes[] = graph.getNodeArray();
+		Node nodes[] = graph.nodes().toArray(Node[]::new);
 		for(int r=0; r<communityCount; r++) {
-			for(int i=0; i<graph.getNodeArray().length; i++) {
+			for(int i=0; i<graph.getNodeCount(); i++) {
 					rndGenerator.setSeed(System.nanoTime());
-					nodeProbabilities.set(r, nodes[i].index(), rndGenerator.nextDouble() *100 + 1.0);
+					nodeProbabilities.set(r, nodes[i].getIndex(), rndGenerator.nextDouble() *100 + 1.0);
 			}
 			nodeProbabilities.setRow(r, nodeProbabilities.getRow(r).multiply(1.0 / nodeProbabilities.getRow(r).sum()));			
 		}
@@ -225,21 +225,21 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 	 * @return the membership matrix. Nodes are rows, communities columns
 	 */
 	public Matrix getMembershipMatrix(CustomGraph graph) {
-		Matrix membershipMatrix = new CCSMatrix(graph.nodeCount(), communityCount);
-		for(Node node : graph.getNodeArray()) {
+		Matrix membershipMatrix = new CCSMatrix(graph.getNodeCount(), communityCount);
+		for(Node node : graph.nodes().toArray(Node[]::new)) {
 			double outgoingProbSum[] = new double[communityCount];
 			double allProbSum = 0.0;
 			
 			for(int r=0; r<communityCount; r++) {
 				outgoingProbSum[r] = 0.0;
 				for(int s=0; s<communityCount; s++) {
-					outgoingProbSum[r] += edgeProbabilities.get(r, s) * nodeProbabilities.get(r, node.index());
+					outgoingProbSum[r] += edgeProbabilities.get(r, s) * nodeProbabilities.get(r, node.getIndex());
 				}
 				allProbSum += outgoingProbSum[r];
 			}
 			
 			for(int r=0; r<communityCount; r++) {
-				membershipMatrix.set(node.index(), r, (allProbSum != 0 ? outgoingProbSum[r] / allProbSum : 1.0/communityCount));
+				membershipMatrix.set(node.getIndex(), r, (allProbSum != 0 ? outgoingProbSum[r] / allProbSum : 1.0/communityCount));
 			}
 		}
 		return membershipMatrix;
@@ -256,15 +256,15 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 		//E STEP
 		HashMap<Edge, Vector> posEdgeHiddenCommProbs = new HashMap<Edge, Vector>(); //q_ijr
 		HashMap<Edge, Matrix> negEdgeHiddenCommProbs = new HashMap<Edge, Matrix>(); //Q_ijrs (r!=s), 0 (r=s)
-		for(Edge edge : graph.getEdgeArray()) {			
+		for(Edge edge : graph.edges().toArray(Edge[]::new)) {
 			if(graph.getEdgeWeight(edge) >= 0) {
 				Vector positiveProbabilities = new BasicVector(communityCount);
 				double previousEdgeProbsSum = 0.0;
 				for(int r=0; r<communityCount; r++) {
-					previousEdgeProbsSum += edgeProbabilities.get(r, r)*nodeProbabilities.get(r, edge.source().index())*nodeProbabilities.get(r, edge.target().index()); // E_r(wrr*0ri*0rj)
+					previousEdgeProbsSum += edgeProbabilities.get(r, r)*nodeProbabilities.get(r, edge.getSourceNode().getIndex())*nodeProbabilities.get(r, edge.getTargetNode().getIndex()); // E_r(wrr*0ri*0rj)
 				}
 				for(int r=0; r<communityCount; r++) {
-					positiveProbabilities.set(r, (previousEdgeProbsSum == 0.0 ? Double.MIN_VALUE : edgeProbabilities.get(r, r)*nodeProbabilities.get(r, edge.source().index())*nodeProbabilities.get(r, edge.target().index()) / previousEdgeProbsSum)); // wrr*0ri*0rj / E_r(wrr*0ri*0rj)
+					positiveProbabilities.set(r, (previousEdgeProbsSum == 0.0 ? Double.MIN_VALUE : edgeProbabilities.get(r, r)*nodeProbabilities.get(r, edge.getSourceNode().getIndex())*nodeProbabilities.get(r, edge.getTargetNode().getIndex()) / previousEdgeProbsSum)); // wrr*0ri*0rj / E_r(wrr*0ri*0rj)
 				}
 				posEdgeHiddenCommProbs.put(edge, positiveProbabilities);
 			}
@@ -274,7 +274,7 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 				for(int r=0; r<communityCount; r++) {
 					for(int s=0; s<communityCount; s++) {
 						if(r!=s) {
-							previousEdgeProbsSum += edgeProbabilities.get(r, s)*nodeProbabilities.get(r, edge.source().index())*nodeProbabilities.get(s, edge.target().index()); // E_rs(wrs*0ri*0sj)
+							previousEdgeProbsSum += edgeProbabilities.get(r, s)*nodeProbabilities.get(r, edge.getSourceNode().getIndex())*nodeProbabilities.get(s, edge.getTargetNode().getIndex()); // E_rs(wrs*0ri*0sj)
 						}
 						else 
 						{
@@ -285,7 +285,7 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 				for(int r=0; r<communityCount; r++) {
 					for(int s=0; s<communityCount; s++) {
 						if(r!=s) {
-							negativeProbabilities.set(r,s, (previousEdgeProbsSum == 0.0 ? Double.MIN_VALUE : edgeProbabilities.get(r, s)*nodeProbabilities.get(r, edge.source().index())*nodeProbabilities.get(s, edge.target().index()) / previousEdgeProbsSum)); // wrs*0ri*0sj / E_rs(wrs*0ri*0sj)
+							negativeProbabilities.set(r,s, (previousEdgeProbsSum == 0.0 ? Double.MIN_VALUE : edgeProbabilities.get(r, s)*nodeProbabilities.get(r, edge.getSourceNode().getIndex())*nodeProbabilities.get(s, edge.getTargetNode().getIndex()) / previousEdgeProbsSum)); // wrs*0ri*0sj / E_rs(wrs*0ri*0sj)
 						}
 						else 
 						{
@@ -299,21 +299,21 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 		
 		//M STEP
 		Matrix edgeHiddenProbSums = new CCSMatrix(communityCount,communityCount); // w_rs, on diagonal: w_rr
-		Matrix nodeHiddenProbSums = new CCSMatrix(communityCount,graph.nodeCount()); // 0_ri
+		Matrix nodeHiddenProbSums = new CCSMatrix(communityCount,graph.getNodeCount()); // 0_ri
 		for(int r=0; r<communityCount; r++) {
 			for(int s=0; s<communityCount; s++) {				
-				for(Edge edge : graph.getEdgeArray()) {			
+				for(Edge edge : graph.edges().toArray(Edge[]::new)) {
 					if(r!=s && graph.getEdgeWeight(edge) < 0)
 					{
 						edgeHiddenProbSums.set(r,s, edgeHiddenProbSums.get(r, s) + negEdgeHiddenCommProbs.get(edge).get(r,s) * (-graph.getEdgeWeight(edge))); // E_ij(Q_ijrs * A^-_ij) for w_rs
 						
-						nodeHiddenProbSums.set(r, edge.source().index(), nodeHiddenProbSums.get(r, edge.source().index()) + negEdgeHiddenCommProbs.get(edge).get(r,s) * (-graph.getEdgeWeight(edge))); // E_js(Q_ijrs * A^-_ij) for 0_ri
+						nodeHiddenProbSums.set(r, edge.getSourceNode().getIndex(), nodeHiddenProbSums.get(r, edge.getSourceNode().getIndex()) + negEdgeHiddenCommProbs.get(edge).get(r,s) * (-graph.getEdgeWeight(edge))); // E_js(Q_ijrs * A^-_ij) for 0_ri
 					}
 					else if(r==s && graph.getEdgeWeight(edge) >= 0)
 					{
 						edgeHiddenProbSums.set(r,r, edgeHiddenProbSums.get(r, r) + posEdgeHiddenCommProbs.get(edge).get(r) * graph.getEdgeWeight(edge)); // E_ij(q_ijr * A^+_ij) for w_rr
 						
-						nodeHiddenProbSums.set(r, edge.source().index(), nodeHiddenProbSums.get(r, edge.source().index()) + posEdgeHiddenCommProbs.get(edge).get(r) * graph.getEdgeWeight(edge)); // E_j(q_ijr * A^+_ij) for 0_ri
+						nodeHiddenProbSums.set(r, edge.getSourceNode().getIndex(), nodeHiddenProbSums.get(r, edge.getSourceNode().getIndex()) + posEdgeHiddenCommProbs.get(edge).get(r) * graph.getEdgeWeight(edge)); // E_j(q_ijr * A^+_ij) for 0_ri
 					}
 				}
 			}
@@ -334,8 +334,8 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 		}
 		
 		for(int r=0; r<communityCount; r++) {
-			for(Node node : graph.getNodeArray()) {
-				nodeProbabilities.set(r, node.index(), nodeHiddenProbSums.get(r, node.index()) / nodeHiddenProbSumsSum[r] ); // Calculate 0_ri				
+			for(Node node : graph.nodes().toArray(Node[]::new)) {
+				nodeProbabilities.set(r, node.getIndex(), nodeHiddenProbSums.get(r, node.getIndex()) / nodeHiddenProbSumsSum[r] ); // Calculate 0_ri				
 			}			
 		}
 		
@@ -349,7 +349,7 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 	public double calculateLikelihood(CustomGraph graph) {
 		double logLikelihood = 0.0;
 		
-		for(Edge edge : graph.getEdgeArray()) {
+		for(Edge edge : graph.edges().toArray(Edge[]::new)) {
 			double communityProbSum = 0.0;
 			if(graph.getEdgeWeight(edge) < 0) 
 			{
@@ -357,7 +357,7 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 					for(int s=0; s<communityCount; s++) {
 						if(r!=s) 
 						{
-							communityProbSum += edgeProbabilities.get(r, s) * nodeProbabilities.get(r, edge.source().index()) * nodeProbabilities.get(s, edge.target().index());
+							communityProbSum += edgeProbabilities.get(r, s) * nodeProbabilities.get(r, edge.getSourceNode().getIndex()) * nodeProbabilities.get(s, edge.getTargetNode().getIndex());
 						}
 					}
 				}
@@ -365,7 +365,7 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 			else 
 			{
 				for(int r=0; r<communityCount; r++) {
-					communityProbSum += edgeProbabilities.get(r, r) * nodeProbabilities.get(r, edge.source().index()) * nodeProbabilities.get(r, edge.target().index());
+					communityProbSum += edgeProbabilities.get(r, r) * nodeProbabilities.get(r, edge.getSourceNode().getIndex()) * nodeProbabilities.get(r, edge.getTargetNode().getIndex());
 				}
 			}
 			logLikelihood += (graph.getEdgeWeight(edge) > 0 ? graph.getEdgeWeight(edge) : -graph.getEdgeWeight(edge)) * (communityProbSum == 0.0 ? -Double.MAX_VALUE : Math.log(communityProbSum));			

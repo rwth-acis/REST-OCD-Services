@@ -4,7 +4,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import java.util.Map;
 
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 /**
  * Abstract Class for the Listener Rule used by the Speaker Listener

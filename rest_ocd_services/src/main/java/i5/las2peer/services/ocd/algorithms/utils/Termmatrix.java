@@ -27,8 +27,8 @@ import org.apache.lucene.util.BytesRef;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 
 public class Termmatrix {
 
@@ -45,7 +45,7 @@ public class Termmatrix {
 	
 	public  Termmatrix(CustomGraph graph) throws OcdAlgorithmException{
 		
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodesIt = graph.nodes().iterator();
 		Node node; 
 		this.wordlist = new LinkedList<String>();
 		
@@ -70,8 +70,8 @@ public class Termmatrix {
 		ArrayRealVector vector = new ArrayRealVector(wordlist.size());
 		this.matrix = new Array2DRowRealMatrix(indexMap.size(),wordlist.size() );
 		
-		while(nodes.ok()){
-			node = nodes.node();
+		while(nodesIt.hasNext()){
+			node = nodesIt.next();
 			this.addNode(node);
 			name = graph.getNodeName(node);
 			valueMap = indexMap.get(name);
@@ -82,7 +82,6 @@ public class Termmatrix {
 			}
 			this.matrix.setRowVector(row, vector);
 			row++;
-			nodes.next();
 		}
 		/*while(nodes.ok()){
 			node = nodes.node();
@@ -323,7 +322,7 @@ public class Termmatrix {
 	
 	private HashMap<String,HashMap<String,Double>> computeTFIDF(CustomGraph graph){
 		HashMap<String,HashMap<String,Double>> res = new HashMap<String,HashMap<String,Double>>();
-		int noOfDocs = graph.nodes().size();
+		int noOfDocs = graph.getNodeCount();
 		String indexPath = graph.getPath();
 		//NodeCursor nodes = graph.nodes();
 		TermsEnum termEnum = null;

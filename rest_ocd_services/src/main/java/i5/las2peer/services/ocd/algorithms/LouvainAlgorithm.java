@@ -129,7 +129,7 @@ public class LouvainAlgorithm implements OcdAlgorithm {
    */
   public Matrix getMembershipMatrix(CustomGraph graph, int[] communitiesPerNode)
 		  throws InterruptedException {
-	  Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communitiesPerNode.length);
+	  Matrix membershipMatrix = new Basic2DMatrix(graph.getNodeCount(), communitiesPerNode.length);
 	  membershipMatrix = membershipMatrix.blank();
 	  
 	  for(int i=0; i<communitiesPerNode.length; i++) {
@@ -152,7 +152,7 @@ public class LouvainAlgorithm implements OcdAlgorithm {
 			  communityCount++;
 		  }
 	  }
-	  membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communityCount);
+	  membershipMatrix = new Basic2DMatrix(graph.getNodeCount(), communityCount);
 	  for(int j=0; j<filledColumns.size(); j++) {
 		  if(Thread.interrupted()) {
 				throw new InterruptedException();
