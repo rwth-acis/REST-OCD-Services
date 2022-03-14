@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import i5.las2peer.services.ocd.algorithms.mea.MeaAlgorithm;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -32,9 +33,6 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
- * Implements the algorithm by C. Liu, J. Liu, and Z. Jiang:
- * A multiobjective evolutionary algorithm based on similarity for community detection from signed social networks
- * https://doi.org/10.1109/TCYB.2017.2693558
  * @author YLi
  */
 public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
@@ -47,15 +45,7 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 	 * Used for synchronization purposes. Executes the application execution.
 	 */
 	private static DefaultExecutor executor = new DefaultExecutor();
-	/**
-	 * Path of the application for Linux based on the source codes of Liu et al.
-	 */
-	private static String linuxMeaApplicationPath = "./MeaLinux";
-	/**
-	 * Path of the application for Windows based on the source codes of Liu et
-	 * al.
-	 */
-	private static String windowsMeaApplicationPath = DirectoryPath + "MeaWindows.exe";
+
 	/**
 	 * Path of paj file.
 	 */
@@ -101,18 +91,6 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		synchronized (executor) {
 			try {
-				String executorFilename;
-				if (SystemUtils.IS_OS_LINUX) {
-					executorFilename = linuxMeaApplicationPath;
-				} else if (SystemUtils.IS_OS_WINDOWS) {
-					executorFilename = windowsMeaApplicationPath;
-				}
-				/*
-				 * Benchmark not implemented for this operating system.
-				 */
-				else {
-					throw new OcdAlgorithmException();
-				}
 
 				/*
 				 * The source code of this algorithm requires the first node of
@@ -135,17 +113,14 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 					nodes.next();
 				}
 				writeNetworkFile(graph);
-				CommandLine cmdLine = new CommandLine(executorFilename);
-				cmdLine.addArgument(graphName);
-				File workingDirectory = new File(DirectoryPath);
-				executor.setWorkingDirectory(workingDirectory);
-				DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-				executor.execute(cmdLine, resultHandler);
-				resultHandler.waitFor();
-				if (resultHandler.getExitValue() != 0) {
-					System.out.println(resultHandler.getException());
-					throw new OcdBenchmarkException("MEA Process exit value: " + resultHandler.getExitValue());
-				}
+
+
+
+				try {
+					MeaAlgorithm.executeMEA(graphPath, graphName);
+				}catch(Exception e){}
+
+
 				int nodeCount = graph.nodeCount();
 				Matrix membershipMatrix = translateCommunityFile(LastResultPath, nodeCount);
 				Cover cover = new Cover(graph, membershipMatrix);
