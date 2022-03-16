@@ -224,6 +224,11 @@ public class ServiceClass extends RESTService {
 	 */
 	private int maxInactiveDays;
 
+	/**
+	 * Password to be used to adjust number of days before inactive user content is removed.
+	 */
+	private String inactivityHandlerPassword;
+
 	//////////////////////////////////////////////////////////////////
 	///////// Utility Methods
 	//////////////////////////////////////////////////////////////////
@@ -237,6 +242,8 @@ public class ServiceClass extends RESTService {
 	}
 
 	public int getMaxInactiveDays() { return this.maxInactiveDays; }
+
+	public String getInactivityHandlerPassword(){return this.inactivityHandlerPassword;}
 
 	/**
 	 * This method is used to set fresh field values, in case modifications were made in
@@ -305,6 +312,7 @@ public class ServiceClass extends RESTService {
 		public Response adjustAllowedInactivity(String contentStr) {
 
 			Map<String, String> parameters;
+			String inactivityPassword;
 			int allowedInactivityDays;
 
 			try {
@@ -314,22 +322,13 @@ public class ServiceClass extends RESTService {
 				}
 				String accessCode = parameters.get("AccessCode");
 
-				// hash the access code
-				try {
-					MessageDigest md = MessageDigest.getInstance("SHA-256");
-					byte[] bytes = md.digest(accessCode.getBytes());
-					StringBuilder sb = new StringBuilder();
-					for (int i = 0; i < bytes.length; i++) {
-						sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16)
-								.substring(1));
-					}
-					String generatedPassword = sb.toString();
-					if (!generatedPassword.equals("9c5d7e17dc436d89e06b2f371b83cce601c5340a7153a62b8aa0ae2b0633644c")) {
-						return requestHandler.writeError(Error.INTERNAL, "Access code is invalid.");
-					}
-				} catch (NoSuchAlgorithmException e) {
-					e.printStackTrace();
+				// read most recent password for inactivityHandler
+				service.setFreshFieldValues();
+				inactivityPassword = service.getInactivityHandlerPassword();
+				if(!accessCode.equals(inactivityPassword)){
+					return requestHandler.writeError(Error.INTERNAL, "Access code is invalid.");
 				}
+
 
 				String allowedInactivityDaysString = parameters.get("AllowedInactivityDays");
 				if ((allowedInactivityDaysString == null) || (Integer.parseInt(allowedInactivityDaysString) < 0)) {
@@ -343,10 +342,12 @@ public class ServiceClass extends RESTService {
 
 			}
 
-			// write new allowe inactivity value to ServiceClass properties file
+			// write new allowed inactivity value to ServiceClass properties file
 			try {
 				BufferedWriter writer = new BufferedWriter(new FileWriter("etc/i5.las2peer.services.ocd.ServiceClass.properties"));
 				writer.write("maxInactiveDays=" + allowedInactivityDays);
+				writer.newLine();
+				writer.write("inactivityHandlerPassword=" + inactivityPassword );
 				writer.close();
 			} catch (IOException e) {
 				e.printStackTrace();
