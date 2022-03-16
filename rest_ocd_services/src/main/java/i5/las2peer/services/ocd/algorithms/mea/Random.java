@@ -5,7 +5,7 @@ public class Random {
     /**
      * @param p     Input array
      * @param n     Input index
-     * @return
+     * @return The shuffled array
      */
     public static int[] shuffle(int[] p, int n) {
         int i;

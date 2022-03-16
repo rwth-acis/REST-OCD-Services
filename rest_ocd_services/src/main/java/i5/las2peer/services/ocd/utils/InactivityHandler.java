@@ -161,7 +161,7 @@ public class InactivityHandler {
         if (queryResults.isEmpty()) {
             System.out.println("username " + username + " unknown. creating entry for it.");
             // user unknown, create user entry.
-            Pair<LocalDate, LocalDate> userInactivityTracker = new Pair(currentDate, deletionDate);
+            Pair<LocalDate, LocalDate> userInactivityTracker = new Pair<LocalDate, LocalDate>(currentDate, deletionDate);
             InactivityData inData = new InactivityData(username, userInactivityTracker);
             System.out.println("created entry " + inData.getUsername() + " last login date: " + inData.getLastLoginDate() + " content deletion date: " + inData.getDeletionDate());
             em.persist(inData);
