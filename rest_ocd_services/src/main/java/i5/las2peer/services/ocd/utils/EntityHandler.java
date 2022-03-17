@@ -219,7 +219,7 @@ public class EntityHandler {
 
 		List<CustomGraph> queryResults;
 		EntityManager em = getEntityManager();
-		String queryStr = "SELECT g FROM CustomGraph g WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username";
+		String queryStr = "SELECT g FROM " + CustomGraph.class.getName() + " g WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username";
 		TypedQuery<CustomGraph> query = em.createQuery(queryStr, CustomGraph.class);
 		query.setParameter("username", username);
 		queryResults = query.getResultList();
@@ -245,7 +245,7 @@ public class EntityHandler {
 
 		List<CustomGraph> queryResults;
 		EntityManager em = getEntityManager();
-		String queryStr = "SELECT g FROM CustomGraph g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
+		String queryStr = "SELECT g FROM " + CustomGraph.class.getName() + " g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
 				+ " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND b."
 				+ GraphCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
 		TypedQuery<CustomGraph> query = em.createQuery(queryStr, CustomGraph.class);
@@ -354,6 +354,41 @@ public class EntityHandler {
 				tx.begin();
 				em.remove(em.getReference(Cover.class, id));
 				tx.commit();
+			} catch (RuntimeException e) {
+				if (tx != null && tx.isActive()) {
+					tx.rollback();
+				}
+				throw e;
+			}
+			em.close();
+		}
+	}
+
+	/**
+	 * Removes username from the InactivityData table from the database. This is to ensure that for users whose content
+	 * has been deleted and who are inactive, no processing power is wasted for checking their data.
+	 *
+	 * @param username      Username to remove from the table.
+	 * @param threadHandler the ThreadHandler.
+	 */
+	public void deleteUserInactivityData(String username, ThreadHandler threadHandler) {
+
+		synchronized (threadHandler) {
+			EntityManager em = getEntityManager();
+			EntityTransaction tx = em.getTransaction();
+
+			try {
+				tx.begin();
+				;
+
+				// find user to delete
+				String queryStr = "DELETE FROM " + InactivityData.class.getName() + " d WHERE d." + InactivityData.USER_NAME_FIELD_NAME + " = :username";
+				TypedQuery<InactivityData> query = em.createQuery(queryStr, InactivityData.class);
+				query.setParameter("username", username);
+				query.executeUpdate();
+
+				tx.commit();
+
 			} catch (RuntimeException e) {
 				if (tx != null && tx.isActive()) {
 					tx.rollback();

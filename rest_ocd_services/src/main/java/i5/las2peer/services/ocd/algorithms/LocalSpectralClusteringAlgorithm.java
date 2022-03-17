@@ -62,8 +62,10 @@ import org.ojalgo.optimisation.Optimisation;
 import org.ojalgo.optimisation.Variable;
 
 /**
- * Implements The LEMON Local Spectral Clustering Algorithm by Yi et al. Heavily
- * oriented on https://github.com/YixuanLi/LEMON. Handles Unweighted(for now),
+ * Implements The LEMON Local Spectral Clustering Algorithm by Y Li, K He, K Kloster, D Bindel, J Hopcroft:
+ * Local spectral clustering for overlapping community detection
+ * https://doi.org/10.1145/3106370
+ * Heavily oriented on https://github.com/YixuanLi/LEMON. Handles Unweighted(for now),
  * Directed/Undirected graphs
  */
 public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {

@@ -18,6 +18,11 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implements the Merging of Overlapping Communities Algorithm by F. Havemann, M. Heinz, A. Struck, and J. Glaser:
+ * Identification of overlapping communities and their hierarchy by locally calculating community-changing resolution levels
+ * https://doi.org/10.1088/1742-5468/2011/01/p01023
+ */
 public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 
 	@Override

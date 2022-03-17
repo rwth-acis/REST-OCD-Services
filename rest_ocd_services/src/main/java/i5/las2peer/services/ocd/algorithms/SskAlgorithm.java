@@ -26,6 +26,11 @@ import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
 
+/**
+ * Implement the algorithm by A. Stanoev, D. Smilkov, and L. Kocarev:
+ * Identifying communities by influence dynamics in social networks
+ * https://doi.org/10.1103/PhysRevE.84.046102
+ */
 public class SskAlgorithm implements OcdAlgorithm {
 	
 	/**
