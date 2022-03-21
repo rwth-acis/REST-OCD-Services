@@ -24,8 +24,8 @@ import org.w3c.dom.Element;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 
 @Entity
 @IdClass(CentralityMapId.class)
@@ -146,8 +146,8 @@ public class CentralityMap {
 	 * @param node The node whose value is set.
 	 * @param value The centrality value that is assigned to the node.
 	 */
-	public void setNodeValue(Node node, double value) {
-		if(graph.contains(node)) {
+	public void setNodeValue(Node node, double value) { //TODO: Check If original functionality maintained
+		if(graph.getNode(node.getId()) != null) {
 			map.put(graph.getNodeName(node), value);
 		}
 	}
