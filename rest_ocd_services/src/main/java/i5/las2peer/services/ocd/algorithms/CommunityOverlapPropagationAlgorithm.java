@@ -12,10 +12,7 @@ import org.la4j.matrix.dense.Basic2DMatrix;
 import y.base.Edge;
 import y.base.EdgeCursor;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     /**
@@ -23,10 +20,18 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
      */
     private static int v = 2;
 
+
+    /**
+     * Maximum loops 10 times should be terminated.
+     */
+    private static int loops  = 10;
+
     /*
      * PARAMETER NAME
      */
     protected static final String MAX_COMMUNITY_NUMBER_OF_EACH_NODE = "max community number of each node";
+
+    protected static final String MAX_LOOPS = "max loops";
 
     /**
      * Default constructor that returns algorithm instance with default parameter values
@@ -39,14 +44,110 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
         // create adjacency matrix from the input graph
         Matrix adjacency_matrix = createAdjacencyMatrix(graph);
+        //the memberships is an n*n Matrix, some rows are all 0.
+        Matrix memberships = COPRA(adjacency_matrix, v);
 
+        /*
+        int nodeCount=graph.nodeCount();
+        Matrix simplifiedMemberships = simplyMemeberships(memberships,nodeCount);
+        Cover resulting_cover = new Cover(graph, simplifiedMemberships);
+         */
 
-
-
-
-
-        return null;
+        Cover resulting_cover = new Cover(graph, memberships);
+        return resulting_cover;
     }
+
+    /*
+    private Matrix simplyMemeberships(Matrix memberships, int nodeCount) {
+        Matrix simplifiedMemberships = new Basic2DMatrix(nodeCount,nodeCount);
+        int j=0;
+        for(int i=0;i<=nodeCount;i++){
+            if(memberships.getRow(i).sum()>0){
+                simplifiedMemberships.setRow(j++,memberships.getRow(i));
+            }
+        }
+        simplifiedMemberships.sliceTopLeft(j-1,nodeCount);
+        return simplifiedMemberships;
+    }
+     */
+
+    private Matrix COPRA(Matrix adjacency_matrix, int v) {
+        int nodeCount=adjacency_matrix.columns();
+        Matrix memberships = new Basic2DMatrix(nodeCount,nodeCount);
+        for(int i =1;i<=nodeCount;i++){
+            memberships.set(i,i,1);
+        }
+        while(true){
+            Matrix afterMemberships = updateMemberships(memberships,adjacency_matrix,v);
+            if(afterMemberships==memberships) break;
+            memberships=afterMemberships;
+        }
+        return memberships;//the memberships is an n*n Matrix
+    }
+
+    private Matrix updateMemberships(Matrix memberships, Matrix adjacency_matrix, int v) {
+        int nodeCount=adjacency_matrix.columns();
+        Matrix intermediateMemberships=new Basic2DMatrix(nodeCount,nodeCount);
+        intermediateMemberships = intermediateMemberships.blank();
+        for(int i=1;i<=nodeCount;i++){
+            double sumOfCurrentRow=adjacency_matrix.getRow(i).sum();
+            for(int j=1;i<=nodeCount;j++){
+                //点j占点i所有neighbors的比重
+                double propotion=adjacency_matrix.get(i,j)/sumOfCurrentRow;
+                for(int k=1;k<=nodeCount;k++){
+                    double belongingCoeffient=memberships.get(k,j);
+                    if(belongingCoeffient>0){
+                        intermediateMemberships.set(k,i,intermediateMemberships.get(k,i)+propotion*belongingCoeffient);
+                    }
+                }
+            }
+        }
+        memberships=intermediateMemberships;
+        for(int i=1;i<=nodeCount;i++){
+            boolean hasLabelOverThreshold=false;
+            double sumOfBC=0;
+            for(int j=1;j<=nodeCount;j++){
+                double currentBC=memberships.get(j,i);
+                if(currentBC>=1/v){
+                    hasLabelOverThreshold=true;
+                    sumOfBC+=currentBC;
+                }else {
+                    memberships.set(j, i, 0);
+                }
+            }
+            if(sumOfBC==1) break;
+            if(hasLabelOverThreshold){
+                //所有有效标签的bc放大的倍数
+                double propotion=1/sumOfBC;
+                for (int j=1;j<=nodeCount;j++){
+                    double currentBC=memberships.get(j,i);
+                    if(currentBC>=1/v){
+                        memberships.set(j,i,memberships.get(j,i)*propotion);
+                    }
+                }
+            }else{//all the labels BC are lower than threshold
+                List<Integer> candidates=new ArrayList();
+                for (int j=1;j<=nodeCount;j++){
+                    double currentBC=memberships.get(j,i);
+                    if(currentBC>0){
+                        candidates.add(j);
+                    }
+                }
+                Random random = new Random();
+                int n = random.nextInt(candidates.size());
+                int luckyBoy = candidates.get(n);
+                for(int cur : candidates){
+                    if(cur==luckyBoy){
+                        memberships.set(cur,i,1);
+                    }else{
+                        memberships.set(cur,i,0);
+                    }
+                }
+            }
+        }
+        return memberships;
+    }
+
 
     /**
      * This method creates Adjacency matrix that also holds edge weights. If entry
