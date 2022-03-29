@@ -45,45 +45,45 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
         // create adjacency matrix from the input graph
         Matrix adjacency_matrix = createAdjacencyMatrix(graph);
         //the memberships is an n*n Matrix, some rows are all 0.
-        Matrix memberships = COPRA(adjacency_matrix, v);
-
-        /*
-        int nodeCount=graph.nodeCount();
-        Matrix simplifiedMemberships = simplyMemeberships(memberships,nodeCount);
-        Cover resulting_cover = new Cover(graph, simplifiedMemberships);
-         */
-
+        Matrix memberships = COPRA(adjacency_matrix, v, loops);
         Cover resulting_cover = new Cover(graph, memberships);
         return resulting_cover;
     }
 
-    /*
-    private Matrix simplyMemeberships(Matrix memberships, int nodeCount) {
-        Matrix simplifiedMemberships = new Basic2DMatrix(nodeCount,nodeCount);
-        int j=0;
-        for(int i=0;i<=nodeCount;i++){
-            if(memberships.getRow(i).sum()>0){
-                simplifiedMemberships.setRow(j++,memberships.getRow(i));
-            }
-        }
-        simplifiedMemberships.sliceTopLeft(j-1,nodeCount);
-        return simplifiedMemberships;
-    }
-     */
 
-    private Matrix COPRA(Matrix adjacency_matrix, int v) {
+    private Matrix COPRA(Matrix adjacency_matrix, int v, int loops) {
         int nodeCount=adjacency_matrix.columns();
         Matrix memberships = new Basic2DMatrix(nodeCount,nodeCount);
         for(int i =1;i<=nodeCount;i++){
             memberships.set(i,i,1);
         }
-        while(true){
+        while(loops-- >0){
             Matrix afterMemberships = updateMemberships(memberships,adjacency_matrix,v);
             if(afterMemberships==memberships) break;
             memberships=afterMemberships;
         }
+
+        memberships = simplyMemeberships(memberships,nodeCount);
         return memberships;//the memberships is an n*n Matrix
     }
+
+    /**
+     * delete all the zero colomns
+     */
+
+    private Matrix simplyMemeberships(Matrix memberships, int nodeCount) {
+        Matrix simplifiedMemberships = new Basic2DMatrix(nodeCount,nodeCount);
+        int curColumn=0;
+        for(int i=0;i<=nodeCount;i++){
+            if(memberships.getColumn(i).sum()>0){
+                simplifiedMemberships.setColumn(curColumn++,memberships.getColumn(i));
+            }
+        }
+        simplifiedMemberships.sliceTopLeft(nodeCount,curColumn-1);
+        return simplifiedMemberships;
+    }
+
+
 
     private Matrix updateMemberships(Matrix memberships, Matrix adjacency_matrix, int v) {
         int nodeCount=adjacency_matrix.columns();
@@ -92,12 +92,12 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
         for(int i=1;i<=nodeCount;i++){
             double sumOfCurrentRow=adjacency_matrix.getRow(i).sum();
             for(int j=1;i<=nodeCount;j++){
-                //点j占点i所有neighbors的比重
+                //the propotion node j in all neighbors of node i
                 double propotion=adjacency_matrix.get(i,j)/sumOfCurrentRow;
                 for(int k=1;k<=nodeCount;k++){
-                    double belongingCoeffient=memberships.get(k,j);
+                    double belongingCoeffient=memberships.get(j,k);
                     if(belongingCoeffient>0){
-                        intermediateMemberships.set(k,i,intermediateMemberships.get(k,i)+propotion*belongingCoeffient);
+                        intermediateMemberships.set(i,k,intermediateMemberships.get(k,i)+propotion*belongingCoeffient);
                     }
                 }
             }
@@ -107,42 +107,37 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
             boolean hasLabelOverThreshold=false;
             double sumOfBC=0;
             for(int j=1;j<=nodeCount;j++){
-                double currentBC=memberships.get(j,i);
+                double currentBC=memberships.get(i,j);
                 if(currentBC>=1/v){
                     hasLabelOverThreshold=true;
                     sumOfBC+=currentBC;
-                }else {
-                    memberships.set(j, i, 0);
                 }
             }
-            if(sumOfBC==1) break;
+            if(sumOfBC==1) continue;
             if(hasLabelOverThreshold){
-                //所有有效标签的bc放大的倍数
+                //The enlarge propotion of all valid labels. The sumOfBC should be in (1/v, 1) now.
                 double propotion=1/sumOfBC;
                 for (int j=1;j<=nodeCount;j++){
-                    double currentBC=memberships.get(j,i);
+                    double currentBC=memberships.get(i,j);
                     if(currentBC>=1/v){
-                        memberships.set(j,i,memberships.get(j,i)*propotion);
+                        memberships.set(j,i,memberships.get(i,j)*propotion);
+                    }else{
+                        memberships.set(i, j, 0);
                     }
                 }
             }else{//all the labels BC are lower than threshold
                 List<Integer> candidates=new ArrayList();
                 for (int j=1;j<=nodeCount;j++){
-                    double currentBC=memberships.get(j,i);
+                    double currentBC=memberships.get(i,j);
                     if(currentBC>0){
                         candidates.add(j);
+                        memberships.set(i, j, 0);
                     }
                 }
                 Random random = new Random();
                 int n = random.nextInt(candidates.size());
                 int luckyBoy = candidates.get(n);
-                for(int cur : candidates){
-                    if(cur==luckyBoy){
-                        memberships.set(cur,i,1);
-                    }else{
-                        memberships.set(cur,i,0);
-                    }
-                }
+                memberships.set(i,luckyBoy,1);
             }
         }
         return memberships;
