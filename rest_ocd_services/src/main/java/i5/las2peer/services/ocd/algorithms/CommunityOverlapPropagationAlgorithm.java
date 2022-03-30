@@ -18,13 +18,13 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     /**
      * Each vertex can belong to up to v communities.
      */
-    private static int v = 2;
+    private static int v =2;
 
 
     /**
      * Maximum loops 10 times should be terminated.
      */
-    private static int loops  = 10;
+    private static int loops  = 20;
 
     /*
      * PARAMETER NAME
@@ -46,6 +46,13 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
         Matrix adjacency_matrix = createAdjacencyMatrix(graph);
         //the memberships is an n*n Matrix, some rows are all 0.
         Matrix memberships = COPRA(adjacency_matrix, v, loops);
+
+        for(int i=0;i<memberships.rows();i++){
+            for(int j=0;j< memberships.columns();j++){
+                System.out.println("Node"+i+": Communities"+j+": "+memberships.get(i,j));
+            }
+        }
+
         Cover resulting_cover = new Cover(graph, memberships);
         return resulting_cover;
     }
@@ -54,32 +61,48 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     private Matrix COPRA(Matrix adjacency_matrix, int v, int loops) {
         int nodeCount=adjacency_matrix.columns();
         Matrix memberships = new Basic2DMatrix(nodeCount,nodeCount);
-        for(int i =1;i<=nodeCount;i++){
+        for(int i =0;i<nodeCount;i++){
             memberships.set(i,i,1);
         }
         while(loops-- >0){
             Matrix afterMemberships = updateMemberships(memberships,adjacency_matrix,v);
-            if(afterMemberships==memberships) break;
+            if(isEqualMatrix(memberships,afterMemberships)) break;
             memberships=afterMemberships;
         }
 
-        memberships = simplyMemeberships(memberships,nodeCount);
+        memberships = simplifyMemeberships(memberships,nodeCount);
         return memberships;//the memberships is an n*n Matrix
     }
+
+    private boolean isEqualMatrix(Matrix m1, Matrix m2) {
+        if(m1.rows()!=m2.rows() || m1.columns()!=m2.columns()) return false;
+        for(int i=0;i<m1.rows();i++){
+            for(int j=0;j<m1.columns();j++){
+                if(!isEqualNumber(m1.get(i,j),m2.get(i,j))) return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isEqualNumber(double v1, double v2) {
+        if(Math.abs(v1-v2)>0.0000001) return false;
+        return true;
+    }
+
 
     /**
      * delete all the zero colomns
      */
 
-    private Matrix simplyMemeberships(Matrix memberships, int nodeCount) {
+    private Matrix simplifyMemeberships(Matrix memberships, int nodeCount) {
         Matrix simplifiedMemberships = new Basic2DMatrix(nodeCount,nodeCount);
         int curColumn=0;
-        for(int i=0;i<=nodeCount;i++){
+        for(int i=0;i<nodeCount;i++){
             if(memberships.getColumn(i).sum()>0){
                 simplifiedMemberships.setColumn(curColumn++,memberships.getColumn(i));
             }
         }
-        simplifiedMemberships.sliceTopLeft(nodeCount,curColumn-1);
+        simplifiedMemberships.sliceTopLeft(nodeCount-1,curColumn-1);
         return simplifiedMemberships;
     }
 
@@ -87,47 +110,46 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
 
     private Matrix updateMemberships(Matrix memberships, Matrix adjacency_matrix, int v) {
         int nodeCount=adjacency_matrix.columns();
-        Matrix intermediateMemberships=new Basic2DMatrix(nodeCount,nodeCount);
-        intermediateMemberships = intermediateMemberships.blank();
-        for(int i=1;i<=nodeCount;i++){
+        for(int i=0;i<nodeCount;i++){
             double sumOfCurrentRow=adjacency_matrix.getRow(i).sum();
-            for(int j=1;i<=nodeCount;j++){
+            for(int j=0;j<nodeCount;j++){
                 //the propotion node j in all neighbors of node i
                 double propotion=adjacency_matrix.get(i,j)/sumOfCurrentRow;
-                for(int k=1;k<=nodeCount;k++){
-                    double belongingCoeffient=memberships.get(j,k);
-                    if(belongingCoeffient>0){
-                        intermediateMemberships.set(i,k,intermediateMemberships.get(k,i)+propotion*belongingCoeffient);
+                for(int k=0;k<nodeCount;k++){
+                    double bc=memberships.get(j,k);
+                    if(bc>0){
+                        memberships.set(i,k,memberships.get(k,i)+propotion*bc);
                     }
                 }
             }
         }
-        memberships=intermediateMemberships;
-        for(int i=1;i<=nodeCount;i++){
+
+
+        for(int i=0;i<nodeCount;i++){
             boolean hasLabelOverThreshold=false;
             double sumOfBC=0;
-            for(int j=1;j<=nodeCount;j++){
+            for(int j=0;j<nodeCount;j++){
                 double currentBC=memberships.get(i,j);
-                if(currentBC>=1/v){
+                if(currentBC >= 1.0/v){
                     hasLabelOverThreshold=true;
                     sumOfBC+=currentBC;
                 }
             }
-            if(sumOfBC==1) continue;
+            if(isEqualNumber(sumOfBC,1)) continue;
             if(hasLabelOverThreshold){
                 //The enlarge propotion of all valid labels. The sumOfBC should be in (1/v, 1) now.
-                double propotion=1/sumOfBC;
-                for (int j=1;j<=nodeCount;j++){
+                double propotion=1.0 / sumOfBC;
+                for (int j=0;j<nodeCount;j++){
                     double currentBC=memberships.get(i,j);
-                    if(currentBC>=1/v){
-                        memberships.set(j,i,memberships.get(i,j)*propotion);
+                    if(currentBC>=1.0 / v){
+                        memberships.set(i,j,memberships.get(i,j)*propotion);
                     }else{
                         memberships.set(i, j, 0);
                     }
                 }
             }else{//all the labels BC are lower than threshold
                 List<Integer> candidates=new ArrayList();
-                for (int j=1;j<=nodeCount;j++){
+                for (int j=0;j<nodeCount;j++){
                     double currentBC=memberships.get(i,j);
                     if(currentBC>0){
                         candidates.add(j);

@@ -10,6 +10,10 @@ import y.base.Node;
 import java.io.FileNotFoundException;
 
 public class COPRAAlgorithmTest {
+    @Test
+    public void name() {
+
+    }
 
     /*
      * Run the algorithm on a simple graph with 3 communities
@@ -66,5 +70,8 @@ public class COPRAAlgorithmTest {
             e.printStackTrace();
         }
 
+        
+        
+        
     }
 }
