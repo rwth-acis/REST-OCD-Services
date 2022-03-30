@@ -4190,7 +4190,6 @@ public class ServiceClass extends RESTService {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 
 				long id = Long.parseLong(graphId);
-				// System.out.println("ID: " + id + " \n content: " + content);
 
 				CustomGraph newGraph = requestHandler.parseGraph(content, GraphInputFormat.GRAPH_ML);
 

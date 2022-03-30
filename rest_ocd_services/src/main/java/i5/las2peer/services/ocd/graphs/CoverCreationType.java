@@ -20,6 +20,7 @@ import i5.las2peer.services.ocd.algorithms.LocalSpectralClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.AntColonyOptimizationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LouvainAlgorithm;
 import i5.las2peer.services.ocd.algorithms.DetectingOverlappingCommunitiesAlgorithm;
+import i5.las2peer.services.ocd.algorithms.MemeticLinkClusteringAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.SignedLfrBenchmark;
@@ -149,7 +150,9 @@ public enum CoverCreationType implements EnumDisplayNames {
 	/**
 	 * Type corresponding to the NISE Algorithm.
 	 */
-	NISE_ALGORITHM("Neighborhood-Inflated Seed Expansion Algorithm", NISEAlgorithm.class, 23);
+	NISE_ALGORITHM("Neighborhood-Inflated Seed Expansion Algorithm", NISEAlgorithm.class, 23),
+
+	M_LINK("M Link", MemeticLinkClusteringAlgorithm.class, 24);
 	
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
