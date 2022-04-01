@@ -85,7 +85,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     }
 
     private boolean isEqualNumber(double v1, double v2) {
-        if(Math.abs(v1-v2)>0.0000001) return false;
+        if(Math.abs(v1-v2)>0.00001) return false;
         return true;
     }
 
@@ -93,7 +93,6 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     /**
      * delete all the zero colomns
      */
-
     private Matrix simplifyMemeberships(Matrix memberships, int nodeCount) {
         Matrix simplifiedMemberships = new Basic2DMatrix(nodeCount,nodeCount);
         int curColumn=0;
@@ -102,7 +101,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
                 simplifiedMemberships.setColumn(curColumn++,memberships.getColumn(i));
             }
         }
-        simplifiedMemberships.sliceTopLeft(nodeCount-1,curColumn-1);
+        simplifiedMemberships=simplifiedMemberships.slice(0,0,nodeCount,curColumn);
         return simplifiedMemberships;
     }
 
@@ -110,6 +109,8 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
 
     private Matrix updateMemberships(Matrix memberships, Matrix adjacency_matrix, int v) {
         int nodeCount=adjacency_matrix.columns();
+        Matrix intermediateMemberships=new Basic2DMatrix(nodeCount,nodeCount);
+        intermediateMemberships = intermediateMemberships.blank();
         for(int i=0;i<nodeCount;i++){
             double sumOfCurrentRow=adjacency_matrix.getRow(i).sum();
             for(int j=0;j<nodeCount;j++){
@@ -118,13 +119,13 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
                 for(int k=0;k<nodeCount;k++){
                     double bc=memberships.get(j,k);
                     if(bc>0){
-                        memberships.set(i,k,memberships.get(k,i)+propotion*bc);
+                        intermediateMemberships.set(i,k,intermediateMemberships.get(i,k)+propotion*bc);
                     }
                 }
             }
         }
 
-
+        memberships=intermediateMemberships;
         for(int i=0;i<nodeCount;i++){
             boolean hasLabelOverThreshold=false;
             double sumOfBC=0;
@@ -135,14 +136,14 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
                     sumOfBC+=currentBC;
                 }
             }
-            if(isEqualNumber(sumOfBC,1)) continue;
-            if(hasLabelOverThreshold){
+            if(sumOfBC==1) continue;
+            if(hasLabelOverThreshold){//normalize all the labels over Threshold
                 //The enlarge propotion of all valid labels. The sumOfBC should be in (1/v, 1) now.
                 double propotion=1.0 / sumOfBC;
                 for (int j=0;j<nodeCount;j++){
                     double currentBC=memberships.get(i,j);
                     if(currentBC>=1.0 / v){
-                        memberships.set(i,j,memberships.get(i,j)*propotion);
+                        memberships.set(i,j,currentBC*propotion);
                     }else{
                         memberships.set(i, j, 0);
                     }
