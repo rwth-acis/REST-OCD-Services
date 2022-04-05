@@ -24,6 +24,12 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import y.base.Node;
 
+/**
+ * Implements one of the algorithms by Sabrina Haefele conceived in the thesis:
+ * Overlapping Community Detection Based on Content and Authority
+ * Some of these algorithms are included in the paper by Shahriari, Mohsen and Haefele, Sabrina and Klamma, Ralf:
+ * Contextualized versus structural overlapping communities in social media
+ */
 public class WordClusteringRefinementAlgorithm implements OcdAlgorithm{
 	
 	/////////////////

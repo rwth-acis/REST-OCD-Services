@@ -27,7 +27,9 @@ import y.base.Node;
 import y.base.NodeCursor;
 
 /**
- * Implements a custom extended version of the Random Walk Label Propagation Algorithm.
+ * Implements a custom extended version of the Random Walk Label Propagation Algorithm, also called DMID, by M. Shahriari, S. Krott and R. Klamma:
+ * Disassortativity degree mixing and information diffusion for overlapping community detection in complex networks (dmid)
+ * https://doi.org/10.1145/2740908.2741696
  * Handles directed and weighted graphs.
  * For unweighted, undirected graphs, it behaves the same as the original.
  */

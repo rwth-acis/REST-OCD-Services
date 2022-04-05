@@ -573,4 +573,12 @@ public class ThreadHandler {
 			unsynchedInterruptMetric(logId);
 		}
 	}
+
+	/**
+	 * Getter for executor. This is needed for automatic content removal.
+	 * @return      ExecutorService.
+	 */
+	public static ExecutorService getExecutor() {
+		return executor;
+	}
 }

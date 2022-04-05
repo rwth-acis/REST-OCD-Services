@@ -1,12 +1,10 @@
 package i5.las2peer.services.ocd;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -34,6 +32,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.utils.*;
+import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -153,7 +153,11 @@ public class ServiceClass extends RESTService {
 	}
 
 	public ServiceClass() {
+
 		setFieldValues();
+
+		// instantiate inactivityHandler to regularly remove content of inactive users.
+		inactivityHandler = new InactivityHandler(entityHandler, threadHandler, this);
 	}
 
 	///////////////////////////////////////////////////////////
@@ -209,6 +213,22 @@ public class ServiceClass extends RESTService {
 	 */
 	private final static LayoutHandler layoutHandler = new LayoutHandler();
 
+	/**
+	 * The inactivity handler for removing content of inactive users.
+	 */
+	private static InactivityHandler inactivityHandler;
+
+
+	/**
+	 * Number of days of inactivity allowed, before user content gets removed.
+	 */
+	private int maxInactiveDays;
+
+	/**
+	 * Password to be used to adjust number of days before inactive user content is removed.
+	 */
+	private String inactivityHandlerPassword;
+
 	//////////////////////////////////////////////////////////////////
 	///////// Utility Methods
 	//////////////////////////////////////////////////////////////////
@@ -220,6 +240,19 @@ public class ServiceClass extends RESTService {
 	public static String getUserId() {
 		return Context.getCurrent().getMainAgent().getIdentifier();
 	}
+
+	public int getMaxInactiveDays() { return this.maxInactiveDays; }
+
+	public String getInactivityHandlerPassword(){return this.inactivityHandlerPassword;}
+
+	/**
+	 * This method is used to set fresh field values, in case modifications were made in
+	 * i5.las2peer.services.ocd.ServiceClass.properties file
+	 */
+	public void setFreshFieldValues() {
+		setFieldValues();
+	}
+
 
 	//////////////////////////////////////////////////////////////////
 	///////// REST Service Methods
@@ -257,11 +290,71 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"special"}, value = "User validation", notes = "Simple function to validate a user login.")
 		public Response validateLogin() {
 			try {
+				// update user inactivity info when user logs in.
+				inactivityHandler.refreshUserInactivityData(getUserName());
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
+		}
+
+		/**
+		 * This method can be used to adjust number of days before content of inactive users is removed. This is an
+		 * alternative to directly modifying the value in i5.las2peer.services.ocd.ServiceClass.properties file.
+		 *
+		 * @param contentStr   XML with new inactivity days to set and the access code that allows modifications to take place.
+		 * @return             Newly set value of inactive days allowed before content deletion, or Error XML.
+		 */
+		@POST
+		@Path("allowedInactivity")
+		@Produces(MediaType.TEXT_PLAIN)
+		public Response adjustAllowedInactivity(String contentStr) {
+
+			Map<String, String> parameters;
+			String inactivityPassword;
+			int allowedInactivityDays;
+
+			try {
+				parameters = requestHandler.parseParameters(contentStr);
+				if (parameters.get("AccessCode") == null) {
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Access code is required to modify allowed inactivity.");
+				}
+				String accessCode = parameters.get("AccessCode");
+
+				// read most recent password for inactivityHandler
+				service.setFreshFieldValues();
+				inactivityPassword = service.getInactivityHandlerPassword();
+				if(!accessCode.equals(inactivityPassword)){
+					return requestHandler.writeError(Error.INTERNAL, "Access code is invalid.");
+				}
+
+
+				String allowedInactivityDaysString = parameters.get("AllowedInactivityDays");
+				if ((allowedInactivityDaysString == null) || (Integer.parseInt(allowedInactivityDaysString) < 0)) {
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "AllowedInactivityDays parameter needs to be provided and be a positive integer.");
+				}
+				allowedInactivityDays = Integer.parseInt(allowedInactivityDaysString);
+
+			} catch (Exception e) {
+				requestHandler.log(Level.WARNING, "", e);
+				return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid parameters provided.");
+
+			}
+
+			// write new allowed inactivity value to ServiceClass properties file
+			try {
+				BufferedWriter writer = new BufferedWriter(new FileWriter("etc/i5.las2peer.services.ocd.ServiceClass.properties"));
+				writer.write("maxInactiveDays=" + allowedInactivityDays);
+				writer.newLine();
+				writer.write("inactivityHandlerPassword=" + inactivityPassword );
+				writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			return Response.ok(allowedInactivityDays).build();
+
 		}
 
 		//////////////////////////////////////////////////////////////////////////
