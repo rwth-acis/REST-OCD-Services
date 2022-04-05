@@ -24,7 +24,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     /**
      * Maximum loops 10 times should be terminated.
      */
-    private static int loops  = 20;
+    private static int loops  = 100;
 
     /*
      * PARAMETER NAME
