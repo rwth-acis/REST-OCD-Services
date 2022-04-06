@@ -20,6 +20,14 @@ public class MLinkPopulation {
     public MLinkAgent[] getTree(){
         return this.tree;
     }
+    public void addAgent(MLinkAgent agent){
+        for(int i = 0; i < this.tree.length; i++){
+            if(this.tree[i] != null){
+                this.tree[i] = agent;
+                break;
+            }
+        }
+    }
     /**
      * Swaps up the Agent with the fittest Pocket Individual
      */
