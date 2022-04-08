@@ -1,5 +1,8 @@
 package i5.las2peer.services.ocd.algorithms;
 
+import i5.las2peer.services.ocd.algorithms.utils.MLinkAgent;
+import i5.las2peer.services.ocd.algorithms.utils.MLinkIndividual;
+import i5.las2peer.services.ocd.algorithms.utils.MLinkPopulation;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
@@ -7,6 +10,7 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.utils.Pair;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +18,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Random;
+import java.util.Stack;
 
 import java.lang.Double; 
 import java.lang.Math;
@@ -59,409 +65,284 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		return compatibilities;
 	}
-
+	/**
+	 * 
+	 */
     public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException {
-		/*
-		 * Initializes the variables.
-		 */
-		List<Set<Edge>> communityEdges = new ArrayList<Set<Edge>>();
-		List<Set<Node>> communityNodes = new ArrayList<Set<Node>>();
-		List<Double> communityLinkDensities = new ArrayList<Double>();
-		List<Pair<Integer, Integer>> mostSimilarPairs;
-		Pair<Integer, Integer> mostSimilarPair;
-		Set<Edge> firstCommunityEdges;
-		Set<Edge> secondCommunityEdges;
-		double currentPartitionDensity = 0;
-		double maxPartitionDensity = Double.NEGATIVE_INFINITY;
-		double firstLinkDensity;
-		double secondLinkDensity;
-		double newLinkDensity;
-		int firstCommunity;
-		int secondCommunity;
-		/*
-		 * Initializes the dendrogram construction
-		 */
-		List<Vector> linkageDegrees = calculateLinkageDegrees(graph);
-		Matrix similarities = calculateEdgeSimilarities(graph, linkageDegrees);
-		initDendrogramCreation(graph, communityEdges, communityNodes, communityLinkDensities);
-		List<Set<Edge>> densestPartition = communityEdges;
-		/*
-		 * Constructs the dendrogram and determines the edge partition
-		 * with the highest partition density.
-		 */
-		while(similarities.columns() > 1) {
-			mostSimilarPairs = determineMostSimilarCommunityPairs(similarities);
-			for(int i=0; i<mostSimilarPairs.size(); i++) {
-				if(Thread.interrupted()) {
-					throw new InterruptedException();
-				}
-				mostSimilarPair = mostSimilarPairs.get(i);
-				firstCommunity = mostSimilarPair.getFirst();
-				secondCommunity = mostSimilarPair.getSecond();
-				similarities = updateSimilarities(similarities, mostSimilarPair);
-				firstCommunityEdges = communityEdges.get(firstCommunity);
-				secondCommunityEdges = communityEdges.get(secondCommunity);
-				firstCommunityEdges.addAll(secondCommunityEdges);
-				Set<Node> firstCommunityNodes = communityNodes.get(firstCommunity);
-				Set<Node> secondCommunityNodes = communityNodes.get(secondCommunity);
-				firstCommunityNodes.addAll(secondCommunityNodes);
-				firstLinkDensity = communityLinkDensities.get(firstCommunity);
-				secondLinkDensity = communityLinkDensities.get(secondCommunity);
-				newLinkDensity = calculateLinkDensity(firstCommunityEdges.size(), firstCommunityNodes.size());
-				communityLinkDensities.set(firstCommunity, newLinkDensity);
-				currentPartitionDensity += newLinkDensity - firstLinkDensity - secondLinkDensity;
-			}
-			for(int i=0; i<mostSimilarPairs.size(); i++) {
-				if(Thread.interrupted()) {
-					throw new InterruptedException();
-				}
-				secondCommunity = mostSimilarPairs.get(i).getSecond();
-				communityEdges.remove(secondCommunity);
-				communityNodes.remove(secondCommunity);
-				communityLinkDensities.remove(secondCommunity);
-			}
-			if(currentPartitionDensity >= maxPartitionDensity) {
-				maxPartitionDensity = currentPartitionDensity;
-				densestPartition = new ArrayList<Set<Edge>>(communityEdges);
-			}
-		}
-		return calculatePartitionCover(graph, densestPartition);
-	}
 
-private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkageDegrees) throws InterruptedException {
-		Matrix similarities = new CCSMatrix(graph.edgeCount(), graph.edgeCount());
-		EdgeCursor rowEdges = graph.edges();
-		Edge rowEdge;
-		Node source;
-		Node target;
-		List<Integer> edgeIndices = new ArrayList<Integer>();
-		EdgeCursor columnEdges;
-		Edge columnEdge;
-		Edge reverseRowEdge;
-		Edge reverseColumnEdge;
-		double similarity;
-		while(rowEdges.ok()) {
-			if(Thread.interrupted()) {
-				throw new InterruptedException();
-			}
-			rowEdge = rowEdges.edge();
-			source = rowEdge.source();
-			target = rowEdge.target();
-			reverseRowEdge = target.getEdgeTo(source);
-			/*
-			 * Sets similarities only if they have not been set already for the reverse Edge.
-			 */
-			if(reverseRowEdge == null || rowEdge.index() < reverseRowEdge.index()) {
-				/*
-				 * Sets similarities for in and out edges of the row edge target node.
-				 */
-				edgeIndices.add(rowEdge.index());
-				columnEdges = target.edges();
-				while(columnEdges.ok()) {
-					columnEdge = columnEdges.edge();
-					if(columnEdge.index() < rowEdge.index()) {
-						reverseColumnEdge = columnEdge.target().getEdgeTo(columnEdge.source());
-						if(reverseColumnEdge == null || columnEdge.index() < reverseColumnEdge.index()) {
-							similarity = getSimpleSimilarity(source, columnEdge.opposite(target));
-							similarities.set(rowEdge.index(), columnEdge.index(), similarity);
-						}
-					}
-					columnEdges.next();
-				}
-				/*
-				 * Sets similarities for in edges of the row edge source node.
-				 * If a reverse edge of the row edge exists, it is set for the out edges also.
-				 */
-				columnEdges = source.edges();
-				while(columnEdges.ok()) {
-					columnEdge = columnEdges.edge();
-					if(columnEdge.index() < rowEdge.index() && columnEdge.source() != target) {
-						reverseColumnEdge = columnEdge.target().getEdgeTo(columnEdge.source());
-						if(reverseColumnEdge == null || columnEdge.index() < reverseColumnEdge.index()) {
-							similarity = getSimpleSimilarity(target, columnEdge.opposite(source));
-							similarities.set(rowEdge.index(), columnEdge.index(), similarity);
-						}
-					}
-					columnEdges.next();
-				}
-			}
-			rowEdges.next();
+		//TODO: remove double edges
+
+		int debug = 55;
+        Cover mlink = new Cover(graph);
+        CustomGraph encoding = graph;
+        HashMap<Edge, Edge> hMap = new HashMap<Edge,Edge>(); 
+        Edge[] edgeArr = encoding.getEdgeArray();
+		System.out.println(edgeArr.length);
+		for(int i = 0; i < 2; i++){
+			hMap.put(edgeArr[i], edgeArr[i+1]);
 		}
-		int[] indices = new int[edgeIndices.size()];
-		for(int i=0; i<edgeIndices.size(); i++) {
-			indices[i] = edgeIndices.get(i);
+		hMap.put(edgeArr[2], edgeArr[0]);
+		for(int i = 3; i < 5; i++){
+			hMap.put(edgeArr[i], edgeArr[i+1]);
 		}
-		if(indices.length > 0) {
-			return similarities.select(indices, indices);
-		}
-		else {
-			return new CCSMatrix(0, 0);
-		}
+		hMap.put(edgeArr[5],edgeArr[3]);
+        MLinkPopulation pop = new MLinkPopulation();
+        MLinkAgent agent = new MLinkAgent();
+        MLinkIndividual indi = new MLinkIndividual(hMap);
+		MLinkIndividual labelProp = labelPropagation(graph);
+		indi.mutation();
+		// agent.addIndividual(indi);
+		// pop.addAgent(agent);
+        return mlink;
 	}
-	
 	/**
-	 * Calculates the linkage degree vectors for all nodes.
-	 * The linkage degrees are required for the calculation of edge similarity
-	 * and originally referred to as the a vectors.
-	 * @param graph The graph being analyzed.
-	 * @return The linkage degree vector of each node, accessible via the list index that
-	 * corresponds to the node index.
+	 * 
+	 * @param parent1
+	 * @param parent2
+	 * @return
 	 */
-	private List<Vector> calculateLinkageDegrees(CustomGraph graph) throws InterruptedException {
-		List<Vector> linkageDegrees = new ArrayList<Vector>();
-		NodeCursor nodes = graph.nodes();
-		Vector degreeVector;
-		Node node;
-		Node neighbor;
-		EdgeCursor edges;
-		Edge edge;
-		double linkageDegree;
-		double neutral;
-		double averageWeight;
-		while(nodes.ok()) {
-			degreeVector = new CompressedVector(graph.nodeCount());
-			node = nodes.node();
-			edges = node.edges();
-			while(edges.ok()) {
-				if(Thread.interrupted()) {
-					throw new InterruptedException();
-				}
-				edge = edges.edge();
-				neighbor = edges.edge().opposite(node);
-				linkageDegree = degreeVector.get(neighbor.index());
-				linkageDegree += graph.getEdgeWeight(edge) / node.degree();
-				degreeVector.set(neighbor.index(), linkageDegree);
-				edges.next();
+	public MLinkIndividual crossover(MLinkIndividual parent1, MLinkIndividual parent2){
+		HashMap<Edge,Edge> individual = new HashMap<Edge,Edge>();
+		Edge gene;
+		int crossProbability = 50;
+
+		Random rand = new Random();
+		for(Edge key : parent1.getIndividual().keySet()){
+			if(rand.nextInt(101) < crossProbability){
+				gene = parent1.getIndividual().get(key);
+			} else {
+				gene = parent2.getIndividual().get(key);
 			}
-			/*
-			 * Calculates the entry corresponding the node index as the average weight
-			 * of all incident edges.
-			 */
-			neutral = 0;
-			averageWeight = degreeVector.fold(Vectors.asSumAccumulator(neutral));
-			degreeVector.set(node.index(), averageWeight);
-			linkageDegrees.add(degreeVector);
-			nodes.next();
+			individual.put(key, gene);
 		}
-		return linkageDegrees;
+		return new MLinkIndividual(individual);
 	}
-	
 	/**
-	 * Identifies the edge community pairs with maximum similarity. 
-	 * @param similarities The similarity matrix.
-	 * @return A list of pairs with the indices of the identified edge communities. If several pairs are
-	 * joined to a bigger community simultaneously, the first index of each pair will
-	 * be the lowest index of the corresponding old communities. I.e. all old communities will be projected
-	 * on the same new one with the lowest community index.
+	 * Label Propagation
+	 * @param graph initial graph
+	 * @return Individual generated with label propagation
 	 */
-	private List<Pair<Integer, Integer>> determineMostSimilarCommunityPairs(Matrix similarities) throws InterruptedException {
-		double maxSimilarity = Double.NEGATIVE_INFINITY;
-		double currentSimilarity;
-		TreeMap<Integer, Integer> mergedCommunities = new TreeMap<Integer, Integer>();
-		Set<Integer> updatedCommunities = new HashSet<Integer>();
-		int oldCommunity;
-		int newCommunity;
-		for(int j=0; j<similarities.columns() - 1; j++) {
-			for(int i=j+1; i<similarities.rows(); i++) {
-				if(Thread.interrupted()) {
-					throw new InterruptedException();
+	public MLinkIndividual labelPropagation(CustomGraph graph){
+		HashMap<Edge,Edge> genes = new HashMap<Edge,Edge>();
+		HashMap<Node,Integer> labels = new HashMap<Node,Integer>();
+		Node[] nodes = graph.getNodeArray();
+		// Each node receives a unique label
+		for(int i = 0; i < nodes.length; i++){
+			labels.put(nodes[i], i);
+		}
+		ArrayList<Node> notVisited = new ArrayList<Node>(Arrays.asList(nodes));
+
+		boolean stop = false;
+		// reassign new labels for each node
+		while(!stop){
+			int size = notVisited.size();
+			int node = new Random().nextInt(size);
+			Node selected = notVisited.get(node);
+			notVisited.remove(node);
+
+			int newLabel = getMostFrequentLabel(labels, selected);
+			labels.put(selected, newLabel);
+			if(notVisited.isEmpty()){
+				stop = true;
+			}
+		}
+
+		/**
+		 * Translation from community of nodes to locus based representation
+		 */
+
+		// store nodes with the same label in a hashmap
+		HashMap<Integer,Set<Node>> labelNodes = new HashMap<Integer,Set<Node>>();
+		for(Node node : labels.keySet()){
+			labelNodes.put(labels.get(node), new HashSet<Node>());
+		}
+
+		// Fill sets with nodes of the corresponding label
+		for(Node n : labels.keySet()){
+			labelNodes.get(labels.get(n)).add(n);
+		}
+
+		// Locus based representation
+		// Assign genes so that they represent the given community of edges
+		Random rand = new Random();
+		Set<Node> checkedNodes = new HashSet<Node>(); 
+		Stack<Node> queue = new Stack<Node>();
+		Set<Edge> sharedEdges = new HashSet<Edge>();
+		for(Integer l : labelNodes.keySet()){
+			Set<Node> commNodes = labelNodes.get(l);
+			Node start = commNodes.iterator().next();
+			Node pred = start;
+			queue.add(start);
+			while(!queue.empty()){
+				Node curNode = queue.pop();
+
+				// Check if the current node has neighbors that weren't already checked
+				NodeCursor nghb = curNode.neighbors();
+				boolean hasUncheckedNeighbor = false;
+				for(int i = 0; i < nghb.size(); i++){
+					if(!checkedNodes.contains(nghb.node())){
+						hasUncheckedNeighbor = true;
+						break;
+					}
+					nghb.cyclicNext();
 				}
-				currentSimilarity = similarities.get(i, j);
-				if(currentSimilarity >= maxSimilarity) {
-					if(currentSimilarity > maxSimilarity) {
-						mergedCommunities.clear();
-						maxSimilarity = currentSimilarity;
+				if(!hasUncheckedNeighbor){
+					continue;
+				}
+
+				if(curNode.degree() != 0){
+					checkedNodes.add(curNode);
+					EdgeCursor adjEdges = curNode.edges();
+					Edge last;
+					Edge cur;
+					Edge first = null;
+					Edge incoming = getEdge(pred, curNode);
+					// Get the first edge that is either
+					for(int i = 0; i < adjEdges.size(); i++){
+						if(labels.get(adjEdges.edge().source()) == labels.get(adjEdges.edge().target())){
+							if(checkedNodes.contains(adjEdges.edge().source()) || checkedNodes.contains(adjEdges.edge().target())){
+								first = adjEdges.edge();
+								break;
+							}
+						}
+						adjEdges.cyclicNext();
 					}
-					newCommunity = j;
-					if(mergedCommunities.containsKey(j)) {
-						oldCommunity = mergedCommunities.get(j);
-						if(oldCommunity <= newCommunity) {
-							newCommunity = oldCommunity;
-						}
-						else {
-							updatedCommunities.add(oldCommunity);
-						}
-					}
-					if(mergedCommunities.containsKey(i)) {
-						oldCommunity = mergedCommunities.get(i);
-						if(oldCommunity <= newCommunity) {
-							newCommunity = oldCommunity;
-						}
-						else {
-							updatedCommunities.add(oldCommunity);
-						}
-					}
-					if(updatedCommunities.size() > 0) {
-						for(Entry<Integer, Integer> entry : mergedCommunities.entrySet()) {
-							if(updatedCommunities.contains(entry.getValue())) {
-								entry.setValue(newCommunity);
+					
+					if(first == null){
+						for(int i = 0; i < adjEdges.size(); i++){
+							if(checkedNodes.contains(adjEdges.edge().source()) || checkedNodes.contains(adjEdges.edge().target())){
+								first = adjEdges.edge();
+								sharedEdges.add(adjEdges.edge());
+								break;
 							}
 						}
 					}
-					mergedCommunities.put(j, newCommunity);
-					mergedCommunities.put(i, newCommunity);
-				}
-			}
-		}
-		List<Pair<Integer, Integer>> mostSimilarPairs = new ArrayList<Pair<Integer, Integer>>();
-		Entry<Integer, Integer> lastPair;
-		while(mergedCommunities.size() > 0) {
-			if(Thread.interrupted()) {
-				throw new InterruptedException();
-			}
-			lastPair = mergedCommunities.lastEntry();
-			if(lastPair.getKey() != lastPair.getValue()) {
-				mostSimilarPairs.add(new Pair<Integer, Integer>(lastPair.getValue(), lastPair.getKey()));
-			}
-			mergedCommunities.remove(lastPair.getKey());
-		}
-		return mostSimilarPairs;
-	}
+					last = adjEdges.edge();
 
+					for(int i = 0; i < adjEdges.size(); i++){
+						adjEdges.cyclicNext();
+						cur = adjEdges.edge();
+						if(cur == first){
+							continue;
+						}
+						if(labels.get(cur.source()) == labels.get(cur.target())){
+							if(!checkedNodes.contains(cur.target()) || !checkedNodes.contains(cur.source())){
+								if(curNode == cur.source() && !checkedNodes.contains(cur.target())){
+									queue.add(cur.target());
+								} else if(!checkedNodes.contains(cur.source())) {
+									queue.add(cur.source());
+								}
+								genes.put(last, cur);
+								last = cur;									
+							}
+						} else {
+							// check whether the connected node is the target or source
+							// then check if adjacent node was already checked and if act accordingly to split the shared edges with 50% chance
+							if(curNode == cur.source()){
+								if(!checkedNodes.contains(cur.target()) && !sharedEdges.contains(cur)){
+									if(rand.nextInt(100) < 49){
+										sharedEdges.add(cur);
+										genes.put(cur, first);
+									}
+								} else if(checkedNodes.contains(cur.target()) && !sharedEdges.contains(cur)){
+									sharedEdges.add(cur);
+									genes.put(cur, first);
+								}
+							} else if(!checkedNodes.contains(cur.source()) && !sharedEdges.contains(cur)) {
+								if(rand.nextInt(100) < 49){
+									sharedEdges.add(cur);
+									genes.put(cur, first);
+								}
+							} else if(checkedNodes.contains(cur.source()) && !sharedEdges.contains(cur)){
+								sharedEdges.add(cur);
+								genes.put(cur, first);
+							}
+						}
+					}
+					if(incoming != null){
+						genes.put(last,incoming);
+					}
+					
+				}
+				pred = curNode;
+			}
+		}
+		return new MLinkIndividual(genes);
+	}
 	/**
-	 * Updates the similarity matrix when the two edge communities given by mostSimilarPair are merged. 
-	 * @param similarities The similarity matrix.
-	 * @param mostSimilarPair A pair containing the indices of the communities that are merged.
-	 * @return The updated similarity matrix.
+	 * returns the label with the highes frequency amongst neighbors
+	 * @param labels current labels
+	 * @param selected selected node
+	 * @return new label
 	 */
-	private Matrix updateSimilarities(Matrix similarities, Pair<Integer, Integer> mostSimilarPair) throws InterruptedException {
-		int first = mostSimilarPair.getFirst();
-		int second = mostSimilarPair.getSecond();
-		int[] newIndices = new int[similarities.rows() - 1];
-		double maxSimilarity;
-		for(int i=0; i<similarities.columns(); i++) {
-			if(Thread.interrupted()) {
-				throw new InterruptedException();
+	public int getMostFrequentLabel(HashMap<Node,Integer> labels, Node selected){
+		int mostFrequentLabel = -1;
+		NodeCursor neighbors = selected.neighbors();
+		int size = neighbors.size();
+		HashMap<Integer,Integer> labelCount = new HashMap<Integer,Integer>();
+		// count neighboring labels and save it in a hashmap
+		for(int i = 0; i < size; i++){
+			Node neighbor = neighbors.node();
+			Integer label = labels.get(neighbor);
+			int count = 0;
+			if(labelCount.containsKey(label)){
+				count = labelCount.get(label) + 1;
 			}
-			if(i != second) {
-				if(i <= first) {
-					if(i < first) {
-						maxSimilarity = Math.max(similarities.get(first, i), similarities.get(second, i));
-						similarities.set(first, i, maxSimilarity);
-					}
-					newIndices[i] = i;
-				}
-				else {
-					if(i < second) {
-						maxSimilarity = Math.max(similarities.get(i, first), similarities.get(second, i));
-						newIndices[i] = i;
-					}
-					else {
-						maxSimilarity = Math.max(similarities.get(i, first), similarities.get(i, second));
-						newIndices[i-1] = i;
-					}
-					similarities.set(i, first, maxSimilarity);
-				}
+			labelCount.put(label, count);
+		}
+		Integer lastLabel = -1;
+		Set<Integer> maxLabels = new HashSet<Integer>();
+		// go through neighboring labels and save the ones with the highes frequency
+		// choose random if more than 1 label exists with the max frequency
+		for(Integer i : labelCount.keySet()){
+			if(mostFrequentLabel == -1){
+				maxLabels.clear();
+				maxLabels.add(i);
+				mostFrequentLabel = i;
+				lastLabel = labelCount.get(i);
+			} else if(labelCount.get(i) == lastLabel){
+				maxLabels.add(i);
+			} else if(labelCount.get(i) > lastLabel){
+				maxLabels.clear();
+				maxLabels.add(i);
+				mostFrequentLabel = i;
+				lastLabel = labelCount.get(i);
 			}
+		}
+		int labelSize = neighbors.size();
+		int randLabel = new Random().nextInt(labelSize);
+		int i = 0;
+		for(Integer l : maxLabels){
+			if(i == randLabel){
+				mostFrequentLabel = l;
+			}
+			i++;
+		}
+		return mostFrequentLabel;
+	}
+	/**
+	 * Returns the edge between the two nodes or null
+	 * @param source 
+	 * @param target 
+	 * @return Edge that connects the two nodes or null
+	 */
+	public Edge getEdge(Node source, Node target){
+		EdgeCursor edges = source.edges();
+		Edge res = null;
+		if(source != target){
+			for(int i = 0; i < edges.size(); i++){
+				Edge edge = edges.edge();
+				if((edge.source() == source && edge.target() == target) || (edge.source() == target && edge.target() == source)){
+					res = edge;
+					break;
+				}
+				edges.cyclicNext();
+			}
+		}
 
-		}
-		return similarities.select(newIndices, newIndices);
+		return res;
 	}
 	
-	/**
-	 * Initializes variables for the dendrogram creation.
-	 * @param graph The graph being analyzed.
-	 * @param communityEdges An edge partition indicating the edge communities.
-	 * @param communityNodes A node cover derived from the edge partition.
-	 * @param communityLinkDensities The link densities of all edge communities.
-	 */
-	private void initDendrogramCreation(CustomGraph graph, List<Set<Edge>> communityEdges,
-			List<Set<Node>> communityNodes, List<Double> communityLinkDensities) throws InterruptedException {
-		EdgeCursor edges = graph.edges();
-		Set<Edge> initEdgeSet;
-		Set<Node> initNodeSet;
-		Edge edge;
-		Edge reverseEdge;
-		while(edges.ok()) {
-			if(Thread.interrupted()) {
-				throw new InterruptedException();
-			}
-			edge = edges.edge();
-			reverseEdge = edge.target().getEdgeTo(edge.source());
-			if(reverseEdge == null || edge.index() < reverseEdge.index()) {
-				initEdgeSet = new HashSet<Edge>();
-				initEdgeSet.add(edge);
-				if(reverseEdge != null) {
-					initEdgeSet.add(reverseEdge);
-				}
-				communityEdges.add(initEdgeSet);
-				initNodeSet = new HashSet<Node>();
-				initNodeSet.add(edge.source());
-				initNodeSet.add(edge.target());
-				communityNodes.add(initNodeSet);
-				communityLinkDensities.add(0d);
-			}
-			edges.next();
-		}
-	}
 	
-	/**
-	 * Calculates the weighted link density of a community. 
-	 * @param edgeCount The number of community edges.
-	 * @param nodeCount The number of community nodes.
-	 * @return The weighted link density.
-	 */
-	private double calculateLinkDensity(int edgeCount, int nodeCount) {
-		int denominator = (nodeCount - 2) * (nodeCount - 1);
-		return (double)(edgeCount * (edgeCount - (nodeCount - 1))) / (double)denominator;
-	}
 
-	/**
-	 * Derives a cover from an edge partition.
-	 * @param graph The graph being analyzed.
-	 * @param partition The edge partition from which the cover will be derived.
-	 * @return A normalized cover of the graph.
-	 */
-	private Cover calculatePartitionCover(CustomGraph graph, List<Set<Edge>> partition) throws InterruptedException {
-		Matrix memberships = new CCSMatrix(graph.nodeCount(), partition.size());
-		double belongingFactor;
-		double edgeWeight;
-		for(int i=0; i<partition.size(); i++) {
-			for(Edge edge : partition.get(i)) {
-				if(Thread.interrupted()) {
-					throw new InterruptedException();
-				}
-				edgeWeight = graph.getEdgeWeight(edge);
-				belongingFactor = memberships.get(edge.target().index(), i) + edgeWeight;
-				memberships.set(edge.target().index(), i, belongingFactor);
-				belongingFactor = memberships.get(edge.source().index(), i) + edgeWeight;
-				memberships.set(edge.source().index(), i, belongingFactor);
-			}
-		}
-		return new Cover(graph, memberships);
-	}
-	
-	private double getSimpleSimilarity(Node nodeA, Node nodeB) {
-		Set<Node> commonNeighbors = new HashSet<Node>();
-		Set<Node> totalNeighbors = new HashSet<Node>();
-		if(nodeB.getEdgeTo(nodeA) != null) {
-			commonNeighbors.add(nodeA);
-			commonNeighbors.add(nodeB);
-		}
-		totalNeighbors.add(nodeA);
-		totalNeighbors.add(nodeB);
-		/*
-		 * Check nodeA neighbors.
-		 */
-		NodeCursor neighbors = nodeA.neighbors();
-		Node neighbor;
-		while(neighbors.ok()) {
-			neighbor = neighbors.node();
-			if(neighbor.getEdge(nodeB) != null) {
-				commonNeighbors.add(neighbor);
-			}
-			totalNeighbors.add(neighbor);
-			neighbors.next();
-		}
-		/*
-		 * Checks nodeB neighbors.
-		 */
-		neighbors = nodeB.neighbors();
-		while(neighbors.ok()) {
-			totalNeighbors.add(neighbors.node());
-			neighbors.next();
-		}
-		return (double)commonNeighbors.size() / (double)totalNeighbors.size();
-	}
-	
 }
