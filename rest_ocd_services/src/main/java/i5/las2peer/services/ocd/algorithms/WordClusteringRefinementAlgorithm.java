@@ -136,6 +136,8 @@ public class WordClusteringRefinementAlgorithm implements OcdAlgorithm{
 		Cover res = new Cover(graph,membershipMatrix);
 		time.stop();
 		time.setCoverExecutionTime(res);
+
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + res.communityCount() +" communities   ***");
 		return res;
 	}
 

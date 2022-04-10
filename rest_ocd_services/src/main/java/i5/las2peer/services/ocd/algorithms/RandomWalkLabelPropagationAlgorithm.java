@@ -125,7 +125,9 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	public Cover detectOverlappingCommunities(CustomGraph graph)
 			throws OcdAlgorithmException, InterruptedException {
 		List<Node> leaders = randomWalkPhase(graph);
-		return labelPropagationPhase(graph, leaders);
+		Cover c = labelPropagationPhase(graph, leaders);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
+		return c;
 	}
 
 	/**

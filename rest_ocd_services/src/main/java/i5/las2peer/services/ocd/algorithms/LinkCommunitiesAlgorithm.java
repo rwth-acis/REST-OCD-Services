@@ -130,7 +130,9 @@ public class LinkCommunitiesAlgorithm implements
 				densestPartition = new ArrayList<Set<Edge>>(communityEdges);
 			}
 		}
-		return calculatePartitionCover(graph, densestPartition);
+		Cover c = calculatePartitionCover(graph, densestPartition);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
+		return c;
 	}
 
 private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkageDegrees) throws InterruptedException {
