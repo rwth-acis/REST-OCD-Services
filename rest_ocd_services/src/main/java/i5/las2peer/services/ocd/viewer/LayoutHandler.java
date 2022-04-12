@@ -83,7 +83,8 @@ public class LayoutHandler {
 		 */
 		double minDegree = graph.getMinWeightedInDegree();
 		double maxDegree = graph.getMaxWeightedInDegree();
-		double scalingFactor = (maxNodeSize - minNodeSize) / (maxDegree - minDegree);
+		double degreeDifference = (maxDegree == minDegree) ? 1.0 : (maxDegree - minDegree);
+		double scalingFactor = (maxNodeSize - minNodeSize) / degreeDifference;
 		while(nodes.ok()) {
 			node = nodes.node();
 			ShapeNodeRealizer nRealizer = new ShapeNodeRealizer(graph.getRealizer(node));
