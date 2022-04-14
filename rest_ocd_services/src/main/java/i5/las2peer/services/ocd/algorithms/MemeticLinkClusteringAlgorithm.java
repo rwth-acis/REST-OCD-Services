@@ -7,6 +7,8 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.centrality.data.CentralityMap;
+import i5.las2peer.services.ocd.centrality.measures.EigenvectorCentrality;
 import i5.las2peer.services.ocd.utils.Pair;
 
 import java.util.ArrayList;
@@ -20,10 +22,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.Random;
 import java.util.Stack;
+import java.util.AbstractMap.SimpleEntry;
 
 import java.lang.Double; 
 import java.lang.Math;
 
+import org.apache.commons.exec.ExecuteException;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
@@ -86,11 +90,15 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			hMap.put(edgeArr[i], edgeArr[i+1]);
 		}
 		hMap.put(edgeArr[5],edgeArr[3]);
-        MLinkPopulation pop = new MLinkPopulation();
-        MLinkAgent agent = new MLinkAgent();
-        MLinkIndividual indi = new MLinkIndividual(hMap);
+        // MLinkPopulation pop = new MLinkPopulation();
+        // MLinkAgent agent = new MLinkAgent();
+        // MLinkIndividual indi = new MLinkIndividual(hMap);
 		MLinkIndividual labelProp = labelPropagation(graph);
-		indi.mutation();
+		// MLinkIndividual localExp = localExpansion(graph);
+		// MLinkIndividual eigenVek = localExpansionEigen(graph);
+		// indi.mutation();
+		double fitness = labelProp.getFitness();
+		int ld = 0;
 		// agent.addIndividual(indi);
 		// pop.addAgent(agent);
         return mlink;
@@ -118,45 +126,16 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		return new MLinkIndividual(individual);
 	}
 	/**
-	 * Label Propagation
-	 * @param graph initial graph
-	 * @return Individual generated with label propagation
+	 * Translates the community of nodes to a MLinkIndividual
+	 * @param labels Nodes with the according Community as a label
+	 * @return individual 
 	 */
-	public MLinkIndividual labelPropagation(CustomGraph graph){
+	public MLinkIndividual translateToIndividual(HashMap<Node,Integer> labels){
 		HashMap<Edge,Edge> genes = new HashMap<Edge,Edge>();
-		HashMap<Node,Integer> labels = new HashMap<Node,Integer>();
-		Node[] nodes = graph.getNodeArray();
-		// Each node receives a unique label
-		for(int i = 0; i < nodes.length; i++){
-			labels.put(nodes[i], i);
-		}
-		ArrayList<Node> notVisited = new ArrayList<Node>(Arrays.asList(nodes));
-
-		boolean stop = false;
-		// reassign new labels for each node
-		while(!stop){
-			int size = notVisited.size();
-			int node = new Random().nextInt(size);
-			Node selected = notVisited.get(node);
-			notVisited.remove(node);
-
-			int newLabel = getMostFrequentLabel(labels, selected);
-			labels.put(selected, newLabel);
-			if(notVisited.isEmpty()){
-				stop = true;
-			}
-		}
-
-		/**
-		 * Translation from community of nodes to locus based representation
-		 */
-
-		// store nodes with the same label in a hashmap
 		HashMap<Integer,Set<Node>> labelNodes = new HashMap<Integer,Set<Node>>();
 		for(Node node : labels.keySet()){
 			labelNodes.put(labels.get(node), new HashSet<Node>());
 		}
-
 		// Fill sets with nodes of the corresponding label
 		for(Node n : labels.keySet()){
 			labelNodes.get(labels.get(n)).add(n);
@@ -166,21 +145,26 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		// Assign genes so that they represent the given community of edges
 		Random rand = new Random();
 		Set<Node> checkedNodes = new HashSet<Node>(); 
-		Stack<Node> queue = new Stack<Node>();
+		Set<Node> isQueued = new HashSet<Node>();
+		Stack<SimpleEntry<Edge,Node>> queue = new Stack<SimpleEntry<Edge,Node>>();
 		Set<Edge> sharedEdges = new HashSet<Edge>();
 		for(Integer l : labelNodes.keySet()){
 			Set<Node> commNodes = labelNodes.get(l);
 			Node start = commNodes.iterator().next();
-			Node pred = start;
-			queue.add(start);
+			queue.add(new SimpleEntry<Edge,Node>(null,start));
+			isQueued.add(start);
 			while(!queue.empty()){
-				Node curNode = queue.pop();
-
+				SimpleEntry<Edge,Node> curEntry = queue.pop();
+				Node curNode = curEntry.getValue();
+				checkedNodes.add(curNode);
 				// Check if the current node has neighbors that weren't already checked
 				NodeCursor nghb = curNode.neighbors();
 				boolean hasUncheckedNeighbor = false;
 				for(int i = 0; i < nghb.size(); i++){
 					if(!checkedNodes.contains(nghb.node())){
+						hasUncheckedNeighbor = true;
+						break;
+					} else if(labels.get(nghb.node()) != labels.get(curNode)){
 						hasUncheckedNeighbor = true;
 						break;
 					}
@@ -191,83 +175,108 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				}
 
 				if(curNode.degree() != 0){
-					checkedNodes.add(curNode);
 					EdgeCursor adjEdges = curNode.edges();
-					Edge last;
+					Edge last = null;
 					Edge cur;
-					Edge first = null;
-					Edge incoming = getEdge(pred, curNode);
-					// Get the first edge that is either
-					for(int i = 0; i < adjEdges.size(); i++){
-						if(labels.get(adjEdges.edge().source()) == labels.get(adjEdges.edge().target())){
-							if(checkedNodes.contains(adjEdges.edge().source()) || checkedNodes.contains(adjEdges.edge().target())){
-								first = adjEdges.edge();
-								break;
-							}
-						}
-						adjEdges.cyclicNext();
-					}
-					
+					Edge first = curEntry.getKey();
+					// Set first on an Edge that is inside the current community
 					if(first == null){
 						for(int i = 0; i < adjEdges.size(); i++){
-							if(checkedNodes.contains(adjEdges.edge().source()) || checkedNodes.contains(adjEdges.edge().target())){
-								first = adjEdges.edge();
-								sharedEdges.add(adjEdges.edge());
+							cur = adjEdges.edge();
+							Node other = (curNode == cur.source())? cur.target():cur.source();
+							if(labels.get(other) == labels.get(curNode)){
+								first = cur;
+								adjEdges.cyclicNext();
 								break;
+							} else if(!checkedNodes.contains(other) || !sharedEdges.contains(cur)) {
+								first = cur;
 							}
+							adjEdges.cyclicNext();
+						}
+						if(first == null){
+							break;
+						}
+
+						// Put Root edge on itself
+						genes.put(first,first);
+						Node other = (curNode == first.source())? first.target():first.source();
+						if(labels.get(other) == labels.get(curNode) && !isQueued.contains(other)){
+							queue.add(new SimpleEntry<Edge,Node>(first, other));
+							isQueued.add(other);
 						}
 					}
-					last = adjEdges.edge();
-
+					last = first;
+					sharedEdges.add(first);
+					// Create a circle with the last edge pointing on the first
 					for(int i = 0; i < adjEdges.size(); i++){
 						adjEdges.cyclicNext();
 						cur = adjEdges.edge();
-						if(cur == first){
+						if(first == cur){
 							continue;
 						}
+						Node other = (curNode == cur.source())? cur.target():cur.source();
 						if(labels.get(cur.source()) == labels.get(cur.target())){
-							if(!checkedNodes.contains(cur.target()) || !checkedNodes.contains(cur.source())){
-								if(curNode == cur.source() && !checkedNodes.contains(cur.target())){
-									queue.add(cur.target());
-								} else if(!checkedNodes.contains(cur.source())) {
-									queue.add(cur.source());
+							if(!checkedNodes.contains(other)){
+								if(!isQueued.contains(other)){
+									queue.add(new SimpleEntry<Edge,Node>(cur, other));
+									isQueued.add(other);
 								}
-								genes.put(last, cur);
-								last = cur;									
+								if(last != first){
+									genes.put(last, cur);		
+								}		
+								last = cur;
 							}
 						} else {
 							// check whether the connected node is the target or source
 							// then check if adjacent node was already checked and if act accordingly to split the shared edges with 50% chance
-							if(curNode == cur.source()){
-								if(!checkedNodes.contains(cur.target()) && !sharedEdges.contains(cur)){
-									if(rand.nextInt(100) < 49){
-										sharedEdges.add(cur);
-										genes.put(cur, first);
-									}
-								} else if(checkedNodes.contains(cur.target()) && !sharedEdges.contains(cur)){
-									sharedEdges.add(cur);
-									genes.put(cur, first);
-								}
-							} else if(!checkedNodes.contains(cur.source()) && !sharedEdges.contains(cur)) {
+							if(!checkedNodes.contains(other)){
 								if(rand.nextInt(100) < 49){
 									sharedEdges.add(cur);
 									genes.put(cur, first);
 								}
-							} else if(checkedNodes.contains(cur.source()) && !sharedEdges.contains(cur)){
+							} else if(!sharedEdges.contains(cur)){
 								sharedEdges.add(cur);
 								genes.put(cur, first);
 							}
 						}
 					}
-					if(incoming != null){
-						genes.put(last,incoming);
+					if(last != first){
+						genes.put(last, first);
 					}
 					
+
 				}
-				pred = curNode;
 			}
 		}
 		return new MLinkIndividual(genes);
+	}
+
+
+	/**
+	 * Label Propagation
+	 * @param graph initial graph
+	 * @return Individual generated with label propagation
+	 */
+	public MLinkIndividual labelPropagation(CustomGraph graph){
+		HashMap<Node,Integer> labels = new HashMap<Node,Integer>();
+		Node[] nodes = graph.getNodeArray();
+		// Each node receives a unique label
+		for(int i = 0; i < nodes.length; i++){
+			labels.put(nodes[i], i);
+		}
+		ArrayList<Node> notVisited = new ArrayList<Node>(Arrays.asList(nodes));
+
+		// reassign new labels for each node
+		while(!notVisited.isEmpty()){
+			int size = notVisited.size();
+			int node = new Random(5).nextInt(size);
+			Node selected = notVisited.get(node);
+			notVisited.remove(node);
+			int newLabel = getMostFrequentLabel(labels, selected);
+			labels.put(selected, newLabel);
+		}
+
+		return translateToIndividual(labels);
 	}
 	/**
 	 * returns the label with the highes frequency amongst neighbors
@@ -310,7 +319,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			}
 		}
 		int labelSize = neighbors.size();
-		int randLabel = new Random().nextInt(labelSize);
+		int randLabel = new Random(10).nextInt(labelSize);
 		int i = 0;
 		for(Integer l : maxLabels){
 			if(i == randLabel){
@@ -342,7 +351,77 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 
 		return res;
 	}
-	
-	
+	/**
+	 * Local Expansion with random seed
+	 * @param graph initial graph
+	 * @return	returns new MLinkIndividual 
+	 */
+	public MLinkIndividual localExpansion(CustomGraph graph){
+		HashMap<Node,Integer> communities = new HashMap<Node,Integer>();
+		Node[] nodeArr = graph.getNodeArray();
+		ArrayList<Node> nodes = new ArrayList<Node>(Arrays.asList(nodeArr));
+		int curComm = 0;
+		Random rand = new Random();
+
+		while(!nodes.isEmpty()){
+			//select random seed node;
+			int seedIndex = rand.nextInt(nodes.size());
+			Node seed = nodes.get(seedIndex);
+			communities.put(seed, curComm);
+			nodes.remove(seed);
+
+			// Create natural community and remove nodes
+			NodeCursor neighbors = seed.neighbors();
+			for(int i = 0; i < neighbors.size(); i++){
+				Node cur = neighbors.node();
+				communities.put(cur,curComm);
+				nodes.remove(cur);
+				neighbors.cyclicNext();
+			}
+			curComm++;
+		}
+		return translateToIndividual(communities);
+	}
+
+	public MLinkIndividual localExpansionEigen(CustomGraph graph){
+		try{
+			EigenvectorCentrality eigenVectorCentrality = new EigenvectorCentrality();
+			CentralityMap centralities = eigenVectorCentrality.getValues(graph);
+			HashMap<Node,Integer> communities = new HashMap<Node,Integer>();
+			ArrayList<Node> nodes = new ArrayList<Node>(Arrays.asList(graph.getNodeArray()));
+			int curComm = 0;
+			
+			while(!nodes.isEmpty()){
+				// Select seed based on Eigenvector centrality
+				Node seed = nodes.get(0);
+				for(int i = 1; i < nodes.size(); i++){
+					if(centralities.getNodeValue(seed) < centralities.getNodeValue(nodes.get(i))){
+						seed = nodes.get(i);
+					}
+				}
+				communities.put(seed, curComm);
+				nodes.remove(seed);
+				// Create natural community and remove nodes
+				NodeCursor neighbors = seed.neighbors();
+				for(int i = 0; i < neighbors.size(); i++){
+					Node cur = neighbors.node();
+					communities.put(cur,curComm);
+					nodes.remove(cur);
+					neighbors.cyclicNext();
+				}
+				curComm++;
+			}
+
+			return translateToIndividual(communities);
+
+		} catch(Exception e){
+			System.out.println(e);
+			return null;
+		}
+		
+		
+
+
+	}
 
 }

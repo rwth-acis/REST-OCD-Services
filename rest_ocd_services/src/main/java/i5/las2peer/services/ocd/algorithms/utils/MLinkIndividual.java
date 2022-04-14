@@ -66,52 +66,68 @@ public class MLinkIndividual {
                 }
             }
             nodeNr = tmp.size();
-            fitness += edges*( (edges-(nodeNr - 1.0 )) / ((nodeNr - 2.0) * (nodeNr - 1.0)) );
-        }
-        this.fitness = (2.0/this.edgeNr)*fitness;
-    }
-    public void calcCommunities(){
-        for(Edge key : this.individual.keySet()){
-            if(this.communities.isEmpty()){
-                ArrayList<Edge> comm = new ArrayList<Edge>();
-                addToCommunity(key, comm);
-                this.communities.add(comm);
-                continue;
-            }
-            boolean found = false;
-            for(ArrayList<Edge> c : this.communities){
-                if(c.contains(key) || c.contains(this.individual.get(key))){
-                    addToCommunity(key, c);
-                    found = true;
-                    break;
-                }
-            }
-            if(!found){
-                ArrayList<Edge> comm = new ArrayList<Edge>();
-                addToCommunity(key, comm);
-                this.communities.add(comm);
+            if(nodeNr < 3){
+                fitness += 0;
+            } else {
+                fitness += edges*( (edges-(nodeNr - 1.0 )) / ((nodeNr - 2.0) * (nodeNr - 1.0)) );
             }
             
         }
+        this.fitness = (2.0/this.edgeNr)*fitness;
     }
-    private void addToCommunity(Edge key, ArrayList<Edge> comm){
-        if(!comm.contains(key)){
-            comm.add(key);
+    /**
+     * Saves the communities as ArrayLists
+     */
+    public void calcCommunities(){
+        HashSet<HashSet<Edge>> communitiesSet = new HashSet<HashSet<Edge>>();
+        for(Edge key : this.individual.keySet()){
+            HashSet<Edge> tmp = new HashSet<Edge>();
+            tmp.add(key);
+            communitiesSet.add(tmp);
+        }
+        boolean changes = true;
+        while(changes){
+            changes = false;
+            HashSet<Edge> commLocus = null;
+            HashSet<Edge> commGene = null;
+            for(Edge locus : this.individual.keySet()){
+                Edge gene = this.individual.get(locus);
+                for(HashSet<Edge> comm : communitiesSet){
+                    if(comm.contains(gene)){
+                        commGene = comm;
+                    }
+                    if(comm.contains(locus)){
+                        commLocus = comm;
+                    }
+                    if(commGene != null && commLocus != null){
+                        break;
+                    }
+                }
+                if(commGene != commLocus){
+                    commGene.addAll(commLocus);
+                    communitiesSet.remove(commLocus);
+                    changes = true;
+                }
+                commGene = null;
+                commLocus = null;
+            }
+        }
+        for(HashSet<Edge> comm : communitiesSet){
+            this.communities.add(new ArrayList<Edge>(comm));
         }
         
-        Edge geneValue = this.individual.get(key);
-        if(!comm.contains(geneValue)){
-            comm.add(geneValue);
-            addToCommunity(geneValue, comm);
-        }
     }
+
+    /**
+     * Mutation operator to keep the diversity high
+     */
     public void mutation(){
 		int mutationProbability = 5;
 		HashMap<Edge, Edge> genes = this.individual;
 		Random rand = new Random();
 		for(Edge key : genes.keySet()){
             Edge gene = genes.get(key);
-			if(rand.nextInt(101) < mutationProbability){
+			if(rand.nextInt(100) < mutationProbability - 1){
 				Set<Edge> neighbors = new HashSet<Edge>();
 				EdgeCursor targetEdges = key.target().edges();
 				int nghbSizeTrgt = targetEdges.size();
@@ -141,5 +157,7 @@ public class MLinkIndividual {
 			}
 		}
 		this.individual = genes;
-	}
+        this.calcCommunities();
+        this.calcFitness();
+	}   
 }
