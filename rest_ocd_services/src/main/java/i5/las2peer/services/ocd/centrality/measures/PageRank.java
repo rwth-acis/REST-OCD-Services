@@ -12,10 +12,10 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Edge;
+
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of PageRank.
@@ -34,10 +34,10 @@ public class PageRank implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.PAGERANK, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
+		Iterator<Node> nc = graph.iterator();
 		// Set initial PageRank of all nodes to 1
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), 1.0);
+		while(nc.hasNext()) {
+			res.setNodeValue(nc.next(), 1.0);
 			nc.next();
 		}
 		nc.toFirst();
@@ -47,11 +47,11 @@ public class PageRank implements CentralityAlgorithm {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			while(nc.ok()) {
-				Node i = nc.node();
+			while(nc.hasNext()) {
+				Node i = nc.next();
 				double weightedRankSum = 0.0;		
 				EdgeCursor inLinks = i.inEdges();
-				while(inLinks.ok()) {
+				while(inLinks.hasNext()) {
 					Edge eji = inLinks.edge();
 					Node j = eji.source();
 					weightedRankSum += graph.getEdgeWeight(eji) * res.getNodeValue(j) / graph.getWeightedOutDegree(j);
@@ -66,15 +66,15 @@ public class PageRank implements CentralityAlgorithm {
 		
 		// Scale the values, so they sum to 1
 		double sum = 0.0;
-		while(nc.ok()) {
-			sum += res.getNodeValue(nc.node());
+		while(nc.hasNext()) {
+			sum += res.getNodeValue(nc.next());
 			nc.next();
 		}
 		nc.toFirst();
 		double factor = 1/sum;
 		
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), factor * res.getNodeValue(nc.node()));
+		while(nc.hasNext()) {
+			res.setNodeValue(nc.next(), factor * res.getNodeValue(nc.next()));
 			nc.next();
 		}	
 		return res;

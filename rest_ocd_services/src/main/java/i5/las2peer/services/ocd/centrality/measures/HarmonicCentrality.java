@@ -13,8 +13,8 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import y.algo.ShortestPaths;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Harmonic Centrality.
@@ -28,20 +28,20 @@ public class HarmonicCentrality implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.HARMONIC_CENTRALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
+		Iterator<Node> nc = graph.iterator();
 		// If there is only a single node
-		if(graph.nodeCount() == 1) {
-			res.setNodeValue(nc.node(), 0);
+		if(graph.getNodeCount() == 1) {
+			res.setNodeValue(nc.next(), 0);
 			return res;
 		}
 		
 		double[] edgeWeights = graph.getEdgeWeights();
-		while(nc.ok()) {
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
-			double[] dist = new double[graph.nodeCount()];
+			Node node = nc.next();
+			double[] dist = new double[graph.getNodeCount()];
 			ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
 			double inverseDistSum = 0.0;
 			for(double d : dist) {
@@ -49,7 +49,7 @@ public class HarmonicCentrality implements CentralityAlgorithm {
 					inverseDistSum += 1.0/d;
 				}
 			}
-			res.setNodeValue(node, 1.0/(graph.nodeCount()-1.0)*inverseDistSum);
+			res.setNodeValue(node, 1.0/(graph.getNodeCount()-1.0)*inverseDistSum);
 			nc.next();
 		}	
 		return res;

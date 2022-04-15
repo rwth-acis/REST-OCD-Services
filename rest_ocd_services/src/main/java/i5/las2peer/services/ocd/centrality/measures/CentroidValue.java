@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -18,8 +15,9 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import y.algo.ShortestPaths;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+import org.graphstream.algorithm.Dijkstra;
+
 
 /**
  * Implementation of Centroid Value.
@@ -33,39 +31,51 @@ public class CentroidValue implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.CENTROID_VALUE, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		int n = graph.nodeCount();
+		Iterator<Node> nc = graph.iterator();
+		int n = graph.getNodeCount();
 		double[] edgeWeights = graph.getEdgeWeights();
 		Matrix dist = new CCSMatrix(n, n);
-		while(nc.ok()) {
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();	
+			Node node = nc.next();	
 			// Create matrix containing all the distances between nodes
 			double[] distArray = new double[n];
-			ShortestPaths.dijkstra(graph, node, true, edgeWeights, distArray);
+
+			//TODO: Check if dijkstra computation similar enough to old yFiles one
+			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
+			dijkstra.init(graph);
+			dijkstra.setSource(node);
+			dijkstra.compute();
+
+			Iterator<Node> iterator = graph.iterator();
+			int k = 0;
+			while(iterator.hasNext()) {
+				distArray[k] = dijkstra.getPathLength(iterator.next());
+				k++;
+			}
+
 			Vector distVector = new BasicVector(distArray);
-			dist.setRow(node.index(), distVector);
-			nc.next();
+			dist.setRow(node.getIndex(), distVector);
 		}
-		
-		nc.toFirst();
-		while(nc.ok()) {
+
+		nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node v = nc.node();			
+			Node v = nc.next();			
 			int min = n;
-			NodeCursor nc2 = graph.nodes();
-			while(nc2.ok()) {
-				Node w = nc2.node();
+			Iterator<Node> nc2 = graph.iterator();
+			while(nc2.hasNext()) {
+				Node w = nc2.next();
 				if(v != w) {
 					int gammaVW = 0;
 					int gammaWV = 0;			
 					for(int i = 0; i < n; i++) {
-						double distV = dist.get(v.index(), i);
-						double distW = dist.get(w.index(), i);
+						double distV = dist.get(v.getIndex(), i);
+						double distW = dist.get(w.getIndex(), i);
 						if(distV < distW)
 							gammaVW++;
 						else if(distW < distV)
@@ -75,10 +85,8 @@ public class CentroidValue implements CentralityAlgorithm {
 					if(fVW < min)
 						min = fVW;
 				}			
-				nc2.next();
-			}		
+			}
 			res.setNodeValue(v, min);
-			nc.next();
 		}
 		return res;
 	}

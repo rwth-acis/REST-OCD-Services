@@ -14,8 +14,8 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Subgraph Centrality.
@@ -31,9 +31,9 @@ public class SubgraphCentrality implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.SUBGRAPH_CENTRALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), 0);
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
+			res.setNodeValue(nc.next(), 0);
 			nc.next();
 		}
 		
@@ -45,9 +45,9 @@ public class SubgraphCentrality implements CentralityAlgorithm {
 			Matrix powerOfA = A.power(p);
 			long weight = factorial(p);
 			nc.toFirst();
-			while(nc.ok()) {
-				Node node = nc.node();	
-				double weightedCycles = powerOfA.get(node.index(), node.index())/weight;
+			while(nc.hasNext()) {
+				Node node = nc.next();	
+				double weightedCycles = powerOfA.get(node.getIndex(), node.getIndex())/weight;
 				res.setNodeValue(node, res.getNodeValue(node) + weightedCycles);
 				nc.next();
 			}

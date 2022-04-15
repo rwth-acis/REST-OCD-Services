@@ -13,8 +13,8 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import y.algo.ShortestPaths;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Radiality.
@@ -28,10 +28,10 @@ public class Radiality implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.RADIALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
+		Iterator<Node> nc = graph.iterator();
 		// If there is only a single node
-		if(graph.nodeCount() == 1) {
-			res.setNodeValue(nc.node(), 0);
+		if(graph.getNodeCount() == 1) {
+			res.setNodeValue(nc.next(), 0);
 			return res;
 		}
 		
@@ -39,12 +39,12 @@ public class Radiality implements CentralityAlgorithm {
 		double[] edgeWeights = graph.getEdgeWeights();
 		Map<Node, Integer> reachableNodes = new HashMap<Node, Integer>();
 		double maxDistance = 0;
-		while(nc.ok()) {
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
-			double[] dist = new double[graph.nodeCount()];
+			Node node = nc.next();
+			double[] dist = new double[graph.getNodeCount()];
 			
 			ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
 			double distSum = 0.0;
@@ -64,14 +64,14 @@ public class Radiality implements CentralityAlgorithm {
 		
 		// Reverse distances
 		nc.toFirst();
-		while(nc.ok()) {
-			Node node = nc.node();
+		while(nc.hasNext()) {
+			Node node = nc.next();
 			double distSum = res.getNodeValue(node);
 			/*
 			 * Each distance in the sum is reversed which is equivalent to multiplying the number of reachable nodes with the 
 			 * diameter of the graph and subtracting the sum of distances (+ 1 added to differentiate disconnected nodes).
 			 */
-			res.setNodeValue(node, (reachableNodes.get(node) * (1 + maxDistance) - distSum)/(graph.nodeCount()-1));
+			res.setNodeValue(node, (reachableNodes.get(node) * (1 + maxDistance) - distSum)/(graph.getNodeCount()-1));
 			nc.next();
 		}
 		return res;

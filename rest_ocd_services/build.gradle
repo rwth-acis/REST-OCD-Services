@@ -77,6 +77,7 @@ dependencies {
     compileOnly "org.ojalgo:ojalgo:50.0.0"
     compileOnly "net.sbbi:sbbi-upnplib:1.0.4"
     compileOnly "org.graphstream:gs-core:2.0"
+    compileOnly "org.graphstream:gs-algo:2.0"
 
     //yFiles
     compileOnly fileTree(dir: "${yFiles}", include: '*.jar')

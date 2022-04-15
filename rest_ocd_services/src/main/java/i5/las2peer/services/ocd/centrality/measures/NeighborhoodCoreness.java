@@ -12,8 +12,8 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Neighborhood Coreness.
@@ -32,16 +32,16 @@ public class NeighborhoodCoreness implements CentralityAlgorithm {
 		Coreness corenessAlgorithm = new Coreness();
 		CentralityMap corenessMap = corenessAlgorithm.getValues(graphCopy);
 		Map<String, Double> nameCorenessMap = corenessMap.getMap();
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();	
+			Node node = nc.next();	
 			double neighborCorenessSum = 0.0;
-			NodeCursor neighbors = node.successors();
-			while(neighbors.ok()) {
-				String nodeName = graph.getNodeName(neighbors.node());
+			Iterator<Node> neighbors = node.successors();
+			while(neighbors.hasNext()) {
+				String nodeName = graph.getNodeName(neighbors.next());
 				neighborCorenessSum += nameCorenessMap.get(nodeName);
 				neighbors.next();
 			}	

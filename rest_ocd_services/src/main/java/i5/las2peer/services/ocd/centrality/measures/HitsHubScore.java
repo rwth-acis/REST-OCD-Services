@@ -17,8 +17,8 @@ import i5.las2peer.services.ocd.centrality.utils.MatrixOperations;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of the HITS hub score.
@@ -32,12 +32,12 @@ public class HitsHubScore implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.HITS_HUB_SCORE, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		int n = graph.nodeCount();
+		Iterator<Node> nc = graph.iterator();
+		int n = graph.getNodeCount();
 		// If the graph contains no edges
-		if(graph.edgeCount() == 0) {
-			while(nc.ok()) {
-				Node node = nc.node();
+		if(graph.getEdgeCount() == 0) {
+			while(nc.hasNext()) {
+				Node node = nc.next();
 				res.setNodeValue(node, 0);
 				nc.next();
 			}
@@ -90,8 +90,8 @@ public class HitsHubScore implements CentralityAlgorithm {
 		}
 		
 		// Set centrality values to the hub weights
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), hubWeights.get(nc.node().index()));
+		while(nc.hasNext()) {
+			res.setNodeValue(nc.next(), hubWeights.get(nc.next().getIndex()));
 			nc.next();
 		}
 		return res;

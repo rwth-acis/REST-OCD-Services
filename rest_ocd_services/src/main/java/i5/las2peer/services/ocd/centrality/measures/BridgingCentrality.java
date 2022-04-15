@@ -1,10 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -14,8 +10,8 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Bridging Centrality.
@@ -28,7 +24,7 @@ public class BridgingCentrality implements CentralityAlgorithm {
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.BRIDGING_CENTRALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
-		int n = graph.nodeCount();
+		int n = graph.getNodeCount();
 		
 		// Determine bridging coefficient ranks
 		BridgingCoefficient bridgingCoefficientAlgorithm = new BridgingCoefficient();
@@ -70,16 +66,15 @@ public class BridgingCentrality implements CentralityAlgorithm {
 			}
 		}
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();	
+			Node node = nc.next();
 			int bridgingRank = bridgingCoefficientValueToRankMap.get(bridgingCoefficientMap.getNodeValue(node));
 			int betweennessRank = betweennessCentralityValueToRankMap.get(betweennessCentralityMap.getNodeValue(node));
 			res.setNodeValue(node, bridgingRank * betweennessRank);
-			nc.next();
 		}
 		return res;
 	}

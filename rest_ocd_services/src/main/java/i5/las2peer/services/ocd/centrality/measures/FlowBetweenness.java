@@ -14,11 +14,11 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import y.algo.NetworkFlows;
 import y.base.DataProvider;
-import y.base.Edge;
-import y.base.EdgeCursor;
+import org.graphstream.graph.Edge;
+
 import y.base.EdgeMap;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 import y.util.Maps;
 
 /**
@@ -43,9 +43,9 @@ public class FlowBetweenness implements CentralityAlgorithm {
 		DataProvider capacities = Maps.createIndexEdgeMap(intWeights);
 		
 		// Set initial values to 0
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), 0.0);
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
+			res.setNodeValue(nc.next(), 0.0);
 			nc.next();
 		}
 		
@@ -67,14 +67,14 @@ public class FlowBetweenness implements CentralityAlgorithm {
 					int maximumFlow = NetworkFlows.calcMaxFlow(graph, source, sink, capacities, flowEdgeMap);
 					
 					// Measure flow through all the nodes
-					nc = graph.nodes();
-					while(nc.ok()) {
-						Node node = nc.node();
+					nc = graph.iterator();
+					while(nc.hasNext()) {
+						Node node = nc.next();
 						if(node != source && node != sink && maximumFlow != 0) {
 							// Calculate flow through node
 							int maximumFlowThroughNode = 0;
 							EdgeCursor inEdges = node.inEdges();
-							while(inEdges.ok()) {
+							while(inEdges.hasNext()) {
 								maximumFlowThroughNode += flowEdgeMap.getInt(inEdges.edge());
 								inEdges.next();
 							}

@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.inversion.GaussJordanInverter;
 import org.la4j.inversion.MatrixInverter;
@@ -17,10 +14,10 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Edge;
+
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Current-Flow Betweenness.
@@ -34,38 +31,35 @@ public class CurrentFlowBetweenness implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.CURRENT_FLOW_BETWEENNESS, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
+		Iterator<Node> nc = graph.iterator();
 		// If the graph contains no edges
-		if(graph.edgeCount() == 0) {
-			while(nc.ok()) {
-				Node node = nc.node();
+		if(graph.getEdgeCount() == 0) {
+			while(nc.hasNext()) {
+				Node node = nc.next();
 				res.setNodeValue(node, 0);
-				nc.next();
 			}
 			return res;
 		}
 		
-		int n = nc.size();
+		int n = graph.getNodeCount();
 		Matrix L = new CCSMatrix(n, n);
 		
 		// Create laplacian matrix
-		while(nc.ok()) {
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
-			int i = node.index();
+			Node node = nc.next();
+			int i = node.getIndex();
 			L.set(i, i, graph.getWeightedInDegree(node));
-			nc.next();
 		}
-		EdgeCursor ec = graph.edges();
-		while(ec.ok()) {
+		Iterator<Edge> ec = graph.edges().iterator();
+		while(ec.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Edge edge = ec.edge();
-			L.set(edge.source().index(), edge.target().index(), -graph.getEdgeWeight(edge));
-			ec.next();
+			Edge edge = ec.next();
+			L.set(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex(), -graph.getEdgeWeight(edge));
 		}
 
 		// Remove the first row and column
@@ -87,70 +81,66 @@ public class CurrentFlowBetweenness implements CentralityAlgorithm {
 		 * here it points from the node with the smaller index to the one with the higher index.
 		 * The edge in the opposite direction is removed.
 		 */
-		ec.toFirst();
-		while(ec.ok()) {
+		ec = graph.edges().iterator();
+		while(ec.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Edge edge = ec.edge();
-			Node s = edge.source();
-			Node t = edge.target();
-			if(s.index() < t.index()) {
-				Edge reverseEdge = t.getEdgeTo(s);
+			Edge edge = ec.next();
+			Node s = edge.getSourceNode();
+			Node t = edge.getTargetNode();
+			if(s.getIndex() < t.getIndex()) {
+				Edge reverseEdge = t.getEdgeToward(s);
 				graph.removeEdge(reverseEdge);
 			}
-			ec.next();
 		}
 		
 		// Create matrix B
-		ec.toFirst();
-		int m = ec.size();
+		ec = graph.edges().iterator();
+		int m = graph.getEdgeCount();
 		Matrix B = new CCSMatrix(m, n);
 		int edgeIndex = 0;
-		while(ec.ok()) {
+		while(ec.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Edge edge = ec.edge();
-			int s = edge.source().index();
-			int t = edge.target().index();
+			Edge edge = ec.next();
+			int s = edge.getSourceNode().getIndex();
+			int t = edge.getTargetNode().getIndex();
 			B.set(edgeIndex, s, graph.getEdgeWeight(edge));
 			B.set(edgeIndex, t, -graph.getEdgeWeight(edge));
-			ec.next();
 			edgeIndex++;
 		}
 		Matrix F = B.multiply(C);
 		int normalizationFactor = (n-2)*(n-1);
-		Node[] nodeArray = graph.getNodeArray();
-		nc.toFirst();
+		Node[] nodeArray = graph.nodes().toArray(Node[]::new);
+		nc = graph.nodes().iterator();
 		
 		// Calculate centrality value for each node
-		while(nc.ok()) {
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();	
+			Node node = nc.next();	
 			double throughputSum = 0.0;		
 			for(int sourceIndex = 0; sourceIndex < n; sourceIndex++) {
 				for(int targetIndex = sourceIndex+1; targetIndex < n; targetIndex++) {
-					if(sourceIndex != node.index() && targetIndex != node.index()) {
+					if(sourceIndex != node.getIndex() && targetIndex != node.getIndex()) {
 						Node s = nodeArray[sourceIndex];
 						Node t = nodeArray[targetIndex];		
-						ec.toFirst();
+						ec = graph.edges().iterator();
 						edgeIndex = 0;
-						while(ec.ok()) {
-							Edge edge = ec.edge();
-							if(edge.target() == node || edge.source() == node) {
-								throughputSum += Math.abs(F.get(edgeIndex, s.index()) - F.get(edgeIndex, t.index()));
+						while(ec.hasNext()) {
+							Edge edge = ec.next();
+							if(edge.getTargetNode() == node || edge.getSourceNode() == node) {
+								throughputSum += Math.abs(F.get(edgeIndex, s.getIndex()) - F.get(edgeIndex, t.getIndex()));
 							}
-							ec.next();
 							edgeIndex++;
 						}
 					}
 				}
 			}
 			res.setNodeValue(node, 1.0/normalizationFactor * throughputSum/2);
-			nc.next();
 		}
 		return res;
 	}

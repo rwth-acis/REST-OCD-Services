@@ -1,11 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -14,8 +9,8 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Coreness.
@@ -23,6 +18,7 @@ import y.base.NodeCursor;
  * @author Tobias
  *
  */
+//TODO: Check if algorithm should not create extra own copy to remove nodes on
 public class Coreness implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {
@@ -32,25 +28,24 @@ public class Coreness implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.CORENESS, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
+		Iterator<Node> nc = graph.iterator();
 		// Execute k-core decomposition
 		int k = 0;
-		while(!graph.isEmpty()) {
+		while(graph.getNodeCount() > 0) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
 			boolean nodeRemoved = true;		
 			while(nodeRemoved == true) {
 				nodeRemoved = false;
-				nc = graph.nodes();			
-				while(nc.ok()) {
-					Node node = nc.node();			
-					if(node.inDegree() <= k) {
+				nc = graph.iterator();			
+				while(nc.hasNext()) {
+					Node node = nc.next();			
+					if(node.getInDegree() <= k) {
 						res.setNodeValue(node, k);
 						graph.removeNode(node);
 						nodeRemoved = true;
 					}
-					nc.next();
 				}
 			}
 			k++;
@@ -62,10 +57,10 @@ public class Coreness implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.CORENESS, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc;
+		Iterator<Node> nc;
 		// Execute k-core decomposition
 		int k = 1;
-		while(!graph.isEmpty()) {
+		while(graph.getNodeCount() > 0) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
@@ -76,13 +71,12 @@ public class Coreness implements CentralityAlgorithm {
 				nodeRemoved = false;
 				// Find nodes with minimum degree
 				List<Node> nodeRemoveList = new ArrayList<Node>();
-				nc = graph.nodes();
-				while(nc.ok()) {
-					Node node = nc.node();
+				nc = graph.iterator();
+				while(nc.hasNext()) {
+					Node node = nc.next();
 					if(graph.getWeightedInDegree(node) <= minDegree) {
 						nodeRemoveList.add(node);
 					}
-					nc.next();
 				}
 				if(!nodeRemoveList.isEmpty()) {
 					nodeRemoved = true;

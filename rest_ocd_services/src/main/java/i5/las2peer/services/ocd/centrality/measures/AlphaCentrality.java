@@ -60,7 +60,7 @@ public class AlphaCentrality implements CentralityAlgorithm {
 		Matrix inverse = gauss.inverse();
 		Vector resultVector = inverse.multiply(eVector);
 		
-		Iterator<Node> nc = graph.nodes().iterator();
+		Iterator<Node> nc = graph.iterator();
 		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();

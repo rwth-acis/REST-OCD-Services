@@ -17,9 +17,9 @@ import i5.las2peer.services.ocd.centrality.utils.MatrixOperations;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Edge;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of the SALSA authority score.
@@ -33,12 +33,12 @@ public class SalsaAuthorityScore implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.SALSA_AUTHORITY_SCORE, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		int n = graph.nodeCount();	
+		int n = graph.getNodeCount();	
 		// If the graph contains no edges
-		if(graph.edgeCount() == 0) {
-			NodeCursor nc = graph.nodes();
-			while(nc.ok()) {
-				Node node = nc.node();
+		if(graph.getEdgeCount() == 0) {
+			Iterator<Node> nc = graph.iterator();
+			while(nc.hasNext()) {
+				Node node = nc.next();
 				res.setNodeValue(node, 0);
 				nc.next();
 			}
@@ -89,20 +89,20 @@ public class SalsaAuthorityScore implements CentralityAlgorithm {
 				throw new InterruptedException();
 			}
 			Node i = reverseAuthorityNodeMap.get(ia);
-			NodeCursor stepOne = ia.predecessors();
-			while(stepOne.ok()) {
-				Node kh = stepOne.node();	
-				NodeCursor stepTwo = kh.successors();
-				while(stepTwo.ok()) {
-					Node ja = stepTwo.node();
+			Iterator<Node> stepOne = ia.predecessors();
+			while(stepOne.hasNext()) {
+				Node kh = stepOne.next();	
+				Iterator<Node> stepTwo = kh.successors();
+				while(stepTwo.hasNext()) {
+					Node ja = stepTwo.next();
 					Node j = reverseAuthorityNodeMap.get(ja);			
-					double edgeWeightKI = bipartiteGraph.getEdgeWeight(kh.getEdgeTo(ia));
-					double edgeWeightKJ = bipartiteGraph.getEdgeWeight(kh.getEdgeTo(ja));
+					double edgeWeightKI = bipartiteGraph.getEdgeWeight(kh.getEdgeToward(ia));
+					double edgeWeightKJ = bipartiteGraph.getEdgeWeight(kh.getEdgeToward(ja));
 					double weightedInDegreeI = bipartiteGraph.getWeightedInDegree(ia);
 					double weightedOutDegreeK = bipartiteGraph.getWeightedOutDegree(kh);		
-					double oldAij = authorityMatrix.get(i.index(), j.index());
+					double oldAij = authorityMatrix.get(i.getIndex(), j.getIndex());
 					double newAij = oldAij + (double)edgeWeightKI/weightedInDegreeI * (double)edgeWeightKJ/weightedOutDegreeK;
-					authorityMatrix.set(i.index(), j.index(), newAij);
+					authorityMatrix.set(i.getIndex(), j.getIndex(), newAij);
 					stepTwo.next();
 				}	
 				stepOne.next();
@@ -111,13 +111,13 @@ public class SalsaAuthorityScore implements CentralityAlgorithm {
 		// Calculate stationary distribution of authority Markov chain
 		Vector authorityVector = MatrixOperations.calculateStationaryDistribution(authorityMatrix);
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
-			res.setNodeValue(node, authorityVector.get(node.index()));
+			Node node = nc.next();
+			res.setNodeValue(node, authorityVector.get(node.getIndex()));
 			nc.next();
 		}
 		return res;

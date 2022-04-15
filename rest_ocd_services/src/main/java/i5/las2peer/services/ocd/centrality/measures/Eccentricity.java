@@ -12,8 +12,8 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 import y.algo.ShortestPaths;
 
 /**
@@ -28,14 +28,14 @@ public class Eccentricity implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.ECCENTRICITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
+		Iterator<Node> nc = graph.iterator();
 		double[] edgeWeights = graph.getEdgeWeights();
-		while(nc.ok()) {
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
-			double[] dist = new double[graph.nodeCount()];
+			Node node = nc.next();
+			double[] dist = new double[graph.getNodeCount()];
 			ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
 			double max = 0.0;
 			for(double d : dist) {

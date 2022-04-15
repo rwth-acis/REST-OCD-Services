@@ -19,8 +19,8 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Katz Centrality.
@@ -39,7 +39,7 @@ public class KatzCentrality implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.KATZ_CENTRALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 
-		int n = graph.nodeCount();
+		int n = graph.getNodeCount();
 		Matrix A_tr = graph.getNeighbourhoodMatrix().transpose();
 		
 		// Create identity matrix and vector consisting of only ones
@@ -55,13 +55,13 @@ public class KatzCentrality implements CentralityAlgorithm {
 		Matrix inverse = gauss.inverse();
 		Vector resultVector = inverse.multiply(ones);
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
-			res.setNodeValue(node, resultVector.get(node.index()));
+			Node node = nc.next();
+			res.setNodeValue(node, resultVector.get(node.getIndex()));
 			nc.next();
 		}
 		return res;

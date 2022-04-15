@@ -12,8 +12,8 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of the H-index.
@@ -28,21 +28,21 @@ public class HIndex implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.H_INDEX, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();		
+			Node node = nc.next();		
 			int h = 0;
 			boolean checkNext = true;
-			NodeCursor neighbors = node.successors();		
+			Iterator<Node> neighbors = node.successors();		
 			while(graph.getWeightedNodeDegree(node)/2 >= h && checkNext) {
 				checkNext = false;
 				neighbors.toFirst();
 				int counter = 0;		
-				while(neighbors.ok() && counter < h) {
-					if(graph.getWeightedNodeDegree(neighbors.node())/2 >= h) {
+				while(neighbors.hasNext() && counter < h) {
+					if(graph.getWeightedNodeDegree(neighbors.next())/2 >= h) {
 						counter++;
 					}
 					neighbors.next();
