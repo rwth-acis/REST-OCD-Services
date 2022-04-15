@@ -232,7 +232,7 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	 */
 	private List<Vector> calculateLinkageDegrees(CustomGraph graph) throws InterruptedException {
 		List<Vector> linkageDegrees = new ArrayList<Vector>();
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Vector degreeVector;
 		Node node;
 		Node neighbor;

@@ -148,7 +148,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		Matrix updatedMemberships = initMembershipMatrix(graph, leaders);
 		Vector membershipContributionVector;
 		Vector updatedMembershipVector;
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		Iterator<Node> successorsIt;
 		Node successor;
@@ -177,7 +177,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 					updatedMemberships.set(node.getIndex(), leaders.get(node), 1);
 				}
 			}
-			nodesIt = graph.nodes().iterator();
+			nodesIt = graph.iterator();
 			iteration++;
 		} while (getMaxDifference(updatedMemberships, memberships) > membershipsPrecisionFactor
 				&& iteration < membershipsIterationBound);
@@ -222,7 +222,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	protected Matrix initMembershipMatrix(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
 		int communityCount = Collections.max(leaders.values()) + 1;
 		Matrix memberships = new CCSMatrix(graph.getNodeCount(), communityCount);
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		while(nodesIt.hasNext()) {
 			if(Thread.interrupted()) {
@@ -287,7 +287,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Integer> determineGlobalLeaders(CustomGraph graph, Matrix transitionMatrix, Vector totalInfluences) throws InterruptedException{
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		Iterator<Node> successorsIt;
 		Node successor;
@@ -395,7 +395,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 */
 	protected Matrix calculateTransitionMatrix(CustomGraph graph) throws InterruptedException {
 		Matrix transitionMatrix = new CCSMatrix(graph.getNodeCount(), graph.getNodeCount());
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		Iterator<Node> predecessorsIt;
 		Node predecessor;

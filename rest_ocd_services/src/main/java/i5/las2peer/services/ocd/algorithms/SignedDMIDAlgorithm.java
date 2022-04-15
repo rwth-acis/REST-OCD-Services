@@ -164,7 +164,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	protected Map<Node, Integer> getLocalLeader(CustomGraph graph, Vector leadershipVector)
 			throws InterruptedException {
 		Map<Node, Integer> followerMap = new HashMap<Node, Integer>();
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		/*
 		 * Iterates over all nodes to detect their local leader
@@ -227,7 +227,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 		int nodeCount = graph.getNodeCount();
 		Matrix nodeEDandDASS = new CCSMatrix(nodeCount, 3);
 		Vector leadershipVector = new BasicVector(nodeCount);
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		double effectiveDegreeValue;
 		while (nodesIt.hasNext()) {

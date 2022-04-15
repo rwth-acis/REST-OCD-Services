@@ -246,7 +246,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	protected Vector getLeadershipValues(CustomGraph graph,
 			Vector disassortativityVector) throws InterruptedException {
 		Vector leadershipVector = new BasicVector(graph.getNodeCount());
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		double leadershipValue;
 		while (nodesIt.hasNext()) {
@@ -279,7 +279,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	protected Map<Node, Double> getFollowerDegrees(CustomGraph graph,
 			Vector leadershipVector) throws InterruptedException {
 		Map<Node, Double> followerMap = new HashMap<Node, Double>();
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		/*
 		 * Iterates over all nodes to detect their local leader
 		 */
@@ -530,7 +530,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	protected boolean areAllNodesAssigned(CustomGraph graph,
 			Map<Node, Map<Node, Integer>> communities) throws InterruptedException {
 		boolean allNodesAreAssigned = true;
-		Iterator<Node> nodes = graph.nodes().iterator();
+		Iterator<Node> nodes = graph.iterator();
 		boolean nodeIsAssigned;
 		Node node;
 		while (nodes.hasNext()) {

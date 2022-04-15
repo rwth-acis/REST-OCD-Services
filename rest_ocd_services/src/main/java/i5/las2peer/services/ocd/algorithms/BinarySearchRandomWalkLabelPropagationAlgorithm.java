@@ -260,7 +260,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	protected Map<Node, Double> getFollowerDegrees(CustomGraph graph,
 			Vector leadershipVector) throws InterruptedException {
 		Map<Node, Double> followerMap = new HashMap<Node, Double>();
-		Iterator<Node> nodes = graph.nodes().iterator();
+		Iterator<Node> nodes = graph.iterator();
 		/*
 		 * Iterates over all nodes to detect their local leader
 		 */

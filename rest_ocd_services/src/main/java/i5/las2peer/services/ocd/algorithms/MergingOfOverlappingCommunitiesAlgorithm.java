@@ -263,7 +263,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	private TreeSet<Double> determineCommunityAlphaSequence(CustomGraph graph, Map<Node, Map<Node, Double>> inclusionAlphas,
 			Map<Node, Node> deactivatedBy, Node communityId) throws InterruptedException {
 		TreeSet<Double> alphaSequence = new TreeSet<Double>();
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		Node currentCommunityId;
 		while(nodesIt.hasNext()) {
@@ -419,7 +419,7 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 			Map<Node, Double> alphaBounds, Map<Node, Set<Node>> communityNeighbors, Map<Node, Double> weightedNodeDegrees,
 			Map<Node, Map<Node, Double>> internalWeightedNeighborDegrees, Map<Node, Double> weightedCommunityDegrees,
 			Map<Node, Double> internalWeightedCommunityDegrees) throws InterruptedException {
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Iterator<Node> successorsIt;
 		Node node;
 		Node neighbor;

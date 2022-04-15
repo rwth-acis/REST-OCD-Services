@@ -45,7 +45,7 @@ public class Termmatrix {
 	
 	public  Termmatrix(CustomGraph graph) throws OcdAlgorithmException{
 		
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node; 
 		this.wordlist = new LinkedList<String>();
 		

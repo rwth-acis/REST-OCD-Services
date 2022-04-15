@@ -152,7 +152,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		Matrix updatedMemberships = initMembershipMatrix(graph, leaders);
 		Vector membershipContributionVector;
 		Vector updatedMembershipVector;
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		Set<Node> successors;
 		int iteration = 0;
@@ -177,7 +177,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 					updatedMemberships.set(node.getIndex(), leaders.get(node), 1);
 				}
 			}
-			nodesIt = graph.nodes().iterator();
+			nodesIt = graph.iterator();
 			iteration++;
 		} while (getMaxDifference(updatedMemberships, memberships) > membershipsPrecisionFactor
 				&& iteration < membershipsIterationBound);
@@ -222,7 +222,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	protected Matrix initMembershipMatrix(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
 		int communityCount = Collections.max(leaders.values()) + 1;
 		Matrix memberships = new CCSMatrix(graph.getNodeCount(), communityCount);
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		while(nodesIt.hasNext()) {
 			if(Thread.interrupted()) {
@@ -291,13 +291,13 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 */
 	protected Set<Node> determineLeaders(CustomGraph graph, Matrix distances, Map<Node, Double> leadershipValues) throws InterruptedException {
 		Set<Node> leaders = new HashSet<Node>();
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node[] nodeArray = graph.nodes().toArray(Node[]::new);
 		Node node;
 		while(nodesIt.hasNext()) {
 			leaders.add(nodesIt.next());
 		}
-		nodesIt = graph.nodes().iterator();
+		nodesIt = graph.iterator();
 		while(nodesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
@@ -326,7 +326,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Double> calculateLeadershipValues(CustomGraph graph, Matrix distances) throws InterruptedException {
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		Map<Node, Double> leadershipValues = new HashMap<Node, Double>();
 		while(nodesIt.hasNext()) {
@@ -349,7 +349,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix calculateNodeDistances(CustomGraph graph) throws InterruptedException {
-		Iterator<Node> nodesIt = graph.nodes().iterator();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		Iterator<Node> predecessorsIt;
 		Node predecessor;

@@ -57,13 +57,13 @@ public class ContentBasedWeightingAlgorithm{
 		//et.stop();
 		Similarities sim = new Similarities();
 		//normalize weights
-		Iterator<Edge> edges = graph.edges().iterator();
+		Iterator<Edge> edgeIterator = graph.edges().iterator();
 		Iterator<Edge> comp = graph.edges().iterator();
 		Edge edge;
 		Edge compEdge;
 		double max = 0;
-		while(edges.hasNext()){
-			edge = edges.next();
+		while(edgeIterator.hasNext()){
+			edge = edgeIterator.next();
 			while(comp.hasNext()){
 				compEdge = comp.next();
 				if(edge.getSourceNode().equals(compEdge.getSourceNode()) || edge.getTargetNode().equals(compEdge.getSourceNode())){
@@ -76,11 +76,11 @@ public class ContentBasedWeightingAlgorithm{
 			comp = graph.edges().iterator();
 			graph.setEdgeWeight(edge, graph.getEdgeWeight(edge)/max);
 		}
-		edges = graph.edges().iterator();
+		edgeIterator = graph.edges().iterator();
 		
 		//compute and combine content-based weight
-		while(edges.hasNext()){
-			edge = edges.next();
+		while(edgeIterator.hasNext()){
+			edge = edgeIterator.next();
 			Node source = edge.getSourceNode();
 			Node target = edge.getTargetNode();
 			ArrayRealVector v = (ArrayRealVector) tm.getMatrix().getRowVector(tm.getNodeIdList().indexOf(source));
