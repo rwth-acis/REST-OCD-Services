@@ -22,6 +22,7 @@ public class MLinkIndividual {
     private ArrayList<ArrayList<Edge>> communities;
     private double edgeNr;
 
+    // Constructors
     public MLinkIndividual(){
         individual = new HashMap<Edge, Edge>();
         communities = new ArrayList<ArrayList<Edge>>();
@@ -34,7 +35,7 @@ public class MLinkIndividual {
         calcCommunities();
         calcFitness();
     }
-
+    // Getter and Setter
     public HashMap<Edge, Edge> getIndividual(){
         return individual;
     }
@@ -48,8 +49,12 @@ public class MLinkIndividual {
         this.individual = individual;
     }
 
+    // Public methods for Individuals
+    /**
+     * Claculates fitness
+     */
     public void calcFitness(){
-        double fitness = 0;
+        double fit = 0;
         double nodeNr;
         ArrayList<Node> tmp = new ArrayList<Node>();
         for(int i = 0; i < this.communities.size(); i++){
@@ -67,18 +72,19 @@ public class MLinkIndividual {
             }
             nodeNr = tmp.size();
             if(nodeNr < 3){
-                fitness += 0;
+                fit += 0;
             } else {
-                fitness += edges*( (edges-(nodeNr - 1.0 )) / ((nodeNr - 2.0) * (nodeNr - 1.0)) );
+                fit += edges*( (edges-(nodeNr - 1.0 )) / ((nodeNr - 2.0) * (nodeNr - 1.0)) );
             }
             
         }
-        this.fitness = (2.0/this.edgeNr)*fitness;
+        this.fitness = (2.0/this.edgeNr)*fit;
     }
     /**
      * Saves the communities as ArrayLists
      */
     public void calcCommunities(){
+        this.communities = new ArrayList<ArrayList<Edge>>();
         HashSet<HashSet<Edge>> communitiesSet = new HashSet<HashSet<Edge>>();
         for(Edge key : this.individual.keySet()){
             HashSet<Edge> tmp = new HashSet<Edge>();
@@ -160,4 +166,41 @@ public class MLinkIndividual {
         this.calcCommunities();
         this.calcFitness();
 	}   
+    public void localSearch(){
+        Genes:
+        for(Edge key : this.individual.keySet()){
+            Edge originalGene = this.individual.get(key);
+            double originalFitness = this.fitness;
+            EdgeCursor tgtNeighbors = key.target().edges();
+            EdgeCursor srcNeighbors = key.source().edges();
+            for(int i = 0; i < tgtNeighbors.size(); i++){
+                Edge cur = tgtNeighbors.edge();
+                if(cur != originalGene){
+                    this.individual.put(key, cur);
+                    this.calcCommunities();
+                    this.calcFitness();
+                    if(this.fitness > originalFitness){
+                        continue Genes;
+                    }
+                }
+                tgtNeighbors.cyclicNext();
+            }
+            for(int i = 0; i < srcNeighbors.size(); i++){
+                Edge cur = srcNeighbors.edge();
+                if(cur != originalGene){
+                    this.individual.put(key, cur);
+                    this.calcCommunities();
+                    this.calcFitness();
+                    if(this.fitness > originalFitness){
+                        continue Genes;
+                    }
+                }
+                srcNeighbors.cyclicNext();
+            }
+            this.individual.put(key, originalGene);
+            this.calcCommunities();
+            this.calcFitness();
+        }
+
+    }
 }
