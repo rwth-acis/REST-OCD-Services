@@ -127,40 +127,36 @@ public class MLinkIndividual {
     /**
      * Mutation operator to keep the diversity high
      */
-    public void mutation(){
-		int mutationProbability = 5;
+    public void mutate(){
 		HashMap<Edge, Edge> genes = this.individual;
-		Random rand = new Random();
 		for(Edge key : genes.keySet()){
             Edge gene = genes.get(key);
-			if(rand.nextInt(100) < mutationProbability - 1){
-				Set<Edge> neighbors = new HashSet<Edge>();
-				EdgeCursor targetEdges = key.target().edges();
-				int nghbSizeTrgt = targetEdges.size();
-				for(int i = 0; i < nghbSizeTrgt; i++){
-                    if(targetEdges.edge() != key && targetEdges.edge() != gene){
-                        neighbors.add(targetEdges.edge());
-                    }
-					targetEdges.cyclicNext();
-				}
-				EdgeCursor srcEdges = key.source().edges();
-				int nghbSizeSrc = srcEdges.size();
-				for(int i = 0; i < nghbSizeSrc; i++){
-                    if(srcEdges.edge() != key && srcEdges.edge() != gene){
-                        neighbors.add(srcEdges.edge());
-                    }
-					srcEdges.cyclicNext();
-				}
-				int indSize = neighbors.size();
-				int edge = new Random().nextInt(indSize);
-				int i = 0;
-				for(Edge e : neighbors){
-					if(i == edge){
-						genes.put(key, e);
-					}
-					i++;
-				}
-			}
+            Set<Edge> neighbors = new HashSet<Edge>();
+            EdgeCursor targetEdges = key.target().edges();
+            int nghbSizeTrgt = targetEdges.size();
+            for(int i = 0; i < nghbSizeTrgt; i++){
+                if(targetEdges.edge() != key && targetEdges.edge() != gene){
+                    neighbors.add(targetEdges.edge());
+                }
+                targetEdges.cyclicNext();
+            }
+            EdgeCursor srcEdges = key.source().edges();
+            int nghbSizeSrc = srcEdges.size();
+            for(int i = 0; i < nghbSizeSrc; i++){
+                if(srcEdges.edge() != key && srcEdges.edge() != gene){
+                    neighbors.add(srcEdges.edge());
+                }
+                srcEdges.cyclicNext();
+            }
+            int indSize = neighbors.size();
+            int edge = new Random().nextInt(indSize);
+            int i = 0;
+            for(Edge e : neighbors){
+                if(i == edge){
+                    genes.put(key, e);
+                }
+                i++;
+            }
 		}
 		this.individual = genes;
         this.calcCommunities();

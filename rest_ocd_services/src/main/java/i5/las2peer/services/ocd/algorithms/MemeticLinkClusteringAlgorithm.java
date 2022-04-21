@@ -9,17 +9,13 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.measures.EigenvectorCentrality;
-import i5.las2peer.services.ocd.utils.Pair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.Random;
 import java.util.Stack;
 import java.util.AbstractMap.SimpleEntry;
@@ -73,43 +69,113 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	 * 
 	 */
     public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException {
+		
+		// Global variables
+		final double initialDiversity;
+		int treeSize = 13;
+		int mutationProbability = 5;
+		int localSearchProbability = 10;
+		int genWithoutImprovement = 35;
+		boolean termination = false;
 
-		//TODO: remove double edges
+		Random rand = new Random();
+		MLinkPopulation population = new MLinkPopulation(treeSize);
+		final MLinkIndividual solution;
+		CustomGraph encoding = removeDoubleEdges(graph);
+		
 
-		int debug = 55;
-        Cover mlink = new Cover(graph);
-        CustomGraph encoding = graph;
-        HashMap<Edge, Edge> hMap = new HashMap<Edge,Edge>(); 
-        Edge[] edgeArr = encoding.getEdgeArray();
-		System.out.println(edgeArr.length);
-		for(int i = 0; i < 2; i++){
-			hMap.put(edgeArr[i], edgeArr[i+1]);
+		// Initialize population
+		for(int i = 0; i < treeSize; i++){
+			MLinkAgent agent = new MLinkAgent();
+			for(int j = 0; j < 6; j++){
+				int init = rand.nextInt(3);
+				if(init == 0){
+					agent.addIndividual(labelPropagation(encoding));
+				} else if(init == 1){
+					agent.addIndividual(localExpansion(encoding));
+				} else {
+					agent.addIndividual(localExpansionEigen(encoding));
+				}
+			}
+			population.addAgent(agent);
+			population.swapUp();
 		}
-		hMap.put(edgeArr[2], edgeArr[0]);
-		for(int i = 3; i < 5; i++){
-			hMap.put(edgeArr[i], edgeArr[i+1]);
+		// Save the initial diversity to compare to later diversity changes
+		initialDiversity = population.calcDiversity();
+
+		// Memetic algorithm
+		int counter = 0;
+		double lastFitness = population.getAgent(0).getPocket().getFitness();
+		while(!termination){
+			for(int i = 0; i < treeSize; i++){
+				MLinkAgent curAgent = population.getAgent(i);
+				SimpleEntry<MLinkIndividual,MLinkIndividual> parents;
+				double diversity = population.calcDiversity();
+				if(diversity < initialDiversity/2){
+					parents = population.farSelect(i);
+				} else {
+					parents = population.closeSelect(i);
+				}
+				MLinkIndividual offspring = crossover(parents);
+				if(rand.nextInt(100) < mutationProbability){
+					offspring.mutate();
+				}
+				if(rand.nextInt(100) < localSearchProbability){
+					offspring.localSearch();
+				}
+				curAgent.addIndividual(offspring);
+				population.swapUp();
+
+				// Check if termination criteria is met
+				double newFitness = population.getAgent(0).getPocket().getFitness();
+				if(newFitness == lastFitness){
+					counter++;
+				} else {
+					counter = 0;
+					lastFitness = newFitness;
+				}
+				if(counter == genWithoutImprovement){
+					termination = true;
+				}
+			}
 		}
-		hMap.put(edgeArr[5],edgeArr[3]);
-        // MLinkPopulation pop = new MLinkPopulation();
-        // MLinkAgent agent = new MLinkAgent();
-        // MLinkIndividual indi = new MLinkIndividual(hMap);
-		MLinkIndividual labelProp = labelPropagation(graph);
-		// MLinkIndividual localExp = localExpansion(graph);
-		// MLinkIndividual eigenVek = localExpansionEigen(graph);
-		// indi.mutation();
-		double fitness = labelProp.getFitness();
-		int ld = 0;
-		// agent.addIndividual(indi);
-		// pop.addAgent(agent);
-        return mlink;
+		solution = population.getAgent(0).getPocket();
+
+		postProcessing(encoding);
+
+		return new Cover(graph);
 	}
+	/**
+	 * Creates a copy of the original graph and removes the undirected doubled edges
+	 * @param graph the graph to be copied 
+	 * @return a copy with max. 1 edge between each node
+	 */
+	public CustomGraph removeDoubleEdges(CustomGraph graph){
+		CustomGraph encoding = new CustomGraph(graph);
+		Edge[] edgesArray = encoding.getEdgeArray();
+		ArrayList<Edge> edges = new ArrayList<Edge>(Arrays.asList(edgesArray));
+		while(!edges.isEmpty()){
+			Edge tmp = edges.remove(0);
+			Node source = tmp.source();
+			Node target = tmp.target();
+			Edge reversed = target.getEdgeTo(source);
+			if(reversed != null){
+				encoding.removeEdge(reversed);
+				edges.remove(reversed);
+			}
+		}
+		return encoding;
+	}
+
 	/**
 	 * 
 	 * @param parent1
 	 * @param parent2
 	 * @return
 	 */
-	public MLinkIndividual crossover(MLinkIndividual parent1, MLinkIndividual parent2){
+	public MLinkIndividual crossover(SimpleEntry<MLinkIndividual,MLinkIndividual> parents){
+		MLinkIndividual parent1 = parents.getKey();
+		MLinkIndividual parent2 = parents.getValue();
 		HashMap<Edge,Edge> individual = new HashMap<Edge,Edge>();
 		Edge gene;
 		int crossProbability = 50;
@@ -124,6 +190,18 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			individual.put(key, gene);
 		}
 		return new MLinkIndividual(individual);
+	}
+	/**
+	 * 
+	 * @param solution best individual
+	 * @return Hashmap with nodes and the according communities
+	 */
+	public HashMap<Node,Set<Integer>> translateToNodeCommunity(MLinkIndividual solution){
+		HashMap<Node,Set<Integer>> communities = new HashMap<Node,Set<Integer>>();
+
+
+
+		return communities;
 	}
 	/**
 	 * Translates the community of nodes to a MLinkIndividual
@@ -418,10 +496,9 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			System.out.println(e);
 			return null;
 		}
-		
-		
-
-
 	}
+	// TODO: Remove briding edges after algorithm is done
+	public void postProcessing(CustomGraph encoding){
 
+	} 	
 }

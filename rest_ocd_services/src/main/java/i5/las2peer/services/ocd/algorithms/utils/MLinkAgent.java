@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.algorithms.utils;
 
 import java.util.ArrayList;
+import java.util.Random;
 import i5.las2peer.services.ocd.algorithms.utils.MLinkIndividual;
 
 
@@ -41,5 +42,9 @@ public class MLinkAgent{
         if(this.individuals.size() > 6){
             this.individuals.remove(this.individuals.size()-1);
         }
+    }
+
+    public MLinkIndividual getRandomIndividual(){
+        return this.individuals.get(new Random().nextInt(6));
     }
 }
