@@ -6,11 +6,9 @@ import java.util.Random;
 import java.util.Set;
 import java.util.HashSet;
 
-import i5.las2peer.services.ocd.graphs.CustomGraph;
 import y.base.Edge;
 import y.base.Node;
 import y.base.EdgeCursor;
-import y.base.NodeCursor;
 
 /**
  * An Individual is displayed as a set of edges with the genes and the fitnes of that individual
@@ -47,6 +45,9 @@ public class MLinkIndividual {
     }
     public void setIndividual(HashMap<Edge, Edge> individual){
         this.individual = individual;
+    }
+    public ArrayList<ArrayList<Edge>> getCommunities(){
+        return this.communities;
     }
 
     // Public methods for Individuals

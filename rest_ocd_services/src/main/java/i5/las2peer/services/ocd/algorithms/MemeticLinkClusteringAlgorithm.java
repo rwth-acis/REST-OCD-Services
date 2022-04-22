@@ -20,15 +20,9 @@ import java.util.Random;
 import java.util.Stack;
 import java.util.AbstractMap.SimpleEntry;
 
-import java.lang.Double; 
-import java.lang.Math;
-
-import org.apache.commons.exec.ExecuteException;
+import org.eclipse.persistence.internal.jpa.parsing.NotNode;
 import org.la4j.matrix.Matrix;
-import org.la4j.matrix.sparse.CCSMatrix;
-import org.la4j.vector.Vector;
-import org.la4j.vector.Vectors;
-import org.la4j.vector.sparse.CompressedVector;
+import org.la4j.matrix.dense.Basic2DMatrix;
 
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -81,6 +75,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		Random rand = new Random();
 		MLinkPopulation population = new MLinkPopulation(treeSize);
 		final MLinkIndividual solution;
+		HashMap<Integer,HashSet<Node>> communitySet;
 		CustomGraph encoding = removeDoubleEdges(graph);
 		
 
@@ -140,10 +135,10 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			}
 		}
 		solution = population.getAgent(0).getPocket();
-
-		postProcessing(encoding);
-
-		return new Cover(graph);
+		communitySet = translateToNodeCommunity(solution);
+		communitySet = postProcessing(communitySet, encoding);
+		Matrix membershipMatrix = getMembershipMatrix(communitySet, encoding, solution.getCommunities().size());
+		return new Cover(graph, membershipMatrix);
 	}
 	/**
 	 * Creates a copy of the original graph and removes the undirected doubled edges
@@ -166,12 +161,11 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		}
 		return encoding;
 	}
-
 	/**
-	 * 
-	 * @param parent1
-	 * @param parent2
-	 * @return
+	 * Uniform Crossover operator
+	 * @param parent1 first parent
+	 * @param parent2 second parent
+	 * @return New individual created out of the two parents
 	 */
 	public MLinkIndividual crossover(SimpleEntry<MLinkIndividual,MLinkIndividual> parents){
 		MLinkIndividual parent1 = parents.getKey();
@@ -192,15 +186,25 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		return new MLinkIndividual(individual);
 	}
 	/**
-	 * 
+	 * Creates a map for the communities of nodes
 	 * @param solution best individual
-	 * @return Hashmap with nodes and the according communities
+	 * @return Hashmap with Communities and according nodes
 	 */
-	public HashMap<Node,Set<Integer>> translateToNodeCommunity(MLinkIndividual solution){
-		HashMap<Node,Set<Integer>> communities = new HashMap<Node,Set<Integer>>();
-
-
-
+	public HashMap<Integer,HashSet<Node>> translateToNodeCommunity(MLinkIndividual solution){
+		HashMap<Integer,HashSet<Node>> communities = new HashMap<Integer,HashSet<Node>>();
+		ArrayList<ArrayList<Edge>> edgeComm = solution.getCommunities();
+		// Initialize Map with empty sets for every Community
+		for(int i = 0; i < edgeComm.size(); i++){
+			communities.put(i,new HashSet<Node>());
+		}
+		int counter = 0;
+		for(ArrayList<Edge> community : edgeComm){
+			for(Edge e : community){
+				communities.get(counter).add(e.target());
+				communities.get(counter).add(e.source());
+			}
+			counter++;
+		}
 		return communities;
 	}
 	/**
@@ -498,7 +502,75 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		}
 	}
 	// TODO: Remove briding edges after algorithm is done
-	public void postProcessing(CustomGraph encoding){
-
+	public HashMap<Integer,HashSet<Node>> postProcessing(HashMap<Integer,HashSet<Node>> communitySet,CustomGraph graph){
+		HashMap<Node,HashSet<Integer>> nodes = new HashMap<Node,HashSet<Integer>>();
+		for(Node n : graph.getNodeArray()){
+			nodes.put(n, new HashSet<Integer>());
+		}
+		for(Integer community : communitySet.keySet()){
+			for(Node n : communitySet.get(community)){
+				nodes.get(n).add(community);
+			}
+		}
+        // Look at every node with more than 0 community and check if the node adds to the intra density of the community
+		for(Node n : nodes.keySet()){
+			if(nodes.get(n).size() == 1 ){
+				continue;
+			}   
+            int bestCommunity = -1;
+            double bestCommunityIntra = -1;
+            for(Integer com : nodes.get(n)){
+                HashSet<Node> nodeRemoved = new HashSet<>(communitySet.get(com));
+                nodeRemoved.remove(n);
+                double removedIntra = intraDensity(nodeRemoved, nodes);
+                double normalIntra = intraDensity(communitySet.get(com), nodes);
+                if(removedIntra > normalIntra){
+                    communitySet.get(com).remove(n);
+                    nodes.get(n).remove(com);
+                    if(bestCommunityIntra < removedIntra){
+                        bestCommunityIntra = removedIntra;
+                        bestCommunity = com;
+                    }
+                }
+            }
+            if(nodes.get(n).isEmpty() && bestCommunity != -1){
+                communitySet.get(bestCommunity).add(n);
+                nodes.get(n).add(bestCommunity);
+            }
+		}
+		return communitySet;
 	} 	
+	public double intraDensity(HashSet<Node> nodes, HashMap<Node,HashSet<Integer>> communities){
+		double count = 0;
+		for(Node n : nodes){
+			EdgeCursor edges = n.edges();
+			for(int i = 0; i < edges.size(); i++){
+				Node target = edges.edge().target();
+				Node source = edges.edge().source();
+				HashSet<Integer> intersection = new HashSet<Integer>(communities.get(source));
+				intersection.retainAll(communities.get(target));
+				if(!intersection.isEmpty()){
+					count++;
+				}
+				edges.cyclicNext();
+			}
+		}
+		return 2*((count/2)/nodes.size());
+	}
+	/**
+	 * Creates a membership matrix for the giben Map
+	 * @param communitySet Map with nodes and their communities
+	 * @param graph	initial graph
+	 * @param communityNumber amount of communities
+	 * @return membership matrix
+	 */
+	public Matrix getMembershipMatrix(HashMap<Integer,HashSet<Node>> communitySet, CustomGraph graph, int communityNumber){
+		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),communityNumber);
+		for(Integer comm : communitySet.keySet()){
+			for(Node n : communitySet.get(comm)){
+				membershipMatrix.set(n.index(), comm, 1);
+			}
+		}
+		return membershipMatrix;
+	}
 }
