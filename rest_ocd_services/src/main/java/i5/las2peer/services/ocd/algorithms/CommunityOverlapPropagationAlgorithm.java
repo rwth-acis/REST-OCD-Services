@@ -2,15 +2,16 @@ package i5.las2peer.services.ocd.algorithms;
 
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.algorithms.utils.WeakClique;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationType;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
+import org.glassfish.jersey.internal.inject.Custom;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import y.base.Edge;
 import y.base.EdgeCursor;
+import y.base.Graph;
+import y.util.Tuple;
+import y.view.Graph2D;
 
 import java.util.*;
 
@@ -18,11 +19,11 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     /**
      * Each vertex can belong to up to v communities.
      */
-    private static int v =2;
+    private static int v =5;
 
 
     /**
-     * Maximum loops 10 times should be terminated.
+     * Maximum loops 100 times should be terminated.
      */
     private static int loops  = 100;
 
@@ -41,24 +42,77 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
 
 
     @Override
-    public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
-        // create adjacency matrix from the input graph
-        Matrix adjacency_matrix = createAdjacencyMatrix(graph);
-        //the memberships is an n*n Matrix, some rows are all 0.
-        Matrix memberships = COPRA(adjacency_matrix, v, loops);
+    public Cover detectOverlappingCommunities(CustomGraph customGraph) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 
-        for(int i=0;i<memberships.rows();i++){
-            for(int j=0;j< memberships.columns();j++){
-                System.out.println("Node"+i+": Communities"+j+": "+memberships.get(i,j));
+        if(customGraph.isOfType(GraphType.DYNAMIC)){
+            Cover resulting_cover = new Cover(customGraph,new ArrayList<>());
+            Map<Tuple,Double> membershipsMaps=initMembershipsMaps(customGraph);
+            for(CustomGraph cg : customGraph.getGraphSeries()) {
+                Map<Tuple,Double> adjacencyMaps = createAdjacencyMaps(customGraph);
+                membershipsMaps=COPRAMaps(adjacencyMaps,membershipsMaps,v,loops);
+                Matrix memberships=formMemberships(membershipsMaps);
+                resulting_cover.addCoverSeries(new Cover(cg,memberships));
+            }
+            return resulting_cover;
+        }else{//else it's a static Graph
+            // create adjacency matrix from the input graph
+            Matrix adjacency_matrix = createAdjacencyMatrix(customGraph);
+            //the memberships is an n*n Matrix, some columns are all 0.
+            Matrix memberships = COPRAMatrix(adjacency_matrix, v, loops);
+            memberships=simplifyMemeberships(memberships);
+            //printCommunities(memberships);//just for test
+            Cover resulting_cover = new Cover(customGraph, memberships);
+            return resulting_cover;
+        }
+    }
+
+    private void printCommunities(Matrix memberships) {
+        for (int i = 0; i < memberships.rows(); i++) {
+            for (int j = 0; j < memberships.columns(); j++) {
+                System.out.println("Node" + i + ": Communities" + j + ": " + memberships.get(i, j));
             }
         }
-
-        Cover resulting_cover = new Cover(graph, memberships);
-        return resulting_cover;
     }
 
 
-    private Matrix COPRA(Matrix adjacency_matrix, int v, int loops) {
+    private Map<Tuple,Double> COPRAMaps(Map<Tuple,Double> adjacencyMaps, Map<Tuple,Double> membershipsMaps, int v, int loops) {
+        while(loops-->0){
+            Map<Tuple,Double> afterMembershipsMap=updateMembershipsMap(membershipsMaps,adjacencyMaps,v);
+            if(isEqualMaps(membershipsMaps,afterMembershipsMap)) break;
+            membershipsMaps=afterMembershipsMap;
+        }
+        return membershipsMaps;
+    }
+
+    private boolean isEqualMaps(Map<Tuple,Double> membershipsMaps, Map<Tuple,Double> afterMembershipsMap) {
+    }
+
+    //form the memberships matrix from membershipsMaps
+    private Matrix formMemberships(Map<Tuple,Double> membershipsMaps) {
+
+    }
+
+    private Map<Tuple,Double> initMembershipsMaps(CustomGraph customGraph) {
+        int nodeCount= customGraph.nodeCount();
+        Map<Tuple,Double> membershipsMaps=new HashMap<>();
+        for(int i=0;i<nodeCount;i++){
+            membershipsMaps.put(new Tuple(i,i),1.0);
+        }
+        return membershipsMaps;
+    }
+
+    private Map<Tuple,Double> createAdjacencyMaps(CustomGraph customGraph) {
+        Map<Tuple,Double> adjacencyMaps=new HashMap<>();
+        EdgeCursor edge_list = customGraph.edges(); // added
+        while (edge_list.ok()) {
+            Edge edge = edge_list.edge();
+            adjacencyMaps.put(new Tuple(edge.source().index(),edge.target().index()),customGraph.getEdgeWeight(edge));
+            edge_list.next();
+        }
+        return adjacencyMaps;
+    }
+
+    private Matrix COPRAMatrix(Matrix adjacency_matrix, int v, int loops) {
         int nodeCount=adjacency_matrix.columns();
         Matrix memberships = new Basic2DMatrix(nodeCount,nodeCount);
         for(int i =0;i<nodeCount;i++){
@@ -66,11 +120,9 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
         }
         while(loops-- >0){
             Matrix afterMemberships = updateMemberships(memberships,adjacency_matrix,v);
-            if(isEqualMatrix(memberships,afterMemberships)) break;
+            if(isEqualMatrix(memberships,afterMemberships))  break;
             memberships=afterMemberships;
         }
-
-        memberships = simplifyMemeberships(memberships,nodeCount);
         return memberships;//the memberships is an n*n Matrix
     }
 
@@ -89,11 +141,11 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
         return true;
     }
 
-
     /**
      * delete all the zero colomns
      */
-    private Matrix simplifyMemeberships(Matrix memberships, int nodeCount) {
+    private Matrix simplifyMemeberships(Matrix memberships) {
+        int nodeCount=memberships.columns();
         Matrix simplifiedMemberships = new Basic2DMatrix(nodeCount,nodeCount);
         int curColumn=0;
         for(int i=0;i<nodeCount;i++){
@@ -105,7 +157,10 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
         return simplifiedMemberships;
     }
 
+    private Map<Tuple,Double> updateMembershipsMap(Map<Tuple,Double> membershipsMaps, Map<Tuple,Double> adjacencyMaps, int v) {
+        Map<Tuple,Double> intermediateMembershipsMaps =new HashMap<>();
 
+    }
 
     private Matrix updateMemberships(Matrix memberships, Matrix adjacency_matrix, int v) {
         int nodeCount=adjacency_matrix.columns();
@@ -124,7 +179,6 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
                 }
             }
         }
-
         memberships=intermediateMemberships;
         for(int i=0;i<nodeCount;i++){
             boolean hasLabelOverThreshold=false;
@@ -197,6 +251,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     public Set<GraphType> compatibleGraphTypes() {
         Set<GraphType> compatibilities = new HashSet<GraphType>();
         compatibilities.add(GraphType.WEIGHTED);
+        compatibilities.add(GraphType.DYNAMIC);
         return compatibilities;
     }
 

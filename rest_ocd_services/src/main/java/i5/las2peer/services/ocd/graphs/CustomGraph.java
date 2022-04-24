@@ -33,11 +33,7 @@ import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.graphs.properties.AbstractProperty;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.GraphListener;
-import y.base.Node;
-import y.base.NodeCursor;
+import y.base.*;
 import y.view.Graph2D;
 
 /**
@@ -142,6 +138,12 @@ public class CustomGraph extends Graph2D {
 	 */
 	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Cover> covers = new ArrayList<Cover>();
+
+	/**
+	 * This list is only for dynamic graph(even possible only one graph in this dynamic graph).
+	 * If it's a static graph, this list would be empty.
+	 */
+	private List<CustomGraph> graphSeries=new ArrayList<>();
 	
 	/**
 	 * The simulations based on this graph.
@@ -154,39 +156,47 @@ public class CustomGraph extends Graph2D {
 	///////////////////// AND ONLY OF INTERNAL / PERSISTENCE USE
 
 	/*
-	 * Mapping from fix node ids to custom nodes for additional node data and
-	 * persistence.
+	 * Mapping from fix node ids to custom nodes for additional node data and persistence.
 	 */
 	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
 	@MapKeyColumn(name = idNodeMapKeyColumnName)
 	private Map<Integer, CustomNode> customNodes = new HashMap<Integer, CustomNode>();
+
+	public Map<Integer, CustomEdge> getCustomEdges() {
+		return customEdges;
+	}
+
 	/*
-	 * Mapping from fix edge ids to custom nodes for additional edge data and
-	 * persistence.
+	 * Mapping from fix edge ids to custom edges for additional edge data and persistence.
 	 */
 	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
 	@MapKeyColumn(name = idEdgeMapKeyColumnName)
 	private Map<Integer, CustomEdge> customEdges = new HashMap<Integer, CustomEdge>();
+
 	/*
 	 * Mapping from edges to fix edge ids.
 	 */
 	@Transient
 	private Map<Edge, Integer> edgeIds = new HashMap<Edge, Integer>();
+
 	/*
 	 * Mapping from nodes to fix node ids.
 	 */
 	@Transient
 	private Map<Node, Integer> nodeIds = new HashMap<Node, Integer>();
+
 	/*
 	 * Mapping from custom nodes to nodes.
 	 */
 	@Transient
 	private Map<CustomNode, Node> reverseNodeMap = new HashMap<CustomNode, Node>();
+
 	/*
 	 * Used for assigning runtime edge indices.
 	 */
 	@Transient
 	private int edgeIndexer = 0;
+
 	/*
 	 * Used for assigning runtime node indices.
 	 */
@@ -1157,7 +1167,7 @@ public class CustomGraph extends Graph2D {
 			}
 			this.properties.add(i, property.calculate(this));
 		}
-	}	
+	}
 	
 	/**
 	 * Returns a new sub graph of a CustomGraph
@@ -1359,6 +1369,11 @@ public class CustomGraph extends Graph2D {
 		this.addGraphListener(new CustomGraphListener());
 	}
 
+	/**
+	 *
+	 * @return graphSeries of a dynamic graph
+	 */
+	public List<CustomGraph> getGraphSeries(){return this.graphSeries;}
 
 	/**
 	 * PrePersist Method. Writes the attributes of nodes and edges into their

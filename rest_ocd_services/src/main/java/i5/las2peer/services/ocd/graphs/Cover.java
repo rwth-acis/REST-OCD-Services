@@ -131,6 +131,11 @@ public class Cover {
 	@Column(name = simCostsColumnName)
 	private double simCosts;
 
+	/**
+	 * Dynamic graph has a series of covers, the static graph has only one cover in this list.
+	 */
+	private List<Cover> coverSeries=new ArrayList<>();
+
 	///////////////////////////// CONSTRUCTORS /////////////////////////////
 
 	/**
@@ -167,6 +172,22 @@ public class Cover {
 		this.graph = graph;
 		setMemberships(memberships, true);
 	}
+
+
+	/**
+	 *
+	 * Creates an instance for dynamic graph
+	 *
+	 * @param graph
+	 * 			The dynamic graph that the cover is based on.
+	 * @param coverSeries
+	 * 			The coverSeries according to the graphSeries of the dynamic graph
+	 */
+	public Cover(CustomGraph graph,List<Cover> coverSeries) {
+		this.graph = graph;
+		this.coverSeries = coverSeries;
+	}
+
 
 	//////////////////////////// GETTER & SETTER ////////////////////////////
 
@@ -722,5 +743,18 @@ public class Cover {
 		coverString += getMemberships().toString();
 		return coverString;
 	}
+
+	public List<Cover> getCoverSeries() {
+		return coverSeries;
+	}
+
+	public void setCoverSeries(List<Cover> coverSeries) {
+		this.coverSeries = coverSeries;
+	}
+
+	public void addCoverSeries(Cover cover){
+		this.coverSeries.add(cover);
+	}
+
 
 }

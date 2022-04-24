@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.algorithms;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import org.junit.Test;
 import y.base.Node;
@@ -78,6 +79,7 @@ public class COPRAAlgorithmTest {
 
         // instantiate the algorithm
         //WeakCliquePercolationMethodAlgorithm wcpm = new WeakCliquePercolationMethodAlgorithm();
+        graph.addType(GraphType.WEIGHTED);
         CommunityOverlapPropagationAlgorithm copra=new CommunityOverlapPropagationAlgorithm();
 
         try {
