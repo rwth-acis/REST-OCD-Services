@@ -1310,6 +1310,17 @@ public class ServiceClass extends RESTService {
 							ContentBasedWeightingAlgorithm weightAlgo = new ContentBasedWeightingAlgorithm();
 							graph = weightAlgo.detectOverlappingCommunities(graph, new ExecutionTime());
 						}
+
+						// Restrict algorithm execution to only compatible graphs
+						Set<GraphType> compatibleGraphTypes = algorithm.compatibleGraphTypes();
+						for(GraphType graphType : graph.getTypes()){
+							if(!compatibleGraphTypes.contains(graphType)){
+								requestHandler.log(Level.SEVERE, algorithm.getClass().getSimpleName() + " is not compatible with " + graphType + " graphs!");
+								return requestHandler.writeError(Error.INTERNAL, algorithm.getClass().getSimpleName() + " is not compatible with " + graphType + " graphs!");
+							}
+						}
+						
+
 						cover = new Cover(graph, new CCSMatrix(graph.nodeCount(), 0));
 						log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
 						cover.setCreationMethod(log);
