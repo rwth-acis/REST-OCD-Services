@@ -20,7 +20,6 @@ import java.util.Random;
 import java.util.Stack;
 import java.util.AbstractMap.SimpleEntry;
 
-import org.eclipse.persistence.internal.jpa.parsing.NotNode;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
@@ -63,7 +62,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	 * 
 	 */
     public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException {
-		
+		System.out.println("Start");
 		// Global variables
 		final double initialDiversity;
 		int treeSize = 13;
@@ -85,16 +84,22 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			for(int j = 0; j < 6; j++){
 				int init = rand.nextInt(3);
 				if(init == 0){
+					System.out.println("label");
 					agent.addIndividual(labelPropagation(encoding));
 				} else if(init == 1){
+					System.out.println("local");
 					agent.addIndividual(localExpansion(encoding));
 				} else {
+					System.out.println("eigen");
 					agent.addIndividual(localExpansionEigen(encoding));
 				}
 			}
 			population.addAgent(agent);
-			population.swapUp();
 		}
+		System.out.println("swapup");
+		population.swapUp();
+		population.swapUp();
+		
 		// Save the initial diversity to compare to later diversity changes
 		initialDiversity = population.calcDiversity();
 
@@ -102,10 +107,12 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		int counter = 0;
 		double lastFitness = population.getAgent(0).getPocket().getFitness();
 		while(!termination){
+			System.out.println("starting genetic");
 			for(int i = 0; i < treeSize; i++){
 				MLinkAgent curAgent = population.getAgent(i);
 				SimpleEntry<MLinkIndividual,MLinkIndividual> parents;
 				double diversity = population.calcDiversity();
+				System.out.println("select");
 				if(diversity < initialDiversity/2){
 					parents = population.farSelect(i);
 				} else {
@@ -113,9 +120,12 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				}
 				MLinkIndividual offspring = crossover(parents);
 				if(rand.nextInt(100) < mutationProbability){
+					System.out.println("mutate");
 					offspring.mutate();
 				}
-				if(rand.nextInt(100) < localSearchProbability){
+				//TODO: Local search schneller machen
+				if(rand.nextInt(100) < localSearchProbability && false){
+					System.out.println("localsearch");
 					offspring.localSearch();
 				}
 				curAgent.addIndividual(offspring);
@@ -123,6 +133,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 
 				// Check if termination criteria is met
 				double newFitness = population.getAgent(0).getPocket().getFitness();
+				System.out.println("best Fitness: " + newFitness);
 				if(newFitness == lastFitness){
 					counter++;
 				} else {
@@ -135,9 +146,10 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			}
 		}
 		solution = population.getAgent(0).getPocket();
-		communitySet = translateToNodeCommunity(solution);
+		System.out.println("translating");
+		communitySet = solution.getNodeCommunity();
 		communitySet = postProcessing(communitySet, encoding);
-		Matrix membershipMatrix = getMembershipMatrix(communitySet, encoding, solution.getCommunities().size());
+		Matrix membershipMatrix = getMembershipMatrix(communitySet, encoding, solution.getCommunities().keySet().size());
 		return new Cover(graph, membershipMatrix);
 	}
 	/**
@@ -163,8 +175,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	}
 	/**
 	 * Uniform Crossover operator
-	 * @param parent1 first parent
-	 * @param parent2 second parent
+	 * @param parents tuple of two parents
 	 * @return New individual created out of the two parents
 	 */
 	public MLinkIndividual crossover(SimpleEntry<MLinkIndividual,MLinkIndividual> parents){
@@ -184,28 +195,6 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			individual.put(key, gene);
 		}
 		return new MLinkIndividual(individual);
-	}
-	/**
-	 * Creates a map for the communities of nodes
-	 * @param solution best individual
-	 * @return Hashmap with Communities and according nodes
-	 */
-	public HashMap<Integer,HashSet<Node>> translateToNodeCommunity(MLinkIndividual solution){
-		HashMap<Integer,HashSet<Node>> communities = new HashMap<Integer,HashSet<Node>>();
-		ArrayList<ArrayList<Edge>> edgeComm = solution.getCommunities();
-		// Initialize Map with empty sets for every Community
-		for(int i = 0; i < edgeComm.size(); i++){
-			communities.put(i,new HashSet<Node>());
-		}
-		int counter = 0;
-		for(ArrayList<Edge> community : edgeComm){
-			for(Edge e : community){
-				communities.get(counter).add(e.target());
-				communities.get(counter).add(e.source());
-			}
-			counter++;
-		}
-		return communities;
 	}
 	/**
 	 * Translates the community of nodes to a MLinkIndividual
@@ -354,7 +343,10 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			int node = new Random(5).nextInt(size);
 			Node selected = notVisited.get(node);
 			notVisited.remove(node);
-			int newLabel = getMostFrequentLabel(labels, selected);
+			int newLabel = labels.get(selected);
+			if(selected.neighbors().size() > 0){
+				getMostFrequentLabel(labels, selected);
+			}
 			labels.put(selected, newLabel);
 		}
 
@@ -501,7 +493,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			return null;
 		}
 	}
-	// TODO: Remove briding edges after algorithm is done
+	//TODO: Probably doesn't work
 	public HashMap<Integer,HashSet<Node>> postProcessing(HashMap<Integer,HashSet<Node>> communitySet,CustomGraph graph){
 		HashMap<Node,HashSet<Integer>> nodes = new HashMap<Node,HashSet<Integer>>();
 		for(Node n : graph.getNodeArray()){
@@ -512,13 +504,14 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				nodes.get(n).add(community);
 			}
 		}
-        // Look at every node with more than 0 community and check if the node adds to the intra density of the community
+        // Look at every node with more than 1 community and check if the node adds to the intra density of the community
 		for(Node n : nodes.keySet()){
-			if(nodes.get(n).size() == 1 ){
+			if(nodes.get(n).size() < 1 ){
 				continue;
 			}   
             int bestCommunity = -1;
             double bestCommunityIntra = -1;
+			int communityCount = nodes.get(n).size();
             for(Integer com : nodes.get(n)){
                 HashSet<Node> nodeRemoved = new HashSet<>(communitySet.get(com));
                 nodeRemoved.remove(n);
@@ -526,14 +519,14 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
                 double normalIntra = intraDensity(communitySet.get(com), nodes);
                 if(removedIntra > normalIntra){
                     communitySet.get(com).remove(n);
-                    nodes.get(n).remove(com);
+                    communityCount = communityCount - 1;
                     if(bestCommunityIntra < removedIntra){
                         bestCommunityIntra = removedIntra;
                         bestCommunity = com;
                     }
                 }
             }
-            if(nodes.get(n).isEmpty() && bestCommunity != -1){
+            if(communityCount == 0){
                 communitySet.get(bestCommunity).add(n);
                 nodes.get(n).add(bestCommunity);
             }

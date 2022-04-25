@@ -33,7 +33,7 @@ public class MLinkAgent{
      * @param individual  New Offspring
      */
     public void addIndividual(MLinkIndividual individual){
-        if(individual.getFitness() > pocket.getFitness()){
+        if(this.individuals.isEmpty() || individual.getFitness() > pocket.getFitness()){
             this.pocket = individual;
             individuals.add(0, individual);
         } else {

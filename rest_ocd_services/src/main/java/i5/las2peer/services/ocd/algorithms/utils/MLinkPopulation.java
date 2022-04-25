@@ -55,7 +55,7 @@ public class MLinkPopulation {
     }
     public void addAgent(MLinkAgent agent){
         for(int i = 0; i < this.tree.length; i++){
-            if(this.tree[i] != null){
+            if(this.tree[i] == null){
                 this.tree[i] = agent;
                 break;
             }

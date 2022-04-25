@@ -1,10 +1,12 @@
 package i5.las2peer.services.ocd.algorithms.utils;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Set;
-import java.util.HashSet;
+
+import org.apache.jena.sparql.function.library.e;
 
 import y.base.Edge;
 import y.base.Node;
@@ -17,19 +19,25 @@ public class MLinkIndividual {
     
     private HashMap<Edge, Edge> individual;
     private double fitness;
-    private ArrayList<ArrayList<Edge>> communities;
+    private HashMap<Edge,Integer> edges;
+    private HashMap<Integer,HashSet<Edge>> communities;
+    private HashMap<Integer,HashSet<Node>> nodeCommunity;
     private double edgeNr;
 
     // Constructors
     public MLinkIndividual(){
         individual = new HashMap<Edge, Edge>();
-        communities = new ArrayList<ArrayList<Edge>>();
+        communities = new HashMap<Integer,HashSet<Edge>>();
+        edges = new HashMap<Edge,Integer>();
+        nodeCommunity = new HashMap<Integer,HashSet<Node>>();
     }
     public MLinkIndividual(HashMap<Edge, Edge> individual){
         this.individual = new HashMap<Edge, Edge>();
-        this.communities = new ArrayList<ArrayList<Edge>>();
+        communities = new HashMap<Integer,HashSet<Edge>>();
+        nodeCommunity = new HashMap<Integer,HashSet<Node>>();
+        edges = new HashMap<Edge,Integer>();
         this.individual = individual;
-        this.edgeNr = individual.size();
+        edgeNr = individual.size();
         calcCommunities();
         calcFitness();
     }
@@ -39,15 +47,24 @@ public class MLinkIndividual {
     }
     public void addGene(Edge locus, Edge geneValue){
         this.individual.put(locus, geneValue);
+        this.edgeNr = this.individual.size();
     }
     public double getFitness(){
         return fitness;
     }
+    public void setFitness(double fitness){
+        this.fitness = fitness;
+    }
+
     public void setIndividual(HashMap<Edge, Edge> individual){
         this.individual = individual;
+        this.edgeNr = this.individual.size();
     }
-    public ArrayList<ArrayList<Edge>> getCommunities(){
+    public HashMap<Integer,HashSet<Edge>> getCommunities(){
         return this.communities;
+    }
+    public HashMap<Integer,HashSet<Node>> getNodeCommunity(){
+        return this.nodeCommunity;
     }
 
     // Public methods for Individuals
@@ -57,35 +74,30 @@ public class MLinkIndividual {
     public void calcFitness(){
         double fit = 0;
         double nodeNr;
-        ArrayList<Node> tmp = new ArrayList<Node>();
-        for(int i = 0; i < this.communities.size(); i++){
-            tmp.clear();
+        for(Integer i : this.communities.keySet()){
             double edges = this.communities.get(i).size();
-            for(int j = 0; j < edges; j++){
-                Node source = this.communities.get(i).get(j).source();
-                Node target = this.communities.get(i).get(j).target();
-                if(!(tmp.contains(source))){
-                    tmp.add(source);
-                }
-                if(!(tmp.contains(target))){
-                    tmp.add(target);
-                }
-            }
-            nodeNr = tmp.size();
+            nodeNr = this.nodeCommunity.get(i).size();
             if(nodeNr < 3){
-                fit += 0;
+                fit = fit + 0;
             } else {
-                fit += edges*( (edges-(nodeNr - 1.0 )) / ((nodeNr - 2.0) * (nodeNr - 1.0)) );
+                fit = fit + edges*( (edges-(nodeNr - 1.0 )) / ((nodeNr - 2.0) * (nodeNr - 1.0)) );
             }
             
         }
-        this.fitness = (2.0/this.edgeNr)*fit;
+        if(this.edgeNr != 0){
+            this.fitness = (2.0/this.edgeNr)*fit;
+        } else {
+            this.fitness = 0;
+        }
+        
     }
     /**
      * Saves the communities as ArrayLists
      */
     public void calcCommunities(){
-        this.communities = new ArrayList<ArrayList<Edge>>();
+        this.communities.clear();
+        this.edges.clear();
+        this.nodeCommunity.clear();
         HashSet<HashSet<Edge>> communitiesSet = new HashSet<HashSet<Edge>>();
         for(Edge key : this.individual.keySet()){
             HashSet<Edge> tmp = new HashSet<Edge>();
@@ -119,8 +131,16 @@ public class MLinkIndividual {
                 commLocus = null;
             }
         }
-        for(HashSet<Edge> comm : communitiesSet){
-            this.communities.add(new ArrayList<Edge>(comm));
+        int counter = 0;
+        for(HashSet<Edge> community : communitiesSet){
+            this.communities.put(counter,community);
+            this.nodeCommunity.put(counter,new HashSet<Node>());
+            for(Edge e : community){
+                this.edges.put(e, counter);
+                this.nodeCommunity.get(counter).add(e.target());
+                this.nodeCommunity.get(counter).add(e.source());
+            }
+            counter++;
         }
         
     }
@@ -150,13 +170,15 @@ public class MLinkIndividual {
                 srcEdges.cyclicNext();
             }
             int indSize = neighbors.size();
-            int edge = new Random().nextInt(indSize);
-            int i = 0;
-            for(Edge e : neighbors){
-                if(i == edge){
-                    genes.put(key, e);
+            if(indSize > 0){
+                int edge = new Random().nextInt(indSize);
+                int i = 0;
+                for(Edge e : neighbors){
+                    if(i == edge){
+                        genes.put(key, e);
+                    }
+                    i++;
                 }
-                i++;
             }
 		}
 		this.individual = genes;
@@ -166,30 +188,36 @@ public class MLinkIndividual {
     public void localSearch(){
         Genes:
         for(Edge key : this.individual.keySet()){
+            System.out.println("####### INSIDE LOCAL ######");
             Edge originalGene = this.individual.get(key);
             double originalFitness = this.fitness;
             EdgeCursor tgtNeighbors = key.target().edges();
             EdgeCursor srcNeighbors = key.source().edges();
+            
             for(int i = 0; i < tgtNeighbors.size(); i++){
                 Edge cur = tgtNeighbors.edge();
-                if(cur != originalGene){
-                    this.individual.put(key, cur);
-                    this.calcCommunities();
-                    this.calcFitness();
-                    if(this.fitness > originalFitness){
-                        continue Genes;
+                if(edges.get(cur) != edges.get(key)){
+                    if(cur != originalGene){
+                        this.individual.put(key, cur);
+                        this.calcCommunities();
+                        this.calcFitness();
+                        if(this.fitness > originalFitness){
+                            continue Genes;
+                        }
                     }
                 }
                 tgtNeighbors.cyclicNext();
             }
             for(int i = 0; i < srcNeighbors.size(); i++){
                 Edge cur = srcNeighbors.edge();
-                if(cur != originalGene){
-                    this.individual.put(key, cur);
-                    this.calcCommunities();
-                    this.calcFitness();
-                    if(this.fitness > originalFitness){
-                        continue Genes;
+                if(edges.get(cur) != edges.get(key)){
+                    if(cur != originalGene){
+                        this.individual.put(key, cur);
+                        this.calcCommunities();
+                        this.calcFitness();
+                        if(this.fitness > originalFitness){
+                            continue Genes;
+                        }
                     }
                 }
                 srcNeighbors.cyclicNext();
