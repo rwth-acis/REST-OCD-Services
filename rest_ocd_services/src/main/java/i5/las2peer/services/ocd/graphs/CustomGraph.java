@@ -270,6 +270,7 @@ public class CustomGraph extends Graph2D {
 		nodeIndexer = graph.nodeIndexer;
 		edgeIndexer = graph.edgeIndexer;
 		this.types = new HashSet<Integer>(graph.types);
+		this.graphSeries=graph.getGraphSeries();
 	}
 
 	//////////////////////////////////////////////////////////////////
@@ -1203,6 +1204,10 @@ public class CustomGraph extends Graph2D {
 			}
 		}
 		return subGraph;
+	}
+
+	public Set<Integer> getNodeIds(){
+		return customNodes.keySet();
 	}
 
 	////////////////// THE FOLLOWING METHODS ARE ONLY OF INTERNAL PACKAGE USE

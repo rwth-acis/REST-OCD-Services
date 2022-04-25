@@ -46,9 +46,9 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
 
         if(customGraph.isOfType(GraphType.DYNAMIC)){
             Cover resulting_cover = new Cover(customGraph,new ArrayList<>());
-            Map<Tuple,Double> membershipsMaps=initMembershipsMaps(customGraph);
+            Map<Integer,Map<Integer,Double>> membershipsMaps=initMembershipsMaps(customGraph);
             for(CustomGraph cg : customGraph.getGraphSeries()) {
-                Map<Tuple,Double> adjacencyMaps = createAdjacencyMaps(customGraph);
+                Map<Integer,Map<Integer,Double>> adjacencyMaps = createAdjacencyMaps(cg);
                 membershipsMaps=COPRAMaps(adjacencyMaps,membershipsMaps,v,loops);
                 Matrix memberships=formMemberships(membershipsMaps);
                 resulting_cover.addCoverSeries(new Cover(cg,memberships));
@@ -75,38 +75,41 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     }
 
 
-    private Map<Tuple,Double> COPRAMaps(Map<Tuple,Double> adjacencyMaps, Map<Tuple,Double> membershipsMaps, int v, int loops) {
+    private Map<Integer,Map<Integer,Double>> COPRAMaps(Map<Integer,Map<Integer,Double>> adjacencyMaps, Map<Integer,Map<Integer,Double>> membershipsMaps, int v, int loops) {
         while(loops-->0){
-            Map<Tuple,Double> afterMembershipsMap=updateMembershipsMap(membershipsMaps,adjacencyMaps,v);
+            Map<Integer,Map<Integer,Double>> afterMembershipsMap=updateMembershipsMap(membershipsMaps,adjacencyMaps,v);
             if(isEqualMaps(membershipsMaps,afterMembershipsMap)) break;
             membershipsMaps=afterMembershipsMap;
         }
         return membershipsMaps;
     }
 
-    private boolean isEqualMaps(Map<Tuple,Double> membershipsMaps, Map<Tuple,Double> afterMembershipsMap) {
+    private boolean isEqualMaps(Map<Integer,Map<Integer,Double>> membershipsMaps, Map<Integer,Map<Integer,Double>> afterMembershipsMap) {
     }
 
     //form the memberships matrix from membershipsMaps
-    private Matrix formMemberships(Map<Tuple,Double> membershipsMaps) {
+    private Matrix formMemberships(Map<Integer,Map<Integer,Double>> membershipsMaps) {
 
     }
 
-    private Map<Tuple,Double> initMembershipsMaps(CustomGraph customGraph) {
-        int nodeCount= customGraph.nodeCount();
-        Map<Tuple,Double> membershipsMaps=new HashMap<>();
-        for(int i=0;i<nodeCount;i++){
-            membershipsMaps.put(new Tuple(i,i),1.0);
+    private Map<Integer,Map<Integer,Double>> initMembershipsMaps(CustomGraph customGraph) {
+        Set<Integer> nodeIds=customGraph.getNodeIds();
+        Map<Integer,Map<Integer,Double>> membershipsMaps=new HashMap<>();
+        for(int i : nodeIds){
+            Map<Integer,Double> BCsOfCurNode=membershipsMaps.get(i);
+            BCsOfCurNode.put(i,1.0);
         }
         return membershipsMaps;
     }
 
-    private Map<Tuple,Double> createAdjacencyMaps(CustomGraph customGraph) {
-        Map<Tuple,Double> adjacencyMaps=new HashMap<>();
+    private Map<Integer,Map<Integer,Double>> createAdjacencyMaps(CustomGraph customGraph) {
+        Map<Integer,Map<Integer,Double>> adjacencyMaps=new HashMap<>();
         EdgeCursor edge_list = customGraph.edges(); // added
         while (edge_list.ok()) {
             Edge edge = edge_list.edge();
-            adjacencyMaps.put(new Tuple(edge.source().index(),edge.target().index()),customGraph.getEdgeWeight(edge));
+            Map<Integer,Double> curNodeNeighbours= adjacencyMaps.get(edge.source().index());
+            curNodeNeighbours.put(edge.target().index(),customGraph.getEdgeWeight(edge));
+            adjacencyMaps.put(edge.source().index(),curNodeNeighbours);
             edge_list.next();
         }
         return adjacencyMaps;
@@ -157,8 +160,18 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
         return simplifiedMemberships;
     }
 
-    private Map<Tuple,Double> updateMembershipsMap(Map<Tuple,Double> membershipsMaps, Map<Tuple,Double> adjacencyMaps, int v) {
-        Map<Tuple,Double> intermediateMembershipsMaps =new HashMap<>();
+    private Map<Integer,Map<Integer,Double>> updateMembershipsMap(Map<Integer,Map<Integer,Double>> membershipsMaps, Map<Integer,Map<Integer,Double>> adjacencyMaps,int v) {
+        Map<Integer,Map<Integer,Double>> intermediateMembershipsMaps =new HashMap<>();
+        for(Map.Entry<Integer, Map<Integer,Double>> entryAdjacencyMaps: adjacencyMaps.entrySet()) {
+            double sumOfCurrentRow=0;
+            for(Map.Entry<Integer,Double> entryNeighboursOfCurNode: entryAdjacencyMaps.getValue().entrySet()){
+                sumOfCurrentRow+=entryNeighboursOfCurNode.getValue();
+            }
+            for(int i : entryAdjacencyMaps.getValue().keySet()){
+                double propotion=entryAdjacencyMaps.getValue().get(i)/sumOfCurrentRow;
+            }
+        }
+
 
     }
 
@@ -172,7 +185,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
                 //the propotion node j in all neighbors of node i
                 double propotion=adjacency_matrix.get(i,j)/sumOfCurrentRow;
                 for(int k=0;k<nodeCount;k++){
-                    double bc=memberships.get(j,k);
+                    double bc=memberships.get(j,k);//bc of community k for node j from the memberships(not intermediate)
                     if(bc>0){
                         intermediateMemberships.set(i,k,intermediateMemberships.get(i,k)+propotion*bc);
                     }
