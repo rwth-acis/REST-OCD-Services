@@ -7,6 +7,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import org.glassfish.jersey.internal.inject.Custom;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
+import org.web3j.abi.datatypes.Int;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Graph;
@@ -46,9 +47,11 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
 
         if(customGraph.isOfType(GraphType.DYNAMIC)){
             Cover resulting_cover = new Cover(customGraph,new ArrayList<>());
-            Map<Integer,Map<Integer,Double>> membershipsMaps=initMembershipsMaps(customGraph);
+            Map<Integer,Map<Integer,Double>> membershipsMaps;
+            //set every nodes has its own id as its label with bc=1
             for(CustomGraph cg : customGraph.getGraphSeries()) {
                 Map<Integer,Map<Integer,Double>> adjacencyMaps = createAdjacencyMaps(cg);
+                membershipsMaps=initMembershipsMaps(customGraph);//if has new nodes,set all these new nodes by its own id as label with bc=1
                 membershipsMaps=COPRAMaps(adjacencyMaps,membershipsMaps,v,loops);
                 Matrix memberships=formMemberships(membershipsMaps);
                 resulting_cover.addCoverSeries(new Cover(cg,memberships));
@@ -78,26 +81,43 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     private Map<Integer,Map<Integer,Double>> COPRAMaps(Map<Integer,Map<Integer,Double>> adjacencyMaps, Map<Integer,Map<Integer,Double>> membershipsMaps, int v, int loops) {
         while(loops-->0){
             Map<Integer,Map<Integer,Double>> afterMembershipsMap=updateMembershipsMap(membershipsMaps,adjacencyMaps,v);
-            if(isEqualMaps(membershipsMaps,afterMembershipsMap)) break;
+            if(membershipsMaps.equals(afterMembershipsMap)) break;
             membershipsMaps=afterMembershipsMap;
         }
         return membershipsMaps;
     }
-
-    private boolean isEqualMaps(Map<Integer,Map<Integer,Double>> membershipsMaps, Map<Integer,Map<Integer,Double>> afterMembershipsMap) {
-    }
+    
 
     //form the memberships matrix from membershipsMaps
     private Matrix formMemberships(Map<Integer,Map<Integer,Double>> membershipsMaps) {
+        Matrix memberships=new Basic2DMatrix();
+        int maxLabel=0,maxNode=0;
+        for(Map.Entry<Integer,Map<Integer,Double>> entryMembershipMaps:membershipsMaps.entrySet()){
 
+            for (int label : entryMembershipMaps.getValue().keySet()){
+                if (label>maxLabel) maxLabel=label;
+            }
+            int curNode=entryMembershipMaps.getKey();
+            if(curNode>maxNode) maxNode= curNode;
+        }
+        memberships.resize(maxNode+1,maxLabel+1);//as index start from 0
+        memberships=memberships.blank();
+        for(Map.Entry<Integer,Map<Integer,Double>> entryMembershipMaps:membershipsMaps.entrySet()){
+            for(Map.Entry<Integer,Double> entryLabelsOfCurNode: entryMembershipMaps.getValue().entrySet()){
+                memberships.set(entryMembershipMaps.getKey(),entryLabelsOfCurNode.getKey(),entryLabelsOfCurNode.getValue());
+            }
+        }
+        return memberships;
     }
 
     private Map<Integer,Map<Integer,Double>> initMembershipsMaps(CustomGraph customGraph) {
         Set<Integer> nodeIds=customGraph.getNodeIds();
         Map<Integer,Map<Integer,Double>> membershipsMaps=new HashMap<>();
         for(int i : nodeIds){
-            Map<Integer,Double> BCsOfCurNode=membershipsMaps.get(i);
-            BCsOfCurNode.put(i,1.0);
+            Map<Integer,Double> BcsOfCurNode=membershipsMaps.get(i);
+            if(BcsOfCurNode.isEmpty()) {//this node is a new node
+                BcsOfCurNode.put(i, 1.0);
+            }
         }
         return membershipsMaps;
     }
@@ -161,18 +181,77 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     }
 
     private Map<Integer,Map<Integer,Double>> updateMembershipsMap(Map<Integer,Map<Integer,Double>> membershipsMaps, Map<Integer,Map<Integer,Double>> adjacencyMaps,int v) {
+        //update the memberships bc values
         Map<Integer,Map<Integer,Double>> intermediateMembershipsMaps =new HashMap<>();
         for(Map.Entry<Integer, Map<Integer,Double>> entryAdjacencyMaps: adjacencyMaps.entrySet()) {
             double sumOfCurrentRow=0;
-            for(Map.Entry<Integer,Double> entryNeighboursOfCurNode: entryAdjacencyMaps.getValue().entrySet()){
-                sumOfCurrentRow+=entryNeighboursOfCurNode.getValue();
+            for(Map.Entry<Integer,Double> entryNeighborsOfCurNode: entryAdjacencyMaps.getValue().entrySet()){
+                sumOfCurrentRow+=entryNeighborsOfCurNode.getValue();
             }
-            for(int i : entryAdjacencyMaps.getValue().keySet()){
-                double propotion=entryAdjacencyMaps.getValue().get(i)/sumOfCurrentRow;
+            for(Map.Entry<Integer,Double> entryNeighborsOfCurNode: entryAdjacencyMaps.getValue().entrySet()){
+                double propotion=entryNeighborsOfCurNode.getValue()/sumOfCurrentRow;
+                int curNeighbor=entryNeighborsOfCurNode.getKey();
+                for(Map.Entry<Integer,Double> entryCommunitiesOfCurNeighbor : membershipsMaps.get(curNeighbor).entrySet()){
+                    int communityId=entryCommunitiesOfCurNeighbor.getKey();
+                    double bc=entryCommunitiesOfCurNeighbor.getValue();
+                    if(bc>0) {
+                        double curBc = intermediateMembershipsMaps.get(curNeighbor).get(communityId);
+                        Map<Integer,Double> newBc=intermediateMembershipsMaps.get(curNeighbor);
+                        newBc.put(communityId,curBc+propotion*bc);
+                        intermediateMembershipsMaps.put(curNeighbor,newBc);
+                    }
+                }
             }
         }
+        membershipsMaps=intermediateMembershipsMaps;
 
+        //adjust the bc values in membershipMaps
+        for(Map.Entry<Integer,Map<Integer,Double>> entryMembershipMaps: membershipsMaps.entrySet()){
+            List<Integer> labelsOverThrehold=new ArrayList<>();
+            List<Integer> labelsUnderThreholdButNotZero=new ArrayList<>();
+            double sumBcOfOverThrehold=0;
+            for(Map.Entry<Integer,Double> entryCommunitiesOfCurNeighbor : entryMembershipMaps.getValue().entrySet()){
+                double curBc=entryCommunitiesOfCurNeighbor.getValue();
+                if(curBc>0){
+                    if(curBc >= 1.0/v){
+                        labelsOverThrehold.add(entryCommunitiesOfCurNeighbor.getKey());
+                        sumBcOfOverThrehold+=curBc;
+                    }else{
+                        labelsUnderThreholdButNotZero.add(entryCommunitiesOfCurNeighbor.getKey());
+                    }
+                }
+            }
 
+            if(labelsUnderThreholdButNotZero.isEmpty()) continue;//don't need to adjust the bc values
+            if(labelsOverThrehold.isEmpty()){//all the labels BC are lower than threshold,need to choose one of them randomly
+                for(int j:labelsUnderThreholdButNotZero){
+                    Map<Integer,Double> LabelsOfCurNode=entryMembershipMaps.getValue();
+                    LabelsOfCurNode.remove(j);
+                    membershipsMaps.put(entryMembershipMaps.getKey(),LabelsOfCurNode);
+                }
+                Random random = new Random();
+                int n = random.nextInt(labelsUnderThreholdButNotZero.size());
+                int luckyBoy = labelsUnderThreholdButNotZero.get(n);
+                Map<Integer,Double> LabelsOfCurNode=entryMembershipMaps.getValue();
+                LabelsOfCurNode.put(luckyBoy,1.0);
+                membershipsMaps.put(entryMembershipMaps.getKey(),LabelsOfCurNode);
+            }else{//normalize all the labels over Threshold
+                //The enlarge propotion of all valid labels. The sumOfBC should be in (1/v, 1) now.
+                double propotion=1.0 / sumBcOfOverThrehold;
+                for(int j : labelsOverThrehold){
+                    double currentBC=entryMembershipMaps.getValue().get(j);
+                    Map<Integer,Double> LabelsOfCurNode=entryMembershipMaps.getValue();
+                    LabelsOfCurNode.put(j,currentBC*propotion);
+                    membershipsMaps.put(entryMembershipMaps.getKey(),LabelsOfCurNode);
+                }
+                for(int j : labelsUnderThreholdButNotZero){
+                    Map<Integer,Double> LabelsOfCurNode=entryMembershipMaps.getValue();
+                    LabelsOfCurNode.remove(j);
+                    membershipsMaps.put(entryMembershipMaps.getKey(),LabelsOfCurNode);
+                }
+            }
+        }
+        return membershipsMaps;
     }
 
     private Matrix updateMemberships(Matrix memberships, Matrix adjacency_matrix, int v) {
@@ -193,41 +272,41 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
             }
         }
         memberships=intermediateMemberships;
+
         for(int i=0;i<nodeCount;i++){
-            boolean hasLabelOverThreshold=false;
-            double sumOfBC=0;
+            List<Integer> labelsOverThrehold=new ArrayList<>();
+            List<Integer> labelsUnderThreholdButNotZero=new ArrayList<>();
+            double sumBcOfOverThrehold=0;
             for(int j=0;j<nodeCount;j++){
-                double currentBC=memberships.get(i,j);
-                if(currentBC >= 1.0/v){
-                    hasLabelOverThreshold=true;
-                    sumOfBC+=currentBC;
+                double curBc=memberships.get(i,j);
+                if(curBc>0){
+                    if(curBc >= 1.0/v){
+                        labelsOverThrehold.add(j);
+                        sumBcOfOverThrehold+=curBc;
+                    }else{
+                        labelsUnderThreholdButNotZero.add(j);
+                    }
                 }
             }
-            if(sumOfBC==1) continue;
-            if(hasLabelOverThreshold){//normalize all the labels over Threshold
-                //The enlarge propotion of all valid labels. The sumOfBC should be in (1/v, 1) now.
-                double propotion=1.0 / sumOfBC;
-                for (int j=0;j<nodeCount;j++){
-                    double currentBC=memberships.get(i,j);
-                    if(currentBC>=1.0 / v){
-                        memberships.set(i,j,currentBC*propotion);
-                    }else{
-                        memberships.set(i, j, 0);
-                    }
-                }
-            }else{//all the labels BC are lower than threshold
-                List<Integer> candidates=new ArrayList();
-                for (int j=0;j<nodeCount;j++){
-                    double currentBC=memberships.get(i,j);
-                    if(currentBC>0){
-                        candidates.add(j);
-                        memberships.set(i, j, 0);
-                    }
+            if(labelsUnderThreholdButNotZero.isEmpty()) continue;//don't need to adjust the bc values
+            if(labelsOverThrehold.isEmpty()){//all the labels BC are lower than threshold,need to choose one of them randomly
+                for(int j:labelsUnderThreholdButNotZero){
+                    memberships.set(i,j,0);
                 }
                 Random random = new Random();
-                int n = random.nextInt(candidates.size());
-                int luckyBoy = candidates.get(n);
+                int n = random.nextInt(labelsUnderThreholdButNotZero.size());
+                int luckyBoy = labelsUnderThreholdButNotZero.get(n);
                 memberships.set(i,luckyBoy,1);
+            }else{//normalize all the labels over Threshold
+                //The enlarge propotion of all valid labels. The sumOfBC should be in (1/v, 1) now.
+                double propotion=1.0 / sumBcOfOverThrehold;
+                for(int j : labelsOverThrehold){
+                    double currentBC=memberships.get(i,j);
+                    memberships.set(i,j,currentBC*propotion);
+                }
+                for(int j : labelsUnderThreholdButNotZero){
+                    memberships.set(i,j,0);
+                }
             }
         }
         return memberships;
