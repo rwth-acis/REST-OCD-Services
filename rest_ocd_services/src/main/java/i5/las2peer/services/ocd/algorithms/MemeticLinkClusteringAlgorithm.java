@@ -20,6 +20,7 @@ import java.util.Random;
 import java.util.Stack;
 import java.util.AbstractMap.SimpleEntry;
 
+import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.CMAESOptimizer.PopulationSize;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
@@ -62,7 +63,6 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	 * 
 	 */
     public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException {
-		System.out.println("Start");
 		// Global variables
 		final double initialDiversity;
 		int treeSize = 13;
@@ -83,20 +83,21 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			MLinkAgent agent = new MLinkAgent();
 			for(int j = 0; j < 6; j++){
 				int init = rand.nextInt(3);
+				// agent.addIndividual(localExpansionEigen(encoding));
 				if(init == 0){
-					System.out.println("label");
-					agent.addIndividual(labelPropagation(encoding));
+					// System.out.println("label");
+					// agent.addIndividual(labelPropagation(encoding));
+					agent.addIndividual(localExpansion(encoding));
 				} else if(init == 1){
-					System.out.println("local");
+					// System.out.println("exp");
 					agent.addIndividual(localExpansion(encoding));
 				} else {
-					System.out.println("eigen");
+					// System.out.println("eigen");
 					agent.addIndividual(localExpansionEigen(encoding));
 				}
 			}
 			population.addAgent(agent);
 		}
-		System.out.println("swapup");
 		population.swapUp();
 		population.swapUp();
 		
@@ -105,52 +106,64 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 
 		// Memetic algorithm
 		int counter = 0;
+		int debug = 0;
 		double lastFitness = population.getAgent(0).getPocket().getFitness();
 		while(!termination){
-			System.out.println("starting genetic");
+			System.out.println("iteration: " + debug);
+			debug++;
 			for(int i = 0; i < treeSize; i++){
 				MLinkAgent curAgent = population.getAgent(i);
 				SimpleEntry<MLinkIndividual,MLinkIndividual> parents;
 				double diversity = population.calcDiversity();
-				System.out.println("select");
+				// System.out.println("diversity: " + diversity + "  --  " + initialDiversity);
 				if(diversity < initialDiversity/2){
 					parents = population.farSelect(i);
+					// System.out.println("FarSelect");
 				} else {
 					parents = population.closeSelect(i);
+					// System.out.println("CloseSelect");
 				}
 				MLinkIndividual offspring = crossover(parents);
-				if(rand.nextInt(100) < mutationProbability){
-					System.out.println("mutate");
-					offspring.mutate();
-				}
-				//TODO: Local search schneller machen
-				if(rand.nextInt(100) < localSearchProbability && false){
-					System.out.println("localsearch");
+				offspring.mutate(mutationProbability);
+				
+				if(rand.nextInt(100) < localSearchProbability){
+					// System.out.println("Local Search starting: ");
 					offspring.localSearch();
 				}
 				curAgent.addIndividual(offspring);
 				population.swapUp();
+				// System.out.println("Best Fitness: " + population.getAgent(0).getPocket().getFitness());
 
-				// Check if termination criteria is met
-				double newFitness = population.getAgent(0).getPocket().getFitness();
-				System.out.println("best Fitness: " + newFitness);
-				if(newFitness == lastFitness){
-					counter++;
-				} else {
-					counter = 0;
-					lastFitness = newFitness;
-				}
-				if(counter == genWithoutImprovement){
-					termination = true;
-				}
+			}
+			// Check if termination criteria is met
+			double newFitness = population.getAgent(0).getPocket().getFitness();
+			if(newFitness == lastFitness){
+				counter++;
+				// System.out.println("counter: " + counter);
+			} else {
+				counter = 0;
+				lastFitness = newFitness;
+			}
+			if(counter == genWithoutImprovement){
+				termination = true;
+			}
+
+		}
+		for(int i = 0; i < treeSize; i++){
+			System.out.println(i + ": ");
+			for(int j = 0; j < 6; j++){
+				System.out.println(j + " : " + population.getAgent(i).getIndividuals().get(j).getFitness());
 			}
 		}
+
+		// solution = population.getAgent(0).getPocket();
 		solution = population.getAgent(0).getPocket();
-		System.out.println("translating");
 		communitySet = solution.getNodeCommunity();
 		communitySet = postProcessing(communitySet, encoding);
 		Matrix membershipMatrix = getMembershipMatrix(communitySet, encoding, solution.getCommunities().keySet().size());
+		System.out.println("done");
 		return new Cover(graph, membershipMatrix);
+
 	}
 	/**
 	 * Creates a copy of the original graph and removes the undirected doubled edges
@@ -314,8 +327,6 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 					if(last != first){
 						genes.put(last, first);
 					}
-					
-
 				}
 			}
 		}
@@ -340,16 +351,15 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		// reassign new labels for each node
 		while(!notVisited.isEmpty()){
 			int size = notVisited.size();
-			int node = new Random(5).nextInt(size);
+			int node = new Random().nextInt(size);
 			Node selected = notVisited.get(node);
 			notVisited.remove(node);
 			int newLabel = labels.get(selected);
 			if(selected.neighbors().size() > 0){
-				getMostFrequentLabel(labels, selected);
+				newLabel = getMostFrequentLabel(labels, selected);
 			}
 			labels.put(selected, newLabel);
 		}
-
 		return translateToIndividual(labels);
 	}
 	/**
@@ -393,7 +403,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			}
 		}
 		int labelSize = neighbors.size();
-		int randLabel = new Random(10).nextInt(labelSize);
+		int randLabel = new Random().nextInt(labelSize);
 		int i = 0;
 		for(Integer l : maxLabels){
 			if(i == randLabel){
@@ -402,28 +412,6 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			i++;
 		}
 		return mostFrequentLabel;
-	}
-	/**
-	 * Returns the edge between the two nodes or null
-	 * @param source 
-	 * @param target 
-	 * @return Edge that connects the two nodes or null
-	 */
-	public Edge getEdge(Node source, Node target){
-		EdgeCursor edges = source.edges();
-		Edge res = null;
-		if(source != target){
-			for(int i = 0; i < edges.size(); i++){
-				Edge edge = edges.edge();
-				if((edge.source() == source && edge.target() == target) || (edge.source() == target && edge.target() == source)){
-					res = edge;
-					break;
-				}
-				edges.cyclicNext();
-			}
-		}
-
-		return res;
 	}
 	/**
 	 * Local Expansion with random seed
@@ -493,46 +481,90 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			return null;
 		}
 	}
-	//TODO: Probably doesn't work
+
 	public HashMap<Integer,HashSet<Node>> postProcessing(HashMap<Integer,HashSet<Node>> communitySet,CustomGraph graph){
 		HashMap<Node,HashSet<Integer>> nodes = new HashMap<Node,HashSet<Integer>>();
+		HashMap<Node,HashSet<Integer>> updatedNodes  = new HashMap<Node,HashSet<Integer>>();
 		for(Node n : graph.getNodeArray()){
 			nodes.put(n, new HashSet<Integer>());
+			updatedNodes.put(n, new HashSet<Integer>());
 		}
 		for(Integer community : communitySet.keySet()){
 			for(Node n : communitySet.get(community)){
 				nodes.get(n).add(community);
+				updatedNodes.get(n).add(community);
 			}
 		}
         // Look at every node with more than 1 community and check if the node adds to the intra density of the community
+		
 		for(Node n : nodes.keySet()){
-			if(nodes.get(n).size() < 1 ){
+			// Check if Node is part of more than 1 community
+			if(nodes.get(n).size() < 2 ){
+				continue;
+			} 
+			// Check for communities consisting of only 1 node
+			ArrayList<Integer> delCommunities = new ArrayList<Integer>();
+			for(Integer com : nodes.get(n)){
+				if(communitySet.get(com).size() == 1){
+					communitySet.remove(com);
+					delCommunities.add(com);					
+				}
+			}
+			for(Integer com : delCommunities){
+				nodes.get(n).remove(com);
+			}
+
+			// Check again if node is part of multiple communities after deletion process
+			if(nodes.get(n).size() < 2 ){
 				continue;
 			}   
+
             int bestCommunity = -1;
             double bestCommunityIntra = -1;
-			int communityCount = nodes.get(n).size();
+			int communityCount = updatedNodes.get(n).size();
+
+			// Check for every community of Node n if it adds to the intra density and remove if not
             for(Integer com : nodes.get(n)){
                 HashSet<Node> nodeRemoved = new HashSet<>(communitySet.get(com));
                 nodeRemoved.remove(n);
-                double removedIntra = intraDensity(nodeRemoved, nodes);
-                double normalIntra = intraDensity(communitySet.get(com), nodes);
-                if(removedIntra > normalIntra){
-                    communitySet.get(com).remove(n);
-                    communityCount = communityCount - 1;
-                    if(bestCommunityIntra < removedIntra){
-                        bestCommunityIntra = removedIntra;
-                        bestCommunity = com;
-                    }
-                }
+				HashMap<Node,HashSet<Integer>> copyNodes = new HashMap<Node,HashSet<Integer>>(updatedNodes);
+				copyNodes.put(n,new HashSet<Integer>(copyNodes.get(n)));
+				copyNodes.get(n).remove(com);
+				double removedIntra = intraDensity2(nodeRemoved, copyNodes);
+				double normalIntra;
+				if(communitySet.get(com).size() == 2){
+					normalIntra = 0;
+				} else {
+					normalIntra = intraDensity2(communitySet.get(com), updatedNodes);
+				}
+				
+
+				// If the intra Density is greater without the node remove it from the community
+				if(removedIntra > normalIntra || (communitySet.get(com).size() == 2 && removedIntra == normalIntra)){
+					communitySet.get(com).remove(n);
+					updatedNodes.get(n).remove(com);
+					communityCount = communityCount - 1;
+					if(bestCommunityIntra < removedIntra){
+						bestCommunityIntra = removedIntra;
+						bestCommunity = com;
+					}
+				}
             }
-            if(communityCount == 0){
+
+			// If the node is now part of no community add it to the one with the least intra density loss
+            if(updatedNodes.get(n).isEmpty()){
                 communitySet.get(bestCommunity).add(n);
-                nodes.get(n).add(bestCommunity);
+                updatedNodes.get(n).add(bestCommunity);
             }
 		}
 		return communitySet;
 	} 	
+	/**
+	 * 
+	 * @param nodes Set of the current nodes inside the community	
+	 * @param communities HashMap with nodes and corresponding communities
+	 * @return intra density
+	 */
 	public double intraDensity(HashSet<Node> nodes, HashMap<Node,HashSet<Integer>> communities){
 		double count = 0;
 		for(Node n : nodes){
@@ -550,6 +582,31 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		}
 		return 2*((count/2)/nodes.size());
 	}
+	/**
+	 *  Intra density that puts more weight on the amount of edges
+	 * @param nodes Set of the current nodes inside the community
+	 * @param communities HashMap with nodes and corresponding communities
+	 * @return intra density
+	 */
+	public double intraDensity2(HashSet<Node> nodes, HashMap<Node,HashSet<Integer>> communities){
+		double count = 0;
+		for(Node n : nodes){
+			EdgeCursor edges = n.edges();
+			for(int i = 0; i < edges.size(); i++){
+				Node target = edges.edge().target();
+				Node source = edges.edge().source();
+				HashSet<Integer> intersection = new HashSet<Integer>(communities.get(source));
+				intersection.retainAll(communities.get(target));
+				if(!intersection.isEmpty()){
+					count++;
+				}
+				edges.cyclicNext();
+			}
+		}
+		return 2*((count/2)/Math.pow(nodes.size(),2));
+	}
+
+	
 	/**
 	 * Creates a membership matrix for the giben Map
 	 * @param communitySet Map with nodes and their communities

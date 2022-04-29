@@ -2,8 +2,6 @@ package i5.las2peer.services.ocd.algorithms.utils;
 
 import java.util.ArrayList;
 import java.util.Random;
-import i5.las2peer.services.ocd.algorithms.utils.MLinkIndividual;
-
 
 /**
  * An Agent consists of 6 Individuals with 1 Pocket individual which is the best one of the agent
@@ -40,7 +38,7 @@ public class MLinkAgent{
             individuals.add(1, individual);
         }
         if(this.individuals.size() > 6){
-            this.individuals.remove(this.individuals.size()-1);
+            this.individuals.remove(this.individuals.size() - 1);
         }
     }
 
