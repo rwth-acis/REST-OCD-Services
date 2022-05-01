@@ -1203,6 +1203,9 @@ public class ServiceClass extends RESTService {
 		 *            applied by the OcdAlgorithmExecutor.
 		 * @param contentWeighting
 		 *            The boolean value to enable content-based weighting
+		 * @param ignoreCompatibility
+		 *            The boolean value to ignore graph compatibility enforcement and
+		 *            allow execution of algorithms on incompatible graphs.
 		 * @return The id of the cover being calculated which is reserved for
 		 *         the algorithm result. Or an error xml.
 		 */
@@ -1219,6 +1222,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("unnamed") @QueryParam("name") String nameStr,
 				@DefaultValue("SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM") @QueryParam("algorithm") String creationTypeStr,
 				String content, @DefaultValue("false") @QueryParam("contentWeighting") String contentWeighting,
+									 @DefaultValue("false") @QueryParam("ignoreCompatibility") String ignoreCompatibility,
 				@DefaultValue("0") @QueryParam("componentNodeCountFilter") String componentNodeCountFilterStr) {
 			try {
 				int componentNodeCountFilter;
@@ -1311,13 +1315,18 @@ public class ServiceClass extends RESTService {
 							graph = weightAlgo.detectOverlappingCommunities(graph, new ExecutionTime());
 						}
 
-						// Restrict algorithm execution to only compatible graphs
-						Set<GraphType> compatibleGraphTypes = algorithm.compatibleGraphTypes();
-						for(GraphType graphType : graph.getTypes()){
-							if(!compatibleGraphTypes.contains(graphType)){
-								requestHandler.log(Level.SEVERE, algorithm.getClass().getSimpleName() + " is not compatible with " + graphType + " graphs!");
-								return requestHandler.writeError(Error.INTERNAL, algorithm.getClass().getSimpleName() + " is not compatible with " + graphType + " graphs!");
+						// Restrict algorithm execution to only compatible graphs unless user chooses to ignore compatibility enforcement
+						boolean ignoreCompatibilityEnforcement = Boolean.parseBoolean(ignoreCompatibility);
+						if (!ignoreCompatibilityEnforcement) {
+							Set<GraphType> compatibleGraphTypes = algorithm.compatibleGraphTypes();
+							for (GraphType graphType : graph.getTypes()) {
+								if (!compatibleGraphTypes.contains(graphType)) {
+									requestHandler.log(Level.SEVERE, algorithm.getClass().getSimpleName() + " is not compatible with " + graphType + " graphs!");
+									return requestHandler.writeError(Error.INTERNAL, algorithm.getClass().getSimpleName() + " is not compatible with " + graphType + " graphs!");
+								}
 							}
+						} else{
+							requestHandler.log(Level.WARNING, algorithm.getClass().getSimpleName() + " is executed on an incompatible graph type." );
 						}
 						
 
