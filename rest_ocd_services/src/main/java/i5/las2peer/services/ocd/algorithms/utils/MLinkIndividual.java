@@ -95,59 +95,6 @@ public class MLinkIndividual {
      * Saves the communities as ArrayLists
      */
     public void calcCommunities(){
-        // this.communities.clear();
-        // this.edges.clear();
-        // this.nodeCommunity.clear();
-        // HashSet<HashSet<Edge>> communitiesSet = new HashSet<HashSet<Edge>>();
-        // for(Edge key : this.individual.keySet()){
-        //     HashSet<Edge> tmp = new HashSet<Edge>();
-        //     tmp.add(key);
-        //     communitiesSet.add(tmp);
-        // }
-        // boolean changes = true;
-        // while(changes){
-        //     changes = false;
-        //     HashSet<Edge> commLocus = null;
-        //     HashSet<Edge> commGene = null;
-        //     for(Edge locus : this.individual.keySet()){
-        //         Edge gene = this.individual.get(locus);
-        //         for(HashSet<Edge> comm : communitiesSet){
-        //             // System.out.println("CGene: \n" + comm );
-        //             if(comm.contains(gene)){
-        //                 commGene = comm;
-        //             }
-        //             if(comm.contains(locus)){
-        //                 commLocus = comm;
-        //             }
-        //             if(commGene != null && commLocus != null){
-        //                 break;
-        //             }
-        //         }
-        //         // System.out.println("CLocus: \n" + commLocus );
-        //         // System.out.println("CGene: \n" + commGene );
-        //         if(commGene != commLocus){
-        //             communitiesSet.remove(commLocus);
-        //             communitiesSet.remove(commGene);
-        //             commGene.addAll(commLocus);
-        //             communitiesSet.add(new HashSet<Edge>(commGene));
-        //             changes = true;
-        //         }
-        //         commGene = null;
-        //         commLocus = null;
-        //     }
-        // }
-        // int counter = 0;
-        // for(HashSet<Edge> community : communitiesSet){
-        //     this.communities.put(counter,community);
-        //     this.nodeCommunity.put(counter,new HashSet<Node>());
-        //     for(Edge e : community){
-        //         this.edges.put(e, counter);
-        //         this.nodeCommunity.get(counter).add(e.target());
-        //         this.nodeCommunity.get(counter).add(e.source());
-        //     }
-        //     counter++;
-        // }
-
         // Initialize every edge with -1 as community
         HashMap<Edge,Integer> assignCommunity = new HashMap<Edge,Integer>();
         for(Edge e : this.individual.keySet()){
@@ -189,6 +136,7 @@ public class MLinkIndividual {
         this.edges = assignCommunity;
         this.communities.clear();
         this.nodeCommunity.clear();
+
         // Fill communities and community of nodes
         for(int i = 0; i < current; i++){
             this.communities.put(i, new HashSet<Edge>());
@@ -203,7 +151,8 @@ public class MLinkIndividual {
     }
 
     /**
-     * Mutation operator to keep the diversity high
+     * Mutates the individual with a mutation probability
+     * @param mutationProbability mutation probability
      */
     public void mutate(int mutationProbability){
 		HashMap<Edge, Edge> genes = this.individual;

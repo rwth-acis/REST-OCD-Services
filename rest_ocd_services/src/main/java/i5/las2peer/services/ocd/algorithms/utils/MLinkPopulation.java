@@ -83,8 +83,9 @@ public class MLinkPopulation {
         }
     }
     /**
-     * Selects 2 Parents from the same branch
-     * @return Entry with 2 parents
+     * Selects 2 parents from the same branch of the tree
+     * @param index Index of first parent
+     * @return tuple of 2 parents
      */
     public SimpleEntry<MLinkIndividual,MLinkIndividual> closeSelect(int index){
         Random rand = new Random();
@@ -107,8 +108,9 @@ public class MLinkPopulation {
         return new SimpleEntry<MLinkIndividual,MLinkIndividual>(firstParent,secondParent);
     }
     /**
-     * 
-     * @return 2 Parents from different branch
+     * Selects a second parent in another branch of the index
+     * @param index index of the first parent 
+     * @return returns a tuple of the first parent and a second one
      */
     public SimpleEntry<MLinkIndividual,MLinkIndividual> farSelect(int index){
         Random rand = new Random();
