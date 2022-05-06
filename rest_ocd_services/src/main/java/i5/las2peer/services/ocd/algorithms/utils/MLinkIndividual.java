@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+
+import org.apache.jena.sparql.pfunction.library.assign;
+
 import java.util.ArrayList;
 
 import y.base.Edge;
@@ -95,28 +98,42 @@ public class MLinkIndividual {
      * Saves the communities as ArrayLists
      */
     public void calcCommunities(){
+        this.communities.clear();
+        this.nodeCommunity.clear();
         // Initialize every edge with -1 as community
         HashMap<Edge,Integer> assignCommunity = new HashMap<Edge,Integer>();
+        // System.out.println("ind Edges: " + this.individual.keySet().size());
         for(Edge e : this.individual.keySet()){
             assignCommunity.put(e,-1);
         }
         // Backtracking algorithm
         int current = 0;
+        this.communities.put(current, new HashSet<Edge>());
+        this.nodeCommunity.put(current, new HashSet<Node>());
         for(Edge e : this.individual.keySet()){
             ArrayList<Edge> previous = new ArrayList<Edge>();
             int tracing = 0;
 
             // If edge is not assigned yet
-            if(assignCommunity.get(e) == -1){
+            if(assignCommunity.get(e).equals(-1)){
                 assignCommunity.put(e, current);
+                // Fill in different versions of community representation
+                this.communities.get(current).add(e);
+                this.nodeCommunity.get(current).add(e.target());
+                this.nodeCommunity.get(current).add(e.source());
                 Edge neighbor = this.individual.get(e);
                 previous.add(e);
                 tracing++;
                 
                 // Assign gene to the locus community
-                while(assignCommunity.get(neighbor) == -1){
+                while(assignCommunity.get(neighbor).equals(-1)){
                     previous.add(neighbor);
                     assignCommunity.put(neighbor,current);
+
+                    this.communities.get(current).add(neighbor);
+                    this.nodeCommunity.get(current).add(neighbor.target());
+                    this.nodeCommunity.get(current).add(neighbor.source());
+
                     neighbor = this.individual.get(neighbor);
                     tracing++;
                 }
@@ -124,30 +141,29 @@ public class MLinkIndividual {
                 // If gene is in different community -> assign the whole community to the gene's
                 if(neighborCommunity != current){
                     tracing = tracing - 1;
+                    this.communities.get(current).clear();
+                    this.nodeCommunity.get(current).clear();
                     while(tracing >= 0){
-                        assignCommunity.put(previous.get(tracing), neighborCommunity);
+                        Edge prev = previous.get(tracing);
+                        assignCommunity.put(prev, neighborCommunity);
+
+                        this.communities.get(neighborCommunity).add(prev);
+                        this.nodeCommunity.get(neighborCommunity).add(prev.target());
+                        this.nodeCommunity.get(neighborCommunity).add(prev.source());
+
                         tracing = tracing - 1;
                     }
                 } else {
                     current++;
+                    this.communities.put(current, new HashSet<Edge>());
+                    this.nodeCommunity.put(current, new HashSet<Node>());
                 }
             }
         }
         this.edges = assignCommunity;
-        this.communities.clear();
-        this.nodeCommunity.clear();
+        this.communities.remove(current);
+        this.nodeCommunity.remove(current);
 
-        // Fill communities and community of nodes
-        for(int i = 0; i < current; i++){
-            this.communities.put(i, new HashSet<Edge>());
-            this.nodeCommunity.put(i, new HashSet<Node>());
-        }
-        for(Edge e : this.edges.keySet()){
-            int comm = edges.get(e);
-            this.communities.get(comm).add(e);
-            this.nodeCommunity.get(comm).add(e.target());
-            this.nodeCommunity.get(comm).add(e.source());
-        }
     }
 
     /**
@@ -198,6 +214,131 @@ public class MLinkIndividual {
         this.calcFitness();
 	}   
     /**
+     * Updates the community after the gene is changed
+     * @param locus locus of where the change happens
+     * @param gene updated gene
+     */
+    private void updateCommunities(Edge locus, Edge gene){
+        int oldCommunity = edges.get(locus);
+        int newCommunity = edges.get(gene);
+        
+        // Put the locus into new community
+        this.individual.put(locus, gene);
+        this.edges.put(locus, newCommunity);
+        this.communities.get(oldCommunity).remove(locus);
+        this.communities.get(newCommunity).add(locus);
+        this.nodeCommunity.remove(oldCommunity);
+        this.nodeCommunity.get(newCommunity).add(locus.source());
+        this.nodeCommunity.get(newCommunity).add(locus.target());
+
+        // if the locus was in a community only containing itself, this method is done
+        HashSet<Edge> oldEdges = this.communities.remove(oldCommunity);
+        if(oldEdges.isEmpty()){
+            return;
+        }
+        
+        // Sort community names 
+        // TODO: VIELLEICHT NICHT NÖTIG
+        int lastCommunity = 0;
+        for(Integer i : this.communities.keySet()){
+            if(i > lastCommunity){
+                lastCommunity = i;
+            }            
+        }
+        HashSet<Edge> tmp = this.communities.remove(lastCommunity);
+        this.communities.put(oldCommunity, tmp);
+        HashSet<Node> tmpN = this.nodeCommunity.remove(lastCommunity);
+        this.nodeCommunity.put(oldCommunity, tmpN);
+        for(Edge e : tmp){
+            this.edges.put(e,oldCommunity);
+        }
+    
+        // Counter where the new communities are starting
+        int starting = this.communities.size();
+
+        HashMap<Edge,Integer> assignCommunity = new HashMap<Edge,Integer>();
+
+        // Assign no community to every community connected to the locus
+        for(Edge e : oldEdges){
+            assignCommunity.put(e,-1);
+        }
+
+        // Backtracking algorithm but only for the old community of the locus
+        int current = starting;
+        this.communities.put(current, new HashSet<Edge>());
+        this.nodeCommunity.put(current, new HashSet<Node>());
+        for(Edge e : oldEdges){
+            ArrayList<Edge> previous = new ArrayList<Edge>();
+            int tracing = 0;
+
+            // If edge is not assigned yet
+            if(assignCommunity.get(e).equals(-1)){
+                assignCommunity.put(e, current);
+                // Fill in different versions of community representation
+                this.communities.get(current).add(e);
+                this.nodeCommunity.get(current).add(e.target());
+                this.nodeCommunity.get(current).add(e.source());
+
+                Edge neighbor = this.individual.get(e);
+                previous.add(e);
+                tracing++;
+                
+                // Assign gene to the locus community if genes are not assigned yet
+                if(assignCommunity.containsKey(neighbor)){
+                    while(assignCommunity.get(neighbor).equals(-1) ){
+                        previous.add(neighbor);
+                        assignCommunity.put(neighbor,current);
+    
+                        this.communities.get(current).add(neighbor);
+                        this.nodeCommunity.get(current).add(neighbor.target());
+                        this.nodeCommunity.get(current).add(neighbor.source());
+    
+                        neighbor = this.individual.get(neighbor);
+                        tracing++;
+                        if(!assignCommunity.containsKey(neighbor)){
+                            break;
+                        }
+                    }
+                }
+                int neighborCommunity;
+                if(!assignCommunity.containsKey(neighbor)){
+                    neighborCommunity = edges.get(neighbor);
+                } else {
+                    neighborCommunity = assignCommunity.get(neighbor);
+                }
+                
+                // If gene is in different community -> assign the whole previous community to the gene's community
+                if(neighborCommunity != current){
+                    tracing = tracing - 1;
+                    this.communities.get(current).clear();
+                    this.nodeCommunity.get(current).clear();
+                    while(tracing >= 0){
+                        Edge prev = previous.get(tracing);
+                        assignCommunity.put(prev, neighborCommunity);
+
+                        this.communities.get(neighborCommunity).add(prev);
+                        this.nodeCommunity.get(neighborCommunity).add(prev.target());
+                        this.nodeCommunity.get(neighborCommunity).add(prev.source());
+
+                        tracing = tracing - 1;
+                    }
+                } else {
+                    current++;
+                    this.communities.put(current, new HashSet<Edge>());
+                    this.nodeCommunity.put(current, new HashSet<Node>());
+                }
+            }
+        }
+
+        this.edges.putAll(assignCommunity);
+        this.communities.remove(current);
+        this.nodeCommunity.remove(current);
+
+        calcFitness();
+
+    }
+
+    /**
      * Local Search to improve fitness by checking for every edge if changing
      *  the gene would improve fitness
      */
@@ -208,18 +349,14 @@ public class MLinkIndividual {
             double originalFitness = this.fitness;
             EdgeCursor tgtNeighbors = key.target().edges();
             EdgeCursor srcNeighbors = key.source().edges();
-
+            if(tgtNeighbors.size() == 1 && srcNeighbors.size() == 1)
             // Run through every target edge
             for(int i = 0; i < tgtNeighbors.size(); i++){
                 Edge cur = tgtNeighbors.edge();
                 if(edges.get(cur) != edges.get(key)){
-                    if(cur != originalGene && cur != null){
-                        this.individual.put(key, cur);
-                        this.calcCommunities();
-                        this.calcFitness();
-                        if(this.fitness > originalFitness){
-                            continue Genes;
-                        }
+                    updateCommunities(key, cur);
+                    if(this.fitness > originalFitness){
+                        continue Genes;
                     }
                 }
                 tgtNeighbors.cyclicNext();
@@ -229,20 +366,21 @@ public class MLinkIndividual {
             for(int i = 0; i < srcNeighbors.size(); i++){
                 Edge cur = srcNeighbors.edge();
                 if(edges.get(cur) != edges.get(key)){
-                    if(cur != originalGene && cur != null){
-                        this.individual.put(key, cur);
-                        this.calcCommunities();
-                        this.calcFitness();
-                        if(this.fitness > originalFitness){
-                            continue Genes;
-                        }
+                    updateCommunities(key, cur);
+                    if(this.fitness > originalFitness){
+                        continue Genes;
                     }
                 }
                 srcNeighbors.cyclicNext();
             }
-            this.individual.put(key, originalGene);
-            this.calcCommunities();
-            this.calcFitness();
+            if(edges.get(key) != edges.get(originalGene)){
+                updateCommunities(key, originalGene);
+            } else {
+                this.individual.put(key, originalGene);
+                calcCommunities();
+                calcFitness();
+            }
+            
         }
 
     }
