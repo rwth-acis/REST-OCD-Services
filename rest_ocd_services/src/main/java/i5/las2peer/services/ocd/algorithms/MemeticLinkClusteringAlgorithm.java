@@ -7,6 +7,7 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import sim.display.SimApplet;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.measures.EigenvectorCentrality;
 
@@ -66,6 +67,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		// Global variables
 		final double initialDiversity;
 		int treeSize = 13;
+		int agentSize = 6;
 		int mutationProbability = 5;
 		int localSearchProbability = 10;
 		int genWithoutImprovement = 35;
@@ -76,21 +78,23 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		final MLinkIndividual solution;
 		HashMap<Integer,HashSet<Node>> communitySet;
 		CustomGraph encoding = removeDoubleEdges(graph);
-		
+		System.out.println(encoding.edgeCount());
+		System.out.println(encoding.nodeCount());
 
-		// Initialize population
+		//Initialize population
 		for(int i = 0; i < treeSize; i++){
 			MLinkAgent agent = new MLinkAgent();
-			for(int j = 0; j < 6; j++){
-				// put bound on 3 if label propagation works
-				int init = rand.nextInt(2);
-				// TODO: Label propagation doesn't work
+			for(int j = 0; j < agentSize; j++){
+				int init = rand.nextInt(1);
 				if(init == 0){
-					agent.addIndividual(localExpansionEigen(encoding));
-				} else if(init == 1){
+					System.out.println("local");
 					agent.addIndividual(localExpansion(encoding));
-				} else {
+				} else if(init == 1){
+					System.out.println("label");
 					agent.addIndividual(labelPropagation(encoding));
+				} else {
+					// agent.addIndividual(localExpansionEigen(encoding));
+					// agent.addIndividual(speakerListener(encoding));
 				}
 			}
 			population.addAgent(agent);
@@ -117,10 +121,12 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				} else {
 					parents = population.closeSelect(i);
 				}
-				MLinkIndividual offspring = crossover(parents);
+				System.out.println("crossover");
+				MLinkIndividual offspring = crossover(parents, encoding);
 				offspring.mutate(mutationProbability);
 				
 				if(rand.nextInt(100) < localSearchProbability){
+					System.out.println("localSearch");
 					offspring.localSearch();
 				}
 				curAgent.addIndividual(offspring);
@@ -139,11 +145,11 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			}
 
 		}
-
 		solution = population.getAgent(0).getPocket();
 		communitySet = solution.getNodeCommunity();
 		communitySet = postProcessing(communitySet, encoding);
-		Matrix membershipMatrix = getMembershipMatrix(communitySet, encoding, solution.getCommunities().keySet().size());
+		Matrix membershipMatrix = getMembershipMatrix(communitySet, encoding, solution.getCommunities().size());
+		System.out.println("done");
 		return new Cover(graph, membershipMatrix);
 
 	}
@@ -173,12 +179,19 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	 * @param parents tuple of two parents
 	 * @return New individual created out of the two parents
 	 */
-	public MLinkIndividual crossover(SimpleEntry<MLinkIndividual,MLinkIndividual> parents){
+	public MLinkIndividual crossover(SimpleEntry<MLinkIndividual,MLinkIndividual> parents, CustomGraph graph){
 		MLinkIndividual parent1 = parents.getKey();
 		MLinkIndividual parent2 = parents.getValue();
 		HashMap<Edge,Edge> individual = new HashMap<Edge,Edge>();
 		Edge gene;
 		int crossProbability = 50;
+		Edge[] edges = graph.getEdgeArray();
+
+		// for(Edge e : edges){
+		// 	if(!parent1.getIndividual().keySet().contains(e)){
+		// 		System.out.println(e);
+		// 	}
+		// }
 
 		Random rand = new Random();
 		for(Edge key : parent1.getIndividual().keySet()){
@@ -200,12 +213,13 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	public MLinkIndividual translateToIndividual(HashMap<Node,Integer> labels){
 		HashMap<Edge,Edge> genes = new HashMap<Edge,Edge>();
 		HashMap<Integer,Set<Node>> labelNodes = new HashMap<Integer,Set<Node>>();
+
 		for(Node node : labels.keySet()){
-			labelNodes.put(labels.get(node), new HashSet<Node>());
-		}
-		// Fill sets with nodes of the corresponding label
-		for(Node n : labels.keySet()){
-			labelNodes.get(labels.get(n)).add(n);
+			Integer l = labels.get(node);
+			if(!labelNodes.keySet().contains(l)){
+				labelNodes.put(l, new HashSet<Node>());
+			}
+			labelNodes.get(l).add(node);
 		}
 
 		// Locus based representation
@@ -213,107 +227,138 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		Random rand = new Random();
 		Set<Node> checkedNodes = new HashSet<Node>(); 
 		Set<Node> isQueued = new HashSet<Node>();
+		// Queue for deep first search
 		Stack<SimpleEntry<Edge,Node>> queue = new Stack<SimpleEntry<Edge,Node>>();
-		Set<Edge> sharedEdges = new HashSet<Edge>();
+
 		for(Integer l : labelNodes.keySet()){
 			Set<Node> commNodes = labelNodes.get(l);
 			Node start = commNodes.iterator().next();
 			queue.add(new SimpleEntry<Edge,Node>(null,start));
 			isQueued.add(start);
+
 			while(!queue.empty()){
+
 				SimpleEntry<Edge,Node> curEntry = queue.pop();
 				Node curNode = curEntry.getValue();
 				checkedNodes.add(curNode);
-				// Check if the current node has neighbors that weren't already checked
-				NodeCursor nghb = curNode.neighbors();
-				boolean hasUncheckedNeighbor = false;
-				for(int i = 0; i < nghb.size(); i++){
-					if(!checkedNodes.contains(nghb.node())){
-						hasUncheckedNeighbor = true;
-						break;
-					} else if(labels.get(nghb.node()) != labels.get(curNode)){
-						hasUncheckedNeighbor = true;
-						break;
-					}
-					nghb.cyclicNext();
-				}
-				if(!hasUncheckedNeighbor){
-					continue;
-				}
 
-				if(curNode.degree() != 0){
-					EdgeCursor adjEdges = curNode.edges();
-					Edge last = null;
-					Edge cur;
-					Edge first = curEntry.getKey();
-					// Set first on an Edge that is inside the current community
-					if(first == null){
-						for(int i = 0; i < adjEdges.size(); i++){
-							cur = adjEdges.edge();
-							Node other = (curNode == cur.source())? cur.target():cur.source();
-							if(labels.get(other) == labels.get(curNode)){
-								first = cur;
-								adjEdges.cyclicNext();
-								break;
-							} else if(!checkedNodes.contains(other) || !sharedEdges.contains(cur)) {
-								first = cur;
-							}
-							adjEdges.cyclicNext();
-						}
-						if(first == null){
-							break;
-						}
-
-						// Put Root edge on itself
-						genes.put(first,first);
-						Node other = (curNode == first.source())? first.target():first.source();
-						if(labels.get(other) == labels.get(curNode) && !isQueued.contains(other)){
-							queue.add(new SimpleEntry<Edge,Node>(first, other));
-							isQueued.add(other);
-						}
-					}
-					last = first;
-					sharedEdges.add(first);
-					// Create a circle with the last edge pointing on the first
+				EdgeCursor adjEdges = curNode.edges();
+				Edge last = null;
+				Edge cur;
+				Edge first = curEntry.getKey();
+				// Set first on an Edge that is inside the current community
+				if(first == null){
 					for(int i = 0; i < adjEdges.size(); i++){
-						adjEdges.cyclicNext();
 						cur = adjEdges.edge();
-						if(first == cur){
-							continue;
-						}
 						Node other = (curNode == cur.source())? cur.target():cur.source();
-						if(labels.get(cur.source()) == labels.get(cur.target())){
-							if(!checkedNodes.contains(other)){
-								if(!isQueued.contains(other)){
-									queue.add(new SimpleEntry<Edge,Node>(cur, other));
-									isQueued.add(other);
-								}
-								if(last != first){
-									genes.put(last, cur);		
-								}		
-								last = cur;
+						if(labels.get(other).equals(l)){
+							first = cur;
+							// adjEdges.cyclicNext();
+							break;
+						} else if(!genes.keySet().contains(cur)) {
+							first = cur;
+						}
+						adjEdges.cyclicNext();
+					}
+					if(first == null){
+						break;
+					}
+					// Set edge cursor back on first
+					while(adjEdges.edge() != first){
+						adjEdges.cyclicNext();
+					}
+
+					// Put Root edge on itself
+					genes.put(first,first);
+					Node other = (curNode == first.source())? first.target():first.source();
+					if(labels.get(other).equals(l) && !isQueued.contains(other)){
+						queue.add(new SimpleEntry<Edge,Node>(first, other));
+						isQueued.add(other);
+					}
+				}
+				last = first;
+
+
+				// Check if the current node has neighbors that weren't already checked
+				// NodeCursor nghb = curNode.neighbors();
+				// boolean hasUncheckedNeighbor = false;
+				// for(int i = 0; i < nghb.size(); i++){
+				// 	if(!checkedNodes.contains(nghb.node())){
+				// 		hasUncheckedNeighbor = true;
+				// 		break;
+				// 	} else if(labels.get(nghb.node()) != l){
+				// 		hasUncheckedNeighbor = true;
+				// 		break;
+				// 	}
+				// 	nghb.cyclicNext();
+				// }
+				// if(!hasUncheckedNeighbor){
+				// 	continue;
+				// }
+
+				// Create a circle with the last edge pointing on the first
+				for(int i = 0; i < adjEdges.size(); i++){
+					adjEdges.cyclicNext();
+					cur = adjEdges.edge();
+
+					Node other = (curNode == cur.source())? cur.target():cur.source();
+					if(labels.get(other).equals(l)){
+						if(!checkedNodes.contains(other)){
+							if(!isQueued.contains(other)){
+								queue.add(new SimpleEntry<Edge,Node>(cur, other));
+								isQueued.add(other);
 							}
-						} else {
-							// check whether the connected node is the target or source
-							// then check if adjacent node was already checked and if act accordingly to split the shared edges with 50% chance
-							if(!checkedNodes.contains(other)){
-								if(rand.nextInt(100) < 49){
-									sharedEdges.add(cur);
-									genes.put(cur, first);
-								}
-							} else if(!sharedEdges.contains(cur)){
-								sharedEdges.add(cur);
+							if(last != first){
+								genes.put(last, cur);		
+							}		
+							last = cur;
+						}
+					} else {
+						// check whether the connected node is the target or source
+						// then check if adjacent node was already checked and if act accordingly to split the shared edges with 50% chance
+						if(!checkedNodes.contains(other)){
+							if(rand.nextInt(100) < 49){
 								genes.put(cur, first);
 							}
+						} else if(!genes.keySet().contains(cur)){
+							genes.put(cur, first);
 						}
 					}
-					if(last != first){
-						genes.put(last, first);
-					}
+				}
+				if(last != first){
+					genes.put(last, first);
 				}
 			}
 		}
+		System.out.println(genes.size());
 		return new MLinkIndividual(genes);
+	}
+
+	public MLinkIndividual speakerListener(CustomGraph graph){
+		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
+		try{
+			Cover cover = algo.detectOverlappingCommunities(graph);
+			Matrix membershipmatrix = cover.getMemberships();
+			System.out.println(membershipmatrix);
+			Node[] nodeArray = graph.getNodeArray();
+			HashMap<Node,Integer> labels = new HashMap<>();
+			for(Node n : nodeArray){
+				int idx = n.index();
+				int size = membershipmatrix.columns();
+
+				for(int i = 0; i < size; i++){
+					double label = membershipmatrix.get(idx, i);
+					if(label != 0){
+						labels.put(n, i);
+						break;
+					}
+				}
+			}
+			return translateToIndividual(labels);
+		} catch(Exception e){
+			System.out.println(e);
+			return null;
+		}
 	}
 
 	/**
@@ -328,21 +373,24 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		for(int i = 0; i < nodes.length; i++){
 			labels.put(nodes[i], i);
 		}
-		ArrayList<Node> notVisited = new ArrayList<Node>(Arrays.asList(nodes));
-
-		// reassign new labels for each node
-		while(!notVisited.isEmpty()){
-			int size = notVisited.size();
-			int node = new Random().nextInt(size);
-			Node selected = notVisited.remove(node);
-			int newLabel = labels.get(selected);
-			if(selected.neighbors().size() > 0){
-				newLabel = getMostFrequentLabel(labels, selected);
+		boolean stop = false;
+		while(!stop){
+			stop = true;
+			ArrayList<Node> notVisited = new ArrayList<Node>(Arrays.asList(nodes));
+			// reassign new labels for each node
+			while(!notVisited.isEmpty()){
+				int size = notVisited.size();
+				int node = new Random().nextInt(size);
+				Node selected = notVisited.remove(node);
+				int newLabel = getMostFrequentLabel(labels, selected);
+				if(newLabel != labels.get(selected)){
+					stop = false;
+				}
+				labels.put(selected, newLabel);
 			}
-			labels.put(selected, newLabel);
 		}
-
 		return translateToIndividual(labels);
+
 	}
 	/**
 	 * returns the label with the highes frequency amongst neighbors
@@ -351,50 +399,37 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	 * @return new label
 	 */
 	public int getMostFrequentLabel(HashMap<Node,Integer> labels, Node selected){
-		int mostFrequentLabel = -1;
 		NodeCursor neighbors = selected.neighbors();
 		int size = neighbors.size();
+		if(size == 0){
+			return labels.get(selected);
+		}
 		HashMap<Integer,Integer> labelCount = new HashMap<Integer,Integer>();
+		ArrayList<Integer> maxLabels = new ArrayList<Integer>();
+		int maxCount = 0;
 		// count neighboring labels and save it in a hashmap
 		for(int i = 0; i < size; i++){
 			Node neighbor = neighbors.node();
 			Integer label = labels.get(neighbor);
-			int count = 0;
-			if(labelCount.containsKey(label)){
-				count = labelCount.get(label) + 1;
+			int count = labelCount.containsKey(label)?labelCount.get(label):0;
+			count++;
+			if(count == maxCount){
+				maxLabels.add(label);
+			} else if(count > maxCount){
+				maxCount = count;
+				maxLabels.clear();
+				maxLabels.add(label);
 			}
 			labelCount.put(label, count);
+			neighbors.cyclicNext();
 		}
-		Integer lastLabel = -1;
-		Set<Integer> maxLabels = new HashSet<Integer>();
-		// go through neighboring labels and save the ones with the highes frequency
-		// choose random if more than 1 label exists with the max frequency
-		for(Integer i : labelCount.keySet()){
-			if(mostFrequentLabel == -1){
-				maxLabels.clear();
-				maxLabels.add(i);
-				mostFrequentLabel = i;
-				lastLabel = labelCount.get(i);
-			} else if(labelCount.get(i) == lastLabel){
-				maxLabels.add(i);
-			} else if(labelCount.get(i) > lastLabel){
-				maxLabels.clear();
-				maxLabels.add(i);
-				mostFrequentLabel = i;
-				lastLabel = labelCount.get(i);
-			}
-		}
-		int labelSize = neighbors.size();
-		int randLabel = new Random().nextInt(labelSize);
-		int i = 0;
-		for(Integer l : maxLabels){
-			if(i == randLabel){
-				mostFrequentLabel = l;
-			}
-			i++;
-		}
-		return mostFrequentLabel;
+
+		
+
+		return maxLabels.get(new Random().nextInt(maxLabels.size()));
 	}
+
+
 	/**
 	 * Local Expansion with random seed
 	 * @param graph initial graph
@@ -426,7 +461,9 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		}
 		return translateToIndividual(communities);
 	}
-
+	/**
+	 * Create an individual using eigenvecotr centrality
+	 */
 	public MLinkIndividual localExpansionEigen(CustomGraph graph){
 		try{
 			EigenvectorCentrality eigenVectorCentrality = new EigenvectorCentrality();
@@ -513,16 +550,17 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				copyNodes.put(n,new HashSet<Integer>(copyNodes.get(n)));
 				copyNodes.get(n).remove(com);
 				double removedIntra = intraDensity(nodeRemoved, copyNodes);
-				double normalIntra;
-				if(communitySet.get(com).size() == 2){
-					normalIntra = 0;
-				} else {
-					normalIntra = intraDensity(communitySet.get(com), updatedNodes);
-				}
+				double normalIntra = intraDensity(communitySet.get(com), updatedNodes);
+
+				// if(communitySet.get(com).size() == 2){
+				// 	normalIntra = 0;
+				// } else {
+				// 	normalIntra = intraDensity(communitySet.get(com), updatedNodes);
+				// }
 				
 
 				// If the intra Density is greater without the node remove it from the community
-				if(removedIntra > normalIntra || (communitySet.get(com).size() == 2 && removedIntra == normalIntra)){
+				if(removedIntra > normalIntra /*|| (communitySet.get(com).size() == 2 && removedIntra == normalIntra)*/){
 					communitySet.get(com).remove(n);
 					updatedNodes.get(n).remove(com);
 					communityCount = communityCount - 1;

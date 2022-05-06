@@ -37,12 +37,12 @@ public class MLinkAgent{
         } else {
             individuals.add(1, individual);
         }
-        if(this.individuals.size() > 6){
+        if(this.individuals.size() > individuals.size()){
             this.individuals.remove(this.individuals.size() - 1);
         }
     }
 
     public MLinkIndividual getRandomIndividual(){
-        return this.individuals.get(new Random().nextInt(6));
+        return this.individuals.get(new Random().nextInt(individuals.size()));
     }
 }
