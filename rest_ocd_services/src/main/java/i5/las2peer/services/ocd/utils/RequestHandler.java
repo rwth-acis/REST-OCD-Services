@@ -37,11 +37,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -568,6 +564,28 @@ public class RequestHandler {
 		Document doc = getDocument();
 		Element namesElt = doc.createElement("Names");
 		for(CoverCreationType e : CoverCreationType.class.getEnumConstants()) {
+			if(e.correspondsAlgorithm()) {
+				Element nameElt = doc.createElement("Name");
+				nameElt.appendChild(doc.createTextNode(e.name()));
+				nameElt.setAttribute("displayName", e.getDisplayName());
+				namesElt.appendChild(nameElt);
+			}
+		}
+		doc.appendChild(namesElt);
+		return writeDoc(doc);
+	}
+
+	/**
+	 * Creates an XML document containing all ocd algorithm names specified in the input list
+	 * @param  algorithms
+	 *           List of algorithms from which XML file will be created
+	 * @return The document.
+	 * @throws ParserConfigurationException if parsing failed
+	 */
+	public String writeCompatibleAlgorithmNames(ArrayList<CoverCreationType> algorithms) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element namesElt = doc.createElement("Names");
+		for(CoverCreationType e : algorithms) {
 			if(e.correspondsAlgorithm()) {
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));

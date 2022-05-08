@@ -3555,7 +3555,8 @@ public class ServiceClass extends RESTService {
 
 		/**
 		 * Returns all algorithm type names that are compatible with a specified graph.
-		 *
+		 * @param   graphIdStr
+		 *              Graph for which compatible algorithms should be returned
 		 * @return The types in a names xml. Or an error xml.
 		 */
 		@GET
@@ -3568,10 +3569,10 @@ public class ServiceClass extends RESTService {
 
 
 			try {
-				//int componentNodeCountFilter;
+
 				long graphId;
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				//CoverCreationType algorithmType;
+
 				try {
 					graphId = Long.parseLong(graphIdStr);
 				} catch (Exception e) {
@@ -3618,7 +3619,7 @@ public class ServiceClass extends RESTService {
 								}
 							}
 						}
-						//System.out.println("for graph " + graphId + " compatible algorithms are " + compatibleAlgorithms); 
+						//System.out.println("for graph " + graphId + " compatible algorithms are " + compatibleAlgorithms);
 
 					} catch (RuntimeException e) {
 						if (tx != null && tx.isActive()) {
