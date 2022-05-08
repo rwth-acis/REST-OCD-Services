@@ -133,8 +133,17 @@ public class LouvainAlgorithm implements OcdAlgorithm {
 		  throws InterruptedException {
 	  Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communitiesPerNode.length);
 	  membershipMatrix = membershipMatrix.blank();
-	  
-	  for(int i=0; i<communitiesPerNode.length; i++) {
+
+
+      //// this code block is meant to deal with the occasional crashes caused by the next loop
+      int index = communitiesPerNode.length;
+      if(communitiesPerNode.length > graph.nodeCount()){
+          index = graph.nodeCount();
+      }
+      ////////
+
+
+	  for(int i=0; i<index; i++) {
 		  if(Thread.interrupted()) {
 				throw new InterruptedException();
 		  }
