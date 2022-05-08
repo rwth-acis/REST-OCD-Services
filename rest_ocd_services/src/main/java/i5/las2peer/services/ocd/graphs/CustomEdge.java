@@ -25,6 +25,7 @@ import java.util.UUID;
 @Entity
 @IdClass(CustomEdgeId.class)
 //TODO: Integrate graphstream attributes into persistence
+//TODO: Decide about how to handle weight for edges since graphstreams algos need it as an own attribute in the edge object, not the CustomEdge one
 public class CustomEdge {
 
 	/*
@@ -227,7 +228,7 @@ public class CustomEdge {
 	 */
 	protected Edge createEdge(CustomGraph graph, Node source, Node target) {
 		//TODO: Again figure out how to name edges
-		Edge edge = graph.addEdge(UUID.randomUUID().toString(), source, target);
+		Edge edge = graph.addEdge(source.getId()+target.getId()+this.getWeight(), source, target);
 //		EdgeRealizer eRealizer = graph.getRealizer(edge);
 //		eRealizer.setSourcePoint(points.get(0).createPoint());
 //		eRealizer.setTargetPoint(points.get(1).createPoint());

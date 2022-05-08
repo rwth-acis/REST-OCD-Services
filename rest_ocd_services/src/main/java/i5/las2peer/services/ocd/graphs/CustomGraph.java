@@ -53,6 +53,7 @@ import org.graphstream.graph.Edge;
  */
 @Entity
 @IdClass(CustomGraphId.class)
+//TODO: Decide about undirected edges, graphstream would have own functionalities for that.
 //TODO: Check whether UUIDs work out as unique graph IDs, collision chances should however be extremely low
 //TODO: Check whether UUIDs work out as unique edge IDs, collision chances should however be extremely low
 //TODO: Check whether UUIDs work out as unique node IDs, collision chances should however be extremely low. Check whether this could actually replace the current node names. Would however break style with the naming of the other classes.
@@ -1262,7 +1263,7 @@ public class CustomGraph extends MultiGraph {
 			int target = edge.getTargetNode().getIndex();
 
 			if (nodeIds.contains(source) && nodeIds.contains(target)) {
-				subGraph.addEdge(UUID.randomUUID().toString(), nodeMap.get(source), nodeMap.get(target));
+				subGraph.addEdge(nodeMap.get(source).getId() + nodeMap.get(target).getId() + getCustomEdge(edge).getWeight(), nodeMap.get(source), nodeMap.get(target));
 			}
 		}
 		return subGraph;

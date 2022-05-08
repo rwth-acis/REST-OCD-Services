@@ -22,7 +22,7 @@ import javax.persistence.MapKeyJoinColumns;
 import javax.persistence.PreRemove;
 
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 /**
  * Represents a community of a cover.

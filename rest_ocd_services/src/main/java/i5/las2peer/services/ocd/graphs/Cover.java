@@ -31,8 +31,7 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 /**
  * Represents a cover, i.e. the result of an overlapping community detection
@@ -295,18 +294,17 @@ public class Cover {
 	 *         according to the 1-norm.
 	 */
 	public Matrix getMemberships() {
-		Matrix memberships = new CCSMatrix(graph.nodeCount(), communities.size());
+		Matrix memberships = new CCSMatrix(graph.getNodeCount(), communities.size());
 		Map<CustomNode, Node> reverseNodeMap = new HashMap<CustomNode, Node>();
-		NodeCursor nodes = graph.nodes();
-		while (nodes.ok()) {
-			Node node = nodes.node();
+		Iterator<Node> nodes = graph.iterator();
+		while (nodes.hasNext()) {
+			Node node = nodes.next();
 			reverseNodeMap.put(graph.getCustomNode(node), node);
-			nodes.next();
 		}
 		for (int i = 0; i < communities.size(); i++) {
 			Community community = communities.get(i);
 			for (Map.Entry<Node, Double> membership : community.getMemberships().entrySet()) {
-				memberships.set(membership.getKey().index(), i, membership.getValue());
+				memberships.set(membership.getKey().getIndex(), i, membership.getValue());
 			}
 		}
 		return memberships;
@@ -328,7 +326,7 @@ public class Cover {
 	 *            Decides whether the (first) execution time metric log is kept.
 	 */
 	protected void setMemberships(Matrix memberships, boolean keepExecutionTime) {
-		if (memberships.rows() != graph.nodeCount()) {
+		if (memberships.rows() != graph.getNodeCount()) {
 			throw new IllegalArgumentException(
 					"The row number of the membership matrix must correspond to the graph node count.");
 		}
@@ -339,7 +337,7 @@ public class Cover {
 			metrics.add(executionTime);
 		}
 		memberships = this.normalizeMembershipMatrix(memberships);
-		Node[] nodes = graph.getNodeArray();
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		for (int j = 0; j < memberships.columns(); j++) {
 			Community community = new Community(this);
 			communities.add(community);
@@ -650,7 +648,7 @@ public class Cover {
 		/*
 		 * Resizing also rows is required in case there are zero columns.
 		 */
-		matrix = matrix.resize(graph.nodeCount(), matrix.columns() + zeroRowIndices.size());
+		matrix = matrix.resize(graph.getNodeCount(), matrix.columns() + zeroRowIndices.size());
 		for (int i = 0; i < zeroRowIndices.size(); i++) {
 			matrix.set(zeroRowIndices.get(i), matrix.columns() - zeroRowIndices.size() + i, 1d);
 		}

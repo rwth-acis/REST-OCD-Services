@@ -86,7 +86,7 @@ public class GraphProcessor {
 				graph.setEdgeWeight(edge, edgeWeight);
 				graph.setEdgeWeight(reverseEdge, edgeWeight);
 			} else if (reverseEdge == null) {
-				reverseEdge = graph.addEdge(target.getId()+source.getId(), target, source);
+				reverseEdge = graph.addEdge(target.getId()+source.getId()+edgeWeight, target, source);
 				graph.setEdgeWeight(reverseEdge, edgeWeight);
 			}
 		}
@@ -209,8 +209,8 @@ public class GraphProcessor {
 				while (outEdgesIt.hasNext()) {
 					Edge outEdge = outEdgesIt.next();
 					Node target = outEdge.getTargetNode();
-					Edge newEdge = component.addEdge(tmpNodeMap.get(node).getId()+tmpNodeMap.get(target).getId(),tmpNodeMap.get(node), tmpNodeMap.get(target));
 					double edgeWeight = graph.getEdgeWeight(outEdge);
+					Edge newEdge = component.addEdge(tmpNodeMap.get(node).getId()+tmpNodeMap.get(target).getId()+edgeWeight,tmpNodeMap.get(node), tmpNodeMap.get(target));
 					component.setEdgeWeight(newEdge, edgeWeight);
 					outEdgesIt.next();
 				}
@@ -339,7 +339,7 @@ public class GraphProcessor {
 			Node target = edge.getTargetNode();
 			Node source = edge.getSourceNode();
 			if (target.getIndex() > source.getIndex()) {
-				reverseEdge = graph.addEdge(target.getId()+source.getId(), target, source);
+				reverseEdge = graph.addEdge(target.getId()+source.getId()+edgeWeight, target, source);
 				graph.setEdgeWeight(reverseEdge, edgeWeight);
 			}
 		}
@@ -368,7 +368,7 @@ public class GraphProcessor {
 			edge = edges.next();
 			int source = edge.getSourceNode().getIndex();
 			int target = edge.getTargetNode().getIndex();
-			Edge newEdge = graphCopy.addEdge(t[source].getId()+t[target].getId(),t[source], t[target]);
+			Edge newEdge = graphCopy.addEdge(t[source].getId()+t[target].getId()+graph.getEdgeWeight(edge),t[source], t[target]);
 			graphCopy.setEdgeWeight(newEdge, graph.getEdgeWeight(edge));
 		}
 		return graphCopy;
@@ -399,10 +399,14 @@ public class GraphProcessor {
 	 */
 	public void reverseEdgeDirections(CustomGraph graph) {
 		Iterator<Edge> edges = graph.edges().iterator();
-		
-		while(edges.hasNext()) {
-			Edge edge = edges.next();
-			graph.reverseEdge(edge);
+
+		if (graph.isDirected()) {
+			while(edges.hasNext()) {
+				//TODO: Finish edge reversal
+				Edge edge = edges.next();
+				graph.addEdge(edge.getTargetNode().getId() + edge.getSourceNode().getId() + graph.getCustomEdge(edge).getWeight(), edge.getTargetNode(), edge.getSourceNode())
+				graph.removeEdge(edge);
+			}
 		}
 	}
 }
