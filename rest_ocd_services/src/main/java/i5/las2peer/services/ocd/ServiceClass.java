@@ -1354,6 +1354,8 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
+
+
  
 		//////////////////////////////////////////////////////////////////////////
 		//////////// CENTRALITY MEASURES
@@ -3549,6 +3551,94 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
+
+
+		/**
+		 * Returns all algorithm type names that are compatible with a specified graph.
+		 *
+		 * @return The types in a names xml. Or an error xml.
+		 */
+		@GET
+		@Path("compatibleAlgorithms/{graphId}")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"names"}, value = "Algorithms information", notes = "Returns all algorithm type names.")
+		public Response getCompatibleAlgorithmNames(@PathParam("graphId") String graphIdStr) {
+
+
+			try {
+				//int componentNodeCountFilter;
+				long graphId;
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				//CoverCreationType algorithmType;
+				try {
+					graphId = Long.parseLong(graphIdStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
+				}
+
+
+				EntityManager em = entityHandler.getEntityManager();
+				CustomGraphId id = new CustomGraphId(graphId, username);
+
+				ArrayList<CoverCreationType> compatibleAlgorithms = new ArrayList<CoverCreationType>();
+				synchronized (threadHandler) {
+					EntityTransaction tx = em.getTransaction();
+					CustomGraph graph;
+					try {
+						tx.begin();
+						graph = em.find(CustomGraph.class, id);
+						if (graph == null) {
+							requestHandler.log(Level.WARNING,
+									"user: " + username + ", " + "Graph does not exist: graph id " + graphId);
+							return requestHandler.writeError(Error.PARAMETER_INVALID,
+									"Graph does not exist: graph id " + graphId);
+						}
+						tx.commit();
+						//System.out.println("graph type: " + graph.getTypes());
+						// for each OCD algorithm, check whether it is compatible with the graph
+						for(CoverCreationType e : CoverCreationType.class.getEnumConstants()){
+							if(e.correspondsAlgorithm()) { // only interested in OCDA
+
+								Set<GraphType> compatibleGraphTypes = algorithmFactory.getInstance(e, new HashMap<String,String>()).compatibleGraphTypes();
+								//System.out.println(e + " algorithm compatible graph types: " + compatibleGraphTypes);
+								boolean compatible = true;
+
+								for (GraphType graphType : graph.getTypes()){
+									if (!compatibleGraphTypes.contains(graphType)){
+										compatible = false;
+										break;
+									}
+								}
+								// if algorithm is compatible with the graph type, add it to the list of compatible algorithms
+								if(compatible) {
+									compatibleAlgorithms.add(e);
+								}
+							}
+						}
+						//System.out.println("for graph " + graphId + " compatible algorithms are " + compatibleAlgorithms); 
+
+					} catch (RuntimeException e) {
+						if (tx != null && tx.isActive()) {
+							tx.rollback();
+						}
+						throw e;
+					}
+					em.close();
+				}
+
+				return Response.ok(requestHandler.writeCompatibleAlgorithmNames(compatibleAlgorithms)).build();
+
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+
+		}
+
+
 		
 		/**
 	     * Returns all centrality measure names.
