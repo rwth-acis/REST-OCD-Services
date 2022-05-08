@@ -272,8 +272,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				int i2 = n2.getIndex();
 				double ls = lkstrgth.get(i1, i2);
 				if(ls>=wtr) { // filter out weak edges
-					Edge e1 = encoding.addEdge(n1.getId()+n2.getId(),n1, n2);
-					Edge e2 = encoding.addEdge(n2.getId()+n1.getId(),n2, n1);
+					Edge e1 = encoding.addEdge(n1.getId()+n2.getId()+ls,n1, n2);
+					Edge e2 = encoding.addEdge(n2.getId()+n1.getId()+ls,n2, n1);
 					encoding.setEdgeWeight(e1, ls);
 					encoding.setEdgeWeight(e2, ls);
 				}

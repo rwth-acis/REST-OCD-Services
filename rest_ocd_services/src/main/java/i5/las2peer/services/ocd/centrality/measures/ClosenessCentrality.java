@@ -39,7 +39,7 @@ public class ClosenessCentrality implements CentralityAlgorithm {
 			Node node = nc.next();
 			double[] distArray = new double[graph.getNodeCount()];
 
-			//TODO: Check if dijkstra computation similar enough to old yFiles one
+			//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
 			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
 			dijkstra.init(graph);
 			dijkstra.setSource(node);
@@ -60,7 +60,6 @@ public class ClosenessCentrality implements CentralityAlgorithm {
 			//}
 
 			res.setNodeValue(node, (graph.getNodeCount()-1)/distSum);
-			nc.next();
 		}
 		return res;
 	}

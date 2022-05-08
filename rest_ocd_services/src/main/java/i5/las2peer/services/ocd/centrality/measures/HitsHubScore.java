@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
@@ -39,7 +36,6 @@ public class HitsHubScore implements CentralityAlgorithm {
 			while(nc.hasNext()) {
 				Node node = nc.next();
 				res.setNodeValue(node, 0);
-				nc.next();
 			}
 			return res;
 		}
@@ -91,8 +87,8 @@ public class HitsHubScore implements CentralityAlgorithm {
 		
 		// Set centrality values to the hub weights
 		while(nc.hasNext()) {
-			res.setNodeValue(nc.next(), hubWeights.get(nc.next().getIndex()));
-			nc.next();
+			Node node = nc.next();
+			res.setNodeValue(node, hubWeights.get(node.getIndex()));
 		}
 		return res;
 	}

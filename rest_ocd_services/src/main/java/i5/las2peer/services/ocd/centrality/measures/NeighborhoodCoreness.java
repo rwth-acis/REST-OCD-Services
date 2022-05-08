@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -39,14 +36,12 @@ public class NeighborhoodCoreness implements CentralityAlgorithm {
 			}
 			Node node = nc.next();	
 			double neighborCorenessSum = 0.0;
-			Iterator<Node> neighbors = node.successors();
+			Iterator<Node> neighbors = graph.getSuccessorNeighbours(node).iterator();
 			while(neighbors.hasNext()) {
 				String nodeName = graph.getNodeName(neighbors.next());
 				neighborCorenessSum += nameCorenessMap.get(nodeName);
-				neighbors.next();
-			}	
+			}
 			res.setNodeValue(node, neighborCorenessSum);
-			nc.next();
 		}
 		return res;
 	}

@@ -43,7 +43,7 @@ public class CentroidValue implements CentralityAlgorithm {
 			// Create matrix containing all the distances between nodes
 			double[] distArray = new double[n];
 
-			//TODO: Check if dijkstra computation similar enough to old yFiles one
+			//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
 			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
 			dijkstra.init(graph);
 			dijkstra.setSource(node);

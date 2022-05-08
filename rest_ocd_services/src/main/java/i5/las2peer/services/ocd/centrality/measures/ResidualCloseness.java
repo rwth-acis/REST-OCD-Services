@@ -1,10 +1,8 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import org.graphstream.algorithm.Dijkstra;
 import org.la4j.matrix.Matrix;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
@@ -32,12 +30,11 @@ public class ResidualCloseness implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.RESIDUAL_ClOSENESS, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		Iterator<Node> nc = graph.iterator();	
+		Iterator<Node> nc = graph.iterator();
 		// If there are less than 3 nodes
 		if(graph.getNodeCount() < 3) {
 			while(nc.hasNext()) {
 				res.setNodeValue(nc.next(), 0);
-				nc.next();
 			}
 			return res;
 		}
@@ -51,29 +48,34 @@ public class ResidualCloseness implements CentralityAlgorithm {
 			}
 			Node node = nc.next();
 			double[] dist = new double[graph.getNodeCount()];
-			ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
+
+			//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
+			//ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
+			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
+			dijkstra.init(graph);
+			dijkstra.setSource(node);
+			dijkstra.compute();
+
 			for(double d : dist) {
 				if(d != 0) {
 					networkCloseness += 1.0/Math.pow(2, d);
 				}
 			}
-			nc.next();
 		}
 		
 		Matrix A = graph.getNeighbourhoodMatrix();
 		int n = graph.getNodeCount();
-		Node[] nodes = graph.getNodeArray();	
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		// Remove and re-add each node (by removing its edges)
 		for(int k = 0; k < n; k++) {
 			Node currentNode = nodes[k];
 			// Remove edges
-			EdgeCursor currentNodeEdges = currentNode.edges();
+			Iterator<Edge> currentNodeEdges = currentNode.edges().iterator();
 			while(currentNodeEdges.hasNext()) {
-				graph.removeEdge(currentNodeEdges.edge());
-				currentNodeEdges.next();
+				graph.removeEdge(currentNodeEdges.next());
 			}
 			
-			nc.toFirst();
+			nc = graph.iterator();
 			double[] newEdgeWeights = graph.getEdgeWeights();
 			double distSum = 0.0;		
 			// Calculate the sum of distances in the graph without the current node
@@ -83,13 +85,19 @@ public class ResidualCloseness implements CentralityAlgorithm {
 				}
 				Node node = nc.next();
 				double[] dist = new double[graph.getNodeCount()];
-				ShortestPaths.dijkstra(graph, node, true, newEdgeWeights, dist);
+
+				//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
+				//ShortestPaths.dijkstra(graph, node, true, newEdgeWeights, dist);
+				Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
+				dijkstra.init(graph);
+				dijkstra.setSource(node);
+				dijkstra.compute();
+
 				for(double d : dist) {
 					if(d != 0) {
 						distSum += 1.0/Math.pow(2, d);
 					}
 				}
-				nc.next();
 			}
 			res.setNodeValue(currentNode, networkCloseness/distSum);
 			
@@ -97,14 +105,14 @@ public class ResidualCloseness implements CentralityAlgorithm {
 			for(int i = 0; i < n; i++) {
 				double weight = A.get(currentNode.getIndex(), i);
 				if(weight != 0) {
-					Edge newEdge = graph.createEdge(currentNode, nodes[i]);
+					Edge newEdge = graph.addEdge(currentNode.getId() + nodes[i].getId() + weight, currentNode, nodes[i]);
 					graph.setEdgeWeight(newEdge, weight);
 				}
 			}
 			for(int i = 0; i < n; i++) {
 				double weight = A.get(i, currentNode.getIndex());
 				if(weight != 0) {
-					Edge newEdge = graph.createEdge(nodes[i], currentNode);
+					Edge newEdge = graph.addEdge(nodes[i].getId()+ currentNode.getId() + weight, nodes[i], currentNode);
 					graph.setEdgeWeight(newEdge, weight);
 				}
 			}

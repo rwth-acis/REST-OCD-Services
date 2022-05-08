@@ -45,8 +45,7 @@ public class ClusterRank implements CentralityAlgorithm {
 				Iterator<Node> successors = graph.getSuccessorNeighbours(node).iterator();
 				while(successors.hasNext()) {
 					outNeighborSet.add(successors.next());
-					successors.next();
-				}		
+				}
 				for(Node j : outNeighborSet) {
 					Iterator<Edge> edgeIterator = j.leavingEdges().iterator();
 					while(edgeIterator.hasNext()) {

@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -33,7 +30,6 @@ public class InDegree implements CentralityAlgorithm {
 			}
 			Node node = nc.next();
 			res.setNodeValue(node, graph.getWeightedInDegree(node));
-			nc.next();
 		}
 		return res;
 	}

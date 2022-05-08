@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.matrix.Matrix;
 
@@ -34,7 +31,6 @@ public class SubgraphCentrality implements CentralityAlgorithm {
 		Iterator<Node> nc = graph.iterator();
 		while(nc.hasNext()) {
 			res.setNodeValue(nc.next(), 0);
-			nc.next();
 		}
 		
 		Matrix A = graph.getNeighbourhoodMatrix();
@@ -44,12 +40,11 @@ public class SubgraphCentrality implements CentralityAlgorithm {
 			}
 			Matrix powerOfA = A.power(p);
 			long weight = factorial(p);
-			nc.toFirst();
+			nc = graph.iterator();
 			while(nc.hasNext()) {
 				Node node = nc.next();	
 				double weightedCycles = powerOfA.get(node.getIndex(), node.getIndex())/weight;
 				res.setNodeValue(node, res.getNodeValue(node) + weightedCycles);
-				nc.next();
 			}
 		}
 		return res;

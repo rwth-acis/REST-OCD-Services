@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -15,6 +12,7 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import org.graphstream.graph.Edge;
 
 import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiNode;
 
 
 /**
@@ -34,24 +32,22 @@ public class LeaderRank implements CentralityAlgorithm {
 		// Set initial LeaderRank of all nodes to 1
 		while(nc.hasNext()) {
 			res.setNodeValue(nc.next(), 1.0);
-			nc.next();
 		}
-		nc.toFirst();
+		nc = graph.iterator();
 		
 		// Add ground node
-		Node groundNode = graph.createNode();
+		Node groundNode = graph.addNode("groundNode");
 		while(nc.hasNext()) {
 			Node node = nc.next();
 			if(node != groundNode) {
 				// Add bidirectional edges
-				Edge e1 = graph.createEdge(groundNode, node);
-				Edge e2 = graph.createEdge(node, groundNode);		
+				Edge e1 = graph.addEdge("groundNode" + node.getId()+1.0, groundNode, node);
+				Edge e2 = graph.addEdge(node.getId() + "groundNode"+1.0, node, groundNode);
 				graph.setEdgeWeight(e1, 1.0);
 				graph.setEdgeWeight(e2, 1.0);
 			}
-			nc.next();
 		}
-		nc.toFirst();
+		nc = graph.iterator();
 		res.setNodeValue(groundNode, 0.0);
 		
 		for(int k = 0; k < 50; k++) {
@@ -62,25 +58,23 @@ public class LeaderRank implements CentralityAlgorithm {
 				Node i = nc.next();
 				double weightedRankSum = 0.0;
 				
-				EdgeCursor inLinks = i.inEdges();
+				Iterator<Edge> inLinks = i.enteringEdges().iterator();
 				while(inLinks.hasNext()) {
-					Edge eji = inLinks.edge();
-					Node j = eji.source();
-					weightedRankSum += graph.getEdgeWeight(eji) * res.getNodeValue(j) / graph.getWeightedOutDegree(j);					
-					inLinks.next();
-				}		
+					Edge eji = inLinks.next();
+					Node j = eji.getSourceNode();
+					weightedRankSum += graph.getEdgeWeight(eji) * res.getNodeValue(j) / graph.getWeightedOutDegree((MultiNode) j);
+				}
 				double newValue = weightedRankSum;
 				res.setNodeValue(i, newValue);		
-				nc.next();
 			}
-			nc.toFirst();
+			nc = graph.iterator();
 		}
 		
 		// Distribute score of ground node evenly
 		double share = res.getNodeValue(groundNode) / n;
 		while(nc.hasNext()) {
-			res.setNodeValue(nc.next(), res.getNodeValue(nc.next()) + share);
-			nc.next();
+			Node node = nc.next();
+			res.setNodeValue(node, res.getNodeValue(node) + share);
 		}
 		
 		return res;

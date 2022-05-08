@@ -48,7 +48,6 @@ public class BridgingCoefficient implements CentralityAlgorithm {
 				}
 			}
 			res.setNodeValue(node, leavingProbability);
-			nc.next();
 		}
 		return res;
 	}

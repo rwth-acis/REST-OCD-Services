@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -13,6 +10,7 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiNode;
 
 
 /**
@@ -37,8 +35,7 @@ public class DegreeCentrality implements CentralityAlgorithm {
 			 * directed graphs are made undirected before the execution.
 			 * Since each edge should only be counted once, the degree is divided by 2.
 			**/
-			res.setNodeValue(node, graph.getWeightedNodeDegree(node)/2);
-			nc.next();
+			res.setNodeValue(node, graph.getWeightedNodeDegree((MultiNode) node)/2);
 		}
 		return res;
 	}

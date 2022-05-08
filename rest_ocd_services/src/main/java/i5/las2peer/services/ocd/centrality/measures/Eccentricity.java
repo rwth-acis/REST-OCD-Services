@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -12,6 +9,7 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import org.graphstream.algorithm.Dijkstra;
 import org.graphstream.graph.Node;
 
 import y.algo.ShortestPaths;
@@ -36,7 +34,14 @@ public class Eccentricity implements CentralityAlgorithm {
 			}
 			Node node = nc.next();
 			double[] dist = new double[graph.getNodeCount()];
-			ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
+
+			//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
+			//ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
+			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
+			dijkstra.init(graph);
+			dijkstra.setSource(node);
+			dijkstra.compute();
+
 			double max = 0.0;
 			for(double d : dist) {
 				if(d > max)
@@ -48,7 +53,6 @@ public class Eccentricity implements CentralityAlgorithm {
 			else {
 				res.setNodeValue(node, 1/max);
 			}
-			nc.next();
 		}
 		return res;
 	}

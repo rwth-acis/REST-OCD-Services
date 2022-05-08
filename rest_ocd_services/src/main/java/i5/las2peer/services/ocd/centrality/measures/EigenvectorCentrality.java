@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
@@ -37,7 +34,6 @@ public class EigenvectorCentrality implements CentralityAlgorithm {
 			while(nc.hasNext()) {
 				Node node = nc.next();
 				res.setNodeValue(node, 0);
-				nc.next();
 			}
 			return res;
 		}
@@ -51,7 +47,6 @@ public class EigenvectorCentrality implements CentralityAlgorithm {
 			}
 			Node node = nc.next();
 			res.setNodeValue(node, eigenvector.get(node.getIndex()));
-			nc.next();
 		}
 		return res;
 	}

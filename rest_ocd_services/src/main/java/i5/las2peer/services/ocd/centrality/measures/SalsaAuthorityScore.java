@@ -1,10 +1,8 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import org.graphstream.graph.implementations.MultiNode;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
@@ -40,15 +38,14 @@ public class SalsaAuthorityScore implements CentralityAlgorithm {
 			while(nc.hasNext()) {
 				Node node = nc.next();
 				res.setNodeValue(node, 0);
-				nc.next();
 			}
 			return res;
 		}
 
 		// Create bipartite graph
 		CustomGraph bipartiteGraph = new CustomGraph();
-		Node[] nodes = graph.getNodeArray();
-		Edge[] edges = graph.getEdgeArray();
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
+		Edge[] edges = graph.edges().toArray(Edge[]::new);
 		Map<Node, Node> hubNodeMap = new HashMap<Node, Node>();
 		Map<Node, Node> authorityNodeMap = new HashMap<Node, Node>();
 		Map<Node, Node> reverseAuthorityNodeMap = new HashMap<Node, Node>();
@@ -58,12 +55,12 @@ public class SalsaAuthorityScore implements CentralityAlgorithm {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			if(node.outDegree() > 0) {
-				Node hubNode = bipartiteGraph.createNode();
+			if(node.getOutDegree() > 0) {
+				Node hubNode = bipartiteGraph.addNode("hubNode" + node.getId());
 				hubNodeMap.put(node, hubNode);
 			}
-			if(node.inDegree() > 0) {
-				Node authorityNode = bipartiteGraph.createNode();
+			if(node.getInDegree() > 0) {
+				Node authorityNode = bipartiteGraph.addNode("authorityNode" + node.getId());
 				authorityNodeMap.put(node, authorityNode);
 				reverseAuthorityNodeMap.put(authorityNode, node);
 			}
@@ -74,11 +71,11 @@ public class SalsaAuthorityScore implements CentralityAlgorithm {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node oldSource = edge.source();
-			Node oldTarget = edge.target();
+			Node oldSource = edge.getSourceNode();
+			Node oldTarget = edge.getTargetNode();
 			Node newSource = hubNodeMap.get(oldSource);
 			Node newTarget = authorityNodeMap.get(oldTarget);
-			Edge newEdge = bipartiteGraph.createEdge(newSource, newTarget);
+			Edge newEdge = bipartiteGraph.addEdge(newSource.getId() + newTarget.getId() + graph.getEdgeWeight(edge), newSource, newTarget);
 			bipartiteGraph.setEdgeWeight(newEdge, graph.getEdgeWeight(edge));
 		}
 		
@@ -89,23 +86,21 @@ public class SalsaAuthorityScore implements CentralityAlgorithm {
 				throw new InterruptedException();
 			}
 			Node i = reverseAuthorityNodeMap.get(ia);
-			Iterator<Node> stepOne = ia.predecessors();
+			Iterator<Node> stepOne = graph.getPredecessorNeighbours(ia).iterator();
 			while(stepOne.hasNext()) {
 				Node kh = stepOne.next();	
-				Iterator<Node> stepTwo = kh.successors();
+				Iterator<Node> stepTwo = graph.getSuccessorNeighbours(kh).iterator();
 				while(stepTwo.hasNext()) {
 					Node ja = stepTwo.next();
 					Node j = reverseAuthorityNodeMap.get(ja);			
 					double edgeWeightKI = bipartiteGraph.getEdgeWeight(kh.getEdgeToward(ia));
 					double edgeWeightKJ = bipartiteGraph.getEdgeWeight(kh.getEdgeToward(ja));
 					double weightedInDegreeI = bipartiteGraph.getWeightedInDegree(ia);
-					double weightedOutDegreeK = bipartiteGraph.getWeightedOutDegree(kh);		
+					double weightedOutDegreeK = bipartiteGraph.getWeightedOutDegree((MultiNode) kh);
 					double oldAij = authorityMatrix.get(i.getIndex(), j.getIndex());
 					double newAij = oldAij + (double)edgeWeightKI/weightedInDegreeI * (double)edgeWeightKJ/weightedOutDegreeK;
 					authorityMatrix.set(i.getIndex(), j.getIndex(), newAij);
-					stepTwo.next();
-				}	
-				stepOne.next();
+				}
 			}
 		}	
 		// Calculate stationary distribution of authority Markov chain
@@ -118,7 +113,6 @@ public class SalsaAuthorityScore implements CentralityAlgorithm {
 			}
 			Node node = nc.next();
 			res.setNodeValue(node, authorityVector.get(node.getIndex()));
-			nc.next();
 		}
 		return res;
 	}

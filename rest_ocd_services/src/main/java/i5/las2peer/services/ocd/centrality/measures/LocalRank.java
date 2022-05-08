@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -36,33 +33,28 @@ public class LocalRank implements CentralityAlgorithm {
 			}
 			Node node = nc.next();
 			localrank = 0;	
-			Iterator<Node> c1 = node.successors();
+			Iterator<Node> c1 = graph.getSuccessorNeighbours(node).iterator();
 			while(c1.hasNext()) {
 				Node n1 = c1.next();
-				Iterator<Node> c2 = n1.successors();	
+				Iterator<Node> c2 = graph.getSuccessorNeighbours(n1).iterator();
 				while(c2.hasNext()) {
 					Node n2 = c2.next();
 					oneOrTwoStepNeighbors = new HashSet<Integer>();
-					Iterator<Node> c3 = n2.successors();
+					Iterator<Node> c3 =graph.getSuccessorNeighbours(n2).iterator();
 					while(c3.hasNext()) {
 						Node n3 = c3.next();
 						oneOrTwoStepNeighbors.add(n3.getIndex());
-						Iterator<Node> c4 = n3.successors();
+						Iterator<Node> c4 = graph.getSuccessorNeighbours(n3).iterator();
 						while(c4.hasNext()) {
 							Node n4 = c4.next();
 							oneOrTwoStepNeighbors.add(n4.getIndex());
-							c4.next();
 						}
-						c3.next();
 					}
 					oneOrTwoStepNeighbors.remove(n2.getIndex());
 					localrank += oneOrTwoStepNeighbors.size();
-					c2.next();
 				}
-				c1.next();
 			}
 			res.setNodeValue(node, localrank);
-			nc.next();
 		}
 		return res;
 	}

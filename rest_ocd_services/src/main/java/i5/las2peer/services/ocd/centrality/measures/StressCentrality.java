@@ -1,12 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -16,6 +10,7 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 
 
@@ -37,9 +32,8 @@ public class StressCentrality implements CentralityAlgorithm {
 		Iterator<Node> nc = graph.iterator();
 		while(nc.hasNext()) {
 			res.setNodeValue(nc.next(), 0);
-			nc.next();
 		}
-		nc.toFirst();
+		nc = graph.iterator();
 		
 		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
@@ -64,7 +58,6 @@ public class StressCentrality implements CentralityAlgorithm {
 				dist.put(w, Double.POSITIVE_INFINITY);
 				sigma.put(w, 0);
 				
-				iterator.next();
 			}
 			dist.put(s, 0.0);
 			sigma.put(s, 1);
@@ -75,7 +68,7 @@ public class StressCentrality implements CentralityAlgorithm {
 				Node v = Q.poll();
 				S.push(v);
 				
-				Iterator<Node> outNeighbors = v.successors();
+				Iterator<Node> outNeighbors = graph.getSuccessorNeighbours(v).iterator();
 				while(outNeighbors.hasNext()) {
 					Node w = outNeighbors.next();
 					
@@ -91,16 +84,14 @@ public class StressCentrality implements CentralityAlgorithm {
 						Pred.get(w).add(v);
 					}
 					
-					outNeighbors.next();
 				}
 			}
 			
 			// Accumulation
-			iterator.toFirst();
+			iterator = graph.iterator();
 			while(iterator.hasNext()) {
 				Node v = iterator.next();	
 				delta.put(v, 0.0);
-				iterator.next();
 			}
 			
 			while(!S.isEmpty()) {
@@ -112,15 +103,14 @@ public class StressCentrality implements CentralityAlgorithm {
 					res.setNodeValue(w, res.getNodeValue(w) + delta.get(w));
 				}
 			}
-			nc.next();
 		}
 		
 		// If graph is undirected, divide centrality values by 2
 		if(!graph.getTypes().contains(GraphType.DIRECTED)) {
-			nc.toFirst();
+			nc = graph.iterator();
 			while(nc.hasNext()) {
-				res.setNodeValue(nc.next(), res.getNodeValue(nc.next())/2);
-				nc.next();
+				Node node = nc.next();
+				res.setNodeValue(node, res.getNodeValue(node)/2);
 			}
 		}	
 		return res;
@@ -133,9 +123,8 @@ public class StressCentrality implements CentralityAlgorithm {
 		Iterator<Node> nc = graph.iterator();
 		while(nc.hasNext()) {
 			res.setNodeValue(nc.next(), 0);
-			nc.next();
 		}
-		nc.toFirst();
+		nc = graph.iterator();
 		
 		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
@@ -158,7 +147,6 @@ public class StressCentrality implements CentralityAlgorithm {
 				Pred.put(w, new LinkedList<Node>());
 				dist.put(w, Double.POSITIVE_INFINITY);
 				sigma.put(w, 0);		
-				iterator.next();
 			}
 			dist.put(s, 0.0);
 			sigma.put(s, 1);
@@ -176,13 +164,14 @@ public class StressCentrality implements CentralityAlgorithm {
 				Q.remove(v);
 				
 				// Iterator<Node> outNeighbors = v.successors();
-				EdgeCursor outEdges = v.outEdges();
+				Iterator<Edge> outEdges = v.leavingEdges().iterator();
 				while(outEdges.hasNext()) {
-					Node w = outEdges.edge().target();
+					Edge outEdge = outEdges.next();
+					Node w = outEdge.getTargetNode();
 					
 					// Path discovery
-					if(dist.get(w) > dist.get(v) + graph.getEdgeWeight(outEdges.edge())) {
-						dist.put(w, dist.get(v) + graph.getEdgeWeight(outEdges.edge()));
+					if(dist.get(w) > dist.get(v) + graph.getEdgeWeight(outEdge)) {
+						dist.put(w, dist.get(v) + graph.getEdgeWeight(outEdge));
 						if(!Q.contains(w))
 							Q.add(w);
 						sigma.put(w, 0);
@@ -190,21 +179,19 @@ public class StressCentrality implements CentralityAlgorithm {
 					}
 					
 					// Path counting
-					if(dist.get(w) == dist.get(v) + graph.getEdgeWeight(outEdges.edge())) {
+					if(dist.get(w) == dist.get(v) + graph.getEdgeWeight(outEdge)) {
 						sigma.put(w, sigma.get(w) + sigma.get(v));
 						Pred.get(w).add(v);
 					}
 					
-					outEdges.next();
 				}
 			}
 			
 			// Accumulation
-			iterator.toFirst();
+			iterator = graph.iterator();
 			while(iterator.hasNext()) {
 				Node v = iterator.next();	
 				delta.put(v, 0.0);
-				iterator.next();
 			}
 			while(!S.isEmpty()) {
 				Node w = S.pop();
@@ -215,15 +202,14 @@ public class StressCentrality implements CentralityAlgorithm {
 					res.setNodeValue(w, res.getNodeValue(w) + delta.get(w));
 				}
 			}
-			nc.next();
 		}
 		
 		// If graph is undirected, divide centrality values by 2
 		if(!graph.getTypes().contains(GraphType.DIRECTED)) {
-			nc.toFirst();
+			nc = graph.iterator();
 			while(nc.hasNext()) {
-				res.setNodeValue(nc.next(), res.getNodeValue(nc.next())/2);
-				nc.next();
+				Node node = nc.next();
+				res.setNodeValue(node, res.getNodeValue(node)/2);
 			}
 		}	
 		return res;

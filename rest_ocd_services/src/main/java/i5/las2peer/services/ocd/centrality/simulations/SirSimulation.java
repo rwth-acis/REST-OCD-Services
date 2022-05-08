@@ -14,8 +14,8 @@ import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * Implementation of a susceptible-infected-recovered process with a single source node
@@ -43,19 +43,18 @@ public class SirSimulation implements CentralitySimulation {
 		CentralityMap map = new CentralityMap(graph);
 		map.setCreationMethod(new CentralityCreationLog(CentralitySimulationType.SIR, CentralityCreationType.SIMULATION, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node currentNode = nc.node();
+			Node currentNode = nc.next();
 			double spreadingSum = 0;
 			for(int i = 0; i < repetitions; i++) {
 				spreadingSum += runSimulation(graph, currentNode);
 			}	
 			spreadingSum /= repetitions;
 			map.setNodeValue(currentNode, spreadingSum);
-			nc.next();
 		}
 		return map;
 	}
@@ -74,13 +73,12 @@ public class SirSimulation implements CentralitySimulation {
 		this.sourceNode = sourceNode;
 		infectedNodes.add(sourceNode);
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			infectionMap.put(nc.node(), InfectionState.SUSCEPTIBLE);
-			nc.next();
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
+			infectionMap.put(nc.next(), InfectionState.SUSCEPTIBLE);
 		}
 		for(Node infected : infectedNodes) {
-			if(graph.contains(infected)) {
+			if(graph.getNode(infected.getId()) != null) {
 				infectionMap.put(infected, InfectionState.INFECTED);
 			}
 		}

@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -15,6 +12,7 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import org.graphstream.graph.Edge;
 
 import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiNode;
 
 
 /**
@@ -38,11 +36,10 @@ public class PageRank implements CentralityAlgorithm {
 		// Set initial PageRank of all nodes to 1
 		while(nc.hasNext()) {
 			res.setNodeValue(nc.next(), 1.0);
-			nc.next();
 		}
-		nc.toFirst();
+		nc = graph.iterator();
 		
-		int n = nc.size();
+		int n = graph.getNodeCount();
 		for(int k = 0; k < 50; k++) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
@@ -50,33 +47,30 @@ public class PageRank implements CentralityAlgorithm {
 			while(nc.hasNext()) {
 				Node i = nc.next();
 				double weightedRankSum = 0.0;		
-				EdgeCursor inLinks = i.inEdges();
+				Iterator<Edge> inLinks = i.enteringEdges().iterator();
 				while(inLinks.hasNext()) {
-					Edge eji = inLinks.edge();
-					Node j = eji.source();
-					weightedRankSum += graph.getEdgeWeight(eji) * res.getNodeValue(j) / graph.getWeightedOutDegree(j);
-					inLinks.next();
-				}	
+					Edge eji = inLinks.next();
+					Node j = eji.getSourceNode();
+					weightedRankSum += graph.getEdgeWeight(eji) * res.getNodeValue(j) / graph.getWeightedOutDegree((MultiNode) j);
+				}
 				double newValue = d * weightedRankSum + (1-d) * 1/n;
 				res.setNodeValue(i, newValue);	
-				nc.next();
 			}
-			nc.toFirst();
+			nc = graph.iterator();
 		}
 		
 		// Scale the values, so they sum to 1
 		double sum = 0.0;
 		while(nc.hasNext()) {
 			sum += res.getNodeValue(nc.next());
-			nc.next();
 		}
-		nc.toFirst();
+		nc = graph.iterator();
 		double factor = 1/sum;
 		
 		while(nc.hasNext()) {
-			res.setNodeValue(nc.next(), factor * res.getNodeValue(nc.next()));
-			nc.next();
-		}	
+			Node node = nc.next();
+			res.setNodeValue(node, factor * res.getNodeValue(node));
+		}
 		return res;
 	}
 

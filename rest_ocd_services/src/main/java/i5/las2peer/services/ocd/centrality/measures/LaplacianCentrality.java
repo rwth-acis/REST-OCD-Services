@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -63,7 +60,6 @@ public class LaplacianCentrality implements CentralityAlgorithm {
 				}
 			}
 			res.setNodeValue(node, 4 * nwc + 2 * nwe + 2 * nwm);			
-			nc.next();
 		}
 		return res;
 	}

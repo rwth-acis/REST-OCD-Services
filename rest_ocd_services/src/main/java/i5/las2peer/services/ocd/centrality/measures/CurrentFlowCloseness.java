@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.inversion.GaussJordanInverter;
 import org.la4j.inversion.MatrixInverter;
@@ -41,7 +38,6 @@ public class CurrentFlowCloseness implements CentralityAlgorithm {
 			}
 			Node node = nc.next();	
 			res.setNodeValue(node, 0.0);
-			nc.next();
 		}
 		
 		// If the graph contains no edges
@@ -49,11 +45,11 @@ public class CurrentFlowCloseness implements CentralityAlgorithm {
 			return res;
 		}
 		
-		int n = nc.size();
+		int n = graph.getNodeCount();
 		Matrix L = new CCSMatrix(n, n);
 		
 		// Create laplacian matrix
-		nc.toFirst();
+		nc = graph.iterator();
 		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
@@ -61,16 +57,14 @@ public class CurrentFlowCloseness implements CentralityAlgorithm {
 			Node node = nc.next();
 			int i = node.getIndex();
 			L.set(i, i, graph.getWeightedInDegree(node));
-			nc.next();
 		}
-		EdgeCursor ec = graph.edges();
+		Iterator<Edge> ec = graph.edges().iterator();
 		while(ec.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Edge edge = ec.edge();
-			L.set(edge.source().getIndex(), edge.target().getIndex(), -graph.getEdgeWeight(edge));
-			ec.next();
+			Edge edge = ec.next();
+			L.set(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex(), -graph.getEdgeWeight(edge));
 		}
 
 		// Remove the first row and column
@@ -87,7 +81,7 @@ public class CurrentFlowCloseness implements CentralityAlgorithm {
 			}
 		}
 		
-		nc.toFirst();
+		nc = graph.iterator();
 		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
@@ -103,19 +97,16 @@ public class CurrentFlowCloseness implements CentralityAlgorithm {
 				double increaseV = increaseW - 2 * C.get(w.getIndex(), v.getIndex());
 				res.setNodeValue(v, res.getNodeValue(v) + increaseV);
 				res.setNodeValue(w, res.getNodeValue(w) + increaseW);
-				nc2.next();
-			}	
-			nc.next();
+			}
 		}
 		
-		nc.toFirst();
+		nc = graph.iterator();
 		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
 			Node node = nc.next();
 			res.setNodeValue(node, (double)1/res.getNodeValue(node));
-			nc.next();
 		}
 		return res;
 	}
