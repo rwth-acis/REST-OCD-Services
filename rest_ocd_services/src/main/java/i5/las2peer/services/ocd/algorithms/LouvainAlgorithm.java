@@ -229,20 +229,28 @@ public class LouvainAlgorithm implements OcdAlgorithm {
         }
     }
     //OWN TO GET BEST COMMUNITY BY MODULARITY
-    
-    //Account for the case that the original graph has the best modularity
-    if(bestCommunityIndex <= 0)
-    {
-    	int orgGraphCommunity[] = new int[graphs.get(0).size()];
-    	for(int i=0; i<graphs.get(0).size(); i++) {
-    		if(Thread.interrupted()) {
-				throw new InterruptedException();
-    		}
-    		
-    		orgGraphCommunity[i] = i;
-    	}
-    	return orgGraphCommunity;
-    }    
+
+      //TODO: this part of the code causes crash, hence it is uncommented till fix is found
+      //Account for the case that the original graph has the best modularity
+//    if(bestCommunityIndex <= 0 )
+//    {
+//    	int orgGraphCommunity[] = new int[graphs.get(0).size()];
+//    	for(int i=0; i<graphs.get(0).size(); i++) {
+//    		if(Thread.interrupted()) {
+//				throw new InterruptedException();
+//    		}
+//
+//    		orgGraphCommunity[i] = i;
+//    	}
+//    	return orgGraphCommunity;
+//    }
+
+
+      //TODO: temporary fix to avoid out of bounds exception in the next line if bestCommunityIndex is 0
+      if(bestCommunityIndex - 1 < 0){
+          bestCommunityIndex = 1;
+      }
+      
     return communities.get(bestCommunityIndex-1);
   }
 
