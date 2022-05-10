@@ -134,6 +134,7 @@ public class Cover {
 	/**
 	 * Dynamic graph has a series of covers, the static graph has only one cover in this list.
 	 */
+	@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade = { CascadeType.ALL })
 	private List<Cover> coverSeries=new ArrayList<>();
 
 	///////////////////////////// CONSTRUCTORS /////////////////////////////
