@@ -163,7 +163,7 @@ public class CustomGraph extends Graph2D {
 	@MapKeyColumn(name = idNodeMapKeyColumnName)
 	private Map<Integer, CustomNode> customNodes = new HashMap<Integer, CustomNode>();
 
-	public Map<Integer, CustomEdge> getCustomEdges() {
+	private Map<Integer, CustomEdge> getCustomEdges() {
 		return customEdges;
 	}
 
@@ -1380,6 +1380,10 @@ public class CustomGraph extends Graph2D {
 	 * @return graphSeries of a dynamic graph
 	 */
 	public List<CustomGraph> getGraphSeries(){return this.graphSeries;}
+
+	public void addGraphIntoGraphSeries(CustomGraph g){
+		this.graphSeries.add(g);
+	}
 
 	/**
 	 * PrePersist Method. Writes the attributes of nodes and edges into their
