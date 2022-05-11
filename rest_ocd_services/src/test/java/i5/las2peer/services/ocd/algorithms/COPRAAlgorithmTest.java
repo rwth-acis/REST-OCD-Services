@@ -28,8 +28,6 @@ public class COPRAAlgorithmTest {
         dynamicGraph.addType(GraphType.DYNAMIC);
 
         CustomGraph graph1 = new CustomGraph();
-
-
         // Creates nodes
         int size = 11;
         Node n[] = new Node[size];
@@ -52,17 +50,58 @@ public class COPRAAlgorithmTest {
                 }
             }
         }
-        /*
-         * Connect above two communities, which creates another small community of size 3 (nodes 0, 5, 10)
-         */
+        //Connect above two communities, which creates another small community of size 3 (nodes 0, 5, 10)
         graph1.createEdge(n[5], n[10]);
         graph1.createEdge(n[10], n[5]);
         graph1.createEdge(n[0], n[10]);
         graph1.createEdge(n[10], n[0]);
+        graph1.createEdge(n[0], n[5]);
+        graph1.createEdge(n[5], n[0]);
 
 
-        CustomGraph graph2=new CustomGraph(graph1);
-        graph1.removeNode(n[4]);
+
+
+
+
+        CustomGraph graph2 = new CustomGraph();
+        // Creates nodes
+        int size2 = 12;
+        Node n2[] = new Node[size2];
+        for (int i = 0; i < size2; i++) {
+            n2[i] = graph2.createNode();
+        }
+        // first community (nodes: 0, 1, 2, 3, 4)
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (i != j ) {
+                    graph2.createEdge(n2[i], n2[j]);
+                }
+            }
+        }
+        // second community (nodes: 5, 6, 7, 8, 9)
+        for(int i = 5; i < 10; i++) {
+            for (int j = 5; j < 10; j++) {
+                if(i!=j ) {
+                    graph2.createEdge(n2[i], n2[j]);
+                }
+            }
+        }
+        //Connect above two communities, which creates another small community of size 3 (nodes 0, 5, 10)
+        graph2.createEdge(n2[5], n2[10]);
+        graph2.createEdge(n2[10], n2[5]);
+        graph2.createEdge(n2[0], n2[10]);
+        graph2.createEdge(n2[10], n2[0]);
+        graph2.createEdge(n2[0], n2[5]);
+        graph2.createEdge(n2[5], n2[0]);
+
+        graph2.createEdge(n2[11], n2[10]);
+        graph2.createEdge(n2[10], n2[11]);
+        graph2.createEdge(n2[0], n2[11]);
+        graph2.createEdge(n2[11], n2[0]);
+        graph2.createEdge(n2[11], n2[5]);
+        graph2.createEdge(n2[5], n2[11]);
+
+
         dynamicGraph.addGraphIntoGraphSeries(graph1);
         dynamicGraph.addGraphIntoGraphSeries(graph2);
 
@@ -80,4 +119,5 @@ public class COPRAAlgorithmTest {
         
         
     }
+
 }
