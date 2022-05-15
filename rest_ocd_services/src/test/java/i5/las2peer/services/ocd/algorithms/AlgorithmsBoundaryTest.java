@@ -48,6 +48,7 @@ public class AlgorithmsBoundaryTest {
 		Edge edge = graph.createEdge(node0, node1);
 		graph.setEdgeWeight(edge, 2);
 		graph.addType(GraphType.DIRECTED);
+		graph.removeType(GraphType.UNDIRECTED); // if graph is made directed, remove undirected type
 		graphs.add(graph);
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
 		for(OcdAlgorithm currentAlgo : algos) {

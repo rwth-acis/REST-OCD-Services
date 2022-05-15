@@ -38,17 +38,27 @@ public class GraphProcessor {
 		EdgeCursor edges = graph.edges();
 		Edge edge;
 		Edge reverseEdge;
+
+		// initialy add undirected and unweighted to all graphs with at least 1 node, later remove it if graph is found to be weighted/directed
+		if (graph.nodeCount() > 0 || graph.edgeCount() > 0) {
+			graph.addType(GraphType.UNDIRECTED);
+			graph.addType(GraphType.UNWEIGHTED);
+		}
+
 		while (edges.ok()) {
 			edge = edges.edge();
 			double edgeWeight = graph.getEdgeWeight(edge);
 			if (edgeWeight != 1) {
 				graph.addType(GraphType.WEIGHTED);
+				graph.removeType(GraphType.UNWEIGHTED);
 			}
 			if (edgeWeight == 0) {
 				graph.addType(GraphType.ZERO_WEIGHTS);
+				graph.addType(GraphType.WEIGHTED); // if graph has zero weights, it is a weighted graph
 			}
 			if (edgeWeight < 0) {
 				graph.addType(GraphType.NEGATIVE_WEIGHTS);
+				graph.addType(GraphType.WEIGHTED); // if graph has negative weights, it is a weighted graph
 			}
 			if (edge.source().equals(edge.target())) {
 				graph.addType(GraphType.SELF_LOOPS);
@@ -56,6 +66,7 @@ public class GraphProcessor {
 			reverseEdge = edge.target().getEdgeTo(edge.source());
 			if (reverseEdge == null || graph.getEdgeWeight(reverseEdge) != edgeWeight) {
 				graph.addType(GraphType.DIRECTED);
+				graph.removeType(GraphType.UNDIRECTED); // if graph is made directed, remove undirected type
 			}			
 			edges.next();
 		}
@@ -99,6 +110,7 @@ public class GraphProcessor {
 			edges.next();
 		}
 		graph.removeType(GraphType.DIRECTED);
+		graph.addType(GraphType.UNDIRECTED); // if graph is made directed, remove undirected type
 	}
 
 	/**
@@ -171,9 +183,11 @@ public class GraphProcessor {
 		}
 		if (setToOne) {
 			graph.removeType(GraphType.WEIGHTED);
+			graph.addType(GraphType.UNWEIGHTED); // if graph is made weighted, remove unweighted type
 		}
 		if (noNegativeWeights) {
 			graph.removeType(GraphType.NEGATIVE_WEIGHTS);
+
 		}
 		if (noZeroWeights) {
 			graph.removeType(GraphType.ZERO_WEIGHTS);
@@ -359,6 +373,7 @@ public class GraphProcessor {
 			edges.next();
 		}
 		graph.addType(GraphType.DIRECTED);
+		graph.removeType(GraphType.UNDIRECTED); // if graph is made directed, remove undirected type
 	}
 
 	/**

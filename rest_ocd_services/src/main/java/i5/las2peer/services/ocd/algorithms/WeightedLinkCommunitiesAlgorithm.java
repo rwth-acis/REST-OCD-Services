@@ -62,6 +62,8 @@ public class WeightedLinkCommunitiesAlgorithm implements
 	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.WEIGHTED);
+		compatibilities.add(GraphType.UNWEIGHTED);
+		compatibilities.add(GraphType.UNDIRECTED);
 		return compatibilities;
 	}
 

@@ -50,6 +50,7 @@ public class CustomGraphPersistenceTest {
 		Edge edgeBC = graph.createEdge(nodeB, nodeC);
 		graph.setEdgeWeight(edgeBC, 2.5);
 		graph.addType(GraphType.DIRECTED);
+		graph.removeType(GraphType.UNDIRECTED); // if graph is made directed, remove undirected type
 		EntityTransaction tx = em.getTransaction();
 		try {
 			tx.begin();

@@ -56,6 +56,7 @@ public class MergingOfOverlappingCommunitiesTest {
 		graph.createEdge(node3, node5);
 		GraphProcessor processor = new GraphProcessor();
 		graph.addType(GraphType.DIRECTED);
+		graph.removeType(GraphType.UNDIRECTED); // if graph is made directed, remove undirected type
 		processor.makeCompatible(graph, new HashSet<GraphType>());
 		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);

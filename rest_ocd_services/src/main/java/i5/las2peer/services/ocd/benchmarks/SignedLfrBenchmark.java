@@ -360,6 +360,7 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 			Cover resulting_cover = benchm.directed_network_benchmark(excess, defect, n, k, maxk, t1, t2, mu, on, om, minc, maxc, fixed_range); // Signed LFR algorithm based on C++ directed network algorithm
 			resulting_cover.getGraph().addType(GraphType.DIRECTED);
 			resulting_cover.getGraph().addType(GraphType.NEGATIVE_WEIGHTS);
+			resulting_cover.getGraph().addType(GraphType.WEIGHTED);
 			Cover signedCover = setWeightSign(resulting_cover, pos, neg);
 			signedCover.setCreationMethod(new CoverCreationLog(CoverCreationType.GROUND_TRUTH,
 					new HashMap<String, String>(), new HashSet<GraphType>()));

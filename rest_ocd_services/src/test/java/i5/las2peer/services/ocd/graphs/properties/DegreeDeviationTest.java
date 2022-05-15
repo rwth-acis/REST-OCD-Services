@@ -60,6 +60,7 @@ public class DegreeDeviationTest {
 
 		CustomGraph graph = new CustomGraph();
 		graph.addType(GraphType.DIRECTED);
+		graph.removeType(GraphType.UNDIRECTED); // if graph is made directed, remove undirected type
 		Node n1 = graph.createNode();
 		Node n2 = graph.createNode();
 		Node n3 = graph.createNode();

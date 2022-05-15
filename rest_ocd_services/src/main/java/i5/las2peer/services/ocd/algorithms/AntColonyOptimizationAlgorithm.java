@@ -134,6 +134,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.ZERO_WEIGHTS);
 		compatibilities.add(GraphType.SELF_LOOPS);
+		compatibilities.add(GraphType.UNWEIGHTED);
+		compatibilities.add(GraphType.UNDIRECTED);
 		return compatibilities;
 	};	
 	

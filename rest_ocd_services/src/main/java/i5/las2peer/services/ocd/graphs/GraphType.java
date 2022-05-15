@@ -18,36 +18,48 @@ public enum GraphType implements EnumDisplayNames {
 	 * I.e. edge weights may assume values other than one.
 	 */
 	WEIGHTED("Weighted", 0),
+
+	/**
+	 * Indicates that a graph is unweighted.
+	 *
+	 */
+	UNWEIGHTED("Unweighted", 1),
+
 	/**
 	 * Indicates that a graph is directed.
 	 * I.e. there may be edges without a reverse edge leading the opposite way
 	 * or with a reverse edge of different weight.
 	 */
-	DIRECTED("Directed", 1),
+	DIRECTED("Directed", 2),
+	/**
+	 * Indicates that a graph is undirected.
+	 */
+	UNDIRECTED("Undirected", 3),
 	/**
 	 * Indicates that a graph has negative edge weights.
 	 */
-	NEGATIVE_WEIGHTS("Negative Weights", 2),
+	NEGATIVE_WEIGHTS("Negative Weights", 4),
 	/**
 	 * Indicates that a graph has edge weights equal to 0.
 	 */
-	ZERO_WEIGHTS("Zero Weights", 3),
+	ZERO_WEIGHTS("Zero Weights", 5),
 	/**
 	 * Indicates that a graph has self loops.
 	 * I.e. there may be edges with identical source and target node.
 	 */
-	SELF_LOOPS("Self Loops", 4),
+	SELF_LOOPS("Self Loops", 6),
 	
 	/**
 	 * Indicates that a graph contains the content attribute for each node.
 	 */	
-	CONTENT_UNLINKED("Content Unlinked", 5),
+	CONTENT_UNLINKED("Content Unlinked", 7),
 	
 	/**
 	 * Indicates that a graph contains the content attribute for each node and
 	 *  that there can be identified a sender and receiver for link creation.
 	 */
-	CONTENT_LINKED("Content Linked", 6);
+	CONTENT_LINKED("Content Linked", 8);
+
 	
 	/**
 	 * For persistence and other purposes.

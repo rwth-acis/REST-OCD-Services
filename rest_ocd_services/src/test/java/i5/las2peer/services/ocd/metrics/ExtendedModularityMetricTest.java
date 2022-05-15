@@ -100,6 +100,7 @@ public class ExtendedModularityMetricTest {
 				memberships.set(bNeighbor.index(), 1+i, 1);
 			}
 			graph.addType(GraphType.DIRECTED);
+			graph.removeType(GraphType.UNDIRECTED); // if graph is made directed, remove undirected type
 			GraphProcessor processor = new GraphProcessor();
 			processor.makeCompatible(graph, new HashSet<GraphType>());
 			Cover cover = new Cover(graph, memberships);

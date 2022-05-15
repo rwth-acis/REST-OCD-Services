@@ -61,6 +61,8 @@ public class LinkCommunitiesAlgorithm implements
 	@Override
 	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
+		compatibilities.add(GraphType.UNWEIGHTED);
+		compatibilities.add(GraphType.UNDIRECTED);
 		return compatibilities;
 	}
 

@@ -133,7 +133,6 @@ public class GraphProcessorTest {
 		processor.determineGraphTypes(graph);
 		assertEquals(0, graph.getTypes().size());
 		System.out.println("Empty graph.");
-		System.out.println(graph.getTypes());
 		/*
 		 * One directed edge.
 		 */
@@ -143,7 +142,7 @@ public class GraphProcessorTest {
 		processor.determineGraphTypes(graph);
 		System.out.println("One directed edge.");
 		System.out.println(graph.getTypes());
-		assertEquals(1, graph.getTypes().size());
+		assertEquals(2, graph.getTypes().size()); // directed and unweighted
 		assertTrue(graph.isOfType(GraphType.DIRECTED));
 		/*
 		 * One undirected edge.
@@ -152,7 +151,7 @@ public class GraphProcessorTest {
 		processor.determineGraphTypes(graph);
 		System.out.println("One undirected edge.");
 		System.out.println(graph.getTypes());
-		assertEquals(0, graph.getTypes().size());
+		assertEquals(2, graph.getTypes().size()); // undirected and unweighted
 		/*
 		 * Undirected edge and self loop.
 		 */
@@ -160,7 +159,7 @@ public class GraphProcessorTest {
 		processor.determineGraphTypes(graph);
 		System.out.println("Undirected edge and self loop.");
 		System.out.println(graph.getTypes());
-		assertEquals(1, graph.getTypes().size());
+		assertEquals(3, graph.getTypes().size()); // undirected, unweighted, self loops
 		assertTrue(graph.isOfType(GraphType.SELF_LOOPS));
 		/*
 		 * Undirected edge and weighted self loop.
@@ -169,7 +168,7 @@ public class GraphProcessorTest {
 		processor.determineGraphTypes(graph);
 		System.out.println("Undirected edge and weighted self loop.");
 		System.out.println(graph.getTypes());
-		assertEquals(2, graph.getTypes().size());
+		assertEquals(3, graph.getTypes().size()); // undirected, weighted, self loops
 		assertTrue(graph.isOfType(GraphType.SELF_LOOPS));
 		assertTrue(graph.isOfType(GraphType.WEIGHTED));
 		/*
@@ -179,7 +178,7 @@ public class GraphProcessorTest {
 		processor.determineGraphTypes(graph);
 		System.out.println("Undirected edge and 0 weight self loop.");
 		System.out.println(graph.getTypes());
-		assertEquals(3, graph.getTypes().size());
+		assertEquals(4, graph.getTypes().size()); // undirected, self loops, weighted, zero weights
 		assertTrue(graph.isOfType(GraphType.SELF_LOOPS));
 		assertTrue(graph.isOfType(GraphType.WEIGHTED));
 		assertTrue(graph.isOfType(GraphType.ZERO_WEIGHTS));
@@ -278,6 +277,7 @@ public class GraphProcessorTest {
 		 */
 		compatibleTypes.add(GraphType.NEGATIVE_WEIGHTS);
 		compatibleTypes.remove(GraphType.DIRECTED);
+		compatibleTypes.add(GraphType.UNDIRECTED); // when directed type is removed, add undirected type
 		copy = new CustomGraph(graph);
 		processor.makeCompatible(copy, compatibleTypes);
 		processor.determineGraphTypes(copy);
@@ -288,6 +288,7 @@ public class GraphProcessorTest {
 		 * Self loops. 
 		 */
 		compatibleTypes.add(GraphType.DIRECTED);
+		compatibleTypes.remove(GraphType.UNDIRECTED); // when directed type is added, remove undirected type
 		compatibleTypes.remove(GraphType.SELF_LOOPS);
 		copy = new CustomGraph(graph);
 		processor.makeCompatible(copy, compatibleTypes);
@@ -300,6 +301,7 @@ public class GraphProcessorTest {
 		 */
 		compatibleTypes.add(GraphType.SELF_LOOPS);
 		compatibleTypes.remove(GraphType.WEIGHTED);
+		compatibleTypes.add(GraphType.UNWEIGHTED); // when weighted type is removed, add unweighted type
 		copy = new CustomGraph(graph);
 		processor.makeCompatible(copy, compatibleTypes);
 		processor.determineGraphTypes(copy);

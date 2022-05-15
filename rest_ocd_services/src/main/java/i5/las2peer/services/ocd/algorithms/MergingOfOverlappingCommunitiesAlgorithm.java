@@ -46,6 +46,8 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	public Set<GraphType> compatibleGraphTypes() {
 		Set<GraphType> compatibleTypes = new HashSet<GraphType>();
 		compatibleTypes.add(GraphType.WEIGHTED);
+		compatibleTypes.add(GraphType.UNWEIGHTED);
+		compatibleTypes.add(GraphType.UNDIRECTED);
 		return compatibleTypes;
 	}
 	

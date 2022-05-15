@@ -135,6 +135,8 @@ public class SskAlgorithm implements OcdAlgorithm {
 		Set<GraphType> types = new HashSet<GraphType>();
 		types.add(GraphType.DIRECTED);
 		types.add(GraphType.WEIGHTED);
+		types.add(GraphType.UNWEIGHTED);
+		types.add(GraphType.UNDIRECTED);
 		return types;
 	}
 
