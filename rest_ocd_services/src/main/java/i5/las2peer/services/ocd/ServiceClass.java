@@ -4198,7 +4198,7 @@ public class ServiceClass extends RESTService {
 				return Response.ok().entity("done").build();
 			} catch(Exception e){
 				requestHandler.log(Level.SEVERE, "", e);
-					return requestHandler.writeError(Error.INTERNAL,"Internal System error rofl");
+					return requestHandler.writeError(Error.INTERNAL,"Internal System error");
 			}
 		}
 		

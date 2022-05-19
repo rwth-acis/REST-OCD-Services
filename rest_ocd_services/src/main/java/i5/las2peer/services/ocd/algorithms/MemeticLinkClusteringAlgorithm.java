@@ -23,6 +23,7 @@ import java.util.AbstractMap.SimpleEntry;
 
 import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.CMAESOptimizer.PopulationSize;
 import org.la4j.matrix.Matrix;
+import org.la4j.vector.Vector;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
 import y.base.Edge;
@@ -85,16 +86,13 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		for(int i = 0; i < treeSize; i++){
 			MLinkAgent agent = new MLinkAgent();
 			for(int j = 0; j < agentSize; j++){
-				int init = rand.nextInt(1);
+				int init = rand.nextInt(3);
 				if(init == 0){
-					System.out.println("local");
 					agent.addIndividual(localExpansion(encoding));
 				} else if(init == 1){
-					System.out.println("label");
 					agent.addIndividual(labelPropagation(encoding));
 				} else {
-					// agent.addIndividual(localExpansionEigen(encoding));
-					// agent.addIndividual(speakerListener(encoding));
+					agent.addIndividual(localExpansionEigen(encoding));
 				}
 			}
 			population.addAgent(agent);
@@ -121,16 +119,15 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				} else {
 					parents = population.closeSelect(i);
 				}
-				System.out.println("crossover");
 				MLinkIndividual offspring = crossover(parents, encoding);
 				offspring.mutate(mutationProbability);
 				
 				if(rand.nextInt(100) < localSearchProbability){
-					System.out.println("localSearch");
-					offspring.localSearch();
+					// offspring.localSearch();
 				}
 				curAgent.addIndividual(offspring);
 				population.swapUp();
+				System.out.println("best fit: " + population.getAgent(0).getPocket().getFitness());
 			}
 			// Check if termination criteria is met
 			double newFitness = population.getAgent(0).getPocket().getFitness();
@@ -150,6 +147,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		communitySet = postProcessing(communitySet, encoding);
 		Matrix membershipMatrix = getMembershipMatrix(communitySet, encoding, solution.getCommunities().size());
 		System.out.println("done");
+		
 		return new Cover(graph, membershipMatrix);
 
 	}
@@ -185,13 +183,6 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		HashMap<Edge,Edge> individual = new HashMap<Edge,Edge>();
 		Edge gene;
 		int crossProbability = 50;
-		Edge[] edges = graph.getEdgeArray();
-
-		// for(Edge e : edges){
-		// 	if(!parent1.getIndividual().keySet().contains(e)){
-		// 		System.out.println(e);
-		// 	}
-		// }
 
 		Random rand = new Random();
 		for(Edge key : parent1.getIndividual().keySet()){
@@ -278,24 +269,6 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				}
 				last = first;
 
-
-				// Check if the current node has neighbors that weren't already checked
-				// NodeCursor nghb = curNode.neighbors();
-				// boolean hasUncheckedNeighbor = false;
-				// for(int i = 0; i < nghb.size(); i++){
-				// 	if(!checkedNodes.contains(nghb.node())){
-				// 		hasUncheckedNeighbor = true;
-				// 		break;
-				// 	} else if(labels.get(nghb.node()) != l){
-				// 		hasUncheckedNeighbor = true;
-				// 		break;
-				// 	}
-				// 	nghb.cyclicNext();
-				// }
-				// if(!hasUncheckedNeighbor){
-				// 	continue;
-				// }
-
 				// Create a circle with the last edge pointing on the first
 				for(int i = 0; i < adjEdges.size(); i++){
 					adjEdges.cyclicNext();
@@ -332,33 +305,6 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		}
 		System.out.println(genes.size());
 		return new MLinkIndividual(genes);
-	}
-
-	public MLinkIndividual speakerListener(CustomGraph graph){
-		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
-		try{
-			Cover cover = algo.detectOverlappingCommunities(graph);
-			Matrix membershipmatrix = cover.getMemberships();
-			System.out.println(membershipmatrix);
-			Node[] nodeArray = graph.getNodeArray();
-			HashMap<Node,Integer> labels = new HashMap<>();
-			for(Node n : nodeArray){
-				int idx = n.index();
-				int size = membershipmatrix.columns();
-
-				for(int i = 0; i < size; i++){
-					double label = membershipmatrix.get(idx, i);
-					if(label != 0){
-						labels.put(n, i);
-						break;
-					}
-				}
-			}
-			return translateToIndividual(labels);
-		} catch(Exception e){
-			System.out.println(e);
-			return null;
-		}
 	}
 
 	/**
@@ -501,6 +447,12 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		}
 	}
 
+	/**
+	 * Postprocessing step to remove 
+	 * @param communitySet
+	 * @param graph
+	 * @return
+	 */
 	public HashMap<Integer,HashSet<Node>> postProcessing(HashMap<Integer,HashSet<Node>> communitySet,CustomGraph graph){
 		HashMap<Node,HashSet<Integer>> nodes = new HashMap<Node,HashSet<Integer>>();
 		HashMap<Node,HashSet<Integer>> updatedNodes  = new HashMap<Node,HashSet<Integer>>();
@@ -552,13 +504,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				double removedIntra = intraDensity(nodeRemoved, copyNodes);
 				double normalIntra = intraDensity(communitySet.get(com), updatedNodes);
 
-				// if(communitySet.get(com).size() == 2){
-				// 	normalIntra = 0;
-				// } else {
-				// 	normalIntra = intraDensity(communitySet.get(com), updatedNodes);
-				// }
-				
-
+			
 				// If the intra Density is greater without the node remove it from the community
 				if(removedIntra > normalIntra /*|| (communitySet.get(com).size() == 2 && removedIntra == normalIntra)*/){
 					communitySet.get(com).remove(n);
@@ -623,7 +569,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				edges.cyclicNext();
 			}
 		}
-		return 2*((count/2)/Math.pow(nodes.size(),2));
+		return 2*((count/2)/Math.pow(nodes.size(),1.5));
 	}
 
 	
@@ -636,10 +582,14 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	 */
 	public Matrix getMembershipMatrix(HashMap<Integer,HashSet<Node>> communitySet, CustomGraph graph, int communityNumber){
 		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),communityNumber);
+		int counter = 0;
+		System.out.println("comm: " + communitySet.size());
+		System.out.println("nr: " + communityNumber);
 		for(Integer comm : communitySet.keySet()){
 			for(Node n : communitySet.get(comm)){
-				membershipMatrix.set(n.index(), comm, 1);
+				membershipMatrix.set(n.index(), counter, 1);
 			}
+			counter++;
 		}
 		return membershipMatrix;
 	}
