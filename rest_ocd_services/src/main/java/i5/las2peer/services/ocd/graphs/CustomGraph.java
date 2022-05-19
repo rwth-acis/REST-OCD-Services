@@ -143,7 +143,7 @@ public class CustomGraph extends Graph2D {
 	 * This list is only for dynamic graph(even possible only one graph in this dynamic graph).
 	 * If it's a static graph, this list would be empty.
 	 */
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	//@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<CustomGraph> graphSeries=new ArrayList<>();
 	
 	/**

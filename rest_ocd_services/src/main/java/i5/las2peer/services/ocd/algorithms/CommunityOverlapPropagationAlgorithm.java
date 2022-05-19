@@ -20,13 +20,13 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     /**
      * Each vertex can belong to up to v communities.
      */
-    private static int v = 3;
+    private static int v = 6;
 
 
     /**
-     * Maximum loops 100 times should be terminated.
+     * Maximum loops times should be terminated.(some graphs will never terminate)
      */
-    private static int loops  =100;
+    private static int loops  =300;
 
     /*
      * PARAMETER NAME
@@ -80,6 +80,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
                 System.out.println("Node" + i + ": Communities" + j + ": " + memberships.get(i, j));
             }
         }
+
     }
 
 
@@ -89,6 +90,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
             if(membershipsMaps.equals(afterMembershipsMap)) break;
             membershipsMaps=afterMembershipsMap;
         }
+        System.out.println("loops:"+loops);
         return membershipsMaps;
     }
 
@@ -162,6 +164,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
             if(isEqualMatrix(memberships,afterMemberships))  break;
             memberships=afterMemberships;
         }
+        System.out.println("loops:"+loops);
         return memberships;//the memberships is an n*n Matrix
     }
 
@@ -382,6 +385,13 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
             }
             parameters.remove(MAX_COMMUNITY_NUMBER_OF_EACH_NODE);
         }
+        if(parameters.containsKey(MAX_LOOPS)) {
+            loops = Integer.parseInt(parameters.get(MAX_LOOPS));
+            if(loops < 1) {
+                throw new IllegalArgumentException();
+            }
+            parameters.remove(MAX_LOOPS);
+        }
         if(parameters.size() > 0) {
             throw new IllegalArgumentException();
         }
@@ -391,6 +401,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     public Map<String, String> getParameters() {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(MAX_COMMUNITY_NUMBER_OF_EACH_NODE, Integer.toString(v));
+        parameters.put(MAX_LOOPS, Integer.toString(loops));
         return parameters;
     }
 }
