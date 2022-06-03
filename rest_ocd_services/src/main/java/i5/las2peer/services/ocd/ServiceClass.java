@@ -409,7 +409,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("") @QueryParam("involvedUserURIs") String involvedUserURIsStr,
 				@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
-				@DefaultValue("") @QueryParam("graphList") String graphListStr,//graphList=3_4_5_
+				@DefaultValue("") @QueryParam("graphList") String graphListStr, //&graphList=3_4_5_
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
 				String contentStr) {
 			try {
@@ -461,6 +461,9 @@ public class ServiceClass extends RESTService {
 							param.put("path", indexPathStr);
 						}
 					}
+					else if(format==GraphInputFormat.GRAPH_LIST){
+						param.put("graphList",graphListStr);
+					}
 					//else if (format == GraphInputFormat.XGMML) {
 						//param.put("key", keyStr);
 						//param.put("type1", type1Str);
@@ -474,13 +477,14 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Input graph does not correspond to the specified format.");
 				}
-				boolean doMakeUndirected;
+				boolean doMakeUndirected,doMakeDynamic;
 				try {
 					doMakeUndirected = requestHandler.parseBoolean(doMakeUndirectedStr);
+					doMakeDynamic=requestHandler.parseBoolean(doMakeDynamicStr);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Do make undirected ist not a boolean value.");
+							"Do make undirected/dynamic ist not a boolean value.");
 				}
 				graph.setUserName(username);
 				graph.setName(URLDecoder.decode(nameStr, "UTF-8"));
@@ -494,6 +498,9 @@ public class ServiceClass extends RESTService {
 					if (graphTypes.remove(GraphType.DIRECTED)) {
 						processor.makeCompatible(graph, graphTypes);
 					}
+				}
+				if (doMakeDynamic){
+					graph.addType(GraphType.DYNAMIC);
 				}
 				try {
 					entityHandler.storeGraph(graph);
