@@ -56,7 +56,10 @@ public enum GraphInputFormat implements EnumDisplayNames {
 	/**
 	 * Format corresponding to the LmsTripleStoreGraphInputAdapter.
 	 */
-	LMS_TRIPLESTORE ("Fetched from LMS Triplestore", LmsTripleStoreGraphInputAdapter.class, 9);
+	LMS_TRIPLESTORE ("Fetched from LMS Triplestore", LmsTripleStoreGraphInputAdapter.class, 9),
+
+	GRAPH_LIST("Graph List",GraphListInputAdapter.class, 10);
+	;
 	
 	/**
 	 * The adapter class corresponding to the format.

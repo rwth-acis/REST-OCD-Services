@@ -403,11 +403,13 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
 				@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
 				@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
+				@DefaultValue("FALSE") @QueryParam("doMakeDynamic") String doMakeDynamicStr,
 				@DefaultValue("2004-01-01") @QueryParam("startDate") String startDateStr,
 				@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
 				@DefaultValue("") @QueryParam("involvedUserURIs") String involvedUserURIsStr,
 				@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
+				@DefaultValue("") @QueryParam("graphList") String graphListStr,//graphList=3_4_5_
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
 				String contentStr) {
 			try {
@@ -632,7 +634,6 @@ public class ServiceClass extends RESTService {
 		 *            using the "-" delimiter.
 		 * @return The graphs. Or an error xml.
 		 */
-
 		@GET
 		@Path("graphs")
 		@Produces(MediaType.TEXT_XML)
