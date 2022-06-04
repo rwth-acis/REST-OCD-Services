@@ -62,7 +62,7 @@ public enum GraphInputFormat implements EnumDisplayNames {
 	 * Format corresponding to the GraphListInputAdapter(for dynamic graph)
 	 */
 	GRAPH_LIST("Graph List",GraphListInputAdapter.class, 10);
-	;
+
 	
 	/**
 	 * The adapter class corresponding to the format.

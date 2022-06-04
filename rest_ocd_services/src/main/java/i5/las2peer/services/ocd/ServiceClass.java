@@ -461,9 +461,7 @@ public class ServiceClass extends RESTService {
 							param.put("path", indexPathStr);
 						}
 					}
-					else if(format==GraphInputFormat.GRAPH_LIST){
-						param.put("graphList",graphListStr);
-					}
+
 					//else if (format == GraphInputFormat.XGMML) {
 						//param.put("key", keyStr);
 						//param.put("type1", type1Str);
@@ -477,6 +475,26 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Input graph does not correspond to the specified format.");
 				}
+				try{
+					if(format == GraphInputFormat.GRAPH_LIST){
+						List<Integer> graphIdList=new LinkedList();
+						String[] Strs=graphListStr.split("_");
+						for(String graphIdStr:Strs){
+							if(graphIdStr!=""){
+								graphIdList.add(Integer.parseInt(graphIdStr));
+							}
+						}//[3,4,5]
+						for(int graphId:graphIdList){
+							graph.addGraphIntoGraphSeries(entityHandler.getGraph(username, graphId));//graphId=3
+						}
+					}
+
+				}catch(Exception e){
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Graph list for dynamic graph has error");
+				}
+
 				boolean doMakeUndirected,doMakeDynamic;
 				try {
 					doMakeUndirected = requestHandler.parseBoolean(doMakeUndirectedStr);
@@ -593,11 +611,13 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
 				@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
 				@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
+		   		@DefaultValue("FALSE") @QueryParam("doMakeDynamic") String doMakeDynamicStr,
 				@DefaultValue("2004-01-01") @QueryParam("startDate") String startDateStr,
 				@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
 				@DefaultValue("") @QueryParam("involvedUserURIs") String involvedUserURIsStr,
 				@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
+			    @DefaultValue("") @QueryParam("graphList") String graphListStr,
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr) {
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 			File graphDir = new File("tmp" + File.separator + username);
@@ -618,8 +638,8 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 			graphFile.delete();
-			return createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
-					endDateStr,involvedUserURIsStr, showUserNamesStr, indexPathStr, filePathStr, contentStr.toString());
+			return createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr,doMakeDynamicStr, startDateStr,
+					endDateStr,involvedUserURIsStr, showUserNamesStr, indexPathStr,graphListStr, filePathStr, contentStr.toString());
 		}
 
 		/**
