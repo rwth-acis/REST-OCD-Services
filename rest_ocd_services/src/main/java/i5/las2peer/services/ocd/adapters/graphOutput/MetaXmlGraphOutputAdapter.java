@@ -49,6 +49,10 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 			Element graphEdgeCountElt = doc.createElement("EdgeCount");
 			graphEdgeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.edgeCount())));
 			graphElt.appendChild(graphEdgeCountElt);
+
+			Element staticGraphCountElt = doc.createElement("staticGraphCount");
+			staticGraphCountElt.appendChild(doc.createTextNode(Integer.toString(graph.getGraphSeries().size())));
+			graphElt.appendChild(staticGraphCountElt);
 //			Element lastUpdateElt = doc.createElement("LastUpdate");
 //			if(graph.getLastUpdate() != null) {
 //				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd hh:mm:ss");
