@@ -28,7 +28,13 @@ public enum CoverOutputFormat implements EnumDisplayNames{
 	/**
 	 * Format corresponding to the LabeledMembershipMatrixCoverOutputAdapter.
 	 */
-	LABELED_MEMBERSHIP_MATRIX ("Labeled Membership Matrix", LabeledMembershipMatrixCoverOutputAdapter.class, 2);
+	LABELED_MEMBERSHIP_MATRIX ("Labeled Membership Matrix", LabeledMembershipMatrixCoverOutputAdapter.class, 2),
+
+	/**
+	 * Format corresponding to the DefaultXmlCoverOutputAdapter.
+	 */
+	COVER_SERIES_LIST ("Cover Series List", CoverSeriesListCoverOutputAdapter.class, 3)
+	;
 	
 	/**
 	 * The adapter class corresponding to the format.

@@ -21,7 +21,8 @@ public class GraphSeriesListOutputAdapter extends AbstractGraphOutputAdapter {
 
                 writer.write(order + " ");
                 order++;
-                writer.write(String.valueOf(staticGraph.getId()));
+                writer.write(String.valueOf(staticGraph.getId())+" ");
+                writer.write(staticGraph.getName());
 
 
                 writer.write("\n");

@@ -132,10 +132,11 @@ public class Cover {
 	private double simCosts;
 
 	/**
-	 * Dynamic graph has a series of covers, the static graph has only one cover in this list.
+	 * Dynamic graph has a series of covers.
+	 * The cover series of a static graph is an empty List<Cover>
 	 */
 	//@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade = { CascadeType.ALL })
-	private List<Cover> coverSeries=new ArrayList<>();
+	private List<Cover> coverSeries=new ArrayList<Cover>();
 
 	///////////////////////////// CONSTRUCTORS /////////////////////////////
 
@@ -753,8 +754,8 @@ public class Cover {
 		this.coverSeries = coverSeries;
 	}
 
-	public void addCoverSeries(Cover cover){
-		this.coverSeries.add(cover);
+	public void addCoverintoCoverSeries(Cover cover){
+		coverSeries.add(cover);
 	}
 
 

@@ -47,7 +47,8 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
 
         if(customGraph.isOfType(GraphType.DYNAMIC)){
             //as implement in map way, the nodes of dynamic graphs should have accurate ids when building
-            Cover resulting_cover = new Cover(customGraph,new ArrayList<>());
+            Cover resulting_cover = new Cover(customGraph,new ArrayList<Cover>());
+
             Map<Integer,Map<Integer,Double>> membershipsMaps=new HashMap<>();
             int maxCommunitiesNumber=0;//if the following graphs delete some nodes, the label of its index should be kept.
             //set every nodes has its own id as its label with bc=1
@@ -59,7 +60,13 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
                 membershipsMaps=COPRAMaps(adjacencyMaps,membershipsMaps,v,loops);
                 Matrix memberships=formMemberships(curCgNodeCount,maxCommunitiesNumber,membershipsMaps);
                 printCommunities(memberships);
-                resulting_cover.addCoverSeries(new Cover(cg,memberships));
+                resulting_cover.addCoverintoCoverSeries(new Cover(cg,memberships));
+            }
+
+            System.out.println("算法运行结束时cover series:");
+            int order=1;
+            for (Cover c:resulting_cover.getCoverSeries()){
+                System.out.println(order +c.getId());
             }
             return resulting_cover;
         }else{//else it's a static Graph

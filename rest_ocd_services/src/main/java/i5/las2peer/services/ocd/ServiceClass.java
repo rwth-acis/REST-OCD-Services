@@ -1134,7 +1134,7 @@ public class ServiceClass extends RESTService {
 				Cover cover = null;
 				try {
 					cover = entityHandler.getCover(username, graphId, coverId);
-					
+					System.out.println("getCover请求时cover情况:"+cover);
 					// Paint cover if not yet done when requested type is default XML
 					if(format == CoverOutputFormat.DEFAULT_XML && !cover.isPainted()) { 
 						CoverPainter painter = (new CoverPainterFactory()).getInstance(CoverPaintingType.PREDEFINED_COLORS);
@@ -1355,6 +1355,7 @@ public class ServiceClass extends RESTService {
 					 * Registers and starts algorithm
 					 */
 					threadHandler.runAlgorithm(cover, algorithm, componentNodeCountFilter);
+					System.out.println("post run algorithm结束时cover的coverseries:");
 				}
 				return Response.ok(requestHandler.writeId(cover)).build();
 			} catch (Exception e) {

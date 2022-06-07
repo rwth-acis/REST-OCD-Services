@@ -117,6 +117,18 @@ public class MetaXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 			Element communityCountElement = doc.createElement("CommunityCount");
 			communityCountElement.appendChild(doc.createTextNode(Integer.toString(cover.communityCount())));
 			coverElt.appendChild(communityCountElement);
+
+			/*
+			 * CoverSeries
+			 */
+			Element coverSeriesCountElement = doc.createElement("CoverSeriesCount");
+			System.out.println("cover series size:"+cover.getCoverSeries().size());
+			for(Cover c: cover.getCoverSeries()){
+				System.out.println(c);
+			}
+			coverSeriesCountElement.appendChild(doc.createTextNode(Integer.toString(cover.getCoverSeries().size())));
+			coverElt.appendChild(coverSeriesCountElement);
+
 			/*
 			 * XML output
 			 */
