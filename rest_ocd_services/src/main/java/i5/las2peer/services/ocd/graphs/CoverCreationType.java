@@ -27,6 +27,7 @@ import i5.las2peer.services.ocd.utils.EnumDisplayNames;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
 import i5.las2peer.services.ocd.algorithms.FuzzyCMeansSpectralClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WeakCliquePercolationMethodAlgorithm;
+import i5.las2peer.services.ocd.algorithms.RankRemovalAlgorithm;
 
 import java.security.InvalidParameterException;
 import java.util.Locale;
@@ -161,7 +162,12 @@ public enum CoverCreationType implements EnumDisplayNames {
 	/**
 	 * Type corresponding to the WeakCliquePercolationMethodAlgorithm Algorithm.
 	 */
-	WEAK_CLIQUE_PERCOLATION_METHOD_ALGORITHM("Weak Clique Percolation Method Algorithm", WeakCliquePercolationMethodAlgorithm.class, 25);
+	WEAK_CLIQUE_PERCOLATION_METHOD_ALGORITHM("Weak Clique Percolation Method Algorithm", WeakCliquePercolationMethodAlgorithm.class, 25),
+
+	/**
+	 * Type corresponding to the Rank Removal Algorithm with Iterative Scan.
+	 */
+	RANK_REMOVAL_AND_ITERATIVE_SCAN_ALGORITHM("Rank Removal Algorithm with Iterative Scan",RankRemovalAlgorithm.class, 26);
 	
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
