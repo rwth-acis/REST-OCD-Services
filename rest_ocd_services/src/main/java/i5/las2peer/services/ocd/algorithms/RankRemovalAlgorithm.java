@@ -9,10 +9,10 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmExecutor;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.utils.Pair;
-import y.base.Graph;
-import y.base.Node;
-import y.base.NodeCursor;
-import y.base.NodeMap;
+import org.glassfish.jersey.internal.inject.Custom;
+import org.la4j.matrix.Matrix;
+import org.la4j.matrix.dense.Basic2DMatrix;
+import y.base.*;
 
 import java.util.*;
 
@@ -306,8 +306,8 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     // Main algorithm method
     // --------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Global set of removed nodes
-    Set<Node> R = Collections.emptySet();
+    // Global List of removed nodes
+    List<Node> R = Collections.emptyList();
 
     // TODO: Add method description
     // TODO: Check try catch
@@ -317,6 +317,9 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         // Resulting cover will be assigned here
         Cover outputCover = null;
 
+        // Create adjacency matrix of the graph
+        boolean[][] adjacencyMatrix = createAdjacencyMatrix(graph);
+
         // List of all found cluster cores
         List<CustomGraph> clusterCores = Collections.emptyList();
 
@@ -325,21 +328,22 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
         // Method clusterComponent is called for every connected component
         for (int i = 0; i < connectedComponents.size(); i++) {
-            CustomGraph cluster = null;
             try {
-                cluster = clusterComponent(connectedComponents.get(i));
+                clusterCores.addAll(clusterComponent(connectedComponents.get(i)));
             } catch (CentralityAlgorithmException e) {
                 throw new RuntimeException(e);
-            }
-            if (cluster != null) {
-                clusterCores.add(cluster);
             }
         }
 
         // Add removed nodes back to cluster cores
         for (int i = 0; i < R.size(); i++) {
             for (int j = 0; j < clusterCores.size(); i++) {
-                if ()
+                // Create new graph by adding node i of set R to cluster core j
+                CustomGraph extendedCore = reAddNode(clusterCores.get(j), R.get(i));
+
+                if (isAdjacent(graph, clusterCores.get(i), R.get(i)) || calculateWeight(clusterCores.get(j)) > calculateWeight(clusterCores.get(j)) {
+                    // Add node back to cluster core
+                }
             }
         }
 
@@ -401,33 +405,35 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * or disconnected in multiple connected components. The method gets
      * recursively executed on all emerging connected components.
      *
-     * @param connectedComponent     Connected component as custom graph
+     * @param graph     Connected component as custom graph
      */
-    public CustomGraph clusterComponent(CustomGraph connectedComponent) throws InterruptedException, CentralityAlgorithmException {
+    public List<CustomGraph> clusterComponent(CustomGraph graph) throws InterruptedException, CentralityAlgorithmException {
         Node node = null;
 
-        if (connectedComponent.nodeCount() > maxCoreSize) {
+        List<CustomGraph> clusterCores = Collections.emptyList();
+
+        if (graph.nodeCount() > maxCoreSize) {
             for (int i = 0; i < t; i++) {
                 // Calculate the highest ranking node
-                node = getHighestRankingNode(connectedComponent);
+                node = getHighestRankingNode(graph);
                 // Add the highest ranking node to set R
                 R.add(node);
                 // Remove the highest ranking node
-                connectedComponent.removeNode(node);
+                graph.removeNode(node);
             }
             // Detect all connected components in connectedComponent
-            List<CustomGraph> newConnectedComponents = getConnectedComponents(connectedComponent);
+            List<CustomGraph> connectedComponents = getConnectedComponents(graph);
 
-            for (int i = 0; i < newConnectedComponents.size(); i++) {
-                clusterComponent(newConnectedComponents.get(i));
+            for (int i = 0; i < connectedComponents.size(); i++) {
+                clusterCores.addAll(clusterComponent(connectedComponents.get(i)));
             }
 
-        } else if (minCoreSize <= connectedComponent.nodeCount() && connectedComponent.nodeCount() <= maxCoreSize) {
+        } else if (minCoreSize <= graph.nodeCount() && graph.nodeCount() <= maxCoreSize) {
             // Mark connectedComponent as cluster core
-            return connectedComponent;
+            clusterCores.add(graph);
         }
 
-        return null;
+        return clusterCores;
     }
 
     /**
@@ -508,5 +514,95 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         }
 
         return node;
+    }
+
+    /**
+     * This method checks if there exists an edge between a node of the provided
+     * graph and the provided node. If yes, the method return true. Else it
+     * returns false.
+     *
+     * @param graph             The graph for which the adjacency is checked
+     * @param clusterCore       Cluster of nodes that should be checked
+     * @param node              Node that is checked
+     *
+     * @return
+     */
+    public boolean isAdjacent(CustomGraph graph, CustomGraph clusterCore, Node node) {
+        NodeCursor clusterCoreNodes = clusterCore.nodes();
+        while (clusterCoreNodes.ok()) {
+            if (graph.containsEdge(clusterCoreNodes.node(), node)) {
+                return true;
+            }
+            clusterCoreNodes.next();
+        }
+
+        return false;
+    }
+
+    // TODO: Ok for directed and undirected graphs?
+
+    /**
+     * This method returns an adjacency matrix of the passed graph. If
+     * the entry [i][j] of the matrix is true, there is a directed edge between
+     * the nodes i and j in the graph.
+     *
+     * @param graph
+     * @return
+     */
+    public boolean[][] createAdjacencyMatrix(CustomGraph graph) {
+        // Initialize empty matrix
+        boolean[][] matrix = new boolean[graph.nodeCount()][graph.nodeCount()];
+
+        EdgeCursor edges = graph.edges();
+
+        while (edges.ok()) {
+            Edge edge = edges.edge();
+            matrix[edge.source().index()][edge.target().index()] = true;
+            edges.next();
+        }
+
+        return matrix;
+    }
+
+    // TODO: Implement method
+
+    /**
+     *
+     * @param graph
+     * @param node
+     * @return
+     */
+    public CustomGraph reAddNode(CustomGraph graph, Node node) {
+
+    }
+
+    // TODO: Implement method
+
+    /**
+     *
+     * @return
+     */
+    public double calculateWeight() {
+
+    }
+
+    // TODO: Implement method
+
+    /**
+     *
+     * @return
+     */
+    public double calculateInternalEdgeIntensity() {
+
+    }
+
+    // TODO: Implement method
+
+    /**
+     *
+     * @return
+     */
+    public double calculateExternalEdgeIntensity() {
+
     }
 }
