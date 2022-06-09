@@ -12,11 +12,11 @@ public class CoverSeriesListCoverOutputAdapter extends AbstractCoverOutputAdapte
             int order = 1;
             for(Cover staticCover : cover.getCoverSeries()) {
 
-                writer.write(order + " ");
+                writer.write(order + "_");
                 order++;
-                writer.write(String.valueOf(staticCover.getId())+" ");
-                writer.write(String.valueOf(staticCover.getName())+" ");
-                writer.write(String.valueOf(staticCover.getGraph().getId())+" ");
+                writer.write(String.valueOf(staticCover.getId())+"_");
+                writer.write(String.valueOf(staticCover.getName())+"_");
+                writer.write(String.valueOf(staticCover.getGraph().getId())+"_");
                 writer.write(String.valueOf(staticCover.getGraph().getName()));
 
                 writer.write("\n");

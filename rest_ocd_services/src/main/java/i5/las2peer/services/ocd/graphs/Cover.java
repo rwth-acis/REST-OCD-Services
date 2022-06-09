@@ -56,6 +56,7 @@ public class Cover {
 	public static final String idColumnName = "ID";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
 	public static final String simCostsColumnName = "SIMILARITYCOSTS";
+	private static final String coverSeriesColumnName = "COVER_SERIES";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 
@@ -135,7 +136,8 @@ public class Cover {
 	 * Dynamic graph has a series of covers.
 	 * The cover series of a static graph is an empty List<Cover>
 	 */
-	//@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade = { CascadeType.ALL })
+	@OneToOne(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn(name = coverSeriesColumnName)
 	private List<Cover> coverSeries=new ArrayList<Cover>();
 
 	///////////////////////////// CONSTRUCTORS /////////////////////////////

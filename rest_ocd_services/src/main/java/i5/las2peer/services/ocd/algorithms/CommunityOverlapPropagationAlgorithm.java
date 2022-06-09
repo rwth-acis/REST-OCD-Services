@@ -59,15 +59,10 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
                 membershipsMaps=initMembershipsMaps(cg,membershipsMaps);//if has new nodes,set all these new nodes by its own id as label with bc=1
                 membershipsMaps=COPRAMaps(adjacencyMaps,membershipsMaps,v,loops);
                 Matrix memberships=formMemberships(curCgNodeCount,maxCommunitiesNumber,membershipsMaps);
-                printCommunities(memberships);
+                //printCommunities(memberships);
                 resulting_cover.addCoverintoCoverSeries(new Cover(cg,memberships));
             }
 
-            System.out.println("算法运行结束时cover series:");
-            int order=1;
-            for (Cover c:resulting_cover.getCoverSeries()){
-                System.out.println(order +c.getId());
-            }
             return resulting_cover;
         }else{//else it's a static Graph
             // create adjacency matrix from the input graph

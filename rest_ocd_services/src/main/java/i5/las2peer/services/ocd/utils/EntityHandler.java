@@ -260,6 +260,31 @@ public class EntityHandler {
 	}
 
 	/////////////////////////// COVERS ///////////////////////////
+	/**
+	 * Persists a Cover
+	 *
+	 * @param cover
+	 *      	Cover
+	 * @return persistence id of the stored cover
+	 */
+	public long storeCover(Cover cover) {
+		EntityManager em = getEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		try {
+			tx.begin();
+			em.persist(cover);
+			tx.commit();
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+			if (tx != null && tx.isActive()) {
+				tx.rollback();
+			}
+			throw e;
+		}
+		em.close();
+		return cover.getId();
+	}
+
 
 	/**
 	 * Get a stored community-cover of a graph by its index

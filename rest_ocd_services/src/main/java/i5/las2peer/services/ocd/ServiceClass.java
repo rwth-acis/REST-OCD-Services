@@ -1134,7 +1134,8 @@ public class ServiceClass extends RESTService {
 				Cover cover = null;
 				try {
 					cover = entityHandler.getCover(username, graphId, coverId);
-					System.out.println("getCover请求时cover情况:"+cover);
+
+
 					// Paint cover if not yet done when requested type is default XML
 					if(format == CoverOutputFormat.DEFAULT_XML && !cover.isPainted()) { 
 						CoverPainter painter = (new CoverPainterFactory()).getInstance(CoverPaintingType.PREDEFINED_COLORS);
@@ -1298,6 +1299,7 @@ public class ServiceClass extends RESTService {
 					try {
 						tx.begin();
 						graph = em.find(CustomGraph.class, id);
+						//graph = entityHandler.getGraph(username,graphId);
 						if (graph == null) {
 							requestHandler.log(Level.WARNING,
 									"user: " + username + ", " + "Graph does not exist: graph id " + graphId);
@@ -1342,8 +1344,23 @@ public class ServiceClass extends RESTService {
 						log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
 						cover.setCreationMethod(log);
 						cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
+
+						if(graph.isOfType(GraphType.DYNAMIC)){
+							int order=1;
+							for(CustomGraph staticGraph:graph.getGraphSeries()){
+								Cover staticCover=new Cover(staticGraph);
+								staticCover.setCreationMethod(log);
+								staticCover.setName(URLDecoder.decode(nameStr, "UTF-8")+"Order"+(order++));
+								cover.addCoverintoCoverSeries(staticCover);
+								em.persist(staticCover);
+								//entityHandler.storeCover(staticCover);
+							}
+						}
+						//entityHandler.storeCover(cover);
+
 						em.persist(cover);
 						tx.commit();
+
 					} catch (RuntimeException e) {
 						if (tx != null && tx.isActive()) {
 							tx.rollback();
@@ -1355,7 +1372,7 @@ public class ServiceClass extends RESTService {
 					 * Registers and starts algorithm
 					 */
 					threadHandler.runAlgorithm(cover, algorithm, componentNodeCountFilter);
-					System.out.println("post run algorithm结束时cover的coverseries:");
+
 				}
 				return Response.ok(requestHandler.writeId(cover)).build();
 			} catch (Exception e) {

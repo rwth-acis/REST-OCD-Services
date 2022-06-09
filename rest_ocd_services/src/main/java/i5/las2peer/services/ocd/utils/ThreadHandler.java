@@ -352,6 +352,14 @@ public class ThreadHandler {
 						throw new IllegalStateException();
 					}
 					cover.setMemberships(calculatedCover.getMemberships());
+
+					int coverSeriesSize=cover.getCoverSeries().size();
+					if(coverSeriesSize>0){
+						for(int index=0;index<coverSeriesSize;index++){
+							cover.getCoverSeries().get(index).setMemberships(calculatedCover.getCoverSeries().get(index).getMemberships());
+						}
+					}
+
 					OcdMetricLog calculatedExecTime = calculatedCover.getMetrics().get(0);
 					OcdMetricLog log = new OcdMetricLog(calculatedExecTime.getType(), calculatedExecTime.getValue(), calculatedExecTime.getParameters(), cover);
 					log.setStatus(ExecutionStatus.COMPLETED);
