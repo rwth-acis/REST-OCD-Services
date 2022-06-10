@@ -326,7 +326,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         // Detect all connected components in the graph
         List<CustomGraph> connectedComponents = getConnectedComponents(graph);
 
-        // Method clusterComponent is called for every connected component
+        // Call method clusterComponent for every connected component
         for (int i = 0; i < connectedComponents.size(); i++) {
             try {
                 clusterCores.addAll(clusterComponent(connectedComponents.get(i)));
@@ -338,14 +338,19 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         // Add removed nodes back to cluster cores
         for (int i = 0; i < R.size(); i++) {
             for (int j = 0; j < clusterCores.size(); i++) {
-                // Create new graph by adding node i of set R to cluster core j
-                CustomGraph extendedCore = reAddNode(clusterCores.get(j), R.get(i));
+                // Add the node i in R to the graph cluster j
+                CustomGraph extendedCore = clusterCores.get(j);
+                extendedCore.reInsertNode(R.get(i));
 
-                if (isAdjacent(graph, clusterCores.get(i), R.get(i)) || calculateWeight(clusterCores.get(j)) > calculateWeight(clusterCores.get(j)) {
-                    // Add node back to cluster core
+                // Check if nodes in R are immediately adjacent to the cluster cores or if they increase their weight
+                if (isAdjacent(graph, clusterCores.get(i), R.get(i)) || calculateWeight(clusterCores.get(j)) > calculateWeight(extendedCore)) {
+                    // Add node to cluster
+                    clusterCores.set(j, extendedCore);
                 }
             }
         }
+
+        // Call Iterative Scan algorithm on output of Rank Removal
 
         return outputCover;
     }
@@ -398,7 +403,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * This method takes a connected component as input and checks if its'
+     * This method takes a connected component as input and checks if its
      * number of nodes is below maxCoreSize. If not, t nodes are removed
      * and added to set R. This process is repeated until the connected
      * component is either in between the boundaries minCoreSize and maxCoreSize
@@ -453,7 +458,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
                 break;
 
             case OUT_DEGREE:
-                node = calculateOutDegree(graph);
+                node = calculateDegree(graph);
                 break;
 
             default:
@@ -494,27 +499,29 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * This method calculates the out degree of every node
+     * This method calculates the degree of every node
      * in the passed graph and returns the node with the
      * highest out degree
      *
      * @param graph
      * @return
      */
-    public Node calculateOutDegree(CustomGraph graph) {
+    public Node calculateDegree(CustomGraph graph) {
         Node node = null;
         // Array of all nodes in the graph
         Node[] nodes = graph.getNodeArray();
 
         // Find the node with the highest out degree in the graph
         for (int i = 0; i < nodes.length; i++) {
-            if (node == null || nodes[i].outDegree() > node.outDegree()) {
+            if (node == null || nodes[i].degree() > node.degree()) {
                 node = nodes[i];
             }
         }
 
         return node;
     }
+
+    // TODO: Refactor using created adjacency matrix
 
     /**
      * This method checks if there exists an edge between a node of the provided
@@ -539,7 +546,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         return false;
     }
 
-    // TODO: Ok for directed and undirected graphs?
+    // TODO: Ok for directed and undirected graphs? Method still necessary?
 
     /**
      * This method returns an adjacency matrix of the passed graph. If
@@ -564,45 +571,73 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         return matrix;
     }
 
+    /**
+     * This method calls the chosen weight function and return the calculated
+     * weight of the passed graph.
+     *
+     * @return
+     */
+    public double calculateWeight(CustomGraph graph) {
+        // Weight variable initialized with an unusual value
+        double weight = -10000;
+        switch (selectedWeightFunctionRaRe) {
+            case INTERNAL_EDGE_PROBABILITY:
+                weight = calculateInternalEdgeIntensity(graph);
+                break;
+
+            case EDGE_RATIO:
+                weight = calculateEdgeRatio(graph);
+                break;
+
+            case INTENSITY_RATIO:
+                weight = calculateIntensityRatio(graph);
+                break;
+
+            default:
+                System.out.println("This weight function does not exist!");
+                break;
+        }
+
+        return weight;
+    }
+
     // TODO: Implement method
 
     /**
+     *
+     * @return
+     */
+    public double calculateInternalEdgeIntensity(CustomGraph graph) {
+
+    }
+
+    // TODO: Implement method
+
+    /**
+     *
+     * @return
+     */
+    public double calculateExternalEdgeIntensity(CustomGraph graph) {
+
+    }
+
+    // TODO: Implement method
+
+    /**
+     *
+     * @return
+     */
+    public double calculateIntensityRatio(CustomGraph graph) {
+        return calculateInternalEdgeIntensity(graph)/(calculateInternalEdgeIntensity(graph) + calculateExternalEdgeIntensity(graph));
+    }
+
+    /**
+     * This method calculates the edge ratio of a given CustomGraph.
      *
      * @param graph
-     * @param node
      * @return
      */
-    public CustomGraph reAddNode(CustomGraph graph, Node node) {
-
-    }
-
-    // TODO: Implement method
-
-    /**
-     *
-     * @return
-     */
-    public double calculateWeight() {
-
-    }
-
-    // TODO: Implement method
-
-    /**
-     *
-     * @return
-     */
-    public double calculateInternalEdgeIntensity() {
-
-    }
-
-    // TODO: Implement method
-
-    /**
-     *
-     * @return
-     */
-    public double calculateExternalEdgeIntensity() {
-
+    public double calculateEdgeRatio(CustomGraph graph) {
+        return graph.edgeCount()/(graph.edgeCount() + calculateExternalEdgeIntensity(graph));
     }
 }
