@@ -1345,21 +1345,35 @@ public class ServiceClass extends RESTService {
 						cover.setCreationMethod(log);
 						cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
 
+
+
 						if(graph.isOfType(GraphType.DYNAMIC)){
 							int order=1;
-							for(CustomGraph staticGraph:graph.getGraphSeries()){
-								Cover staticCover=new Cover(staticGraph);
-								staticCover.setCreationMethod(log);
-								staticCover.setName(URLDecoder.decode(nameStr, "UTF-8")+"Order"+(order++));
-								cover.addCoverintoCoverSeries(staticCover);
-								em.persist(staticCover);
-								//entityHandler.storeCover(staticCover);
+							if(graph.getGraphSeries().size()>0){
+								for(CustomGraph staticGraph:graph.getGraphSeries()){
+									Cover staticCover=new Cover(staticGraph);
+									staticCover.setCreationMethod(log);
+									staticCover.setName(URLDecoder.decode(nameStr, "UTF-8")+"Order"+(order++));
+									cover.addCoverintoCoverSeries(staticCover);
+									System.out.println("staticCover in ServiceClass before persist:"+staticCover.getId());
+									entityHandler.storeCover(staticCover);
+									//em.persist(staticCover);
+									System.out.println("staticCover in ServiceClass after persist:"+staticCover.getId());
+
+
+								}
 							}
 						}
-						//entityHandler.storeCover(cover);
 
-						em.persist(cover);
+						System.out.println("cover in ServiceClass before persist (after adding coverSeries):"+cover.getId());
+						entityHandler.storeCover(cover);
+						//em.persist(cover);
+						System.out.println("cover in ServiceClass after persist (after adding coverSeries):"+cover.getId());
 						tx.commit();
+						System.out.println("cover in ServiceClass after commit (after adding coverSeries):"+cover.getId());
+						for(Cover staticCover:cover.getCoverSeries()){
+							System.out.println("staticCover in ServiceClass after commit:"+staticCover.getId());
+						}
 
 					} catch (RuntimeException e) {
 						if (tx != null && tx.isActive()) {

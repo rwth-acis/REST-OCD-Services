@@ -13,18 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -56,7 +45,7 @@ public class Cover {
 	public static final String idColumnName = "ID";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
 	public static final String simCostsColumnName = "SIMILARITYCOSTS";
-	private static final String coverSeriesColumnName = "COVER_SERIES";
+	// private static final String coverSeriesColumnName = "COVER_SERIES";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 
@@ -136,9 +125,10 @@ public class Cover {
 	 * Dynamic graph has a series of covers.
 	 * The cover series of a static graph is an empty List<Cover>
 	 */
-	@OneToOne(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinColumn(name = coverSeriesColumnName)
-	private List<Cover> coverSeries=new ArrayList<Cover>();
+	//@ElementCollection
+//	@OneToOne(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+//	@JoinColumn(name = coverSeriesColumnName)
+	private List<Cover> coverSeries=new ArrayList<>();
 
 	///////////////////////////// CONSTRUCTORS /////////////////////////////
 

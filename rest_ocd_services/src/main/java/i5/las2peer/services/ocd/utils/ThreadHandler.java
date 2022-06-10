@@ -357,6 +357,9 @@ public class ThreadHandler {
 					if(coverSeriesSize>0){
 						for(int index=0;index<coverSeriesSize;index++){
 							cover.getCoverSeries().get(index).setMemberships(calculatedCover.getCoverSeries().get(index).getMemberships());
+							cover.getCoverSeries().get(index).getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+							//em.persist(cover.getCoverSeries().get(index));
+							//entityHandler.storeCover(cover.getCoverSeries().get(index));
 						}
 					}
 
@@ -365,6 +368,8 @@ public class ThreadHandler {
 					log.setStatus(ExecutionStatus.COMPLETED);
 					cover.addMetric(log);
 					cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+					//entityHandler.storeCover(cover);
+					//em.persist(cover);
 					tx.commit();
 		    	} catch( RuntimeException e ) {
 					if( tx != null && tx.isActive() ) {
