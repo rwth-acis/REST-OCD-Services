@@ -268,7 +268,8 @@ public class ThreadHandler {
     				}
     				cover.getGraph().setStructureFrom(calculatedCover.getGraph());
     				cover.getGraph().getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
-    				tx.commit();
+					cover.getGraph().setNodeEdgeCountColumnFields(); // before persisting to db, update node/edge count information
+					tx.commit();
     			} catch( RuntimeException ex ) {
     				if( tx != null && tx.isActive() ) tx.rollback();
     				error = true;
@@ -551,7 +552,6 @@ public class ThreadHandler {
 	
 	/**
 	 * Interrupts a metric execution without synchronization.
-	 * @param cover The cover the metric is run on.
 	 * @param logId The id of the reserved persisted log the metric is calculating.
 	 */
 	private void unsynchedInterruptMetric(OcdMetricLogId logId) {

@@ -3,8 +3,6 @@ package i5.las2peer.services.ocd;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -32,6 +30,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.*;
 import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
@@ -41,13 +40,11 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.ManualDeployment;
 import i5.las2peer.api.security.UserAgent;
-import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
 import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.execution.ExecutionContext;
 import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -86,16 +83,6 @@ import i5.las2peer.services.ocd.cooperation.simulation.SimulationBuilder;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
 import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationLog;
-import i5.las2peer.services.ocd.graphs.CoverCreationType;
-import i5.las2peer.services.ocd.graphs.CoverId;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
-import i5.las2peer.services.ocd.graphs.GraphCreationLog;
-import i5.las2peer.services.ocd.graphs.GraphCreationType;
-import i5.las2peer.services.ocd.graphs.GraphProcessor;
-import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
@@ -105,7 +92,6 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.InvocationHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
@@ -487,6 +473,7 @@ public class ServiceClass extends RESTService {
 				graph.setCreationMethod(log);
 				GraphProcessor processor = new GraphProcessor();
 				processor.determineGraphTypes(graph);
+				graph.setNodeEdgeCountColumnFields(); // before persisting the graph, update node/edge count information
 				if (doMakeUndirected) {
 					Set<GraphType> graphTypes = graph.getTypes();
 					if (graphTypes.remove(GraphType.DIRECTED)) {
@@ -645,7 +632,8 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				List<CustomGraph> queryResults;
+				//List<CustomGraph> queryResults; // replaced by more efficient method below
+				List<CustomGraphMeta> queryResults;
 				List<Integer> executionStatusIds = new ArrayList<Integer>();
 				if (!executionStatusesStr.equals("")) {
 					try {
@@ -691,13 +679,16 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
 				}
-				queryResults = entityHandler.getGraphs(username, firstIndex, length, executionStatusIds);
+				//queryResults = entityHandler.getGraphs(username, firstIndex, length, executionStatusIds); // replaced by more efficient method below
+				queryResults = entityHandler.getGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
 
 				String responseStr;
 				if (includeMeta) {
-					responseStr = requestHandler.writeGraphMetas(queryResults);
+					//responseStr = requestHandler.writeGraphMetas(queryResults); // replaced by more efficient method below
+					responseStr = requestHandler.writeGraphMetasEfficiently(queryResults);
 				} else {
-					responseStr = requestHandler.writeGraphIds(queryResults);
+					//responseStr = requestHandler.writeGraphIds(queryResults); // replaced by more efficient method below
+					responseStr = requestHandler.writeGraphIdsEfficiently(queryResults);
 				}
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {

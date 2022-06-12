@@ -59,6 +59,9 @@ public class CustomGraph extends Graph2D {
 	public static final String idColumnName = "ID";
 	public static final String userColumnName = "USER_NAME";
 	private static final String nameColumnName = "NAME";
+	public static final String nodeCountColumnName = "NODE_COUNT";
+	public static final String edgeCountColumnName = "EDGE_COUNT";
+
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 	private static final String idEdgeMapKeyColumnName = "RUNTIME_ID";
@@ -72,6 +75,9 @@ public class CustomGraph extends Graph2D {
 	public static final String USER_NAME_FIELD_NAME = "userName";
 	public static final String ID_FIELD_NAME = "id";
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
+	public static final String NODE_COUNT_FIELD_NAME = "nodeCount";
+	public static final String EDGE_COUNT_FIELD_NAME = "edgeCount";
+
 
 	//////////////////////////////////////////////////////////////////
 	///////// Attributes
@@ -104,6 +110,21 @@ public class CustomGraph extends Graph2D {
 	 */
 	@Column(name = pathColumnName)
 	private String path = "";
+
+	/**
+	 * The number of nodes in the graph.
+	 */
+	@Column(name = nodeCountColumnName)
+	private long nodeCount;
+
+	/**
+	 * The number of edges in the graph.
+	 */
+	@Column(name = edgeCountColumnName)
+	private long edgeCount;
+
+
+
 
 	// /**
 	// * The description of the graph.
@@ -540,6 +561,14 @@ public class CustomGraph extends Graph2D {
 	 */
 	public void setNodeName(Node node, String name) {
 		getCustomNode(node).setName(name);
+	}
+
+	/**
+	 * Update node and edge count numbers
+	 */
+	public void setNodeEdgeCountColumnFields(){
+		this.nodeCount = this.nodeCount();
+		this.edgeCount = this.edgeCount();
 	}
 
 	public int getNodeId(Node node) {
