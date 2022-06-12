@@ -4,12 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
@@ -17,8 +12,8 @@ import i5.las2peer.services.ocd.adapters.Adapters;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.preprocessing.TextProcessor;
 import i5.las2peer.services.ocd.utils.DocIndexer;
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 /**
  * A graph input adapter for a node list which includes a content attribute for each node and edges in form of a 
@@ -179,7 +174,7 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 				String customNodeReceiver = line.get(receiverIndex);
 				// node does not yet exist
 				if(!nodeNames.containsKey(customNodeName)){
-					node = graph.createNode();						//create new node and add attributes
+					node = graph.addNode(UUID.randomUUID().toString());				//create new node and add attributes
 					graph.setNodeName(node , customNodeName);
 					nodeContents.put(customNodeName, customNodeContent);
 					//graph.setNodeContent(node, customNodeContent);
@@ -222,7 +217,7 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 			HashMap<String,Integer> list = entry.getValue();
 			for(Entry<String,Integer> e : list.entrySet()){
 				if(nodeNames.containsKey(e.getKey())){
-					Edge edge = graph.createEdge(curr, nodeNames.get(e.getKey()));
+					Edge edge = graph.addEdge(UUID.randomUUID().toString(), curr, nodeNames.get(e.getKey()));
 					graph.setEdgeWeight(edge, e.getValue());
 				}
 			}
@@ -266,7 +261,7 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 				String customNodeContent = textProc.preprocText(line.get(contentIndex));
 				String customNodeThread = line.get(threadIndex);
 				if(!nodeNames.containsKey(customNodeName)){
-					node = graph.createNode();
+					node = graph.addNode(UUID.randomUUID().toString());
 					graph.setNodeName(node , customNodeName);
 					nodeContents.put(customNodeName, customNodeContent);
 					//graph.setNodeContent(node, customNodeContent);
@@ -302,7 +297,7 @@ public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdap
 				for(String str:list){
 					for(Entry<Node, LinkedList<String>> reciever : nodeThreads.entrySet()){
 						if(curr != reciever.getKey() && reciever.getValue().contains(str)){
-						graph.createEdge(curr, reciever.getKey());
+						graph.addEdge(UUID.randomUUID().toString(), curr, reciever.getKey());
 						//graph.setEdgeWeight(edge, reciever.getValue());
 						}
 					}

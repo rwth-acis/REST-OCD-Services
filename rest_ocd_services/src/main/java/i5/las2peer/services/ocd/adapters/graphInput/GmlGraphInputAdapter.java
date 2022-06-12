@@ -8,121 +8,110 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
-import y.io.GMLIOHandler;
+import org.apache.lucene.util.ThreadInterruptedException;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.stream.file.FileSourceGML;
+import org.graphstream.stream.file.gml.GMLParser;
 
 /**
  * A graph input adapter for GML format, based on the GMLIOHandler of the yFiles library.
  * In case each node has a label with a unique value node names will be derived from there. Otherwise node names will be set as indices.
  * In case each edge has a label with a numeric value edge weights will be derived from there.
- * @author Sebastian
  *
+ * @author Sebastian
  */
+//TODO: Test for graphstream
 public class GmlGraphInputAdapter extends AbstractGraphInputAdapter {
-	
-	@Override
-	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
-		
-	}
-	
-	@Override
-	public CustomGraph readGraph() throws AdapterException {
-		GMLIOHandler ioh = new GMLIOHandler();
-		Scanner scanner = new Scanner(reader);
-		String inString = scanner.useDelimiter("\\A").next();
-		scanner.close();
-		InputStream is = new ByteArrayInputStream(inString.getBytes());
-		CustomGraph graph = new CustomGraph();
-		try {
-			ioh.read(graph, is);
-		} catch (IOException e) {
-			throw new AdapterException(e);
-		} finally {
-			try {
-				is.close();
-			} catch (IOException e) {
-			}
-		}
-		/*
-		 * Check whether node labels are unique names.
-		 */
-		NodeCursor nodes = graph.nodes();
-		Node node;
-		HashMap<Node, String> nodenames = new HashMap<Node, String>();
-		try {
-			while(nodes.ok()) {
-				node = nodes.node();
-				String name = graph.getRealizer(node).getLabel().getText();
-				if(name.isEmpty()) {
-					break;
-				}
-				nodenames.put(node, name);
-				nodes.next();
-			}
-		} catch (RuntimeException e) {
-			// label not set
-		}
-		nodes.toFirst();
-		/*
-		 * Node labels are unique.
-		 */
-		if(nodenames.size() == graph.nodeCount()) {
-			while(nodes.ok()) {
-				node = nodes.node();
-				graph.setNodeName(node, nodenames.get(node));
-				nodes.next();
-			}
-		}
-		/*
-		 * Node labels are not unique.
-		 */
-		else {
-			while(nodes.ok()) {
-				node = nodes.node();
-				graph.setNodeName(node, Integer.toString(node.index()));
-				nodes.next();
-			}
-		}
-		/*
-		 * Check whether node labels are numeric.
-		 */
-		EdgeCursor edges = graph.edges();
-		Edge edge;
-		HashMap<Edge, Double> edgeweights = new HashMap<Edge, Double>();
-		try {
-			while(edges.ok()) {
-				edge = edges.edge();
-				String weightStr = graph.getRealizer(edge).getLabel().getText();
-				Double weight = Double.parseDouble(weightStr);
-				if(weight != null) {
-					edgeweights.put(edge, weight);
-				}
-				else {
-					break;
-				}
-				edges.next();
-			}
-		} catch (RuntimeException e) {
-			// label not set
-		}
-		edges.toFirst();
-		/*
-		 * all labels correspond numeric
-		 */
-		if(edgeweights.size() == graph.edgeCount()) {
-			while(edges.ok()) {
-				edge = edges.edge();
-				graph.setEdgeWeight(edge, edgeweights.get(edge));
-				edges.next();
-			}
-		}
-		return graph;
-	}
+
+    @Override
+    public void setParameter(Map<String, String> param) throws IllegalArgumentException, ParseException {
+
+    }
+
+    @Override
+    public CustomGraph readGraph() throws AdapterException {
+        CustomGraph graph = new CustomGraph();
+        FileSourceGML fileSource = new FileSourceGML();
+        fileSource.addSink(graph);
+
+        Scanner scanner = new Scanner(reader);
+        String inString = scanner.useDelimiter("\\A").next();
+        scanner.close();
+        try {
+            fileSource.begin(inString);
+            while (fileSource.nextEvents()) { //TODO: Check if that is necessary here or if we shouldnt just do readAll
+                if (Thread.interrupted()) {
+                    throw new InterruptedException();
+                }
+            }
+        } catch (Exception e) {
+            throw new AdapterException("ERROR Could not read file: " + e.getMessage());
+        }
+
+        /*
+         * Check whether node labels are unique names.
+         */
+        Iterator<Node> nodesIt = graph.iterator();
+        Node node;
+        HashMap<Node, String> nodenames = new HashMap<Node, String>();
+        while (nodesIt.hasNext()) {
+            node = nodesIt.next();
+            CharSequence name = node.getLabel("label");
+            if (name == null) {
+                break;
+            }
+            nodenames.put(node, name.toString());
+        }
+        nodesIt = graph.iterator();
+        /*
+         * Node labels are unique.
+         */
+        if (nodenames.size() == graph.getNodeCount()) {
+            while (nodesIt.hasNext()) {
+                node = nodesIt.next();
+                graph.setNodeName(node, nodenames.get(node));
+            }
+        }
+        /*
+         * Node labels are not unique.
+         */
+        else {
+            while (nodesIt.hasNext()) {
+                node = nodesIt.next();
+                graph.setNodeName(node, node.getId()); //TODO: Changed from Index to Id here, check if that makes sense with how graphstream reads it
+            }
+        }
+        /*
+         * Check whether edge labels/weights are numeric.
+         */
+        Iterator<Edge> edges = graph.edges().iterator();
+        Edge edge;
+        HashMap<Edge, Double> edgeweights = new HashMap<Edge, Double>();
+        while (edges.hasNext()) {
+            edge = edges.next();
+            Double weight = edge.getNumber("weight");
+            if (!weight.isNaN()) {
+                edgeweights.put(edge, weight);
+            } else {
+                break;
+            }
+        }
+        edges = graph.edges().iterator();
+        /*
+         * all labels correspond numeric
+         */
+        if (edgeweights.size() == graph.getEdgeCount()) {
+            while (edges.hasNext()) {
+                edge = edges.next();
+                graph.setEdgeWeight(edge, edgeweights.get(edge));
+            }
+        }
+        return graph;
+    }
 
 }

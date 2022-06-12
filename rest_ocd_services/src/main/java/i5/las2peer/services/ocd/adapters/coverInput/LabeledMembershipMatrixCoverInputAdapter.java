@@ -7,14 +7,14 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 /**
  * A cover input adapter for the labeled membership matrix format.
@@ -42,21 +42,20 @@ public class LabeledMembershipMatrixCoverInputAdapter extends AbstractCoverInput
 	
 	@Override
 	public Cover readCover(CustomGraph graph) throws AdapterException {
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodes = graph.iterator();
 		Node node;
 		Map<String, Node> reverseNodeNames = new HashMap<String, Node>();
-		while(nodes.ok()) {
-			node = nodes.node();
+		while(nodes.hasNext()) {
+			node = nodes.next();
 			reverseNodeNames.put(graph.getNodeName(node), node);
-			nodes.next();
 		}
 		try {
 			List<String> line = Adapters.readLine(reader);
-			Matrix memberships = new CCSMatrix(graph.nodeCount(), line.size() - 1);
+			Matrix memberships = new CCSMatrix(graph.getNodeCount(), line.size() - 1);
 			int nodeIndex;
 			double belongingFactor;
 			while(line.size() > 0) {
-				nodeIndex = reverseNodeNames.get(line.get(0)).index();
+				nodeIndex = reverseNodeNames.get(line.get(0)).getIndex();
 				for(int i=1; i<line.size(); i++) {
 					belongingFactor = Double.parseDouble(line.get(i));
 					memberships.set(nodeIndex, i-1, belongingFactor);

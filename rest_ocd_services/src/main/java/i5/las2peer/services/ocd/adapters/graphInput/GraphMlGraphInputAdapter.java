@@ -3,25 +3,12 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.ParseException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.EdgeMap;
-import y.base.Node;
-import y.base.NodeCursor;
-import y.base.NodeMap;
-import y.io.GraphMLIOHandler;
-import y.io.graphml.GraphMLHandler;
-import y.io.graphml.KeyScope;
-import y.io.graphml.KeyType;
+import org.graphstream.stream.file.FileSourceGraphML;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * A graph input adapter for GraphML format, based on the GraphMLIOHandler of the yFiles library..
@@ -30,6 +17,7 @@ import y.io.graphml.KeyType;
  * @author Sebastian
  *
  */
+//TODO: Test for graphstream
 public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 
 	@Override
@@ -39,78 +27,69 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 	
 	@Override
 	public CustomGraph readGraph() throws AdapterException {
+		CustomGraph graph = new CustomGraph();
+		FileSourceGraphML fileSource = new FileSourceGraphML();
+		fileSource.addSink(graph);
+
 		Scanner scanner = new Scanner(reader);
 		String inString = scanner.useDelimiter("\\A").next();
 		scanner.close();
-		InputStream is = new ByteArrayInputStream(inString.getBytes());
-		GraphMLIOHandler ioh = new GraphMLIOHandler();
-		CustomGraph graph = new CustomGraph();
-		NodeMap nodeNames = graph.createNodeMap();
-		EdgeMap edgeWeights = graph.createEdgeMap();
-		GraphMLHandler core = ioh.getGraphMLHandler();
-		core.addInputDataAcceptor("name", nodeNames, KeyScope.NODE, KeyType.STRING);
-		core.addInputDataAcceptor("weight", edgeWeights, KeyScope.EDGE, KeyType.DOUBLE);
 		try {
-			ioh.read(graph, is);				
+			fileSource.begin(inString);
+			while (fileSource.nextEvents()) { //TODO: Check if that is necessary here or if we shouldnt just do readAll
+				if (Thread.interrupted()) {
+					throw new InterruptedException();
+				}
+			}
+		} catch (Exception e) {
+			throw new AdapterException("ERROR Could not read file: " + e.getMessage());
+		}
 			/*
 			 * Checks whether node names are unique.
 			 */
-			NodeCursor nodes = graph.nodes();
-			Node node;
-			String name;
-			Set<String> names = new HashSet<String>();
-			while(nodes.ok()) {
-				name = (String)nodeNames.get(nodes.node());
-				if(name == null || name.isEmpty()) {
+			Iterator<Node> nodes = graph.iterator();
+			CharSequence name;
+			HashMap<Integer, String> names = new HashMap<Integer, String>();
+			while(nodes.hasNext()) {
+				Node node = nodes.next();
+				name = node.getLabel("name");
+				if(name == null || name.toString().isEmpty()) {
 					break;
 				}
-				names.add(name);
-				nodes.next();
+				names.put(node.getIndex(), name.toString());
 			}
-			nodes.toFirst();
+			nodes = graph.iterator();
 			/*
 			 * Sets unique node names.
 			 */
-			if(names.size() == graph.nodeCount()) {
-				while(nodes.ok()) {
-					node = nodes.node();
-					graph.setNodeName(node, (String)nodeNames.get(node));
-					nodes.next();
+			if(names.size() == graph.getNodeCount()) {
+				while(nodes.hasNext()) {
+					Node node = nodes.next();
+					graph.setNodeName(node, names.get(node.getIndex()));
 				}
 			}
 			/*
 			 * If names not unique sets indices instead.
 			 */
 			else {
-				while(nodes.ok()) {
-					node = nodes.node();
-					graph.setNodeName(node, Integer.toString(node.index()));
+				while(nodes.hasNext()) {
+					Node node = nodes.next();
+					graph.setNodeName(node, node.getId()); //TODO: Changed from Index to Id here, check if that makes sense with how graphstream reads it
 					nodes.next();
 				}
 			}
-			EdgeCursor edges = graph.edges();
+			Iterator<Edge> edges = graph.edges().iterator();
 			Edge edge;
-			while(edges.ok()) {
-				edge = edges.edge();
-				Double weight = (Double)edgeWeights.get(edge);
-				if(weight != null) {
+			while(edges.hasNext()) {
+				edge = edges.next();
+				Double weight = edge.getNumber("weight");
+				if(!weight.isNaN()) {
 					graph.setEdgeWeight(edge, weight);
 				}
 				else {
 					break;
 				}
-				edges.next();
 			}
-		} catch (Exception e) {
-			throw new AdapterException(e);
-		} finally {
-			graph.disposeNodeMap(nodeNames);
-			graph.disposeEdgeMap(edgeWeights);
-			try {
-				is.close();
-			} catch (IOException e) {
-			}
-		}
 		return graph;
 	}
 

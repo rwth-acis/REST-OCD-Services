@@ -27,14 +27,15 @@ import org.xml.sax.SAXException;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 //import i5.las2peer.services.ocd.utils.DocIndexer;
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 import y.view.EdgeLabel;
 import y.view.EdgeRealizer;
 import y.view.LineType;
 
 import java.io.Reader;
 import java.io.FileReader;
+import java.util.UUID;
 
 //TODO: Currently only for the youtube graph, make more general
 //TODO: Be able to have more Attributes for nodes(at least string id's) and maybe edges(at least type) in general
@@ -187,7 +188,7 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 				}
 				// node does not yet exist
 				if (!nodeIds.containsKey(customNodeId)) {
-					node = graph.createNode(); // create new node and add attributes
+					node = graph.addNode(customNodeId); // create new node and add attributes
 					graph.setNodeName(node, customNodeId);
 					nodeIds.put(customNodeId, node);
 					// nodeContents.put(customNodeName, customNodeContent);
@@ -206,11 +207,11 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 				
 				if (nodeIds.containsKey(e.getAttribute("source")) && nodeIds.containsKey(e.getAttribute("target"))) {
 					if (!edgeMap.containsKey(e.getAttribute("label"))) {
-						Edge edge = graph.createEdge(nodeIds.get(e.getAttribute("source")), nodeIds.get(e.getAttribute("target")));
+						Edge edge = graph.addEdge(UUID.randomUUID().toString(), nodeIds.get(e.getAttribute("source")), nodeIds.get(e.getAttribute("target")));
 						//setLineType(e, edge, graph);
 						
 						if (undirected) {
-							Edge reverseEdge = graph.createEdge(nodeIds.get(e.getAttribute("target")), nodeIds.get(e.getAttribute("source")));
+							Edge reverseEdge = graph.addEdge(UUID.randomUUID().toString(), nodeIds.get(e.getAttribute("target")), nodeIds.get(e.getAttribute("source")));
 							//graph.getRealizer(reverseEdge).setLineType(graph.getRealizer(edge).getLineType());
 						}
 						edgeMap.put(e.getAttribute("source") + e.getAttribute("target"), edge);
