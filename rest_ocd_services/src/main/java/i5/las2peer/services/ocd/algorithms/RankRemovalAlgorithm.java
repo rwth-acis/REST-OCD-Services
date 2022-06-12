@@ -3,24 +3,20 @@ package i5.las2peer.services.ocd.algorithms;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.measures.PageRank;
-import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmException;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmExecutor;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.utils.Pair;
-import org.glassfish.jersey.internal.inject.Custom;
-import org.la4j.matrix.Matrix;
-import org.la4j.matrix.dense.Basic2DMatrix;
 import y.base.*;
 
 import java.util.*;
 
 
-/**
- * The original version of the algorithm Rank Removal was published by Baumes et al. in 2005:
- * Finding communities by clustering a graph into overlapping subgraphs
- * ISBN: 972-99353-6-X
+/*
+  The original version of the algorithm Rank Removal was published by Baumes et al. in 2005:
+  Finding communities by clustering a graph into overlapping sub graphs
+  ISBN: 972-99353-6-X
  */
 
 /**
@@ -326,6 +322,9 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         // Detect all connected components in the graph
         List<CustomGraph> connectedComponents = getConnectedComponents(graph);
 
+        // List of detected communities
+        List<CustomGraph> communitiesRaRe = Collections.emptyList();
+
         // Call method clusterComponent for every connected component
         for (int i = 0; i < connectedComponents.size(); i++) {
             try {
@@ -335,17 +334,20 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             }
         }
 
+        // In the following cluster cores will be build up to form communities
+        communitiesRaRe = clusterCores;
+
         // Add removed nodes back to cluster cores
         for (int i = 0; i < R.size(); i++) {
-            for (int j = 0; j < clusterCores.size(); i++) {
+            for (int j = 0; j < communitiesRaRe.size(); i++) {
                 // Add the node i in R to the graph cluster j
-                CustomGraph extendedCore = clusterCores.get(j);
+                CustomGraph extendedCore = communitiesRaRe.get(j);
                 extendedCore.reInsertNode(R.get(i));
 
                 // Check if nodes in R are immediately adjacent to the cluster cores or if they increase their weight
-                if (isAdjacent(graph, clusterCores.get(i), R.get(i)) || calculateWeight(clusterCores.get(j)) > calculateWeight(extendedCore)) {
-                    // Add node to cluster
-                    clusterCores.set(j, extendedCore);
+                if (isAdjacent(graph, communitiesRaRe.get(i), R.get(i)) || calculateWeight(extendedCore, graph) > calculateWeight(clusterCores.get(j), graph)) {
+                    // Add node to cluster in list of cluster cores
+                    communitiesRaRe.set(j, extendedCore);
                 }
             }
         }
@@ -577,20 +579,20 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      *
      * @return
      */
-    public double calculateWeight(CustomGraph graph) {
+    public double calculateWeight(CustomGraph graph, CustomGraph cluster) {
         // Weight variable initialized with an unusual value
         double weight = -10000;
         switch (selectedWeightFunctionRaRe) {
             case INTERNAL_EDGE_PROBABILITY:
-                weight = calculateInternalEdgeIntensity(graph);
+                weight = calculateInternalEdgeProbability(cluster);
                 break;
 
             case EDGE_RATIO:
-                weight = calculateEdgeRatio(graph);
+                weight = calculateEdgeRatio(graph, cluster);
                 break;
 
             case INTENSITY_RATIO:
-                weight = calculateIntensityRatio(graph);
+                weight = calculateIntensityRatio(graph, cluster);
                 break;
 
             default:
@@ -601,43 +603,121 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         return weight;
     }
 
-    // TODO: Implement method
-
     /**
      *
      * @return
      */
     public double calculateInternalEdgeIntensity(CustomGraph graph) {
-
+        return graph.edgeCount()/(graph.nodeCount() * (graph.nodeCount() - 1));
     }
 
-    // TODO: Implement method
+    // TODO: Check functionality for undirected graphs
 
     /**
+     * This method returns the number of outgoing edges between the passed cluster
+     * and the original graph.
      *
      * @return
      */
-    public double calculateExternalEdgeIntensity(CustomGraph graph) {
+    public int calculateClusterOutDegree(CustomGraph graph, CustomGraph cluster) {
+        // Number of outgoing edges from the passed cluster
+        int outDegree = 0;
 
+        EdgeCursor edges = graph.edges();
+
+        // Loop iterates over every edge in the passed original graph
+        while (edges.ok()) {
+            Edge edge = edges.edge();
+
+            // Increase outDegree if edge has source in cluster and target not in cluster (implies target in graph but not in cluster)
+            if (cluster.contains(edge.source()) && !cluster.contains(edge.target())) {
+                outDegree++;
+            }
+
+            edges.next();
+        }
+
+        return outDegree;
     }
 
-    // TODO: Implement method
+    // TODO: Check functionality for undirected graphs
 
     /**
+     * This method returns the number of incoming edges between the passed cluster
+     * and the original graph.
      *
      * @return
      */
-    public double calculateIntensityRatio(CustomGraph graph) {
-        return calculateInternalEdgeIntensity(graph)/(calculateInternalEdgeIntensity(graph) + calculateExternalEdgeIntensity(graph));
+    public int calculateClusterInDegree(CustomGraph graph, CustomGraph cluster) {
+        // Number of incoming edges from the passed cluster
+        int inDegree = 0;
+
+        EdgeCursor edges = graph.edges();
+
+        // Loop iterates over every edge in the passed original graph
+        while (edges.ok()) {
+            Edge edge = edges.edge();
+
+            // Increase inDegree if edge has source outside the cluster and target in the cluster (implies target in cluster but not in graph)
+            if (cluster.contains(edge.target()) && !cluster.contains(edge.source())) {
+                inDegree++;
+            }
+
+            edges.next();
+        }
+
+        return inDegree;
     }
 
     /**
-     * This method calculates the edge ratio of a given CustomGraph.
+     *
+     * @param cluster
+     * @return
+     */
+    public int calculateClusterDegree(CustomGraph graph, CustomGraph cluster) {
+        return calculateClusterOutDegree(graph, cluster) + calculateClusterInDegree(graph, cluster);
+    }
+
+    // TODO: Check if n really is the number of nodes in the original graph!
+
+    /**
+     * This method calculate the external edge intensity of a
+     * passed graph cluster.
+     *
+     * @param graph     The passed graph cluster
+     * @return          The external edge intensity of the cluster graph
+     */
+    public double calculateExternalEdgeIntensity(CustomGraph graph, CustomGraph cluster) {
+        return calculateClusterDegree(graph, cluster)/(2 * cluster.nodeCount() * (graph.nodeCount() - cluster.nodeCount()));
+    }
+
+    /**
+     * This method returns the internal edge-probability of a given graph cluster
+     * that is equal to the internal edge intensity.
      *
      * @param graph
      * @return
      */
-    public double calculateEdgeRatio(CustomGraph graph) {
-        return graph.edgeCount()/(graph.edgeCount() + calculateExternalEdgeIntensity(graph));
+    public double calculateInternalEdgeProbability(CustomGraph graph) {
+        return calculateInternalEdgeIntensity(graph);
+    }
+
+    /**
+     * This method calculates the edge ratio of a given cluster,
+     * corresponding to an original graph.
+     *
+     * @param graph
+     * @return
+     */
+    public double calculateEdgeRatio(CustomGraph graph, CustomGraph cluster) {
+        return graph.edgeCount()/(graph.edgeCount() + calculateExternalEdgeIntensity(graph, cluster));
+    }
+
+    /**
+     *
+     * @return
+     */
+    public double calculateIntensityRatio(CustomGraph graph, CustomGraph cluster) {
+        return calculateInternalEdgeIntensity(graph)/(calculateInternalEdgeIntensity(graph) + calculateExternalEdgeIntensity(graph, cluster));
     }
 }
