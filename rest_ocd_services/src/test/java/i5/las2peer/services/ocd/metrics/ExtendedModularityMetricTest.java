@@ -13,6 +13,7 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 import java.util.HashSet;
+import java.util.UUID;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -20,7 +21,7 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
-import y.base.Node;
+import org.graphstream.graph.Node;
 public class ExtendedModularityMetricTest {
 
 	/*
@@ -29,7 +30,7 @@ public class ExtendedModularityMetricTest {
 	@Test
 	public void testExtendedModularityWithOneCommunity() throws AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		Matrix memberships = new Basic2DMatrix(graph.nodeCount(), 1);
+		Matrix memberships = new Basic2DMatrix(graph.getNodeCount(), 1);
 		for(int i=0; i<memberships.rows(); i++) {
 			memberships.set(i, 0, 1);
 		}
@@ -56,7 +57,7 @@ public class ExtendedModularityMetricTest {
 	@Test
 	public void testExtendedModularityOnDirectedAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
-		Matrix memberships = new CCSMatrix(graph.nodeCount(), 3);
+		Matrix memberships = new CCSMatrix(graph.getNodeCount(), 3);
 		memberships.set(0, 0, 1);
 		memberships.set(1, 0, 0.7);
 		memberships.set(1, 1, 0.3);
@@ -86,18 +87,18 @@ public class ExtendedModularityMetricTest {
 		for(int m_prime = 0; m_prime < 10; m_prime += 10) {
 			CustomGraph graph = new CustomGraph();
 			Matrix memberships = new CCSMatrix(2*m_prime + 2, m_prime + 1);
-			Node nodeA = graph.createNode();
-			Node nodeB = graph.createNode();
-			graph.createEdge(nodeA, nodeB);
-			memberships.set(nodeA.index(), 0, 1);
-			memberships.set(nodeB.index(), 0, 1);
+			Node nodeA = graph.addNode("A");
+			Node nodeB = graph.addNode("B");
+			graph.addEdge(UUID.randomUUID().toString(), nodeA, nodeB);
+			memberships.set(nodeA.getIndex(), 0, 1);
+			memberships.set(nodeB.getIndex(), 0, 1);
 			for(int i=0; i<m_prime; i++) {
-				Node aNeighbor = graph.createNode();
-				graph.createEdge(nodeA, aNeighbor);
-				memberships.set(aNeighbor.index(), 1+i, 1);
-				Node bNeighbor = graph.createNode();
-				graph.createEdge(nodeB, bNeighbor);
-				memberships.set(bNeighbor.index(), 1+i, 1);
+				Node aNeighbor = graph.addNode("ANEIGHBOR");
+				graph.addEdge(UUID.randomUUID().toString(), nodeA, aNeighbor);
+				memberships.set(aNeighbor.getIndex(), 1+i, 1);
+				Node bNeighbor = graph.addNode("BNEIGHBOR");
+				graph.addEdge(UUID.randomUUID().toString(), nodeB, bNeighbor);
+				memberships.set(bNeighbor.getIndex(), 1+i, 1);
 			}
 			graph.addType(GraphType.DIRECTED);
 			GraphProcessor processor = new GraphProcessor();

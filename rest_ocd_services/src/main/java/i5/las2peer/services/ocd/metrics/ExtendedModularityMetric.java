@@ -1,18 +1,14 @@
 package i5.las2peer.services.ocd.metrics;
 
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.GraphType;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.vector.Vectors;
 
-import y.base.Graph;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 
 /**
@@ -43,27 +39,25 @@ public class ExtendedModularityMetric implements StatisticalMeasure {
 	@Override
 	public double measure(Cover cover) throws InterruptedException {
 		double metricValue = 0;
-		Graph graph = cover.getGraph();
-		NodeCursor nodesA = graph.nodes();
-		NodeCursor nodesB = graph.nodes();
+		CustomGraph graph = cover.getGraph();
+		Iterator<Node> nodesA = graph.iterator();
+		Iterator<Node> nodesB = graph.iterator();
 		Node nodeA;
 		Node nodeB;
-		while(nodesA.ok()) {
-			nodeA = nodesA.node();
-			nodesB.toFirst();
-			while(nodesB.ok()) {
-				nodeB = nodesB.node();
-				if(nodeB.index() > nodeA.index()) {
+		while(nodesA.hasNext()) {
+			nodeA = nodesA.next();
+			nodesB = graph.iterator();
+			while(nodesB.hasNext()) {
+				nodeB = nodesB.next();
+				if(nodeB.getIndex() > nodeA.getIndex()) {
 					break;
 				}
 				metricValue +=
-						getNodePairModularityContribution(cover, nodesA.node(), nodesB.node());
-				nodesB.next();
+						getNodePairModularityContribution(cover, nodesA.next(), nodesB.next());
 			}
- 			nodesA.next();
 		}
-		if(graph.edgeCount() > 0) {
-			metricValue /= graph.edgeCount();
+		if(graph.getEdgeCount() > 0) {
+			metricValue /= graph.getEdgeCount();
 		}
 		return metricValue;
 	}
@@ -92,18 +86,18 @@ public class ExtendedModularityMetric implements StatisticalMeasure {
 	private double getNullModelContribution(Cover cover, Node nodeA, Node nodeB, int communityIndex) {
 		double coeff = cover.getBelongingFactor(nodeA, communityIndex);
 		coeff *= cover.getBelongingFactor(nodeB, communityIndex);
-		if(nodeA.index() != nodeB.index()) {
-			coeff *= nodeA.outDegree() * nodeB.inDegree() + nodeA.inDegree() * nodeB.outDegree();
+		if(nodeA.getIndex() != nodeB.getIndex()) {
+			coeff *= nodeA.getOutDegree() * nodeB.getInDegree() + nodeA.getInDegree() * nodeB.getOutDegree();
 		}
 		else {
-			coeff *= nodeA.outDegree() * nodeB.inDegree();
+			coeff *= nodeA.getOutDegree() * nodeB.getInDegree();
 		}
 		if(coeff != 0) {
-			coeff /= Math.pow(cover.getGraph().nodeCount(), 2);
+			coeff /= Math.pow(cover.getGraph().getNodeCount(), 2);
 			/*
 			 * Edge count cannot be 0 here due to the node degrees.
 			 */
-			coeff /= cover.getGraph().edgeCount();
+			coeff /= cover.getGraph().getEdgeCount();
 			coeff *= Math.pow(cover.getMemberships().getColumn(communityIndex).fold(Vectors.mkManhattanNormAccumulator()), 2);
 		}
 		return coeff;
@@ -124,10 +118,10 @@ public class ExtendedModularityMetric implements StatisticalMeasure {
 				throw new InterruptedException();
 			}
 			double coverContribution = 0;
-			if(nodeA.getEdgeTo(nodeB) != null) {
+			if(nodeA.getEdgeToward(nodeB) != null) {
 				coverContribution += getEdgeBelongingCoefficient(cover, nodeA, nodeB, i);
 			}
-			if(nodeB.getEdgeTo(nodeA) != null) {
+			if(nodeB.getEdgeToward(nodeA) != null) {
 				coverContribution += getEdgeBelongingCoefficient(cover, nodeB, nodeA, i);
 			}
 			double nullModelContribution = getNullModelContribution(cover, nodeA, nodeB, i);

@@ -51,7 +51,7 @@ public class ModularityMetricTest {
 		CustomGraph graph2 = OcdTestGraphFactory.getModularityTestGraph();
 		
 		
-		System.out.println(graph2.nodeCount());
+		System.out.println(graph2.getNodeCount());
 		Cover cover2 = new Cover(graph2);
 		Matrix memberships2 = new Basic2DMatrix(4,2); 
 		memberships2.set(0,0,1); 

@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.metrics;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 
@@ -13,8 +10,7 @@ import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 /**
  * Implements the newman modularity combined with the cosine similarity of each of the nodes. 
@@ -69,19 +65,19 @@ public class NewmanModularityCombined implements StatisticalMeasure {
 		Similarities sim = new Similarities();
 		CustomGraph graph = cover.getGraph();
 		Termmatrix t = new Termmatrix(graph);
-		NodeCursor nodesA = graph.nodes();
-		NodeCursor nodesB = graph.nodes();
+		Iterator<Node> nodesA = graph.iterator();
+		Iterator<Node> nodesB = graph.iterator();
 		Node nodeA;
 		Node nodeB;
 		int indexA;
 		int indexB;
 		double iteration = 0;
-		while(nodesA.ok()) {
-			nodeA = nodesA.node();
-			nodesB.toFirst();
+		while(nodesA.hasNext()) {
+			nodeA = nodesA.next();
+			nodesB = graph.iterator();
 			indexA = t.getNodeIdList().indexOf(nodeA);
-			while(nodesB.ok()) {
-				nodeB = nodesB.node();
+			while(nodesB.hasNext()) {
+				nodeB = nodesB.next();
 				indexB = t.getNodeIdList().indexOf(nodeB);
 				if(indexB > indexA){
 					int coMembership = 0;
@@ -97,9 +93,7 @@ public class NewmanModularityCombined implements StatisticalMeasure {
 					metricValue +=
 							(alpha * linkStrength(cover, nodeA, nodeB) + ( 1- alpha) * sim.cosineSim((ArrayRealVector)t.getMatrix().getRowVector(indexA), (ArrayRealVector)t.getMatrix().getRowVector(indexB))) * coMembership;
 				}
-				nodesB.next();
 			}
- 			nodesA.next();
 		}
 		
 		return metricValue/iteration;
@@ -115,19 +109,19 @@ public class NewmanModularityCombined implements StatisticalMeasure {
 		
 		
 		double adjacencyEntry = 0;
-		if(cover.getGraph().containsEdge(nodeA, nodeB)){
+		if(nodeA.hasEdgeBetween(nodeB)){ //TODO: Check this method regarding same behaviour to with yFiles containsEdge, in theory this one should be more correct
 			adjacencyEntry = 1;
 		}
 		
-		if(cover.getGraph().edgeCount() != 0){
-		degreeProd = nodeA.inDegree() * nodeB.inDegree();
-		edgeCont = (adjacencyEntry - (degreeProd / (cover.getGraph().edgeCount() * 2)));
+		if(cover.getGraph().getEdgeCount() != 0){
+		degreeProd = nodeA.getInDegree() * nodeB.getInDegree();
+		edgeCont = (adjacencyEntry - (degreeProd / (cover.getGraph().getEdgeCount() * 2)));
 		}
 		
 		cont = edgeCont /* * coMembership*/;
 		
-		if(cover.getGraph().edgeCount() != 0){
-			cont /= (cover.getGraph().edgeCount() * 2);
+		if(cover.getGraph().getEdgeCount() != 0){
+			cont /= (cover.getGraph().getEdgeCount() * 2);
 		}
 		
 		return cont;

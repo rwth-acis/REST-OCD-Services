@@ -7,8 +7,8 @@ import org.la4j.vector.Vector;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.NodeCursor;
 
 public class CoverData {
 	
@@ -60,9 +60,9 @@ public class CoverData {
 	}
 	
 	public Integer[] degreeDist(CustomGraph graph){
-		Integer[] r = new Integer[graph.edgeCount()+1];
+		Integer[] r = new Integer[graph.getEdgeCount()+1];
 		NodeCursor nodes = graph.nodes();
-		while(nodes.ok()){
+		while(nodes.hasNext()){
 			Node n = nodes.node();
 			if(r[n.degree()] == null){
 				r[n.degree()] = 1;
@@ -85,7 +85,7 @@ public class CoverData {
 	}
 	
 	public Integer[] communitySizeDist(Cover cover){
-		Integer[] res = new Integer[cover.getGraph().nodeCount()+1];
+		Integer[] res = new Integer[cover.getGraph().getNodeCount()+1];
 		for(int i = 0; i < cover.communityCount(); i++){
 			if(res[cover.getCommunitySize(i)] == null){
 				res[cover.getCommunitySize(i)] = 1;
