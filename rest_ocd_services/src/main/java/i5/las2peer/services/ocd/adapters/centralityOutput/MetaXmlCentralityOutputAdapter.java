@@ -38,7 +38,7 @@ public class MetaXmlCentralityOutputAdapter extends AbstractCentralityOutputAdap
 			mapIdElt.appendChild(doc.createTextNode(Long.toString(map.getId())));
 			idElt.appendChild(mapIdElt);
 			Element graphIdElt = doc.createElement("GraphId");
-			graphIdElt.appendChild(doc.createTextNode(Long.toString(map.getGraph().getId())));
+			graphIdElt.appendChild(doc.createTextNode(map.getGraph().getId()));
 			idElt.appendChild(graphIdElt);
 			mapElt.appendChild(idElt);
 			Element graphElt = doc.createElement("Graph");
@@ -46,7 +46,7 @@ public class MetaXmlCentralityOutputAdapter extends AbstractCentralityOutputAdap
 			graphNameElt.appendChild(doc.createTextNode(map.getGraph().getName()));
 			graphElt.appendChild(graphNameElt);
 			Element graphSizeElt = doc.createElement("GraphSize");
-			graphSizeElt.appendChild(doc.createTextNode(Integer.toString(map.getGraph().nodeCount())));
+			graphSizeElt.appendChild(doc.createTextNode(Integer.toString(map.getGraph().getNodeCount())));
 			graphElt.appendChild(graphSizeElt);
 			mapElt.appendChild(graphElt);
 			/*

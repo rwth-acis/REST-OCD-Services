@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -18,8 +19,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 /**
  * A cover output adapter for the default XML format.
@@ -154,10 +154,10 @@ public class DefaultXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 				 * Community Memberships
 				 */
 				Element membershipsElt = doc.createElement("Memberships");
-				NodeCursor nodes = cover.getGraph().nodes();
+				Iterator<Node> nodes = cover.getGraph().iterator();
 				Node node;
-				while(nodes.ok()) {
-					node = nodes.node();
+				while(nodes.hasNext()) {
+					node = nodes.next();
 					Element membershipElt = doc.createElement("Membership");
 					Element memberIdElt = doc.createElement("Name");
 					memberIdElt.appendChild(doc.createTextNode(graph.getNodeName(node)));
@@ -166,7 +166,6 @@ public class DefaultXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 					belongingFactorElt.appendChild(doc.createTextNode(String.format("%.5f\n", cover.getBelongingFactor(node, i))));
 					membershipElt.appendChild(belongingFactorElt);
 					membershipsElt.appendChild(membershipElt);
-					nodes.next();
 				}
 				communityElt.appendChild(membershipsElt);
 				communitiesElt.appendChild(communityElt);

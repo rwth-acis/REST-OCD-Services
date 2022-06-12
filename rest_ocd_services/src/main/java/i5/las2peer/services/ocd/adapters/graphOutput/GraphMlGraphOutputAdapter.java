@@ -5,52 +5,39 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Iterator;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.EdgeMap;
-import y.base.Node;
-import y.base.NodeCursor;
-import y.base.NodeMap;
-import y.io.GraphMLIOHandler;
-import y.io.graphml.GraphMLHandler;
-import y.io.graphml.KeyScope;
-import y.io.graphml.KeyType;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
+import org.graphstream.stream.file.FileSinkGraphML;
 
 /**
- * A graph output adapter for GraphML format, based on the GraphMLIOHandler of the yFiles library..
- * Node names will be written into a CDATA Section in a "name" element.
- * Edge weights will be written into a "weight" element.
+ * A graph output adapter for GraphML format, based on the GraphMLIOHandler of the graphstream library.
+ * Node names will be written into a CDATA Section in a "name" element. //TODO
+ * Edge weights will be written into a "weight" element. //TODO
  * @author Sebastian
  *
  */
+//TODO: Check how output of customgraph attributes looks
 public class GraphMlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 	
 	@Override
 	public void writeGraph(CustomGraph graph) throws AdapterException {
+		FileSinkGraphML fileSink = new FileSinkGraphML();
 		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-		NodeMap nodeNames = graph.createNodeMap();
-		NodeCursor nodes = graph.nodes();
-		Node node;
-		while(nodes.ok()) {
-			node = nodes.node();
-			nodeNames.set(node, graph.getNodeName(node));
-			nodes.next();
+
+		//write node names and edge weights into attributes
+		for (Node node : graph) {
+			node.setAttribute("name", graph.getNodeName(node));
 		}
-		EdgeMap edgeWeights = graph.createEdgeMap();
-		EdgeCursor edges = graph.edges();
-		Edge edge;
-		while(edges.ok()) {
-			edge = edges.edge();
-			edgeWeights.set(edge, graph.getEdgeWeight(edge));
-			edges.next();
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+		while(edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
+			edge.setAttribute("weight", graph.getEdgeWeight(edge));
 		}
-		GraphMLIOHandler ioh = new GraphMLIOHandler();
-		GraphMLHandler core = ioh.getGraphMLHandler();
-		core.addOutputDataProvider("name", nodeNames, KeyScope.NODE, KeyType.STRING);
-		core.addOutputDataProvider("weight", edgeWeights, KeyScope.EDGE, KeyType.DOUBLE);
+
 		try {
-			ioh.write(graph, outStream);
+			fileSink.writeAll(graph, outStream);
 			String outString = outStream.toString();
 			writer.write(outString);
 		}
@@ -67,8 +54,6 @@ public class GraphMlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 			}
 			catch(IOException e) {
 			}
-			graph.disposeNodeMap(nodeNames);
-			graph.disposeEdgeMap(edgeWeights);
 		}
 	}
 
