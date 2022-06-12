@@ -19,8 +19,8 @@ public class UnweightedEdgeListGraphInputAdapterTest {
 		GraphInputAdapter inputAdapter =
 				new UnweightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.sawmillUnweightedEdgeListInputPath));
 		CustomGraph graph = inputAdapter.readGraph();
-		assertEquals(36, graph.nodeCount());
-		assertEquals(62, graph.edgeCount());
+		assertEquals(36, graph.getNodeCount());
+		assertEquals(62, graph.getEdgeCount());
 	}
 	
 	@Test
@@ -28,8 +28,8 @@ public class UnweightedEdgeListGraphInputAdapterTest {
 		GraphInputAdapter inputAdapter =
 				new UnweightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.siamDmUnweightedEdgeListInputPath));
 		CustomGraph graph = inputAdapter.readGraph();
-		assertEquals(1219, graph.nodeCount());
-		assertEquals(3777, graph.edgeCount());
+		assertEquals(1219, graph.getNodeCount());
+		assertEquals(3777, graph.getEdgeCount());
 	}
 	
 	@Test
@@ -43,8 +43,8 @@ public class UnweightedEdgeListGraphInputAdapterTest {
 		Reader reader = new StringReader(graphStr);
 		inputAdapter.setReader(reader);
 		CustomGraph graph = inputAdapter.readGraph();
-		assertEquals(4, graph.nodeCount());
-		assertEquals(3, graph.edgeCount());
+		assertEquals(4, graph.getNodeCount());
+		assertEquals(3, graph.getEdgeCount());
 	}
 
 }

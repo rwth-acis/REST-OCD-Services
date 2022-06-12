@@ -23,6 +23,6 @@ public class XMLGraphInputAdapterTest {
 				new XMLGraphInputAdapter();
     	inputAdapter.setParameter(adapterParam);
 		CustomGraph graph = inputAdapter.readGraph();
-		System.out.println(graph.nodeCount());
+		System.out.println(graph.getNodeCount());
 	}
 }

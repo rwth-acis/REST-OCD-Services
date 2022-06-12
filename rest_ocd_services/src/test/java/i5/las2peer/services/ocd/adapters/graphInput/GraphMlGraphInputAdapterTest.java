@@ -19,8 +19,8 @@ public class GraphMlGraphInputAdapterTest {
 		GraphInputAdapter inputAdapter = new GraphMlGraphInputAdapter();
 		inputAdapter.setReader(new FileReader(OcdTestConstants.sawmillGraphMlInputPath));
 		CustomGraph graph = inputAdapter.readGraph();
-		assertEquals(36, graph.nodeCount());
-		assertEquals(124, graph.edgeCount());
+		assertEquals(36, graph.getNodeCount());
+		assertEquals(124, graph.getEdgeCount());
 		assertEquals(2, graph.getEdgeWeight(graph.getEdgeArray()[0]), 0);
 		assertEquals("1", graph.getNodeName(graph.getNodeArray()[0]));
 	}

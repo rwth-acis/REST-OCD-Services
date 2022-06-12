@@ -19,8 +19,8 @@ public class WeightedEdgeListGraphInputAdapterTest {
 		GraphInputAdapter inputAdapter =
 				new WeightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.sawmillWeightedEdgeListInputPath));
 		CustomGraph graph = inputAdapter.readGraph();
-		assertEquals(36, graph.nodeCount());
-		assertEquals(62, graph.edgeCount());
+		assertEquals(36, graph.getNodeCount());
+		assertEquals(62, graph.getEdgeCount());
 	}
 
 }
