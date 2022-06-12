@@ -14,6 +14,7 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 import java.util.HashSet;
+import java.util.UUID;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -48,12 +49,12 @@ public class MergingOfOverlappingCommunitiesTest {
 		Node node3 = graph.addNode("3");
 		Node node4 = graph.addNode("4");
 		Node node5 = graph.addNode("5");
-		graph.addEdge(node0.getId()+node1.getId(), node0, node1);
-		graph.addEdge(node0.getId()+node2.getId(), node0, node2);
-		graph.addEdge(node0.getId()+node3.getId(), node0, node3);
-		graph.addEdge(node1.getId()+node2.getId(), node1, node2);
-		graph.addEdge(node3.getId()+node4.getId(), node3, node4);
-		graph.addEdge(node3.getId()+node5.getId(), node3, node5);
+		graph.addEdge(UUID.randomUUID().toString(), node0, node1);
+		graph.addEdge(UUID.randomUUID().toString(), node0, node2);
+		graph.addEdge(UUID.randomUUID().toString(), node0, node3);
+		graph.addEdge(UUID.randomUUID().toString(), node1, node2);
+		graph.addEdge(UUID.randomUUID().toString(), node3, node4);
+		graph.addEdge(UUID.randomUUID().toString(), node3, node5);
 		GraphProcessor processor = new GraphProcessor();
 		graph.addType(GraphType.DIRECTED);
 		processor.makeCompatible(graph, new HashSet<GraphType>());

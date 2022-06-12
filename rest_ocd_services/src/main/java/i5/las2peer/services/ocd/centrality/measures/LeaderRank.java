@@ -41,8 +41,8 @@ public class LeaderRank implements CentralityAlgorithm {
 			Node node = nc.next();
 			if(node != groundNode) {
 				// Add bidirectional edges
-				Edge e1 = graph.addEdge("groundNode" + node.getId()+1.0, groundNode, node);
-				Edge e2 = graph.addEdge(node.getId() + "groundNode"+1.0, node, groundNode);
+				Edge e1 = graph.addEdge(UUID.randomUUID().toString(), groundNode, node);
+				Edge e2 = graph.addEdge(UUID.randomUUID().toString(), node, groundNode);
 				graph.setEdgeWeight(e1, 1.0);
 				graph.setEdgeWeight(e2, 1.0);
 			}

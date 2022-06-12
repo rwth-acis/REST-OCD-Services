@@ -75,7 +75,7 @@ public class SalsaHubScore implements CentralityAlgorithm {
 			Node oldTarget = edge.getTargetNode();
 			Node newSource = hubNodeMap.get(oldSource);
 			Node newTarget = authorityNodeMap.get(oldTarget);
-			Edge newEdge = bipartiteGraph.addEdge(newSource.getId() + newTarget.getId() + graph.getEdgeWeight(edge), newSource, newTarget);
+			Edge newEdge = bipartiteGraph.addEdge(UUID.randomUUID().toString(), newSource, newTarget);
 			bipartiteGraph.setEdgeWeight(newEdge, graph.getEdgeWeight(edge));
 		}
 		

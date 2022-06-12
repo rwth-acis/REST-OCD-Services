@@ -228,7 +228,7 @@ public class CustomEdge {
 	 */
 	protected Edge createEdge(CustomGraph graph, Node source, Node target) {
 		//TODO: Again figure out how to name edges
-		Edge edge = graph.addEdge(source.getId()+target.getId()+this.getWeight(), source, target);
+		Edge edge = graph.addEdge(UUID.randomUUID().toString(), source, target);
 //		EdgeRealizer eRealizer = graph.getRealizer(edge);
 //		eRealizer.setSourcePoint(points.get(0).createPoint());
 //		eRealizer.setTargetPoint(points.get(1).createPoint());

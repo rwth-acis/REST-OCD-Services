@@ -105,14 +105,14 @@ public class ResidualCloseness implements CentralityAlgorithm {
 			for(int i = 0; i < n; i++) {
 				double weight = A.get(currentNode.getIndex(), i);
 				if(weight != 0) {
-					Edge newEdge = graph.addEdge(currentNode.getId() + nodes[i].getId() + weight, currentNode, nodes[i]);
+					Edge newEdge = graph.addEdge(UUID.randomUUID().toString(), currentNode, nodes[i]);
 					graph.setEdgeWeight(newEdge, weight);
 				}
 			}
 			for(int i = 0; i < n; i++) {
 				double weight = A.get(i, currentNode.getIndex());
 				if(weight != 0) {
-					Edge newEdge = graph.addEdge(nodes[i].getId()+ currentNode.getId() + weight, nodes[i], currentNode);
+					Edge newEdge = graph.addEdge(UUID.randomUUID().toString(), nodes[i], currentNode);
 					graph.setEdgeWeight(newEdge, weight);
 				}
 			}

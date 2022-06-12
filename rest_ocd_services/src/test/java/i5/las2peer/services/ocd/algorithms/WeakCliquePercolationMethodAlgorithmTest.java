@@ -14,6 +14,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.UUID;
 
 import org.graphstream.graph.Node;
 
@@ -43,7 +44,7 @@ public class WeakCliquePercolationMethodAlgorithmTest {
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < 5; j++) {
 				if (i != j ) {
-					graph.addEdge(Integer.toString(i)+Integer.toString(j), n[i], n[j]);
+					graph.addEdge(UUID.randomUUID().toString(), n[i], n[j]);
 				}
 			}
 		}
@@ -52,7 +53,7 @@ public class WeakCliquePercolationMethodAlgorithmTest {
 		for(int i = 5; i < 10; i++) {
 			for (int j = 5; j < 10; j++) {
 				if(i!=j ) {
-				graph.addEdge(Integer.toString(i)+Integer.toString(j), n[i], n[j]);
+				graph.addEdge(UUID.randomUUID().toString(), n[i], n[j]);
 				}
 			}
 		}
@@ -60,10 +61,10 @@ public class WeakCliquePercolationMethodAlgorithmTest {
 		/*
 		 * Connect above two communities, which creates another small community of size 3 (nodes 0, 5, 10)
 		 */
-		graph.addEdge(n[5].getId()+ n[10].getId(), n[5], n[10]);
-		graph.addEdge(n[10].getId()+ n[5].getId(), n[10], n[5]);
-		graph.addEdge(n[0].getId()+ n[10].getId(), n[0], n[10]);
-		graph.addEdge(n[10].getId()+ n[0].getId(), n[10], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[10], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[10], n[0]);
 		
 		// instantiate the algorithm
 		WeakCliquePercolationMethodAlgorithm wcpm = new WeakCliquePercolationMethodAlgorithm();

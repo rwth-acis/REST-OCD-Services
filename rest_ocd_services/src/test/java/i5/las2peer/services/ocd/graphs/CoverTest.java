@@ -20,7 +20,7 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 public class CoverTest {
 
@@ -32,7 +32,7 @@ public class CoverTest {
 	@Before 
 	public void sawmillCoverSetUp() throws AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		Matrix memberships = new Basic2DMatrix(graph.nodeCount(), 5);
+		Matrix memberships = new Basic2DMatrix(graph.getNodeCount(), 5);
 		for(int i=0; i<memberships.rows(); i++) {
 			for(int j=0; j<memberships.columns(); j++) {
 				memberships.set(i, j, i*j);
@@ -84,8 +84,8 @@ public class CoverTest {
 	@Test
 	public void testGetBelongingFactor() {
 		CustomGraph graph = cover.getGraph();
-		Node[] nodes = graph.getNodeArray();
-		for(int i=0; i<graph.nodeCount(); i++) {
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
+		for(int i=0; i<graph.getNodeCount(); i++) {
 			double rowSum = 0;
 			for(int j=0; j<cover.communityCount() - 1; j++) {
 				rowSum += i*j;
@@ -121,7 +121,7 @@ public class CoverTest {
 	@Test
 	public void testGetCommunityIndices() {
 		CustomGraph graph = cover.getGraph();
-		Node[] nodes = graph.getNodeArray();
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		List<Integer> indices = cover.getCommunityIndices(nodes[0]);
 		assertEquals(1, indices.size());
 		assertEquals(5, (int)indices.get(0));
@@ -140,7 +140,7 @@ public class CoverTest {
 		memberships.set(0, 3, 3);
 		memberships.set(0, 4, 3);
 		CustomGraph graph = new CustomGraph();
-		graph.createNode();
+		graph.addNode("1");
 		Cover cover = new Cover(graph, memberships);
 		System.out.println(cover);
 		cover.setRowEntriesBelowThresholdToZero(memberships, 0, 0.3);

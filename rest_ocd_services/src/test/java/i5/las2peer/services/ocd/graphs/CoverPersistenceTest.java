@@ -24,8 +24,8 @@ import org.junit.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 public class CoverPersistenceTest {
 
@@ -42,15 +42,15 @@ public class CoverPersistenceTest {
 		CustomGraph graph = new CustomGraph();
 		graph.setUserName(userName);
 		graph.setName(graphName);
-		Node nodeA = graph.createNode();
-		Node nodeB = graph.createNode();
-		Node nodeC = graph.createNode();
+		Node nodeA = graph.addNode("A");
+		Node nodeB = graph.addNode("B");
+		Node nodeC = graph.addNode("C");
 		graph.setNodeName(nodeA, "A");
 		graph.setNodeName(nodeB, "B");
 		graph.setNodeName(nodeC, "C");
-		Edge edgeAB = graph.createEdge(nodeA, nodeB);
+		Edge edgeAB = graph.addEdge(UUID.randomUUID().toString(), nodeA, nodeB);
 		graph.setEdgeWeight(edgeAB, 5);
-		Edge edgeBC = graph.createEdge(nodeB, nodeC);
+		Edge edgeBC = graph.addEdge(UUID.randomUUID().toString(), nodeB, nodeC);
 		graph.setEdgeWeight(edgeBC, 2.5);
 		EntityTransaction tx = em.getTransaction();
 		try {
@@ -222,7 +222,7 @@ public class CoverPersistenceTest {
 		assertEquals(4, coverRead.communityCount());
 		System.out.println("RPCID: " + coverRead.getId());
 		System.out.println("RPGID: " + coverRead.getGraph().getId());
-		System.out.println("Nodes: " + coverRead.getGraph().nodeCount());
+		System.out.println("Nodes: " + coverRead.getGraph().getNodeCount());
 		System.out.println(coverRead);
 		
 	}

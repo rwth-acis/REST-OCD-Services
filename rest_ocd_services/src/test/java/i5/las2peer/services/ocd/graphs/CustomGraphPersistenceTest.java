@@ -22,8 +22,8 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 public class CustomGraphPersistenceTest {
 
@@ -39,15 +39,15 @@ public class CustomGraphPersistenceTest {
 		CustomGraph graph = new CustomGraph();
 		graph.setUserName(userName1);
 		graph.setName(graphName1);
-		Node nodeA = graph.createNode();
-		Node nodeB = graph.createNode();
-		Node nodeC = graph.createNode();
+		Node nodeA = graph.addNode("A");
+		Node nodeB = graph.addNode("B");
+		Node nodeC = graph.addNode("C");
 		graph.setNodeName(nodeA, "A");
 		graph.setNodeName(nodeB, "B");
 		graph.setNodeName(nodeC, "C");
-		Edge edgeAB = graph.createEdge(nodeA, nodeB);
+		Edge edgeAB = graph.addEdge(UUID.randomUUID().toString(), nodeA, nodeB);
 		graph.setEdgeWeight(edgeAB, 5);
-		Edge edgeBC = graph.createEdge(nodeB, nodeC);
+		Edge edgeBC = graph.addEdge(UUID.randomUUID().toString(), nodeB, nodeC);
 		graph.setEdgeWeight(edgeBC, 2.5);
 		graph.addType(GraphType.DIRECTED);
 		EntityTransaction tx = em.getTransaction();
@@ -69,33 +69,33 @@ public class CustomGraphPersistenceTest {
 	    assertNotNull(persistedGraph);
 	    System.out.println("Username: " + persistedGraph.getUserName());
 	    System.out.println("Graphname: " + persistedGraph.getName());
-	    System.out.println("Nodecount: " + persistedGraph.nodeCount());
-	    System.out.println("Edgecount: " + persistedGraph.edgeCount());
+	    System.out.println("Nodecount: " + persistedGraph.getNodeCount());
+	    System.out.println("Edgecount: " + persistedGraph.getEdgeCount());
 	    assertEquals(graphName1, persistedGraph.getName());
 	    assertEquals(userName1, persistedGraph.getUserName());
-	    assertEquals(3, persistedGraph.nodeCount());
-	    assertEquals(2, persistedGraph.edgeCount());
+	    assertEquals(3, persistedGraph.getNodeCount());
+	    assertEquals(2, persistedGraph.getEdgeCount());
 	    Set<String> nodeNames = new HashSet<String>();
 	    nodeNames.add("A");
 	    nodeNames.add("B");
 	    nodeNames.add("C");
 	    for(int i=0; i<3; i++) {
-	    	Node node = persistedGraph.getNodeArray()[i];
+	    	Node node = persistedGraph.getNode(i);
 	    	String name = persistedGraph.getNodeName(node);
-	    	System.out.println("Node: " + node.index() + ", Name: " + persistedGraph.getNodeName(node));
+	    	System.out.println("Node: " + node.getIndex() + ", Name: " + persistedGraph.getNodeName(node));
 	    	assertTrue(nodeNames.contains(name));
 	    	nodeNames.remove(name);
 	    }
 	    for(int i=0; i<2; i++) {
-	    	Edge edge = persistedGraph.getEdgeArray()[i];
+	    	Edge edge = persistedGraph.getEdge(i);
 	    	Double weight = persistedGraph.getEdgeWeight(edge);
 	    	if(weight == 5) {
-	    		assertEquals("A", persistedGraph.getNodeName(edge.source()));
-	    	    assertEquals("B", persistedGraph.getNodeName(edge.target()));
+	    		assertEquals("A", persistedGraph.getNodeName(edge.getSourceNode()));
+	    	    assertEquals("B", persistedGraph.getNodeName(edge.getTargetNode()));
 	    	}
 	    	else if(weight == 2.5) {
-	    		assertEquals("B", persistedGraph.getNodeName(edge.source()));
-	    	    assertEquals("C", persistedGraph.getNodeName(edge.target()));
+	    		assertEquals("B", persistedGraph.getNodeName(edge.getSourceNode()));
+	    	    assertEquals("C", persistedGraph.getNodeName(edge.getTargetNode()));
 	    	}
 	    	else {
 	    		throw new IllegalStateException("Invalid Node Weight");
@@ -121,9 +121,9 @@ public class CustomGraphPersistenceTest {
 		CustomGraph graph = new CustomGraph();
 		graph.setUserName(userName1);
 		graph.setName(graphName1);
-		Node nodeA = graph.createNode();
-		Node nodeB = graph.createNode();
-		Node nodeC = graph.createNode();
+		Node nodeA = graph.addNode("A");
+		Node nodeB = graph.addNode("B");
+		Node nodeC = graph.addNode("C");
 		graph.setNodeName(nodeA, "A");
 		graph.setNodeName(nodeB, "B");
 		graph.setNodeName(nodeC, "C");
@@ -147,7 +147,7 @@ public class CustomGraphPersistenceTest {
 		assertEquals(1, queryResults2.size());
 		CustomGraph persistedGraph2 = queryResults2.get(0);
 		assertTrue(persistedGraph1 == persistedGraph2);
-		Node node = persistedGraph1.getNodeArray()[0];
+		Node node = persistedGraph1.getNode(0);
 		String name1 = persistedGraph1.getNodeName(node);
 		String name2 = persistedGraph2.getNodeName(node);
 		System.out.println("name1: " + name1);

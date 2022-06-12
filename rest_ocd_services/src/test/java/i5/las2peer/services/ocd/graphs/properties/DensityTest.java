@@ -56,8 +56,8 @@ public class DensityTest {
 	@Test
 	public void initialize() {
 				
-		Mockito.when(graph.nodeCount()).thenReturn(4);
-		Mockito.when(graph.edgeCount()).thenReturn(7);
+		Mockito.when(graph.getNodeCount()).thenReturn(4);
+		Mockito.when(graph.getEdgeCount()).thenReturn(7);
 				
 		property.calculate(graph);
 		Mockito.verify(property, Mockito.times(1)).calculate(4, 7);

@@ -10,7 +10,7 @@ public class CustomGraphId {
 	/**
 	 * The graph-specific id.
 	 */
-    private long id;
+    private String id;
     
     /**
      * The name of the user owning the graph.
@@ -22,7 +22,7 @@ public class CustomGraphId {
      * @param id The graph-specific id.
      * @param userName The name of the user owning the graph.
      */
-    public CustomGraphId(long id, String userName) {
+    public CustomGraphId(String id, String userName) {
         this.id = id;
         this.userName = userName;
     }
@@ -39,7 +39,7 @@ public class CustomGraphId {
  
     @Override
     public int hashCode() {
-        return (int)(id + userName.hashCode());
+        return (id.hashCode() + userName.hashCode());
     }
 	
 }

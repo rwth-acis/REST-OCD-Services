@@ -238,7 +238,7 @@ public class CustomGraph extends MultiGraph {
 		}
 //        Iterator<?> listenerIt = this.getGraphListeners();
 //        while (listenerIt.hasNext()) {
-//            this.removeGraphListener((GraphListener) listenerIt.next());
+//           this.removeGraphListener((GraphListener) listenerIt.next());
 //            listenerIt.remove();
 //        }
 //        this.addGraphListener(new CustomGraphListener());
@@ -1263,7 +1263,7 @@ public class CustomGraph extends MultiGraph {
 			int target = edge.getTargetNode().getIndex();
 
 			if (nodeIds.contains(source) && nodeIds.contains(target)) {
-				subGraph.addEdge(nodeMap.get(source).getId() + nodeMap.get(target).getId() + getCustomEdge(edge).getWeight(), nodeMap.get(source), nodeMap.get(target));
+				subGraph.addEdge(UUID.randomUUID().toString(), nodeMap.get(source), nodeMap.get(target));
 			}
 		}
 		return subGraph;
@@ -1338,7 +1338,7 @@ public class CustomGraph extends MultiGraph {
 	 *            A customMultiNode which must belong to this graph.
 	 * @return The corresponding node object.
 	 */
-	protected MultiNode getNode(CustomNode customNode) {
+	protected Node getNode(CustomNode customNode) {
 		return reverseNodeMap.get(customNode);
 	}
 

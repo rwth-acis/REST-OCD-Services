@@ -17,6 +17,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.Test;
 
@@ -45,7 +46,7 @@ public class AlgorithmsBoundaryTest {
 		graph = new CustomGraph();
 		Node node0 = graph.addNode("0");
 		Node node1 = graph.addNode("1");
-		Edge edge = graph.addEdge(node0.getId()+node1.getId(), node0, node1);
+		Edge edge = graph.addEdge(UUID.randomUUID().toString(), node0, node1);
 		graph.setEdgeWeight(edge, 2);
 		graph.addType(GraphType.DIRECTED);
 		graphs.add(graph);
