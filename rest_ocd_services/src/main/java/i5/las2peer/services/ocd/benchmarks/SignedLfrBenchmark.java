@@ -6,14 +6,9 @@ import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Edge;
-import y.base.EdgeCursor;
+import org.graphstream.graph.Edge;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.exec.DefaultExecutor;
 import org.la4j.matrix.Matrix;
@@ -392,24 +387,24 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 		List<Edge> interEdgeList = new ArrayList<Edge>();
 		List<Edge> intraNegativeList = new ArrayList<Edge>();
 		int communityCount = membership.columns();
-		EdgeCursor edges = graph.edges();
+		Iterator<Edge> edges = graph.edges().iterator();
 		Edge edge;
 		/*
 		 * negate the weight of all edges connecting two nodes in different
 		 * communities.
 		 */
-		while (edges.ok()) {
+		while (edges.hasNext()) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			edge = edges.edge();
+			edge = edges.next();
 			boolean beingIntraEdge = false;
 			/*
 			 * If two nodes are residing in at least one common community, the
 			 * edge connecting them is regarded as an intra-edge.
 			 */
 			for (int i = 0; i < communityCount; i++) {
-				if (membership.get(edge.source().index(), i) * membership.get(edge.target().index(), i) != 0) {
+				if (membership.get(edge.getSourceNode().getIndex(), i) * membership.get(edge.getTargetNode().getIndex(), i) != 0) {
 					intraEdgeList.add(edge);
 					beingIntraEdge = true;
 					break;
@@ -419,7 +414,6 @@ public class SignedLfrBenchmark implements GroundTruthBenchmark {
 				interEdgeList.add(edge);
 				graph.setEdgeWeight(edge, graph.getEdgeWeight(edge) * (-1));
 			}
-			edges.next();
 		}
 		/*
 		 * randomly negate the weight of intra-edges depending on the parameter

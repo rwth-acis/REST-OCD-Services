@@ -6,20 +6,13 @@ import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
+import org.graphstream.graph.Edge;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
-import y.base.Edge;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 /**
  * Implements the Newman Benchmark Model.
@@ -86,8 +79,8 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 		 */
 		List<Node> nodeOrder = new ArrayList<Node>();
 		for(int i=0; i<128; i++) {
-			Node node = graph.createNode();
-			graph.setNodeName(node, Integer.toString(node.index()));
+			Node node = graph.addNode(Integer.toString(i));
+			graph.setNodeName(node, Integer.toString(node.getIndex()));
 			nodeOrder.add(node);
 		}
 		Collections.shuffle(nodeOrder);
@@ -101,7 +94,7 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 			 */
 			List<Node> group = nodeOrder.subList(i*32, (i+1)*32);
 			for(Node node : group) {
-				membershipMatrix.set(node.index(), i, 1);
+				membershipMatrix.set(node.getIndex(), i, 1);
 				groupMap.put(node, i);
 			}
 			/*
@@ -155,18 +148,18 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 		while(potentialNeighbors.size() > 0 && !edgeCreated) {
 			int nodeBListIndex = rand.nextInt(potentialNeighbors.size());
 			Node nodeB = potentialNeighbors.get(nodeBListIndex);
-			if(!graph.containsEdge(nodeA, nodeB)) {
+			if(!nodeA.hasEdgeBetween(nodeB)) {
 				edgeCreated = true;
-				graph.createEdge(nodeA, nodeB);
-				graph.createEdge(nodeB, nodeA);
+				graph.addEdge(UUID.randomUUID().toString(), nodeA, nodeB);
+				graph.addEdge(UUID.randomUUID().toString(), nodeB, nodeA);
 				/*
 				 * Nodes are removed from the unsatisfied nodes when they have reached
 				 * the bound for the amount of internal edges.
 				 */
-				if(nodeA.outDegree() == 16 - externalEdges) {
+				if(nodeA.getOutDegree() == 16 - externalEdges) {
 					unsatisfiedNodes.remove(nodeA);
 				}
-				if(nodeB.outDegree() == 16 - externalEdges) {
+				if(nodeB.getOutDegree() == 16 - externalEdges) {
 					unsatisfiedNodes.remove(nodeB);
 				}
 			}
@@ -198,7 +191,7 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 		while(!nodeBFound) {
 			int nodeBListIndex = rand.nextInt(potentialNeighbors.size());
 			nodeB = potentialNeighbors.get(nodeBListIndex);
-			if(!graph.containsEdge(nodeA, nodeB)) {
+			if(!nodeA.hasEdgeBetween(nodeB)) {
 				nodeBFound = true;
 			}
 			else {
@@ -209,17 +202,17 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 		 * Deletes an edge incident to B and creates
 		 * a new edge between A and B
 		 */
-		Edge outEdge = nodeB.lastOutEdge();
-		Node nodeC = outEdge.target();
+		Edge outEdge = nodeB.leavingEdges().skip(nodeB.leavingEdges().count() - 1).findFirst().get();
+		Node nodeC = outEdge.getTargetNode();
 		Edge inEdge = nodeB.getEdgeFrom(nodeC);
 		graph.removeEdge(outEdge);
 		graph.removeEdge(inEdge);
-		graph.createEdge(nodeA, nodeB);
-		graph.createEdge(nodeB, nodeA);
+		graph.addEdge(UUID.randomUUID().toString(), nodeA, nodeB);
+		graph.addEdge(UUID.randomUUID().toString(), nodeB, nodeA);
 		if(!unsatisfiedNodes.contains(nodeC)) {
 			unsatisfiedNodes.add(nodeC);
 		}
-		if(nodeA.outDegree() == 16 - externalEdges) {
+		if(nodeA.getOutDegree() == 16 - externalEdges) {
 			unsatisfiedNodes.remove(nodeA);
 		}
 	}
@@ -242,18 +235,18 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 		while(potentialNeighbors.size() > 0 && !edgeCreated) {
 			int nodeBListIndex = rand.nextInt(potentialNeighbors.size());
 			Node nodeB = potentialNeighbors.get(nodeBListIndex);
-			if(!graph.containsEdge(nodeA, nodeB) && groupMap.get(nodeA) != groupMap.get(nodeB)) {
+			if(!nodeA.hasEdgeBetween(nodeB) && groupMap.get(nodeA) != groupMap.get(nodeB)) {
 				edgeCreated = true;
-				graph.createEdge(nodeA, nodeB);
-				graph.createEdge(nodeB, nodeA);
+				graph.addEdge(UUID.randomUUID().toString(), nodeA, nodeB);
+				graph.addEdge(UUID.randomUUID().toString(), nodeB, nodeA);
 				/*
 				 * Nodes are removed from the unsatisfied nodes when they have reached
 				 * the bound for the amount of total edges.
 				 */
-				if(nodeA.outDegree() == 16) {
+				if(nodeA.getOutDegree() == 16) {
 					unsatisfiedNodes.remove(nodeA);
 				}
-				if(nodeB.outDegree() == 16) {
+				if(nodeB.getOutDegree() == 16) {
 					unsatisfiedNodes.remove(nodeB);
 				}
 			}
@@ -275,7 +268,7 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 	 * @param nodeA The node for which a new edge will be created.
 	 * @param rand A generator for random numbers, included for performance.
 	 */
-	private void redesignExternalEdges(CustomGraph graph, Map<Node, Integer> groupMap, List<Node> nodes, List<Node> unsatisfiedNodes, Node nodeA, Random rand) {
+	private void redesignExternalEdges(CustomGraph graph, Map<Node, Integer> groupMap, List<Node> nodes, List<Node> unsatisfiedNodes, Node nodeA, Random rand) throws InterruptedException {
 		List<Node> potentialNeighbors = new ArrayList<Node>(nodes);
 		potentialNeighbors.removeAll(unsatisfiedNodes);
 		/*
@@ -286,7 +279,7 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 		while(!nodeBFound) {
 			int nodeBListIndex = rand.nextInt(potentialNeighbors.size());
 			nodeB = potentialNeighbors.get(nodeBListIndex);
-			if(!graph.containsEdge(nodeA, nodeB) && groupMap.get(nodeA) != groupMap.get(nodeB)) {
+			if(!nodeA.hasEdgeBetween(nodeB) && groupMap.get(nodeA) != groupMap.get(nodeB)) {
 				nodeBFound = true;
 			}
 			else {
@@ -297,26 +290,25 @@ public class NewmanBenchmark implements GroundTruthBenchmark {
 		 * Deletes an external edge incident to B and creates
 		 * a new edge between A and B
 		 */
-		NodeCursor neighbors = nodeB.successors();
+		Iterator<Node> neighbors = graph.getSuccessorNeighbours(nodeB).iterator();
 		Node neighbor = null;
 		boolean externalNeighborFound = false;
-		while(neighbors.ok() && !externalNeighborFound) {
-			neighbor = neighbors.node();
+		while(neighbors.hasNext() && !externalNeighborFound) {
+			neighbor = neighbors.next();
 			if(groupMap.get(nodeB) != groupMap.get(neighbor)) {
 				externalNeighborFound = true;
 			}
-			neighbors.next();
 		}
-		Edge outEdge = nodeB.getEdgeTo(neighbor);
+		Edge outEdge = nodeB.getEdgeToward(neighbor);
 		Edge inEdge = nodeB.getEdgeFrom(neighbor);
 		graph.removeEdge(outEdge);
 		graph.removeEdge(inEdge);
-		graph.createEdge(nodeA, nodeB);
-		graph.createEdge(nodeB, nodeA);
+		graph.addEdge(UUID.randomUUID().toString(), nodeA, nodeB);
+		graph.addEdge(UUID.randomUUID().toString(), nodeB, nodeA);
 		if(!unsatisfiedNodes.contains(neighbor)) {
 			unsatisfiedNodes.add(neighbor);
 		}
-		if(nodeA.outDegree() == 16) {
+		if(nodeA.getOutDegree() == 16) {
 			unsatisfiedNodes.remove(nodeA);
 		}
 	}
