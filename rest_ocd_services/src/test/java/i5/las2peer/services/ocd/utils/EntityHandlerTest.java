@@ -126,8 +126,8 @@ public class EntityHandlerTest {
 
 		assertEquals(graph.getName(), resultGraph.getName());
 		assertEquals(graph.getUserName(), resultGraph.getUserName());
-		assertEquals(graph.nodeCount(), resultGraph.nodeCount());
-		assertEquals(graph.edgeCount(), resultGraph.edgeCount());
+		assertEquals(graph.getNodeCount(), resultGraph.getNodeCount());
+		assertEquals(graph.getEdgeCount(), resultGraph.getEdgeCount());
 	}
 
 	@Test

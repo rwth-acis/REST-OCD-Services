@@ -1,15 +1,15 @@
 package i5.las2peer.services.ocd.utils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * Handles Remote Method Invocation calls from other services in the las2peer
@@ -35,7 +35,7 @@ public class InvocationHandler {
 	 */
 	public List<List<Integer>> getAdjList(CustomGraph graph) {
 
-		int size = graph.nodeCount();
+		int size = graph.getNodeCount();
 		List<List<Integer>> adjList = new ArrayList<>(size+1);
 		adjList.add(0, new ArrayList<Integer>());
 		
@@ -43,14 +43,14 @@ public class InvocationHandler {
 			List<Integer> list = new ArrayList<>();
 			adjList.add(i, list);
 		}
-		
-		for (EdgeCursor ec = graph.edges(); ec.ok(); ec.next()) {
-			Edge edge = ec.edge();
-			Node source = edge.source();
-			Node target = edge.target();
+		Iterator<Edge> ec = graph.edges().iterator();
+		while(ec.hasNext()) {
+			Edge edge = ec.next();
+			Node source = edge.getSourceNode();
+			Node target = edge.getTargetNode();
 
-			int sourceId = Integer.valueOf(graph.getNodeName(source));
-			int targetId = Integer.valueOf(graph.getNodeName(target));
+			int sourceId = Integer.parseInt(graph.getNodeName(source));
+			int targetId = Integer.parseInt(graph.getNodeName(target));
 			
 			adjList.get(sourceId).add(targetId);
 		}

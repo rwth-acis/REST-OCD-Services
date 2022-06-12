@@ -91,7 +91,7 @@ public class InvocationHandlerTest {
 	@Test
 	public void getMemberListTest() {
 
-		Matrix memberships = new Basic2DMatrix(graph.nodeCount(), 3);
+		Matrix memberships = new Basic2DMatrix(graph.getNodeCount(), 3);
 		memberships.set(0, 0, 0.7);
 		memberships.set(0, 1, 0.0);
 		memberships.set(0, 2, 0.0);
