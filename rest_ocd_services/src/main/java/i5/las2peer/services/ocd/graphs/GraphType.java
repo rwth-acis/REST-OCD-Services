@@ -51,6 +51,9 @@ public enum GraphType implements EnumDisplayNames {
 
 	/**
 	 * Indicates that a graph is a dynamic graph, has a series of graphs
+	 * (The graph series have the features:
+	 * If some nodes are deleted, the id of it would be kept, and all the following nodes keep their ids
+	 * If some nodes are added, they would be given the following ids.)
 	 */
 	DYNAMIC("Dynamic",7);
 	

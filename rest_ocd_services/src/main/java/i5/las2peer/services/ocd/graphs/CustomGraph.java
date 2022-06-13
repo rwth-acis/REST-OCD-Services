@@ -559,6 +559,19 @@ public class CustomGraph extends Graph2D {
 		return getCustomNode(node).getId();
 	}
 
+	//for dynamic graph and online algorithm
+	public int getMaxNodeId(){
+		int maxNodeId=-1;
+		NodeCursor nodes = this.nodes();
+		while (nodes.ok()) {
+			Node node = nodes.node();
+			if(nodeIds.get(node)>maxNodeId) maxNodeId=nodeIds.get(node);
+			nodes.next();
+		}
+		return maxNodeId;
+	}
+
+
 	/////////// node degree //////////
 
 	/**

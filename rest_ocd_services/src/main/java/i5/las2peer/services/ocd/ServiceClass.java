@@ -478,8 +478,8 @@ public class ServiceClass extends RESTService {
 				try{
 					if(format == GraphInputFormat.GRAPH_LIST){
 						List<Integer> graphIdList=new LinkedList();
-						String[] Strs=graphListStr.split("_");
-						for(String graphIdStr:Strs){
+						String[] graphIdStrs=graphListStr.split("_");
+						for(String graphIdStr:graphIdStrs){
 							if(graphIdStr!=""){
 								graphIdList.add(Integer.parseInt(graphIdStr));
 							}
@@ -488,7 +488,6 @@ public class ServiceClass extends RESTService {
 							graph.addGraphIntoGraphSeries(entityHandler.getGraph(username, graphId));//graphId=3
 						}
 					}
-
 				}catch(Exception e){
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
@@ -1355,22 +1354,22 @@ public class ServiceClass extends RESTService {
 									staticCover.setCreationMethod(log);
 									staticCover.setName(URLDecoder.decode(nameStr, "UTF-8")+"Order"+(order++));
 									cover.addCoverintoCoverSeries(staticCover);
-									System.out.println("staticCover in ServiceClass before persist:"+staticCover.getId());
-									entityHandler.storeCover(staticCover);
-									//em.persist(staticCover);
-									System.out.println("staticCover in ServiceClass after persist:"+staticCover.getId());
+									//System.out.println("staticCover in ServiceClass before persist:"+staticCover.getId());
+									//entityHandler.storeCover(staticCover);
+									em.persist(staticCover);
+									//System.out.println("staticCover in ServiceClass after persist:"+staticCover.getId());
 
 
 								}
 							}
 						}
 
-						System.out.println("cover in ServiceClass before persist (after adding coverSeries):"+cover.getId());
-						entityHandler.storeCover(cover);
-						//em.persist(cover);
-						System.out.println("cover in ServiceClass after persist (after adding coverSeries):"+cover.getId());
+						//System.out.println("cover in ServiceClass before persist (after adding coverSeries):"+cover.getId());
+						//entityHandler.storeCover(cover);
+						em.persist(cover);
+						//System.out.println("cover in ServiceClass after persist (after adding coverSeries):"+cover.getId());
 						tx.commit();
-						System.out.println("cover in ServiceClass after commit (after adding coverSeries):"+cover.getId());
+						//System.out.println("cover in ServiceClass after commit (after adding coverSeries):"+cover.getId());
 						for(Cover staticCover:cover.getCoverSeries()){
 							System.out.println("staticCover in ServiceClass after commit:"+staticCover.getId());
 						}
