@@ -12,19 +12,18 @@ import y.base.*;
 
 import java.util.*;
 
-
-/*
-  The original version of the algorithm Rank Removal was published by Baumes et al. in 2005:
-  Finding communities by clustering a graph into overlapping sub graphs
-  ISBN: 972-99353-6-X
- */
-
 /**
+ * The original version of the algorithm Rank Removal was published by Baumes et al. in 2005:
+ * Finding communities by clustering a graph into overlapping sub graphs
+ * ISBN: 972-99353-6-X
+ *
+ * The algorithm Rank Removal disconnects a graph into smaller sub graphs by removing sp called
+ * "high ranking" or important nodes which are determined by some metric, until all clusters
+ * of the graph have a specific size. Subsequently, the algorithm starts adding the removed
+ * nodes back to some clusters if they are immediately adjacent or increase the clusters weight.
+ *
  * @author Jan Mortell
  */
-
-// TODO: Description of the algorithm
-
 public class RankRemovalAlgorithm implements OcdAlgorithm {
 
     // --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -317,19 +316,20 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         boolean[][] adjacencyMatrix = createAdjacencyMatrix(graph);
 
         // List of all found cluster cores
-        List<CustomGraph> clusterCores = Collections.emptyList();
+        List<CustomGraph> clusterCores = new ArrayList<>(Collections.emptyList());
 
         // Detect all connected components in the graph
         List<CustomGraph> connectedComponents = getConnectedComponents(graph);
 
         // List of detected communities
-        List<CustomGraph> communitiesRaRe = Collections.emptyList();
+        List<CustomGraph> communitiesRaRe;
 
         // Call method clusterComponent for every connected component
         for (int i = 0; i < connectedComponents.size(); i++) {
             try {
                 clusterCores.addAll(clusterComponent(connectedComponents.get(i)));
             } catch (CentralityAlgorithmException e) {
+                System.out.println("Cluster component failed!");
                 throw new RuntimeException(e);
             }
         }
@@ -388,7 +388,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * for undirected graphs and
      *
      * @param graph     Graph containing at least one connected component
-     * @return connectedComponents         List of connected components in input graph
+     * @return          List of connected components in passed graph
      */
     public List<CustomGraph> getConnectedComponents(CustomGraph graph) {
         // List of connected components
@@ -396,7 +396,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         List<Pair<CustomGraph, Map<Node, Node>>> connectedComponentsList = processor.divideIntoConnectedComponents(graph);
 
         // Add graphs of all connected components to list
-        List<CustomGraph> connectedComponents = Collections.emptyList();
+        List<CustomGraph> connectedComponents = new ArrayList<>(Collections.emptyList());
         for (int i = 0; i < connectedComponentsList.size(); i++) {
             connectedComponents.add((connectedComponentsList.get(i)).getFirst());
         }
@@ -413,11 +413,12 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * recursively executed on all emerging connected components.
      *
      * @param graph     Connected component as custom graph
+     * @return          List of clusters of the passed graph with the right size
      */
     public List<CustomGraph> clusterComponent(CustomGraph graph) throws InterruptedException, CentralityAlgorithmException {
-        Node node = null;
+        Node node;
 
-        List<CustomGraph> clusterCores = Collections.emptyList();
+        List<CustomGraph> clusterCores = new ArrayList<>(Collections.emptyList());
 
         if (graph.nodeCount() > maxCoreSize) {
             for (int i = 0; i < t; i++) {
@@ -455,18 +456,9 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         Node node = null;
 
         switch (selectedRankingFunction) {
-            case PAGE_RANK:
-                node = calculatePageRank(graph);
-                break;
-
-            case OUT_DEGREE:
-                node = calculateDegree(graph);
-                break;
-
-            default:
-                node = null;
-                System.out.println("The selected ranking function does not exist!");
-                break;
+            case PAGE_RANK -> node = calculatePageRank(graph);
+            case OUT_DEGREE -> node = calculateDegree(graph);
+            default -> System.out.println("The selected ranking function does not exist!");
         }
 
         return node;
@@ -476,8 +468,8 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * This method calculates the pageRank of every node in a graph
      * and returns the node with the highest pageRank in a graph
      *
-     * @param graph
-     * @return
+     * @param graph     Cluster where the node with the highest pagerank is searched in
+     * @return          Node with the highest page rank in the passed graph cluster
      */
     public Node calculatePageRank(CustomGraph graph) throws InterruptedException, CentralityAlgorithmException {
         Node node = null;
@@ -505,8 +497,8 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * in the passed graph and returns the node with the
      * highest out degree
      *
-     * @param graph
-     * @return
+     * @param graph     graph in which the node with the highest degree is searched
+     * @return          node with the highest degree in the passed graph cluster
      */
     public Node calculateDegree(CustomGraph graph) {
         Node node = null;
@@ -533,8 +525,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * @param graph             The graph for which the adjacency is checked
      * @param clusterCore       Cluster of nodes that should be checked
      * @param node              Node that is checked
-     *
-     * @return
+     * @return                  if the passed node is adjacent to the passed cluster core
      */
     public boolean isAdjacent(CustomGraph graph, CustomGraph clusterCore, Node node) {
         NodeCursor clusterCoreNodes = clusterCore.nodes();
@@ -555,8 +546,8 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * the entry [i][j] of the matrix is true, there is a directed edge between
      * the nodes i and j in the graph.
      *
-     * @param graph
-     * @return
+     * @param graph     graph of which the adjacency matrix should be created
+     * @return          adjacency matrix of the passed graph
      */
     public boolean[][] createAdjacencyMatrix(CustomGraph graph) {
         // Initialize empty matrix
@@ -577,38 +568,21 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * This method calls the chosen weight function and return the calculated
      * weight of the passed graph.
      *
-     * @return
+     * @param graph     original graph of the cluster sub graph
+     * @param cluster   cluster of which the weight should be calculated
+     * @return          weight of the passed cluster
      */
     public double calculateWeight(CustomGraph graph, CustomGraph cluster) {
         // Weight variable initialized with an unusual value
         double weight = -10000;
         switch (selectedWeightFunctionRaRe) {
-            case INTERNAL_EDGE_PROBABILITY:
-                weight = calculateInternalEdgeProbability(cluster);
-                break;
-
-            case EDGE_RATIO:
-                weight = calculateEdgeRatio(graph, cluster);
-                break;
-
-            case INTENSITY_RATIO:
-                weight = calculateIntensityRatio(graph, cluster);
-                break;
-
-            default:
-                System.out.println("This weight function does not exist!");
-                break;
+            case INTERNAL_EDGE_PROBABILITY -> weight = calculateInternalEdgeProbability(cluster);
+            case EDGE_RATIO -> weight = calculateEdgeRatio(graph, cluster);
+            case INTENSITY_RATIO -> weight = calculateIntensityRatio(graph, cluster);
+            default -> System.out.println("This weight function does not exist!");
         }
 
         return weight;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public double calculateInternalEdgeIntensity(CustomGraph graph) {
-        return graph.edgeCount()/(graph.nodeCount() * (graph.nodeCount() - 1));
     }
 
     // TODO: Check functionality for undirected graphs
@@ -617,7 +591,9 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * This method returns the number of outgoing edges between the passed cluster
      * and the original graph.
      *
-     * @return
+     * @param graph     original graph of the passed cluster
+     * @param cluster   cluster of which the out degree is calculated
+     * @return          out degree of the passed cluster
      */
     public int calculateClusterOutDegree(CustomGraph graph, CustomGraph cluster) {
         // Number of outgoing edges from the passed cluster
@@ -640,13 +616,13 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         return outDegree;
     }
 
-    // TODO: Check functionality for undirected graphs
-
     /**
      * This method returns the number of incoming edges between the passed cluster
      * and the original graph.
      *
-     * @return
+     * @param graph     original graph of the passed cluster
+     * @param cluster   cluster of which the in degree is calculated
+     * @return          in degree of the passed cluster
      */
     public int calculateClusterInDegree(CustomGraph graph, CustomGraph cluster) {
         // Number of incoming edges from the passed cluster
@@ -670,33 +646,46 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     }
 
     /**
+     * This method calculates the degree of the passed cluster by summing
+     * up the in and out degree of the cluster.
      *
-     * @param cluster
-     * @return
+     * @param graph     the original graph of the passed cluster
+     * @param cluster   the cluster of which the degree is calculated
+     * @return          the degree of the passed cluster
      */
     public int calculateClusterDegree(CustomGraph graph, CustomGraph cluster) {
         return calculateClusterOutDegree(graph, cluster) + calculateClusterInDegree(graph, cluster);
     }
-
-    // TODO: Check if n really is the number of nodes in the original graph!
 
     /**
      * This method calculate the external edge intensity of a
      * passed graph cluster.
      *
      * @param graph     The passed graph cluster
-     * @return          The external edge intensity of the cluster graph
+     * @param cluster   the cluster of which the external edge intensity is calculated
+     * @return          The external edge intensity of the cluster
      */
     public double calculateExternalEdgeIntensity(CustomGraph graph, CustomGraph cluster) {
         return calculateClusterDegree(graph, cluster)/(2 * cluster.nodeCount() * (graph.nodeCount() - cluster.nodeCount()));
     }
 
     /**
+     * This method calculate the internal edge intensity of a
+     * passed graph cluster.
+     *
+     * @param graph     The passed graph cluster
+     * @return          The internal edge intensity of the cluster
+     */
+    public double calculateInternalEdgeIntensity(CustomGraph graph) {
+        return graph.edgeCount()/(graph.nodeCount() * (graph.nodeCount() - 1));
+    }
+
+    /**
      * This method returns the internal edge-probability of a given graph cluster
      * that is equal to the internal edge intensity.
      *
-     * @param graph
-     * @return
+     * @param graph     the graph cluster of which the internal edge-probability is calculated
+     * @return          the internal edge-probability of the passed graph cluster
      */
     public double calculateInternalEdgeProbability(CustomGraph graph) {
         return calculateInternalEdgeIntensity(graph);
@@ -706,18 +695,28 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * This method calculates the edge ratio of a given cluster,
      * corresponding to an original graph.
      *
-     * @param graph
-     * @return
+     * @param graph     the original graph of the passed cluster
+     * @param cluster   cluster of which the edge ratio is calculated
+     * @return          the edge ratio of the passed cluster
      */
     public double calculateEdgeRatio(CustomGraph graph, CustomGraph cluster) {
         return graph.edgeCount()/(graph.edgeCount() + calculateExternalEdgeIntensity(graph, cluster));
     }
 
     /**
+     * This method calculates the intensity ratio of the passed graph cluster
      *
-     * @return
+     * @param graph     the original graph of the passed graph cluster
+     * @param cluster   the graph cluster of which the intensity ratio is calculated
+     * @return          the intensity ratio of the passed graph cluster
      */
     public double calculateIntensityRatio(CustomGraph graph, CustomGraph cluster) {
         return calculateInternalEdgeIntensity(graph)/(calculateInternalEdgeIntensity(graph) + calculateExternalEdgeIntensity(graph, cluster));
     }
+
+    // --------------------------------------------------------------------------------------------------------------------------------------------------
+    // Algorithm methods for Iterative Scan
+    // --------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 }
