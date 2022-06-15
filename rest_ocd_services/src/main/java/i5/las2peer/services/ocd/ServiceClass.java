@@ -416,6 +416,7 @@ public class ServiceClass extends RESTService {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				GraphInputFormat format;
 				CustomGraph graph;
+
 				try {
 					format = GraphInputFormat.valueOf(graphInputFormatStr);
 				} catch (Exception e) {
@@ -463,35 +464,59 @@ public class ServiceClass extends RESTService {
 					}
 
 					//else if (format == GraphInputFormat.XGMML) {
-						//param.put("key", keyStr);
-						//param.put("type1", type1Str);
-						//param.put("type2", type2Str);
-						//param.put("type3", type3Str);
+					//param.put("key", keyStr);
+					//param.put("type1", type1Str);
+					//param.put("type2", type2Str);
+					//param.put("type3", type3Str);
 					//}
-					graph = requestHandler.parseGraph(contentStr, format, param);
 
+					graph = requestHandler.parseGraph(contentStr, format, param);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Input graph does not correspond to the specified format.");
 				}
-				try{
-					if(format == GraphInputFormat.GRAPH_LIST){
-						List<Integer> graphIdList=new LinkedList();
-						String[] graphIdStrs=graphListStr.split("_");
-						for(String graphIdStr:graphIdStrs){
-							if(graphIdStr!=""){
+
+
+				if(format == GraphInputFormat.WEIGHTED_EDGE_LIST_SERIES){
+					try{
+//						List<CustomGraph> graphSeriesCopy=new ArrayList<>();
+//						for(CustomGraph staticGraph:graph.getGraphSeries()){
+//							CustomGraph staticGraphCopy=new CustomGraph(staticGraph);
+//							entityHandler.storeGraph(staticGraphCopy);
+//							graphSeriesCopy.add(staticGraph);
+//						}
+//						graph.setGraphSeries(graphSeriesCopy);
+
+						for(CustomGraph staticGraph: graph.getGraphSeries()){
+							entityHandler.storeGraph(staticGraph);
+						}
+					}catch(Exception e){
+						requestHandler.log(Level.WARNING, "user: " + username, e);
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Weighted Edge List Series for dynamic graph has error");
+					}
+				}
+
+				if(format == GraphInputFormat.GRAPH_LIST) {
+					try {
+
+						List<Integer> graphIdList = new LinkedList();
+						String[] graphIdStrs = graphListStr.split("_");
+						for (String graphIdStr : graphIdStrs) {
+							if (graphIdStr != "") {
 								graphIdList.add(Integer.parseInt(graphIdStr));
 							}
 						}//[3,4,5]
-						for(int graphId:graphIdList){
+						for (int graphId : graphIdList) {
 							graph.addGraphIntoGraphSeries(entityHandler.getGraph(username, graphId));//graphId=3
 						}
+
+					} catch (Exception e) {
+						requestHandler.log(Level.WARNING, "user: " + username, e);
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Graph list for dynamic graph has error");
 					}
-				}catch(Exception e){
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Graph list for dynamic graph has error");
 				}
 
 				boolean doMakeUndirected,doMakeDynamic;
@@ -1370,9 +1395,7 @@ public class ServiceClass extends RESTService {
 						//System.out.println("cover in ServiceClass after persist (after adding coverSeries):"+cover.getId());
 						tx.commit();
 						//System.out.println("cover in ServiceClass after commit (after adding coverSeries):"+cover.getId());
-						for(Cover staticCover:cover.getCoverSeries()){
-							System.out.println("staticCover in ServiceClass after commit:"+staticCover.getId());
-						}
+
 
 					} catch (RuntimeException e) {
 						if (tx != null && tx.isActive()) {

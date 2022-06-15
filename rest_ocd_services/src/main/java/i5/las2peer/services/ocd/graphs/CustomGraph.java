@@ -1425,4 +1425,11 @@ public class CustomGraph extends Graph2D {
 	}
 
 
+	public void removeGraphFromGraphSeries(CustomGraph staticGraph) {
+		graphSeries.remove(staticGraph);
+	}
+
+	public void setGraphSeries(List<CustomGraph> graphSeries) {
+		this.graphSeries = graphSeries;
+	}
 }

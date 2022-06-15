@@ -59,9 +59,14 @@ public enum GraphInputFormat implements EnumDisplayNames {
 	LMS_TRIPLESTORE ("Fetched from LMS Triplestore", LmsTripleStoreGraphInputAdapter.class, 9),
 
 	/**
-	 * Format corresponding to the GraphListInputAdapter(for dynamic graph)
+	 * Format corresponding to the GraphListInputAdapter(for dynamic graph).
 	 */
-	GRAPH_LIST("Graph List",GraphListInputAdapter.class, 10);
+	GRAPH_LIST("Graph List",GraphListInputAdapter.class, 10),
+
+	/**
+	 * Format corresponding to the WeightedEdgeListSeriesGraphInputAdapter(for dynamic graph).
+	 */
+	WEIGHTED_EDGE_LIST_SERIES ("Weighted Edge List Series", WeightedEdgeListSeriesGraphInputAdapter.class, 11),;
 
 	
 	/**
