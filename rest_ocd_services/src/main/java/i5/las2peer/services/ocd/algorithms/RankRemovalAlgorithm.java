@@ -342,7 +342,8 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             for (int j = 0; j < communitiesRaRe.size(); i++) {
                 // Add the node i in R to the graph cluster j
                 CustomGraph extendedCore = communitiesRaRe.get(j);
-                extendedCore.reInsertNode(R.get(i));
+
+                extendedCore = reAddNode(extendedCore, R.get(i), adjacencyMatrix);
 
                 // Check if nodes in R are immediately adjacent to the cluster cores or if they increase their weight
                 if (isAdjacent(graph, communitiesRaRe.get(i), R.get(i)) || calculateWeight(extendedCore, graph) > calculateWeight(clusterCores.get(j), graph)) {
@@ -353,6 +354,18 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         }
 
         // Call Iterative Scan algorithm on output of Rank Removal
+        // Stop if the last max_fail restarts yield no new local maxima
+
+        Random r = new Random();
+
+        int fails = 0;
+        while (fails < max_fail) {
+            int seed = r.nextInt(communitiesRaRe.size()-0) + 0;
+        }
+        // Choose random cluster in communitiesRaRe
+
+        // If max_fail times an already refined cluster is chosen, the algorithm stops
+
 
         return outputCover;
     }
@@ -539,8 +552,6 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         return false;
     }
 
-    // TODO: Ok for directed and undirected graphs? Method still necessary?
-
     /**
      * This method returns an adjacency matrix of the passed graph. If
      * the entry [i][j] of the matrix is true, there is a directed edge between
@@ -666,7 +677,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * @return          The external edge intensity of the cluster
      */
     public double calculateExternalEdgeIntensity(CustomGraph graph, CustomGraph cluster) {
-        return calculateClusterDegree(graph, cluster)/(2 * cluster.nodeCount() * (graph.nodeCount() - cluster.nodeCount()));
+        return (float)calculateClusterDegree(graph, cluster)/(2 * cluster.nodeCount() * (graph.nodeCount() - cluster.nodeCount()));
     }
 
     /**
@@ -677,7 +688,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * @return          The internal edge intensity of the cluster
      */
     public double calculateInternalEdgeIntensity(CustomGraph graph) {
-        return graph.edgeCount()/(graph.nodeCount() * (graph.nodeCount() - 1));
+        return (float)graph.edgeCount()/(graph.nodeCount() * (graph.nodeCount() - 1));
     }
 
     /**
@@ -714,9 +725,125 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         return calculateInternalEdgeIntensity(graph)/(calculateInternalEdgeIntensity(graph) + calculateExternalEdgeIntensity(graph, cluster));
     }
 
+    /**
+     *  This method adds a node back to a cluster if it is adjacent to the cluster
+     *  in the original graph.
+     *
+     * @param cluster           Cluster to which the passed node should be added
+     * @param node              Node that should be added to the passed cluster
+     * @param adjacencyMatrix   Adjacency matrix of the original graph
+     * @return                  Cluster with added node if adjacent
+     */
+    public CustomGraph reAddNode(CustomGraph cluster, Node node, boolean[][] adjacencyMatrix) {
+        // Iterate over every entry for node in the adjacency matrix
+        for (int i = 0; i < adjacencyMatrix.length; i++) {
+
+            // Check if edge existed in original graph
+            if (adjacencyMatrix[node.index()][i]) {
+                NodeCursor clusterNodes = cluster.nodes();
+
+                while (clusterNodes.ok()) {
+                    Node currNode = clusterNodes.node();
+
+                    if (currNode.index() == i) {
+                        if (!cluster.contains(node)) {
+                            // Add node to cluster
+                            cluster.reInsertNode(node);
+
+                            // Add edge to cluster
+                            cluster.createEdge(node, currNode);
+
+                            if (cluster.isDirected()) {
+                                // Add edge in other direction if it existed in the original graph
+                                if (adjacencyMatrix[i][node.index()]) {
+                                    cluster.createEdge(currNode, node);
+                                }
+                            } else {
+                                // Add edge in other direction if cluster is undirected
+                                cluster.createEdge(currNode, node);
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+
+        return cluster;
+    }
+
     // --------------------------------------------------------------------------------------------------------------------------------------------------
     // Algorithm methods for Iterative Scan
     // --------------------------------------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * This method calculates the penalty for a given cluster that
+     * is subtracted from the weight of the cluster. If the size
+     * of the cluster is outside the boundaries defined by the parameters
+     * minClusterSize and maxClusterSize, a penalty is subtracted from
+     * the clusters weight. Else, 0 is subtracted.
+     *
+     * @param graph     original graph of the passed cluster
+     * @param cluster   cluster of which the weight should be calculated
+     * @return          the weight of the given cluster subtracted by the calculated penalty
+     */
+    public double calculatePenalty(CustomGraph graph, CustomGraph cluster) {
+        double penalty = 0;
 
+        if (cluster.nodeCount() > maxClusterSize || minClusterSize < cluster.nodeCount()) {
+            double minPenalty = (h1 * (minClusterSize-cluster.nodeCount())/(minClusterSize - 1));
+            double maxPenalty = (h2 * (cluster.nodeCount() - maxClusterSize)/(graph.nodeCount() - maxClusterSize));
+
+            penalty = Math.max(minPenalty, maxPenalty);
+        }
+
+        return (calculateWeight(graph, cluster) - Math.max(0, penalty));
+    }
+
+    /**
+     * This method refines passed graph clusters according to the description
+     * of Baumes et al. Therefore, nodes from graph are added to or removed from
+     * the cluster until the weight of the cluster does not improve anymore.
+     *
+     * @param graph             original graph of the passed cluster
+     * @param cluster           cluster that should be refined
+     * @param adjacencyMatrix   Adjacency matrix of passed graph
+     * @return                  refined cluster
+     */
+    public CustomGraph iterativeScan(CustomGraph graph, CustomGraph cluster, boolean[][] adjacencyMatrix) {
+        // Highest known weight of the cluster
+        double w = calculateWeight(graph, cluster);
+        boolean increased = true;
+
+        NodeCursor graphNodes = graph.nodes();
+
+        while (increased) {
+            while (graphNodes.ok()) {
+                Node node = graphNodes.node();
+
+                CustomGraph tempCluster = cluster;
+
+                if (cluster.contains(node)) {
+                    tempCluster.removeNode(node);
+                } else {
+                    tempCluster = reAddNode(tempCluster, node, adjacencyMatrix);
+                }
+
+                if (calculatePenalty(graph, tempCluster) > calculatePenalty(graph, cluster)) {
+                    cluster = tempCluster;
+                }
+
+                graphNodes.next();
+            }
+
+            double newWeight = calculatePenalty(graph, cluster);
+            if (newWeight == w) {
+                increased = false;
+            } else {
+                w = newWeight;
+            }
+        }
+
+        return cluster;
+    }
 }
