@@ -32,10 +32,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.*;
 import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.checkerframework.checker.units.qual.C;
+import org.glassfish.jersey.internal.inject.Custom;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.api.Context;
@@ -86,16 +89,6 @@ import i5.las2peer.services.ocd.cooperation.simulation.SimulationBuilder;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
 import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationLog;
-import i5.las2peer.services.ocd.graphs.CoverCreationType;
-import i5.las2peer.services.ocd.graphs.CoverId;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
-import i5.las2peer.services.ocd.graphs.GraphCreationLog;
-import i5.las2peer.services.ocd.graphs.GraphCreationType;
-import i5.las2peer.services.ocd.graphs.GraphProcessor;
-import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
@@ -125,7 +118,10 @@ import io.swagger.annotations.Info;
 import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
 import y.algo.GraphChecker;
+import y.base.Edge;
+import y.base.EdgeCursor;
 import y.base.Graph;
+import y.base.Node;
 
 /**
  * 
@@ -462,14 +458,12 @@ public class ServiceClass extends RESTService {
 							param.put("path", indexPathStr);
 						}
 					}
-
 					//else if (format == GraphInputFormat.XGMML) {
 					//param.put("key", keyStr);
 					//param.put("type1", type1Str);
 					//param.put("type2", type2Str);
 					//param.put("type3", type3Str);
 					//}
-
 					graph = requestHandler.parseGraph(contentStr, format, param);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -479,16 +473,14 @@ public class ServiceClass extends RESTService {
 
 
 				if(format == GraphInputFormat.WEIGHTED_EDGE_LIST_SERIES){
-					try{
-//						List<CustomGraph> graphSeriesCopy=new ArrayList<>();
-//						for(CustomGraph staticGraph:graph.getGraphSeries()){
-//							CustomGraph staticGraphCopy=new CustomGraph(staticGraph);
-//							entityHandler.storeGraph(staticGraphCopy);
-//							graphSeriesCopy.add(staticGraph);
-//						}
-//						graph.setGraphSeries(graphSeriesCopy);
-
-						for(CustomGraph staticGraph: graph.getGraphSeries()){
+					try {
+						for(CustomGraph staticGraph:graph.getGraphSeries()){
+							staticGraph.setUserName(username);
+							GraphCreationLog log = new GraphCreationLog(benchmarkType, new HashMap<String, String>());
+							log.setStatus(ExecutionStatus.COMPLETED);
+							staticGraph.setCreationMethod(log);
+							GraphProcessor processor = new GraphProcessor();
+							processor.determineGraphTypes(staticGraph);
 							entityHandler.storeGraph(staticGraph);
 						}
 					}catch(Exception e){
@@ -497,10 +489,8 @@ public class ServiceClass extends RESTService {
 								"Weighted Edge List Series for dynamic graph has error");
 					}
 				}
-
 				if(format == GraphInputFormat.GRAPH_LIST) {
 					try {
-
 						List<Integer> graphIdList = new LinkedList();
 						String[] graphIdStrs = graphListStr.split("_");
 						for (String graphIdStr : graphIdStrs) {
@@ -511,7 +501,6 @@ public class ServiceClass extends RESTService {
 						for (int graphId : graphIdList) {
 							graph.addGraphIntoGraphSeries(entityHandler.getGraph(username, graphId));//graphId=3
 						}
-
 					} catch (Exception e) {
 						requestHandler.log(Level.WARNING, "user: " + username, e);
 						return requestHandler.writeError(Error.PARAMETER_INVALID,
@@ -549,6 +538,8 @@ public class ServiceClass extends RESTService {
 				} catch (Exception e) {
 					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
 				}
+
+
 				return Response.ok(requestHandler.writeId(graph)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
