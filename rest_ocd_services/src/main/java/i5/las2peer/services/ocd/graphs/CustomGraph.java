@@ -74,9 +74,11 @@ public class CustomGraph extends Graph2D {
 	 */
 	public static final String USER_NAME_FIELD_NAME = "userName";
 	public static final String ID_FIELD_NAME = "id";
+	public static final String NAME_FIELD_NAME = "name";
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
 	public static final String NODE_COUNT_FIELD_NAME = "nodeCount";
 	public static final String EDGE_COUNT_FIELD_NAME = "edgeCount";
+
 
 
 	//////////////////////////////////////////////////////////////////

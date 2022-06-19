@@ -219,13 +219,20 @@ public class EntityHandler {
 		return queryResults;
 	}
 
+
 	/**
-	 * Return all graphs of a user using efficent approach. This approach only
+	 * Return specified graphs' meta information of a user using an efficient approach. This approach only
 	 * loads necessary metadata about graphs. E.g. no information about nodes/edges is loaded
 	 *
 	 * @param username
-	 *            graphs owner
-	 * @return graph list
+	 * 			  the users username
+	 * @param firstIndex
+	 *            id of the first graph
+	 * @param length
+	 *            number of graphs
+	 * @param executionStatusIds
+	 * 			  the execution status ids of the graphs
+	 * @return the list of graphs
 	 */
 	public ArrayList<CustomGraphMeta> getGraphMetaDataEfficiently(String username, int firstIndex, int length, List<Integer> executionStatusIds) {
 
@@ -249,9 +256,8 @@ public class EntityHandler {
 
 		// Create CustomGraphMeta instance for each graph queried above
 		for(int i = 0; i < graphInfoList.size(); i++){
-			Object[] graph_data = (Object[]) graphInfoList.get(i);
-			//System.out.println((Long) graph_data[0]+" "+(String) graph_data[1] +" " + (String) graph_data[2] + " " + (Long) graph_data[3] + " " + (Long) graph_data[4]);//TODO:DELETE
 
+			Object[] graph_data = (Object[]) graphInfoList.get(i);
 			// create a query for collection of graph types belonging to the currently observed graph
 			String queryStrGraphTypes = "SELECT g.types FROM " + CustomGraph.class.getName() + " g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
 					+ " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND g."
@@ -270,7 +276,6 @@ public class EntityHandler {
 			for(int j = 0; j < graphTypeSetList.size(); j++){
 				graphTypeList.add((Integer) graphTypeSetList.get(j));
 			}
-
 
 			CustomGraphMeta graphMeta = new CustomGraphMeta(
 					(Long) graph_data[0], //id

@@ -20,7 +20,9 @@ import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapter;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
+import i5.las2peer.services.ocd.adapters.metaOutput.CoverMetaOutputAdapter;
 import i5.las2peer.services.ocd.adapters.metaOutput.GraphMetaOutputAdapter;
+import i5.las2peer.services.ocd.adapters.metaOutput.MetaXmlCoverMetaOutputAdapter;
 import i5.las2peer.services.ocd.adapters.metaOutput.MetaXmlGraphMetaOutputAdapter;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
@@ -301,6 +303,26 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates an XML document containing multiple cover ids efficiently,
+	 * using CoverMeta instance instead of cover instance.
+	 *
+	 * @param coverMetas
+	 *            The covers.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parser config failed
+	 */
+	public String writeCoverIdsEfficiently(List<CoverMeta> coverMetas) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element coversElt = doc.createElement("Covers");
+		for (int i = 0; i < coverMetas.size(); i++) {
+			coversElt.appendChild(getIdElt(coverMetas.get(i), doc));
+		}
+		doc.appendChild(coversElt);
+		return writeDoc(doc);
+	}
+
+
+	/**
 	 * Creates an XML document containing multiple CentralityMap ids.
 	 * @param maps The CentralityMaps.
 	 * @return The document.
@@ -391,6 +413,34 @@ public class RequestHandler {
 		Element coversElt = doc.createElement("Covers");
 		for (Cover cover : covers) {
 			String metaDocStr = writeCover(cover, CoverOutputFormat.META_XML);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
+			Node importNode = doc.importNode(metaDocNode, true);
+			coversElt.appendChild(importNode);
+		}
+		doc.appendChild(coversElt);
+		return writeDoc(doc);
+	}
+
+	/**
+	 * Creates an XML document containing meta information about multiple
+	 * covers.
+	 *
+	 * @param coverMetas
+	 *            The covers' meta information.
+	 * @return The document.
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeCoverMetasEfficiently(List<CoverMeta> coverMetas) throws AdapterException, ParserConfigurationException,
+			IOException, SAXException, InstantiationException, IllegalAccessException {
+		Document doc = getDocument();
+		Element coversElt = doc.createElement("Covers");
+		for (CoverMeta coverMeta : coverMetas) {
+			String metaDocStr = writeCover_new(coverMeta);
 			Node metaDocNode = parseDocumentToNode(metaDocStr);
 			Node importNode = doc.importNode(metaDocNode, true);
 			coversElt.appendChild(importNode);
@@ -502,6 +552,9 @@ public class RequestHandler {
 	 * Creates a graph output in a MetaXml format. This method uses efficient approach.
 	 * Only necessary information is loaded (e.g. no node/edge info)
 	 *            The graph.
+	 *
+	 * @param graphMeta
+	 *         Graph meta information
 	 * @return The graph output.
 	 * @throws AdapterException if adapter failed
 	 */
@@ -533,6 +586,26 @@ public class RequestHandler {
 		adapter.setWriter(writer);
 		adapter.writeCover(cover);
 		return writer.toString();
+	}
+
+	/**
+	 * Creates a cover output efficiently in MetaXml format
+	 *
+	 * @param coverMeta
+	 *            The cover meta information.
+	 * @return The cover output.
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeCover_new(CoverMeta coverMeta)
+			throws AdapterException, InstantiationException, IllegalAccessException {
+		Writer writer = new StringWriter();
+		CoverMetaOutputAdapter adapter = new MetaXmlCoverMetaOutputAdapter();
+		adapter.setWriter(writer);
+		adapter.writeCover(coverMeta);
+		return writer.toString();
+
 	}
 
 	/**
@@ -788,6 +861,8 @@ public class RequestHandler {
 	/**
 	 * Returns an XML element node representing the id of a graph.
 	 *
+	 * @param graphMeta
+	 *            The graph meta information.
 	 * @param doc
 	 *            The document to create the element node for.
 	 * @return The element node.
@@ -817,6 +892,28 @@ public class RequestHandler {
 		idElt.appendChild(coverIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
 		graphIdElt.appendChild(doc.createTextNode(Long.toString(cover.getGraph().getId())));
+		idElt.appendChild(graphIdElt);
+		coverElt.appendChild(idElt);
+		return coverElt;
+	}
+
+	/**
+	 * Returns an XML element node representing the id of a cover.
+	 *
+	 * @param coverMeta
+	 *            The cover meta information.
+	 * @param doc
+	 *            The document to create the element node for.
+	 * @return The element node.
+	 */
+	protected Node getIdElt(CoverMeta coverMeta, Document doc) {
+		Element coverElt = doc.createElement("Cover");
+		Element idElt = doc.createElement("Id");
+		Element coverIdElt = doc.createElement("CoverId");
+		coverIdElt.appendChild(doc.createTextNode(Long.toString(coverMeta.getId())));
+		idElt.appendChild(coverIdElt);
+		Element graphIdElt = doc.createElement("GraphId");
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(coverMeta.getGraphId())));
 		idElt.appendChild(graphIdElt);
 		coverElt.appendChild(idElt);
 		return coverElt;

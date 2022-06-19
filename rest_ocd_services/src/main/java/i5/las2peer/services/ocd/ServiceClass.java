@@ -15,6 +15,7 @@ import java.util.logging.Level;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -986,30 +987,38 @@ public class ServiceClass extends RESTService {
 				}
 				List<Cover> queryResults;
 				EntityManager em = entityHandler.getEntityManager();
+
 				/*
-				 * Query
+				 * Efficiently query cover information needed for the WebClient
 				 */
-				String queryStr = "SELECT c from Cover c" + " JOIN c." + Cover.GRAPH_FIELD_NAME + " g" + " JOIN c."
+				ArrayList<CoverMeta>  queryResultMetaInformation = new ArrayList<>();
+				String queryStr_new = "";
+				queryStr_new = "SELECT c." + Cover.ID_FIELD_NAME
+						+ ", c." + Cover.NAME_FIELD_NAME
+						+ ", c." + Cover.COMMUNITY_COUNT_FIELD_NAME
+						+ ", g." + CustomGraph.ID_FIELD_NAME
+						+ ", g." + CustomGraph.NAME_FIELD_NAME
+						+ ", c." + Cover.CREATION_METHOD_FIELD_NAME
+						+ " from Cover c"
+						+ " JOIN c." + Cover.GRAPH_FIELD_NAME + " g" + " JOIN c."
 						+ Cover.CREATION_METHOD_FIELD_NAME + " a";
 				if (!metricExecutionStatusesStr.equals("")) {
-					queryStr += " JOIN c." + Cover.METRICS_FIELD_NAME + " m";
+					queryStr_new += " JOIN c." + Cover.METRICS_FIELD_NAME + " m";
 				}
-				queryStr += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND a."
+				queryStr_new += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND a."
 						+ CoverCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
 				if (!metricExecutionStatusesStr.equals("")) {
-					queryStr += " AND m." + OcdMetricLog.STATUS_ID_FIELD_NAME + " IN :metricExecStatusIds";
+					queryStr_new += " AND m." + OcdMetricLog.STATUS_ID_FIELD_NAME + " IN :metricExecStatusIds";
 				}
 				if (!graphIdStr.equals("")) {
-					queryStr += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
+					queryStr_new += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
 				}
-				/*
-				 * Gets each cover only once.
-				 */
-				queryStr += " GROUP BY c";
-				TypedQuery<Cover> query = em.createQuery(queryStr, Cover.class);
+
+				Query queryCovers = em.createQuery(queryStr_new);
+
 				try {
 					int firstIndex = Integer.parseInt(firstIndexStr);
-					query.setFirstResult(firstIndex);
+					queryCovers.setFirstResult(firstIndex);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "First index is not valid.");
@@ -1017,7 +1026,7 @@ public class ServiceClass extends RESTService {
 				try {
 					if (!lengthStr.equals("")) {
 						int length = Integer.parseInt(lengthStr);
-						query.setMaxResults(length);
+						queryCovers.setMaxResults(length);
 					}
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -1030,18 +1039,61 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "", e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
 				}
-				query.setParameter("username", username);
-				query.setParameter("execStatusIds", executionStatusIds);
+				queryCovers.setParameter("username", username);
+				queryCovers.setParameter("execStatusIds", executionStatusIds);
 				if (!metricExecutionStatusesStr.equals("")) {
-					query.setParameter("metricExecStatusIds", metricExecutionStatusIds);
+					queryCovers.setParameter("metricExecStatusIds", metricExecutionStatusIds);
 				}
-				queryResults = query.getResultList();
+
+				List queryResults_new = queryCovers.getResultList();
+
+				for(int i = 0; i < queryResults_new.size(); i++) {
+
+					Object[] graph_data = (Object[]) queryResults_new.get(i);
+					ArrayList<OcdMetricLog> metric_logs = new ArrayList<>(); // this will hold metrics of the cover
+					// Query metric information of the covers queried above
+					String queryStr_metrics = "SELECT m FROM OcdMetricLog m JOIN m.cover c" +
+							" JOIN c." + Cover.CREATION_METHOD_FIELD_NAME + " a";
+					queryStr_metrics += " WHERE c." + Cover.ID_FIELD_NAME + " = :cid" +
+							" AND a." + CoverCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
+
+					if (!metricExecutionStatusesStr.equals("")) {
+						queryStr_metrics += " AND m." + OcdMetricLog.STATUS_ID_FIELD_NAME + " IN :metricExecStatusIds";
+					}
+
+					queryStr_metrics += " ORDER BY m.id";
+					Query query_metric = em.createQuery(queryStr_metrics);
+					query_metric.setParameter("execStatusIds", executionStatusIds);
+					if (!metricExecutionStatusesStr.equals("")) {
+						query_metric.setParameter("metricExecStatusIds", metricExecutionStatusIds);
+					}
+					query_metric.setParameter("cid", ((Long) graph_data[0]));
+					List metric_query_result = query_metric.getResultList();
+					for(int j = 0; j < metric_query_result.size(); j++){
+						//System.out.println("creating log with " + ((OcdMetricLog) metric_query_result.get(j)));
+						metric_logs.add((OcdMetricLog) metric_query_result.get(j));
+					}
+
+					// create CoverMeta instance holding meta information about the cover
+					CoverMeta coverMeta = new CoverMeta(
+							((Long) graph_data[0]), // cover id
+							((String) graph_data[1]), // cover name
+							((Integer) graph_data[2]), // number of communities
+							((Long) graph_data[3]), // graph id
+							((String) graph_data[4]), // graph name
+							((CoverCreationLog) graph_data[5]), // cover creation log
+							metric_logs // cover metric log array
+					);
+					queryResultMetaInformation.add(coverMeta);
+
+				}
 				em.close();
+
 				String responseStr;
 				if (includeMeta) {
-					responseStr = requestHandler.writeCoverMetas(queryResults);
+					responseStr = requestHandler.writeCoverMetasEfficiently(queryResultMetaInformation);
 				} else {
-					responseStr = requestHandler.writeCoverIds(queryResults);
+					responseStr = requestHandler.writeCoverIdsEfficiently(queryResultMetaInformation);
 				}
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {
