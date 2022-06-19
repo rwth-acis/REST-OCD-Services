@@ -1,40 +1,28 @@
 package i5.las2peer.services.ocd.algorithms;
 
 import java.io.File;
-//import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.algorithms.mea.MeaAlgorithm;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.lang3.SystemUtils;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
-import java.util.Scanner;
-
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * @author YLi
  */
+//TODO: Rework this algorithm implementation so that it doesn't need to produce pajek files anymore, they are an unnecessary extra step
 public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 	/**
 	 * Path of the directory reserved for the application.
@@ -96,20 +84,19 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 				 * the network file to have the index 1. If not, the input file
 				 * should be adapted.
 				 */
-				NodeCursor nodes = graph.nodes();
+				Iterator<Node> nodes = graph.iterator();
 				Node node;
 				int count = 0;
-				while (nodes.ok()) {
-					node = nodes.node();
+				while (nodes.hasNext()) {
+					node = nodes.next();
 					if (count == 0) {
-						minNodeIndex = node.index();
+						minNodeIndex = node.getIndex();
 					} else {
-						if (node.index() < minNodeIndex) {
-							minNodeIndex = node.index();
+						if (node.getIndex() < minNodeIndex) {
+							minNodeIndex = node.getIndex();
 						}
 					}
 					count++;
-					nodes.next();
 				}
 				writeNetworkFile(graph);
 
@@ -120,7 +107,7 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 				}catch(Exception e){}
 
 
-				int nodeCount = graph.nodeCount();
+				int nodeCount = graph.getNodeCount();
 				Matrix membershipMatrix = translateCommunityFile(LastResultPath, nodeCount);
 				Cover cover = new Cover(graph, membershipMatrix);
 				return cover;
@@ -149,26 +136,25 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 		try {
 			networkFile.write(String.format("*Vertices "));
 			networkFile.write("\t");
-			networkFile.write(Integer.toString(graph.nodeCount()));
+			networkFile.write(Integer.toString(graph.getNodeCount()));
 			networkFile.write(System.lineSeparator());
 			networkFile.write(String.format("*Edges"));
 			networkFile.write(System.lineSeparator());
-			EdgeCursor edges = graph.edges();
+			Iterator<Edge> edges = graph.edges().iterator();
 			Edge edge;
-			while (edges.ok()) {
+			while (edges.hasNext()) {
 				if (Thread.interrupted()) {
 					throw new InterruptedException();
 				}
-				edge = edges.edge();
-				if (edge.source().index() <= edge.target().index()) {
-					networkFile.write(Integer.toString(edge.source().index() + (1 - minNodeIndex)));// networkFile.write(Integer.toString(edge.source().index()+1));
+				edge = edges.next();
+				if (edge.getSourceNode().getIndex() <= edge.getTargetNode().getIndex()) {
+					networkFile.write(Integer.toString(edge.getSourceNode().getIndex() + (1 - minNodeIndex)));// networkFile.write(Integer.toString(edge.getSourceNode().getIndex()+1));
 					networkFile.write("\t");
-					networkFile.write(Integer.toString(edge.target().index() + (1 - minNodeIndex)));// networkFile.write(Integer.toString(edge.source().index()+1));
+					networkFile.write(Integer.toString(edge.getTargetNode().getIndex() + (1 - minNodeIndex)));// networkFile.write(Integer.toString(edge.getSourceNode().getIndex()+1));
 					networkFile.write("\t");
 					networkFile.write(Double.toString(graph.getEdgeWeight(edge)));
 					networkFile.write(System.lineSeparator());
 				}
-				edges.next();
 			}
 		} finally {
 			networkFile.close();
