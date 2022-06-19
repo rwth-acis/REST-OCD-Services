@@ -41,6 +41,8 @@ public class OcdMetricLog {
 	 * Field names
 	 */
 	public static final String STATUS_ID_FIELD_NAME = "statusId";
+	public static final String COVER_FIELD_NAME = "cover";
+	public static final String ID_FIELD_NAME = "id";
 	
 	/**
 	 * System generated persistence id.

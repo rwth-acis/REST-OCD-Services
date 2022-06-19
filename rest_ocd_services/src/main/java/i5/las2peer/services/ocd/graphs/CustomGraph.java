@@ -78,6 +78,7 @@ public class CustomGraph extends Graph2D {
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
 	public static final String NODE_COUNT_FIELD_NAME = "nodeCount";
 	public static final String EDGE_COUNT_FIELD_NAME = "edgeCount";
+	public static final String TYPES_FIELD_NAME = "types";
 
 
 

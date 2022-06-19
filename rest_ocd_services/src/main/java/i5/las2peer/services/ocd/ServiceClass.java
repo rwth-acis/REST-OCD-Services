@@ -628,7 +628,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				//List<CustomGraph> queryResults; // replaced by more efficient method below
+
 				List<CustomGraphMeta> queryResults;
 				List<Integer> executionStatusIds = new ArrayList<Integer>();
 				if (!executionStatusesStr.equals("")) {
@@ -675,15 +675,13 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
 				}
-				//queryResults = entityHandler.getGraphs(username, firstIndex, length, executionStatusIds); // replaced by more efficient method below
+
 				queryResults = entityHandler.getGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
 
 				String responseStr;
 				if (includeMeta) {
-					//responseStr = requestHandler.writeGraphMetas(queryResults); // replaced by more efficient method below
 					responseStr = requestHandler.writeGraphMetasEfficiently(queryResults);
 				} else {
-					//responseStr = requestHandler.writeGraphIds(queryResults); // replaced by more efficient method below
 					responseStr = requestHandler.writeGraphIdsEfficiently(queryResults);
 				}
 				return Response.ok(responseStr).build();
@@ -1047,7 +1045,7 @@ public class ServiceClass extends RESTService {
 					Object[] graph_data = (Object[]) queryResults_new.get(i);
 					ArrayList<OcdMetricLog> metric_logs = new ArrayList<>(); // this will hold metrics of the cover
 					// Query metric information of the covers queried above
-					String queryStr_metrics = "SELECT m FROM OcdMetricLog m JOIN m.cover c" +
+					String queryStr_metrics = "SELECT m FROM " + OcdMetricLog.class.getName() + " m JOIN m." + OcdMetricLog.COVER_FIELD_NAME +" c" +
 							" JOIN c." + Cover.CREATION_METHOD_FIELD_NAME + " a";
 					queryStr_metrics += " WHERE c." + Cover.ID_FIELD_NAME + " = :cid" +
 							" AND a." + CoverCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
@@ -1056,7 +1054,7 @@ public class ServiceClass extends RESTService {
 						queryStr_metrics += " AND m." + OcdMetricLog.STATUS_ID_FIELD_NAME + " IN :metricExecStatusIds";
 					}
 
-					queryStr_metrics += " ORDER BY m.id";
+					queryStr_metrics += " ORDER BY m." + OcdMetricLog.ID_FIELD_NAME;
 					Query query_metric = em.createQuery(queryStr_metrics);
 					query_metric.setParameter("execStatusIds", executionStatusIds);
 					if (!metricExecutionStatusesStr.equals("")) {
@@ -1551,7 +1549,7 @@ public class ServiceClass extends RESTService {
 						+ ", g." + CustomGraph.ID_FIELD_NAME
 						+ ", g." + CustomGraph.NAME_FIELD_NAME
 						+ ", g." + CustomGraph.NODE_COUNT_FIELD_NAME
-						+ " FROM CentralityMap c"
+						+ " FROM " + CentralityMap.class.getName() +" c"
 						+ " JOIN c." + CentralityMap.GRAPH_FIELD_NAME + " g"
 						+ " JOIN c." + CentralityMap.CREATION_METHOD_FIELD_NAME + " a";
 

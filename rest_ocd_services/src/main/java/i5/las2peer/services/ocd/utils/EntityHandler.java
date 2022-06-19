@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.glassfish.jersey.internal.inject.Custom;
 
 /**
  * Manages the access on persisted data for the Service Class.
@@ -239,7 +240,14 @@ public class EntityHandler {
 		EntityManager em = getEntityManager();
 
 		// Query graph info
-		String queryStrGraphInfo = "SELECT g.id, g.userName, g.name, g.nodeCount, g.edgeCount, g.creationMethod FROM " + CustomGraph.class.getName() + " g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
+		String queryStrGraphInfo = "SELECT"
+				+ " g." + CustomGraph.ID_FIELD_NAME
+				+ ", g." + CustomGraph.USER_NAME_FIELD_NAME
+				+ ", g." + CustomGraph.NAME_FIELD_NAME
+				+ ", g." + CustomGraph.NODE_COUNT_FIELD_NAME
+				+ ", g." + CustomGraph.EDGE_COUNT_FIELD_NAME
+				+ ", g." + CustomGraph.CREATION_METHOD_FIELD_NAME
+				+ " FROM " + CustomGraph.class.getName() + " g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
 				+ " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND b."
 				+ GraphCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
 		Query queryGraphInfo = em.createQuery(queryStrGraphInfo);
@@ -259,7 +267,7 @@ public class EntityHandler {
 
 			Object[] graph_data = (Object[]) graphInfoList.get(i);
 			// create a query for collection of graph types belonging to the currently observed graph
-			String queryStrGraphTypes = "SELECT g.types FROM " + CustomGraph.class.getName() + " g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
+			String queryStrGraphTypes = "SELECT g." + CustomGraph.TYPES_FIELD_NAME + " FROM " + CustomGraph.class.getName() + " g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
 					+ " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND g."
 					+ CustomGraph.ID_FIELD_NAME + " = :graphId" + " AND b."
 					+ GraphCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
