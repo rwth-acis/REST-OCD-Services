@@ -20,7 +20,9 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
 /**
- * This class is an implementation of the algorithm from "Overlapping community structures and their detection on social networks" of Nam P. Nguyen, Thang N. Dinh, Dung T. Nguyen, My T. Thai
+ * This class is an implementation of the algorithm by Nam P. Nguyen, Thang N. Dinh, Dung T. Nguyen, My T. Thai:
+ * Overlapping community structures and their detection on social networks
+ * https://doi.org/10.1109/PASSAT/SocialCom.2011.16
  * and based on the C++ implementation Nam P. Nguyen
  */
 public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {

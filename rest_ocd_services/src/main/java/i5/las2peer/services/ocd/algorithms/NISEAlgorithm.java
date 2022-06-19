@@ -37,8 +37,9 @@ import y.base.NodeCursor;
 import y.algo.GraphConnectivity;
 
 /**
- * The original version of the overlapping community detection algorithm introduced in 2016
- * Joyce Jiyoung Whang, David F. Gleich, and Inderjit S. Dhillon
+ * The original version of the overlapping community detection algorithm by Joyce Jiyoung Whang, David F. Gleich, and Inderjit S. Dhillon:
+ * Overlapping Community Detection Using Neighborhood-Inflated Seed Expansion
+ * https://doi.org/10.1109/TKDE.2016.2518687
  * Handles weighted and undirected graphs.
  * Creates overlapping communities by running the four phases: Filtering, Seeding, Expansion, Propagation
  */

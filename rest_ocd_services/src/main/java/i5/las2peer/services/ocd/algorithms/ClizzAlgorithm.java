@@ -26,8 +26,9 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
 /**
- * The original version of the overlapping community detection algorithm introduced in 2012
- * by H.J. Li, J. Zhang, Z.P. Liu, L. Chen and X.S. Zhang.
+ * The original version of the overlapping community detection algorithm introduced in 2012 by H.J. Li, J. Zhang, Z.P. Liu, L. Chen and X.S. Zhang:
+ * Identifying overlapping communities in social networks using multi-scale local information expansion
+ * https://doi.org/10.1140/epjb/e2012-30015-5
  * Handles weighted and directed graphs. Edge weights are transformed to obtain a distance based interpretation 
  * from an influence based interpretation. The new weight w'(e) of an edge e is defined as w_max(G) + w_min(G) - w(e),
  * where w_max(G) and w_min(G) are the maximum and minimum edge weight of the graph an w(e) the edge's original weight.

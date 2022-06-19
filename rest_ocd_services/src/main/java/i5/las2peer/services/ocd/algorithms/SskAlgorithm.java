@@ -19,6 +19,11 @@ import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
+/**
+ * Implement the algorithm by A. Stanoev, D. Smilkov, and L. Kocarev:
+ * Identifying communities by influence dynamics in social networks
+ * https://doi.org/10.1103/PhysRevE.84.046102
+ */
 public class SskAlgorithm implements OcdAlgorithm {
 	
 	/**

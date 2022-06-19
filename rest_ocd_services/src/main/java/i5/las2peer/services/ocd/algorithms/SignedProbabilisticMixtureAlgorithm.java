@@ -34,6 +34,9 @@ import org.la4j.vector.Vector;
 import org.la4j.vector.dense.*;
 
 /**
+ * Implements the algorithm by Y. Chen, X.L. Wang, B. Yuan and B.Z. Tang:
+ * Overlapping community detection in networks with positive and negative links
+ * https://doi.org/10.1088/1742-5468/2014/03/p03021
  * @author YLi
  */
 public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {

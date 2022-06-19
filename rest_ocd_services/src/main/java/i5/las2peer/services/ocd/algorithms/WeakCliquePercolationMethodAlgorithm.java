@@ -21,10 +21,10 @@ import org.graphstream.graph.Edge;
 
 /**
  * This class holds weak clique percolation algorithm, implementation of which
- * is heavily based on the paper 'A Fast Overlapping Community Detection
- * Algorithm Based on Weak Cliques for Largte-Scale Networks' written by Xingui
- * Zhan, Congtao Wang, Yansen Su, Linqiang Pan and Hai-Feng Zhang. The variable
- * naming and algorithm steps are consistent with the ones used in the paper,
+ * is heavily based on the paper written by Xingui Zhan, Congtao Wang, Yansen Su, Linqiang Pan and Hai-Feng Zhang:
+ * A Fast Overlapping Community Detection Algorithm Based on Weak Cliques for Largte-Scale Networks
+ * https://doi.org/10.1109/TCSS.2017.2749282
+ * The variable naming and algorithm steps are consistent with the ones used in the paper,
  * unless explicitly mentioned in the code.
  */
 public class WeakCliquePercolationMethodAlgorithm implements OcdAlgorithm {

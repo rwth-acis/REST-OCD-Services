@@ -20,7 +20,9 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
 /**
- * The original standard version of the Link Communities Algorithm.
+ * The original standard version of the Link Communities Algorithm by Y.-Y. Ahn, J. P. Bagrow, and S. Lehmann:
+ * Link communities reveal multiscale complexity in networks
+ * https://doi.org/10.1038/nature09182
  * Handles only undirected, unweighted graphs.
  */
 public class LinkCommunitiesAlgorithm implements

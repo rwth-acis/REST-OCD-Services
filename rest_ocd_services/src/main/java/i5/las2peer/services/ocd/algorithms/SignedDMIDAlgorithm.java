@@ -19,7 +19,10 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
 /**
- * Implements SignedDMID algorithm. Handles directed and signed graphs.
+ * Implements SignedDMID algorithm by M. Shahriari, S. Krott, and R. Klamma:
+ * Disassortative degree mixing and information diffusion for overlapping community detection in social networks (dmid)
+ * https://doi.org/10.1145/2740908.2741696
+ * Handles directed and signed graphs.
  * 
  * @author YLi
  */
