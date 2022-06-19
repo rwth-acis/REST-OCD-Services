@@ -41,13 +41,11 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.ManualDeployment;
 import i5.las2peer.api.security.UserAgent;
-import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
 import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.execution.ExecutionContext;
 import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -1217,7 +1215,7 @@ public class ServiceClass extends RESTService {
 							ContentBasedWeightingAlgorithm weightAlgo = new ContentBasedWeightingAlgorithm();
 							graph = weightAlgo.detectOverlappingCommunities(graph, new ExecutionTime());
 						}
-						cover = new Cover(graph, new CCSMatrix(graph.nodeCount(), 0));
+						cover = new Cover(graph, new CCSMatrix(graph.getNodeCount(), 0));
 						log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
 						cover.setCreationMethod(log);
 						cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
@@ -2311,7 +2309,7 @@ public class ServiceClass extends RESTService {
 	    		GraphCreationLog log = new GraphCreationLog(benchmarkType, parameters);
 	    		log.setStatus(ExecutionStatus.WAITING);
 	    		graph.setCreationMethod(log);
-	    		Cover cover = new Cover(graph, new CCSMatrix(graph.nodeCount(), 0));
+	    		Cover cover = new Cover(graph, new CCSMatrix(graph.getNodeCount(), 0));
 	    		cover.setName(URLDecoder.decode(coverNameStr, "UTF-8"));
 	    		CoverCreationLog coverLog = new CoverCreationLog(coverCreationType, parameters,
 	    				new HashSet<GraphType>());
@@ -3938,7 +3936,7 @@ public class ServiceClass extends RESTService {
 			return Response.ok().entity(series).build();
 	
 		}
-	
+
 		@GET
 		@Path("/simulation/meta")
 		@Consumes(MediaType.APPLICATION_JSON)
@@ -4527,7 +4525,7 @@ public class ServiceClass extends RESTService {
 	//////////////////////////////////////////////////////////////////
 	///////// RMI Methods
 	//////////////////////////////////////////////////////////////////
-
+	//TODO: Check if we even need those RMI methods anymore
 	//////////// GRAPH ////////////
 
 	/**
@@ -4554,8 +4552,8 @@ public class ServiceClass extends RESTService {
 			return null;
 		}
 
-		Integer nodeCount = graph.nodeCount();
-		Integer edgeCount = graph.edgeCount();
+		Integer nodeCount = graph.getNodeCount();
+		Integer edgeCount = graph.getEdgeCount();
 		Boolean directed = graph.isDirected();
 		Boolean weighted = graph.isWeighted();
 		String name = graph.getName();
@@ -4588,7 +4586,7 @@ public class ServiceClass extends RESTService {
 
 		List<CustomGraph> graphList = entityHandler.getGraphs(username);
 		for (int i = 0, si = graphList.size(); i < si; i++) {
-			graphIdList.add(graphList.get(i).getId());
+			graphIdList.add(graphList.get(i).getPersistenceId());
 		}
 
 		logger.log(Level.INFO, "RMI requested graph Ids");

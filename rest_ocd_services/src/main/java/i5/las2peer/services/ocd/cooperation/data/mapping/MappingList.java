@@ -38,7 +38,7 @@ public class MappingList extends ArrayList<CoverSimulationGroupMapping> implemen
 			double[] properties = mapping.getPropertyValues(property);
 			for (int i = 0; i < properties.length; i++) {
 				if (mapping.getCover().getCommunitySize(i) > 1) {
-					if (mapping.getCover().getCommunitySize(i) < mapping.getCover().getGraph().nodeCount()) {
+					if (mapping.getCover().getCommunitySize(i) < mapping.getCover().getGraph().getNodeCount()) {
 						values.add(properties[i]);
 					}
 				}
@@ -61,7 +61,7 @@ public class MappingList extends ArrayList<CoverSimulationGroupMapping> implemen
 			double[] cooperation = mapping.getCooperationValues();
 			for (int i = 0; i < cooperation.length; i++) {
 				if (mapping.getCover().getCommunitySize(i) > 1) {
-					if (mapping.getCover().getCommunitySize(i)  < mapping.getCover().getGraph().nodeCount()) {
+					if (mapping.getCover().getCommunitySize(i)  < mapping.getCover().getGraph().getNodeCount()) {
 						values.add(cooperation[i]);
 					}
 				}

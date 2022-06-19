@@ -409,7 +409,7 @@ public class GraphProcessor {
 			while(edges.hasNext()) {
 				//TODO: Finish edge reversal
 				Edge edge = edges.next();
-				graph.addEdge(UUID.randomUUID().toString(), edge.getTargetNode(), edge.getSourceNode())
+				graph.addEdge(UUID.randomUUID().toString(), edge.getTargetNode(), edge.getSourceNode());
 				graph.removeEdge(edge);
 			}
 		}
