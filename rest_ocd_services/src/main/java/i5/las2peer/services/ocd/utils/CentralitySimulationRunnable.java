@@ -48,7 +48,7 @@ public class CentralitySimulationRunnable implements Runnable {
 		/*
 		 * Set simulation state to running.
 		 */
-		CustomGraphId graphId = new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName());
+		CustomGraphId graphId = new CustomGraphId(map.getGraph().getPersistenceId(), map.getGraph().getUserName());
     	CentralityMapId id = new CentralityMapId(map.getId(), graphId);
     	RequestHandler requestHandler = new RequestHandler();
     	EntityManager em = entityHandler.getEntityManager();

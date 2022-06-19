@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.cooperation.simulation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import i5.las2peer.api.execution.ServiceInvocationException;
 import i5.las2peer.services.ocd.cooperation.data.simulation.AgentData;
@@ -23,8 +24,8 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import sim.field.network.Network;
 import sim.util.Bag;
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 /**
  * Provides the interface to start simulations from the service.
@@ -257,7 +258,7 @@ public class SimulationBuilder {
 		parameters.setPayoffCD(game.getPayoffAB());
 		parameters.setPayoffDC(game.getPayoffBA());
 		parameters.setPayoffDD(game.getPayoffBB());
-		parameters.setGraphId(graph.getId());
+		parameters.setGraphId(graph.getPersistenceId());
 		parameters.setIterations(iterations);
 		parameters.setGraphName(graph.getName());
 		parameters.setMaxIterations(condition.getMaxIterations());
@@ -343,17 +344,17 @@ public class SimulationBuilder {
 		Network network = new Network(false);
 		List<Agent> agents = new ArrayList<>();
 
-		for (Node node : graph.getNodeArray()) {
-			Agent agent = new Agent(node.index());
-			agents.add(node.index(), agent);
+		for (Node node : graph.nodes().toArray(Node[]::new)) {
+			Agent agent = new Agent(node.getIndex());
+			agents.add(node.getIndex(), agent);
 			network.addNode(agent);
 		}
 
-		for (Edge edge : graph.getEdgeArray()) {
-			int source = edge.source().index();
-			int target = edge.target().index();
+		for (Edge edge : graph.edges().toArray(Edge[]::new)) {
+			int source = edge.getSourceNode().getIndex();
+			int target = edge.getTargetNode().getIndex();
 			if (network.getEdge(agents.get(source), agents.get(target)) == null)
-				network.addEdge(agents.get(source), agents.get(target), true);
+				network.addEdge(UUID.randomUUID().toString(), agents.get(target), true);
 		}
 		return network;
 	}

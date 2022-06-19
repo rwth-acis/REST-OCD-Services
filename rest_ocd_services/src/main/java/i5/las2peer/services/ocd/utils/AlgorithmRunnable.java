@@ -55,7 +55,7 @@ public class AlgorithmRunnable implements Runnable {
 		/*
 		 * Set algorithm state to running.
 		 */
-		CustomGraphId graphId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
+		CustomGraphId graphId = new CustomGraphId(cover.getGraph().getPersistenceId(), cover.getGraph().getUserName());
     	CoverId id = new CoverId(cover.getId(), graphId);
     	RequestHandler requestHandler = new RequestHandler();
     	EntityHandler entityHandler = new EntityHandler();

@@ -27,7 +27,6 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphCreationType;
-import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 
@@ -717,7 +716,7 @@ public class RequestHandler {
 	protected Node getIdElt(CustomGraph graph, Document doc) {
 		Element graphElt = doc.createElement("Graph");
 		Element graphIdElt = doc.createElement("Id");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(graph.getId())));
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(graph.getPersistenceId())));
 		graphElt.appendChild(graphIdElt);
 		return graphElt;
 	}
@@ -738,7 +737,7 @@ public class RequestHandler {
 		coverIdElt.appendChild(doc.createTextNode(Long.toString(cover.getId())));
 		idElt.appendChild(coverIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(cover.getGraph().getId())));
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(cover.getGraph().getPersistenceId())));
 		idElt.appendChild(graphIdElt);
 		coverElt.appendChild(idElt);
 		return coverElt;
@@ -757,7 +756,7 @@ public class RequestHandler {
 		centralityMapIdElt.appendChild(doc.createTextNode(Long.toString(map.getId())));
 		idElt.appendChild(centralityMapIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(map.getGraph().getId())));
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(map.getGraph().getPersistenceId())));
 		idElt.appendChild(graphIdElt);
 		centralityMapElt.appendChild(idElt);
 		return centralityMapElt;
@@ -782,7 +781,7 @@ public class RequestHandler {
 		coverIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getCover().getId())));
 		idElt.appendChild(coverIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getCover().getGraph().getId())));
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getCover().getGraph().getPersistenceId())));
 		idElt.appendChild(graphIdElt);
 		metricElt.appendChild(idElt);
 		return metricElt;

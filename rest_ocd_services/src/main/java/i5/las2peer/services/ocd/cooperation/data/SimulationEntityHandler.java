@@ -132,7 +132,7 @@ public class SimulationEntityHandler extends EntityHandler {
 	 * @param graphId the graphs id
 	 * @return List of SimulationsSeries
 	 */
-	public List<SimulationSeries> getSimulationSeries(String userId, long graphId, DynamicType dynamic, GameType game) {
+	public List<SimulationSeries> getSimulationSeries(String userId, String graphId, DynamicType dynamic, GameType game) {
 
 		EntityManager em = getEntityManager();				 
 		TypedQuery<SimulationSeries> query = em.createQuery(

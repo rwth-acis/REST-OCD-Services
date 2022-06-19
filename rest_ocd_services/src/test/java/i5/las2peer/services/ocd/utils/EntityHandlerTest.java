@@ -3,7 +3,6 @@ package i5.las2peer.services.ocd.utils;
 import static org.junit.Assert.*;
 
 import java.io.FileNotFoundException;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -79,13 +78,13 @@ public class EntityHandlerTest {
 			em.persist(graph);
 			em.flush();
 			tx.commit();
-			long graphId = graph.getId();
+			long graphId = graph.getPersistenceId();
 			em.close();
 
 			CustomGraph resultGraph;
 			resultGraph = entityHandler.getGraph("eve", graphId);
 			assertNotNull(resultGraph);
-			assertEquals(graphId, resultGraph.getId());
+			assertEquals(graphId, resultGraph.getPersistenceId());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -107,7 +106,7 @@ public class EntityHandlerTest {
 		graph.setName("testGraphName231");
 
 		entityHandler.storeGraph(graph);
-		long graphId = graph.getId();
+		long graphId = graph.getPersistenceId();
 
 		CustomGraphId id = new CustomGraphId(graphId, "testUser231");
 		CustomGraph resultGraph = null;
@@ -157,7 +156,7 @@ public class EntityHandlerTest {
 
 		tx.commit();
 
-		long graphId = graph1.getId();
+		long graphId = graph1.getPersistenceId();
 		try {
 			entityHandler.deleteGraph("eve", graphId, new ThreadHandler());
 		} catch (Exception e) {
@@ -193,14 +192,14 @@ public class EntityHandlerTest {
 			em.persist(graph);
 			em.persist(cover);
 			tx.commit();
-			long graphId = graph.getId();
+			long graphId = graph.getPersistenceId();
 			long coverId = cover.getId();
 						
 			Cover resultCover;
 			resultCover = entityHandler.getCover("eve", graphId, coverId);
 			assertNotNull(resultCover);
 			assertEquals(coverId, resultCover.getId());
-			assertEquals(graphId, resultCover.getGraph().getId());
+			assertEquals(graphId, resultCover.getGraph().getPersistenceId());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -240,7 +239,7 @@ public class EntityHandlerTest {
 		em.persist(cover3);
 		tx.commit();
 
-		long graphId = graph.getId();
+		long graphId = graph.getPersistenceId();
 		long cover2Id = cover2.getId();
 		try {
 			entityHandler.deleteCover("eve", graphId, cover2Id, new ThreadHandler());

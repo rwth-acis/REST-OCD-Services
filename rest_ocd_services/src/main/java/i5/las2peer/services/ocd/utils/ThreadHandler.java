@@ -82,7 +82,7 @@ public class ThreadHandler {
 	 * @param componentNodeCountFilter The node count filter used by the OcdAlgorithmExecutor.
 	 */
 	public void runAlgorithm(Cover cover, OcdAlgorithm algorithm, int componentNodeCountFilter) {
-		CustomGraphId gId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
+		CustomGraphId gId = new CustomGraphId(cover.getGraph().getPersistenceId(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getId(), gId);
 		AlgorithmRunnable runnable = new AlgorithmRunnable(cover, algorithm, componentNodeCountFilter, this);
 		CoverCreationLog log = cover.getCreationMethod();
@@ -98,7 +98,7 @@ public class ThreadHandler {
 	 * @param algorithm The algorithm to calculate the centrality values with.
 	 */
 	public void runCentralityAlgorithm(CentralityMap map, CentralityAlgorithm algorithm) {
-		CustomGraphId gId = new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName());
+		CustomGraphId gId = new CustomGraphId(map.getGraph().getPersistenceId(), map.getGraph().getUserName());
 		CentralityMapId mapId = new CentralityMapId(map.getId(), gId);
 		CentralityAlgorithmRunnable runnable = new CentralityAlgorithmRunnable(map, algorithm, this);
 		CentralityCreationLog log = map.getCreationMethod();
@@ -114,7 +114,7 @@ public class ThreadHandler {
 	 * @param simulation The CentralitySimulation to calculate the centrality values with
 	 */
 	public void runCentralitySimulation(CentralityMap map, CentralitySimulation simulation) {
-		CustomGraphId gId = new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName());
+		CustomGraphId gId = new CustomGraphId(map.getGraph().getPersistenceId(), map.getGraph().getUserName());
 		CentralityMapId mapId = new CentralityMapId(map.getId(), gId);
 		CentralitySimulationRunnable runnable = new CentralitySimulationRunnable(map, simulation, this);
 		CentralityCreationLog log = map.getCreationMethod();
@@ -130,7 +130,7 @@ public class ThreadHandler {
 	 * @param benchmark The benchmark model to calculate the ground truth cover with.
 	 */
 	public void runGroundTruthBenchmark(Cover cover, GroundTruthBenchmark benchmark) {
-		CustomGraphId gId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
+		CustomGraphId gId = new CustomGraphId(cover.getGraph().getPersistenceId(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getId(), gId);
 		GroundTruthBenchmarkRunnable runnable = new GroundTruthBenchmarkRunnable(coverId, benchmark, this);
 		GraphCreationLog log = cover.getGraph().getCreationMethod();
@@ -147,7 +147,7 @@ public class ThreadHandler {
 	 * @param cover The cover the metric shall run on.
 	 */
 	public void runStatisticalMeasure(OcdMetricLog metricLog, StatisticalMeasure metric, Cover cover) {
-		CustomGraphId gId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
+		CustomGraphId gId = new CustomGraphId(cover.getGraph().getPersistenceId(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getId(), gId);
 		OcdMetricLogId logId = new OcdMetricLogId(metricLog.getId(), coverId);
 		StatisticalMeasureRunnable runnable = new StatisticalMeasureRunnable(logId, metric, cover, this);
@@ -165,7 +165,7 @@ public class ThreadHandler {
 	 * @param groundTruth The ground truth cover to be used by the metric.
 	 */
 	public void runKnowledgeDrivenMeasure(OcdMetricLog metricLog, KnowledgeDrivenMeasure metric, Cover cover, Cover groundTruth) {
-		CustomGraphId gId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
+		CustomGraphId gId = new CustomGraphId(cover.getGraph().getPersistenceId(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getId(), gId);
 		OcdMetricLogId logId = new OcdMetricLogId(metricLog.getId(), coverId);
 		KnowledgeDrivenMeasureRunnable runnable = new KnowledgeDrivenMeasureRunnable(logId, metric, cover, groundTruth, this);
@@ -496,7 +496,7 @@ public class ThreadHandler {
 	 */
 	public void interruptAll(Cover cover) {
 		synchronized (algorithms) {
-			unsynchedInterruptAlgorithm(new CoverId(cover.getId(), new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName())));
+			unsynchedInterruptAlgorithm(new CoverId(cover.getId(), new CustomGraphId(cover.getGraph().getPersistenceId(), cover.getGraph().getUserName())));
 		}
 		synchronized (metrics) {
 			unsynchedInterruptAllMetrics(cover);
@@ -509,7 +509,7 @@ public class ThreadHandler {
 	 */
 	public void interruptAll(CentralityMap map) {
 		synchronized (centralityAlgorithms) {
-			unsynchedInterruptAlgorithm(new CentralityMapId(map.getId(), new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName())));
+			unsynchedInterruptAlgorithm(new CentralityMapId(map.getId(), new CustomGraphId(map.getGraph().getPersistenceId(), map.getGraph().getUserName())));
 		}
 	}
 	
@@ -551,7 +551,6 @@ public class ThreadHandler {
 	
 	/**
 	 * Interrupts a metric execution without synchronization.
-	 * @param cover The cover the metric is run on.
 	 * @param logId The id of the reserved persisted log the metric is calculating.
 	 */
 	private void unsynchedInterruptMetric(OcdMetricLogId logId) {
@@ -567,7 +566,7 @@ public class ThreadHandler {
 	 * @param cover The cover.
 	 */
 	private void unsynchedInterruptAllMetrics(Cover cover) {
-		CoverId coverId = new CoverId(cover.getId(), new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName()));
+		CoverId coverId = new CoverId(cover.getId(), new CustomGraphId(cover.getGraph().getPersistenceId(), cover.getGraph().getUserName()));
 		for(OcdMetricLog log : cover.getMetrics()) {
 			OcdMetricLogId logId = new OcdMetricLogId(log.getId(), coverId);
 			unsynchedInterruptMetric(logId);

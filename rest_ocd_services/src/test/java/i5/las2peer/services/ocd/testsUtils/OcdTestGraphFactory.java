@@ -17,13 +17,10 @@ import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 /**
  * Provides graphs for testing purposes.
@@ -39,34 +36,33 @@ public class OcdTestGraphFactory {
 		// Creates nodes
 		Node n[] = new Node[11];  
 		for (int i = 0; i < 11; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 		}
 		// Creates edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[0], n[2]);
-		graph.createEdge(n[0], n[3]);
-		graph.createEdge(n[0], n[4]);
-		graph.createEdge(n[0], n[10]);
-		graph.createEdge(n[5], n[6]);
-		graph.createEdge(n[5], n[7]);
-		graph.createEdge(n[5], n[8]);
-		graph.createEdge(n[5], n[9]);
-		graph.createEdge(n[5], n[10]);
-		graph.createEdge(n[1], n[0]);
-		graph.createEdge(n[2], n[0]);
-		graph.createEdge(n[3], n[0]);
-		graph.createEdge(n[4], n[0]);
-		graph.createEdge(n[10], n[0]);
-		graph.createEdge(n[6], n[5]);
-		graph.createEdge(n[7], n[5]);
-		graph.createEdge(n[8], n[5]);
-		graph.createEdge(n[9], n[5]);
-		graph.createEdge(n[10], n[5]);
-		EdgeCursor edges = graph.edges();
-		while(edges.ok()) {
-			Edge edge = edges.edge();
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[8]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[9]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[10], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[7], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[8], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[9], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[10], n[5]);
+		Iterator<Edge> edges = graph.edges().iterator();
+		while(edges.hasNext()) {
+			Edge edge = edges.next();
 			graph.setEdgeWeight(edge, 1);
-			edges.next();
 		}
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
@@ -81,30 +77,29 @@ public class OcdTestGraphFactory {
 		// Creates nodes
 		Node n[] = new Node[11];  
 		for (int i = 0; i < 11; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 			graph.setNodeName(n[i], Integer.toString(i));
 		}
 		// Creates edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[0], n[2]);
-		graph.createEdge(n[0], n[3]);
-		graph.createEdge(n[0], n[4]);
-		graph.createEdge(n[0], n[10]);
-		graph.createEdge(n[5], n[6]);
-		graph.createEdge(n[5], n[7]);
-		graph.createEdge(n[5], n[8]);
-		graph.createEdge(n[5], n[9]);
-		graph.createEdge(n[5], n[10]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[2], n[3]);
-		graph.createEdge(n[3], n[4]);
-		graph.createEdge(n[1], n[10]);
-		graph.createEdge(n[4], n[10]);
-		EdgeCursor edges = graph.edges();
-		while(edges.ok()) {
-			Edge edge = edges.edge();
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[8]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[9]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[10]);
+		Iterator<Edge> edges = graph.edges().iterator();
+		while(edges.hasNext()) {
+			Edge edge = edges.next();
 			graph.setEdgeWeight(edge, 1);
-			edges.next();
 		}
 		GraphProcessor processor = new GraphProcessor();
 		graph.addType(GraphType.DIRECTED);
@@ -122,30 +117,29 @@ public class OcdTestGraphFactory {
 		// Creates nodes
 		Node n[] = new Node[11];  
 		for (int i = 0; i < 11; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 			graph.setNodeName(n[i], Integer.toString(i));
 		}
 		// Creates edges
-		graph.createEdge(n[1], n[0]);
-		graph.createEdge(n[2], n[0]);
-		graph.createEdge(n[3], n[0]);
-		graph.createEdge(n[4], n[0]);
-		graph.createEdge(n[10], n[0]);
-		graph.createEdge(n[5], n[6]);
-		graph.createEdge(n[5], n[7]);
-		graph.createEdge(n[5], n[8]);
-		graph.createEdge(n[5], n[9]);
-		graph.createEdge(n[5], n[10]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[2], n[3]);
-		graph.createEdge(n[3], n[4]);
-		graph.createEdge(n[1], n[10]);
-		graph.createEdge(n[4], n[10]);
-		EdgeCursor edges = graph.edges();
-		while(edges.ok()) {
-			Edge edge = edges.edge();
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[10], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[8]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[9]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[10]);
+		Iterator<Edge> edges = graph.edges().iterator();
+		while(edges.hasNext()) {
+			Edge edge = edges.next();
 			graph.setEdgeWeight(edge, 1);
-			edges.next();
 		}
 		graph.addType(GraphType.DIRECTED);
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
@@ -161,28 +155,27 @@ public class OcdTestGraphFactory {
 		// Creates nodes
 		Node n[] = new Node[11];  
 		for (int i = 0; i < 11; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 		}
 		// Creates edges
-		graph.createEdge(n[1], n[0]);
-		graph.createEdge(n[2], n[0]);
-		graph.createEdge(n[3], n[0]);
-		graph.createEdge(n[4], n[0]);
-		graph.createEdge(n[10], n[0]);
-		graph.createEdge(n[5], n[6]);
-		graph.createEdge(n[5], n[7]);
-		graph.createEdge(n[5], n[8]);
-		graph.createEdge(n[5], n[9]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[2], n[3]);
-		graph.createEdge(n[3], n[4]);
-		graph.createEdge(n[1], n[10]);
-		graph.createEdge(n[4], n[10]);
-		EdgeCursor edges = graph.edges();
-		while(edges.ok()) {
-			Edge edge = edges.edge();
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[10], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[8]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[9]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[10]);
+		Iterator<Edge> edges = graph.edges().iterator();
+		while(edges.hasNext()) {
+			Edge edge = edges.next();
 			graph.setEdgeWeight(edge, 1);
-			edges.next();
 		}
 		graph.addType(GraphType.DIRECTED);
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
@@ -202,28 +195,27 @@ public class OcdTestGraphFactory {
 		graph.setName(OcdTestConstants.linkCommunitiesTestName);
 		// Creates nodes
 		for (int i = 0; i < 9; i++) {
-			graph.createNode();
+			graph.addNode(Integer.toString(i));
 		}
 		// Creates edges
-		Node n[] = graph.getNodeArray();
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[0], n[2]);
-		graph.createEdge(n[0], n[3]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[1], n[3]);
-		graph.createEdge(n[2], n[3]);
-		graph.createEdge(n[3], n[4]);
-		graph.createEdge(n[3], n[5]);
-		graph.createEdge(n[3], n[6]);
-		graph.createEdge(n[4], n[5]);
-		graph.createEdge(n[6], n[7]);
-		graph.createEdge(n[6], n[8]);
-		graph.createEdge(n[7], n[8]);
-		EdgeCursor edges = graph.edges();
-		while(edges.ok()) {
-			Edge edge = edges.edge();
+		Node n[] = graph.nodes().toArray(Node[]::new);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[8]);
+		graph.addEdge(UUID.randomUUID().toString(), n[7], n[8]);
+		Iterator<Edge> edges = graph.edges().iterator();
+		while(edges.hasNext()) {
+			Edge edge = edges.next();
 			graph.setEdgeWeight(edge, 1);
-			edges.next();
 		}
 		GraphProcessor processor = new GraphProcessor();
 		graph.addType(GraphType.DIRECTED);
@@ -315,14 +307,14 @@ public class OcdTestGraphFactory {
 		// Creates nodes
 		Node n[] = new Node[5];  
 		for (int i = 0; i < 5; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 			graph.setNodeName(n[i], Integer.toString(i));
 		}
 		// Creates edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[0], n[2]);
-		graph.createEdge(n[0], n[3]);
-		graph.createEdge(n[0], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[4]);
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
 		graph.setCreationMethod(log);
@@ -369,7 +361,7 @@ public class OcdTestGraphFactory {
 		
 		Node n[] = new Node[5];  
 		for (int i = 0; i < 5; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode();
 			graph.setNodeName(n[i], Integer.toString(i));
 		}
 				
@@ -612,24 +604,24 @@ public class OcdTestGraphFactory {
 		// Creates nodes
 		Node n[] = new Node[5];
 		for (int i = 0; i < 5; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 		}
 		// Creates edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[0], n[2]);
-		graph.createEdge(n[2], n[3]);
-		graph.createEdge(n[3], n[1]);
-		graph.createEdge(n[3], n[4]);
-		graph.createEdge(n[4], n[2]);
-		graph.createEdge(n[2], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[0]);
 		// Set edge weight
-		graph.setEdgeWeight(graph.getEdgeArray()[0], 1);
-		graph.setEdgeWeight(graph.getEdgeArray()[1], -1);
-		graph.setEdgeWeight(graph.getEdgeArray()[2], 1);
-		graph.setEdgeWeight(graph.getEdgeArray()[3], -1);
-		graph.setEdgeWeight(graph.getEdgeArray()[4], 1);
-		graph.setEdgeWeight(graph.getEdgeArray()[5], 1);
-		graph.setEdgeWeight(graph.getEdgeArray()[6], 1);
+		graph.setEdgeWeight(graph.getEdge(0), 1);
+		graph.setEdgeWeight(graph.getEdge(1), -1);
+		graph.setEdgeWeight(graph.getEdge(2), 1);
+		graph.setEdgeWeight(graph.getEdge(3), -1);
+		graph.setEdgeWeight(graph.getEdge(4), 1);
+		graph.setEdgeWeight(graph.getEdge(5), 1);
+		graph.setEdgeWeight(graph.getEdge(6), 1);
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
 		graph.setCreationMethod(log);
@@ -643,24 +635,24 @@ public class OcdTestGraphFactory {
 		// Create nodes
 		Node n[] = new Node[7];
 		for (int i = 0; i < 7; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 			graph.setNodeName(n[i], Integer.toString(i));
 		}
 		// Create edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[1], n[0]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[1], n[3]);
-		graph.createEdge(n[2], n[1]);
-		graph.createEdge(n[2], n[3]);
-		graph.createEdge(n[3], n[1]);
-		graph.createEdge(n[3], n[2]);
-		graph.createEdge(n[3], n[4]);
-		graph.createEdge(n[3], n[5]);
-		graph.createEdge(n[4], n[3]);
-		graph.createEdge(n[4], n[6]);
-		graph.createEdge(n[5], n[3]);
-		graph.createEdge(n[6], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[4]);
 		
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
@@ -675,39 +667,39 @@ public class OcdTestGraphFactory {
 		// Create nodes
 		Node n[] = new Node[7];
 		for (int i = 0; i < 7; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 			graph.setNodeName(n[i], Integer.toString(i));
 		}
 		// Create edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[1], n[0]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[1], n[3]);
-		graph.createEdge(n[2], n[1]);
-		graph.createEdge(n[2], n[3]);
-		graph.createEdge(n[3], n[1]);
-		graph.createEdge(n[3], n[2]);
-		graph.createEdge(n[3], n[4]);
-		graph.createEdge(n[3], n[5]);
-		graph.createEdge(n[4], n[3]);
-		graph.createEdge(n[4], n[6]);
-		graph.createEdge(n[5], n[3]);
-		graph.createEdge(n[6], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[4]);
 		// Set edge weights
-		graph.setEdgeWeight(n[0].getEdgeTo(n[1]), 3.0);
-		graph.setEdgeWeight(n[1].getEdgeTo(n[0]), 3.0);	
-		graph.setEdgeWeight(n[1].getEdgeTo(n[2]), 2.0);
-		graph.setEdgeWeight(n[2].getEdgeTo(n[1]), 2.0);	
-		graph.setEdgeWeight(n[1].getEdgeTo(n[3]), 2.0);
-		graph.setEdgeWeight(n[3].getEdgeTo(n[1]), 2.0);
-		graph.setEdgeWeight(n[2].getEdgeTo(n[3]), 1.0);
-		graph.setEdgeWeight(n[3].getEdgeTo(n[2]), 1.0);
-		graph.setEdgeWeight(n[3].getEdgeTo(n[4]), 1.0);
-		graph.setEdgeWeight(n[4].getEdgeTo(n[3]), 1.0);
-		graph.setEdgeWeight(n[3].getEdgeTo(n[5]), 1.0);
-		graph.setEdgeWeight(n[5].getEdgeTo(n[3]), 1.0);
-		graph.setEdgeWeight(n[4].getEdgeTo(n[6]), 4.0);
-		graph.setEdgeWeight(n[6].getEdgeTo(n[4]), 4.0);
+		graph.setEdgeWeight(n[0].getEdgeToward(n[1]), 3.0);
+		graph.setEdgeWeight(n[1].getEdgeToward(n[0]), 3.0);
+		graph.setEdgeWeight(n[1].getEdgeToward(n[2]), 2.0);
+		graph.setEdgeWeight(n[2].getEdgeToward(n[1]), 2.0);
+		graph.setEdgeWeight(n[1].getEdgeToward(n[3]), 2.0);
+		graph.setEdgeWeight(n[3].getEdgeToward(n[1]), 2.0);
+		graph.setEdgeWeight(n[2].getEdgeToward(n[3]), 1.0);
+		graph.setEdgeWeight(n[3].getEdgeToward(n[2]), 1.0);
+		graph.setEdgeWeight(n[3].getEdgeToward(n[4]), 1.0);
+		graph.setEdgeWeight(n[4].getEdgeToward(n[3]), 1.0);
+		graph.setEdgeWeight(n[3].getEdgeToward(n[5]), 1.0);
+		graph.setEdgeWeight(n[5].getEdgeToward(n[3]), 1.0);
+		graph.setEdgeWeight(n[4].getEdgeToward(n[6]), 4.0);
+		graph.setEdgeWeight(n[6].getEdgeToward(n[4]), 4.0);
 		
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
@@ -722,17 +714,17 @@ public class OcdTestGraphFactory {
 		// Create nodes
 		Node n[] = new Node[7];
 		for (int i = 0; i < 7; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 			graph.setNodeName(n[i], Integer.toString(i));
 		}
 		// Create edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[1], n[3]);
-		graph.createEdge(n[3], n[2]);
-		graph.createEdge(n[3], n[4]);
-		graph.createEdge(n[3], n[5]);
-		graph.createEdge(n[4], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[6]);
 		
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
@@ -747,25 +739,25 @@ public class OcdTestGraphFactory {
 		// Create nodes
 		Node n[] = new Node[7];
 		for (int i = 0; i < 7; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 			graph.setNodeName(n[i], Integer.toString(i));
 		}
 		// Create edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[1], n[3]);
-		graph.createEdge(n[3], n[2]);
-		graph.createEdge(n[3], n[4]);
-		graph.createEdge(n[3], n[5]);
-		graph.createEdge(n[4], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[6]);
 		// Set edge weights
-		graph.setEdgeWeight(n[0].getEdgeTo(n[1]), 3.0);
-		graph.setEdgeWeight(n[1].getEdgeTo(n[2]), 2.0);
-		graph.setEdgeWeight(n[1].getEdgeTo(n[3]), 2.0);
-		graph.setEdgeWeight(n[3].getEdgeTo(n[2]), 1.0);
-		graph.setEdgeWeight(n[3].getEdgeTo(n[4]), 1.0);
-		graph.setEdgeWeight(n[3].getEdgeTo(n[5]), 1.0);
-		graph.setEdgeWeight(n[4].getEdgeTo(n[6]), 4.0);
+		graph.setEdgeWeight(n[0].getEdgeToward(n[1]), 3.0);
+		graph.setEdgeWeight(n[1].getEdgeToward(n[2]), 2.0);
+		graph.setEdgeWeight(n[1].getEdgeToward(n[3]), 2.0);
+		graph.setEdgeWeight(n[3].getEdgeToward(n[2]), 1.0);
+		graph.setEdgeWeight(n[3].getEdgeToward(n[4]), 1.0);
+		graph.setEdgeWeight(n[3].getEdgeToward(n[5]), 1.0);
+		graph.setEdgeWeight(n[4].getEdgeToward(n[6]), 4.0);
 		
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
@@ -784,40 +776,40 @@ public class OcdTestGraphFactory {
 		// Create nodes
 		Node n[] = new Node[9];
 		for (int i = 0; i < 9; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 			graph.setNodeName(n[i], Integer.toString(i));
 		}
 		// Create edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[0], n[8]);
-		graph.createEdge(n[1], n[0]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[1], n[8]);
-		graph.createEdge(n[2], n[1]);
-		graph.createEdge(n[2], n[3]);
-		graph.createEdge(n[2], n[7]);
-		graph.createEdge(n[2], n[8]);
-		graph.createEdge(n[3], n[2]);
-		graph.createEdge(n[3], n[4]);
-		graph.createEdge(n[3], n[5]);
-		graph.createEdge(n[3], n[6]);
-		graph.createEdge(n[3], n[7]);
-		graph.createEdge(n[4], n[3]);
-		graph.createEdge(n[4], n[5]);
-		graph.createEdge(n[5], n[3]);
-		graph.createEdge(n[5], n[4]);
-		graph.createEdge(n[5], n[6]);
-		graph.createEdge(n[5], n[7]);
-		graph.createEdge(n[6], n[3]);
-		graph.createEdge(n[6], n[5]);
-		graph.createEdge(n[6], n[7]);
-		graph.createEdge(n[7], n[2]);
-		graph.createEdge(n[7], n[3]);
-		graph.createEdge(n[7], n[5]);
-		graph.createEdge(n[7], n[6]);
-		graph.createEdge(n[8], n[0]);
-		graph.createEdge(n[8], n[1]);
-		graph.createEdge(n[8], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[8]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[8]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[8]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[7], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[7], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[7], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[7], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[8], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[8], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[8], n[2]);
 		
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
@@ -832,39 +824,38 @@ public class OcdTestGraphFactory {
 		// Creates nodes
 		Node n[] = new Node[8];  
 		for (int i = 0; i < 8; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 		}
 		// Creates edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[0], n[3]);
-		graph.createEdge(n[0], n[2]);
-		graph.createEdge(n[1], n[0]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[2], n[0]);
-		graph.createEdge(n[2], n[1]);
-		graph.createEdge(n[2], n[3]);
-		graph.createEdge(n[3], n[2]);
-		graph.createEdge(n[3], n[4]);
-		graph.createEdge(n[3], n[5]);
-		graph.createEdge(n[3], n[6]);
-		graph.createEdge(n[4], n[3]);
-		graph.createEdge(n[4], n[5]);
-		graph.createEdge(n[4], n[6]);
-		graph.createEdge(n[5], n[3]);
-		graph.createEdge(n[5], n[4]);
-		graph.createEdge(n[5], n[6]);
-		graph.createEdge(n[5], n[7]);
-		graph.createEdge(n[6], n[3]);
-		graph.createEdge(n[6], n[4]);
-		graph.createEdge(n[6], n[5]);
-		graph.createEdge(n[6], n[7]);
-		graph.createEdge(n[7], n[5]);
-		graph.createEdge(n[7], n[6]);
-		EdgeCursor edges = graph.edges();
-		while(edges.ok()) {
-			Edge edge = edges.edge();
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[7], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[7], n[6]);
+		Iterator<Edge> edges = graph.edges().iterator();
+		while(edges.hasNext()) {
+			Edge edge = edges.next();
 			graph.setEdgeWeight(edge, 1);
-			edges.next();
 		}
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
@@ -879,24 +870,23 @@ public class OcdTestGraphFactory {
 		// Creates nodes
 		Node n[] = new Node[4];  
 		for (int i = 0; i < 4; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 		}
 		// Creates edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[0], n[2]);
-		graph.createEdge(n[1], n[0]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[2], n[0]);
-		graph.createEdge(n[2], n[1]);
-		graph.createEdge(n[2], n[3]);
-		graph.createEdge(n[3], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[2]);
 
 	
-		EdgeCursor edges = graph.edges();
-		while(edges.ok()) {
-			Edge edge = edges.edge();
+		Iterator<Edge> edges = graph.edges().iterator();
+		while(edges.hasNext()) {
+			Edge edge = edges.next();
 			graph.setEdgeWeight(edge, 1);
-			edges.next();
 		}
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);

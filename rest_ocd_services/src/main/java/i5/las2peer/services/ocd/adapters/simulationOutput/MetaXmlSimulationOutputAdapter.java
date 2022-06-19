@@ -75,7 +75,7 @@ public class MetaXmlSimulationOutputAdapter extends AbstractSimulationOutputAdap
 
 		Element eltGraph = doc.createElement("Graph");
 		Element eltGraphId = doc.createElement("Id");
-		eltGraphId.appendChild(doc.createTextNode(String.valueOf(simulation.getNetwork().getId())));
+		eltGraphId.appendChild(doc.createTextNode(String.valueOf(simulation.getNetwork().getPersistenceId())));
 		eltGraph.appendChild(eltGraphId);
 		Element eltGraphName = doc.createElement("Name");
 		eltGraphName.appendChild(doc.createTextNode(String.valueOf(simulation.getNetwork().getName())));

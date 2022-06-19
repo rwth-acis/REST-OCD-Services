@@ -251,7 +251,7 @@ public class SimulationEntityHandlerTest {
 		em.flush();
 		em.getTransaction().commit();
 		long seriesId = series.getId();
-		long graphId = graph.getId();
+		long graphId = graph.getPersistenceId();
 		em.close();
 
 		SimulationSeries resultSeries = null;
@@ -266,7 +266,7 @@ public class SimulationEntityHandlerTest {
 		assertEquals(seriesId, resultSeries.getId());
 		assertNotNull(resultSeries.getNetwork());
 		assertEquals("testGraphName", resultSeries.getNetwork().getName());
-		assertEquals(graphId, resultSeries.getNetwork().getId());
+		assertEquals(graphId, resultSeries.getNetwork().getPersistenceId());
 	}
 	
 	@Test

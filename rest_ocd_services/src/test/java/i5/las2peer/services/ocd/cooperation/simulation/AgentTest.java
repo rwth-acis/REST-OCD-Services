@@ -149,14 +149,14 @@ public class AgentTest {
 		assertNotNull(resultBag);
 		assertEquals(0, resultBag.size());
 
-		network.addEdge(agent, agent1, true);
+		network.addEdge(UUID.randomUUID().toString(), agent1, true);
 		resultBag = agent.calculateNeighbourhood(network);
 		assertNotNull(resultBag);
 		assertEquals(1, resultBag.size());
 		assertEquals(agent1, resultBag.get(0));
 
-		network.addEdge(agent2, agent, true);
-		network.addEdge(agent, agent3, true);
+		network.addEdge(UUID.randomUUID().toString(), agent, true);
+		network.addEdge(UUID.randomUUID().toString(), agent3, true);
 		resultBag = agent.calculateNeighbourhood(network);
 		assertNotNull(resultBag);
 		assertEquals(3, resultBag.size());

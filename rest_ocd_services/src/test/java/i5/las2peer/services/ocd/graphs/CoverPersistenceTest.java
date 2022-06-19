@@ -62,7 +62,7 @@ public class CoverPersistenceTest {
 			throw ex;
 		}
 		em.close();
-		CustomGraphId gId = new CustomGraphId(graph.getId(), userName);
+		CustomGraphId gId = new CustomGraphId(graph.getPersistenceId(), userName);
 		em = emf.createEntityManager();
 		Matrix memberships = new CCSMatrix(3, 2);
 		memberships.set(0, 0, 1);
@@ -172,11 +172,11 @@ public class CoverPersistenceTest {
 		}
 		em.close();
 		System.out.println("CID: " + cover.getId());
-		System.out.println("GID: " + graph.getId());
+		System.out.println("GID: " + graph.getPersistenceId());
 		OcdBenchmarkExecutor executor = new OcdBenchmarkExecutor();
 		Cover calculatedCover = executor.calculateGroundTruthBenchmark(benchmark);
 		CustomGraph calculatedGraph = calculatedCover.getGraph();
-		CustomGraphId gId = new CustomGraphId(graph.getId(), graph.getUserName());
+		CustomGraphId gId = new CustomGraphId(graph.getPersistenceId(), graph.getUserName());
 		CoverId cId = new CoverId(cover.getId(), gId);
 	
 		em = emf.createEntityManager();
@@ -221,7 +221,7 @@ public class CoverPersistenceTest {
 		
 		assertEquals(4, coverRead.communityCount());
 		System.out.println("RPCID: " + coverRead.getId());
-		System.out.println("RPGID: " + coverRead.getGraph().getId());
+		System.out.println("RPGID: " + coverRead.getGraph().getPersistenceId());
 		System.out.println("Nodes: " + coverRead.getGraph().getNodeCount());
 		System.out.println(coverRead);
 		

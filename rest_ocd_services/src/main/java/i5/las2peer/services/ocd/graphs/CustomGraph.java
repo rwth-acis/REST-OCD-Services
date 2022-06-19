@@ -3,7 +3,6 @@ package i5.las2peer.services.ocd.graphs;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +27,6 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
-import i5.las2peer.services.ocd.graphs.*;
 import org.graphstream.graph.implementations.AbstractGraph;
 import org.graphstream.graph.implementations.MultiNode;
 import org.la4j.matrix.Matrix;
@@ -53,6 +51,7 @@ import org.graphstream.graph.Edge;
  */
 @Entity
 @IdClass(CustomGraphId.class)
+//TODO: Add boolean/function to check if graph is connected or not.
 //TODO: Decide about undirected edges, graphstream would have own functionalities for that.
 //TODO: Check whether UUIDs work out as unique graph IDs, collision chances should however be extremely low
 //TODO: Check whether UUIDs work out as unique edge IDs, collision chances should however be extremely low
@@ -93,7 +92,7 @@ public class CustomGraph extends MultiGraph {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = idColumnName)
-	private String id;
+	private long persistenceId;
 
 	/**
 	 * The name of the user owning the graph.
@@ -259,7 +258,7 @@ public class CustomGraph extends MultiGraph {
 		copyMappings(graph.customNodes, graph.customEdges, graph.nodeIds, graph.edgeIds);
 		this.userName = new String(graph.userName);
 		this.name = new String(graph.name);
-		this.id = graph.id;
+		this.persistenceId = graph.persistenceId;
 		this.path = graph.path;
 		// this.description = new String(graph.description);
 		// if(graph.lastUpdate != null) {
@@ -328,12 +327,12 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	/**
-	 * Getter for the id.
+	 * Getter for the persistence id.
 	 *
-	 * @return The id.
+	 * @return The persistence id.
 	 */
-	public String getId() {
-		return id;
+	public long getPersistenceId() {
+		return persistenceId;
 	}
 
 	/**

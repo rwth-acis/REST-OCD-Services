@@ -8,9 +8,9 @@ package i5.las2peer.services.ocd.graphs;
 public class CustomGraphId {
 	
 	/**
-	 * The graph-specific id.
+	 * The graph-specific persistence id.
 	 */
-    private String id;
+    private long persistenceId;
     
     /**
      * The name of the user owning the graph.
@@ -22,8 +22,8 @@ public class CustomGraphId {
      * @param id The graph-specific id.
      * @param userName The name of the user owning the graph.
      */
-    public CustomGraphId(String id, String userName) {
-        this.id = id;
+    public CustomGraphId(long id, String userName) {
+        this.persistenceId = id;
         this.userName = userName;
     }
  
@@ -31,7 +31,7 @@ public class CustomGraphId {
     public boolean equals(Object object) {
         if (object instanceof CustomGraphId) {
         	CustomGraphId pk = (CustomGraphId)object;
-            return userName.equals(pk.userName) && id == pk.id;
+            return userName.equals(pk.userName) && persistenceId == pk.persistenceId;
         } else {
             return false;
         }
@@ -39,7 +39,7 @@ public class CustomGraphId {
  
     @Override
     public int hashCode() {
-        return (id.hashCode() + userName.hashCode());
+        return (int)(persistenceId + userName.hashCode());
     }
 	
 }

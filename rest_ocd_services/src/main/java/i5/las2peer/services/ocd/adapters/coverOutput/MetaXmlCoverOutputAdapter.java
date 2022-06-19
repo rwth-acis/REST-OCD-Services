@@ -41,7 +41,7 @@ public class MetaXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 			coverIdElt.appendChild(doc.createTextNode(Long.toString(cover.getId())));
 			idElt.appendChild(coverIdElt);
 			Element graphIdElt = doc.createElement("GraphId");
-			graphIdElt.appendChild(doc.createTextNode(cover.getGraph().getId()));
+			graphIdElt.appendChild(doc.createTextNode(Long.toString(cover.getGraph().getPersistenceId())));
 			idElt.appendChild(graphIdElt);
 			coverElt.appendChild(idElt);
 			Element coverNameElt = doc.createElement("Name");

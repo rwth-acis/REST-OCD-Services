@@ -30,7 +30,6 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.EntityHandler;
 import i5.las2peer.services.ocd.utils.RequestHandler;
 import i5.las2peer.testing.MockAgentFactory;
-import i5.las2peer.tools.LocalNodeStarter;
 import i5.las2peer.connectors.webConnector.WebConnector;
 import i5.las2peer.connectors.webConnector.client.ClientResponse;
 import i5.las2peer.connectors.webConnector.client.MiniClient;
@@ -123,13 +122,13 @@ public class ServiceTest {
 		 */
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		createGraph(graph);
-		AperiodicTwoCommunitiesGraphId = graph.getId();
+		AperiodicTwoCommunitiesGraphId = graph.getPersistenceId();
 		graph = OcdTestGraphFactory.getDolphinsGraph();
 		createGraph(graph);
-		DolphinsGraphId = graph.getId();
+		DolphinsGraphId = graph.getPersistenceId();
 		graph = OcdTestGraphFactory.getSawmillGraph();
 		createGraph(graph);
-		SawmillGraphId = graph.getId();
+		SawmillGraphId = graph.getPersistenceId();
 	}
 
 
