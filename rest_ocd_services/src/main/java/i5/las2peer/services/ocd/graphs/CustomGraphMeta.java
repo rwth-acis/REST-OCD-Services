@@ -3,7 +3,7 @@ package i5.las2peer.services.ocd.graphs;
 import java.util.ArrayList;
 
 /**
- * Instance of this class meta information about graphs and is used
+ * Instance of this class holds meta information about graphs and is used
  * for efficient requests that don't require accessing full graph
  */
 public class CustomGraphMeta {
@@ -62,8 +62,6 @@ public class CustomGraphMeta {
             this.types = new ArrayList<>();
         }
 
-
-        //System.out.println("Insantiating CustomGraphMeta: types are: " + this.types); //TODO:DELETE
     }
 
     public long getId() {

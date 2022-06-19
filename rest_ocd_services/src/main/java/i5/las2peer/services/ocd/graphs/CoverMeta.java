@@ -5,7 +5,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import java.util.ArrayList;
 
 /**
- * Instance of this class meta information about covers and is used
+ * Instance of this class holds meta information about covers and is used
  * for efficient requests that don't require accessing full cover
  */
 public class CoverMeta {

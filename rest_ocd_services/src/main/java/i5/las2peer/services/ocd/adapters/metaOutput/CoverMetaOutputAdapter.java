@@ -4,6 +4,10 @@ import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.OutputAdapter;
 import i5.las2peer.services.ocd.graphs.CoverMeta;
 
+/**
+ * The common interface of graph output adapters.
+ *
+ */
 public interface CoverMetaOutputAdapter extends OutputAdapter {
     /**
      * Writes a cover and closes the writer.

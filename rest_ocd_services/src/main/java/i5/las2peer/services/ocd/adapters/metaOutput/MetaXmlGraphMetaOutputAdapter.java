@@ -16,8 +16,9 @@ import javax.xml.transform.stream.StreamResult;
 
 
 /**
- * A graph meta information output adapter for the meta XML format. More efficient than MetaXmlGraphOutputAdapter due to not loading full graphs.
- * The output contains meta information about the graph in XML format, but not the actual graph instance or other node or edge related meta data.
+ * A graph meta information output adapter for the meta XML format. More efficient than MetaXmlGraphOutputAdapter
+ * due to not loading full graphs. The output contains meta information about the graph in XML format, but
+ * not the actual graph instance or other node or edge related meta data.
  *
  */
 public class MetaXmlGraphMetaOutputAdapter extends AbstractGraphMetaOutputAdapter {

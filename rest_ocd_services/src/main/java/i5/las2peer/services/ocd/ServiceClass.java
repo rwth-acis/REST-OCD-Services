@@ -31,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.centrality.data.*;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.*;
 import i5.las2peer.services.ocd.utils.Error;
@@ -58,12 +59,6 @@ import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
-import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
-import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
-import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
-import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
-import i5.las2peer.services.ocd.centrality.data.CentralityMap;
-import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.centrality.evaluation.CorrelationCoefficient;
 import i5.las2peer.services.ocd.centrality.evaluation.StatisticalProcessor;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
@@ -1545,25 +1540,32 @@ public class ServiceClass extends RESTService {
 				}
 				List<CentralityMap> queryResults;
 				EntityManager em = entityHandler.getEntityManager();
+
 				/*
-				 * Query
+				 Query centrality metadata only, without loading the whole centrality
 				 */
-				String queryStr = "SELECT c from CentralityMap c"
+				String queryStr_centrality = "SELECT"
+						+ " c." + Cover.ID_FIELD_NAME
+						+ ", c." + Cover.NAME_FIELD_NAME
+						+ ", c." + Cover.CREATION_METHOD_FIELD_NAME
+						+ ", g." + CustomGraph.ID_FIELD_NAME
+						+ ", g." + CustomGraph.NAME_FIELD_NAME
+						+ ", g." + CustomGraph.NODE_COUNT_FIELD_NAME
+						+ " FROM CentralityMap c"
 						+ " JOIN c." + CentralityMap.GRAPH_FIELD_NAME + " g"
 						+ " JOIN c." + CentralityMap.CREATION_METHOD_FIELD_NAME + " a";
-				queryStr += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username"
+
+				queryStr_centrality += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username"
 						+ " AND a." + CentralityCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
+
 				if(!graphIdStr.equals("")) {
-					queryStr += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
+					queryStr_centrality += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
 				}
-				/*
-				 * Gets each CentralityMap only once.
-				 */
-				queryStr += " GROUP BY c";
-				TypedQuery<CentralityMap> query = em.createQuery(queryStr, CentralityMap.class);
+
+				Query query_centrality = em.createQuery(queryStr_centrality);
 				try {
 					int firstIndex = Integer.parseInt(firstIndexStr);
-					query.setFirstResult(firstIndex);
+					query_centrality.setFirstResult(firstIndex);
 				}
 				catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -1572,7 +1574,7 @@ public class ServiceClass extends RESTService {
 				try {
 					if(!lengthStr.equals("")) {
 						int length = Integer.parseInt(lengthStr);
-						query.setMaxResults(length);
+						query_centrality.setMaxResults(length);
 					}
 				}
 				catch (Exception e) {
@@ -1582,21 +1584,39 @@ public class ServiceClass extends RESTService {
 				boolean includeMeta;
 				try {
 					includeMeta = requestHandler.parseBoolean(includeMetaStr);
-		    	}
+				}
 				catch (Exception e) {
-		    		requestHandler.log(Level.WARNING, "", e);
-		    		return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
-		    	}
-				query.setParameter("username", username);
-				query.setParameter("execStatusIds", executionStatusIds);
-				queryResults = query.getResultList();
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
+				}
+				query_centrality.setParameter("username", username);
+				query_centrality.setParameter("execStatusIds", executionStatusIds);
+				List centrality_query_result = query_centrality.getResultList();
 				em.close();
+
+				// create CentralityMeta instance list using centrality meta queried
+				ArrayList<CentralityMeta> centralityMetaInformation = new ArrayList<>();
+				for(int i = 0; i < centrality_query_result.size(); i++) {
+					//System.out.println("object " + i);
+					Object[] centrality_data = (Object[]) centrality_query_result.get(i);
+
+					centralityMetaInformation.add(new CentralityMeta(
+							((Long) centrality_data[0]), // centrality id
+							((String) centrality_data[1]), // centrality name
+							((CentralityCreationLog) centrality_data[2]), // centrality creation log
+							((Long) centrality_data[3]), // graph id
+							((String) centrality_data[4]), // graph name
+							((Long) centrality_data[5]) // graph node count (size)
+					));
+
+				}
+
 				String responseStr;
 				if(includeMeta) {
-					responseStr = requestHandler.writeCentralityMapMetas(queryResults);
+					responseStr = requestHandler.writeCentralityMapMetas_efficiently(centralityMetaInformation);
 				}
 				else {
-					responseStr = requestHandler.writeCentralityMapIds(queryResults);
+					responseStr = requestHandler.writeCentralityMapIdsEfficiently(centralityMetaInformation);
 				}
 				return Response.ok(responseStr).build();
 	    	}

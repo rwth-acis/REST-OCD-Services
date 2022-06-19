@@ -16,9 +16,9 @@ import javax.xml.transform.stream.StreamResult;
 import java.util.Map;
 
 /**
- * A cover meta information output adapter for the meta XML format. More efficient than MetaXmlCoverOutputAdapter due to not loading full covers/graphs.
- * The output contains meta information about the cover and corresponding graph in XML format,
- * but not the actual cover/graph instances or other node or edge related meta data.
+ * A cover meta information output adapter for the meta XML format. More efficient than MetaXmlCoverOutputAdapter
+ * due to not loading full covers/graphs. The output contains meta information about the cover and corresponding
+ * graph in XML format, but not the actual cover/graph instances or other node or edge related meta data.
  *
  */
 public class MetaXmlCoverMetaOutputAdapter extends AbstractCoverMetaOutputAdapter{

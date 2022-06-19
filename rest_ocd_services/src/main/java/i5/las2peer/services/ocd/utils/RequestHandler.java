@@ -20,12 +20,10 @@ import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapter;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
-import i5.las2peer.services.ocd.adapters.metaOutput.CoverMetaOutputAdapter;
-import i5.las2peer.services.ocd.adapters.metaOutput.GraphMetaOutputAdapter;
-import i5.las2peer.services.ocd.adapters.metaOutput.MetaXmlCoverMetaOutputAdapter;
-import i5.las2peer.services.ocd.adapters.metaOutput.MetaXmlGraphMetaOutputAdapter;
+import i5.las2peer.services.ocd.adapters.metaOutput.*;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
+import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
 import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
@@ -337,6 +335,23 @@ public class RequestHandler {
 		doc.appendChild(centralityMapElt);
 		return writeDoc(doc);
 	}
+
+
+	/**
+	 * Creates an XML document containing multiple CentralityMap ids.
+	 * @param centralityMetas The meta information list.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parser config failed
+	 */
+	public String writeCentralityMapIdsEfficiently(List<CentralityMeta> centralityMetas) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element centralityMapElt = doc.createElement("CentralityMaps");
+		for(int i=0; i<centralityMetas.size(); i++) {
+			centralityMapElt.appendChild(getIdElt(centralityMetas.get(i), doc));
+		}
+		doc.appendChild(centralityMapElt);
+		return writeDoc(doc);
+	}
 	
 	/**
 	 * Creates an XML document containing meta information about multiple
@@ -465,6 +480,31 @@ public class RequestHandler {
 		Element mapsElt = doc.createElement("CentralityMaps");
 		for(CentralityMap map : maps) {
 			String metaDocStr = writeCentralityMap(map, CentralityOutputFormat.META_XML);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
+			Node importNode = doc.importNode(metaDocNode, true);
+			mapsElt.appendChild(importNode);
+		}
+		doc.appendChild(mapsElt);
+		return writeDoc(doc);
+	}
+
+
+	/**
+	 * Creates an XML document containing meta information about multiple centrality maps.
+	 * @param centralityMetas The centrality meta information list.
+	 * @return The document.
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeCentralityMapMetas_efficiently(List<CentralityMeta> centralityMetas) throws AdapterException, ParserConfigurationException, IOException, SAXException, InstantiationException, IllegalAccessException {
+		Document doc = getDocument();
+		Element mapsElt = doc.createElement("CentralityMaps");
+		for(CentralityMeta centralityMetaInfo : centralityMetas) {
+			String metaDocStr = writeCentralityMap_efficiently(centralityMetaInfo);
 			Node metaDocNode = parseDocumentToNode(metaDocStr);
 			Node importNode = doc.importNode(metaDocNode, true);
 			mapsElt.appendChild(importNode);
@@ -623,6 +663,25 @@ public class RequestHandler {
 		CentralityOutputAdapter adapter = centralityOutputAdapterFactory.getInstance(outputFormat);
     	adapter.setWriter(writer);
 		adapter.writeCentralityMap(map);
+		return writer.toString();
+	}
+
+
+	/**
+	 * Creates a CentralityMap output in MetaXml format.
+	 * @param centralityMeta
+	 *               Metadata about centrality
+	 * @return The CentralityMap output.
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeCentralityMap_efficiently(CentralityMeta centralityMeta) throws AdapterException, InstantiationException, IllegalAccessException, ParserConfigurationException {
+		Writer writer = new StringWriter();
+		CentralityMetaOutputAdapter adapter = new MetaXmlCentralityMetaOutputAdapter();
+		adapter.setWriter(writer);
+		adapter.writeCentralityMap(centralityMeta);
 		return writer.toString();
 	}
 	
@@ -937,7 +996,27 @@ public class RequestHandler {
 		centralityMapElt.appendChild(idElt);
 		return centralityMapElt;
 	}
-	
+
+
+	/**
+	 * Returns an XML element node representing the id of a CentralityMap.
+	 * @param centralityMeta The CentralityMap.
+	 * @param doc The document to create the element node for.
+	 * @return The element node.
+	 */
+	protected Node getIdElt(CentralityMeta centralityMeta, Document doc) {
+		Element centralityMapElt = doc.createElement("CentralityMap");
+		Element idElt = doc.createElement("Id");
+		Element centralityMapIdElt = doc.createElement("CentralityMapId");
+		centralityMapIdElt.appendChild(doc.createTextNode(Long.toString(centralityMeta.getCentralityId())));
+		idElt.appendChild(centralityMapIdElt);
+		Element graphIdElt = doc.createElement("GraphId");
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(centralityMeta.getGraphId())));
+		idElt.appendChild(graphIdElt);
+		centralityMapElt.appendChild(idElt);
+		return centralityMapElt;
+	}
+
 	/**
 	 * Returns an XML element node representing the id of a metric log.
 	 * 
