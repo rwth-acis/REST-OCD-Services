@@ -3,8 +3,9 @@ package i5.las2peer.services.ocd.graphs.properties;
 import org.apache.commons.math3.stat.StatUtils;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
+import java.util.Iterator;
 
 /**
  * This class handles the degree deviation computation of a CustomGraph.
@@ -23,14 +24,15 @@ public class DegreeDeviation extends AbstractProperty {
 		if (graph == null)
 			throw new IllegalArgumentException();
 
-		double[] degrees = new double[graph.nodeCount()];
+		double[] degrees = new double[graph.getNodeCount()];
 		int nodeId = 0;
-		for (NodeCursor nc = graph.nodes(); nc.ok(); nc.next()) {
-			Node node = nc.node();			
+		Iterator<Node> nc = graph.iterator();
+		while (nc.hasNext()) {
+			Node node = nc.next();
 			if(graph.isDirected()) {
-				degrees[nodeId] = node.degree();
+				degrees[nodeId] = node.getDegree();
 			} else {
-				degrees[nodeId] = node.degree() / 2;
+				degrees[nodeId] = node.getDegree() / 2;
 			}
 			nodeId++;
 		}

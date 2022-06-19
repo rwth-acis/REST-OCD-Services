@@ -8,7 +8,8 @@ import org.la4j.vector.Vector;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.NodeCursor;
+
+import java.util.Iterator;
 
 public class CoverData {
 	
@@ -61,18 +62,16 @@ public class CoverData {
 	
 	public Integer[] degreeDist(CustomGraph graph){
 		Integer[] r = new Integer[graph.getEdgeCount()+1];
-		NodeCursor nodes = graph.nodes();
-		while(nodes.hasNext()){
-			Node n = nodes.node();
-			if(r[n.degree()] == null){
-				r[n.degree()] = 1;
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()){
+			Node n = nodesIt.next();
+			if(r[n.getDegree()] == null){
+				r[n.getDegree()] = 1;
 			}else{
-				int deg = r[n.degree()];
+				int deg = r[n.getDegree()];
 				deg++;
-				r[n.degree()] = deg;
+				r[n.getDegree()] = deg;
 			}
-			
-			nodes.next();
 		}
 		
 		/*for(int i = 0; i < res.size(); i++){
