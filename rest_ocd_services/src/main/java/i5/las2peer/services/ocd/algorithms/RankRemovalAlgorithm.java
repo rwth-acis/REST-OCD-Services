@@ -201,8 +201,8 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
         if (parameters.containsKey(EPSILON_NAME)) {
             epsilon = Double.parseDouble(parameters.get(EPSILON_NAME));
-            if (epsilon <= 0) {
-                throw new IllegalArgumentException("The parameter epsilon should be greater than 0!");
+            if (epsilon < 1) {
+                throw new IllegalArgumentException("The parameter epsilon should be at least 1!");
             }
             parameters.remove(EPSILON_NAME);
         }
@@ -321,7 +321,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         // Detect all connected components in the graph
         List<CustomGraph> connectedComponents = getConnectedComponents(graph);
 
-        // List of detected communities
+        // List of detected communities using Rank Removal
         List<CustomGraph> communitiesRaRe;
 
         // Call method clusterComponent for every connected component
@@ -345,6 +345,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
                 extendedCore = reAddNode(extendedCore, R.get(i), adjacencyMatrix);
 
+                // TODO: Does immediately adjacent mean only adjacent to the original cluster?
                 // Check if nodes in R are immediately adjacent to the cluster cores or if they increase their weight
                 if (isAdjacent(graph, communitiesRaRe.get(i), R.get(i)) || calculateWeight(extendedCore, graph) > calculateWeight(clusterCores.get(j), graph)) {
                     // Add node to cluster in list of cluster cores
@@ -353,19 +354,30 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             }
         }
 
-        // Call Iterative Scan algorithm on output of Rank Removal
-        // Stop if the last max_fail restarts yield no new local maxima
+        // List of detected communities using Iterative Scan
+        List<CustomGraph> communitiesIS = Collections.emptyList();
 
         Random r = new Random();
-
+        // Number of algorithm restarts that yield no new local maxima
         int fails = 0;
+
+        boolean[] maxima = new boolean[communitiesRaRe.size()];
+
+        // Call Iterative Scan algorithm on output of Rank Removal
+        // Stop if the last max_fail restarts yield no new local maxima
         while (fails < max_fail) {
-            int seed = r.nextInt(communitiesRaRe.size()-0) + 0;
+            int seed = r.nextInt(communitiesRaRe.size() - 0) + 0;
+            // Increase fails variable if the received random seed was already checked
+            if (!maxima[seed]) {
+                maxima[seed] = true;
+                fails = 0;
+                communitiesIS.add(iterativeScan(graph, communitiesRaRe.get(seed), adjacencyMatrix));
+            } else {
+                fails++;
+            }
         }
-        // Choose random cluster in communitiesRaRe
 
-        // If max_fail times an already refined cluster is chosen, the algorithm stops
-
+        // Create cover out of list communitiesIS
 
         return outputCover;
     }
