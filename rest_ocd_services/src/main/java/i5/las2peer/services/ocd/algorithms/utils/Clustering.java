@@ -61,7 +61,7 @@ public class Clustering {
 			Cluster curr = it.next();
 			for(Iterator<Point> itp = curr.getPoints().iterator(); itp.hasNext();){
 				Point p = itp.next();
-				membershipMatrix.set(p.getNode().index(), communityIndex, 1.0);
+				membershipMatrix.set(p.getNode().getIndex(), communityIndex, 1.0);
 			}
 			communityIndex++;			
 		}
