@@ -57,7 +57,6 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
                 //printCommunities(memberships);
                 resulting_cover.addCoverintoCoverSeries(new Cover(staticGraph,memberships));
             }
-
             return resulting_cover;
         }else{//else it's a static Graph
             // create adjacency matrix from the input graph

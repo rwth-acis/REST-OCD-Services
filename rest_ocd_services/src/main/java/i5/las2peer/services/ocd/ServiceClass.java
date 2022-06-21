@@ -501,6 +501,19 @@ public class ServiceClass extends RESTService {
 						for (int graphId : graphIdList) {
 							graph.addGraphIntoGraphSeries(entityHandler.getGraph(username, graphId));//graphId=3
 						}
+						//todo: if a static graph is used for the second time to create the dynamic graph, it will has error
+						/*
+						javax.persistence.RollbackException: Exception [EclipseLink-4002] (Eclipse Persistence Services - 2.7.9.v20210604-2c549e2208): org.eclipse.persistence.exceptions.DatabaseException
+						Internal Exception: java.sql.SQLIntegrityConstraintViolationException: integrity constraint violation: unique constraint or index violation; SYS_PK_10204 table: CUSTOMGRAPH_CUSTOMGRAPH
+						Error Code: -104
+						Call: INSERT INTO CUSTOMGRAPH_CUSTOMGRAPH (ID, USER_NAME) VALUES (?, ?)
+						bind => [2 parameters bound]
+						Query: DataModifyQuery(name="graphSeries" sql="INSERT INTO CUSTOMGRAPH_CUSTOMGRAPH (ID, USER_NAME) VALUES (?, ?)")
+						at org.eclipse.persistence.internal.jpa.transaction.EntityTransactionImpl.commit(EntityTransactionImpl.java:161)
+						at i5.las2peer.services.ocd.utils.EntityHandler.storeGraph(EntityHandler.java:95)
+						at i5.las2peer.services.ocd.ServiceClass$RootResource.createGraph(ServiceClass.java:537)
+						*/
+
 					} catch (Exception e) {
 						requestHandler.log(Level.WARNING, "user: " + username, e);
 						return requestHandler.writeError(Error.PARAMETER_INVALID,
@@ -1374,8 +1387,6 @@ public class ServiceClass extends RESTService {
 									//entityHandler.storeCover(staticCover);
 									em.persist(staticCover);
 									//System.out.println("staticCover in ServiceClass after persist:"+staticCover.getId());
-
-
 								}
 							}
 						}
