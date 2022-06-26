@@ -1,22 +1,16 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import java.io.FileReader;
-
 import org.junit.Test;
 
-import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.GraphMlGraphInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.Cover;
 import y.base.Node;
-import y.base.Edge;
 
-public class SomeTest {
+public class MemeticLinkClusteringAlgorithmTest {
     
     @Test
 
-    public void smthTest(){
+    public void CustomGraphTest(){
 
         try {
             CustomGraph graph = new CustomGraph();
@@ -34,6 +28,6 @@ public class SomeTest {
             Cover cover = algo.detectOverlappingCommunities(graph);
             System.out.println(cover.toString());
 
-        }catch(Exception e){System.out.println(e);}
+        }catch(Exception e){e.printStackTrace();}
     }
 }

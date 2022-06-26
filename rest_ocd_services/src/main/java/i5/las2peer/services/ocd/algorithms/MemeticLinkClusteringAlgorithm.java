@@ -79,8 +79,8 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		final MLinkIndividual solution;
 		HashMap<Integer,HashSet<Node>> communitySet;
 		CustomGraph encoding = removeDoubleEdges(graph);
-		System.out.println(encoding.edgeCount());
-		System.out.println(encoding.nodeCount());
+		//System.out.println(encoding.edgeCount());
+		//System.out.println(encoding.nodeCount());
 
 		//Initialize population
 		for(int i = 0; i < treeSize; i++){
@@ -108,7 +108,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		int debug = 0;
 		double lastFitness = population.getAgent(0).getPocket().getFitness();
 		while(!termination){
-			System.out.println("iteration: " + debug);
+			//System.out.println("iteration: " + debug);
 			debug++;
 			for(int i = 0; i < treeSize; i++){
 				MLinkAgent curAgent = population.getAgent(i);
@@ -127,7 +127,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				}
 				curAgent.addIndividual(offspring);
 				population.swapUp();
-				System.out.println("best fit: " + population.getAgent(0).getPocket().getFitness());
+				//System.out.println("best fit: " + population.getAgent(0).getPocket().getFitness());
 			}
 			// Check if termination criteria is met
 			double newFitness = population.getAgent(0).getPocket().getFitness();
@@ -146,7 +146,6 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		communitySet = solution.getNodeCommunity();
 		communitySet = postProcessing(communitySet, encoding);
 		Matrix membershipMatrix = getMembershipMatrix(communitySet, encoding, solution.getCommunities().size());
-		System.out.println("done");
 		
 		return new Cover(graph, membershipMatrix);
 
@@ -303,7 +302,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				}
 			}
 		}
-		System.out.println(genes.size());
+		//System.out.println(genes.size());
 		return new MLinkIndividual(genes);
 	}
 
@@ -442,7 +441,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			return translateToIndividual(communities);
 
 		} catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 			return null;
 		}
 	}
@@ -583,8 +582,8 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	public Matrix getMembershipMatrix(HashMap<Integer,HashSet<Node>> communitySet, CustomGraph graph, int communityNumber){
 		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),communityNumber);
 		int counter = 0;
-		System.out.println("comm: " + communitySet.size());
-		System.out.println("nr: " + communityNumber);
+		//System.out.println("comm: " + communitySet.size());
+		//System.out.println("nr: " + communityNumber);
 		for(Integer comm : communitySet.keySet()){
 			for(Node n : communitySet.get(comm)){
 				membershipMatrix.set(n.index(), counter, 1);
