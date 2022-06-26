@@ -392,7 +392,7 @@ public class ServiceClass extends RESTService {
 		 *            The graph input.
 		 * @return A graph id xml. Or an error xml.
 		 */
-		@POST
+		@POST	
 		@Path("graphs")
 		@Produces(MediaType.TEXT_XML)
 		@Consumes(MediaType.TEXT_PLAIN)
@@ -4291,7 +4291,38 @@ public class ServiceClass extends RESTService {
 		}
 	
 		///////////////////// Group ///////////////////////////////
-	
+		/**
+		 * Takes in the Graph ID and the content in graphML format.
+		 * Creates a dummy graph with only the nodes and edges.
+		 * 
+		 * @param graphId current graph ID
+		 * @param content content as plain text in graphML format
+		 * @return
+		 */
+		@PUT
+		@Path("/update/{graphId}")
+		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		@ApiOperation(value = "POST SIMULATION", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
+		public Response putGraph(@PathParam("graphId") String graphId, String content) {
+			try{
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+
+				long id = Long.parseLong(graphId);
+
+				CustomGraph newGraph = requestHandler.parseGraph(content, GraphInputFormat.GRAPH_ML);
+
+				entityHandler.updateGraph(newGraph, id, username);
+
+				return Response.ok().entity("done").build();
+			} catch(Exception e){
+				requestHandler.log(Level.SEVERE, "", e);
+					return requestHandler.writeError(Error.INTERNAL,"Internal System error");
+			}
+		}
+		
 		@PUT
 		@Path("/simulation/group")
 		@Produces(MediaType.TEXT_PLAIN)
@@ -4510,6 +4541,7 @@ public class ServiceClass extends RESTService {
 	
 			return Response.ok().entity(mapping).build();
 		}
+		
 		
 		@PUT
 		@Path("/simulation/group/mapping/")
