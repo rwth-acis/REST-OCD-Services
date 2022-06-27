@@ -18,9 +18,9 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
 
 
     /**
-     * Maximum loops times should be terminated.(some graphs will never terminate)
+     * Maximum loops times should be terminated.(some graphs in some situations will never terminate)
      */
-    private static int loops  =300;
+    private static int loops  = 300;
 
     /*
      * PARAMETER NAME
@@ -80,8 +80,8 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
 
     private Map<Integer,Map<Integer,Double>> COPRAMaps(Map<Integer,Map<Integer,Double>> adjacencyMaps, Map<Integer,Map<Integer,Double>> membershipsMaps, int v, int loops) {
         while(loops-->0){
-            Map<Integer,Map<Integer,Double>> afterMembershipsMap=updateMembershipsMap(membershipsMaps,adjacencyMaps,v);
-            if(membershipsMaps.equals(afterMembershipsMap)) break;//todo: write an own equlas function for the maps(abs<0.0001 maybe)
+            Map<Integer,Map<Integer,Double>> afterMembershipsMap = updateMembershipsMap(membershipsMaps,adjacencyMaps,v);
+            if(membershipsMaps.equals(afterMembershipsMap)) break;//todo: write an own equlas function for the maps?(abs<0.0001 maybe)
             membershipsMaps=afterMembershipsMap;
         }
         System.out.println("loops left:"+loops);
@@ -89,7 +89,9 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     }
 
 
-    //form the memberships matrix from membershipsMaps
+    /**
+     * form the memberships matrix from membershipsMaps
+     */
     private Matrix formMemberships(int maxNodeIdOfCurStaticGraph,int maxCommunityId,Map<Integer,Map<Integer,Double>> membershipsMaps) {
         Matrix memberships=new Basic2DMatrix();
 
@@ -116,6 +118,13 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
         return simplifyMemeberships(memberships);
     }
 
+    /**
+     * initalize the memberships maps, if the vertex has no any belonging coefficient entry, set each vertex with their own node id as their label.
+     * (In dynamic graph) add new entry only for the vertices which are new added,
+     * @param customGraph
+     * @param membershipsMaps null membershipsMaps or old membershipsMaps from previous graph screenshot
+     * @return
+     */
     private Map<Integer,Map<Integer,Double>> initMembershipsMaps(CustomGraph customGraph,Map<Integer,Map<Integer,Double>> membershipsMaps) {
         Set<Integer> nodeIds=customGraph.getNodeIds();
         for(int i : nodeIds){
@@ -139,6 +148,12 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
         return adjacencyMaps;
     }
 
+    /**
+     * Tranverse all the edges, and add the corresponding entries into the adjacencyMaps.
+     * @param customGraph
+     * @param adjacencyMaps
+     * @param edge
+     */
     private void addEdgeIntoAdjacencyMaps(CustomGraph customGraph, Map<Integer, Map<Integer, Double>> adjacencyMaps, Edge edge) {
         Map<Integer,Double> NeighborsOfCurNode = new HashMap<>();
         if(adjacencyMaps.get(edge.source().index())!=null){
@@ -174,12 +189,14 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
     }
 
     private boolean isEqualNumber(double v1, double v2) {
+        //as the double actually still are not accurate, in the normalize phase, it will produce inaccuarcy
+        //todo: maybe use BigDecimal to calculate the normalizing phase?
         if(Math.abs(v1-v2)>0.0001) return false;
         return true;
     }
 
     /**
-     * delete all the zero colomns
+     * Delete all the zero colomns from a memberships matrix
      */
     private Matrix simplifyMemeberships(Matrix memberships) {
         int nodeCount=memberships.columns();

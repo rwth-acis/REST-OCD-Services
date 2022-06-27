@@ -367,7 +367,6 @@ public class Cover {
 				Community community = communities.get(j);
 				community.setBelongingFactor(nodes[i], memberships.get(i, j));
 			}
-
 		}
 	}
 
