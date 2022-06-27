@@ -274,22 +274,20 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     // Getters for the parameters of both algorithms
     // --------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // TODO: Add put method for enums
-
     @Override
     public Map<String, String> getParameters() {
         Map<String, String> parameters = new HashMap<String, String>();
 
-        // parameters.put(WEIGHT_FUNCTION_IS_NAME, );
-        // parameters.put(SET_DIFFERENCE_FUNCTION_NAME, );
+        parameters.put(WEIGHT_FUNCTION_IS_NAME, selectedWeightFunctionIS.toString());
+        parameters.put(SET_DIFFERENCE_FUNCTION_NAME, selectedSetDifferenceFunction.toString());
         parameters.put(EPSILON_NAME, Double.toString(epsilon));
         parameters.put(MAX_FAIL_NAME, Integer.toString(max_fail));
         parameters.put(MIN_CLUSTER_SIZE_NAME, Integer.toString(minClusterSize));
         parameters.put(MAX_CLUSTER_SIZE_NAME, Integer.toString(maxClusterSize));
         parameters.put(H1_NAME, Double.toString(h1));
         parameters.put(H2_NAME, Double.toString(h2));
-        // parameters.put(WEIGHT_FUNCTION_RARE_NAME, );
-        // parameters.put(RANKING_FUNCTION_NAME, );
+        parameters.put(WEIGHT_FUNCTION_RARE_NAME, selectedWeightFunctionRaRe.toString());
+        parameters.put(RANKING_FUNCTION_NAME, selectedRankingFunction.toString());
         parameters.put(MIN_CORE_SIZE_NAME, Integer.toString(minCoreSize));
         parameters.put(MAX_CORE_SIZE_NAME, Integer.toString(maxCoreSize));
         parameters.put(T_NAME, Integer.toString(t));
@@ -377,6 +375,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             }
         }
 
+        // TODO: Create output cover
         // Create cover out of list communitiesIS
 
         return outputCover;
