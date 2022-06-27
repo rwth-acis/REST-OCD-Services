@@ -8,6 +8,8 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmExecutor;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.utils.Pair;
+import org.la4j.matrix.Matrix;
+import org.la4j.matrix.dense.Basic2DMatrix;
 import y.base.*;
 
 import java.util.*;
@@ -183,19 +185,17 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     // Setters for the parameters of both algorithms
     // --------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // TODO: Check if boundaries of parameters are needed
+    // TODO: Check if boundaries of parameters are needed, Check if set-difference function and epsilon necessary
 
     @Override
     public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
         if (parameters.containsKey(WEIGHT_FUNCTION_IS_NAME)) {
-            // TODO: complete
-            // selectedWeightFunctionIS = ;
+            selectedWeightFunctionIS = weightFunction.valueOf(WEIGHT_FUNCTION_IS_NAME);
             parameters.remove(WEIGHT_FUNCTION_IS_NAME);
         }
 
         if (parameters.containsKey(SET_DIFFERENCE_FUNCTION_NAME)) {
-            // TODO: complete
-            // selectedSetDifferenceFunction = ;
+            selectedSetDifferenceFunction = setDifferenceFunction.valueOf(SET_DIFFERENCE_FUNCTION_NAME);
             parameters.remove(SET_DIFFERENCE_FUNCTION_NAME);
         }
 
@@ -236,14 +236,12 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         }
 
         if (parameters.containsKey(WEIGHT_FUNCTION_RARE_NAME)) {
-            // TODO: complete
-            // selectedWeightFunctionRaRe = ;
+            selectedWeightFunctionRaRe = weightFunction.valueOf(WEIGHT_FUNCTION_RARE_NAME);
             parameters.remove(WEIGHT_FUNCTION_RARE_NAME);
         }
 
         if (parameters.containsKey(RANKING_FUNCTION_NAME)) {
-            // TODO: complete
-            // selectedRankingFunction = ;
+            selectedRankingFunction = rankingFunction.valueOf(RANKING_FUNCTION_NAME);
             parameters.remove(RANKING_FUNCTION_NAME);
         }
 
@@ -375,8 +373,10 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             }
         }
 
+        Matrix membershipMatrix = createMembershipMatrix(graph, communitiesIS);
         // TODO: Create output cover
         // Create cover out of list communitiesIS
+        outputCover = new Cover(graph, membershipMatrix);
 
         return outputCover;
     }
@@ -781,6 +781,31 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         }
 
         return cluster;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public Matrix createMembershipMatrix(CustomGraph graph, List<CustomGraph> clusters) {
+        // Membership matrix
+        Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), clusters.size());
+
+        // Iterate over every node in the graph, check if it contained in any cluster, if yes, set corresponding entry to 1
+        NodeCursor nc = graph.nodes();
+        while (nc.ok()) {
+            Node node = nc.node();
+
+            for (int i = 0; i < clusters.size(); i++) {
+                if (clusters.get(i).contains(node)) {
+                    membershipMatrix.set(node.index(), i, 1);
+                }
+            }
+
+            nc.next();
+        }
+
+        return membershipMatrix;
     }
 
     // --------------------------------------------------------------------------------------------------------------------------------------------------
