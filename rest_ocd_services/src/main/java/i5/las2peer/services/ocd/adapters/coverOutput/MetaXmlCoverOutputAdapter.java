@@ -122,7 +122,7 @@ public class MetaXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 			 * CoverSeries
 			 */
 			Element coverSeriesCountElement = doc.createElement("CoverSeriesCount");
-			System.out.println("cover series size:"+cover.getCoverSeries().size());
+			//System.out.println("cover series size:"+cover.getCoverSeries().size());
 			for(Cover c: cover.getCoverSeries()){
 				System.out.println(c);
 			}

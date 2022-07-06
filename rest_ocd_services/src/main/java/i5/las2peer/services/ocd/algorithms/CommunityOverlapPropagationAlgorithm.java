@@ -64,7 +64,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
             //the memberships is an n*n Matrix, some columns are all 0.
             Matrix memberships = COPRAMatrix(adjacency_matrix, loops);
             memberships=simplifyMemeberships(memberships);
-            printCommunities(memberships);//just for test
+            //printCommunities(memberships);//just for test
             Cover resulting_cover = new Cover(customGraph, memberships);
             return resulting_cover;
         }
