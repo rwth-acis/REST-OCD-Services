@@ -189,15 +189,15 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
     @Override
     public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
-        if (parameters.containsKey(WEIGHT_FUNCTION_IS_NAME)) {
+        /*if (parameters.containsKey(WEIGHT_FUNCTION_IS_NAME)) {
             selectedWeightFunctionIS = weightFunction.valueOf(WEIGHT_FUNCTION_IS_NAME);
             parameters.remove(WEIGHT_FUNCTION_IS_NAME);
-        }
+        }*/
 
-        if (parameters.containsKey(SET_DIFFERENCE_FUNCTION_NAME)) {
+        /*if (parameters.containsKey(SET_DIFFERENCE_FUNCTION_NAME)) {
             selectedSetDifferenceFunction = setDifferenceFunction.valueOf(SET_DIFFERENCE_FUNCTION_NAME);
             parameters.remove(SET_DIFFERENCE_FUNCTION_NAME);
-        }
+        }*/
 
         if (parameters.containsKey(EPSILON_NAME)) {
             epsilon = Double.parseDouble(parameters.get(EPSILON_NAME));
@@ -235,15 +235,15 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             parameters.remove(H2_NAME);
         }
 
-        if (parameters.containsKey(WEIGHT_FUNCTION_RARE_NAME)) {
+        /*if (parameters.containsKey(WEIGHT_FUNCTION_RARE_NAME)) {
             selectedWeightFunctionRaRe = weightFunction.valueOf(WEIGHT_FUNCTION_RARE_NAME);
             parameters.remove(WEIGHT_FUNCTION_RARE_NAME);
-        }
+        }*/
 
-        if (parameters.containsKey(RANKING_FUNCTION_NAME)) {
+        /*if (parameters.containsKey(RANKING_FUNCTION_NAME)) {
             selectedRankingFunction = rankingFunction.valueOf(RANKING_FUNCTION_NAME);
             parameters.remove(RANKING_FUNCTION_NAME);
-        }
+        }*/
 
         if (parameters.containsKey(MIN_CORE_SIZE_NAME)) {
             minCoreSize = Integer.parseInt(parameters.get(MIN_CORE_SIZE_NAME));
@@ -276,16 +276,16 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     public Map<String, String> getParameters() {
         Map<String, String> parameters = new HashMap<String, String>();
 
-        parameters.put(WEIGHT_FUNCTION_IS_NAME, selectedWeightFunctionIS.toString());
-        parameters.put(SET_DIFFERENCE_FUNCTION_NAME, selectedSetDifferenceFunction.toString());
+        // parameters.put(WEIGHT_FUNCTION_IS_NAME, selectedWeightFunctionIS.toString());
+        // parameters.put(SET_DIFFERENCE_FUNCTION_NAME, selectedSetDifferenceFunction.toString());
         parameters.put(EPSILON_NAME, Double.toString(epsilon));
         parameters.put(MAX_FAIL_NAME, Integer.toString(max_fail));
         parameters.put(MIN_CLUSTER_SIZE_NAME, Integer.toString(minClusterSize));
         parameters.put(MAX_CLUSTER_SIZE_NAME, Integer.toString(maxClusterSize));
         parameters.put(H1_NAME, Double.toString(h1));
         parameters.put(H2_NAME, Double.toString(h2));
-        parameters.put(WEIGHT_FUNCTION_RARE_NAME, selectedWeightFunctionRaRe.toString());
-        parameters.put(RANKING_FUNCTION_NAME, selectedRankingFunction.toString());
+        // parameters.put(WEIGHT_FUNCTION_RARE_NAME, selectedWeightFunctionRaRe.toString());
+        // parameters.put(RANKING_FUNCTION_NAME, selectedRankingFunction.toString());
         parameters.put(MIN_CORE_SIZE_NAME, Integer.toString(minCoreSize));
         parameters.put(MAX_CORE_SIZE_NAME, Integer.toString(maxCoreSize));
         parameters.put(T_NAME, Integer.toString(t));
@@ -298,11 +298,19 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     // --------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Global List of removed nodes
-    List<Node> R = Collections.emptyList();
+    List<Node> R = new ArrayList<>(Collections.emptyList());
 
-    // TODO: Add method description
     // TODO: Check try catch
 
+    /**
+     * The main algorithm method returning a cover
+     *
+     * @param graph                     An at least weakly connected graph whose community structure will be detected.
+     * @return                          A cover for the passed graph
+     * @throws OcdAlgorithmException    if no solution is found
+     * @throws InterruptedException     if thread was interrupted
+     * @throws OcdMetricException       if the metric execution failed
+     */
     @Override
     public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
         // Resulting cover will be assigned here
@@ -322,6 +330,11 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
         // Call method clusterComponent for every connected component
         for (int i = 0; i < connectedComponents.size(); i++) {
+
+            if(Thread.interrupted()) {
+                throw new InterruptedException();
+            }
+
             try {
                 clusterCores.addAll(clusterComponent(connectedComponents.get(i)));
             } catch (CentralityAlgorithmException e) {
@@ -335,19 +348,36 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
         // Add removed nodes back to cluster cores
         for (int i = 0; i < R.size(); i++) {
+
+            if(Thread.interrupted()) {
+                throw new InterruptedException();
+            }
+
             for (int j = 0; j < communitiesRaRe.size(); i++) {
+
+                if(Thread.interrupted()) {
+                    throw new InterruptedException();
+                }
+
                 // Add the node i in R to the graph cluster j
                 CustomGraph extendedCore = communitiesRaRe.get(j);
 
+                Node[] nodeArr = graph.getNodeArray();
+                System.out.println(nodeArr[0]);
+                System.out.println(nodeArr[1]);
+
                 extendedCore = reAddNode(extendedCore, R.get(i), adjacencyMatrix);
 
-                // TODO: Does immediately adjacent mean only adjacent to the original cluster?
                 // Check if nodes in R are immediately adjacent to the cluster cores or if they increase their weight
                 if (isAdjacent(graph, communitiesRaRe.get(i), R.get(i)) || calculateWeight(extendedCore, graph) > calculateWeight(clusterCores.get(j), graph)) {
                     // Add node to cluster in list of cluster cores
                     communitiesRaRe.set(j, extendedCore);
                 }
             }
+        }
+
+        if (communitiesRaRe.isEmpty()) {
+            throw new OcdAlgorithmException();
         }
 
         // List of detected communities using Iterative Scan
@@ -362,6 +392,11 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         // Call Iterative Scan algorithm on output of Rank Removal
         // Stop if the last max_fail restarts yield no new local maxima
         while (fails < max_fail) {
+
+            if(Thread.interrupted()) {
+                throw new InterruptedException();
+            }
+
             int seed = r.nextInt(communitiesRaRe.size() - 0) + 0;
             // Increase fails variable if the received random seed was already checked
             if (!maxima[seed]) {
@@ -373,8 +408,12 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             }
         }
 
-        Matrix membershipMatrix = createMembershipMatrix(graph, communitiesIS);
-        // TODO: Create output cover
+        if (communitiesIS.isEmpty()) {
+            throw new OcdAlgorithmException();
+        }
+
+        Matrix membershipMatrix = createMembershipMatrix(graph, communitiesRaRe); //communitiesIS
+
         // Create cover out of list communitiesIS
         outputCover = new Cover(graph, membershipMatrix);
 
@@ -496,24 +535,30 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * @return          Node with the highest page rank in the passed graph cluster
      */
     public Node calculatePageRank(CustomGraph graph) throws InterruptedException, CentralityAlgorithmException {
-        Node node = null;
+        Node returnNode = null;
 
-        // Array of all nodes in the graph
-        Node[] nodes = graph.getNodeArray();
+        double maxValue = 0;
 
         // Execute pageRank for all nodes of the graph
         PageRank algorithm = new PageRank();
         CentralityAlgorithmExecutor executor = new CentralityAlgorithmExecutor();
         CentralityMap pageRanks = executor.execute(graph, algorithm);
 
+        Map<String, Double> pageRank = pageRanks.getMap();
+
         // Find the node with the highest pageRank in graph
-        for (int i = 0; i < graph.nodeCount(); i++) {
-            if (node == null || pageRanks.getNodeValue(nodes[i]) > pageRanks.getNodeValue(node)) {
-                node = nodes[i];
+        NodeCursor nodes = graph.nodes();
+        nodes.toFirst();
+
+        while (nodes.ok()) {
+            if (pageRank.get(graph.getNodeName(nodes.node())) > maxValue) {
+                returnNode = nodes.node();
             }
+
+            nodes.next();
         }
 
-        return node;
+        return returnNode;
     }
 
     /**
@@ -749,6 +794,11 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         // Iterate over every entry for node in the adjacency matrix
         for (int i = 0; i < adjacencyMatrix.length; i++) {
 
+            System.out.println("Adjazenzmatrix laenge:" + adjacencyMatrix.length);      // 62
+            System.out.println("Adjazenzmatrix hoehe:" + adjacencyMatrix[0].length);    // 62
+
+            System.out.println(node.toString());
+            // WARNING: Node has no id since it was removed from its graph
             // Check if edge existed in original graph
             if (adjacencyMatrix[node.index()][i]) {
                 NodeCursor clusterNodes = cluster.nodes();
@@ -784,8 +834,12 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     }
 
     /**
+     * This method creates a membership matrix, indicating the membership
+     * of the nodes in graph to the communities in the list clusters.
      *
-     * @return
+     * @param graph         The original graph containing all relevant nodes
+     * @param clusters      A list of all detected communities in the Graph
+     * @return              A membership matrix
      */
     public Matrix createMembershipMatrix(CustomGraph graph, List<CustomGraph> clusters) {
         // Membership matrix
