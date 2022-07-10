@@ -165,9 +165,10 @@ public class ServiceClass extends RESTService {
 	///////////////////////////////////////////////////////////
 
 	/**
-	 * l2p logger
+	 * General logger
 	 */
-	private final static L2pLogger logger = L2pLogger.getInstance(ServiceClass.class.getName());
+	private final static GeneralLogger generalLogger = new GeneralLogger();
+
 	/**
 	 * The thread handler used for algorithm, benchmark and metric execution.
 	 */
@@ -290,8 +291,12 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"special"}, value = "User validation", notes = "Simple function to validate a user login.")
 		public Response validateLogin() {
 			try {
+
 				// update user inactivity info when user logs in.
 				inactivityHandler.refreshUserInactivityData(getUserName());
+
+				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_1, "{" + "\"user_login\":\"" + getUserName() + "\"}" );
+				generalLogger.getLogger().log(Level.INFO, "user " + getUserName() + " logged in.");
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -352,7 +357,7 @@ public class ServiceClass extends RESTService {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
+			generalLogger.getLogger().log(Level.INFO, "user " + getUserName() + ": allowed inactivity increased by " + allowedInactivityDays + " days.");
 			return Response.ok(allowedInactivityDays).build();
 
 		}
@@ -494,7 +499,11 @@ public class ServiceClass extends RESTService {
 					}
 				}
 				try {
+					generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + nameStr + " in format " + graphInputFormatStr);
 					entityHandler.storeGraph(graph);
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_2, "{" + "\"user\":\"" + username + "\"," +
+							"\"import_type\":\"graph\"," +
+							"\"import_format\":\"" + graphInputFormatStr + "\"}");
 				} catch (Exception e) {
 					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
 				}
@@ -523,6 +532,7 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"special"}, value = "Big Graph Import", notes = "Stores a graph step by step.")
 		public Response storeGraph(@DefaultValue("unnamed") @QueryParam("name") String nameStr, String contentStr) {
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+			//generalLogger.getLogger().log(Level.INFO, "user " + username + ": store a large graph " + nameStr);
 			File graphDir = new File("tmp" + File.separator + username);
 			if (!graphDir.exists()) {
 				graphDir.mkdirs();
@@ -792,6 +802,9 @@ public class ServiceClass extends RESTService {
 					requestHandler.writeError(Error.INTERNAL, "Graph not found");
 				}
 
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete graph " + graphId);
+				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_4, "{" + "\"user\":\"" + username + "\"," +
+						"\"delete_type\":\"graph\"}");
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -896,8 +909,15 @@ public class ServiceClass extends RESTService {
 					throw e;
 				}
 				em.close();
+
+
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": import cover " + nameStr + " in format " + coverInputFormatStr);
+				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_2, "{" + "\"user\":\"" + username + "\"," +
+						"\"import_type\":\"cover\"," +
+						"\"import_format\":\"" + coverInputFormatStr + "\"}");
 				return Response.ok(requestHandler.writeId(cover)).build();
 			} catch (Exception e) {
+
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
@@ -1166,6 +1186,10 @@ public class ServiceClass extends RESTService {
 
 				try {
 					entityHandler.deleteCover(username, graphId, coverId, threadHandler);
+
+					generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete cover " + coverId);
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_4, "{" + "\"user\":\"" + username + "\"," +
+							"\"delete_type\":\"cover\"}");
 					return Response.ok(requestHandler.writeConfirmationXml()).build();
 				} catch (IllegalArgumentException e) {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, e.getMessage());
@@ -1323,6 +1347,10 @@ public class ServiceClass extends RESTService {
 						throw e;
 					}
 					em.close();
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+							"\"algo_kind\":\"Ocd\"," +
+							"\"algo_type\":\"" + creationTypeStr + "\"}");
+					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + algorithm.getClass().getSimpleName() + " on graph " + graph.getId());
 					/*
 					 * Registers and starts algorithm
 					 */
@@ -1330,7 +1358,10 @@ public class ServiceClass extends RESTService {
 				}
 				return Response.ok(requestHandler.writeId(cover)).build();
 			} catch (Exception e) {
-				requestHandler.log(Level.SEVERE, "", e);
+				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_10, "{" + "\"user\":\"" + ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName() + "\"," +
+						"\"algo_kind\":\"Ocd\"," +
+						"\"algo_type\":\"" + creationTypeStr + "\"}");
+				requestHandler.log(Level.SEVERE, "user" + ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName() + " failed to run algorithm.", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
@@ -1424,6 +1455,12 @@ public class ServiceClass extends RESTService {
 					throw e;
 				}
 				em.close();
+
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": import centrality " + nameStr + " in format " + centralityInputFormatStr);
+				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_2, "{" + "\"user\":\"" + username + "\"," +
+						"\"import_type\":\"centrality\"," +
+						"\"import_format\":\"" + centralityInputFormatStr + "\"}");
+
 				return Response.ok(requestHandler.writeId(map)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -1669,8 +1706,12 @@ public class ServiceClass extends RESTService {
 						throw e;
 					}
 					em.close();
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+							"\"algo_kind\":\"centrality\"," +
+							"\"algo_type\":\"" + centralityMeasureTypeStr + "\"}");
+					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run centrality " + algorithm.getClass().getSimpleName() + " on graph " + graph.getId());
 
-			    	/*
+					/*
 			    	 * Registers and starts algorithm
 			    	 */	
 					threadHandler.runCentralityAlgorithm(map, algorithm);
@@ -1759,6 +1800,7 @@ public class ServiceClass extends RESTService {
 	    		if(onlyTopNodes && topNodesNumber != 0) {
 	    			return Response.ok(requestHandler.writeCentralityMapTopNodes(map, topNodesNumber)).build();
 	    		}
+				//generalLogger.getLogger().log(Level.INFO, "user " + username + ": retrieve centrality " + mapIdStr );
 		    	return Response.ok(requestHandler.writeCentralityMap(map, format)).build();
 	    	}
 	    	catch (Exception e) {
@@ -1810,7 +1852,10 @@ public class ServiceClass extends RESTService {
 	    		}
 	    		
 		    	entityHandler.deleteCentralityMap(username, graphId, mapId, threadHandler);
-		    	return Response.ok(requestHandler.writeConfirmationXml()).build();
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete centrality " + mapIdStr);
+				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_4, "{" + "\"user\":\"" + username + "\"," +
+						"\"delete_type\":\"centrality\"}");
+				return Response.ok(requestHandler.writeConfirmationXml()).build();
 	    	}
 	    	catch (Exception e) {
 	    		requestHandler.log(Level.SEVERE, "", e);
@@ -1985,7 +2030,11 @@ public class ServiceClass extends RESTService {
 						throw e;
 					}
 					em.close();
-			    	/*
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+							"\"algo_kind\":\"simulation\"," +
+							"\"algo_type\":\"" + simulationTypeStr + "\"}");
+					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run simulation " + simulationTypeStr + " on graph " + graphIdStr + " with paramneters: " + parameters );
+					/*
 			    	 * Registers and starts algorithm
 			    	 */	
 					threadHandler.runCentralitySimulation(map, simulation);
@@ -2111,6 +2160,7 @@ public class ServiceClass extends RESTService {
 						throw e;
 					}
 					em.close();
+					//generalLogger.getLogger().log(Level.INFO, "user " + username + ": calculate average " + averageMap +" for centrality maps: " + ids );
 					threadHandler.createCentralityMap(averageMap, new CentralityMapId(averageMap.getId(), new CustomGraphId(graphId, username)), false);
 		    	}
 	        	
@@ -2121,7 +2171,7 @@ public class ServiceClass extends RESTService {
 	    		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 	    	}
 	    }
-	    
+
 	    /**
 	     * Calculates the correlation matrix by calculating the corresponding correlation
 	     * coefficient for each pair of centrality maps from the given list.
@@ -2217,6 +2267,7 @@ public class ServiceClass extends RESTService {
 	    	    	}
 	    	    	maps.add(map);
 	        	}
+				//generalLogger.getLogger().log(Level.INFO, "user " + username + " calculate" + correlationCoefficientStr + " correlation on centrality maps:" + mapIds );
 		    	RealMatrix correlationMatrix = StatisticalProcessor.getCorrelation(graph, maps, correlationCoefficient);    	        	
 	        	return Response.ok(requestHandler.writeCorrelationMatrix(mapIds, correlationMatrix)).build();
 	    	}
@@ -2245,6 +2296,7 @@ public class ServiceClass extends RESTService {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
 	    })
+
 		@ApiOperation(tags = {"special"}, value = "get Centrality Precision",
 			notes = "Calculates the precision.")
 	    public Response getPrecision(
@@ -2252,7 +2304,7 @@ public class ServiceClass extends RESTService {
 	    		@PathParam("graphId") String graphIdStr,
 	    		@QueryParam("mapIds") List<Integer> mapIds) {
 	    	try {
-	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		int k;
 	    		try {
 	    			k = Integer.parseInt(kStr);
@@ -2322,7 +2374,8 @@ public class ServiceClass extends RESTService {
 	        	}
 	        	CentralityMap groundTruthMap = maps.get(0);
 	        	maps = maps.subList(1, maps.size());
-		    	double[] precisionVector = StatisticalProcessor.getPrecision(graph, groundTruthMap, maps, k);    	        	
+				//generalLogger.getLogger().log(Level.INFO, "user " + username + ": calculate top" + k + " precision using centralities" + mapIds + " based on " + graphIdStr);
+				double[] precisionVector = StatisticalProcessor.getPrecision(graph, groundTruthMap, maps, k);
 	        	return Response.ok(requestHandler.writePrecisionResult(maps, precisionVector)).build();
 	    	}
 	    	catch (Exception e) {
@@ -2369,7 +2422,7 @@ public class ServiceClass extends RESTService {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		GraphCreationType benchmarkType;
 	    		CoverCreationType coverCreationType;
-	    		try {
+				try {
 	    			benchmarkType = GraphCreationType.valueOf(creationTypeStr);
 	    			coverCreationType = CoverCreationType.valueOf(creationTypeStr);
 	    		} catch (Exception e) {
@@ -2411,7 +2464,7 @@ public class ServiceClass extends RESTService {
 	    		coverLog.setStatus(ExecutionStatus.WAITING);
 	    		cover.setCreationMethod(coverLog);
 	    		synchronized (threadHandler) {
-	
+
 	    			EntityTransaction tx = em.getTransaction();
 	    			try {
 	    				tx.begin();
@@ -2425,7 +2478,11 @@ public class ServiceClass extends RESTService {
 	    				throw e;
 	    			}
 	    			em.close();
-	    			/*
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+							"\"algo_kind\":\"Benchmark\"," +
+							"\"algo_type\":\"" + creationTypeStr + "\"}");
+					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + creationTypeStr + " benchmark. Graph name: " + graphNameStr + " Cover name:" + coverNameStr);
+					/*
 	    			 * Registers and starts benchmark creation.
 	    			 */
 	    			threadHandler.runGroundTruthBenchmark(cover, benchmark);
@@ -2475,7 +2532,7 @@ public class ServiceClass extends RESTService {
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		long graphId;
-	    		try {
+				try {
 	    			graphId = Long.parseLong(graphIdStr);
 	    		} catch (Exception e) {
 	    			requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -2587,7 +2644,11 @@ public class ServiceClass extends RESTService {
 	    				}
 	    				throw e;
 	    			}
-	    			threadHandler.runStatisticalMeasure(log, metric, cover);
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+							"\"algo_kind\":\"Statistical_measure\"," +
+							"\"algo_type\":\"" + metricTypeStr + "\"}");
+					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run statistical measure " + metricTypeStr + " on cover " + coverIdStr + " with parameters " + parameters);//
+					threadHandler.runStatisticalMeasure(log, metric, cover);
 	    		}
 	
 	    		return Response.ok(requestHandler.writeId(log)).build();
@@ -2637,7 +2698,7 @@ public class ServiceClass extends RESTService {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		long graphId;
 	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
+					graphId = Long.parseLong(graphIdStr);
 	    		} catch (Exception e) {
 	    			requestHandler.log(Level.WARNING, "user: " + username, e);
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
@@ -2746,7 +2807,12 @@ public class ServiceClass extends RESTService {
 	    				}
 	    				throw e;
 	    			}
-	    			threadHandler.runKnowledgeDrivenMeasure(log, metric, cover, groundTruth);
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+							"\"algo_kind\":\"Knowledge_driven_measure\"," +
+							"\"algo_type\":\"" + metricTypeStr + "\"}");
+					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run knowledge driven measure " + metricTypeStr + " on cover " + coverIdStr + " with parameters " + parameters);
+
+					threadHandler.runKnowledgeDrivenMeasure(log, metric, cover, groundTruth);
 	    		}
 	    		return Response.ok(requestHandler.writeId(log)).build();
 	    	} catch (Exception e) {
@@ -2846,7 +2912,11 @@ public class ServiceClass extends RESTService {
 	    				throw e;
 	    			}
 	    			em.close();
-	    			return Response.ok(requestHandler.writeConfirmationXml()).build();
+
+					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_4, "{" + "\"user\":\"" + username + "\"," +
+							"\"delete_type\":\"metric\"}");
+					generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete metric " + coverId);
+					return Response.ok(requestHandler.writeConfirmationXml()).build();
 	    		}
 	    	} catch (Exception e) {
 	    		requestHandler.log(Level.SEVERE, "", e);
@@ -2903,7 +2973,7 @@ public class ServiceClass extends RESTService {
 	    		long graphId;
 	    		String username = getUserName();
 	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
+					graphId = Long.parseLong(graphIdStr);
 	    		} catch (Exception e) {
 	    			requestHandler.log(Level.WARNING, "user: " + username, e);
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
@@ -2995,8 +3065,8 @@ public class ServiceClass extends RESTService {
 					throw e;
 		    	}
 		    	em.close();
-	    		
-	    		return requestHandler.writeCover(cover, format);
+				//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get visualization of cover " + coverId + " in " +visualOutputFormatStr + " format." );
+				return requestHandler.writeCover(cover, format);
 	    	} catch (Exception e) {
 	    		requestHandler.log(Level.SEVERE, "", e);
 	    		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
@@ -3105,7 +3175,8 @@ public class ServiceClass extends RESTService {
 	    					"Graph does not exist: graph id " + graphId);
 	    		}
 
-	    		layoutHandler.doLayout(graph, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize);
+				//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get visualization of graph " + graphId + " in " +visualOutputFormatStr + " format." );
+				layoutHandler.doLayout(graph, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize);
 	    		return requestHandler.writeGraph(graph, format);
 	    	} catch (Exception e) {
 	    		requestHandler.log(Level.SEVERE, "", e);
@@ -3217,7 +3288,8 @@ public class ServiceClass extends RESTService {
 	    		if(doLabelEdges) {
 	    			doLabelEdges = map.getGraph().getTypes().contains(GraphType.WEIGHTED) ? true : false;
 	    		}
-	    		layoutHandler.doLayout(map, layout, doLabelNodes, doLabelEdges, centralityVisualizationType);
+				//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get visualization of centrality  " + centralityMapId + " in " +visualOutputFormatStr + " format." );
+				layoutHandler.doLayout(map, layout, doLabelNodes, doLabelEdges, centralityVisualizationType);
 	    		return requestHandler.writeCentralityMap(map, format);
 	    	} catch (Exception e) {
 	    		requestHandler.log(Level.SEVERE, "", e);
@@ -3259,6 +3331,7 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Specified cover creation type is not instantiatable: " + creationType.name());
 				} else {
+					//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get default parameters of " + coverCreationTypeStr );
 					OcdAlgorithm defaultInstance = algorithmFactory.getInstance(creationType,
 							new HashMap<String, String>());
 					return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
@@ -3303,6 +3376,7 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified centrality measure type is not instantiatable: " + centralityMeasureType.getDisplayName());
 				}
 				else {
+					//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get default parameters of centrality measure " + centralityMeasureTypeStr );
 					CentralityAlgorithm defaultInstance = centralityAlgorithmFactory.getInstance(centralityMeasureType, new HashMap<String, String>());
 					return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
 				}
@@ -3346,6 +3420,7 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified simulation type is not instantiatable: " + simulationType.getDisplayName());
 				}
 				else {
+					//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get default parameters of centrality simulation " + simulationTypeStr );
 					CentralitySimulation defaultInstance = centralitySimulationFactory.getInstance(simulationType, new HashMap<String, String>());
 					return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
 				}
@@ -3355,7 +3430,7 @@ public class ServiceClass extends RESTService {
 	    		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 	    	}
 	    }
-	
+
 		/**
 		 * Returns the default parameters of a benchmark.
 		 * 
@@ -3387,6 +3462,7 @@ public class ServiceClass extends RESTService {
 							"Specified graph creation type is not instantiatable: " + creationType.name());
 				}
 				if (creationType.correspondsGroundTruthBenchmark()) {
+					//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get default parameters of benchmark " + graphCreationTypeStr );
 					GroundTruthBenchmark defaultInstance = (GroundTruthBenchmark) benchmarkFactory
 							.getInstance(creationType, new HashMap<String, String>());
 					return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
@@ -3434,6 +3510,7 @@ public class ServiceClass extends RESTService {
 					return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
 				}
 				if (metricType.correspondsStatisticalMeasure()) {
+					//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get default parameters of metric " + metricType);
 					StatisticalMeasure defaultInstance = (StatisticalMeasure) metricFactory.getInstance(metricType,
 							new HashMap<String, String>());
 					return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
@@ -3500,6 +3577,7 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Specified cover creation type is not instantiatable: " + creationType.name());
 				} else {
+					//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get compatible graph types for OCDA  " + coverCreationTypeStr);
 					OcdAlgorithm defaultInstance = algorithmFactory.getInstance(creationType,
 							new HashMap<String, String>());
 					return Response.ok(requestHandler.writeSpecificEnumNames(defaultInstance.compatibleGraphTypes())).build();
@@ -3648,6 +3726,7 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Specified cover creation type is not instantiatable: " + simulationType.name());
 				} else {
+					//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get compatible graph types for centrality simulation  " + centralitySimulationTypeStr);
 					CentralitySimulation defaultInstance = centralitySimulationFactory.getInstance(simulationType,
 							new HashMap<String, String>());
 					return Response.ok(requestHandler.writeSpecificEnumNames(defaultInstance.compatibleGraphTypes())).build();
@@ -4027,7 +4106,7 @@ public class ServiceClass extends RESTService {
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
 			}
-	
+
 			return Response.ok().entity(series).build();
 	
 		}
@@ -4118,11 +4197,11 @@ public class ServiceClass extends RESTService {
 				}
 	
 			} catch (Exception e) {
-				logger.log(Level.WARNING, "user: " + username, e);
+				generalLogger.getLogger().log(Level.WARNING, "user: " + username, e);
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
 			}
-	
+			//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get results of simulation series with id " + seriesId );
 			return Response.ok().entity(series).build();
 		}
 	
@@ -4154,7 +4233,7 @@ public class ServiceClass extends RESTService {
 				series.evaluate();
 	
 			} catch (Exception e) {
-				logger.log(Level.WARNING, "user: " + username, e);
+				generalLogger.getLogger().log(Level.WARNING, "user: " + username, e);
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
 			}
@@ -4165,7 +4244,7 @@ public class ServiceClass extends RESTService {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-	
+			//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get results of simulation series with id " + seriesId );
 			return Response.ok().entity(responseString).build();
 		}
 	
@@ -4188,7 +4267,7 @@ public class ServiceClass extends RESTService {
 			try {
 				parameters = entityHandler.getSimulationParameters(seriesId);
 			} catch (Exception e) {
-				logger.log(Level.WARNING, "fail to get simulation series parameters");
+				generalLogger.getLogger().log(Level.WARNING, "fail to get simulation series parameters");
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series parameters")
 						.build();
 			}
@@ -4213,6 +4292,7 @@ public class ServiceClass extends RESTService {
 	
 			try {
 				entityHandler.deleteSeries(seriesId);
+
 			} catch (Exception e) {
 				return Response.serverError().entity(e.getMessage()).build();
 			}
@@ -4270,7 +4350,7 @@ public class ServiceClass extends RESTService {
 				series = simulationBuilder.simulate();
 	
 			} catch (Exception e) {
-				logger.log(Level.WARNING, "user: " + username, e);
+				generalLogger.getLogger().log(Level.WARNING, "user: " + username, e);
 				e.printStackTrace();
 				return Response.serverError().entity("simulation could not be carried out\n" + e.getMessage()).build();
 			}
@@ -4280,13 +4360,14 @@ public class ServiceClass extends RESTService {
 	
 			long result;
 			try {
+				//generalLogger.getLogger().log(Level.INFO, "user " + username + ": start simulation with parameters " + parameters );
 				result = entityHandler.store(series, getUserId());
 	
 			} catch (Exception e) {
 				e.printStackTrace();
 				return Response.serverError().entity("simulation not stored").build();
 			}
-	
+
 			return Response.ok().entity("simulation done " + result).build();
 		}
 	
@@ -4308,7 +4389,7 @@ public class ServiceClass extends RESTService {
 					series.add(entityHandler.getSimulationSeries(id));				
 				}
 			} catch (Exception e) {
-				logger.log(Level.WARNING, "user: " + getUserName(), e);
+				generalLogger.getLogger().log(Level.WARNING, "user: " + getUserName(), e);
 				e.printStackTrace();
 				return Response.serverError().entity("Invalid simulation series \n" + e.getMessage()).build();
 			}
@@ -4396,7 +4477,7 @@ public class ServiceClass extends RESTService {
 				series.evaluate();
 	
 			} catch (Exception e) {
-				logger.log(Level.WARNING, "user: " + username, e);
+				generalLogger.getLogger().log(Level.WARNING, "user: " + username, e);
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
 			}
@@ -4407,7 +4488,7 @@ public class ServiceClass extends RESTService {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-	
+			//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get results of simulation series with id " + groupId );
 			return Response.ok().entity(responseString).build();
 		}
 	
@@ -4459,7 +4540,8 @@ public class ServiceClass extends RESTService {
 			} catch (Exception e) {
 				e.printStackTrace();
 				return Response.serverError().entity(e.getMessage()).build();
-			}			
+			}
+			//generalLogger.getLogger().log(Level.INFO, "user " + getUserName() + ": delete simulation series with id " + groupId );
 			return Response.ok("done").build();
 		}
 	
@@ -4500,7 +4582,7 @@ public class ServiceClass extends RESTService {
 
 				
 			} catch (Exception e) {
-				logger.log(Level.WARNING, "user: " + username, e);
+				generalLogger.getLogger().log(Level.WARNING, "user: " + username, e);
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
 			}
@@ -4555,7 +4637,7 @@ public class ServiceClass extends RESTService {
 				}
 
 			} catch (Exception e) {
-				logger.log(Level.WARNING, "user: " + username, e);
+				generalLogger.getLogger().log(Level.WARNING, "user: " + username, e);
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
 			}
@@ -4664,7 +4746,7 @@ public class ServiceClass extends RESTService {
 		graphData.put("name", name);
 		graphData.put("graph", adjList);
 
-		logger.log(Level.INFO, "RMI requested a graph: " + graphId);
+		generalLogger.getLogger().log(Level.INFO, "RMI requested a graph: " + graphId);
 		return graphData;
 	}
 
@@ -4684,7 +4766,7 @@ public class ServiceClass extends RESTService {
 			graphIdList.add(graphList.get(i).getId());
 		}
 
-		logger.log(Level.INFO, "RMI requested graph Ids");
+		generalLogger.getLogger().log(Level.INFO, "RMI requested graph Ids");
 		return graphIdList;
 	}
 
