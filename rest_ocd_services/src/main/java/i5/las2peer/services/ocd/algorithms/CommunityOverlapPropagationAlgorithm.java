@@ -59,16 +59,48 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
             }
             return resulting_cover;
         }else{//else it's a static Graph
+           Matrix memberships;
+
+//run according to the size of graph
+//            if(customGraph.nodeCount()>50){// when graph too big, use the map way
+//                memberships= runInMapWay(customGraph);
+//            }else{
+//                memberships=runInMatrixWay(customGraph);
+//            }
+
+
+//just run in matrix way
             // create adjacency matrix from the input graph
             Matrix adjacency_matrix = createAdjacencyMatrix(customGraph);
             //the memberships is an n*n Matrix, some columns are all 0.
-            Matrix memberships = COPRAMatrix(adjacency_matrix, loops);
-            memberships=simplifyMemeberships(memberships);
+            memberships = COPRAMatrix(adjacency_matrix, loops);
+            memberships = simplifyMemeberships(memberships);
             //printCommunities(memberships);//just for test
             Cover resulting_cover = new Cover(customGraph, memberships);
             return resulting_cover;
         }
     }
+
+    private Matrix runInMatrixWay(CustomGraph customGraph) {
+        Matrix memberships;
+        Matrix adjacency_matrix = createAdjacencyMatrix(customGraph);
+        //the memberships is an n*n Matrix, some columns are all 0.
+        memberships = COPRAMatrix(adjacency_matrix, loops);
+        memberships = simplifyMemeberships(memberships);
+        return memberships;
+    }
+
+    private Matrix runInMapWay(CustomGraph customGraph) {
+        int nodeCount=customGraph.nodeCount();
+        Matrix memberships;
+        Map<Integer,Map<Integer,Double>> membershipsMaps=new HashMap<>();
+        Map<Integer,Map<Integer,Double>> adjacencyMaps = createAdjacencyMaps(customGraph);
+        membershipsMaps=initMembershipsMaps(customGraph,membershipsMaps);
+        membershipsMaps=COPRAMaps(adjacencyMaps,membershipsMaps,v,loops);
+        memberships=formMemberships(nodeCount-1,nodeCount-1,membershipsMaps);
+        return memberships;
+    }
+
 
     private void printCommunities(Matrix memberships) {
         for (int i = 0; i < memberships.rows(); i++) {
@@ -97,7 +129,6 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
 
 //        int maxLabel=0,maxNode=0;
 //        for(Map.Entry<Integer,Map<Integer,Double>> entryMembershipMaps:membershipsMaps.entrySet()){
-//
 //            for (int label : entryMembershipMaps.getValue().keySet()){
 //                if (label>maxLabel) maxLabel=label;
 //            }
@@ -113,7 +144,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
                 memberships.set(entryMembershipMaps.getKey(),entryLabelsOfCurNode.getKey(),entryLabelsOfCurNode.getValue());
             }
         }
-        printCommunities(memberships);
+        //printCommunities(memberships);
         //memberships=simplifyMemeberships(memberships);
         return simplifyMemeberships(memberships);
     }
@@ -374,6 +405,10 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
         while (edge_list.ok()) {
             Edge edge = edge_list.edge();
             A.set(edge.source().index(), edge.target().index(), graph.getEdgeWeight(edge));
+//          A.set(edge.target().index(), edge.source().index(), graph.getEdgeWeight(edge));
+//            if(graph.isDirected()){
+//                A.set(edge.target().index(), edge.source().index(), graph.getEdgeWeight(edge));
+//            }
             edge_list.next();
         }
         return A;
@@ -389,6 +424,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
         Set<GraphType> compatibilities = new HashSet<GraphType>();
         compatibilities.add(GraphType.WEIGHTED);
         compatibilities.add(GraphType.DYNAMIC);
+        compatibilities.add(GraphType.DIRECTED);
         return compatibilities;
     }
 

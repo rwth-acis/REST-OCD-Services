@@ -46,7 +46,7 @@ public class OcdAlgorithmExecutor {
 		processor.makeCompatible(graphCopy, algorithm.compatibleGraphTypes());
 		if(algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.SIGNED_PROBABILISTIC_MIXTURE_ALGORITHM.toString()) || algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM.toString())
 				|| algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM.toString()) || algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.LOCAL_SPECTRAL_CLUSTERING_ALGORITHM.toString())
-				|| algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.LOUVAIN_ALGORITHM.toString())||algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.COMMUNITY_OVERLAP_PROPAGATION_ALGORITHM.toString())){
+				|| algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.LOUVAIN_ALGORITHM.toString())){
 			ExecutionTime executionTime = new ExecutionTime();
 			//TODO: I think it should be detectOverlappingCommunities(graphCopy) - Tobias
 			Cover cover = algorithm.detectOverlappingCommunities(graph);
