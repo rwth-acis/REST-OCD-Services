@@ -1374,7 +1374,6 @@ public class ServiceClass extends RESTService {
 						cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
 
 
-
 						if(graph.isOfType(GraphType.DYNAMIC)){
 							int order=1;
 							if(graph.getGraphSeries().size()>0){
