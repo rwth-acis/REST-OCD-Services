@@ -62,19 +62,19 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
            Matrix memberships;
 
 //run according to the size of graph
-//            if(customGraph.nodeCount()>50){// when graph too big, use the map way
-//                memberships= runInMapWay(customGraph);
-//            }else{
-//                memberships=runInMatrixWay(customGraph);
-//            }
+            if(customGraph.nodeCount()>500){// when graph too big, use the map way
+                memberships= runInMapWay(customGraph);
+            }else{
+                memberships=runInMatrixWay(customGraph);
+            }
 
+////just run in matrix way
+//            // create adjacency matrix from the input graph
+//            Matrix adjacency_matrix = createAdjacencyMatrix(customGraph);
+//            //the memberships is an n*n Matrix, some columns are all 0.
+//            memberships = COPRAMatrix(adjacency_matrix, loops);
+//            memberships = simplifyMemeberships(memberships);
 
-//just run in matrix way
-            // create adjacency matrix from the input graph
-            Matrix adjacency_matrix = createAdjacencyMatrix(customGraph);
-            //the memberships is an n*n Matrix, some columns are all 0.
-            memberships = COPRAMatrix(adjacency_matrix, loops);
-            memberships = simplifyMemeberships(memberships);
             //printCommunities(memberships);//just for test
             Cover resulting_cover = new Cover(customGraph, memberships);
             return resulting_cover;
