@@ -62,7 +62,7 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
            Matrix memberships;
 
 //run according to the size of graph
-            if(customGraph.nodeCount()>500){// when graph too big, use the map way
+            if(customGraph.nodeCount()>300){// when graph too big, use the map way
                 memberships= runInMapWay(customGraph);
             }else{
                 memberships=runInMatrixWay(customGraph);
