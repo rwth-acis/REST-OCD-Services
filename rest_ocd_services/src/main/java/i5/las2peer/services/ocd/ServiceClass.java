@@ -3,8 +3,6 @@ package i5.las2peer.services.ocd;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -36,18 +34,19 @@ import i5.las2peer.services.ocd.utils.*;
 import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.api.Context;
 import i5.las2peer.api.ManualDeployment;
 import i5.las2peer.api.security.UserAgent;
-import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
 import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.execution.ExecutionContext;
 import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -105,7 +104,6 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.InvocationHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
@@ -251,6 +249,81 @@ public class ServiceClass extends RESTService {
 	 */
 	public void setFreshFieldValues() {
 		setFieldValues();
+	}
+
+
+	/**
+	 * This method returns json object with information about various limits applied to the given user
+	 * @param username   username the limits of which should be returned
+	 * @return           json object with user limit info
+	 */
+	public static JSONObject getUserLimits(String username){
+		JSONParser jsonParser = new JSONParser();
+		try {
+			JSONArray userLimitsJson = (JSONArray) jsonParser.parse(new FileReader("etc/userLimitInformation.json"));
+			for (Object o : userLimitsJson) {
+				JSONObject userLimits = (JSONObject) o;
+				String limitedUser = (String) userLimits.get("username");
+				if(limitedUser.equals(username)) {
+					return userLimits;
+				}
+			}
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Check whether user has limit on number of graphs it can generate.
+	 * @param username     user to check the limits for
+	 * @return             true if the limit is reached
+	 */
+	public static Boolean reachedGraphCountLimit(String username){
+		// limits set for user in userLimitInformation.json file
+		JSONObject userLimits = getUserLimits(username);
+		if (userLimits != null) {
+			// Graph count limit check
+			try {
+				List<CustomGraph> userGraphs = entityHandler.getGraphs(username);
+				if (userLimits.get("graphCount") != null
+						&& userGraphs.size() >= Integer.parseInt((String) userLimits.get("graphCount"))) {
+					return true;
+				}
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Check whether user has limit on number of covers it can generate.
+	 * @param username     user to check the limits for
+	 * @return             true if the limit is reached
+	 */
+	public static Boolean reachedCoverCountLimit(String username){
+		// limits set for user in userLimitInformation.json file
+		JSONObject userLimits = getUserLimits(username);
+		if (userLimits != null) {
+			// Graph count limit check
+			try {
+				List<CustomGraph> userGraphs = entityHandler.getGraphs(username);
+				// Cover count limit check
+				int numberOfUserCovers = 0;
+				for (CustomGraph userGraph : userGraphs) {
+					numberOfUserCovers += entityHandler.getCovers(username, userGraph.getId()).size();
+				}
+				if (userLimits.get("coverCount") != null
+						&& numberOfUserCovers >= Integer.parseInt((String) userLimits.get("coverCount"))){
+					return true;
+				}
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		return false;
 	}
 
 
@@ -412,6 +485,15 @@ public class ServiceClass extends RESTService {
 				String contentStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+
+				/*
+				Check if user has a limit regarding number of graph throw an error if the limit is violated.
+                */
+				if (reachedGraphCountLimit(username)){
+					requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
+					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one.");
+				}
+
 				GraphInputFormat format;
 				CustomGraph graph;
 				try {
@@ -523,6 +605,15 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"special"}, value = "Big Graph Import", notes = "Stores a graph step by step.")
 		public Response storeGraph(@DefaultValue("unnamed") @QueryParam("name") String nameStr, String contentStr) {
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+
+			/*
+			Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
+			*/
+			if (reachedGraphCountLimit(username)){
+				requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
+				return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one.");
+			}
+
 			File graphDir = new File("tmp" + File.separator + username);
 			if (!graphDir.exists()) {
 				graphDir.mkdirs();
@@ -832,6 +923,15 @@ public class ServiceClass extends RESTService {
 				String contentStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+
+				/*
+				Check if user has a limit regarding  covers and throw an error if the limit is violated.
+				 */
+				if (reachedCoverCountLimit(username)){
+					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
+					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one.");
+				}
+
 				long graphId;
 				try {
 					graphId = Long.parseLong(graphIdStr);
@@ -1225,6 +1325,16 @@ public class ServiceClass extends RESTService {
 				long graphId;
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				CoverCreationType algorithmType;
+
+				/*
+				Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
+				 */
+				if (reachedCoverCountLimit(username)){
+					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
+					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one.");
+				}
+
+
 				try {
 					graphId = Long.parseLong(graphIdStr);
 				} catch (Exception e) {
@@ -2367,6 +2477,20 @@ public class ServiceClass extends RESTService {
 	    		@DefaultValue("LFR") @QueryParam("benchmark") String creationTypeStr, String contentStr) {
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+
+				/*
+				Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
+				 */
+				if (reachedGraphCountLimit(username)){
+					requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
+					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one.");
+				}
+				if (reachedCoverCountLimit(username)){
+					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
+					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one.");
+				}
+
+
 	    		GraphCreationType benchmarkType;
 	    		CoverCreationType coverCreationType;
 	    		try {
@@ -2391,6 +2515,20 @@ public class ServiceClass extends RESTService {
 	    		} else {
 	    			try {
 	    				parameters = requestHandler.parseParameters(contentStr);
+
+						/*
+						Check if there is a limit on the graph size for the user and if this limit is violated
+						 */
+						if (parameters.get("n") != null){
+							// limits set for user in userLimitInformation.json file
+							JSONObject userLimits = getUserLimits(username);
+							if ( userLimits != null && userLimits.get("graphSize") != null &&
+									Integer.parseInt((String) userLimits.get("graphSize")) < Integer.parseInt(parameters.get("n"))){
+								requestHandler.log(Level.WARNING, "user: " + username + " is not allowed to generate graph of size " + parameters.get("n"));
+								return requestHandler.writeError(Error.INTERNAL, "Graph size is above the user's limit.");
+							}
+						}
+
 	    				benchmark = (GroundTruthBenchmark) benchmarkFactory.getInstance(benchmarkType, parameters);
 	    			} catch (Exception e) {
 	    				requestHandler.log(Level.WARNING, "user: " + username, e);

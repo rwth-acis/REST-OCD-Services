@@ -79,6 +79,8 @@ dependencies {
 
     //yFiles
     compileOnly fileTree(dir: "${yFiles}", include: '*.jar')
+
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
 }
 
 configurations {
