@@ -298,9 +298,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     // --------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Global List of removed nodes
-    List<Node> R = new ArrayList<>(Collections.emptyList());
-
-    // TODO: Check try catch
+    List<Integer> R = new ArrayList<>(Collections.emptyList());
 
     /**
      * The main algorithm method returning a cover
@@ -314,19 +312,19 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     @Override
     public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
         // Resulting cover will be assigned here
-        Cover outputCover = null;
+        Cover outputCover;
 
         // Create adjacency matrix of the graph
         boolean[][] adjacencyMatrix = createAdjacencyMatrix(graph);
 
         // List of all found cluster cores
-        List<CustomGraph> clusterCores = new ArrayList<>(Collections.emptyList());
+        List<Pair<CustomGraph, Map<Node, Node>>> clusterCores = new ArrayList<>(Collections.emptyList());
 
         // Detect all connected components in the graph
-        List<CustomGraph> connectedComponents = getConnectedComponents(graph);
+        List<Pair<CustomGraph, Map<Node, Node>>> connectedComponents = getConnectedComponents(graph);
 
         // List of detected communities using Rank Removal
-        List<CustomGraph> communitiesRaRe;
+        List<Pair<CustomGraph, Map<Node, Node>>> communitiesRaRe;
 
         // Call method clusterComponent for every connected component
         for (int i = 0; i < connectedComponents.size(); i++) {
@@ -343,6 +341,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             }
         }
 
+
         // In the following cluster cores will be build up to form communities
         communitiesRaRe = clusterCores;
 
@@ -353,23 +352,20 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
                 throw new InterruptedException();
             }
 
-            for (int j = 0; j < communitiesRaRe.size(); i++) {
+            for (int j = 0; j < communitiesRaRe.size(); j++) {
 
                 if(Thread.interrupted()) {
                     throw new InterruptedException();
                 }
 
                 // Add the node i in R to the graph cluster j
-                CustomGraph extendedCore = communitiesRaRe.get(j);
+                Pair<CustomGraph, Map<Node, Node>> extendedCore = communitiesRaRe.get(j);
 
-                Node[] nodeArr = graph.getNodeArray();
-                System.out.println(nodeArr[0]);
-                System.out.println(nodeArr[1]);
-
+                // Create cluster where node from R is added back to cluster from communitiesRaRe
                 extendedCore = reAddNode(extendedCore, R.get(i), adjacencyMatrix);
 
                 // Check if nodes in R are immediately adjacent to the cluster cores or if they increase their weight
-                if (isAdjacent(graph, communitiesRaRe.get(i), R.get(i)) || calculateWeight(extendedCore, graph) > calculateWeight(clusterCores.get(j), graph)) {
+                if (isAdjacent(communitiesRaRe.get(j), R.get(i), adjacencyMatrix) || calculateWeight(graph, extendedCore) > calculateWeight(graph, communitiesRaRe.get(j))) {
                     // Add node to cluster in list of cluster cores
                     communitiesRaRe.set(j, extendedCore);
                 }
@@ -377,11 +373,14 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         }
 
         if (communitiesRaRe.isEmpty()) {
+            System.out.println("Algorithm Rank Removal could not find communities!");
             throw new OcdAlgorithmException();
         }
 
+        System.out.println("communitieisRaRe: " + communitiesRaRe.toString() + "\n");
+
         // List of detected communities using Iterative Scan
-        List<CustomGraph> communitiesIS = Collections.emptyList();
+        List<Pair<CustomGraph, Map<Node, Node>>> communitiesIS = new ArrayList<>(Collections.emptyList());
 
         Random r = new Random();
         // Number of algorithm restarts that yield no new local maxima
@@ -397,7 +396,8 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
                 throw new InterruptedException();
             }
 
-            int seed = r.nextInt(communitiesRaRe.size() - 0) + 0;
+            int seed = r.nextInt(communitiesRaRe.size());
+
             // Increase fails variable if the received random seed was already checked
             if (!maxima[seed]) {
                 maxima[seed] = true;
@@ -412,7 +412,10 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             throw new OcdAlgorithmException();
         }
 
-        Matrix membershipMatrix = createMembershipMatrix(graph, communitiesRaRe); //communitiesIS
+        System.out.println("communitiesIS: " + communitiesIS.toString()  + "\n");
+
+        // Create membership matrix
+        Matrix membershipMatrix = createMembershipMatrix(graph, communitiesIS);
 
         // Create cover out of list communitiesIS
         outputCover = new Cover(graph, membershipMatrix);
@@ -453,16 +456,11 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * @param graph     Graph containing at least one connected component
      * @return          List of connected components in passed graph
      */
-    public List<CustomGraph> getConnectedComponents(CustomGraph graph) {
+    public List<Pair<CustomGraph, Map<Node, Node>>> getConnectedComponents(CustomGraph graph) {
         // List of connected components
         GraphProcessor processor = new GraphProcessor();
-        List<Pair<CustomGraph, Map<Node, Node>>> connectedComponentsList = processor.divideIntoConnectedComponents(graph);
 
-        // Add graphs of all connected components to list
-        List<CustomGraph> connectedComponents = new ArrayList<>(Collections.emptyList());
-        for (int i = 0; i < connectedComponentsList.size(); i++) {
-            connectedComponents.add((connectedComponentsList.get(i)).getFirst());
-        }
+        List<Pair<CustomGraph, Map<Node, Node>>> connectedComponents = processor.divideIntoConnectedComponents(graph);
 
         return connectedComponents;
     }
@@ -478,28 +476,50 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * @param graph     Connected component as custom graph
      * @return          List of clusters of the passed graph with the right size
      */
-    public List<CustomGraph> clusterComponent(CustomGraph graph) throws InterruptedException, CentralityAlgorithmException {
-        Node node;
+    public List<Pair<CustomGraph, Map<Node, Node>>> clusterComponent(Pair<CustomGraph, Map<Node, Node>> graph) throws InterruptedException, CentralityAlgorithmException {
+        List<Pair<CustomGraph, Map<Node, Node>>> clusterCores = new ArrayList<>(Collections.emptyList());
 
-        List<CustomGraph> clusterCores = new ArrayList<>(Collections.emptyList());
-
-        if (graph.nodeCount() > maxCoreSize) {
+        if (graph.getFirst().nodeCount() > maxCoreSize) {
             for (int i = 0; i < t; i++) {
-                // Calculate the highest ranking node
-                node = getHighestRankingNode(graph);
-                // Add the highest ranking node to set R
-                R.add(node);
-                // Remove the highest ranking node
-                graph.removeNode(node);
+                Node node;
+                // Calculate the highest ranking node in the passed cluster
+                node = getHighestRankingNode(graph.getFirst());
+                // Add index of corresponding node in original graph to R
+                R.add(graph.getSecond().get(node).index());
+                // Remove the highest ranking node and corresponding mapping
+                graph.getFirst().removeNode(node);
+                graph.getSecond().remove(node);
             }
+
             // Detect all connected components in connectedComponent
-            List<CustomGraph> connectedComponents = getConnectedComponents(graph);
+            List<Pair<CustomGraph, Map<Node, Node>>> connectedComponents = getConnectedComponents(graph.getFirst());
+
+            if (connectedComponents.size() != 1) {
+                // Map nodes in new connected components to original graph instead of old cluster
+                for (int clusterCount = 0; clusterCount < connectedComponents.size(); clusterCount++) {
+                    NodeCursor clusterNodes = connectedComponents.get(clusterCount).getFirst().nodes();
+
+                    // Iterate over every node in the selected cluster
+                    while (clusterNodes.ok()) {
+                        Node clusterNode = clusterNodes.node();
+
+                        // Get node from the original cluster
+                        Node valueNode = connectedComponents.get(clusterCount).getSecond().get(clusterNode);
+
+                        // Map node in new cluster to corresponding node in original graph
+                        connectedComponents.get(clusterCount).getSecond().put(clusterNode, graph.getSecond().get(valueNode));
+                        connectedComponents.get(clusterCount).getSecond().remove(valueNode);
+
+                        clusterNodes.next();
+                    }
+                }
+            }
 
             for (int i = 0; i < connectedComponents.size(); i++) {
                 clusterCores.addAll(clusterComponent(connectedComponents.get(i)));
             }
 
-        } else if (minCoreSize <= graph.nodeCount() && graph.nodeCount() <= maxCoreSize) {
+        } else if (minCoreSize <= graph.getFirst().nodeCount() && graph.getFirst().nodeCount() <= maxCoreSize) {
             // Mark connectedComponent as cluster core
             clusterCores.add(graph);
         }
@@ -548,11 +568,14 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
         // Find the node with the highest pageRank in graph
         NodeCursor nodes = graph.nodes();
-        nodes.toFirst();
 
         while (nodes.ok()) {
-            if (pageRank.get(graph.getNodeName(nodes.node())) > maxValue) {
-                returnNode = nodes.node();
+            Node currNode = nodes.node();
+
+            double newValue = pageRank.get(graph.getNodeName(currNode));
+            if (newValue > maxValue) {
+                maxValue = newValue;
+                returnNode = currNode;
             }
 
             nodes.next();
@@ -584,25 +607,29 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         return node;
     }
 
-    // TODO: Refactor using created adjacency matrix
-
     /**
      * This method checks if there exists an edge between a node of the provided
      * graph and the provided node. If yes, the method return true. Else it
      * returns false.
      *
-     * @param graph             The graph for which the adjacency is checked
      * @param clusterCore       Cluster of nodes that should be checked
-     * @param node              Node that is checked
+     * @param nodeIndex         Index of node that is checked
+     * @param adjacencyMatrix   Adjacency matrix of original graph
      * @return                  if the passed node is adjacent to the passed cluster core
      */
-    public boolean isAdjacent(CustomGraph graph, CustomGraph clusterCore, Node node) {
-        NodeCursor clusterCoreNodes = clusterCore.nodes();
-        while (clusterCoreNodes.ok()) {
-            if (graph.containsEdge(clusterCoreNodes.node(), node)) {
+    public boolean isAdjacent(Pair<CustomGraph, Map<Node, Node>> clusterCore, int nodeIndex, boolean[][] adjacencyMatrix) {
+        NodeCursor clusterNodes = clusterCore.getFirst().nodes();
+
+        // Iterate over every node in the cluster
+        while (clusterNodes.ok()) {
+            Node currNode = clusterNodes.node();
+
+            // Node is adjacent to the cluster if there exists at least one edge between the two
+            if (adjacencyMatrix[nodeIndex][clusterCore.getSecond().get(currNode).index()] || adjacencyMatrix[clusterCore.getSecond().get(currNode).index()][nodeIndex]) {
                 return true;
             }
-            clusterCoreNodes.next();
+
+            clusterNodes.next();
         }
 
         return false;
@@ -639,20 +666,18 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * @param cluster   cluster of which the weight should be calculated
      * @return          weight of the passed cluster
      */
-    public double calculateWeight(CustomGraph graph, CustomGraph cluster) {
+    public double calculateWeight(CustomGraph graph, Pair<CustomGraph, Map<Node, Node>> cluster) {
         // Weight variable initialized with an unusual value
         double weight = -10000;
         switch (selectedWeightFunctionRaRe) {
-            case INTERNAL_EDGE_PROBABILITY -> weight = calculateInternalEdgeProbability(cluster);
-            case EDGE_RATIO -> weight = calculateEdgeRatio(graph, cluster);
-            case INTENSITY_RATIO -> weight = calculateIntensityRatio(graph, cluster);
+            case INTERNAL_EDGE_PROBABILITY -> weight = calculateInternalEdgeProbability(cluster.getFirst());
+            case EDGE_RATIO -> weight = calculateEdgeRatio(graph, cluster.getFirst());
+            case INTENSITY_RATIO -> weight = calculateIntensityRatio(graph, cluster.getFirst());
             default -> System.out.println("This weight function does not exist!");
         }
 
         return weight;
     }
-
-    // TODO: Check functionality for undirected graphs
 
     /**
      * This method returns the number of outgoing edges between the passed cluster
@@ -785,47 +810,50 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      *  This method adds a node back to a cluster if it is adjacent to the cluster
      *  in the original graph.
      *
-     * @param cluster           Cluster to which the passed node should be added
-     * @param node              Node that should be added to the passed cluster
+     * @param cluster           Cluster to which the passed node should be added and corresponding mapping to original graph
+     * @param nodeIndex         Node that should be added to the passed cluster
      * @param adjacencyMatrix   Adjacency matrix of the original graph
      * @return                  Cluster with added node if adjacent
      */
-    public CustomGraph reAddNode(CustomGraph cluster, Node node, boolean[][] adjacencyMatrix) {
+    public Pair<CustomGraph, Map<Node, Node>> reAddNode(Pair<CustomGraph, Map<Node, Node>> cluster, int nodeIndex, boolean[][] adjacencyMatrix) {
+        // Whether the passed cluster is directed or not
+        boolean directed = cluster.getFirst().isDirected();
+
         // Iterate over every entry for node in the adjacency matrix
         for (int i = 0; i < adjacencyMatrix.length; i++) {
 
-            System.out.println("Adjazenzmatrix laenge:" + adjacencyMatrix.length);      // 62
-            System.out.println("Adjazenzmatrix hoehe:" + adjacencyMatrix[0].length);    // 62
-
-            System.out.println(node.toString());
-            // WARNING: Node has no id since it was removed from its graph
             // Check if edge existed in original graph
-            if (adjacencyMatrix[node.index()][i]) {
-                NodeCursor clusterNodes = cluster.nodes();
+            if (adjacencyMatrix[nodeIndex][i]) {    // => Node to be reinserted and Node i in original graph are connected
+                NodeCursor clusterNodes = cluster.getFirst().nodes();
 
+                // Iterate over every node in the passed cluster
                 while (clusterNodes.ok()) {
+                    // Node in the cluster
                     Node currNode = clusterNodes.node();
+                    // Corresponding node in the original graph
+                    Node corrNode = cluster.getSecond().get(clusterNodes.node());
 
-                    if (currNode.index() == i) {
-                        if (!cluster.contains(node)) {
-                            // Add node to cluster
-                            cluster.reInsertNode(node);
+                    // If edge existed, add node and edges
+                    if (corrNode.index() == i) {
+                        if (!cluster.getFirst().contains(currNode)) {
+                            // Create new node
+                            Node newNode = cluster.getFirst().createNode();
 
-                            // Add edge to cluster
-                            cluster.createEdge(node, currNode);
-
-                            if (cluster.isDirected()) {
-                                // Add edge in other direction if it existed in the original graph
-                                if (adjacencyMatrix[i][node.index()]) {
-                                    cluster.createEdge(currNode, node);
-                                }
+                            // Create edges
+                            if (!directed) {
+                                cluster.getFirst().createEdge(newNode, currNode);
+                                cluster.getFirst().createEdge(currNode, newNode);
                             } else {
-                                // Add edge in other direction if cluster is undirected
-                                cluster.createEdge(currNode, node);
-                            }
+                                cluster.getFirst().createEdge(newNode, currNode);
 
+                                if (adjacencyMatrix[i][nodeIndex]) {
+                                    cluster.getFirst().createEdge(currNode, newNode);
+                                }
+                            }
                         }
                     }
+
+                    clusterNodes.next();
                 }
             }
         }
@@ -841,17 +869,17 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * @param clusters      A list of all detected communities in the Graph
      * @return              A membership matrix
      */
-    public Matrix createMembershipMatrix(CustomGraph graph, List<CustomGraph> clusters) {
+    public Matrix createMembershipMatrix(CustomGraph graph, List<Pair<CustomGraph, Map<Node, Node>>> clusters) {
         // Membership matrix
         Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), clusters.size());
 
-        // Iterate over every node in the graph, check if it contained in any cluster, if yes, set corresponding entry to 1
         NodeCursor nc = graph.nodes();
+        // Iterate over every node in the graph, check if it contained in any cluster, if yes, set corresponding entry to 1
         while (nc.ok()) {
             Node node = nc.node();
 
             for (int i = 0; i < clusters.size(); i++) {
-                if (clusters.get(i).contains(node)) {
+                if (clusters.get(i).getSecond().containsValue(node)) {
                     membershipMatrix.set(node.index(), i, 1);
                 }
             }
@@ -877,12 +905,12 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * @param cluster   cluster of which the weight should be calculated
      * @return          the weight of the given cluster subtracted by the calculated penalty
      */
-    public double calculatePenalty(CustomGraph graph, CustomGraph cluster) {
+    public double calculatePenalty(CustomGraph graph, Pair<CustomGraph, Map<Node, Node>> cluster) {
         double penalty = 0;
 
-        if (cluster.nodeCount() > maxClusterSize || minClusterSize < cluster.nodeCount()) {
-            double minPenalty = (h1 * (minClusterSize-cluster.nodeCount())/(minClusterSize - 1));
-            double maxPenalty = (h2 * (cluster.nodeCount() - maxClusterSize)/(graph.nodeCount() - maxClusterSize));
+        if (cluster.getFirst().nodeCount() > maxClusterSize || minClusterSize < cluster.getFirst().nodeCount()) {
+            double minPenalty = (h1 * (minClusterSize-cluster.getFirst().nodeCount())/(minClusterSize - 1));
+            double maxPenalty = (h2 * (cluster.getFirst().nodeCount() - maxClusterSize)/(graph.nodeCount() - maxClusterSize));
 
             penalty = Math.max(minPenalty, maxPenalty);
         }
@@ -900,33 +928,78 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * @param adjacencyMatrix   Adjacency matrix of passed graph
      * @return                  refined cluster
      */
-    public CustomGraph iterativeScan(CustomGraph graph, CustomGraph cluster, boolean[][] adjacencyMatrix) {
+    public Pair<CustomGraph, Map<Node, Node>> iterativeScan(CustomGraph graph, Pair<CustomGraph, Map<Node, Node>> cluster, boolean[][] adjacencyMatrix) {
         // Highest known weight of the cluster
         double w = calculateWeight(graph, cluster);
         boolean increased = true;
+        // Cluster to be returned
+        Pair<CustomGraph, Map<Node, Node>> finalCluster = cluster;
+        // Create reverse map of cluster map that maps nodes in original graph to nodes in cluster
+        Map<Node, Node> reverseMap = new HashMap<>();
+
+        NodeCursor cNodes = cluster.getFirst().nodes();
+
+        while (cNodes.ok()) {
+            Node n = cNodes.node();
+
+            reverseMap.put(cluster.getSecond().get(n), n);
+
+            cNodes.next();
+        }
+
+        // Node array of original graph for drawing edges from nodes added to the cluster
+        Node[] nodeArr = graph.getNodeArray();
 
         NodeCursor graphNodes = graph.nodes();
 
+        // As long as the weight of the current cluster increases
         while (increased) {
+
+            // Create temporary cluster
+            Pair<CustomGraph, Map<Node, Node>> tempCluster = finalCluster;
+
+            // For every node in graph, check if it increases the weight of the cluster by either adding or removing
             while (graphNodes.ok()) {
-                Node node = graphNodes.node();
+                Node graphNode = graphNodes.node();
 
-                CustomGraph tempCluster = cluster;
-
-                if (cluster.contains(node)) {
-                    tempCluster.removeNode(node);
+                // Check if node is already part of the cluster
+                if (reverseMap.containsKey(graphNode)) {
+                    // Delete node and corresponding map entry
+                    tempCluster.getFirst().removeNode(reverseMap.get(graphNode));
+                    tempCluster.getSecond().remove(reverseMap.get(graphNode));
                 } else {
-                    tempCluster = reAddNode(tempCluster, node, adjacencyMatrix);
+                    // Add node to cluster, stays unconnected in case no neighbours from original graph in cluster
+                    Node newNode = tempCluster.getFirst().createNode();
+                    tempCluster.getSecond().put(newNode, graphNode);
+                    // Update reverse map
+                    reverseMap.put(graphNode, newNode);
+                    // Search in adjacency matrix for available edges
+                    for (int i = 0; i < adjacencyMatrix.length; i++) {
+                        // If edge existed in original graph
+                        if (adjacencyMatrix[graphNode.index()][i]) {
+                            // Check whether cluster contains neighbour from original graph
+                            if (tempCluster.getSecond().containsValue(nodeArr[i])) {
+                                tempCluster.getFirst().createEdge(newNode, reverseMap.get(nodeArr[i]));
+                            }
+                        }
+                        // Check for edge in other direction
+                        if (adjacencyMatrix[i][graphNode.index()]) {
+                            if (tempCluster.getSecond().containsValue(nodeArr[i])) {
+                                tempCluster.getFirst().createEdge(reverseMap.get(nodeArr[i]), newNode);
+                            }
+                        }
+                    }
                 }
 
-                if (calculatePenalty(graph, tempCluster) > calculatePenalty(graph, cluster)) {
-                    cluster = tempCluster;
+                if (calculatePenalty(graph, tempCluster) > calculatePenalty(graph, finalCluster)) {
+                    finalCluster = tempCluster;
                 }
 
                 graphNodes.next();
             }
 
-            double newWeight = calculatePenalty(graph, cluster);
+            // Continue loop until w does not improve
+            double newWeight = calculatePenalty(graph, finalCluster);
             if (newWeight == w) {
                 increased = false;
             } else {
@@ -934,6 +1007,6 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             }
         }
 
-        return cluster;
+        return finalCluster;
     }
 }
