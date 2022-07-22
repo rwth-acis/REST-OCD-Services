@@ -219,7 +219,7 @@ public class CustomEdge {
 	}
 
 	/**
-	 * Creates the corresponding yFiles edge after the custom edge is loaded from persistence.
+	 * Creates the corresponding graphstream edge after the custom edge is loaded from persistence.
 	 * Only for persistence purposes.
 	 * @param graph The graph that the edge is part of.
 	 * @param source The source node of the edge.

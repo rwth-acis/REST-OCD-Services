@@ -50,7 +50,6 @@ public class GraphProcessor {
 			if (reverseEdge == null || graph.getEdgeWeight(reverseEdge) != edgeWeight) {
 				graph.addType(GraphType.DIRECTED);
 			}			
-			edgesIt.next();
 		}
 		if (graph.getPath() != "" && graph.getPath() != null) {
 			if (graph.getEdgeCount() == 0) {
@@ -217,7 +216,6 @@ public class GraphProcessor {
 					double edgeWeight = graph.getEdgeWeight(outEdge);
 					Edge newEdge = componentGraph.addEdge(UUID.randomUUID().toString(),tmpNodeMap.get(node), tmpNodeMap.get(target));
 					componentGraph.setEdgeWeight(newEdge, edgeWeight);
-					outEdgesIt.next();
 				}
 			}
 			componentsList.add(new Pair<CustomGraph, Map<Node, Node>>(componentGraph, nodeMap));

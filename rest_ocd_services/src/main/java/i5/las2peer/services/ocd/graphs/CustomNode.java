@@ -30,6 +30,7 @@ import org.graphstream.graph.implementations.MultiNode;
 		@UniqueConstraint(columnNames={CustomNode.idColumnName, CustomNode.graphIdColumnName, CustomNode.nameColumnName})
 )
 //TODO: Integrate graphstream attributes into persistence
+//TODO: Check if graph attribute even needed anymore. It definitely cant be set at the moment
 public class CustomNode {
 
 	/*
