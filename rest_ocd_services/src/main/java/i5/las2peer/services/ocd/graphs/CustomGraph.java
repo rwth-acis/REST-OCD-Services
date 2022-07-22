@@ -1,13 +1,7 @@
 package i5.las2peer.services.ocd.graphs;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
-import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -28,6 +22,7 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
 import org.graphstream.graph.implementations.AbstractGraph;
+import org.graphstream.graph.implementations.AbstractNode;
 import org.graphstream.graph.implementations.MultiNode;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -56,8 +51,7 @@ import org.graphstream.graph.Edge;
 //TODO: Check whether UUIDs work out as unique graph IDs, collision chances should however be extremely low
 //TODO: Check whether UUIDs work out as unique edge IDs, collision chances should however be extremely low
 //TODO: Check whether UUIDs work out as unique node IDs, collision chances should however be extremely low. Check whether this could actually replace the current node names. Would however break style with the naming of the other classes.
-//TODO: Figure out what how to replace the GraphListener stuff, likely only relevant for SVG Viz.
-//TODO: Integrate graphstream attributes into persistence
+//TODO: Integrate graphstream attributes into persistence or not?
 public class CustomGraph extends MultiGraph {
 
 	/////////////////// DATABASE COLUMN NAMES
@@ -79,7 +73,7 @@ public class CustomGraph extends MultiGraph {
 	 * Field name definitions for JPQL queries.
 	 */
 	public static final String USER_NAME_FIELD_NAME = "userName";
-	public static final String ID_FIELD_NAME = "id";
+	public static final String ID_FIELD_NAME = "persistenceId";
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
 
 	//////////////////////////////////////////////////////////////////
@@ -215,7 +209,7 @@ public class CustomGraph extends MultiGraph {
 	 */
     public CustomGraph() {
 		super(UUID.randomUUID().toString());
-        //this.addGraphListener(new CustomGraphListener()); //TODO: Put corresponding listener here (if needed)
+        this.addSink(new CustomGraphListener(this)); //TODO: Put corresponding listener here (if needed)
     }
 
 	/**
@@ -224,16 +218,19 @@ public class CustomGraph extends MultiGraph {
 	 * @param graph
 	 *            The graph to copy.
 	 */
+	//TODO: Refactor this to actually copy nodes/edges
 	public CustomGraph(AbstractGraph graph) {
 		super(UUID.randomUUID().toString()); //TODO: CHANGE to correct super execution
+		this.addSink(new CustomGraphListener(this));
 		//super(graph);
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
-		for(MultiNode node : nodes) {
-			this.addCustomNode(node);
+		Node[] nodes = this.nodes().toArray(Node[]::new);
+		for(Node node : nodes) {
+			//TODO: Maybe checks needed whether MultiNode or not
+			this.addNode(node.getId());
 		}
 		Edge[] edges = this.edges().toArray(Edge[]::new);
 		for(Edge edge : edges) {
-			this.addCustomEdge(edge);
+			this.addEdge(edge.getId(), edge.getSourceNode().getId(),edge.getTargetNode().getId());
 		}
 //        Iterator<?> listenerIt = this.getGraphListeners();
 //        while (listenerIt.hasNext()) {
@@ -251,11 +248,24 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public CustomGraph(CustomGraph graph) {
 		super(UUID.randomUUID().toString());
+
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
+			this.addNode(nodesIt.next().getId());
+		}
+
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+		while(edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
+			this.addEdge(edge.getId(),edge.getSourceNode().getId(),edge.getTargetNode().getId());
+		}
+
 		this.creationMethod = new GraphCreationLog(graph.creationMethod.getType(),
 				graph.creationMethod.getParameters());
 		this.creationMethod.setStatus(graph.creationMethod.getStatus());
 		this.customNodes = new HashMap<Integer, CustomNode>();
 		copyMappings(graph.customNodes, graph.customEdges, graph.nodeIds, graph.edgeIds);
+		this.addSink(new CustomGraphListener(this));
 		this.userName = new String(graph.userName);
 		this.name = new String(graph.name);
 		this.persistenceId = graph.persistenceId;
@@ -496,6 +506,22 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public boolean isWeighted() {
 		return isOfType(GraphType.WEIGHTED);
+	}
+
+	/**
+	 * TODO
+	 * @param edgeId
+	 * @param src
+	 * @param srcId
+	 * @param dst
+	 * @param dstId
+	 * @param directed
+	 * @return The directed edge
+	 */
+	protected Edge addEdge(String edgeId, AbstractNode src, String srcId, AbstractNode dst, String dstId,
+								  boolean directed) {
+		Edge edge = super.addEdge(edgeId, src, srcId, dst, dstId, true);
+		return edge;
 	}
 
 	/**
@@ -767,9 +793,9 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public double getMinWeightedInDegree() throws InterruptedException {
 		double minDegree = Double.POSITIVE_INFINITY;
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
+		Node[] nodes = this.nodes().toArray(Node[]::new);
 		double curDegree;
-		for (MultiNode node : nodes) {
+		for (Node node : nodes) {
 			curDegree = getWeightedInDegree(node);
 			if (curDegree < minDegree) {
 				minDegree = curDegree;
@@ -786,9 +812,9 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public double getMaxWeightedInDegree() throws InterruptedException {
 		double maxDegree = Double.NEGATIVE_INFINITY;
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
+		Node[] nodes = this.nodes().toArray(Node[]::new);
 		double curDegree;
-		for (MultiNode node : nodes) {
+		for (Node node : nodes) {
 			curDegree = getWeightedInDegree(node);
 			if (curDegree > maxDegree) {
 				maxDegree = curDegree;
@@ -866,7 +892,7 @@ public class CustomGraph extends MultiGraph {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			if (!neighbourSet.contains(neighbour) && neighbour.hasEdgeToward(node)) {
+			if (!neighbourSet.contains(neighbour) && neighbour.hasEdgeFrom(node)) {
 				neighbourSet.add(neighbour);
 			}
 		}
@@ -874,7 +900,7 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	/**
-	 * Returns the set of all neighbours of a given node.
+	 * Returns the set of all neighbours of a given node that have an edge toward it.
 	 *
 	 * @param node
 	 *            The node under observation.
@@ -892,7 +918,7 @@ public class CustomGraph extends MultiGraph {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			if (!neighbourSet.contains(neighbour) && neighbour.hasEdgeFrom(node)) {
+			if (!neighbourSet.contains(neighbour) && neighbour.hasEdgeToward(node)) {
 				neighbourSet.add(neighbour);
 			}
 		}
@@ -912,9 +938,9 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public Set<Node> getPositiveNeighbours(MultiNode node) throws InterruptedException {
 		Set<Node> positiveNeighbourSet = new HashSet<Node>();
-		MultiNode[] neighbours = (MultiNode[]) node.neighborNodes().toArray(Node[]::new);
+		Node[] neighbours = node.neighborNodes().toArray(Node[]::new);
 
-		for (MultiNode neighbour : neighbours) {
+		for (Node neighbour : neighbours) {
 			/*
 			 * if node a->b positive or node b->a positive
 			 */
@@ -943,9 +969,9 @@ public class CustomGraph extends MultiGraph {
 
 	public Set<Node> getNegativeNeighbours(MultiNode node) throws InterruptedException {
 		Set<Node> negativeNeighbourSet = new HashSet<Node>();
-		MultiNode[] neighbours = (MultiNode[]) node.neighborNodes().toArray(Node[]::new);
+		Node[] neighbours = (Node[]) node.neighborNodes().toArray(Node[]::new);
 
-		for (MultiNode neighbour : neighbours) {
+		for (Node neighbour : neighbours) {
 			/*
 			 * if node a->b negative or node b->a negative
 			 */
@@ -1292,13 +1318,13 @@ public class CustomGraph extends MultiGraph {
 		for (Map.Entry<Integer, CustomEdge> entry : customEdges.entrySet()) {
 			this.customEdges.put(entry.getKey(), new CustomEdge(entry.getValue()));
 		}
-		MultiNode[] nodeArr = (MultiNode[]) this.nodes().toArray(Node[]::new);
+		Node[] nodeArr = this.nodes().toArray(Node[]::new);
 		for (Map.Entry<MultiNode, Integer> entry : nodeIds.entrySet()) {
-			this.nodeIds.put(nodeArr[entry.getKey().getIndex()], entry.getValue());
+			this.nodeIds.put((MultiNode) nodeArr[entry.getKey().getIndex()], entry.getValue());
 		}
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
-		for (MultiNode node : nodes) {
-			this.reverseNodeMap.put(this.getCustomNode(node), node);
+		Node[] nodes = this.nodes().toArray(Node[]::new);
+		for (Node node : nodes) {
+			this.reverseNodeMap.put(this.getCustomNode(node), (MultiNode) node);
 		}
 		Edge[] edgeArr = this.edges().toArray(Edge[]::new);
 		for (Map.Entry<Edge, Integer> entry : edgeIds.entrySet()) {
@@ -1348,6 +1374,7 @@ public class CustomGraph extends MultiGraph {
 	 *            The node.
 	 */
 	protected void addCustomNode(MultiNode node) {
+		System.out.println(node.getId());
 		CustomNode customNode = new CustomNode();
 		this.nodeIds.put(node, this.nodeIndexer);
 		this.customNodes.put(nodeIndexer, customNode);
@@ -1441,8 +1468,8 @@ public class CustomGraph extends MultiGraph {
 	@PrePersist
 	@PreUpdate
 	protected void prePersist() {
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
-		for (MultiNode node : nodes) {
+		Node[] nodes = this.nodes().toArray(Node[]::new);
+		for (Node node : nodes) {
 			this.getCustomNode(node).update(this, (Node)node);
 		}
 		Edge[] edges = this.edges().toArray(Edge[]::new);
