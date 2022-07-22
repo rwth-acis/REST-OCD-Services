@@ -139,7 +139,7 @@ public class LouvainGraphBuilder {
    * @return This LouvaingraphBuilder
    * @throws OcdAlgorithmException if the execution failed
    */
-  public LouvainGraphBuilder addEdge(int n1, int n2, int weight) 
+  public LouvainGraphBuilder addEdge(int n1, int n2, int weight)
 		  throws OcdAlgorithmException {
     if (n1 >= order) {
       throw new OcdAlgorithmException("" + n1 + " >= " + order);

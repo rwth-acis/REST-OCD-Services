@@ -38,14 +38,20 @@ public class Coreness implements CentralityAlgorithm {
 			boolean nodeRemoved = true;		
 			while(nodeRemoved == true) {
 				nodeRemoved = false;
-				nc = graph.iterator();			
+
+				nc = graph.iterator();
+				ArrayList<Node> nodesToRemove = new ArrayList<Node>(); // List for nodes to be removed, cant remove during iteration
 				while(nc.hasNext()) {
 					Node node = nc.next();			
 					if(node.getInDegree() <= k) {
 						res.setNodeValue(node, k);
-						graph.removeNode(node);
+						nodesToRemove.add(node);
 						nodeRemoved = true;
 					}
+				}
+
+				for(Node node : nodesToRemove) { // Remove nodes
+					graph.removeNode(node);
 				}
 			}
 			k++;

@@ -115,7 +115,6 @@ public class FrustrationMetric implements StatisticalMeasure {
 				 */
 				interEdgePositive++;
 			}
-			edges.next();
 		}
 		return (weightingParameter * intraEdgeNegative + (1 - weightingParameter) * interEdgePositive) / effectiveEdges;
 	}
