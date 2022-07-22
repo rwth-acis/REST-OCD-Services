@@ -17,13 +17,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.UUID;
 
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 public class XmlCoverOutputAdapterTest {
 
@@ -37,15 +38,15 @@ public class XmlCoverOutputAdapterTest {
 		CustomGraph graph = new CustomGraph();
 		graph.setUserName(userName);
 		graph.setName(graphName);
-		Node nodeA = graph.createNode();
-		Node nodeB = graph.createNode();
-		Node nodeC = graph.createNode();
+		Node nodeA = graph.addNode("A");
+		Node nodeB = graph.addNode("B");
+		Node nodeC = graph.addNode("C");
 		graph.setNodeName(nodeA, "A");
 		graph.setNodeName(nodeB, "B");
 		graph.setNodeName(nodeC, "C");
-		Edge edgeAB = graph.createEdge(nodeA, nodeB);
+		Edge edgeAB = graph.addEdge(UUID.randomUUID().toString(), nodeA, nodeB);
 		graph.setEdgeWeight(edgeAB, 5);
-		Edge edgeBC = graph.createEdge(nodeB, nodeC);
+		Edge edgeBC = graph.addEdge(UUID.randomUUID().toString(), nodeB, nodeC);
 		graph.setEdgeWeight(edgeBC, 2.5);
 		Matrix memberships = new CCSMatrix(3, 2);
 		memberships.set(0, 0, 1);

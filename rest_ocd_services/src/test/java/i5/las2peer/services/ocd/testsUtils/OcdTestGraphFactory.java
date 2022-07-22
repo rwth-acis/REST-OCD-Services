@@ -662,7 +662,7 @@ public class OcdTestGraphFactory {
 	
 	public static CustomGraph getSimpleGraphUndirectedWeighted() {
 		CustomGraph graph = new CustomGraph();
-		graph.setName("Simple Test Graph Undirected Unweighted");
+		graph.setName("Simple Test Graph Undirected Weighted");
 		
 		// Create nodes
 		Node n[] = new Node[7];
@@ -704,12 +704,13 @@ public class OcdTestGraphFactory {
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
 		graph.setCreationMethod(log);
+		graph.addType(GraphType.WEIGHTED);
 		return graph;
 	}
 	
 	public static CustomGraph getSimpleGraphDirectedUnweighted() {
 		CustomGraph graph = new CustomGraph();
-		graph.setName("Simple Test Graph Undirected Unweighted");
+		graph.setName("Simple Test Graph Directed Unweighted");
 		
 		// Create nodes
 		Node n[] = new Node[7];
@@ -729,12 +730,13 @@ public class OcdTestGraphFactory {
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
 		graph.setCreationMethod(log);
+		graph.addType(GraphType.DIRECTED);
 		return graph;
 	}
 	
 	public static CustomGraph getSimpleGraphDirectedWeighted() {
 		CustomGraph graph = new CustomGraph();
-		graph.setName("Simple Test Graph Undirected Unweighted");
+		graph.setName("Simple Test Graph Directed Weighted");
 		
 		// Create nodes
 		Node n[] = new Node[7];
@@ -762,6 +764,8 @@ public class OcdTestGraphFactory {
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
 		graph.setCreationMethod(log);
+		graph.addType(GraphType.DIRECTED);
+		graph.addType(GraphType.WEIGHTED);
 		return graph;
 	}
 	

@@ -9,6 +9,8 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import java.io.FileReader;
 import java.io.IOException;
 
+import org.graphstream.graph.Node;
+
 import org.junit.Test;
 
 public class GmlGraphInputAdapterTest {
@@ -22,7 +24,7 @@ public class GmlGraphInputAdapterTest {
 		System.out.println("Edges: " + graph.getEdgeCount());
 		assertEquals(62, graph.getNodeCount());
 		assertEquals(159, graph.getEdgeCount());
-		assertEquals("Beak", graph.getNodeName(graph.getNodeArray()[0]));
+		assertEquals("Beak", graph.getNodeName(graph.nodes().toArray(Node[]::new)[0]));
 	}
 	
 	@Test
@@ -34,7 +36,7 @@ public class GmlGraphInputAdapterTest {
 		System.out.println("Edges: " + graph.getEdgeCount());
 		assertEquals(34, graph.getNodeCount());
 		assertEquals(78, graph.getEdgeCount());
-		assertEquals("0", graph.getNodeName(graph.getNodeArray()[0]));
+		assertEquals("1", graph.getNodeName(graph.nodes().toArray(Node[]::new)[0]));
 	}
 
 }

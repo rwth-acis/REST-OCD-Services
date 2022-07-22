@@ -14,12 +14,13 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.HashSet;
+import java.util.UUID;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 public class ViewerTestGraphFactory {
 	
@@ -30,14 +31,14 @@ public class ViewerTestGraphFactory {
 		// Creates 10 nodes.
 		Node n[] = new Node[10];  
 		for (int i = 0; i < 10; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 			graph.setNodeName(n[i], "id: " + i);
 			memberships.set(i, i%2, 1);
 		}
 		// Creates 10 edges forming a cycle
 		Edge e[] = new Edge[10];
 		for (int i = 0; i < 10; i++) {
-			e[i] = graph.createEdge(n[i], n[(i+1)%10]);
+			e[i] = graph.addEdge(UUID.randomUUID().toString(), n[i], n[(i+1)%10]);
 			graph.setEdgeWeight(e[i], 1.0);
 		}
 		return new CustomGraph(graph);
@@ -49,30 +50,30 @@ public class ViewerTestGraphFactory {
 		// Creates nodes
 		Node n[] = new Node[11];  
 		for (int i = 0; i < 11; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 			graph.setNodeName(n[i], Integer.toString(i));
 		}
 		// Creates edges
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[0], n[2]);
-		graph.createEdge(n[0], n[3]);
-		graph.createEdge(n[0], n[4]);
-		graph.createEdge(n[0], n[10]);
-		graph.createEdge(n[5], n[6]);
-		graph.createEdge(n[5], n[7]);
-		graph.createEdge(n[5], n[8]);
-		graph.createEdge(n[5], n[9]);
-		graph.createEdge(n[5], n[10]);
-		graph.createEdge(n[1], n[0]);
-		graph.createEdge(n[2], n[0]);
-		graph.createEdge(n[3], n[0]);
-		graph.createEdge(n[4], n[0]);
-		graph.createEdge(n[10], n[0]);
-		graph.createEdge(n[6], n[5]);
-		graph.createEdge(n[7], n[5]);
-		graph.createEdge(n[8], n[5]);
-		graph.createEdge(n[9], n[5]);
-		graph.createEdge(n[10], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[6]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[7]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[8]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[9]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[10]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[10], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[6], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[7], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[8], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[9], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[10], n[5]);
 		return new CustomGraph(graph);
 	}
 	

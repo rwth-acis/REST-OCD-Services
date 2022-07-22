@@ -80,7 +80,6 @@ public class SignedLfrBenchmarkTest {
 				}
 
 			}
-			edges.next();
 		}
 		System.out.println("neg. intra-edges count: " + negIntraEdgeCount);
 		System.out.println("pos. inter-edges count: " + posInterEdgeCount);

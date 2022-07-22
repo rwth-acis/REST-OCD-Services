@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -14,7 +15,7 @@ import org.la4j.matrix.dense.Basic2DMatrix;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 public class InvocationHandlerTest {
 
@@ -45,14 +46,14 @@ public class InvocationHandlerTest {
 
 		nodes = new ArrayList<>(4);
 		for (int i = 0; i < 4; i++) {
-			nodes.add(i, graph.createNode());
+			nodes.add(i, graph.addNode(Integer.toString(i)));
 			graph.setNodeName(nodes.get(i), String.valueOf(i + 1));
 		}
 
-		graph.createEdge(nodes.get(0), nodes.get(1));
-		graph.createEdge(nodes.get(1), nodes.get(2));
-		graph.createEdge(nodes.get(1), nodes.get(3));
-		graph.createEdge(nodes.get(3), nodes.get(2));
+		graph.addEdge(UUID.randomUUID().toString(), nodes.get(0), nodes.get(1));
+		graph.addEdge(UUID.randomUUID().toString(), nodes.get(1), nodes.get(2));
+		graph.addEdge(UUID.randomUUID().toString(), nodes.get(1), nodes.get(3));
+		graph.addEdge(UUID.randomUUID().toString(), nodes.get(3), nodes.get(2));
 
 		cover = new Cover(graph);
 

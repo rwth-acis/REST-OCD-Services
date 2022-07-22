@@ -16,6 +16,8 @@ import sim.field.network.Edge;
 import sim.field.network.Network;
 import sim.util.Bag;
 
+import java.util.UUID;
+
 @RunWith(MockitoJUnitRunner.class)
 public class AgentTest {
 
