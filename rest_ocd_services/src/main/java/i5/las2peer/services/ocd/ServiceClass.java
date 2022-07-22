@@ -7,14 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 
 import javax.persistence.EntityManager;
@@ -34,8 +27,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.utils.*;
+import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.graphstream.algorithm.ConnectedComponents;
+import org.graphstream.graph.Node;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.api.Context;
@@ -103,10 +100,6 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.utils.Error;
-import i5.las2peer.services.ocd.utils.ExecutionStatus;
-import i5.las2peer.services.ocd.utils.InvocationHandler;
-import i5.las2peer.services.ocd.utils.ThreadHandler;
 import i5.las2peer.services.ocd.viewer.LayoutHandler;
 import i5.las2peer.services.ocd.viewer.ViewerRequestHandler;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayoutType;
@@ -135,6 +128,7 @@ import y.base.Graph;
  * @author Sebastian
  *
  */
+//TODO: Consolidate connected component checks into CustomGraph class
 
 @ManualDeployment
 @ServicePath("/ocd")
@@ -1556,7 +1550,8 @@ public class ServiceClass extends RESTService {
 				    	}
 				    	// Some centrality measures cannot be computed or do not give meaningful results on unconnected graphs
 				    	if(algorithm.getCentralityMeasureType() == CentralityMeasureType.CURRENT_FLOW_BETWEENNESS || algorithm.getCentralityMeasureType() == CentralityMeasureType.CURRENT_FLOW_CLOSENESS || algorithm.getCentralityMeasureType() == CentralityMeasureType.ECCENTRICITY || algorithm.getCentralityMeasureType() == CentralityMeasureType.CLOSENESS_CENTRALITY) {
-							if(!GraphChecker.isConnected((Graph)graph)) {
+							ConnectedComponents ccAlgo = new ConnectedComponents(graph);
+							if(graph.getEdgeCount() < graph.getNodeCount() || ccAlgo.getGiantComponent().getNodeCount() != graph.getNodeCount()) { //I.e. the graph is not connected
 								return Response.serverError().entity("Show Error: This centrality measure can only be used on a connected network.").build();
 							}
 						}
@@ -1872,7 +1867,8 @@ public class ServiceClass extends RESTService {
 							return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for simulation execution: " + graph.getCreationMethod().getStatus().name());
 				    	}
 				    	if(simulation.getSimulationType() == CentralitySimulationType.RANDOM_PACKAGE_TRANSMISSION_UNWEIGHTED) {
-							if(!GraphChecker.isConnected((Graph)graph)) {
+							ConnectedComponents ccAlgo = new ConnectedComponents(graph);
+							if(graph.getEdgeCount() < graph.getNodeCount() || ccAlgo.getGiantComponent().getNodeCount() != graph.getNodeCount()) { //I.e. the graph is not connected
 								return Response.serverError().entity("Show Error: This simulation can only be used on a connected network.").build();
 							}
 						}
