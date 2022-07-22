@@ -1380,7 +1380,7 @@ public class ServiceClass extends RESTService {
 								for(CustomGraph staticGraph:graph.getGraphSeries()){
 									Cover staticCover=new Cover(staticGraph);
 									staticCover.setCreationMethod(log);
-									staticCover.setName(URLDecoder.decode(nameStr, "UTF-8")+" Order "+(order++));
+									staticCover.setName(URLDecoder.decode(nameStr, "UTF-8")+" (order "+(order++)+")");
 									cover.addCoverintoCoverSeries(staticCover);
 									//System.out.println("staticCover in ServiceClass before persist:"+staticCover.getId());
 									//entityHandler.storeCover(staticCover);

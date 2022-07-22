@@ -16,12 +16,10 @@ public class GraphSeriesListOutputAdapter extends AbstractGraphOutputAdapter {
         try {
             int order = 1;
             for(CustomGraph staticGraph : graph.getGraphSeries()) {
-
                 writer.write(order + "_");
                 order++;
                 writer.write(String.valueOf(staticGraph.getId())+"_");
                 writer.write(staticGraph.getName());
-
 
                 writer.write("\n");
             }
