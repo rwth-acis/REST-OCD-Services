@@ -8,26 +8,19 @@ import net.minidev.json.JSONValue;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONArray;
 
-import y.base.Node;
-import y.base.Edge;
-import y.view.Graph2D;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
-import y.view.NodeLabel;
-import java.awt.Color;
-import y.view.NodeRealizer;
-import y.view.ShapeNodeRealizer;
-import y.view.EdgeLabel;
-import y.view.EdgeRealizer;
-import y.view.LineType;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
-//TODO: Add labels
-public class JsonVisualOutputAdapter extends AbstractVisualOutputAdapter {		
+public class JsonVisualOutputAdapter extends AbstractVisualOutputAdapter {
 	/**
 	 * Creates a new instance setting the writer attribute.
 	 * @param writer The writer used for output.
@@ -43,37 +36,45 @@ public class JsonVisualOutputAdapter extends AbstractVisualOutputAdapter {
 	}
 	
 	@Override
-	public void writeGraph(Graph2D graph) throws AdapterException {
+	//TODO: Check if color values still need to be multiplied with 255
+	public void writeGraph(CustomGraph graph) throws AdapterException {
 		JSONObject obj = new JSONObject();
 		// Document doc = builder.newDocument();
 		ArrayList<JSONObject> nodes = new ArrayList<JSONObject>();
-		for (Node n : graph.getNodeArray()) {
+		Iterator<Node> nodesIt = graph.iterator();
+		while (nodesIt.hasNext()) {
+			Node n = nodesIt.next();
 			HashMap<String, Object> tmp = new HashMap<String, Object>();
-			tmp.put("id", n.index());
+			tmp.put("id", n.getIndex());
 			if(graph instanceof CustomGraph)
 			{
-				tmp.put("name", ((CustomGraph)graph).getNodeName(n));
+				tmp.put("name", graph.getNodeName(n));
 			}
 			
-			NodeRealizer nRealizer = graph.getRealizer(n);
-			//TODO: Check what the color is when not set
-			//Color			
+			//TODO: Check whether default coloring makes sense here
+			//Color
 			//rgba(r,g,b,a)
-			float[] nodeColor = new float[4];
-			nodeColor = nRealizer.getFillColor().getRGBComponents(nodeColor);
-			tmp.put("color", "rgba(" + nodeColor[0]*255 + "," + nodeColor[1]*255 + "," + nodeColor[2]*255 + "," + nodeColor[3] + ")");
-			
-			//TODO: Check what the size is when not set
+			Color nodeColor = new Color(0.f,0.f,1.f, 0.6f);
+			if(n.getAttribute("ui.ui.fill-color") != null) {
+				tmp.put("color", n.getLabel("ui.fill-color").toString());
+			}
+			else {
+				tmp.put("color", "rgba(0," + nodeColor.getGreen() + "," + nodeColor.getBlue() + "," + nodeColor.getAlpha() + ")");
+			}
+
+			//TODO: Check whether default size makes sense here
 			//Size
 			//As the force graph representation uses circles and height and width are the same in our layoutHandler, this suffices
-			double nodeSize = 0.0f;
-			nodeSize = nRealizer.getHeight();
-			tmp.put("size", nodeSize);	
+			double nodeSize = .3f;
+			if(n.getAttribute("ui.size") != null) {
+				tmp.put("size", n.getAttribute("ui.size").toString());
+			}
+			else {
+				tmp.put("size", nodeSize);
+			}
 			
 			//Label
-			String nodeLabel = "";
-			nodeLabel = nRealizer.getLabelText();
-			tmp.put("label", nodeLabel);
+			tmp.put("label", n.getLabel("ui.label").toString());
 
 			JSONObject jsonNode = (JSONObject) JSONValue.parse(JSONValue.toJSONString(tmp));
 
@@ -82,23 +83,21 @@ public class JsonVisualOutputAdapter extends AbstractVisualOutputAdapter {
 				
 		
 		ArrayList<JSONObject> edges = new ArrayList<JSONObject>();
-		for (Edge e : graph.getEdgeArray()) {
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+		while (edgesIt.hasNext()) {
+			Edge e = edgesIt.next();
 			HashMap<String, Object> tmp = new HashMap<String, Object>();
-			tmp.put("source", e.source().index());
-			tmp.put("target", e.target().index());
+			tmp.put("source", e.getSourceNode().getIndex());
+			tmp.put("target", e.getTargetNode().getIndex());
 			
 			// LINE_STYLE = 0; DASHED_STYLE = 1; DOTTED_STYLE = 2; DASHED_DOTTED_STYLE = 3;
-			EdgeRealizer eRealizer = graph.getRealizer(e);
-			LineType lineType = LineType.LINE_1;
-			lineType = eRealizer.getLineType();
-			if(lineType.equals(LineType.DASHED_1))
-			{
-				System.out.println("WORKED");
-				tmp.put("style", 1);
-			}
-			else if(lineType.equals(LineType.DOTTED_1))
-			{
-				tmp.put("style", 2);
+			if(e.getAttribute("ui.stroke-mode") != null) {
+				String lineType = e.getAttribute("ui.stroke-mode").toString();
+				if (lineType.equals("dashes")) {
+					tmp.put("style", 1);
+				} else if (lineType.equals("dots")) {
+					tmp.put("style", 2);
+				}
 			}
 			else
 			{

@@ -106,7 +106,6 @@ public class CommunityMemberListsCoverInputAdapter extends AbstractCoverInputAda
 					memberships.set(node.getIndex(), communityIndex, 1d/communityIndices.size());
 				}
 			}
-			nodes.next();
 		}
 		Cover cover = new Cover(graph, memberships);
 		if(communityNamesDefined) {
