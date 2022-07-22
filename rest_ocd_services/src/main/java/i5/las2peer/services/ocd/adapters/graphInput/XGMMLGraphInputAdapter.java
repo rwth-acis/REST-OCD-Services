@@ -83,8 +83,6 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 	// Ignore for now as LineTypes are not stored in persistence for some reason
 	public void setLineType(Element edgeElement, Edge edge, CustomGraph graph) {
 		if (type1 != "" || type2 != "" || type3 != "") {
-			EdgeRealizer eRealizer = graph.getRealizer(edge);
-
 			NodeList atts = edgeElement.getChildNodes();
 			if (atts.getLength() != 0) {	
 				if (key.contentEquals("")) {
@@ -94,14 +92,17 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 							System.out.println(e.getAttribute(type2));
 							System.out.println(e.getAttribute("name"));
 							if (type1 != "" && e.hasAttribute(type1)) {
-								eRealizer.setLineType(LineType.LINE_1);
+								edge.setAttribute("ui.fill-mode", "plain");
 								break;
 							} else if (type2 != "" && e.hasAttribute(type2)) {
-								eRealizer.setLineType(LineType.DASHED_1);
-								System.out.println(eRealizer.getLineType().equals(LineType.DASHED_1));
+								edge.setAttribute("ui.fill-mode", "none");
+								edge.setAttribute("ui.size", "0px");
+								edge.setAttribute("ui.stroke-mode", "dashes");
 								break;
 							} else if (type3 != "" && e.hasAttribute(type3)) {
-								eRealizer.setLineType(LineType.DOTTED_1);
+								edge.setAttribute("ui.fill-mode", "none");
+								edge.setAttribute("ui.size", "0px");
+								edge.setAttribute("ui.stroke-mode", "dots");
 								break;
 							}
 						}
@@ -112,13 +113,17 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 							Element e = (Element) atts.item(u);
 							
 							if (type1 != "" && e.getAttribute(key).contentEquals(type1)) {
-								eRealizer.setLineType(LineType.LINE_1);
+								edge.setAttribute("ui.fill-mode", "plain");
 								break;
 							} else if (type2 != "" && e.getAttribute(key).contentEquals(type2)) {
-								eRealizer.setLineType(LineType.DASHED_1);								
+								edge.setAttribute("ui.fill-mode", "none");
+								edge.setAttribute("ui.size", "0px");
+								edge.setAttribute("ui.stroke-mode", "dashes");
 								break;
 							} else if (type3 != "" && e.getAttribute(key).contentEquals(type3)) {
-								eRealizer.setLineType(LineType.DOTTED_1);
+								edge.setAttribute("ui.fill-mode", "none");
+								edge.setAttribute("ui.size", "0px");
+								edge.setAttribute("ui.stroke-mode", "dots");
 								break;
 							}
 						}

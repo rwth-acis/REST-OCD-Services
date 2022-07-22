@@ -1,5 +1,7 @@
 package i5.las2peer.services.ocd.adapters.graphInput;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
@@ -39,16 +41,19 @@ public class GmlGraphInputAdapter extends AbstractGraphInputAdapter {
         FileSourceGML fileSource = new FileSourceGML();
         fileSource.addSink(graph);
 
-        Scanner scanner = new Scanner(reader);
-        String inString = scanner.useDelimiter("\\A").next();
-        scanner.close();
         try {
-            fileSource.begin(inString);
+            InputStream inStream = new ByteArrayInputStream(CharStreams.toString(reader)
+                    .getBytes(Charsets.UTF_8));
+
+            reader.close();
+
+            fileSource.begin(inStream);
             while (fileSource.nextEvents()) { //TODO: Check if that is necessary here or if we shouldnt just do readAll
                 if (Thread.interrupted()) {
                     throw new InterruptedException();
                 }
             }
+            inStream.close();
         } catch (Exception e) {
             throw new AdapterException("ERROR Could not read file: " + e.getMessage());
         }
@@ -61,7 +66,7 @@ public class GmlGraphInputAdapter extends AbstractGraphInputAdapter {
         HashMap<Node, String> nodenames = new HashMap<Node, String>();
         while (nodesIt.hasNext()) {
             node = nodesIt.next();
-            CharSequence name = node.getLabel("label");
+            CharSequence name = node.getLabel("ui.label");
             if (name == null) {
                 break;
             }
@@ -111,6 +116,7 @@ public class GmlGraphInputAdapter extends AbstractGraphInputAdapter {
                 graph.setEdgeWeight(edge, edgeweights.get(edge));
             }
         }
+
         return graph;
     }
 

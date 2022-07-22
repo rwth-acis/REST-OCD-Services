@@ -1,8 +1,12 @@
 package i5.las2peer.services.ocd.adapters.graphInput;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.util.*;
 
@@ -31,16 +35,19 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 		FileSourceGraphML fileSource = new FileSourceGraphML();
 		fileSource.addSink(graph);
 
-		Scanner scanner = new Scanner(reader);
-		String inString = scanner.useDelimiter("\\A").next();
-		scanner.close();
 		try {
-			fileSource.begin(inString);
+			InputStream inStream = new ByteArrayInputStream(CharStreams.toString(reader)
+					.getBytes(Charsets.UTF_8));
+
+			reader.close();
+
+			fileSource.begin(inStream);
 			while (fileSource.nextEvents()) { //TODO: Check if that is necessary here or if we shouldnt just do readAll
 				if (Thread.interrupted()) {
 					throw new InterruptedException();
 				}
 			}
+			inStream.close();
 		} catch (Exception e) {
 			throw new AdapterException("ERROR Could not read file: " + e.getMessage());
 		}
@@ -52,7 +59,7 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 			HashMap<Integer, String> names = new HashMap<Integer, String>();
 			while(nodes.hasNext()) {
 				Node node = nodes.next();
-				name = node.getLabel("name");
+				name = node.getLabel("ui.label");
 				if(name == null || name.toString().isEmpty()) {
 					break;
 				}
@@ -75,7 +82,6 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 				while(nodes.hasNext()) {
 					Node node = nodes.next();
 					graph.setNodeName(node, node.getId()); //TODO: Changed from Index to Id here, check if that makes sense with how graphstream reads it
-					nodes.next();
 				}
 			}
 			Iterator<Edge> edges = graph.edges().iterator();
