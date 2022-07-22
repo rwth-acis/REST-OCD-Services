@@ -13,27 +13,19 @@ import i5.las2peer.services.ocd.viewer.painters.CoverPaintingType;
 import i5.las2peer.services.ocd.viewer.utils.CentralityVisualizationType;
 
 import java.awt.Color;
+import java.util.Iterator;
 import java.util.List;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
-import y.view.Arrow;
-import y.view.DefaultGraph2DRenderer;
-import y.view.EdgeLabel;
-import y.view.EdgeRealizer;
-import y.view.Graph2DView;
-import y.view.NodeLabel;
-import y.view.NodeRealizer;
-import y.view.ShapeNodeRealizer;
-import y.view.SmartNodeLabelModel;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * Manages the integration of all layouting phases.
  * @author Sebastian
  *
  */
+//TODO: Set that edges are always rendered before nodes (previously done in viewer defaults, now those methods arent needed except this one part)
+//TODO: text-mode: normal to print labels
 public class LayoutHandler {
 	private static final Color CENTRALITY_COLOR = Color.BLUE;
 	private static final Color CENTRALITY_GRADIENT_MIN = Color.GREEN;
@@ -63,20 +55,20 @@ public class LayoutHandler {
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public void doLayout(CustomGraph graph, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges, 
-			double minNodeSize, double maxNodeSize) throws InstantiationException, IllegalAccessException {
+			double minNodeSize, double maxNodeSize) throws InstantiationException, IllegalAccessException, InterruptedException {
 		setLayoutDefaults(graph, minNodeSize, maxNodeSize);
 		labelGraph(graph, doLabelNodes, doLabelEdges);
 		GraphLayouter layouter = graphLayouterFactory.getInstance(layoutType);
 		layouter.doLayout(graph);
-		setViewDefaults(new Graph2DView(graph));
+		setViewDefaults(graph);
 	}
 	
 	/**
 	 * Sets the default layout attributes for a graph, such as node and edge shapes and node sizes.
 	 * @param graph the graph
 	 */
-	private void setLayoutDefaults(CustomGraph graph, double minNodeSize, double maxNodeSize) {
-		NodeCursor nodes = graph.nodes();
+	private void setLayoutDefaults(CustomGraph graph, double minNodeSize, double maxNodeSize) throws InterruptedException {
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		/*
 		 * Node size scaling factor
@@ -84,24 +76,19 @@ public class LayoutHandler {
 		double minDegree = graph.getMinWeightedInDegree();
 		double maxDegree = graph.getMaxWeightedInDegree();
 		double scalingFactor = (maxNodeSize - minNodeSize) / (maxDegree - minDegree);
-		while(nodes.ok()) {
-			node = nodes.node();
-			ShapeNodeRealizer nRealizer = new ShapeNodeRealizer(graph.getRealizer(node));
-			graph.setRealizer(node, nRealizer);
-			nRealizer.setShapeType(ShapeNodeRealizer.ELLIPSE);
+		while(nodesIt.hasNext()) {
+			node = nodesIt.next();
+			node.setAttribute("ui.shape", "circle");
 			double curNodeSize = minNodeSize + (graph.getWeightedInDegree(node) - minDegree) * scalingFactor;
-			nRealizer.setSize(curNodeSize, curNodeSize);
-			nodes.next();
+			node.setAttribute("ui.size", curNodeSize);
 		}
-		EdgeCursor edges = graph.edges();
+		Iterator<Edge> edgesIt = graph.edges().iterator();
 		Edge edge;
-		while(edges.ok()) {
-			edge = edges.edge();
-			EdgeRealizer eRealizer = graph.getRealizer(edge);
+		while(edgesIt.hasNext()) {
+			edge = edgesIt.next();
 			if(graph.isOfType(GraphType.DIRECTED)) {
-				eRealizer.setArrow(Arrow.STANDARD);
+				edge.setAttribute("ui.arrow-shape", "arrow");
 			}
-			edges.next();
 		}
 	}
 	
@@ -110,21 +97,16 @@ public class LayoutHandler {
 	 * @param graph The graph of the CentralityMap that is visualized
 	 */
 	private void setCentralityLayoutDefaults(CustomGraph graph) {
-		NodeCursor nodes = graph.nodes();
-		while(nodes.ok()) {
-			Node node = nodes.node();
-			ShapeNodeRealizer nRealizer = new ShapeNodeRealizer(graph.getRealizer(node));
-			graph.setRealizer(node, nRealizer);
-			nRealizer.setShapeType(ShapeNodeRealizer.ELLIPSE);
-			nodes.next();
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
+			Node node = nodesIt.next();
+			node.setAttribute("ui.shape", "circle");
 		}
 		if(graph.isOfType(GraphType.DIRECTED)) {
-			EdgeCursor edges = graph.edges();
-			while(edges.ok()) {
-				Edge edge = edges.edge();
-				EdgeRealizer eRealizer = graph.getRealizer(edge);
-				eRealizer.setArrow(Arrow.STANDARD);
-				edges.next();
+			Iterator<Edge> edgesIt = graph.edges().iterator();
+			while(edgesIt.hasNext()) {
+				Edge edge = edgesIt.next();
+				edge.setAttribute("ui.arrow-shape", "arrow");
 			}
 		}
 	}
@@ -142,7 +124,7 @@ public class LayoutHandler {
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
 	public void doLayout(Cover cover, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges, 
-			double minNodeSize, double maxNodeSize, CoverPaintingType paintingType) throws InstantiationException, IllegalAccessException {
+			double minNodeSize, double maxNodeSize, CoverPaintingType paintingType) throws InstantiationException, IllegalAccessException, InterruptedException {
 		CustomGraph graph = cover.getGraph();
 		setLayoutDefaults(graph, minNodeSize, maxNodeSize);
 		labelGraph(graph, doLabelNodes, doLabelEdges);
@@ -151,7 +133,7 @@ public class LayoutHandler {
 		CoverPainter painter = coverPainterFactory.getInstance(paintingType);
 		painter.doPaint(cover);
 		paintNodes(cover);
-		setViewDefaults(new Graph2DView(graph));
+		setViewDefaults(graph);
 	}
 	
 	/**
@@ -182,18 +164,27 @@ public class LayoutHandler {
 			setProportionalNodeSizes(map);
 			break;
 		}
-		setViewDefaults(new Graph2DView(graph));
+		setViewDefaults(graph);
 	}
 	
 	/**
 	 * Sets the view default attributes, such as the rendering order.
-	 * @param view the graph view
+	 * @param graph the graph view
 	 */
-	private void setViewDefaults(Graph2DView view) {
-		DefaultGraph2DRenderer renderer = new DefaultGraph2DRenderer();
-		view.setGraph2DRenderer(renderer);
-		renderer.setDrawEdgesFirst(true);
-		view.fitContent();
+	//TODO: Check if yFiles viewer defaults are mimicked closely enough and add extra styling if not.
+	private void setViewDefaults(CustomGraph graph) {
+//		DefaultGraph2DRenderer renderer = new DefaultGraph2DRenderer();
+//		graph.setGraph2DRenderer(renderer);
+//		renderer.setDrawEdgesFirst(true);
+//		graph.fitContent();
+		graph.setAttribute("ui.stylesheet",
+				"node {" +
+				"	z-index: 1;" +
+				"}" +
+				"edge {" +
+				"	z-index: 0;" +
+				"}");
+
 	}
 	
 	/**
@@ -204,31 +195,21 @@ public class LayoutHandler {
 	 */
 	private void labelGraph(CustomGraph graph, boolean doLabelNodes, boolean doLabelEdges) {
 		if(doLabelNodes) {
-			NodeCursor nodes = graph.nodes();
-			while (nodes.ok()) {
-				Node node = nodes.node();
-				// gets node realizer
-				NodeRealizer nRealizer = graph.getRealizer(node);
+			Iterator<Node> nodes = graph.iterator();
+			while (nodes.hasNext()) {
+				Node node = nodes.next();
 				// adds name label
-				NodeLabel nameLabel = nRealizer.createNodeLabel();
-				nameLabel.setText(graph.getNodeName(node));
-				SmartNodeLabelModel nameModel = new SmartNodeLabelModel();
-				nameLabel.setLabelModel(nameModel, nameModel.createDiscreteModelParameter(SmartNodeLabelModel.POSITION_CENTER));
-				nRealizer.addLabel(nameLabel);
-				nodes.next();
+				node.setAttribute("ui.label", graph.getNodeName(node));
+				node.setAttribute("ui.text-alignment", "center");
 			}
 		}
 		if(doLabelEdges) {
-			EdgeCursor edges = graph.edges();
-			while (edges.ok()) {
-				Edge edge = edges.edge();
-				// gets edge realizer
-				EdgeRealizer eRealizer = graph.getRealizer(edge);
+			Iterator<Edge> edgesIt = graph.edges().iterator();
+			while (edgesIt.hasNext()) {
+				Edge edge = edgesIt.next();
 				// adds weight label
-				EdgeLabel weightLabel = eRealizer.createEdgeLabel();
-				weightLabel.setText(Double.toString(graph.getEdgeWeight(edge)));
-				eRealizer.addLabel(weightLabel);
-				edges.next();
+				edge.setAttribute("ui.label", graph.getEdgeWeight(edge));
+				edge.setAttribute("ui.text-alignment", "along");
 			}
 		}
 	}
@@ -242,13 +223,13 @@ public class LayoutHandler {
 	 */
 	private void paintNodes(Cover cover) {
 		CustomGraph graph = cover.getGraph();
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodesIt = graph.iterator();
 		float[] curColorCompArray = new float[4];
 		float[] colorCompArray;
 		Node node;
-		while(nodes.ok()) {
+		while(nodesIt.hasNext()) {
 			colorCompArray = new float[4];
-			node = nodes.node();
+			node = nodesIt.next();
 			List<Integer> communityIndices = cover.getCommunityIndices(node);
 			for(int index : communityIndices) {
 				Color comColor = cover.getCommunityColor(index);
@@ -257,9 +238,9 @@ public class LayoutHandler {
 					colorCompArray[i] += curColorCompArray[i] * cover.getBelongingFactor(node, index);
 				}
 			}
-			NodeRealizer nRealizer = graph.getRealizer(node);
-			nRealizer.setFillColor(new Color(colorCompArray[0], colorCompArray[1], colorCompArray[2], colorCompArray[3]));
-			nodes.next();
+			//TODO: Make nicer so that java color is not needed
+			Color color = new Color(colorCompArray[0], colorCompArray[1], colorCompArray[2], colorCompArray[3]);
+			node.setAttribute("ui.fill-color", "rgba(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "," + color.getAlpha() + ")");
 		}
 	}
 	
@@ -276,14 +257,12 @@ public class LayoutHandler {
 		double min = map.getMinValue();
 		double max = map.getMaxValue();
 		CustomGraph graph = map.getGraph();
-		NodeCursor nodes = graph.nodes();
-		while(nodes.ok()) {
-			Node node = nodes.node();
-			NodeRealizer nRealizer = graph.getRealizer(node);	
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
+			Node node = nodesIt.next();
 			float nodeSaturation = (float) ((map.getNodeValue(node) - min) / (max - min));
-			Color nodeColor = Color.getHSBColor(hsbValues[0], nodeSaturation, hsbValues[2]);
-			nRealizer.setFillColor(nodeColor);
-			nodes.next();
+			Color color = Color.getHSBColor(hsbValues[0], nodeSaturation, hsbValues[2]); // Use HSB for saturation here
+			node.setAttribute("ui.fill-color", "rgba(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "," + color.getAlpha() + ")");
 		}
 	}
 	
@@ -305,15 +284,13 @@ public class LayoutHandler {
 		double min = map.getMinValue();
 		double max = map.getMaxValue();
 		CustomGraph graph = map.getGraph();
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			Node node = nc.node();
-			NodeRealizer nRealizer = graph.getRealizer(node);
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
+			Node node = nodesIt.next();
 			double centralityValue = map.getNodeValue(node);
 			float hue = (float) (hsbValuesMin[0] + (hsbValuesMax[0] - hsbValuesMin[0]) * (centralityValue - min) / (max - min));
-			Color nodeColor = Color.getHSBColor(hue, 1.0f, 1.0f);
-			nRealizer.setFillColor(nodeColor);
-			nc.next();
+			Color color = Color.getHSBColor(hue, 1.0f, 1.0f);
+			node.setAttribute("ui.fill-color", "rgba(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "," + color.getAlpha() + ")");
 		}
 	}
 	
@@ -326,14 +303,12 @@ public class LayoutHandler {
 		double min = map.getMinValue();
 		double max = map.getMaxValue();
 		CustomGraph graph = map.getGraph();
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			Node node = nc.node();
-			NodeRealizer nRealizer = graph.getRealizer(node);
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
+			Node node = nodesIt.next();
 			double centralityValue = map.getNodeValue(node);
-			double nodeSize = MIN_NODE_SIZE + (MAX_NODE_SIZE - MIN_NODE_SIZE) * (centralityValue - min) / (max - min); 
-			nRealizer.setSize(nodeSize, nodeSize);
-			nc.next();
+			double nodeSize = MIN_NODE_SIZE + (MAX_NODE_SIZE - MIN_NODE_SIZE) * (centralityValue - min) / (max - min);
+			node.setAttribute("ui.size", nodeSize);
 		}
 	}
 
