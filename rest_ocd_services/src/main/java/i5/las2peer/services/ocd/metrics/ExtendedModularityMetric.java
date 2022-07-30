@@ -52,8 +52,7 @@ public class ExtendedModularityMetric implements StatisticalMeasure {
 				if(nodeB.getIndex() > nodeA.getIndex()) {
 					break;
 				}
-				metricValue +=
-						getNodePairModularityContribution(cover, nodesA.next(), nodesB.next());
+				metricValue += getNodePairModularityContribution(cover, nodeA, nodeB);
 			}
 		}
 		if(graph.getEdgeCount() > 0) {
