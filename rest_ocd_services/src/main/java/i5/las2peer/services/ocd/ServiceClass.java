@@ -295,7 +295,8 @@ public class ServiceClass extends RESTService {
 				// update user inactivity info when user logs in.
 				inactivityHandler.refreshUserInactivityData(getUserName());
 
-				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_1, "{" + "\"user_login\":\"" + getUserName() + "\"}" );
+
+				Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_LOGIN), "{" + "\"user_login\":\"" + getUserName() + "\"}" );
 				generalLogger.getLogger().log(Level.INFO, "user " + getUserName() + " logged in.");
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 			} catch (Exception e) {
@@ -501,7 +502,7 @@ public class ServiceClass extends RESTService {
 				try {
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + nameStr + " in format " + graphInputFormatStr);
 					entityHandler.storeGraph(graph);
-					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_2, "{" + "\"user\":\"" + username + "\"," +
+					Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_IMPORT), "{" + "\"user\":\"" + username + "\"," +
 							"\"import_type\":\"graph\"," +
 							"\"import_format\":\"" + graphInputFormatStr + "\"}");
 				} catch (Exception e) {
@@ -803,7 +804,7 @@ public class ServiceClass extends RESTService {
 				}
 
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete graph " + graphId);
-				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_4, "{" + "\"user\":\"" + username + "\"," +
+				Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_DELETE), "{" + "\"user\":\"" + username + "\"," +
 						"\"delete_type\":\"graph\"}");
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 			} catch (Exception e) {
@@ -912,7 +913,7 @@ public class ServiceClass extends RESTService {
 
 
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": import cover " + nameStr + " in format " + coverInputFormatStr);
-				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_2, "{" + "\"user\":\"" + username + "\"," +
+				Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_IMPORT), "{" + "\"user\":\"" + username + "\"," +
 						"\"import_type\":\"cover\"," +
 						"\"import_format\":\"" + coverInputFormatStr + "\"}");
 				return Response.ok(requestHandler.writeId(cover)).build();
@@ -1188,7 +1189,7 @@ public class ServiceClass extends RESTService {
 					entityHandler.deleteCover(username, graphId, coverId, threadHandler);
 
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete cover " + coverId);
-					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_4, "{" + "\"user\":\"" + username + "\"," +
+					Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_DELETE), "{" + "\"user\":\"" + username + "\"," +
 							"\"delete_type\":\"cover\"}");
 					return Response.ok(requestHandler.writeConfirmationXml()).build();
 				} catch (IllegalArgumentException e) {
@@ -1347,7 +1348,7 @@ public class ServiceClass extends RESTService {
 						throw e;
 					}
 					em.close();
-					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+					Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_RUN), "{" + "\"user\":\"" + username + "\"," +
 							"\"algo_kind\":\"Ocd\"," +
 							"\"algo_type\":\"" + creationTypeStr + "\"}");
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + algorithm.getClass().getSimpleName() + " on graph " + graph.getId());
@@ -1358,7 +1359,7 @@ public class ServiceClass extends RESTService {
 				}
 				return Response.ok(requestHandler.writeId(cover)).build();
 			} catch (Exception e) {
-				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_10, "{" + "\"user\":\"" + ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName() + "\"," +
+				Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_ERROR), "{" + "\"user\":\"" + ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName() + "\"," +
 						"\"algo_kind\":\"Ocd\"," +
 						"\"algo_type\":\"" + creationTypeStr + "\"}");
 				requestHandler.log(Level.SEVERE, "user" + ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName() + " failed to run algorithm.", e);
@@ -1457,7 +1458,7 @@ public class ServiceClass extends RESTService {
 				em.close();
 
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": import centrality " + nameStr + " in format " + centralityInputFormatStr);
-				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_2, "{" + "\"user\":\"" + username + "\"," +
+				Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_IMPORT), "{" + "\"user\":\"" + username + "\"," +
 						"\"import_type\":\"centrality\"," +
 						"\"import_format\":\"" + centralityInputFormatStr + "\"}");
 
@@ -1706,7 +1707,7 @@ public class ServiceClass extends RESTService {
 						throw e;
 					}
 					em.close();
-					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+					Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_RUN), "{" + "\"user\":\"" + username + "\"," +
 							"\"algo_kind\":\"centrality\"," +
 							"\"algo_type\":\"" + centralityMeasureTypeStr + "\"}");
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run centrality " + algorithm.getClass().getSimpleName() + " on graph " + graph.getId());
@@ -1853,7 +1854,7 @@ public class ServiceClass extends RESTService {
 	    		
 		    	entityHandler.deleteCentralityMap(username, graphId, mapId, threadHandler);
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete centrality " + mapIdStr);
-				Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_4, "{" + "\"user\":\"" + username + "\"," +
+				Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_DELETE), "{" + "\"user\":\"" + username + "\"," +
 						"\"delete_type\":\"centrality\"}");
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 	    	}
@@ -2030,7 +2031,7 @@ public class ServiceClass extends RESTService {
 						throw e;
 					}
 					em.close();
-					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+					Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_RUN), "{" + "\"user\":\"" + username + "\"," +
 							"\"algo_kind\":\"simulation\"," +
 							"\"algo_type\":\"" + simulationTypeStr + "\"}");
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run simulation " + simulationTypeStr + " on graph " + graphIdStr + " with paramneters: " + parameters );
@@ -2478,7 +2479,7 @@ public class ServiceClass extends RESTService {
 	    				throw e;
 	    			}
 	    			em.close();
-					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+					Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_RUN), "{" + "\"user\":\"" + username + "\"," +
 							"\"algo_kind\":\"Benchmark\"," +
 							"\"algo_type\":\"" + creationTypeStr + "\"}");
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + creationTypeStr + " benchmark. Graph name: " + graphNameStr + " Cover name:" + coverNameStr);
@@ -2644,7 +2645,7 @@ public class ServiceClass extends RESTService {
 	    				}
 	    				throw e;
 	    			}
-					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+					Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_RUN), "{" + "\"user\":\"" + username + "\"," +
 							"\"algo_kind\":\"Statistical_measure\"," +
 							"\"algo_type\":\"" + metricTypeStr + "\"}");
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run statistical measure " + metricTypeStr + " on cover " + coverIdStr + " with parameters " + parameters);//
@@ -2807,7 +2808,7 @@ public class ServiceClass extends RESTService {
 	    				}
 	    				throw e;
 	    			}
-					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_3, "{" + "\"user\":\"" + username + "\"," +
+					Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_RUN), "{" + "\"user\":\"" + username + "\"," +
 							"\"algo_kind\":\"Knowledge_driven_measure\"," +
 							"\"algo_type\":\"" + metricTypeStr + "\"}");
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run knowledge driven measure " + metricTypeStr + " on cover " + coverIdStr + " with parameters " + parameters);
@@ -2913,7 +2914,7 @@ public class ServiceClass extends RESTService {
 	    			}
 	    			em.close();
 
-					Context.get().monitorEvent(MonitoringEvent.SERVICE_CUSTOM_MESSAGE_4, "{" + "\"user\":\"" + username + "\"," +
+					Context.get().monitorEvent(UserType.identifyEvent(getUserName(), UserType.EVENT_DELETE), "{" + "\"user\":\"" + username + "\"," +
 							"\"delete_type\":\"metric\"}");
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete metric " + coverId);
 					return Response.ok(requestHandler.writeConfirmationXml()).build();
@@ -4697,6 +4698,7 @@ public class ServiceClass extends RESTService {
 			return Response.status(Status.OK).entity(ConditionType.values()).build();
 
 		}
+
 
 	}
 	//////////////////////////////////////////////////////////////////
