@@ -141,18 +141,29 @@ public class GraphProcessor {
 	protected void redefineEdges(CustomGraph graph, boolean noNegativeWeights, boolean noZeroWeights,
 			boolean noSelfLoops, boolean setToOne) {
 		Iterator<Edge> edgesIt = graph.edges().iterator();
+
+		/*
+		 this list will hold edges to be removed. This is needed to avoid edge removal
+		 while iterating over edges to avoid unintended side effects.
+		 */
+		ArrayList<Edge> edgesToRemove = new ArrayList<Edge>();
+
 		while (edgesIt.hasNext()) {
 			Edge edge = edgesIt.next();
 			double edgeWeight = graph.getEdgeWeight(edge);
 			if (noNegativeWeights && edgeWeight < 0) {
-				graph.removeEdge(edge);
+				//graph.removeEdge(edge);
+				edgesToRemove.add(edge);
 			} else if (noZeroWeights && edgeWeight == 0) {
-				graph.removeEdge(edge);
+				//graph.removeEdge(edge);
+				edgesToRemove.add(edge);
 			} else if (noSelfLoops && edge.getSourceNode().equals(edge.getTargetNode())) {
-				graph.removeEdge(edge);
+				//graph.removeEdge(edge);
+				edgesToRemove.add(edge);
 			} else if (setToOne) {
 				graph.setEdgeWeight(edge, 1);
 			}
+
 		}
 		if (noSelfLoops) {
 			graph.removeType(GraphType.SELF_LOOPS);
@@ -165,6 +176,13 @@ public class GraphProcessor {
 		}
 		if (noZeroWeights) {
 			graph.removeType(GraphType.ZERO_WEIGHTS);
+		}
+
+		/*
+		 remove edges that were identified for removal
+		 */
+		for (Edge edgeToRemove : edgesToRemove){
+			graph.removeEdge(edgeToRemove);
 		}
 	}
 
