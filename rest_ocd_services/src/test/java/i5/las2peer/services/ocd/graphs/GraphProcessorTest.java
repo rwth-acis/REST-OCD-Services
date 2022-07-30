@@ -66,7 +66,7 @@ public class GraphProcessorTest {
 			}
 		}
 	}
-	
+
 	/*
 	 * Tests removing multi edges from a graph.
 	 */
@@ -140,7 +140,7 @@ public class GraphProcessorTest {
 		/*
 		 * One undirected edge.
 		 */
-		graph.addEdge(UUID.randomUUID().toString(), node0, node1);
+		graph.addEdge(UUID.randomUUID().toString(), node1, node0);
 		processor.determineGraphTypes(graph);
 		System.out.println("One undirected edge.");
 		System.out.println(graph.getTypes());
