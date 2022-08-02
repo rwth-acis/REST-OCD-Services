@@ -230,15 +230,16 @@ public class CommunityOverlapPropagationAlgorithm implements OcdAlgorithm{
      * Delete all the zero colomns from a memberships matrix
      */
     private Matrix simplifyMemeberships(Matrix memberships) {
-        int nodeCount=memberships.columns();
-        Matrix simplifiedMemberships = new Basic2DMatrix(nodeCount,nodeCount);
+        int rows=memberships.rows();
+        int columns=memberships.columns();
+        Matrix simplifiedMemberships = new Basic2DMatrix(rows,columns);
         int curColumn=0;
-        for(int i=0;i<nodeCount;i++){
-            if(memberships.getColumn(i).sum() >= 1.0/v){// >0 maybe also okay
+        for(int i=0;i<columns;i++){
+            if(memberships.getColumn(i).sum() >=1.0/v){// >0 maybe also okay
                 simplifiedMemberships.setColumn(curColumn++,memberships.getColumn(i));
             }
         }
-        simplifiedMemberships=simplifiedMemberships.slice(0,0,nodeCount,curColumn);
+        simplifiedMemberships=simplifiedMemberships.slice(0,0,rows,curColumn);
         return simplifiedMemberships;
     }
 
