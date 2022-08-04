@@ -29,7 +29,7 @@ import y.base.Graph;
 public class LOCAlgorithm implements OcdAlgorithm{
 	
 	/**
-	Parameter to control the size of a community. The larger the value of α,
+	Parameter to control the size of a community. The larger the value of alpha,
 	the smaller the community size is.
 	The default value is 1. Must be greater than 0.
 	 */
@@ -89,7 +89,7 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		if(parameters.containsKey(ALPHA_NAME)) {
 			alpha = Double.parseDouble(parameters.get(ALPHA_NAME));
 			if(alpha <= 0) {
-				throw new IllegalArgumentException("alpha must be at least 0");
+				throw new IllegalArgumentException("alpha must be greater than 0");
 			}
 			parameters.remove(ALPHA_NAME);
 		}
@@ -117,7 +117,6 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		//gives every node its local density value
 		HashMap<Node, Integer> localDensityMap = getLocalDensityMap(graph);
 		//calculates the cliques of size at least k
-		//Step 1
 		HashMap<Integer,HashSet<Node>> cliques = getCliques(graph);
 		
 		//Variables 
@@ -126,7 +125,6 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		Set<Node> neighbors = new HashSet<Node>();
 		Node maxLocalDensityNode = null;
 		double maxNodeFitness = Double.NEGATIVE_INFINITY;
-		System.out.println("Negative infinity : " + maxNodeFitness);
 		double currentNodeFitness;
 		Node fittestNode = null;
 		boolean negativeNodeExist = true;
@@ -144,15 +142,13 @@ public class LOCAlgorithm implements OcdAlgorithm{
 			//Start iteration with fresh cluster
 			cluster.clear();
 
-			maxLocalDensityNode = getMaxValueNodeInt(localDensityMap);
+			maxLocalDensityNode = getMaxValueNode(localDensityMap);
 
 			cluster.add(maxLocalDensityNode);
-			System.out.println("MaxLocalDensityNode : " + maxLocalDensityNode.toString());
 			terminierungNeighbors = graph.nodeCount() + 1;
-			while(terminierungNeighbors > 0) {		// while(true) funktioniert auch
+			while(terminierungNeighbors > 0) {		// while(true) should also work
 				terminierungNeighbors--;			// termination variable (not important)
 				neighbors = getClusterNeighbors(cluster, localDensityMap, graph);
-				System.out.println("Nachbarn : "+ neighbors.toString());
 				if(neighbors.isEmpty()) {
 					//remove nodes in clique from localDensityMap
 					for (Node clusterNode : cluster) {
@@ -160,17 +156,13 @@ public class LOCAlgorithm implements OcdAlgorithm{
 							localDensityMap.remove(clusterNode);
 						}
 					}
-					System.out.println("Community gefunden und neighbors sind leer : " + cluster.toString());
 					//add the node cluster to found communities
 					addClusterToCommunitys(communitys, cluster);
-					System.out.println("Communitys aktuell : " + communitys.toString());
 					break;
 						
 				}
 				else {
-					//Nachbarknoten mit höchstem Fitnesswert finden
-					//Step 4
-					System.out.println("Step 4");
+					//find neighbor node with highest fitness value
 					maxNodeFitness = Double.NEGATIVE_INFINITY;
 					currentNodeFitness = maxNodeFitness;
 					for(Node neighbor : neighbors) { 
@@ -180,18 +172,12 @@ public class LOCAlgorithm implements OcdAlgorithm{
 							maxNodeFitness = currentNodeFitness;
 						}
 					}
-					System.out.println("FittestNode : " + fittestNode.toString() + " mit NodeFitness : " + maxNodeFitness + "bezüglich cluster" + cluster.toString());
-					if(maxNodeFitness >= 0) {	//der knoten und die knoten seiner cliquen werden zum cluster hinzugefügt
-						//Step 5
-						System.out.println("Step 5");
+					if(maxNodeFitness >= 0) {	//chosen node and the cliques it belongs to are added to the cluster
 						cluster.add(fittestNode);
 						addCliqueNodesToCluster(fittestNode, cluster, cliques);
-						
-						//remove nodes with negative fitnessvalue
-						
-						System.out.println("Cluster before node removal :" + cluster.toString());
+							
 						negativeNodeExist = true;
-						while(negativeNodeExist) {
+						while(negativeNodeExist) {		//remove nodes with negative fitnessvalue
 							//Thread handler ?
 							if(Thread.interrupted()) {
 								throw new InterruptedException();
@@ -200,10 +186,8 @@ public class LOCAlgorithm implements OcdAlgorithm{
 							for(Node node : cluster) {
 								System.out.println(node.toString());
 								System.out.println(cluster.toString());
-								System.out.println("Step 6");
 								if(getNodeFitness(node, cluster, graph) < 0) {
 									//Step 7
-									System.out.println("Step 7");
 									cluster.remove(node);
 									negativeNodeExist = true;
 									break;
@@ -211,7 +195,6 @@ public class LOCAlgorithm implements OcdAlgorithm{
 							}
 							
 						}
-						System.out.println("Kein negativer knoten gefunden");
 						
 					}
 					else {
@@ -222,8 +205,6 @@ public class LOCAlgorithm implements OcdAlgorithm{
 							}
 						}
 						addClusterToCommunitys(communitys, cluster);
-						System.out.println("Community gefunden weil alle nachbarn negativ : " + cluster.toString());
-						System.out.println("Communitys :" + communitys.toString());
 						break;
 					}
 				}
@@ -238,9 +219,14 @@ public class LOCAlgorithm implements OcdAlgorithm{
 	
 	
 	
-	
+	/**
+	 * Calculates the local density value for every node in the network
+	 * @param graph				The graph being analyzed
+	 * @return              	A map of every node and its local density value
+	 * @throws InterruptedException when the method execution is interrupted
+	 */
 	public HashMap<Node, Integer> getLocalDensityMap(CustomGraph graph)throws InterruptedException {
-		//TODO Funktion für dc = 1 ect. optimieren
+		//TODO optimize funktion for dc=1
 		Matrix[] m = new Matrix[dc];
 		
 		m[0] = graph.getNeighbourhoodMatrix();
@@ -248,7 +234,7 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		//get identity Matrix
 		Matrix result = identity(m[0].rows());
 		
-		// Alle Matrizen für 0 - dc bestimmen
+		//claculate matix from 0 to dc
 		for (int i = 1; i<=dc-1; i++) {
 			m[i] = m[i-1].multiply(m[0]);
 		}
@@ -264,6 +250,9 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		int sum = 0;
 		int nodenumber = 0;
 		while (nodes.ok()) {
+			if(Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			node = nodes.node();
 			for(int i = 0; i < result.columns(); i++){
 				if (result.get(nodenumber, i) > 0){
@@ -274,12 +263,21 @@ public class LOCAlgorithm implements OcdAlgorithm{
 			nodenumber += 1;
 			nodes.next();
 			sum = 0;
-		}
-		
+		}	
 		return ldm;
 	}
 	
-	//returns the set of all Nodes that are neighbours of the given cluster
+	/**
+	 * Calculates the neighbors of a cluster.
+	 * A node n is added to the output iff the following conditions hold:
+	 * There is an edge from a node in the cluster set to n AND
+	 * n does not belong to the cluster AND
+	 * n is a node that is listed in the localDensityMap (is not assigned to a community yet)
+	 * @param cluster			The Set of nodes from which the function determines the neighbors
+	 * @param localDensityMap	A Map of nodes and local density values, where the nodes have not yet been added to a final community
+	 * @param graph				The graph being analyzed
+	 * @return                 	A Set of nodes 
+	 */
 	public Set<Node> getClusterNeighbors(Set<Node> cluster, HashMap<Node, Integer> localDensityMap, CustomGraph graph){
 		Set<Node> neighbours = new HashSet<Node>();
 		for(Node clusterNode : cluster) {
@@ -295,7 +293,11 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		return neighbours;
 	}
 	
-	
+	/**
+	 * Calculates the Set of all cliques, that have at least the size of this algorithms parameter k.
+	 * @param graph        	  	The graph being analyzed
+	 * @return                 	A Map with an ID and a Set of nodes
+	 */
 	public HashMap<Integer,HashSet<Node>> getCliques(CustomGraph graph){
 		
 		MaximalCliqueSearch maxCliqueSearch = new MaximalCliqueSearch();
@@ -310,7 +312,14 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		}
 		return cliques;
 	}
-
+	
+	/**
+	 * The function finds all cliques in which the node "fittestNode" is a member.
+	 * Then it adds all the nodes which are a member of these cliques to the cluster. 
+	 * @param fittestNode		The node with the highest fitness value in respect to the cluster
+	 * @param cluster			A set of nodes on which nodes will be added
+	 * @param cliques			A map of IDs and a Set of nodes 
+	 */
 	public void addCliqueNodesToCluster(Node fittestNode, Set<Node> cluster, HashMap<Integer,HashSet<Node>> cliques) {
 		HashSet<Node> clique;
 		for(int i : cliques.keySet()) {
@@ -323,9 +332,15 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		}
 	}
 	
-	//returns the Fitnessvalue of the given Node depending on the given cluster
+	/**
+	 * Calculates the fitness value of a node in respect to the cluster.
+	 * @param node				The node we want to get the fitness value from 
+	 * @param originalCluster	A set of nodes
+	 * @param graph				The graph being analyzed
+	 * @return              	A map of every node and its local density value
+	 */
 	public double getNodeFitness(Node node, Set<Node> originalCluster, CustomGraph graph) {
-		//TODO funktion auch ohne das kopieren möglich?
+		//TODO possible without to copy ?
 
 		Set<Node> cluster = new HashSet<Node>();
 		for(Node n : originalCluster) {
@@ -340,6 +355,12 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		return fitnessWithNode - fitnessWithoutNode;
 	}
 	
+	/**
+	 * Calculates the fitness value of a cluster.
+	 * @param cluster			A set of nodes
+	 * @param graph				The graph being analyzed
+	 * @return              	The fitness value
+	 */
 	public double getFitness(Set<Node> cluster, CustomGraph graph) {
 		double k_in = (double)getKIn(cluster, graph);
 		double edgeCount = (double)getClusterEdgeCount(cluster, graph);
@@ -350,7 +371,7 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		int sum = 0;
 		Node node;
 		for (Node clusterNode : cluster) {
-			NodeCursor nodes = clusterNode.successors();	//KIn : 2 times number of all edges in the cluster
+			NodeCursor nodes = clusterNode.successors();	//K_in : 2 times number of all edges in the cluster
 			while (nodes.ok()) {
 				node = nodes.node();
 				if(cluster.contains(node)) {sum++;}
@@ -360,11 +381,21 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		return sum;
 	}
 	
+	public int getClusterEdgeCount(Set<Node> cluster, CustomGraph graph) {
+		int sum = 0;
+		for (Node node : cluster) {		//(K_in +K_out) from paper is computed together
+			sum += node.outDegree();
+		}
+		return sum;
+	}
+	
+	
+	
 	/**
-	 * Determines the membership matrix through a random walk process.
-	 * @param graph The graph being analyzed.
-	 * @param communitys A set of all communitys that were found
-	 * @return The membership matrix.
+	 * Determines the membership matrix with a set of communities.
+	 * @param communitys 		A set of all communities that were found
+	 * @param graph 			The graph being analyzed
+	 * @return 					The membership matrix
 	 */
 	
 	//	at throws InterruptedException if the thread was interrupted
@@ -380,7 +411,11 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		return membershipMatrix;
 	}
 	
-	
+	/**
+	 * Adds the cluster as one community to the set of communities.
+	 * @param communitys 		A set of communities that has to be filled
+	 * @param cluster 			A set of nodes
+	 */
 	public void addClusterToCommunitys(Set<Set<Node>> communitys, Set<Node> cluster) {
 		Set<Node> community = new HashSet<Node>();
 		for (Node node : cluster) {
@@ -389,34 +424,19 @@ public class LOCAlgorithm implements OcdAlgorithm{
 		communitys.add(community);
 	}
 	
-	
-	public int getClusterEdgeCount(Set<Node> cluster, CustomGraph graph) {
-		int sum = 0;
-		for (Node node : cluster) {		//(K_in +K_out) from paper is computed together
-			sum += node.outDegree();
-		}
-		return sum;
-	}
-	
-	
-	
-	//Bibliothek sollte das tun
-	private Basic2DMatrix identity(int size) {
-		double[][] array = new double[size][size];
-        for (int i = 0; i < size; i++) {
-            array[i][i] = 1;
-        }
-        return new Basic2DMatrix(array);
-    }
-	
-	//returns the Node with the highest integer value on the HashMap
-	public Node getMaxValueNodeInt(HashMap<Node, Integer> map) throws IllegalArgumentException{
+	/**
+	 * Finds the node from the map to which the highest value was assigned.
+	 * @param map	 			A map of nodes and an associated value
+	 * @return 					The node with the highest value
+	 * @throws IllegalArgumentException when the given map is empty
+	 */
+	public Node getMaxValueNode(HashMap<Node, Integer> map) throws IllegalArgumentException{
 		if (map.isEmpty()){
-			throw new IllegalArgumentException("HashMap (double) ist Leer");
+			throw new IllegalArgumentException("HashMap is empty");
 		}
 		Set<Node> set = map.keySet();
 		Node ret = set.iterator().next();
-		int maxValueInMap = map.get(ret);  //return max double value in the Hashmap
+		int maxValueInMap = map.get(ret);  //return max value in the Hashmap
         for (Node key : set) {  
             if (map.get(key) > maxValueInMap) {
             	maxValueInMap = map.get(key);
@@ -425,5 +445,14 @@ public class LOCAlgorithm implements OcdAlgorithm{
         }
         return ret;
 	}
+	
+	//Bibliothek sollte das tun
+		private Basic2DMatrix identity(int size) {
+			double[][] array = new double[size][size];
+	        for (int i = 0; i < size; i++) {
+	            array[i][i] = 1;
+	        }
+	        return new Basic2DMatrix(array);
+	    }
 	
 }
