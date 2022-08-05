@@ -230,6 +230,7 @@ public class GraphProcessor {
 			}
 			componentsList.add(new Pair<CustomGraph, Map<Node, Node>>(component, nodeMap));
 		}
+
 		return componentsList;
 	}
 

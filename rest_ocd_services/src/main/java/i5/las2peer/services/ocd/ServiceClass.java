@@ -31,7 +31,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.parsers.ParserConfigurationException;
 
+import i5.las2peer.services.ocd.algorithms.RankRemovalAlgorithm;
 import i5.las2peer.services.ocd.utils.*;
 import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
@@ -57,8 +59,6 @@ import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
 import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputFormat;
 import i5.las2peer.services.ocd.algorithms.ContentBasedWeightingAlgorithm;
-// TODO: Import RaRe algorithm
-import i5.las2peer.services.ocd.algorithms.RankRemovalAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
@@ -3923,45 +3923,37 @@ public class ServiceClass extends RESTService {
 		}
 
 		/**
-		 * Returns all weight functions available for the specific algorithm.
+		 * Returns all available values for the weightFunction enum of the Rank Removal and Iterative Scan algorithm.
 		 *
-		 * @return The functions in a weightFunctions xml or an error xml.
+		 * @return The values in a names XML or an error XML.
+		 * @throws ParserConfigurationException
 		 */
 		@GET
-		@Path("algorithms/{CoverCreationType}/parameters/weightFunctions")
+		@Path("algorithms/RANK_REMOVAL_AND_ITERATIVE_SCAN_ALGORITHM/parameters/weightFunction")
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
-				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(tags = {"weight_functions"}, value = "Get Weight Functions", notes = "Returns all available weight functions of an algorithm.")
-		public Response getWeightFunctions(@PathParam("CoverCreationType") String coverCreationTypeStr) {
-			try {
-				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				CoverCreationType creationType;
-				Map<String, String> params = new HashMap<String, String>();
-
-				try {
-					creationType = CoverCreationType.valueOf(coverCreationTypeStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Specified cover creation type does not exist.");
-				}
-				if (!algorithmFactory.isInstantiatable(creationType)) {
-					requestHandler.log(Level.WARNING, "user: " + username + ", "
-							+ "Specified cover creation type is not instantiatable: " + creationType.name());
-					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Specified cover creation type is not instantiatable: " + creationType.name());
-				} else {
-					OcdAlgorithm defaultInstance = algorithmFactory.getInstance(creationType,
-							new HashMap<String, String>());
-					return Response.ok(requestHandler.writeEnumNames(RankRemovalAlgorithm.weightFunction)).build();
-				}
-			} catch (Exception e) {
-				requestHandler.log(Level.SEVERE, "", e);
-				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
-			}
+				@ApiResponse(code = 401, message = "Unauthorized")})
+		@ApiOperation(tags = {"weight_function"}, value = "Get weightFunction values", notes = "Returns all available values for the weightFunctions parameter.")
+		public Response getWeightFunction() throws ParserConfigurationException {
+			return Response.ok(requestHandler.writeEnumNames(RankRemovalAlgorithm.weightFunction.class)).build();
 		}
-		
+
+		/**
+		 * Returns all available values for the rankingFunction enum of the Rank Removal and Iterative Scan algorithm.
+		 *
+		 * @return The values in a names XML or an error XML.
+		 * @throws ParserConfigurationException
+		 */
+		@GET
+		@Path("algorithms/RANK_REMOVAL_AND_ITERATIVE_SCAN_ALGORITHM/parameters/rankingFunction")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized")})
+		@ApiOperation(tags = {"ranking_function"}, value = "Get rankingFunction values", notes = "Returns all available values for the rankingFunctions parameter.")
+		public Response getRankingFunction() throws ParserConfigurationException {
+			return Response.ok(requestHandler.writeEnumNames(RankRemovalAlgorithm.rankingFunction.class)).build();
+		}
+
 		//////////////////////////////////////////////////////////////////////////
 		//////////// VIEWER-SPECIFIC ENUM LISTINGS
 		//////////////////////////////////////////////////////////////////////////

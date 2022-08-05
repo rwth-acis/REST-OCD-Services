@@ -13,6 +13,7 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import y.base.*;
 
+import javax.swing.*;
 import java.util.*;
 
 /**
@@ -36,7 +37,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     /**
      * Enum of different available weight functions. These can be chosen in a dropdown in the web client
      */
-    private enum weightFunction {
+    public enum weightFunction {
         INTERNAL_EDGE_PROBABILITY,
         EDGE_RATIO,
         INTENSITY_RATIO
@@ -111,7 +112,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     /**
      * Enum of different available ranking functions. These can be chosen un a dropdown in the web client
      */
-    private enum rankingFunction {
+    public enum rankingFunction {
         OUT_DEGREE,
         PAGE_RANK
     }
@@ -186,27 +187,25 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     // Setters for the parameters of both algorithms
     // --------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // TODO: Check if boundaries of parameters are needed, Check if set-difference function and epsilon necessary
-
     @Override
     public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
-        /*if (parameters.containsKey(WEIGHT_FUNCTION_IS_NAME)) {
-            selectedWeightFunctionIS = weightFunction.valueOf(WEIGHT_FUNCTION_IS_NAME);
+        if (parameters.containsKey(WEIGHT_FUNCTION_IS_NAME)) {
+            selectedWeightFunctionIS = weightFunction.valueOf(parameters.get(WEIGHT_FUNCTION_IS_NAME));
             parameters.remove(WEIGHT_FUNCTION_IS_NAME);
-        }*/
+        }
 
         /*if (parameters.containsKey(SET_DIFFERENCE_FUNCTION_NAME)) {
             selectedSetDifferenceFunction = setDifferenceFunction.valueOf(SET_DIFFERENCE_FUNCTION_NAME);
             parameters.remove(SET_DIFFERENCE_FUNCTION_NAME);
         }*/
 
-        if (parameters.containsKey(EPSILON_NAME)) {
+        /*if (parameters.containsKey(EPSILON_NAME)) {
             epsilon = Double.parseDouble(parameters.get(EPSILON_NAME));
             if (epsilon < 1) {
                 throw new IllegalArgumentException("The parameter epsilon should be at least 1!");
             }
             parameters.remove(EPSILON_NAME);
-        }
+        }*/
 
         if (parameters.containsKey(MAX_FAIL_NAME)) {
             max_fail = Integer.parseInt(parameters.get(MAX_FAIL_NAME));
@@ -236,15 +235,15 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             parameters.remove(H2_NAME);
         }
 
-        /*if (parameters.containsKey(WEIGHT_FUNCTION_RARE_NAME)) {
-            selectedWeightFunctionRaRe = weightFunction.valueOf(WEIGHT_FUNCTION_RARE_NAME);
+        if (parameters.containsKey(WEIGHT_FUNCTION_RARE_NAME)) {
+            selectedWeightFunctionRaRe = weightFunction.valueOf(parameters.get(WEIGHT_FUNCTION_RARE_NAME));
             parameters.remove(WEIGHT_FUNCTION_RARE_NAME);
-        }*/
+        }
 
-        /*if (parameters.containsKey(RANKING_FUNCTION_NAME)) {
-            selectedRankingFunction = rankingFunction.valueOf(RANKING_FUNCTION_NAME);
+        if (parameters.containsKey(RANKING_FUNCTION_NAME)) {
+            selectedRankingFunction = rankingFunction.valueOf(parameters.get(RANKING_FUNCTION_NAME));
             parameters.remove(RANKING_FUNCTION_NAME);
-        }*/
+        }
 
         if (parameters.containsKey(MIN_CORE_SIZE_NAME)) {
             minCoreSize = Integer.parseInt(parameters.get(MIN_CORE_SIZE_NAME));
@@ -277,16 +276,16 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     public Map<String, String> getParameters() {
         Map<String, String> parameters = new HashMap<String, String>();
 
-        // parameters.put(WEIGHT_FUNCTION_IS_NAME, selectedWeightFunctionIS.toString());
+        parameters.put(WEIGHT_FUNCTION_IS_NAME, selectedWeightFunctionIS.toString());
         // parameters.put(SET_DIFFERENCE_FUNCTION_NAME, selectedSetDifferenceFunction.toString());
-        parameters.put(EPSILON_NAME, Double.toString(epsilon));
+        // parameters.put(EPSILON_NAME, Double.toString(epsilon));
         parameters.put(MAX_FAIL_NAME, Integer.toString(max_fail));
         parameters.put(MIN_CLUSTER_SIZE_NAME, Integer.toString(minClusterSize));
         parameters.put(MAX_CLUSTER_SIZE_NAME, Integer.toString(maxClusterSize));
         parameters.put(H1_NAME, Double.toString(h1));
         parameters.put(H2_NAME, Double.toString(h2));
-        // parameters.put(WEIGHT_FUNCTION_RARE_NAME, selectedWeightFunctionRaRe.toString());
-        // parameters.put(RANKING_FUNCTION_NAME, selectedRankingFunction.toString());
+        parameters.put(WEIGHT_FUNCTION_RARE_NAME, selectedWeightFunctionRaRe.toString());
+        parameters.put(RANKING_FUNCTION_NAME, selectedRankingFunction.toString());
         parameters.put(MIN_CORE_SIZE_NAME, Integer.toString(minCoreSize));
         parameters.put(MAX_CORE_SIZE_NAME, Integer.toString(maxCoreSize));
         parameters.put(T_NAME, Integer.toString(t));
@@ -371,7 +370,6 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
                 double newWeight = calculateWeight(graph, currCluster);
                 // If node is not adjacent and new weight not bigger remove added node
                 if (!isAdjacent(currCluster, R.get(i), adjacencyMatrix) && !(newWeight > oldWeight)) {
-                    System.out.println("DEBUG: -- detectOverlappingCommunities -- Node was not added due to no improvement!");
                     NodeCursor nodes = currCluster.getFirst().nodes();
                     nodes.toLast();
                     Node node = nodes.node();
@@ -384,12 +382,6 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         if (communitiesRaRe.isEmpty()) {
             System.out.println("Algorithm Rank Removal could not find communities!");
             throw new OcdAlgorithmException();
-        }
-
-        // TODO: Remove before deployment
-        System.out.println("Found Communities by Rank Removal: \n");
-        for (int i = 0; i < communitiesRaRe.size(); i++) {
-            System.out.println("Community " + i + ": " + communitiesRaRe.get(i).toString());
         }
 
         // List of detected communities using Iterative Scan
@@ -426,20 +418,12 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             throw new OcdAlgorithmException();
         }
 
-        // TODO: Remove before deployment
-        System.out.println("Refined Communities by Iterative Scan: \n");
-        for (int i = 0; i < communitiesIS.size(); i++) {
-            System.out.println("Community " + i + ": " + communitiesIS.get(i).toString());
-        }
-
         System.out.println("========== Rank Removal found " + communitiesRaRe.size() + " communities ========== \n");
 
         System.out.println("========== Iterative Scan refined " + communitiesIS.size() + " communities ========== \n");
 
         // Create membership matrix
         Matrix membershipMatrix = createMembershipMatrix(graph, communitiesIS);
-
-        System.out.println("DEBUG: Final membership matrix: " + membershipMatrix.toString());
 
         // Create cover out of list communitiesIS
         outputCover = new Cover(graph, membershipMatrix);
@@ -503,14 +487,11 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     public List<Pair<CustomGraph, Map<Node, Node>>> clusterComponent(Pair<CustomGraph, Map<Node, Node>> graph) throws InterruptedException, CentralityAlgorithmException {
         List<Pair<CustomGraph, Map<Node, Node>>> clusterCores = new ArrayList<>(Collections.emptyList());
 
-        System.out.println("DEBUG: -- clusterComponent -- Passed graph is of size " + graph.getFirst().nodeCount());
-
         if (graph.getFirst().nodeCount() > maxCoreSize) {
             for (int i = 0; i < t; i++) {
                 Node node;
                 // Calculate the highest ranking node in the passed cluster
                 node = getHighestRankingNode(graph.getFirst());
-                System.out.println("DEBUG: -- clusterComponent -- Highest ranking removed node is " + node.toString());
 
                 // Add index of corresponding node in original graph to R
                 R.add(graph.getSecond().get(node));
@@ -521,7 +502,6 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
             // Detect all connected components in connectedComponent
             List<Pair<CustomGraph, Map<Node, Node>>> connectedComponents = getConnectedComponents(graph.getFirst());
-            System.out.println("DEBUG: -- clusterComponent -- " + connectedComponents.size() + " new connected Components were created");
 
             if (connectedComponents.size() != 1) {
                 // Map nodes in new connected components to original graph instead of old cluster
@@ -634,7 +614,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
         // Find the node with the highest out degree in the graph
         for (int i = 0; i < nodes.length; i++) {
-            if (node == null || nodes[i].degree() > node.degree()) {
+            if (node == null || nodes[i].outDegree() > node.outDegree()) {
                 node = nodes[i];
             }
         }
@@ -709,7 +689,6 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             case INTENSITY_RATIO -> weight = calculateIntensityRatio(graph, cluster);
             default -> System.out.println("This weight function does not exist!");
         }
-
         return weight;
     }
 
