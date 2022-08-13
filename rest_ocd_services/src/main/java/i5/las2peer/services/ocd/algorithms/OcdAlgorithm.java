@@ -10,6 +10,7 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.utils.Parameterizable;
 
+import java.util.List;
 import java.util.Set;
 
 /**

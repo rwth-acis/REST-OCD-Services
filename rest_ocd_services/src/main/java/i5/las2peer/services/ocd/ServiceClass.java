@@ -3924,6 +3924,7 @@ public class ServiceClass extends RESTService {
 
 		/**
 		 * Returns all available values for the weightFunction enum of the Rank Removal and Iterative Scan algorithm.
+		 * These values can then be used in the web service.
 		 *
 		 * @return The values in a names XML or an error XML.
 		 */
@@ -3939,6 +3940,7 @@ public class ServiceClass extends RESTService {
 
 		/**
 		 * Returns all available values for the rankingFunction enum of the Rank Removal and Iterative Scan algorithm.
+		 * These values can then be used in the web service.
 		 *
 		 * @return The values in a names XML or an error XML.
 		 */
