@@ -3926,14 +3926,13 @@ public class ServiceClass extends RESTService {
 		 * Returns all available values for the weightFunction enum of the Rank Removal and Iterative Scan algorithm.
 		 *
 		 * @return The values in a names XML or an error XML.
-		 * @throws ParserConfigurationException
 		 */
 		@GET
 		@Path("algorithms/RANK_REMOVAL_AND_ITERATIVE_SCAN_ALGORITHM/parameters/weightFunction")
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized")})
-		@ApiOperation(tags = {"weight_function"}, value = "Get weightFunction values", notes = "Returns all available values for the weightFunctions parameter.")
+		@ApiOperation(tags = {"weight_function"}, value = "Get weightFunction values", notes = "Returns all available values for the weightFunction parameter.")
 		public Response getWeightFunction() throws ParserConfigurationException {
 			return Response.ok(requestHandler.writeEnumNames(RankRemovalAlgorithm.weightFunction.class)).build();
 		}
@@ -3942,14 +3941,13 @@ public class ServiceClass extends RESTService {
 		 * Returns all available values for the rankingFunction enum of the Rank Removal and Iterative Scan algorithm.
 		 *
 		 * @return The values in a names XML or an error XML.
-		 * @throws ParserConfigurationException
 		 */
 		@GET
 		@Path("algorithms/RANK_REMOVAL_AND_ITERATIVE_SCAN_ALGORITHM/parameters/rankingFunction")
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized")})
-		@ApiOperation(tags = {"ranking_function"}, value = "Get rankingFunction values", notes = "Returns all available values for the rankingFunctions parameter.")
+		@ApiOperation(tags = {"ranking_function"}, value = "Get rankingFunction values", notes = "Returns all available values for the rankingFunction parameter.")
 		public Response getRankingFunction() throws ParserConfigurationException {
 			return Response.ok(requestHandler.writeEnumNames(RankRemovalAlgorithm.rankingFunction.class)).build();
 		}

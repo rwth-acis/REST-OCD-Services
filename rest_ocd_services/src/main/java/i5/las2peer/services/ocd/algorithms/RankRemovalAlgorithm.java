@@ -15,14 +15,19 @@ import y.base.*;
 import java.util.*;
 
 /**
- * The original version of the algorithm Rank Removal was published by Baumes et al. in 2005:
+ * The original versions of the algorithms Iterative Scan and Rank Removal were published by Baumes et al. in 2005:
  * Finding communities by clustering a graph into overlapping sub graphs
  * ISBN: 972-99353-6-X
  *
- * The algorithm Rank Removal disconnects a graph into smaller sub graphs by removing sp called
- * "high ranking" or important nodes which are determined by some metric, until all clusters
- * of the graph have a specific size. Subsequently, the algorithm starts adding the removed
- * nodes back to some clusters if they are immediately adjacent or increase the clusters weight.
+ * The Iterative Scan algorithm refines a given cluster to a locally optimal one with respect to some set-difference metric.
+ * Every node in the original graph is considered and added/removed to/from the graph. If the weight of the new cluster is
+ * higher than the weight of the old cluster, the respective node is constantly added/removed. The algorithm stops if no
+ * improvement can be obtained through a single node.
+ *
+ * The algorithm Rank Removal disconnects a graph into smaller sub graphs by removing so-called
+ * "high ranking" or important nodes, until all clusters of the graph have a specific size.
+ * These significant nodes are determined by some metric. Subsequently, the algorithm starts adding the removed
+ * nodes back to the clusters if they are immediately adjacent or increase the clusters weight.
  *
  * @author Jan Mortell
  */
@@ -34,11 +39,12 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
     /**
      * Boolean whether to refine the results of the RaRe algorithm using the IS algorithm.
+     * default value: true
      */
     private boolean iterativeScanBool = true;
 
     /**
-     * Enum of different available weight functions. These can be chosen in a dropdown in the web client
+     * Enum of different available weight functions. These can be chosen in a dropdown-menu in the web client.
      */
     public enum weightFunction {
         INTERNAL_EDGE_PROBABILITY,
@@ -47,13 +53,13 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * Selected weight function Iterative Scan
+     * Selected weight function for the Iterative Scan algorithm.
      * default value: edge ratio
      */
     private weightFunction selectedWeightFunctionIS = weightFunction.EDGE_RATIO;
 
     /**
-     * Enum of different available set-difference functions. These can be chosen in a dropdown in the web client
+     * Enum of different available set-difference functions.
      */
     private enum setDifferenceFunction {
         HAMMING_DISTANCE,
@@ -61,43 +67,43 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * Selected set-difference function
+     * Selected set-difference function.
      * default value: hamming distance
      */
     private setDifferenceFunction selectedSetDifferenceFunction = setDifferenceFunction.HAMMING_DISTANCE;
 
     /**
-     * Size of set neighborhood
+     * Size of set neighborhood.
      * default value: 1
      */
     private double epsilon = 1;
 
     /**
-     * Number of unsuccessful algorithm restarts that do not yield new maximal clusters
+     * Number of unsuccessful algorithm restarts that do not yield new maximal clusters.
      * default value: 5
      */
     private int max_fail = 5;
 
     /**
-     * Minimum cluster size. Smaller clusters get penalized using the penalty function Pen(C)
+     * Minimum cluster size. Smaller clusters get penalized using the penalty function Pen(C).
      * default value: 5
      */
     private int minClusterSize = 5;
 
     /**
-     * Maximum cluster size. Bigger clusters get penalized using the penalty function Pen(C)
+     * Maximum cluster size. Bigger clusters get penalized using the penalty function Pen(C).
      * default value: 20
      */
     private int maxClusterSize = 20;
 
     /**
-     * Penalty multiplier for clusters that are too small
+     * Penalty multiplier for clusters that are too small.
      * default value: 0.1
      */
     private double h1 = 0.1;
 
     /**
-     * Penalty multiplier for clusters that are too large
+     * Penalty multiplier for clusters that are too large.
      * default value: 1
      */
     private double h2 = 1;
@@ -107,13 +113,13 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     // --------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Selected weight function Rank Removal
+     * Selected weight function for the Rank Removal algorithm.
      * default value: edge ratio
      */
     private weightFunction selectedWeightFunctionRaRe = weightFunction.EDGE_RATIO;
 
     /**
-     * Enum of different available ranking functions. These can be chosen un a dropdown in the web client
+     * Enum of different available ranking functions.
      */
     public enum rankingFunction {
         OUT_DEGREE,
@@ -121,25 +127,25 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * Selected ranking function
+     * Selected ranking function.
      * default value: page rank
      */
     private rankingFunction selectedRankingFunction = rankingFunction.PAGE_RANK;
 
     /**
-     * Minimum core size
+     * Minimum core size.
      * default value: 3
      */
     private int minCoreSize = 3;
 
     /**
-     * Maximum core size
+     * Maximum core size.
      * default value: 15
      */
     private int maxCoreSize = 15;
 
     /**
-     * Number of important nodes to remove
+     * Number of important nodes to remove in each iteration of the algorithm.
      * default value: 15
      */
     private int t = 15;
@@ -262,7 +268,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         if (parameters.containsKey(MAX_CORE_SIZE_NAME)) {
             maxCoreSize = Integer.parseInt(parameters.get(MAX_CORE_SIZE_NAME));
             if (maxCoreSize < minCoreSize) {
-                throw new IllegalArgumentException("The parameter maxCoreSize mus be greater or equal then minCoreSize!");
+                throw new IllegalArgumentException("The parameter maxCoreSize must be greater or equal than minCoreSize!");
             }
             parameters.remove(MAX_CORE_SIZE_NAME);
         }
@@ -311,7 +317,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     List<Integer> R = new ArrayList<>(Collections.emptyList());
 
     /**
-     * The main algorithm method returning a cover
+     * The main algorithm method returning a cover.
      *
      * @param graph                     An at least weakly connected graph whose community structure will be detected.
      * @return                          A cover for the passed graph
@@ -407,7 +413,6 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             int fails = 0;
 
             boolean[] maxima = new boolean[communitiesRaRe.size()];
-
             // Call Iterative Scan algorithm on output of Rank Removal
             // Stop if the last max_fail restarts yield no new local maxima
             while (fails < max_fail) {
@@ -447,7 +452,6 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
         } else {
             finalClusterList = communitiesRaRe;
         }
-
 
         // Create membership matrix
         Matrix membershipMatrix = createMembershipMatrix(graph, finalClusterList);
@@ -508,7 +512,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
      * or disconnected in multiple connected components. The method gets
      * recursively executed on all emerging connected components.
      *
-     * @param graph     Connected component as custom graph, node map pair
+     * @param graph     Connected component as custom graph and node map pair
      * @return          List of clusters of the passed graph with the right size
      */
     public List<Pair<CustomGraph, Map<Node, Node>>> clusterComponent(Pair<CustomGraph, Map<Node, Node>> graph) throws InterruptedException, CentralityAlgorithmException {
@@ -554,7 +558,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
             }
 
         } else if (minCoreSize <= graph.getFirst().nodeCount() && graph.getFirst().nodeCount() <= maxCoreSize) {
-            // Mark connectedComponent as cluster core
+            // Mark connected component as cluster core
             clusterCores.add(graph);
         }
 
@@ -563,7 +567,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
     /**
      * This method determines the node with the highest ranking
-     * of the graph by using the given ranking function
+     * of the graph by using the given ranking function.
      *
      * @param graph     Input graph
      * @return          Node with the highest ranking in graph
@@ -583,7 +587,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
 
     /**
      * This method calculates the pageRank of every node in a graph
-     * and returns the node with the highest pageRank in a graph
+     * and returns the node with the highest pageRank.
      *
      * @param graph     Cluster where the node with the highest pagerank is searched in
      * @return          Node with the highest page rank in the passed graph cluster
@@ -627,7 +631,7 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
     /**
      * This method calculates the degree of every node
      * in the passed graph and returns the node with the
-     * highest out degree
+     * highest out degree.
      *
      * @param graph     graph in which the node with the highest degree is searched
      * @return          node with the highest degree in the passed graph cluster
@@ -1038,9 +1042,6 @@ public class RankRemovalAlgorithm implements OcdAlgorithm {
                                 }
                             }
                         }
-
-                        double testPen = calculatePenalty(graph, cluster);
-
                     }
 
                 } else {
