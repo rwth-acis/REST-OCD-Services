@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
+import org.graphstream.graph.Node;
 import org.junit.Test;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
@@ -8,6 +9,7 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmExecutor;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
+//TODO: Have further tests with more complex graph to compare to original yFiles behaviour
 public class FlowBetweennessTest {
 	@Test
 	public void testUndirectedUnweighted() throws InterruptedException, CentralityAlgorithmException {
