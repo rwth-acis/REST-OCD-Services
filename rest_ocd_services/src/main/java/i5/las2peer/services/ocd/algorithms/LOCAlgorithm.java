@@ -4,10 +4,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.ArrayList;
 import java.util.Iterator;
 
-import java.util.Collections;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
@@ -25,6 +23,11 @@ import y.base.Edge;
 import y.base.Node;
 import y.base.NodeCursor;
 import y.base.Graph;
+/**
+ * Implementation of the Local Optimization Algorithm based on Cliques by Jian Ma and Jianping:
+ * Local Optimization for Clique-Based Overlapping Community Detection in Complex Networks
+ * https://doi.org/10.1109/ACCESS.2019.2962751
+ */
 
 public class LOCAlgorithm implements OcdAlgorithm{
 	
