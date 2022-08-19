@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.metrics;
 
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.GraphCreationLog;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 import java.util.HashMap;
@@ -16,6 +17,11 @@ import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
+
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * A log representation for an OcdMetric execution.
@@ -37,6 +43,9 @@ public class OcdMetricLog {
 	public static final String graphUserColumnName = "USER_NAME";
 	private static final String statusIdColumnName = "STATUS";
 	
+	private static final String coverKeyColumnName = "COVER_KEY";
+	private static final String parameterColumnName = "PARAMETER";
+	public static final String collectionName = "ocdmetriclog";
 	/*
 	 * Field names
 	 */
@@ -49,6 +58,10 @@ public class OcdMetricLog {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
 	private long id;
+	/**
+	 * System generated persistence key.
+	 */
+	public String key;
 	/**
 	 * The cover the metric was run on.
 	 */
@@ -175,5 +188,60 @@ public class OcdMetricLog {
 	public Cover getCover() {
 		return cover;
 	}
+	
+	//persistence functions
+		public void persist(String coverKey, ArangoDatabase db) {
+			ArangoCollection collection = db.collection(collectionName);
+			BaseDocument bd = new BaseDocument();
+			bd.addAttribute(typeColumnName, this.typeId);
+			bd.addAttribute(statusIdColumnName, this.statusId);
+			bd.addAttribute(valueColumnName, this.value);
+			bd.addAttribute(parameterColumnName, this.parameters); //TODO
+			bd.addAttribute(coverKeyColumnName, coverKey);
+			
+			collection.insertDocument(bd);
+			this.key = bd.getKey();
+		}
+		
+		public static OcdMetricLog load(String key, ArangoDatabase db) {
+			OcdMetricLog oml = new OcdMetricLog();
+			System.out.println(key);
+			ArangoCollection collection = db.collection(collectionName);
+			
+			BaseDocument bd = collection.getDocument(key, BaseDocument.class);
+			if (bd != null) {
+				ObjectMapper om = new ObjectMapper();
+				String typeIdString = bd.getAttribute(typeColumnName).toString();
+				int typeId = Integer.parseInt(typeIdString);
+				String statusIdString = bd.getAttribute(statusIdColumnName).toString();
+				int statusId = Integer.parseInt(statusIdString);
+				String valueString = bd.getAttribute(valueColumnName).toString();
+				double value = Double.parseDouble(valueString);
+				Object obj = bd.getAttribute(parameterColumnName);
+				
+				oml.typeId = typeId;
+				oml.statusId = statusId;
+				oml.key = key;
+				oml.value = value;
+				oml.parameters = om.convertValue(obj, Map.class);	
+			}	
+			else {
+				System.out.println("leeres dokument");
+			}
+			return oml;
+		}
+		
+		@Override
+		public String toString() {
+			String n = System.getProperty("line.separator");
+			String ret = "OcdMetricLog: " + n;
+			ret += "Key :           " + this.key + n;
+			ret += "value :         " + this.value +n;
+			ret += "typeId :        " + this.typeId + n; 
+			ret += "statusId :      " + this.statusId + n;
+			ret += "parameters :    " + this.parameters.toString() + n;
+			
+			return ret;
+		}
 	
 }

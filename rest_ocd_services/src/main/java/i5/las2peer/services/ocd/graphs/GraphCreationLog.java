@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.graphs;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.persistence.Column;
@@ -12,6 +13,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * A log representation for a graph creation method, i.e. typically a OcdBenchmark execution.
  * @author Sebastian
@@ -27,6 +32,8 @@ public class GraphCreationLog {
 	private static final String typeColumnName = "TYPE";
 	private static final String statusIdColumnName = "STATUS";
 	
+	private static final String parameterColumnName = "PARAMETER";
+	public static final String collectionName = "graphcreationlog";
 	/*
 	 * Field names
 	 */	
@@ -39,6 +46,10 @@ public class GraphCreationLog {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
 	private long id;
+	/**
+	 * System generated persistence key.
+	 */
+	public String key;
 	/**
 	 * Parameters used by the creation method.
 	 */
@@ -115,6 +126,54 @@ public class GraphCreationLog {
 	 */
 	public void setStatus(ExecutionStatus status) {
 		this.statusId = status.getId();
+	}
+	
+	//persistence functions
+	public void persist(ArangoDatabase db) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(typeColumnName, this.typeId);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(parameterColumnName, this.parameters); //TODO
+		
+		collection.insertDocument(bd);
+		this.key = bd.getKey();
+	}
+	
+	public static GraphCreationLog load(String key, ArangoDatabase db) {	
+		GraphCreationLog gcl = new GraphCreationLog();
+		System.out.println(key);
+		ArangoCollection collection = db.collection(collectionName);
+		
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
+		if (bd != null) {
+			ObjectMapper om = new ObjectMapper();
+			String typeIdString = bd.getAttribute(typeColumnName).toString();
+			int typeId = Integer.parseInt(typeIdString);
+			String statusIdString = bd.getAttribute(statusIdColumnName).toString();
+			int statusId = Integer.parseInt(statusIdString);
+			Object obj = bd.getAttribute(parameterColumnName);
+			
+			gcl.typeId = typeId;
+			gcl.statusId = statusId;
+			gcl.key = key;
+			gcl.parameters = om.convertValue(obj, Map.class);	
+		}	
+		else {
+			System.out.println("leeres dokument");
+		}
+		return gcl;
+	}
+	
+	@Override
+	public String toString() {
+		String n = System.getProperty("line.separator");
+		String ret = "GraphCreationLog: " + n;
+		ret += "Key :			" + this.key + n;
+		ret += "typeId : 		" + this.typeId + n; 
+		ret += "statusId : 		" + this.statusId + n;
+		ret += "parameters :    " + this.parameters.toString() + n;
+		return ret;
 	}
 	
 }

@@ -14,6 +14,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * A log representation for a cover creation method, i.e. typically an OcdAlgorithm or OcdBenchmark execution.
  * @author Sebastian
@@ -29,6 +33,9 @@ public class CoverCreationLog {
 	private static final String typeColumnName = "TYPE";
 	private static final String statusIdColumnName = "STATUS";
 	
+	private static final String parameterColumnName = "PARAMETER";
+	private static final String compatibleGraphTypesColumnName = "COMPATIBLEGRAPHTYPES";
+	public static final String collectionName = "covercreationlog";
 	/*
 	 * Field names.
 	 */
@@ -41,6 +48,10 @@ public class CoverCreationLog {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
 	private long id;
+	/**
+	 * System generated persistence key.
+	 */
+	public String key;
 	/**
 	 * Parameters used by the creation method.
 	 */
@@ -147,4 +158,55 @@ public class CoverCreationLog {
 		this.statusId = status.getId();
 	}
 	
+	//persistence functions
+	public void persist(ArangoDatabase db) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(typeColumnName, this.typeId);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(parameterColumnName, this.parameters); //TODO
+		bd.addAttribute(compatibleGraphTypesColumnName, this.compatibleGraphTypes);
+		
+		collection.insertDocument(bd);
+		this.key = bd.getKey();
+	}
+	
+	public static CoverCreationLog load(String key, ArangoDatabase db) {
+		CoverCreationLog ccl = new CoverCreationLog();
+		System.out.println(key);
+		ArangoCollection collection = db.collection(collectionName);
+		
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
+		if (bd != null) {
+			ObjectMapper om = new ObjectMapper();
+			String typeIdString = bd.getAttribute(typeColumnName).toString();
+			int typeId = Integer.parseInt(typeIdString);
+			String statusIdString = bd.getAttribute(statusIdColumnName).toString();
+			int statusId = Integer.parseInt(statusIdString);
+			Object objParam = bd.getAttribute(parameterColumnName);
+			Object objCompatibleGraphTypes = bd.getAttribute(compatibleGraphTypesColumnName);
+			
+			ccl.typeId = typeId;
+			ccl.statusId = statusId;
+			ccl.key = key;		
+			ccl.compatibleGraphTypes = om.convertValue(objCompatibleGraphTypes, Set.class);
+			ccl.parameters = om.convertValue(objParam, Map.class);	
+		}	
+		else {
+			System.out.println("leeres dokument");
+		}
+		return ccl;
+	}
+	
+	@Override
+	public String toString() {
+		String n = System.getProperty("line.separator");
+		String ret = "CoverCreationLog: " + n;
+		ret += "Key :         " + this.key +n ;
+		ret += "typeId :      " + this.typeId + n ; 
+		ret += "statusId :    " + this.statusId + n;
+		ret += "parameters :  " + this.parameters.toString() + n;
+		ret += "GraphTypes :  " + this.compatibleGraphTypes.toString() + n;
+		return ret;
+	}
 }
