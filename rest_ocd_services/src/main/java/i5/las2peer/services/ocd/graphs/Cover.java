@@ -615,6 +615,8 @@ public class Cover {
 	
 	/**
 	 * Initializes the properties of all communities of this cover.
+	 * @throws InterruptedException If the executing thread was interrupted.
+
 	 */
 	public void initCommunityProperties() throws InterruptedException {
 		for(Community community: getCommunities()) {

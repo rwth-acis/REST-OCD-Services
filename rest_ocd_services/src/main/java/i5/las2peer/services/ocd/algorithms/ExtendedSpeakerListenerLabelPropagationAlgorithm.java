@@ -175,6 +175,7 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 	 * @param listener the listener
 	 * @param memories the memories of the speaker
 	 * @return the next label
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	protected int getNextLabel(CustomGraph graph, List<List<Integer>> memories, Node listener) throws InterruptedException {
 		Map<Node, Integer> receivedLabels = new HashMap<Node, Integer>();

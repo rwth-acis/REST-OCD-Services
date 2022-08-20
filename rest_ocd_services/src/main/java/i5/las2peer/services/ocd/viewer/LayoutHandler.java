@@ -53,6 +53,7 @@ public class LayoutHandler {
 	 * @param maxNodeSize Defines the maximum size of a node. Must be at least as high as the defined minimum size.
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public void doLayout(CustomGraph graph, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges, 
 			double minNodeSize, double maxNodeSize) throws InstantiationException, IllegalAccessException, InterruptedException {
@@ -122,6 +123,7 @@ public class LayoutHandler {
 	 * @param paintingType The painting type defining which cover painter to use.
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public void doLayout(Cover cover, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges, 
 			double minNodeSize, double maxNodeSize, CoverPaintingType paintingType) throws InstantiationException, IllegalAccessException, InterruptedException {

@@ -511,11 +511,17 @@ public class CustomGraph extends MultiGraph {
 	/**
 	 * TODO
 	 * @param edgeId
+	 *             Id of the edge to be added.
 	 * @param src
+	 *             Source node
 	 * @param srcId
+	 *             Source node id
 	 * @param dst
+	 *             Destination node
 	 * @param dstId
+	 *             Destination node id
 	 * @param directed
+	 *             True if edge is directed
 	 * @return The directed edge
 	 */
 	protected Edge addEdge(String edgeId, AbstractNode src, String srcId, AbstractNode dst, String dstId,
@@ -587,6 +593,7 @@ public class CustomGraph extends MultiGraph {
 	 * @param node
 	 *            The node.
 	 * @return The weighted in-degree.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	//TODO: Check whether we need to account extra for parallel edges here (and in all other edge methods)
 	public double getWeightedInDegree(Node node) throws InterruptedException {
@@ -605,6 +612,7 @@ public class CustomGraph extends MultiGraph {
 	 * @param node
 	 *            The node.
 	 * @return The positive in-degree.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 *
 	 * @author YLi
 	 */
@@ -624,6 +632,7 @@ public class CustomGraph extends MultiGraph {
 	 * @param node
 	 *            The concerned node.
 	 * @return The positive out-degree.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 *
 	 * @author YLi
 	 */
@@ -643,6 +652,7 @@ public class CustomGraph extends MultiGraph {
 	 * @param node
 	 *            The node under observation.
 	 * @return The negative in-degree.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 *
 	 * @author YLi
 	 */
@@ -662,6 +672,7 @@ public class CustomGraph extends MultiGraph {
 	 * @param node
 	 *            The node under observation.
 	 * @return The negative out-degree.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 *
 	 * @author YLi
 	 */
@@ -681,6 +692,7 @@ public class CustomGraph extends MultiGraph {
 	 * @param node
 	 *            The node.
 	 * @return The weighted out-degree.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public double getWeightedOutDegree(MultiNode node) throws InterruptedException {
 		Edge[] outEdges = Stream.concat(this.getPositiveOutEdges(node).stream(), this.getNegativeOutEdges(node).stream()).toArray(Edge[]::new);
@@ -698,6 +710,7 @@ public class CustomGraph extends MultiGraph {
 	 * @param node
 	 *            The node.
 	 * @return The weighted degree.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public double getWeightedNodeDegree(MultiNode node) throws InterruptedException {
 		Edge[] edges = node.edges().toArray(Edge[]::new);
@@ -715,6 +728,7 @@ public class CustomGraph extends MultiGraph {
 	 * @param node
 	 *            The node.
 	 * @return The absolute degree.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 *
 	 * @author YLi
 	 */
@@ -790,6 +804,7 @@ public class CustomGraph extends MultiGraph {
 	 *
 	 * @return The weighted in-degree or positive infinity if the graph does not
 	 *         contain any nodes.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public double getMinWeightedInDegree() throws InterruptedException {
 		double minDegree = Double.POSITIVE_INFINITY;
@@ -809,6 +824,7 @@ public class CustomGraph extends MultiGraph {
 	 *
 	 * @return The weighted in-degree or negative infinity if the graph does not
 	 *         contain any nodes.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public double getMaxWeightedInDegree() throws InterruptedException {
 		double maxDegree = Double.NEGATIVE_INFINITY;
@@ -1240,7 +1256,7 @@ public class CustomGraph extends MultiGraph {
 
 	/**
 	 * Initialize the properties
-	 *
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	//TODO: Figure out what this means
 	public void initProperties() throws InterruptedException {
@@ -1462,6 +1478,8 @@ public class CustomGraph extends MultiGraph {
 	 * corresponding custom nodes and edges.
 	 *
 	 * Makes sure the Graph Properties are up-to-date.
+	 *
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	@PrePersist
 	@PreUpdate

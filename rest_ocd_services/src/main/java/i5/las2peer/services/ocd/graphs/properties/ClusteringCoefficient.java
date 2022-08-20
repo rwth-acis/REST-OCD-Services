@@ -48,7 +48,8 @@ public class ClusteringCoefficient extends AbstractProperty {
 	 *  	 
 	 * @param node the node
 	 * @param graph the containing graph
-	 * @return the local clustering coefficient 
+	 * @return the local clustering coefficient
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	protected double calculateLocal(Node node, CustomGraph graph) throws InterruptedException {
 		//TODO: Check if neighbor and out edge iteration behaves similarly to yFiles here

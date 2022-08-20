@@ -103,6 +103,7 @@ public enum GraphProperty {
 	 * 
 	 * @param graph CustomGraph	
 	 * @return property list
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public static List<Double> getPropertyList(CustomGraph graph) throws InterruptedException {
 

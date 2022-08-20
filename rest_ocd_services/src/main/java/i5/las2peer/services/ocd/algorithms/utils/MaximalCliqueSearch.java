@@ -36,9 +36,11 @@ public class MaximalCliqueSearch{
 	
 	/**
 	 * Method to find all maximal cliques of a graph.  
-	 * @param graph: the graph in which to find the all maximal cliques
+	 * @param graph
+	 *          the graph in which to find the all maximal cliques
 	 *
 	 * @return the maximal cliques in a hashmap
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public HashMap<Integer,HashSet<Node>> cliques(CustomGraph graph) throws InterruptedException {
 		List<Node> nodes = Arrays.asList(graph.nodes().toArray(Node[]::new));
@@ -54,9 +56,11 @@ public class MaximalCliqueSearch{
 	/**
 	 * Recursive function to find all the maximal cliques in depth-first search approach with pruning 
 	 * to make it more usable on big graphs
-	 * @param subg: set of vertices in which is needed to find a complete subgraph. It is defined as
-	 * the set of all vertices with are not neighbors of the current largest complete subgraph. 
-	 * @param cand: All the vertices which not have been processed by the algorithm
+	 * @param graph Input custom graph
+	 * @param subg set of vertices in which is needed to find a complete subgraph. It is defined as
+	 * the set of all vertices with are not neighbors of the current largest complete subgraph.
+	 * @param cand All the vertices which not have been processed by the algorithm
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	protected void expand(CustomGraph graph, List<Node> subg, List<Node> cand) throws InterruptedException {
 		if(subg.isEmpty() == true) {// found a maximal connected subgraph

@@ -437,6 +437,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @param target The link target.
 	 * @param source The link source.
 	 * @return The transitive link weight from source to target.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	protected double calculateTransitiveLinkWeight(CustomGraph graph, Node target, Node source) throws InterruptedException {
 		Iterator<Node> successorsIt = graph.getSuccessorNeighbours(source).iterator();

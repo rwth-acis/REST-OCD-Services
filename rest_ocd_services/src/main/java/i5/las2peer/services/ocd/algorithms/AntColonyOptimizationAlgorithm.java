@@ -252,6 +252,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * connected.
 	 * @param graph to make an Maximal Clique Graph from
 	 * @return encoded input graph
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	protected CustomGraph representationScheme(CustomGraph graph) throws InterruptedException {
 		// maximal clique search 
@@ -289,6 +290,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param graph Original undirected graph
 	 * @param maxClq output of the MaximalCliqueGraphRepresentation
 	 * @return Matrix of link strength of the clique edges
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	protected Matrix linkStrength(CustomGraph graph, HashMap<Integer,HashSet<Node>> maxClq) throws InterruptedException {
 		int clqNr = maxClq.size(); 
@@ -337,6 +339,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param v1 node which is in a clique
 	 * @param v2 node which is not in the same clique as v1
 	 * @return Czechkanowski Dice distance
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	protected double CzechkanowskiDice(CustomGraph graph, Node v1, Node v2) throws InterruptedException {
 		Node[] nbors1 = graph.getNeighbours(v1).toArray(Node[]::new);
