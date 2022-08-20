@@ -700,7 +700,7 @@ public class CustomGraph extends MultiGraph {
 	 * @return The weighted degree.
 	 */
 	public double getWeightedNodeDegree(MultiNode node) throws InterruptedException {
-		Edge[] edges = this.edges().toArray(Edge[]::new);
+		Edge[] edges = node.edges().toArray(Edge[]::new);
 		double degree = 0;
 		for (Edge edge : edges) {
 			degree += getCustomEdge(edge).getWeight();
@@ -719,7 +719,7 @@ public class CustomGraph extends MultiGraph {
 	 * @author YLi
 	 */
 	public double getAbsoluteNodeDegree(MultiNode node) throws InterruptedException {
-		Edge[] edges = this.edges().toArray(Edge[]::new);
+		Edge[] edges = node.edges().toArray(Edge[]::new);
 		double degree = 0;
 		for (Edge edge : edges) {
 			degree += Math.abs(getCustomEdge(edge).getWeight());
