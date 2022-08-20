@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.la4j.matrix.dense.Basic2DMatrix;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -16,6 +17,8 @@ import sim.field.network.Edge;
 import sim.field.network.Network;
 import sim.util.Bag;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.UUID;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -150,15 +153,14 @@ public class AgentTest {
 		resultBag = agent.calculateNeighbourhood(network);
 		assertNotNull(resultBag);
 		assertEquals(0, resultBag.size());
-
-		network.addEdge(UUID.randomUUID().toString(), agent1, true);
+		network.addEdge(agent, agent1, true);
 		resultBag = agent.calculateNeighbourhood(network);
 		assertNotNull(resultBag);
 		assertEquals(1, resultBag.size());
 		assertEquals(agent1, resultBag.get(0));
 
-		network.addEdge(UUID.randomUUID().toString(), agent, true);
-		network.addEdge(UUID.randomUUID().toString(), agent3, true);
+		network.addEdge(agent2, agent, true);
+		network.addEdge(agent, agent3, true);
 		resultBag = agent.calculateNeighbourhood(network);
 		assertNotNull(resultBag);
 		assertEquals(3, resultBag.size());
