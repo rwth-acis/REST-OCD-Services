@@ -1373,7 +1373,6 @@ public class CustomGraph extends MultiGraph {
 	 *            The node.
 	 */
 	protected void addCustomNode(MultiNode node) {
-		System.out.println(node.getId());
 		CustomNode customNode = new CustomNode();
 		this.nodeIds.put(node, this.nodeIndexer);
 		this.customNodes.put(nodeIndexer, customNode);
