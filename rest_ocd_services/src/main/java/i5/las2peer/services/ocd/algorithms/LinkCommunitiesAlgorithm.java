@@ -160,7 +160,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 					if(columnEdge.getIndex() < rowEdge.getIndex()) {
 						reverseColumnEdge = columnEdge.getTargetNode().getEdgeToward(columnEdge.getSourceNode());
 						if(reverseColumnEdge == null || columnEdge.getIndex() < reverseColumnEdge.getIndex()) {
-							similarity = getSimpleSimilarity(source, columnEdge.getOpposite(target));
+							similarity = getSimpleSimilarity(graph, source, columnEdge.getOpposite(target));
 							similarities.set(rowEdge.getIndex(), columnEdge.getIndex(), similarity);
 						}
 					}
@@ -175,7 +175,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 					if(columnEdge.getIndex() < rowEdge.getIndex() && columnEdge.getSourceNode() != target) {
 						reverseColumnEdge = columnEdge.getTargetNode().getEdgeToward(columnEdge.getSourceNode());
 						if(reverseColumnEdge == null || columnEdge.getIndex() < reverseColumnEdge.getIndex()) {
-							similarity = getSimpleSimilarity(target, columnEdge.getOpposite(source));
+							similarity = getSimpleSimilarity(graph, target, columnEdge.getOpposite(source));
 							similarities.set(rowEdge.getIndex(), columnEdge.getIndex(), similarity);
 						}
 					}
@@ -423,7 +423,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 		return new Cover(graph, memberships);
 	}
 	
-	private double getSimpleSimilarity(Node nodeA, Node nodeB) {
+	private double getSimpleSimilarity(CustomGraph graph, Node nodeA, Node nodeB) throws InterruptedException {
 		Set<Node> commonNeighbors = new HashSet<Node>();
 		Set<Node> totalNeighbors = new HashSet<Node>();
 		if(nodeB.getEdgeToward(nodeA) != null) {
@@ -435,7 +435,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 		/*
 		 * Check nodeA neighbors.
 		 */
-		Iterator<Node> neighborsIt = nodeA.neighborNodes().iterator();
+		Iterator<Node> neighborsIt = graph.getNeighbours(nodeA).iterator();
 		Node neighbor;
 		while(neighborsIt.hasNext()) {
 			neighbor = neighborsIt.next();
@@ -447,7 +447,7 @@ private Matrix calculateEdgeSimilarities(CustomGraph graph, List<Vector> linkage
 		/*
 		 * Checks nodeB neighbors.
 		 */
-		neighborsIt = nodeB.neighborNodes().iterator();
+		neighborsIt = graph.getNeighbours(nodeB).iterator();
 		while(neighborsIt.hasNext()) {
 			totalNeighbors.add(neighborsIt.next());
 		}

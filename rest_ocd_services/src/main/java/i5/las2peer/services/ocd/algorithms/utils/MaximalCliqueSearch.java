@@ -40,14 +40,14 @@ public class MaximalCliqueSearch{
 	 *
 	 * @return the maximal cliques in a hashmap
 	 */
-	public HashMap<Integer,HashSet<Node>> cliques(CustomGraph graph) {
+	public HashMap<Integer,HashSet<Node>> cliques(CustomGraph graph) throws InterruptedException {
 		List<Node> nodes = Arrays.asList(graph.nodes().toArray(Node[]::new));
 		List<Node> subg = new ArrayList<Node>(nodes);
 		List<Node> cand = new ArrayList<Node>(nodes);
 		maxClq = new HashSet<Node>();
 		maxCliques = new HashMap<Integer,HashSet<Node>>();
 		clqNr = 0; 
-		expand(subg,cand);
+		expand(graph, subg,cand);
 		return maxCliques;
 	}
 	
@@ -58,7 +58,7 @@ public class MaximalCliqueSearch{
 	 * the set of all vertices with are not neighbors of the current largest complete subgraph. 
 	 * @param cand: All the vertices which not have been processed by the algorithm
 	 */
-	protected void expand(List<Node> subg, List<Node> cand){
+	protected void expand(CustomGraph graph, List<Node> subg, List<Node> cand) throws InterruptedException {
 		if(subg.isEmpty() == true) {// found a maximal connected subgraph
 			if(maxClq.size() < 3) {
 				return; 
@@ -75,7 +75,7 @@ public class MaximalCliqueSearch{
 				HashSet<Node> overlap = new HashSet<Node>(); 
 				
 				// find nodes that are neighbors of the current node and the current subset
-				for(Node u : v.neighborNodes().toArray(Node[]::new)) {
+				for(Node u : graph.getNeighbours(v).toArray(Node[]::new)) {
 					if(cand.contains(u)) {
 						overlap.add(u);
 					}
@@ -97,7 +97,7 @@ public class MaximalCliqueSearch{
 				maxClq.add(q); // current clique (not maximal yet)
 
 				// find neighbors
-				q_neighbors.addAll(Arrays.asList(q.neighborNodes().toArray(Node[]::new)));
+				q_neighbors.addAll(Arrays.asList(graph.getNeighbours(q).toArray(Node[]::new)));
 					
 				//update the candidate and the subgraph set to the neighbors of q
 				List<Node> subgr2 = new ArrayList<Node>(subg);
@@ -106,7 +106,7 @@ public class MaximalCliqueSearch{
 				cand2.retainAll(q_neighbors);
 				cand2.remove(q);
 
-				expand(subgr2,cand2); // process the neighbors of q
+				expand(graph, subgr2,cand2); // process the neighbors of q
 
 				cand.remove(q); // make sure that the node to processed twice
 				maxClq.remove(q); // prepare a clique set

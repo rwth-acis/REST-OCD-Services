@@ -60,7 +60,7 @@ public class CustomGraphTest {
 	}
 	
 	@Test
-	public void getProperties() {
+	public void getProperties() throws InterruptedException {
 
 		CustomGraph graph = new CustomGraph();
 		graph.addType(GraphType.DIRECTED);

@@ -74,7 +74,7 @@ public class ClusteringCoefficientTest {
 	}
 	
 	@Test
-	public void calculateNodeLocalUndirected() {
+	public void calculateNodeLocalUndirected() throws InterruptedException {
 
 		CustomGraph graph = new CustomGraph();
 		Node n1 = graph.addNode(Integer.toString(1));
@@ -106,7 +106,7 @@ public class ClusteringCoefficientTest {
 	}	
 	
 	@Test
-	public void calculateNodeLocal() {
+	public void calculateNodeLocal() throws InterruptedException {
 
 		CustomGraph graph = new CustomGraph();
 		Node n1 = graph.addNode(Integer.toString(1));
@@ -134,7 +134,7 @@ public class ClusteringCoefficientTest {
 	}
 	
 	@Test
-	public void initialize() {
+	public void initialize() throws InterruptedException {
 
 		CustomGraph graph = new CustomGraph();
 		Node n1 = graph.addNode(Integer.toString(1));

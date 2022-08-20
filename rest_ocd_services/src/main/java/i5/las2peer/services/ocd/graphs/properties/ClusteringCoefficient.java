@@ -5,10 +5,7 @@ import y.algo.GraphConnectivity;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class handles the clustering coefficient computation of a CustomGraph.
@@ -22,7 +19,7 @@ public class ClusteringCoefficient extends AbstractProperty {
 	 * @return the clustering coefficient
 	 */
 	@Override
-	public double calculate(CustomGraph graph) {
+	public double calculate(CustomGraph graph) throws InterruptedException {
 		
 		if (graph == null)
 			throw new IllegalArgumentException();
@@ -53,10 +50,10 @@ public class ClusteringCoefficient extends AbstractProperty {
 	 * @param graph the containing graph
 	 * @return the local clustering coefficient 
 	 */
-	protected double calculateLocal(Node node, CustomGraph graph) {
+	protected double calculateLocal(Node node, CustomGraph graph) throws InterruptedException {
 		//TODO: Check if neighbor and out edge iteration behaves similarly to yFiles here
 		//GraphConnectivity.getNeighbors(graph, new NodeList(node), 1);
-		List<Node> nodeNeighbours = Arrays.asList(node.neighborNodes().toArray(Node[]::new));
+		Set<Node> nodeNeighbours = graph.getNeighbours(node);
 		int links = 0;
 		for(Node neighbour : nodeNeighbours) {
 			Iterator<Edge> neighborOutEdgeIt = neighbour.leavingEdges().iterator();

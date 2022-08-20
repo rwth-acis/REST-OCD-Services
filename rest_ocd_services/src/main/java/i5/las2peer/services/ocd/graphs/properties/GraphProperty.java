@@ -104,7 +104,7 @@ public enum GraphProperty {
 	 * @param graph CustomGraph	
 	 * @return property list
 	 */
-	public static List<Double> getPropertyList(CustomGraph graph) {
+	public static List<Double> getPropertyList(CustomGraph graph) throws InterruptedException {
 
 		List<Double> properties = new ArrayList<>(size());
 		for (int i = 0; i < size(); i++) {

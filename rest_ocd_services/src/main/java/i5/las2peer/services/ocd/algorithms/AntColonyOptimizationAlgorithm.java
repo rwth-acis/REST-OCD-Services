@@ -253,7 +253,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param graph to make an Maximal Clique Graph from
 	 * @return encoded input graph
 	 */
-	protected CustomGraph representationScheme(CustomGraph graph) {
+	protected CustomGraph representationScheme(CustomGraph graph) throws InterruptedException {
 		// maximal clique search 
 		MaximalCliqueSearch MCR = new MaximalCliqueSearch();
 		maxClq = MCR.cliques(graph);
@@ -290,7 +290,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param maxClq output of the MaximalCliqueGraphRepresentation
 	 * @return Matrix of link strength of the clique edges
 	 */
-	protected Matrix linkStrength(CustomGraph graph, HashMap<Integer,HashSet<Node>> maxClq) {
+	protected Matrix linkStrength(CustomGraph graph, HashMap<Integer,HashSet<Node>> maxClq) throws InterruptedException {
 		int clqNr = maxClq.size(); 
 		Matrix lkstrgth = new Basic2DMatrix(clqNr,clqNr);
 		
@@ -338,9 +338,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param v2 node which is not in the same clique as v1
 	 * @return Czechkanowski Dice distance
 	 */
-	protected double CzechkanowskiDice(CustomGraph graph, Node v1, Node v2) {
-		Node[] nbors1 =  v1.neighborNodes().toArray(Node[]::new);
-		Node[] nbors2 = v2.neighborNodes().toArray(Node[]::new);
+	protected double CzechkanowskiDice(CustomGraph graph, Node v1, Node v2) throws InterruptedException {
+		Node[] nbors1 = graph.getNeighbours(v1).toArray(Node[]::new);
+		Node[] nbors2 = graph.getNeighbours(v2).toArray(Node[]::new);
 
 		int nbor1size = nbors1.length/2;
 		int nbor2size = nbors2.length/2;

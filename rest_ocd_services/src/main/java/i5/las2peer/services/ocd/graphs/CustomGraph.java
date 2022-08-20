@@ -857,10 +857,9 @@ public class CustomGraph extends MultiGraph {
 	 * @author YLi
 	 * @throws InterruptedException if the thread was interrupted
 	 */
-	//TODO: Currently redundant, optimize
 	public Set<Node> getNeighbours(Node node) throws InterruptedException {
 		Set<Node> neighbourSet = new HashSet<Node>();
-		Node[] neighbours = node.neighborNodes().toArray(Node[]::new);
+		Node[] neighbours = node.neighborNodes().toArray(Node[]::new); // Gets every "opposite" node of all adjacent edges, can therefore have duplicates
 
 		for (Node neighbour : neighbours) {
 			if (Thread.interrupted()) {
@@ -1244,7 +1243,7 @@ public class CustomGraph extends MultiGraph {
 	 *
 	 */
 	//TODO: Figure out what this means
-	public void initProperties() {
+	public void initProperties() throws InterruptedException {
 
 		this.properties = new ArrayList<>(GraphProperty.size());
 		for (int i = 0; i < GraphProperty.size(); i++) {
@@ -1467,7 +1466,7 @@ public class CustomGraph extends MultiGraph {
 	 */
 	@PrePersist
 	@PreUpdate
-	protected void prePersist() {
+	protected void prePersist() throws InterruptedException {
 		Node[] nodes = this.nodes().toArray(Node[]::new);
 		for (Node node : nodes) {
 			this.getCustomNode(node).update(this, (Node)node);

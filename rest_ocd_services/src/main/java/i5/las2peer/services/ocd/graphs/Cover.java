@@ -78,6 +78,7 @@ public class Cover {
 	/**
 	 * The graph that the cover is based on.
 	 */
+	//TODO: GRaph should not be ID in javax persistence, we should change this as long as we dont use any other database library
 	@Id
 	// @ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumns({ @JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
@@ -615,7 +616,7 @@ public class Cover {
 	/**
 	 * Initializes the properties of all communities of this cover.
 	 */
-	public void initCommunityProperties() {
+	public void initCommunityProperties() throws InterruptedException {
 		for(Community community: getCommunities()) {
 			CustomGraph subGraph = getGraph().getSubGraph(community.getMemberIndices());
 			community.setProperties(GraphProperty.getPropertyList(subGraph));
