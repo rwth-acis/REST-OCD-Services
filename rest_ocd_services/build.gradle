@@ -79,6 +79,10 @@ dependencies {
 
     //yFiles
     compileOnly fileTree(dir: "${yFiles}", include: '*.jar')
+    
+    //arangoDB Java driver
+    compileOnly "com.arangodb:arangodb-java-driver:6.18.0"
+    compileOnly "com.arangodb:jackson-dataformat-velocypack:3.0.1"
 }
 
 configurations {
