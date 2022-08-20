@@ -291,14 +291,14 @@ public class CustomGraph extends MultiGraph {
 	 * @param graph
 	 *            The graph to obtain data from.
 	 */
-	//TODO: Figure out what this was supposed to be once, doesn't even use our custom nodes.
+	//TODO: Possibly add graphstream attributes as well here (provided we start saving them as well)
 	public void setStructureFrom(CustomGraph graph) {
-		MultiNode[] nodes = (MultiNode[]) this.nodes().toArray(Node[]::new);
+		Node[] nodes = this.nodes().toArray(Node[]::new);
 		/*
 		 * Removes all nodes and edges including their custom information.
 		 */
-		for(MultiNode node : nodes) {
-			this.removeNode(node);
+		for(Node NodeToRemove : nodes) {
+			this.removeNode(NodeToRemove);
 		}
 		/*
 		 * Adds new nodes and edges.
@@ -311,29 +311,29 @@ public class CustomGraph extends MultiGraph {
 		this.nodeIndexer = 0;
 		this.reverseNodeMap.clear();
 		this.types.clear();
-//        nodes = graph.nodes();
-//        for(MultiNode node : nodes) {
-//            this.addNode();
-//            node = this.createNode();
-//            this.setNodeName(node, graph.getNodeName(nodes.node()));
-//            nodes.next();
-//        }
-//        Node[] nodeArr = this.getNodeArray();
-//        EdgeCursor edges = graph.edges();
-//        Edge edge;
-//        Edge refEdge;
-//        while (edges.ok()) {
-//            refEdge = edges.edge();
-//            edge = this.createEdge(nodeArr[refEdge.source().index()], nodeArr[refEdge.target().index()]);
-//            this.setEdgeWeight(edge, graph.getEdgeWeight(refEdge));
-//            edges.next();
-//        }
-//        /*
-//         * Updates graph types.
-//         */
-//        for (GraphType type : graph.getTypes()) {
-//            this.addType(type);
-//        }
+
+		Node node;
+        nodes = graph.nodes().toArray(Node[]::new);
+        for(Node nodeToCopy : nodes) {
+            node = this.addNode(nodeToCopy.getId());
+            this.setNodeName(node, graph.getNodeName(nodeToCopy));
+        }
+        Node[] nodeArr = this.nodes().toArray(Node[]::new);
+
+        Iterator<Edge> edges = graph.edges().iterator();
+        Edge edge;
+        Edge refEdge;
+        while (edges.hasNext()) {
+            refEdge = edges.next();
+            edge = this.addEdge(UUID.randomUUID().toString(), nodeArr[refEdge.getSourceNode().getIndex()], nodeArr[refEdge.getTargetNode().getIndex()]);
+            this.setEdgeWeight(edge, graph.getEdgeWeight(refEdge));
+        }
+        /*
+         * Updates graph types.
+         */
+        for (GraphType type : graph.getTypes()) {
+            this.addType(type);
+        }
 	}
 
 	/**
