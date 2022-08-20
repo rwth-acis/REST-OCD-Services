@@ -156,8 +156,6 @@ public class NISEAlgorithm implements OcdAlgorithm {
 		Iterator<Node> biconnectedCoreNodeCursor = biconnectedCore.iterator();
 		while(graphNodeCursor.hasNext()) {
 			nodeMapping.put(biconnectedCoreNodeCursor.next(), graphNodeCursor.next());
-			biconnectedCoreNodeCursor.next();
-			graphNodeCursor.next();
 		}
 
 		//TODO: Check this
@@ -294,7 +292,7 @@ public class NISEAlgorithm implements OcdAlgorithm {
 		Node[] seedsArray = seeds.toArray(Node[]::new);
 		ArrayList<ArrayList<Node>> lowConductanceSets = new ArrayList<ArrayList<Node>>(seedsArray.length);
 		for(int i = 0; i < seedsArray.length; i++) {
-			lowConductanceSets.set(i, computeLowConductanceSet(biconnectedCore, seedsArray[i]));
+			lowConductanceSets.add(i, computeLowConductanceSet(biconnectedCore, seedsArray[i]));
 		}
 		return lowConductanceSets;
 	}

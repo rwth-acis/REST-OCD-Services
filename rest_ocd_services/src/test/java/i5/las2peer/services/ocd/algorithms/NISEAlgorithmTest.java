@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+//TODO: GRAPHSTREAM UPGRADE: Check with further graphs, the tests here give every node the same belonging to every community. This is intended but not exhaustive enough
 public class NISEAlgorithmTest {
 
 	@Test
