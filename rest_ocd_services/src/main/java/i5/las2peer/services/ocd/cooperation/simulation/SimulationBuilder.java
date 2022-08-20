@@ -354,7 +354,7 @@ public class SimulationBuilder {
 			int source = edge.getSourceNode().getIndex();
 			int target = edge.getTargetNode().getIndex();
 			if (network.getEdge(agents.get(source), agents.get(target)) == null)
-				network.addEdge(UUID.randomUUID().toString(), agents.get(target), true);
+				network.addEdge(agents.get(source), agents.get(target), true);
 		}
 		return network;
 	}
