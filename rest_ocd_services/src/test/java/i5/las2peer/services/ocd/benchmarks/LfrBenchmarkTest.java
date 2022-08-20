@@ -46,7 +46,7 @@ public class LfrBenchmarkTest {
 		CustomGraph graph = cover.getGraph();
 		assertEquals(1000, graph.getNodeCount());
 		Iterator<Node> nodes = graph.iterator();
-		Node node = nodes.next();
+		Node node;
 		int oneMembershipCount = 0;
 		int twoMembershipsCount = 0;
 		while(nodes.hasNext()) {
