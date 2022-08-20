@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 import org.la4j.inversion.GaussJordanInverter;
@@ -67,7 +68,7 @@ public class CurrentFlowBetweenness implements CentralityAlgorithm {
 		
 		MatrixInverter gauss = new GaussJordanInverter(L);
 		Matrix L_inverse = gauss.inverse();
-		
+
 		// Create matrix C
 		Matrix C = new CCSMatrix(n, n);
 		for(int i = 0; i < n-1; i++) {
@@ -75,24 +76,31 @@ public class CurrentFlowBetweenness implements CentralityAlgorithm {
 				C.set(i+1, j+1, L_inverse.get(i, j));
 			}
 		}
-		
+
 		/*
 		 * Each (undirected) edge must have an arbitrary but fixed orientation, 
 		 * here it points from the node with the smaller index to the one with the higher index.
 		 * The edge in the opposite direction is removed.
 		 */
+		HashSet<Edge> revEdgesToRemove = new HashSet<Edge>();
 		ec = graph.edges().iterator();
 		while(ec.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
 			Edge edge = ec.next();
-			Node s = edge.getSourceNode();
-			Node t = edge.getTargetNode();
-			if(s.getIndex() < t.getIndex()) {
-				Edge reverseEdge = t.getEdgeToward(s);
-				graph.removeEdge(reverseEdge);
+			if(!revEdgesToRemove.contains(edge)) {
+				Node s = edge.getSourceNode();
+				Node t = edge.getTargetNode();
+				if (s.getIndex() < t.getIndex()) {
+					Edge reverseEdge = t.getEdgeToward(s);
+					revEdgesToRemove.add(reverseEdge);
+				}
 			}
+		}
+		Iterator<Edge> ecRem = revEdgesToRemove.iterator();
+		while(ecRem.hasNext()) {
+			graph.removeEdge(ecRem.next());
 		}
 		
 		// Create matrix B
@@ -113,6 +121,7 @@ public class CurrentFlowBetweenness implements CentralityAlgorithm {
 		}
 		Matrix F = B.multiply(C);
 		int normalizationFactor = (n-2)*(n-1);
+
 		Node[] nodeArray = graph.nodes().toArray(Node[]::new);
 		nc = graph.nodes().iterator();
 		
