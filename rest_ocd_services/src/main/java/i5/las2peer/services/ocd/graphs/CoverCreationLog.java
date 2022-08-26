@@ -51,7 +51,7 @@ public class CoverCreationLog {
 	/**
 	 * System generated persistence key.
 	 */
-	public String key;
+	private String key;
 	/**
 	 * Parameters used by the creation method.
 	 */
@@ -129,7 +129,13 @@ public class CoverCreationLog {
 	public long getId() {
 		return id;
 	}
-
+	/**
+	 * Returns the log key.
+	 * @return The key.
+	 */
+	public String getKey() {
+		return key;
+	}
 	/**
 	 * Returns the graph types the corresponding creation method is compatible with.
 	 * @return The graph types.
@@ -173,7 +179,6 @@ public class CoverCreationLog {
 	
 	public static CoverCreationLog load(String key, ArangoDatabase db) {
 		CoverCreationLog ccl = new CoverCreationLog();
-		System.out.println(key);
 		ArangoCollection collection = db.collection(collectionName);
 		
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
@@ -183,8 +188,8 @@ public class CoverCreationLog {
 			int typeId = Integer.parseInt(typeIdString);
 			String statusIdString = bd.getAttribute(statusIdColumnName).toString();
 			int statusId = Integer.parseInt(statusIdString);
-			Object objParam = bd.getAttribute(parameterColumnName);
 			Object objCompatibleGraphTypes = bd.getAttribute(compatibleGraphTypesColumnName);
+			Object objParam = bd.getAttribute(parameterColumnName);
 			
 			ccl.typeId = typeId;
 			ccl.statusId = statusId;
@@ -198,8 +203,8 @@ public class CoverCreationLog {
 		return ccl;
 	}
 	
-	@Override
-	public String toString() {
+
+	public String String() {
 		String n = System.getProperty("line.separator");
 		String ret = "CoverCreationLog: " + n;
 		ret += "Key :         " + this.key +n ;
