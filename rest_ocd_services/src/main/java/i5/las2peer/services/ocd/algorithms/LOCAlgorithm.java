@@ -187,8 +187,6 @@ public class LOCAlgorithm implements OcdAlgorithm{
 							}
 							negativeNodeExist = false;
 							for(Node node : cluster) {
-								System.out.println(node.toString());
-								System.out.println(cluster.toString());
 								if(getNodeFitness(node, cluster, graph) < 0) {
 									//Step 7
 									cluster.remove(node);
@@ -214,8 +212,6 @@ public class LOCAlgorithm implements OcdAlgorithm{
 			}
 			
 		}		
-			
-		System.out.println("Communitys ganz am Ende: " + communitys.toString());
 		Matrix membershipMatrix = getMemberships(communitys, graph);
 		return new Cover(graph, membershipMatrix);
 	}
