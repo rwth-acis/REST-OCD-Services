@@ -49,7 +49,7 @@ public class GraphCreationLog {
 	/**
 	 * System generated persistence key.
 	 */
-	public String key;
+	private String key;
 	/**
 	 * Parameters used by the creation method.
 	 */
@@ -95,7 +95,15 @@ public class GraphCreationLog {
 	public long getId() {
 		return id;
 	}
-
+	
+	/**
+	 * Returns the log key.
+	 * @return The key.
+	 */
+	public String getKey() {
+		return key;
+	}
+	
 	/**
 	 * Returns the type of the corresponding creation method.
 	 * @return The type.
@@ -142,7 +150,6 @@ public class GraphCreationLog {
 	
 	public static GraphCreationLog load(String key, ArangoDatabase db) {	
 		GraphCreationLog gcl = new GraphCreationLog();
-		System.out.println(key);
 		ArangoCollection collection = db.collection(collectionName);
 		
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
@@ -164,9 +171,8 @@ public class GraphCreationLog {
 		}
 		return gcl;
 	}
-	
-	@Override
-	public String toString() {
+
+	public String String() {
 		String n = System.getProperty("line.separator");
 		String ret = "GraphCreationLog: " + n;
 		ret += "Key :			" + this.key + n;
