@@ -1,9 +1,6 @@
-package i5.las2peer.services.ocd.utils;
+package i5.las2peer.services.ocd.graphs;
 
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.GraphCreationLog;
-import i5.las2peer.services.ocd.graphs.GraphCreationType;
-import i5.las2peer.services.ocd.graphs.CoverCreationLog;
+
 
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 
@@ -13,6 +10,9 @@ import com.arangodb.DbName;
 import com.arangodb.ArangoCollection;
 import com.arangodb.mapping.ArangoJack;
 import com.arangodb.entity.BaseDocument;
+import com.arangodb.entity.CollectionType;
+import com.arangodb.model.CollectionCreateOptions;
+import com.arangodb.entity.CollectionEntity;
 
 import java.security.NoSuchAlgorithmException;
 
@@ -33,7 +33,7 @@ public class Database {
 	
 	
 	private ArangoDB arangoDB = new ArangoDB.Builder().host(HOST, PORT).password(PASSWORD).serializer(new ArangoJack()).build();
-	private ArangoDatabase db;
+	public ArangoDatabase db;
 
 	public void createDatabase() {
 		db = arangoDB.db(DBNAME);
@@ -60,6 +60,33 @@ public class Database {
 			collection.create();
 			System.out.println(OcdMetricLog.collectionName + " erstellt");
 		}
+		collection = db.collection(CustomNode.collectionName);
+		if(!collection.exists()) {
+			collection.create();
+			System.out.println(CustomNode.collectionName + " erstellt");
+		}
+		
+		collection = db.collection(CustomEdge.collectionName);
+		if(!collection.exists()) {
+			db.createCollection(CustomEdge.collectionName, new CollectionCreateOptions().type(CollectionType.EDGES));
+			System.out.println(CustomEdge.collectionName + " erstellt");
+		}
+		
+		collection = db.collection(Community.collectionName);
+		if(!collection.exists()) {
+			collection.create();
+			System.out.println(Community.collectionName + " erstellt");
+		}
+		collection = db.collection(Cover.collectionName);
+		if(!collection.exists()) {
+			collection.create();
+			System.out.println(Cover.collectionName + " erstellt");
+		}
+		collection = db.collection(CustomGraph.collectionName);
+		if(!collection.exists()) {
+			collection.create();
+			System.out.println(CustomGraph.collectionName + " erstellt");
+		}
 	}
 	
 	public void deleteDatabase(String name) {
@@ -84,8 +111,22 @@ public class Database {
 		log.persist(db);
 	}
 	public void persistOcdMetricLog(OcdMetricLog log) {
-		String coverKey = "coverKey";
+		String coverKey = "coverKey";	//TODO cover ordentlich einbinden
 		log.persist("cover/"+coverKey, db);
+	}
+	public void persistCustomNode(CustomNode cn) {
+		String graphKey = "graphKey";	//TODO graph ordentlich einbinden
+		cn.persist("graph/"+graphKey, db);
+	}
+	public void persistCommunity(Community c) {
+		c.persist(db);
+	}
+	public void persistCover(Cover cov) {
+		String graphKey = "graphKey";
+		cov.persist(graphKey, db);
+	}
+	public void persistGraph(CustomGraph graph) {
+		graph.persist(db);
 	}
 	
 	//load
@@ -97,10 +138,24 @@ public class Database {
 		CoverCreationLog ccl = CoverCreationLog.load(key,  db);
 		return ccl;
 	}
-	public OcdMetricLog loadOcdMetricLog(String key) {
-		OcdMetricLog oml = OcdMetricLog.load(key,  db);
+	public OcdMetricLog loadOcdMetricLog(String key, Cover cover) {
+		OcdMetricLog oml = OcdMetricLog.load(key, cover, db);
 		return oml;
 	}
-	
+	public CustomNode loadCustomNode(String key, CustomGraph g) {
+		CustomNode cn = CustomNode.load(key, g, db);
+		return cn;
+	}
+	public Community loadCommunity(String key, Cover cover) {
+		Community c = Community.load(key, cover, db);
+		return c;
+	}
+	public Cover loadCover(String key, CustomGraph g) {
+		Cover cov = Cover.load(key, g, db);
+		return cov;
+	}
+	public CustomGraph loadGraph(String key) {
+		return CustomGraph.load(key, db);
+	}
 	
 }
