@@ -10,6 +10,13 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoEdgeCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseEdgeDocument;
+import com.arangodb.entity.CollectionType;
+
+
 import y.base.Edge;
 import y.base.Node;
 
@@ -32,7 +39,9 @@ public class CustomEdge {
 	protected static final String graphIdColumnName = "GRAPH_ID";
 	protected static final String graphUserColumnName = "USER_NAME";
 	private static final String weightColumnName = "WEIGHT";	
-	
+	//ArangoDB
+	public static final String graphKeyColumnName = "GRAPH_KEY";
+	public static final String collectionName = "customedge";
 	/**
 	 * System generated persistence id.
 	 */
@@ -40,6 +49,11 @@ public class CustomEdge {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name = idColumnName)
 	private int id;
+	
+	/**
+	 * System generated persistence key.
+	 */
+	public String key;
 	
 	/**
 	 * The graph that the edge belongs to.
@@ -119,7 +133,15 @@ public class CustomEdge {
 	public int getId() {
 		return id;
 	}
-
+	
+	/**
+	 * Getter for the key.
+	 * @return The key.
+	 */
+	public String getKey() {
+		return this.key;
+	}	
+	
 	/**
 	 * Getter for the edge weight.
 	 * @return The edge weight.
@@ -231,5 +253,50 @@ public class CustomEdge {
 //			eRealizer.addPoint(point.getX(), point.getY());;
 //		}
 		return edge;
+	}
+	
+	
+	//persistence functions
+	public void persist(String graphKey, ArangoDatabase db) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseEdgeDocument bed = new BaseEdgeDocument();
+		bed.addAttribute(weightColumnName, this.weight); //TODO
+		bed.addAttribute(graphKeyColumnName, graphKey);
+		bed.setFrom(CustomNode.collectionName + "/" + this.source.getKey());
+		bed.setTo(CustomNode.collectionName + "/" + this.target.getKey());
+		collection.insertDocument(bed);
+		this.key = bed.getKey();
+	}
+	
+	public static CustomEdge load(BaseEdgeDocument bed, CustomNode source, CustomNode target, CustomGraph graph, ArangoDatabase db) {
+		CustomEdge ce = new CustomEdge();
+		if (bed != null) {
+			ce.key = bed.getKey();
+			ce.graph = graph;
+			if(bed.getAttribute(weightColumnName)!=null) {
+				ce.weight = Double.parseDouble(bed.getAttribute(weightColumnName).toString());
+			}
+			ce.source = source;
+			ce.target = target;
+			//TODO variable cn.Graph muss noch gesetzt werden
+		}	
+		else {
+			System.out.println("leeres dokument");
+		}
+		return ce;
+	}
+	
+	
+	
+	
+	public String String() {
+		String n = System.getProperty("line.separator");
+		String ret = "CustomNode: " + n;
+		ret += "Key :           " + this.key + n;
+		ret += "weight :        " + this.weight;
+		ret += "source Key :    " + this.source.getKey();
+		ret += "target Key :    " + this.target.getKey();
+		
+		return ret;
 	}
 }

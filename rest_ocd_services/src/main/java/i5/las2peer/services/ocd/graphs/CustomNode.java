@@ -1,5 +1,7 @@
 package i5.las2peer.services.ocd.graphs;
 
+import java.util.Map;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -12,6 +14,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import y.base.Node;
 
 /**
@@ -35,6 +43,9 @@ public class CustomNode {
 	protected static final String graphIdColumnName = "GRAPH_ID";
 	protected static final String graphUserColumnName = "USER_NAME";
 	protected static final String nameColumnName = "NAME";
+	
+	public static final String graphKeyColumnName = "GRAPH_KEY";
+	public static final String collectionName = "customnode";
 //	private static final String xColumnName = "X";
 //	private static final String yColumnName = "Y";
 //	private static final String widthColumnName = "WIDTH";
@@ -48,7 +59,11 @@ public class CustomNode {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name = idColumnName)
 	private int id;
-
+	/**
+	 * System generated persistence key.
+	 */
+	public String key;
+	
 	/**
 	 * The graph that the node is part of.
 	 */
@@ -130,6 +145,13 @@ public class CustomNode {
 	 */
 	public int getId() {
 		return this.id;
+	}
+	/**
+	 * Getter for the key.
+	 * @return The key.
+	 */
+	public String getKey() {
+		return this.key;
 	}	
 	
 	/**
@@ -232,6 +254,64 @@ public class CustomNode {
 //		nRealizer.setWidth(this.width);
 //		nRealizer.setFillColor(new Color(this.color));
 		return node;
+	}
+	
+	//persistence functions
+	public void persist(String graphKey, ArangoDatabase db) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(nameColumnName, this.name); //TODO
+		bd.addAttribute(graphKeyColumnName, graphKey);
+		
+		collection.insertDocument(bd);
+		this.key = bd.getKey();
+	}
+	
+	public static CustomNode load(BaseDocument bd, CustomGraph graph) {
+		CustomNode cn = new CustomNode();
+		if (bd != null) {
+			cn.key = bd.getKey();
+			cn.graph = graph;
+			if(bd.getAttribute(nameColumnName)!= null) {
+				cn.name = bd.getAttribute(nameColumnName).toString();
+			}
+			//TODO variable cn.Graph muss noch gesetzt werden
+		}	
+		else {
+			System.out.println("leeres dokument");
+		}
+		return cn;
+	}
+	
+	public static CustomNode load(String key, CustomGraph graph, ArangoDatabase db) {
+		CustomNode cn = new CustomNode();
+		ArangoCollection collection = db.collection(collectionName);
+		
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
+		if (bd != null) {
+			String name = bd.getAttribute(nameColumnName).toString();
+			
+			cn.key = key;
+			cn.graph = graph;
+			if(bd.getAttribute(nameColumnName)!= null) {
+				cn.name = bd.getAttribute(nameColumnName).toString();
+			}
+			//TODO variable cn.Graph muss noch gesetzt werden
+		}	
+		else {
+			System.out.println("leeres dokument");
+		}
+		return cn;
+	}
+	
+	
+	public String String() {
+		String n = System.getProperty("line.separator");
+		String ret = "CustomNode: " + n;
+		ret += "Key :           " + this.key + n;
+		ret += "name :         " + this.name;
+		
+		return ret;
 	}
 	
 }
