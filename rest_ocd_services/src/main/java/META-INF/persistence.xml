@@ -8,7 +8,7 @@ To configure the test environment use the persistence.xml in the META-INF direct
                         http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
     <persistence-unit name="ocd" transaction-type="RESOURCE_LOCAL">
     	<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-		<jar-file>../service/rest_ocd_services.jar</jar-file>
+		<exclude-unlisted-classes>false</exclude-unlisted-classes>
     	<properties>
 	      	<property name="javax.persistence.jdbc.driver"   value="org.hsqldb.jdbcDriver" />
     	  	<property name="javax.persistence.jdbc.url"      value="jdbc:hsqldb:file:ocd/db/db;shutdown=true" />
