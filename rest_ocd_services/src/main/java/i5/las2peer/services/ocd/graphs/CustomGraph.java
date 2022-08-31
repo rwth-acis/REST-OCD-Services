@@ -35,6 +35,14 @@ import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
 import com.arangodb.entity.BaseEdgeDocument;
 import com.arangodb.ArangoCursor;
+import com.arangodb.entity.StreamTransactionEntity;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+import com.arangodb.model.DocumentDeleteOptions;
+import com.arangodb.model.EdgeCreateOptions;
+import com.arangodb.model.AqlQueryOptions;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
@@ -78,7 +86,7 @@ public class CustomGraph extends Graph2D {
 	//ArangoDB 
 	private static final String propertiesColumnName = "PROPERTIES";
 	private static final String coverKeysColumnName = "COVER_KEYS";
-	private static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
+	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
 	private static final String typesColumnName = "TYPES";
 	public static final String collectionName = "graph";
 	
@@ -271,6 +279,7 @@ public class CustomGraph extends Graph2D {
 		this.userName = new String(graph.userName);
 		this.name = new String(graph.name);
 		this.id = graph.id;
+		this.key = graph.key;
 		this.path = graph.path;
 		// this.description = new String(graph.description);
 		// if(graph.lastUpdate != null) {
@@ -1414,16 +1423,36 @@ public class CustomGraph extends Graph2D {
 	}
 
 	//persistence functions
-	public void persist( ArangoDatabase db) {
+	protected CustomNode getCustomNodeByKey(String key) {
+		CustomNode ret = null;
+		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
+		for(CustomNode cn : nodes) {
+			if(key.equals(cn.getKey())) {
+				ret = cn;
+				break;
+			}
+		}
+		if(ret == null) {
+			System.out.println("CustomNode with Key : " + key + "does not exist in this graph.");
+		}
+		return ret;
+	}
+	
+	public void persist( ArangoDatabase db, String transId) {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
+		//options for the transaction
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		DocumentReadOptions readOptions = new DocumentReadOptions().streamTransactionId(transId);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		//EdgeCreateOptions edgeCreateOptions = new EdgeCreateOptions().streamTransactionId(transId);
 		bd.addAttribute(userColumnName, this.userName);
 		bd.addAttribute(pathColumnName, this.path);		//TODO muss gespeichert werden?
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(typesColumnName, this.types);
-		this.creationMethod.persist(db);
+		this.creationMethod.persist(db, createOptions);
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
-		collection.insertDocument(bd);
+		collection.insertDocument(bd, createOptions);
 		this.key = bd.getKey();
 		
 		bd = new BaseDocument();
@@ -1433,7 +1462,7 @@ public class CustomGraph extends Graph2D {
 			Node n = nodes.node();
 			CustomNode node = this.getCustomNode(n);
 			node.update(this, n);  //and updates it
-			node.persist(this.key,  db);
+			node.persist(db, createOptions);
 			nodes.next();
 		}
 		EdgeCursor edges = this.edges();	
@@ -1441,26 +1470,23 @@ public class CustomGraph extends Graph2D {
 			Edge e = edges.edge();
 			CustomEdge edge = this.getCustomEdge(e);
 			edge.update(this, e);	//and updates it
-			
-			edge.persist(this.key, db);
+			edge.persist(db, createOptions);
 			edges.next();
 		}
 		initProperties();
-		bd.addAttribute(propertiesColumnName, this.properties);
-		List<String> coverKeys = new ArrayList<String>();
-		for (Cover cover : this.covers) {
-			cover.persist(this.key,  db);
-			coverKeys.add(cover.getKey());
-		}
-		bd.addAttribute(coverKeysColumnName, coverKeys);
-		collection.updateDocument(this.key, bd);
+		bd.addAttribute(propertiesColumnName, this.properties);	
+		//TODO covers variable speichern?
+		
+		collection.updateDocument(this.key, bd, updateOptions);
 	}
 
-	public static CustomGraph load(String key, ArangoDatabase db) {
+	public static CustomGraph load(String key, ArangoDatabase db, String transId) {
 		CustomGraph graph = new CustomGraph();
-		ArangoCollection collection = db.collection(collectionName);
-		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
-		System.out.println("1");
+		ArangoCollection collection = db.collection(collectionName);	
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
+		
 		if (bd != null) {
 			ObjectMapper om = new ObjectMapper();	
 			graph.key = key;
@@ -1472,14 +1498,13 @@ public class CustomGraph extends Graph2D {
 			Object objProperties = bd.getAttribute(propertiesColumnName);
 			graph.properties = om.convertValue(objProperties, List.class);
 			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
-			graph.creationMethod = GraphCreationLog.load(creationMethodKey, db);
+			graph.creationMethod = GraphCreationLog.load(creationMethodKey, db, readOpt);
 			
 			//nodes werden in customNodes Map eingefügt
 			Map<String, CustomNode> customNodeKeyMap = new HashMap<String, CustomNode>();
-			String query = "FOR node IN " + CustomNode.collectionName + " FILTER node.";
-			query += CustomNode.graphKeyColumnName +" == \"" + key +"\" RETURN node";
-			System.out.println(query);
-			ArangoCursor<BaseDocument> nodeDocuments = db.query(query, BaseDocument.class);
+			String query = "FOR node IN " + CustomNode.collectionName + " FILTER node."
+				+ CustomNode.graphKeyColumnName +" == \"" + key +"\" RETURN node";
+			ArangoCursor<BaseDocument> nodeDocuments = db.query(query, queryOpt, BaseDocument.class);
 			int i=0;
 			while(nodeDocuments.hasNext()) {
 				BaseDocument nodeDocument = nodeDocuments.next();
@@ -1492,8 +1517,7 @@ public class CustomGraph extends Graph2D {
 			//edges werden in customNodes Map eingefügt
 			query = "FOR edge IN " + CustomEdge.collectionName + " FILTER edge.";
 			query += CustomEdge.graphKeyColumnName +" == \"" + key +"\" RETURN edge";
-			System.out.println(query);
-			ArangoCursor<BaseEdgeDocument> edgeDocuments = db.query(query, BaseEdgeDocument.class);
+			ArangoCursor<BaseEdgeDocument> edgeDocuments = db.query(query, queryOpt, BaseEdgeDocument.class);
 			i=0;
 			
 			while(edgeDocuments.hasNext()) {
@@ -1505,16 +1529,25 @@ public class CustomGraph extends Graph2D {
 				i++;
 			}
 			
-			
 			//TODO cover müssen vlt nicht geladen werden
 			graph.postLoad();
 		}	
 		else {
-			System.out.println("leeres dokument");
+			System.out.println("leeres Graph dokument");
 		}
 		return graph;
 	}
 	
+	
+	//TODO funktion verwerfen
+	public void setNodeNames() {
+		Set<Node> nodes = this.nodeIds.keySet();
+		int i = 0;
+		for(Node node : nodes) {
+			i++;
+			this.setNodeName(node,"Node : " +i);
+		}
+	}
 	
 	public String String() {
 		String n = System.getProperty("line.separator");
@@ -1529,8 +1562,7 @@ public class CustomGraph extends Graph2D {
 		else { ret += "no properties" +n;}
 		if(this.creationMethod != null) { ret += "creationMethod :  " + this.creationMethod.String() + n;}
 		else { ret += "no creationMethod" +n;}
-		if(this.covers != null) {ret += "Es gibt : " + this.covers.size() + " cover"+n;}
-		else { ret += "no covers" +n;}
+		ret += "Es gibt : " + this.covers.size() + " cover"+n;
 		return ret;
 	}
 
