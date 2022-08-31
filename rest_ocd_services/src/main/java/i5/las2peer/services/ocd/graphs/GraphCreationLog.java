@@ -16,6 +16,10 @@ import javax.persistence.Id;
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
+import com.arangodb.entity.StreamTransactionEntity;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * A log representation for a graph creation method, i.e. typically a OcdBenchmark execution.
@@ -137,22 +141,22 @@ public class GraphCreationLog {
 	}
 	
 	//persistence functions
-	public void persist(ArangoDatabase db) {
+	public void persist(ArangoDatabase db, DocumentCreateOptions opt) {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
 		bd.addAttribute(typeColumnName, this.typeId);
 		bd.addAttribute(statusIdColumnName, this.statusId);
 		bd.addAttribute(parameterColumnName, this.parameters); //TODO
 		
-		collection.insertDocument(bd);
+		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
 	}
 	
-	public static GraphCreationLog load(String key, ArangoDatabase db) {	
+	public static GraphCreationLog load(String key, ArangoDatabase db, DocumentReadOptions opt) {	
 		GraphCreationLog gcl = new GraphCreationLog();
 		ArangoCollection collection = db.collection(collectionName);
 		
-		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
 		if (bd != null) {
 			ObjectMapper om = new ObjectMapper();
 			String typeIdString = bd.getAttribute(typeColumnName).toString();

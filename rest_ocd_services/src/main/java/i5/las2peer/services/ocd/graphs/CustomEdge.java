@@ -15,6 +15,10 @@ import com.arangodb.ArangoEdgeCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseEdgeDocument;
 import com.arangodb.entity.CollectionType;
+import com.arangodb.entity.StreamTransactionEntity;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.EdgeCreateOptions;
+
 
 
 import y.base.Edge;
@@ -257,14 +261,15 @@ public class CustomEdge {
 	
 	
 	//persistence functions
-	public void persist(String graphKey, ArangoDatabase db) {
+	public void persist(ArangoDatabase db, DocumentCreateOptions opt) {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseEdgeDocument bed = new BaseEdgeDocument();
 		bed.addAttribute(weightColumnName, this.weight); //TODO
-		bed.addAttribute(graphKeyColumnName, graphKey);
+		bed.addAttribute(graphKeyColumnName, this.graph.getKey());
 		bed.setFrom(CustomNode.collectionName + "/" + this.source.getKey());
 		bed.setTo(CustomNode.collectionName + "/" + this.target.getKey());
-		collection.insertDocument(bed);
+		
+		collection.insertDocument(bed, opt);
 		this.key = bed.getKey();
 	}
 	

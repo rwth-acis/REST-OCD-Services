@@ -21,7 +21,17 @@ import javax.persistence.MapKeyJoinColumn;
 import javax.persistence.MapKeyJoinColumns;
 import javax.persistence.PreRemove;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
+import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import y.base.Node;
 
 /**
@@ -47,7 +57,10 @@ public class Community {
 	private static final String membershipMapGraphIdKeyColumnName = "GRAPH_ID";
 	private static final String membershipMapGraphUserKeyColumnName = "USER_NAME";
 	private static final String membershipMapNodeIdKeyColumnName = "CUSTOM_NODE_ID";
-
+	
+	public static final String collectionName = "community";
+	private static final String coverKeyColumnName = "COVER_KEY";
+	private static final String membershipKeyMapColumnName = "MEMBERSHIP_KEYS";
 	/**
 	 * System generated persistence id.
 	 */
@@ -55,7 +68,10 @@ public class Community {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = idColumnName)
 	private long id;
-
+	/**
+	 * System generated persistence key.
+	 */
+	private String key;
 	/**
 	 * The cover that the community is part of.
 	 */
@@ -94,7 +110,7 @@ public class Community {
 			@MapKeyJoinColumn(name = membershipMapNodeIdKeyColumnName, referencedColumnName = CustomNode.idColumnName),
 			@MapKeyJoinColumn(name = membershipMapGraphIdKeyColumnName, referencedColumnName = CustomNode.graphIdColumnName),
 			@MapKeyJoinColumn(name = membershipMapGraphUserKeyColumnName, referencedColumnName = CustomNode.graphUserColumnName) })
-	private Map<CustomNode, Double> memberships = new HashMap<CustomNode, Double>();
+	public Map<CustomNode, Double> memberships = new HashMap<CustomNode, Double>();		//TODO memberships attribut wieder PRIVATE setzen
 
 	/**
 	 * Creates a new instance.
@@ -120,7 +136,13 @@ public class Community {
 	public long getId() {
 		return id;
 	}
-
+	/**
+	 * Getter for key.
+	 * @return The key.
+	 */
+	public String getKey() {
+		return key;
+	}
 	/**
 	 * Getter for name.
 	 * 
@@ -271,5 +293,75 @@ public class Community {
 	public void preRemove() {
 		this.memberships.clear();
 	}
+	
+	//persistence functions
+	public void persist( ArangoDatabase db, DocumentCreateOptions opt) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(nameColumnName, this.name);
+		bd.addAttribute(colorColumnName, this.color);
+		if(this.properties == null) {
+			this.properties = new ArrayList<Double>();	//TODO kann das null bleiben?
+		}
+		bd.addAttribute(propertiesColumnName, this.properties);  
+		bd.addAttribute(coverKeyColumnName, this.cover.getKey());
+		Map<String, Double> membershipKeyMap = new HashMap<String, Double>();
+		for (Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {	
+			membershipKeyMap.put(entry.getKey().getKey(), entry.getValue());	//CustomNode Keys müssen bekannt sein
+		}
+		bd.addAttribute(membershipKeyMapColumnName,  membershipKeyMap);
+		
+		collection.insertDocument(bd, opt);
+		this.key = bd.getKey();
+	}
+	
+	public static Community load(String key, Cover cover, ArangoDatabase db, DocumentReadOptions opt) {
+		Community c = new Community();
+		ArangoCollection collection = db.collection(collectionName);
+		
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
+		if (bd != null) {
+			ObjectMapper om = new ObjectMapper(); 
+			String colorString = bd.getAttribute(colorColumnName).toString();
+			Object objProperties = bd.getAttribute(propertiesColumnName);
+			Object objMembershipKeyMap = bd.getAttribute(membershipKeyMapColumnName);
+			Map<String, Double> membershipKeyMap = om.convertValue(objMembershipKeyMap, Map.class);
+				
+			c.key = key;
+			c.cover = cover;
+			c.name = bd.getAttribute(nameColumnName).toString();
+			c.color = Integer.parseInt(colorString);
+			c.properties = om.convertValue(objProperties, List.class);
+
+			// each customNode is assigned the stored belongingValue
+			for (Map.Entry<String, Double> entry : membershipKeyMap.entrySet()) {
+				String nodeKey = entry.getKey();
+				CustomNode cn = cover.getGraph().getCustomNodeByKey(nodeKey);// null fall abfangen
+				c.memberships.put(cn, entry.getValue());
+			}
+		}	
+		else {
+			System.out.println("leeres Community dokument");
+		}
+		return c;
+	}
+	
+	
+	public String String() {
+		String n = System.getProperty("line.separator");
+		String ret = "Community : " + n;
+		if(this.cover != null) {ret += "cover : existiert" +n;}
+		ret += "Key :           " + this.key + n;
+		ret += "name :          " + this.name + n; 
+		ret += "color value:    " + this.color + n;
+		ret += "properties :    " + this.properties + n;
+		if(this.properties != null) {	
+			for (Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {
+				CustomNode cn = entry.getKey();
+				ret += cn.String() + entry.getValue() +n;
+			}
+		}
+		return ret;
+	}	
 
 }

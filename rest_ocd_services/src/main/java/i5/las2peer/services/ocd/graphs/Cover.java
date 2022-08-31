@@ -31,6 +31,18 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.entity.StreamTransactionEntity;
+import com.arangodb.model.AqlQueryOptions;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentDeleteOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.NullPointerException;
 import y.base.Node;
 import y.base.NodeCursor;
 
@@ -58,7 +70,13 @@ public class Cover {
 	public static final String simCostsColumnName = "SIMILARITYCOSTS";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
-
+	
+	//ArangoDB name definitions
+	public static final String collectionName = "cover";
+	public static final String graphKeyColumnName = "GRAPH_KEY";
+	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
+	public static final String communityKeysColumnName = "COMMUNITY_KEYS";
+	public static final String metricKeysColumnName = "METRIC_KEYS";
 	/*
 	 * Field name definitions for JPQL queries.
 	 */
@@ -75,7 +93,10 @@ public class Cover {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = idColumnName)
 	private long id;
-
+	/**
+	 * System generated persistence key.
+	 */
+	private String key;
 	/**
 	 * The graph that the cover is based on.
 	 */
@@ -178,7 +199,16 @@ public class Cover {
 	public long getId() {
 		return id;
 	}
-
+	
+	/**
+	 * Getter for the key.
+	 * 
+	 * @return The key.
+	 */
+	public String getKey() {
+		return key;
+	}
+	
 	/**
 	 * Getter for the graph that the cover is based on.
 	 * 
@@ -698,6 +728,80 @@ public class Cover {
 		}
 		matrix.setRow(rowIndex, row);
 	}
+	
+	//persistence functions
+	public void persist(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		if(this.graph == null) {
+			throw new NullPointerException("graph attribute of the cover to be persisted does not exist");
+		}
+		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
+		bd.addAttribute(nameColumnName, this.name);
+		bd.addAttribute(simCostsColumnName, this.simCosts);
+		
+		this.creationMethod.persist(db, createOptions);
+		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
+		collection.insertDocument(bd, createOptions);
+		this.key = bd.getKey();
+		bd = new BaseDocument();
+		List<String> communityKeyList = new ArrayList<String>();
+		for(Community c : this.communities) {
+			c.persist(db, createOptions);
+			communityKeyList.add(c.getKey());
+		}
+		
+		bd.addAttribute(communityKeysColumnName, communityKeyList);
+		List<String> metricKeyList = new ArrayList<String>();
+		for(OcdMetricLog oml : this.metrics) {
+			oml.persist(db, createOptions);
+			metricKeyList.add(oml.getKey());
+		}
+		bd.addAttribute(metricKeysColumnName, metricKeyList);
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
+	
+	public static Cover load(String key, CustomGraph g, ArangoDatabase db, DocumentReadOptions readOpt) {
+		
+		Cover cover = new Cover(g);
+		if(cover.graph != null) {System.out.println("das cover besitzt einen graphen");}
+		ArangoCollection collection = db.collection(collectionName);	
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
+		
+		if (bd != null) {
+			ObjectMapper om = new ObjectMapper();	//prepair attributes
+			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+			Object objCommunityKeys = bd.getAttribute(communityKeysColumnName);
+			List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
+			Object objMetricKeys = bd.getAttribute(metricKeysColumnName);
+			List<String> metricKeys = om.convertValue(objMetricKeys, List.class);
+			String simCostString = bd.getAttribute(simCostsColumnName).toString();
+			
+			//restore all attributes
+			cover.key = key;
+			cover.name = bd.getAttribute(nameColumnName).toString();
+			cover.creationMethod = CoverCreationLog.load(creationMethodKey, db, readOpt);
+			for(String communityKey : communityKeys) {
+				Community community = Community.load(communityKey,  cover, db, readOpt);
+				cover.communities.add(community);
+			}
+			for(String metricKey : metricKeys) {
+				OcdMetricLog oml = OcdMetricLog.load(metricKey, cover, db, readOpt);
+				cover.metrics.add(oml);
+			}
+			if(simCostString != null) {
+				cover.simCosts = Double.parseDouble(simCostString);
+			}
+		}	
+		else {
+			System.out.println("empty Cover document");
+		}
+		return cover;
+	}
+	
+	
 
 	@Override
 	public String toString() {
@@ -718,7 +822,7 @@ public class Cover {
 			}
 			coverString += "\n";
 		}
-		coverString += "Membership Matrix\n";
+		coverString += "Membership Matrix\n";	//TODO entkommentieren
 		coverString += getMemberships().toString();
 		return coverString;
 	}

@@ -17,6 +17,9 @@ import javax.persistence.Id;
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * A log representation for a cover creation method, i.e. typically an OcdAlgorithm or OcdBenchmark execution.
@@ -165,7 +168,7 @@ public class CoverCreationLog {
 	}
 	
 	//persistence functions
-	public void persist(ArangoDatabase db) {
+	public void persist(ArangoDatabase db, DocumentCreateOptions opt) {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
 		bd.addAttribute(typeColumnName, this.typeId);
@@ -173,32 +176,34 @@ public class CoverCreationLog {
 		bd.addAttribute(parameterColumnName, this.parameters); //TODO
 		bd.addAttribute(compatibleGraphTypesColumnName, this.compatibleGraphTypes);
 		
-		collection.insertDocument(bd);
+		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
 	}
 	
-	public static CoverCreationLog load(String key, ArangoDatabase db) {
+	public static CoverCreationLog load(String key, ArangoDatabase db, DocumentReadOptions opt) {
 		CoverCreationLog ccl = new CoverCreationLog();
 		ArangoCollection collection = db.collection(collectionName);
 		
-		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
 		if (bd != null) {
 			ObjectMapper om = new ObjectMapper();
 			String typeIdString = bd.getAttribute(typeColumnName).toString();
-			int typeId = Integer.parseInt(typeIdString);
 			String statusIdString = bd.getAttribute(statusIdColumnName).toString();
-			int statusId = Integer.parseInt(statusIdString);
 			Object objCompatibleGraphTypes = bd.getAttribute(compatibleGraphTypesColumnName);
 			Object objParam = bd.getAttribute(parameterColumnName);
 			
-			ccl.typeId = typeId;
-			ccl.statusId = statusId;
-			ccl.key = key;		
-			ccl.compatibleGraphTypes = om.convertValue(objCompatibleGraphTypes, Set.class);
-			ccl.parameters = om.convertValue(objParam, Map.class);	
+			ccl.key = key;	
+			if(objParam != null) {
+				ccl.parameters = om.convertValue(objParam, Map.class);	
+			}
+			ccl.typeId = Integer.parseInt(typeIdString);
+			ccl.statusId = Integer.parseInt(statusIdString);
+			if(objCompatibleGraphTypes != null) {
+				ccl.compatibleGraphTypes = om.convertValue(objCompatibleGraphTypes, Set.class);
+			}
 		}	
 		else {
-			System.out.println("leeres dokument");
+			System.out.println("empty CoverCreationLog document");
 		}
 		return ccl;
 	}

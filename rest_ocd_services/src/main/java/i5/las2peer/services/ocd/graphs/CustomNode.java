@@ -17,6 +17,10 @@ import javax.persistence.UniqueConstraint;
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
+import com.arangodb.entity.StreamTransactionEntity;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
@@ -62,7 +66,7 @@ public class CustomNode {
 	/**
 	 * System generated persistence key.
 	 */
-	public String key;
+	private String key;
 	
 	/**
 	 * The graph that the node is part of.
@@ -257,13 +261,13 @@ public class CustomNode {
 	}
 	
 	//persistence functions
-	public void persist(String graphKey, ArangoDatabase db) {
+	public void persist(ArangoDatabase db, DocumentCreateOptions opt) {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
 		bd.addAttribute(nameColumnName, this.name); //TODO
-		bd.addAttribute(graphKeyColumnName, graphKey);
+		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
 		
-		collection.insertDocument(bd);
+		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
 	}
 	
@@ -283,11 +287,12 @@ public class CustomNode {
 		return cn;
 	}
 	
-	public static CustomNode load(String key, CustomGraph graph, ArangoDatabase db) {
+	//TODO wird die funktion gebraucht?
+	public static CustomNode load(String key, CustomGraph graph, ArangoDatabase db, DocumentReadOptions opt) {
 		CustomNode cn = new CustomNode();
 		ArangoCollection collection = db.collection(collectionName);
 		
-		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
 		if (bd != null) {
 			String name = bd.getAttribute(nameColumnName).toString();
 			
@@ -299,7 +304,7 @@ public class CustomNode {
 			//TODO variable cn.Graph muss noch gesetzt werden
 		}	
 		else {
-			System.out.println("leeres dokument");
+			System.out.println("empty CustomNode document");
 		}
 		return cn;
 	}
@@ -309,7 +314,7 @@ public class CustomNode {
 		String n = System.getProperty("line.separator");
 		String ret = "CustomNode: " + n;
 		ret += "Key :           " + this.key + n;
-		ret += "name :         " + this.name;
+		ret += "name :         " + this.name +n;
 		
 		return ret;
 	}
