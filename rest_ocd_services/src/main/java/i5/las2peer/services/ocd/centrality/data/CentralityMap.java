@@ -22,8 +22,22 @@ import javax.persistence.OneToOne;
 
 import org.w3c.dom.Element;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.entity.StreamTransactionEntity;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import i5.las2peer.services.ocd.graphs.Community;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import y.base.Node;
 import y.base.NodeCursor;
 
@@ -38,7 +52,11 @@ public class CentralityMap {
 	public static final String graphUserColumnName = "USER_NAME";
 	public static final String idColumnName = "ID";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
-	
+	//ArangoDB
+	public static final String collectionName = "centralitymap";
+	private static final String mapColumnName = "MAP";
+	public static final String creationMethodKeyColumnName = "CREATION_METHOD";
+	public static final String graphKeyColumnName = "GRAPH_KEY";
 	/*
 	 * Field name definitions for JPQL queries.
 	 */
@@ -53,6 +71,10 @@ public class CentralityMap {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
 	private long id;
+	/**
+	 * System generated persistence key.
+	 */
+	private String key;
 	/**
 	 * The name of the CentralityMap.
 	 */
@@ -95,6 +117,14 @@ public class CentralityMap {
 	 */
 	public long getId() {
 		return id;
+	}
+	
+	/**
+	 * Getter for the key.
+	 * @return The key.
+	 */
+	public String getKey() {
+		return key;
 	}
 	
 	/**
@@ -237,6 +267,46 @@ public class CentralityMap {
 		}
 	}
 
+	//persistence functions
+	public void persist(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		
+		bd.addAttribute(nameColumnName, this.name);
+		if(this.graph.getKey() == null) {
+			System.out.println("graph is not stored yet");
+		}
+		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
+		this.creationMethod.persist(db, createOptions);
+		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
+		bd.addAttribute(mapColumnName, this.map);
+		collection.insertDocument(bd, createOptions);
+		
+	}
+	
+	public static CentralityMap load(String key, CustomGraph g, ArangoDatabase db, DocumentReadOptions opt) {
+		CentralityMap cm = new CentralityMap(g);
+	
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
+		if (bd != null) {
+			ObjectMapper om = new ObjectMapper();	//prepair attributes
+			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+			Object objMap = bd.getAttribute(mapColumnName);
+			
+			//restore all attributes
+			cm.key = key;
+			cm.name = bd.getAttribute(nameColumnName).toString();
+			cm.creationMethod = CentralityCreationLog.load(creationMethodKey, db, opt);
+			cm.map = om.convertValue(objMap, Map.class);
+		}	
+		else {
+			System.out.println("empty Cover document");
+		}
+		return cm;
+	}
+	
 	@Override
 	public String toString() {
 		String centralityMapString = "Centrality Map: " + getName() + "\n";
