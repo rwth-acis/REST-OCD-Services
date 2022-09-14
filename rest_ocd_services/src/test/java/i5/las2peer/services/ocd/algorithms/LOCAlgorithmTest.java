@@ -2,22 +2,21 @@ package i5.las2peer.services.ocd.algorithms;
 
 import java.io.FileNotFoundException;
 
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
-import java.util.ArrayList;
 
-import java.util.Collections;
 import org.junit.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.Community;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
-import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import y.base.Node;
 
 public class LOCAlgorithmTest {
@@ -48,7 +47,7 @@ public class LOCAlgorithmTest {
 		
 		System.out.println("Test Local Density:");
 		HashMap<Node, Integer> map = loca.getLocalDensityMap(graph);
-		Node bestnode = loca.getMaxValueNodeInt(map);
+		Node bestnode = loca.getMaxValueNode(map);
 		Set<Node> cluster = new HashSet<Node>();
 		System.out.println("Node : " + cluster.toString());
 		cluster.add(bestnode);
@@ -113,23 +112,16 @@ public class LOCAlgorithmTest {
 		graph = new CustomGraph();
 				
 		// Creates nodes
-		Node n[] = new Node[8];	
+		n = new Node[8];	
 		for (int i = 0; i < 8; i++) {
 			n[i] = graph.createNode();	
-		}
-				
+		}	
 		// first community (nodes: 0, 1, 2, 3)
-		graph.createEdge(n[0], n[1]);
-		graph.createEdge(n[1], n[0]);
-		graph.createEdge(n[0], n[3]);
-		graph.createEdge(n[3], n[0]);
-		graph.createEdge(n[1], n[3]);
-		graph.createEdge(n[3], n[1]);
-		graph.createEdge(n[1], n[2]);
-		graph.createEdge(n[2], n[1]);
-		graph.createEdge(n[2], n[3]);
-		graph.createEdge(n[3], n[2]);		
-		
+		e(0,1);
+		e(0,3);
+		e(1,3);
+		e(1,2);
+		e(2,3);		
 		// second community (nodes: 4, 5, 6, 7)
 		for(int i = 4; i < 8; i++) {
 			for (int j = 4; j < 8; j++) {
@@ -139,13 +131,8 @@ public class LOCAlgorithmTest {
 			}
 		}
 		
-		/*
-		 * Connect above two communities, which creates another small community of size 3 (nodes 0, 5, 10)
-		 */
-		graph.createEdge(n[0], n[4]);
-		graph.createEdge(n[4], n[0]);
-		graph.createEdge(n[2], n[4]);
-		graph.createEdge(n[4], n[2]);
+		e(0,4);
+		e(2,4);
 		return graph;
 	}
 	
@@ -205,5 +192,8 @@ public class LOCAlgorithmTest {
 		graph.createEdge(n[a], n[b]);
 		graph.createEdge(n[b], n[a]);
 	}
-
+	
+	private void p(String s) {
+		System.out.println(s);
+	}
 }
