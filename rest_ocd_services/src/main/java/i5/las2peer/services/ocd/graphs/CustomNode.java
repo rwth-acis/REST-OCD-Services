@@ -264,7 +264,7 @@ public class CustomNode {
 	public void persist(ArangoDatabase db, DocumentCreateOptions opt) {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
-		bd.addAttribute(nameColumnName, this.name); //TODO
+		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
 		
 		collection.insertDocument(bd, opt);
@@ -279,7 +279,6 @@ public class CustomNode {
 			if(bd.getAttribute(nameColumnName)!= null) {
 				cn.name = bd.getAttribute(nameColumnName).toString();
 			}
-			//TODO variable cn.Graph muss noch gesetzt werden
 		}	
 		else {
 			System.out.println("leeres dokument");
@@ -301,7 +300,6 @@ public class CustomNode {
 			if(bd.getAttribute(nameColumnName)!= null) {
 				cn.name = bd.getAttribute(nameColumnName).toString();
 			}
-			//TODO variable cn.Graph muss noch gesetzt werden
 		}	
 		else {
 			System.out.println("empty CustomNode document");

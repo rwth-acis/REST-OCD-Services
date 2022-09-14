@@ -88,7 +88,7 @@ public class CustomGraph extends Graph2D {
 	private static final String coverKeysColumnName = "COVER_KEYS";
 	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
 	private static final String typesColumnName = "TYPES";
-	public static final String collectionName = "graph";
+	public static final String collectionName = "customgraph";
 	
 	/*
 	 * Field name definitions for JPQL queries.
@@ -208,7 +208,7 @@ public class CustomGraph extends Graph2D {
 	 * Mapping from custom nodes to nodes.
 	 */
 	@Transient
-	public Map<CustomNode, Node> reverseNodeMap = new HashMap<CustomNode, Node>(); //TODO attribut PRIVATE machen
+	private Map<CustomNode, Node> reverseNodeMap = new HashMap<CustomNode, Node>(); 
 	/*
 	 * Used for assigning runtime edge indices.
 	 */
@@ -1443,13 +1443,13 @@ public class CustomGraph extends Graph2D {
 		BaseDocument bd = new BaseDocument();
 		//options for the transaction
 		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
-		DocumentReadOptions readOptions = new DocumentReadOptions().streamTransactionId(transId);
 		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
 		//EdgeCreateOptions edgeCreateOptions = new EdgeCreateOptions().streamTransactionId(transId);
 		bd.addAttribute(userColumnName, this.userName);
 		bd.addAttribute(pathColumnName, this.path);		//TODO muss gespeichert werden?
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(typesColumnName, this.types);
+		bd.addAttribute(idColumnName,  this.id); 	//TODO nötig?
 		this.creationMethod.persist(db, createOptions);
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		collection.insertDocument(bd, createOptions);
@@ -1489,6 +1489,10 @@ public class CustomGraph extends Graph2D {
 		
 		if (bd != null) {
 			ObjectMapper om = new ObjectMapper();	
+			Object objId = bd.getAttribute(idColumnName);
+			if(objId!= null) {
+				graph.id = Long.parseLong(objId.toString());
+			}
 			graph.key = key;
 			graph.userName = bd.getAttribute(userColumnName).toString();
 			graph.path = bd.getAttribute(pathColumnName).toString();

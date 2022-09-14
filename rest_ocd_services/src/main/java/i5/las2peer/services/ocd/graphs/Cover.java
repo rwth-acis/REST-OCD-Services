@@ -766,7 +766,6 @@ public class Cover {
 	public static Cover load(String key, CustomGraph g, ArangoDatabase db, DocumentReadOptions readOpt) {
 		
 		Cover cover = new Cover(g);
-		if(cover.graph != null) {System.out.println("das cover besitzt einen graphen");}
 		ArangoCollection collection = db.collection(collectionName);	
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
 		
@@ -777,7 +776,7 @@ public class Cover {
 			List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
 			Object objMetricKeys = bd.getAttribute(metricKeysColumnName);
 			List<String> metricKeys = om.convertValue(objMetricKeys, List.class);
-			String simCostString = bd.getAttribute(simCostsColumnName).toString();
+			Object objSimCost = bd.getAttribute(simCostsColumnName);
 			
 			//restore all attributes
 			cover.key = key;
@@ -791,8 +790,8 @@ public class Cover {
 				OcdMetricLog oml = OcdMetricLog.load(metricKey, cover, db, readOpt);
 				cover.metrics.add(oml);
 			}
-			if(simCostString != null) {
-				cover.simCosts = Double.parseDouble(simCostString);
+			if(objSimCost != null) {
+				cover.simCosts = Double.parseDouble(objSimCost.toString());
 			}
 		}	
 		else {

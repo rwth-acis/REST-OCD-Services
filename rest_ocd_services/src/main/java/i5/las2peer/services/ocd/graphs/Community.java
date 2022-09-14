@@ -110,7 +110,7 @@ public class Community {
 			@MapKeyJoinColumn(name = membershipMapNodeIdKeyColumnName, referencedColumnName = CustomNode.idColumnName),
 			@MapKeyJoinColumn(name = membershipMapGraphIdKeyColumnName, referencedColumnName = CustomNode.graphIdColumnName),
 			@MapKeyJoinColumn(name = membershipMapGraphUserKeyColumnName, referencedColumnName = CustomNode.graphUserColumnName) })
-	public Map<CustomNode, Double> memberships = new HashMap<CustomNode, Double>();		//TODO memberships attribut wieder PRIVATE setzen
+	private Map<CustomNode, Double> memberships = new HashMap<CustomNode, Double>();		
 
 	/**
 	 * Creates a new instance.
@@ -306,11 +306,11 @@ public class Community {
 		bd.addAttribute(propertiesColumnName, this.properties);  
 		bd.addAttribute(coverKeyColumnName, this.cover.getKey());
 		Map<String, Double> membershipKeyMap = new HashMap<String, Double>();
+		
 		for (Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {	
 			membershipKeyMap.put(entry.getKey().getKey(), entry.getValue());	//CustomNode Keys müssen bekannt sein
 		}
 		bd.addAttribute(membershipKeyMapColumnName,  membershipKeyMap);
-		
 		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
 	}
@@ -341,7 +341,7 @@ public class Community {
 			}
 		}	
 		else {
-			System.out.println("leeres Community dokument");
+			System.out.println("empty Community document");
 		}
 		return c;
 	}
@@ -355,7 +355,7 @@ public class Community {
 		ret += "name :          " + this.name + n; 
 		ret += "color value:    " + this.color + n;
 		ret += "properties :    " + this.properties + n;
-		if(this.properties != null) {	
+		if(this.memberships != null) {	
 			for (Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {
 				CustomNode cn = entry.getKey();
 				ret += cn.String() + entry.getValue() +n;

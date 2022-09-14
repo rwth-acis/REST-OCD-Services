@@ -34,7 +34,7 @@ public class GraphCreationLog {
 	 */
 	private static final String idColumnName = "ID";
 	private static final String typeColumnName = "TYPE";
-	private static final String statusIdColumnName = "STATUS";
+	public static final String statusIdColumnName = "STATUS";
 	
 	private static final String parameterColumnName = "PARAMETER";
 	public static final String collectionName = "graphcreationlog";
@@ -146,7 +146,7 @@ public class GraphCreationLog {
 		BaseDocument bd = new BaseDocument();
 		bd.addAttribute(typeColumnName, this.typeId);
 		bd.addAttribute(statusIdColumnName, this.statusId);
-		bd.addAttribute(parameterColumnName, this.parameters); //TODO
+		bd.addAttribute(parameterColumnName, this.parameters); 
 		
 		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
