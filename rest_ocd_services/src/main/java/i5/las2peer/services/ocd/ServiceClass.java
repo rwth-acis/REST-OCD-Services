@@ -109,6 +109,7 @@ import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.InvocationHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
+import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.viewer.LayoutHandler;
 import i5.las2peer.services.ocd.viewer.ViewerRequestHandler;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayoutType;
@@ -157,7 +158,7 @@ public class ServiceClass extends RESTService {
 		setFieldValues();
 
 		// instantiate inactivityHandler to regularly remove content of inactive users.
-		inactivityHandler = new InactivityHandler(entityHandler, threadHandler, this);
+		inactivityHandler = new InactivityHandler(entityHandler, threadHandler, this);	//TODO inactivity handler muss von datenbank abh�ngen
 	}
 
 	///////////////////////////////////////////////////////////
@@ -182,6 +183,11 @@ public class ServiceClass extends RESTService {
 	 * The entity handler used for access stored entities.
 	 */
 	private final static SimulationEntityHandler entityHandler = new SimulationEntityHandler();
+
+	/**
+	 * The Database used for access entities stored with ArangoDB.
+	 */
+	private final static Database database = new Database();
 
 	/**
 	 * The factory used for creating benchmarks.
@@ -494,7 +500,7 @@ public class ServiceClass extends RESTService {
 					}
 				}
 				try {
-					entityHandler.storeGraph(graph);
+					entityHandler.storeGraph(graph);	//TODO already done
 				} catch (Exception e) {
 					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
 				}
@@ -691,7 +697,7 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
 				}
-				queryResults = entityHandler.getGraphs(username, firstIndex, length, executionStatusIds);
+				queryResults = entityHandler.getGraphs(username, firstIndex, length, executionStatusIds); //TODO done
 
 				String responseStr;
 				if (includeMeta) {
@@ -723,8 +729,8 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"export"}, value = "Export Graph", notes = "Returns a graph in a specified output format.")
 		public Response getGraph(@DefaultValue("GRAPH_ML") @QueryParam("outputFormat") String graphOutputFormatStr,
 				@PathParam("graphId") String graphIdStr) {
+			long graphId;
 			try {
-				long graphId;
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				GraphOutputFormat format;
 				try {
@@ -741,7 +747,7 @@ public class ServiceClass extends RESTService {
 							"Specified graph output format does not exist.");
 				}
 
-				CustomGraph graph = entityHandler.getGraph(username, graphId);
+				CustomGraph graph = entityHandler.getGraph(username, graphId); //TODO schon gemacht
 				if (graph == null)
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Graph does not exist: graph id " + graphId);
@@ -759,10 +765,10 @@ public class ServiceClass extends RESTService {
 		 * If a benchmark is currently calculating the graph the execution is
 		 * terminated. If an algorithm is currently calculating a cover based on
 		 * the graph it is terminated. If a metric is currently running on a
-		 * cover based on the grap it is terminated.
+		 * cover based on the graph it is terminated.
 		 * 
 		 * @param graphIdStr
-		 *            The graph id.
+		 *            The graph key.
 		 * @return A confirmation xml. Or an error xml.
 		 */
 		@DELETE
@@ -887,7 +893,7 @@ public class ServiceClass extends RESTService {
 					cover.setCreationMethod(log);
 					cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
 					tx.begin();
-					em.persist(cover);
+					em.persist(cover);		//TODO
 					tx.commit();
 				} catch (RuntimeException e) {
 					if (tx != null && tx.isActive()) {
@@ -993,7 +999,7 @@ public class ServiceClass extends RESTService {
 								"Specified metric execution status does not exist.");
 					}
 				}
-				List<Cover> queryResults;
+				List<Cover> queryResults;	//TODO
 				EntityManager em = entityHandler.getEntityManager();
 				/*
 				 * Query
@@ -1105,7 +1111,7 @@ public class ServiceClass extends RESTService {
 
 				Cover cover = null;
 				try {
-					cover = entityHandler.getCover(username, graphId, coverId);
+					cover = entityHandler.getCover(username, graphId, coverId);	//TODO
 					
 					// Paint cover if not yet done when requested type is default XML
 					if(format == CoverOutputFormat.DEFAULT_XML && !cover.isPainted()) { 
@@ -1165,7 +1171,7 @@ public class ServiceClass extends RESTService {
 				}
 
 				try {
-					entityHandler.deleteCover(username, graphId, coverId, threadHandler);
+					entityHandler.deleteCover(username, graphId, coverId, threadHandler);	//TODO
 					return Response.ok(requestHandler.writeConfirmationXml()).build();
 				} catch (IllegalArgumentException e) {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, e.getMessage());
@@ -1314,7 +1320,7 @@ public class ServiceClass extends RESTService {
 						log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
 						cover.setCreationMethod(log);
 						cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
-						em.persist(cover);
+						em.persist(cover);		//TODO
 						tx.commit();
 					} catch (RuntimeException e) {
 						if (tx != null && tx.isActive()) {
@@ -1398,7 +1404,7 @@ public class ServiceClass extends RESTService {
 				try {
 					CustomGraph graph;
 					try {
-						graph = entityHandler.getGraph(username, graphId);
+						graph = entityHandler.getGraph(username, graphId);	//TODO
 					} catch (Exception e) {
 						requestHandler.log(Level.WARNING,
 								"user: " + username + ", " + "Graph does not exist: graph id " + graphId);
@@ -1415,7 +1421,7 @@ public class ServiceClass extends RESTService {
 					map.setCreationMethod(log);
 					map.setName(nameStr);
 					tx.begin();
-					em.persist(map);
+					em.persist(map);	//TODO
 					tx.commit();
 				} catch (RuntimeException e) {
 					if (tx != null && tx.isActive()) {
@@ -1500,7 +1506,7 @@ public class ServiceClass extends RESTService {
 						executionStatusIds.add(executionStatus.getId());
 					}
 				}
-				List<CentralityMap> queryResults;
+				List<CentralityMap> queryResults;	//TODO
 				EntityManager em = entityHandler.getEntityManager();
 				/*
 				 * Query
@@ -1659,7 +1665,7 @@ public class ServiceClass extends RESTService {
 				    	map.setName(centralityMeasureType.getDisplayName());
 				    	log = new CentralityCreationLog(centralityMeasureType, CentralityCreationType.CENTRALITY_MEASURE, parametersCopy, algorithm.compatibleGraphTypes());
 				    	map.setCreationMethod(log);
-				    	em.persist(map);
+				    	em.persist(map);	//TODO
 						tx.commit();
 			    	}
 			    	catch( RuntimeException e ) {
@@ -1809,7 +1815,7 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Centrality map id is not valid.");
 	    		}
 	    		
-		    	entityHandler.deleteCentralityMap(username, graphId, mapId, threadHandler);
+		    	entityHandler.deleteCentralityMap(username, graphId, mapId, threadHandler);	//TODO
 		    	return Response.ok(requestHandler.writeConfirmationXml()).build();
 	    	}
 	    	catch (Exception e) {
@@ -1975,7 +1981,7 @@ public class ServiceClass extends RESTService {
 				    	map.setName(simulationType.getDisplayName());
 				    	log = new CentralityCreationLog(simulationType, CentralityCreationType.SIMULATION, parametersCopy, simulation.compatibleGraphTypes());
 				    	map.setCreationMethod(log);
-				    	em.persist(map);
+				    	em.persist(map);	//TODO ?
 						tx.commit();
 			    	}
 			    	catch( RuntimeException e ) {
@@ -2101,7 +2107,7 @@ public class ServiceClass extends RESTService {
 						log = new CentralityCreationLog(CentralityMeasureType.UNDEFINED, CentralityCreationType.AVERAGE, parameters, new HashSet<GraphType>(Arrays.asList(GraphType.values())));
 						averageMap.setCreationMethod(log);
 						averageMap.setName(averageMapName);
-						em.persist(averageMap);
+						em.persist(averageMap);	//TODO ?
 						tx.commit();
 					}
 			    	catch( RuntimeException e ) {
@@ -2415,7 +2421,7 @@ public class ServiceClass extends RESTService {
 	    			EntityTransaction tx = em.getTransaction();
 	    			try {
 	    				tx.begin();
-	    				em.persist(graph);
+	    				em.persist(graph);//TODO
 	    				em.persist(cover);
 	    				tx.commit();
 	    			} catch (RuntimeException e) {
@@ -2837,7 +2843,7 @@ public class ServiceClass extends RESTService {
 	    			try {
 	    				tx.begin();
 	    				log.getCover().removeMetric(log);
-	    				em.remove(log);
+	    				em.remove(log);		//TODO
 	    				tx.commit();
 	    			} catch (RuntimeException e) {
 	    				if (tx != null && tx.isActive()) {
@@ -2986,7 +2992,7 @@ public class ServiceClass extends RESTService {
 		    	EntityTransaction tx = em.getTransaction();
 		    	try {		
 			    	tx.begin();			    	
-			    	em.merge(cover);		    		
+			    	em.merge(cover);	//TODO ?	    		
 			    	tx.commit();
 		    	} catch (RuntimeException e) {
 					if (tx != null && tx.isActive()) {
@@ -4240,7 +4246,7 @@ public class ServiceClass extends RESTService {
 			String username = getUserName();
 	
 			long graphId = parameters.getGraphId();
-			CustomGraph network = entityHandler.getGraph(username, graphId);
+			CustomGraph network = entityHandler.getGraph(username, graphId);	//TODO
 			if (network == null)
 				return Response.status(Status.BAD_REQUEST).entity("graph not found").build();
 	

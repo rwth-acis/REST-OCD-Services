@@ -86,7 +86,6 @@ public class EntityHandler {
 	 * @return persistence id of the stored graph
 	 */
 	public long storeGraph(CustomGraph graph) {
-
 		EntityManager em = getEntityManager();
 		EntityTransaction tx = em.getTransaction();
 		try {
@@ -115,7 +114,6 @@ public class EntityHandler {
 	 *         not exist
 	 */
 	public CustomGraph getGraph(String username, long graphId) {
-
 		CustomGraphId identity = new CustomGraphId(graphId, username);
 		CustomGraph graph = null;
 		EntityManager em = getEntityManager();
@@ -150,8 +148,7 @@ public class EntityHandler {
 	 * 			  the threadhandler
 	 * @throws Exception if cover deletion failed
 	 */
-	public void deleteGraph(String username, long graphId, ThreadHandler threadHandler) throws Exception {
-
+	public void deleteGraph(String username, long graphId, ThreadHandler threadHandler) throws Exception {	//TODO
 		EntityManager em = getEntityManager();
 		CustomGraphId id = new CustomGraphId(graphId, username);
 
@@ -215,8 +212,7 @@ public class EntityHandler {
 	 * @return graph list
 	 * @throws AgentNotRegisteredException if the agent was not registered
 	 */
-	public List<CustomGraph> getGraphs(String username) throws AgentNotRegisteredException {
-
+	public List<CustomGraph> getGraphs(String username) throws AgentNotRegisteredException {	//TODO
 		List<CustomGraph> queryResults;
 		EntityManager em = getEntityManager();
 		String queryStr = "SELECT g FROM " + CustomGraph.class.getName() + " g WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username";
@@ -242,7 +238,6 @@ public class EntityHandler {
 	 * @return the list of graphs
 	 */
 	public List<CustomGraph> getGraphs(String username, int firstIndex, int length, List<Integer> executionStatusIds) {
-
 		List<CustomGraph> queryResults;
 		EntityManager em = getEntityManager();
 		String queryStr = "SELECT g FROM " + CustomGraph.class.getName() + " g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
@@ -272,7 +267,7 @@ public class EntityHandler {
 	 *            id of the graph
 	 * @return the found Cover instance or null if the Cover does not exist
 	 */
-	public Cover getCover(String username, long graphId, long coverId) {
+	public Cover getCover(String username, long graphId, long coverId) {		//TODO
 
 		EntityManager em = getEntityManager();
 		CustomGraphId gId = new CustomGraphId(graphId, username);
@@ -316,7 +311,7 @@ public class EntityHandler {
 	 * @throws Exception
 	 * 			   if cover deletion failed
 	 */
-	public void deleteCover(String username, long graphId, long coverId, ThreadHandler threadHandler) throws Exception {
+	public void deleteCover(String username, long graphId, long coverId, ThreadHandler threadHandler) throws Exception {	//TODO
 
 		Cover cover = getCover(username, graphId, coverId);
 		if (cover == null)
@@ -341,7 +336,7 @@ public class EntityHandler {
 	 * @param threadHandler
 	 * 			  the threadhandler
 	 */
-	public void deleteCover(String username, Cover cover, ThreadHandler threadHandler) {
+	public void deleteCover(String username, Cover cover, ThreadHandler threadHandler) {		//TODO
 
 		synchronized (threadHandler) {
 
@@ -371,7 +366,7 @@ public class EntityHandler {
 	 * @param username      Username to remove from the table.
 	 * @param threadHandler the ThreadHandler.
 	 */
-	public void deleteUserInactivityData(String username, ThreadHandler threadHandler) {
+	public void deleteUserInactivityData(String username, ThreadHandler threadHandler) {	//TODO ?
 
 		synchronized (threadHandler) {
 			EntityManager em = getEntityManager();
@@ -408,7 +403,7 @@ public class EntityHandler {
 	 *            id of the graph
 	 * @return cover list
 	 */
-	public List<Cover> getCovers(String username, long graphId) {
+	public List<Cover> getCovers(String username, long graphId) {		//TODO
 
 		EntityManager em = getEntityManager();
 		String queryStr = "SELECT c from Cover c" + " JOIN c." + Cover.GRAPH_FIELD_NAME + " g" + " WHERE g."
@@ -438,7 +433,7 @@ public class EntityHandler {
 	 * @return a cover list
 	 */
 	public List<Cover> getCovers(String username, long graphId, List<Integer> executionStatusIds,
-			List<Integer> metricExecutionStatusIds, int firstIndex, int length, boolean includeMeta) {
+			List<Integer> metricExecutionStatusIds, int firstIndex, int length, boolean includeMeta) {	//TODO
 
 		EntityManager em = getEntityManager();
 
@@ -484,7 +479,7 @@ public class EntityHandler {
 	 *            Id the of CentralityMap
 	 * @return The found CentralityMap instance or null if the CentralityMap does not exist
 	 */
-	public CentralityMap getCentralityMap(String username, long graphId, long mapId) {
+	public CentralityMap getCentralityMap(String username, long graphId, long mapId) {		//TODO
 		
 		EntityManager em = getEntityManager();
     	CustomGraphId gId = new CustomGraphId(graphId, username);
@@ -525,7 +520,7 @@ public class EntityHandler {
 	 *            The ThreadHandler for algorithm execution
 	 * @throws IllegalArgumentException if the centrality map was not found
 	 */
-	public void deleteCentralityMap(String username, long graphId, long mapId, ThreadHandler threadHandler) {
+	public void deleteCentralityMap(String username, long graphId, long mapId, ThreadHandler threadHandler) {	//TODO
 		CentralityMap map = getCentralityMap(username, graphId, mapId);		
 		if (map == null)
 			throw new IllegalArgumentException("Centrality map not found");
@@ -543,7 +538,7 @@ public class EntityHandler {
 	 * @param threadHandler
 	 *            The ThreadHandler for algorithm execution
 	 */
-	public void deleteCentralityMap(String username, CentralityMap map, ThreadHandler threadHandler) {
+	public void deleteCentralityMap(String username, CentralityMap map, ThreadHandler threadHandler) {	//TODO
 		synchronized (threadHandler) {
 			threadHandler.interruptAll(map);
 			EntityManager em = getEntityManager();
@@ -573,7 +568,7 @@ public class EntityHandler {
 	 *            Id of the graph
 	 * @return A list of the corresponding centrality maps
 	 */
-	public List<CentralityMap> getCentralityMaps(String username, long graphId) {
+	public List<CentralityMap> getCentralityMaps(String username, long graphId) {		//TODO
 
 		EntityManager em = getEntityManager();
 		String queryStr = "SELECT c from CentralityMap c" + " JOIN c." + CentralityMap.GRAPH_FIELD_NAME + " g" + " WHERE g."
@@ -584,4 +579,5 @@ public class EntityHandler {
 
 		return query.getResultList();
 	}
+
 }
