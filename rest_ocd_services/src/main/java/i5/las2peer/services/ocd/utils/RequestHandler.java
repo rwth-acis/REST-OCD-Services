@@ -717,7 +717,7 @@ public class RequestHandler {
 	protected Node getIdElt(CustomGraph graph, Document doc) {
 		Element graphElt = doc.createElement("Graph");
 		Element graphIdElt = doc.createElement("Id");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(graph.getId())));		//TODO
+		graphIdElt.appendChild(doc.createTextNode(graph.getKey()));		//TODO
 		graphElt.appendChild(graphIdElt);
 		return graphElt;
 	}
