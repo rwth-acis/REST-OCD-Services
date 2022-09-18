@@ -8,6 +8,8 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.HashMap;
 
+import i5.las2peer.services.ocd.utils.DatabaseConfig;
+import i5.las2peer.services.ocd.utils.Database;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.xml.parsers.ParserConfigurationException;
@@ -55,9 +57,13 @@ public class ServiceTest {
 	private static final String testServiceClass = "i5.las2peer.services.ocd.ServiceClass";
 	private static final String mainPath = "ocd/";
 	private static long SawmillGraphId;
+	private static String SawmillGraphKey;
 	private static long DolphinsGraphId;
+	private static String DolphinsGraphKey;
 	private static long AperiodicTwoCommunitiesGraphId;
-
+	private static String AperiodicTwoCommunitiesGraphKey;
+	
+	private static Database database;
 	private static RequestHandler requestHandler = new RequestHandler();
 	private static EntityHandler entityHandler = new EntityHandler();
 
@@ -121,15 +127,19 @@ public class ServiceTest {
 		/*
 		 * Set db content
 		 */
+		DatabaseConfig.setConfigFile(true);
+		database = new Database();
+		database.deleteDatabase();
+		database.init();
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		createGraph(graph);
-		AperiodicTwoCommunitiesGraphId = graph.getId();
+		AperiodicTwoCommunitiesGraphKey = graph.getKey();
 		graph = OcdTestGraphFactory.getDolphinsGraph();
 		createGraph(graph);
-		DolphinsGraphId = graph.getId();
+		DolphinsGraphKey = graph.getKey();
 		graph = OcdTestGraphFactory.getSawmillGraph();
 		createGraph(graph);
-		SawmillGraphId = graph.getId();
+		SawmillGraphKey = graph.getKey();
 	}
 
 
@@ -144,20 +154,7 @@ public class ServiceTest {
 	public static void createGraph(CustomGraph graph)
 			throws AdapterException, FileNotFoundException, ParserConfigurationException {
 		graph.setUserName(testAgent.getLoginName());
-		EntityManager em = entityHandler.getEntityManager();
-		EntityTransaction tx = em.getTransaction();
-		try {
-			tx.begin();
-			em.persist(graph);
-			em.flush();
-			tx.commit();
-		} catch (RuntimeException e) {
-			if (tx != null && tx.isActive()) {
-				tx.rollback();
-			}
-			throw e;
-		}
-		em.close();
+		database.storeGraph(graph);
 		System.out.println(requestHandler.writeId(graph));
 	}
 	
@@ -199,7 +196,9 @@ public class ServiceTest {
 	 */
 	@AfterClass
 	public static void shutDownServer() throws Exception {
-
+		database.deleteGraph(AperiodicTwoCommunitiesGraphKey);
+		database.deleteGraph(DolphinsGraphKey);
+		database.deleteGraph(SawmillGraphKey);
 		connector.stop();
 		node.shutDown();
 
@@ -247,16 +246,16 @@ public class ServiceTest {
 			c.setLogin(testAgent.getIdentifier(), testPass);
 
 			ClientResponse result = c.sendRequest("GET",
-					mainPath + "graphs/" + SawmillGraphId + "?outputFormat=META_XML", "");
+					mainPath + "graphs/" + SawmillGraphKey + "?outputFormat=META_XML", "");
 			System.out.println("Result of 'testGetGraphs' on Sawmill: " + result.getResponse().trim());
 			assertEquals(200, result.getHttpCode());
 
-			result = c.sendRequest("GET", mainPath + "graphs/" + DolphinsGraphId + "?outputFormat=META_XML", "");
+			result = c.sendRequest("GET", mainPath + "graphs/" + DolphinsGraphKey + "?outputFormat=META_XML", "");
 			System.out.println("Result of 'testGetGraphs' on Dolphins: " + result.getResponse().trim());
 			assertEquals(200, result.getHttpCode());
 
 			result = c.sendRequest("GET",
-					mainPath + "graphs/" + AperiodicTwoCommunitiesGraphId + "?outputFormat=META_XML", "");
+					mainPath + "graphs/" + AperiodicTwoCommunitiesGraphKey + "?outputFormat=META_XML", "");
 			System.out.println("Result of 'testGetGraphs' on AperiodicTwoCommunities: " + result.getResponse().trim());
 			assertEquals(200, result.getHttpCode());
 		} catch (Exception e) {
@@ -271,10 +270,10 @@ public class ServiceTest {
 		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
 		try {
 			c.setLogin(testAgent.getIdentifier(), testPass);
-
 			ClientResponse result = c.sendRequest("GET",
-					mainPath + "graphs/" + DolphinsGraphId + "?outputFormat=PROPERTIES_XML", "");
+					mainPath + "graphs/" + DolphinsGraphKey + "?outputFormat=PROPERTIES_XML", "");		//TODO changes
 			System.out.println("Result of 'testGetGraphs' on Dolphins: " + result.getResponse().trim());
+			
 			assertEquals(200, result.getHttpCode());
 
 		} catch (Exception e) {
