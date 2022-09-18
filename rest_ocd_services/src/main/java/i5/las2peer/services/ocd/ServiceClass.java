@@ -109,7 +109,6 @@ import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.InvocationHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
-import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.viewer.LayoutHandler;
 import i5.las2peer.services.ocd.viewer.ViewerRequestHandler;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayoutType;
@@ -156,7 +155,6 @@ public class ServiceClass extends RESTService {
 	public ServiceClass() {
 
 		setFieldValues();
-
 		// instantiate inactivityHandler to regularly remove content of inactive users.
 		inactivityHandler = new InactivityHandler(entityHandler, threadHandler, this);	//TODO inactivity handler muss von datenbank abh�ngen
 	}
@@ -182,12 +180,8 @@ public class ServiceClass extends RESTService {
 	/**
 	 * The entity handler used for access stored entities.
 	 */
-	private final static SimulationEntityHandler entityHandler = new SimulationEntityHandler();
-
-	/**
-	 * The Database used for access entities stored with ArangoDB.
-	 */
 	private final static Database database = new Database();
+	private final static SimulationEntityHandler entityHandler = new SimulationEntityHandler();
 
 	/**
 	 * The factory used for creating benchmarks.
@@ -729,16 +723,10 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"export"}, value = "Export Graph", notes = "Returns a graph in a specified output format.")
 		public Response getGraph(@DefaultValue("GRAPH_ML") @QueryParam("outputFormat") String graphOutputFormatStr,
 				@PathParam("graphId") String graphIdStr) {
-			long graphId;
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				System.out.println("username :" + username);
 				GraphOutputFormat format;
-				try {
-					graphId = Long.parseLong(graphIdStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-				}
 				try {
 					format = GraphOutputFormat.valueOf(graphOutputFormatStr);
 				} catch (Exception e) {
@@ -746,11 +734,11 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Specified graph output format does not exist.");
 				}
-
-				CustomGraph graph = entityHandler.getGraph(username, graphId); //TODO schon gemacht
+				
+				CustomGraph graph = database.getGraph(username, graphIdStr); //TODO changes
 				if (graph == null)
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Graph does not exist: graph id " + graphId);
+							"Graph does not exist: graph key " + graphIdStr);	//TODO changes
 
 				return Response.ok(requestHandler.writeGraph(graph, format)).build();
 			} catch (Exception e) {
