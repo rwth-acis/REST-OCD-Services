@@ -6,13 +6,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Iterator;
 
-
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
-
 import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueSearch;
-
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
@@ -397,7 +394,6 @@ public class LOCAlgorithm implements OcdAlgorithm{
 	 * @return 					The membership matrix
 	 */
 	
-	//	at throws InterruptedException if the thread was interrupted
 	public Matrix getMemberships(Set<Set<Node>> communitys, CustomGraph graph) {
 		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communitys.size());
 		int i = 0;
@@ -446,12 +442,12 @@ public class LOCAlgorithm implements OcdAlgorithm{
 	}
 	
 	//Bibliothek sollte das tun
-		private Basic2DMatrix identity(int size) {
-			double[][] array = new double[size][size];
-	        for (int i = 0; i < size; i++) {
-	            array[i][i] = 1;
-	        }
-	        return new Basic2DMatrix(array);
-	    }
+	private Basic2DMatrix identity(int size) {
+		double[][] array = new double[size][size];
+        for (int i = 0; i < size; i++) {
+            array[i][i] = 1;
+        }
+        return new Basic2DMatrix(array);
+    }
 	
 }
