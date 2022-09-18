@@ -64,7 +64,7 @@ public class Cover {
 	 */
 	public static final String graphIdColumnName = "GRAPH_ID";
 	public static final String graphUserColumnName = "USER_NAME";
-	private static final String nameColumnName = "NAME";
+	public static final String nameColumnName = "NAME";
 	public static final String idColumnName = "ID";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
 	public static final String simCostsColumnName = "SIMILARITYCOSTS";
@@ -738,6 +738,9 @@ public class Cover {
 		if(this.graph == null) {
 			throw new NullPointerException("graph attribute of the cover to be persisted does not exist");
 		}
+		else if(this.graph.getKey().equals("")) {
+			throw new NullPointerException("the graph of the cover is not persisted yet");
+		}
 		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(simCostsColumnName, this.simCosts);
@@ -763,14 +766,20 @@ public class Cover {
 		collection.updateDocument(this.key, bd, updateOptions);
 	}
 	
-	public static Cover load(String key, CustomGraph g, ArangoDatabase db, DocumentReadOptions readOpt) {
+	public static Cover load(String key, CustomGraph g, ArangoDatabase db, String transId) {
 		
 		Cover cover = new Cover(g);
-		ArangoCollection collection = db.collection(collectionName);	
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
 		
 		if (bd != null) {
 			ObjectMapper om = new ObjectMapper();	//prepair attributes
+			String graphKey = bd.getAttribute(graphKeyColumnName).toString();
+			if(!graphKey.equals(g.getKey())) {
+				System.out.println("graph does not fit to cover" + graphKey + " k k " + g.getKey());
+				return null;
+			}
 			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
 			Object objCommunityKeys = bd.getAttribute(communityKeysColumnName);
 			List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);

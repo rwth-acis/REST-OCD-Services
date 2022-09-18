@@ -76,7 +76,7 @@ public class CustomGraph extends Graph2D {
 	 */
 	public static final String idColumnName = "ID";
 	public static final String userColumnName = "USER_NAME";
-	private static final String nameColumnName = "NAME";
+	public static final String nameColumnName = "NAME";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 	private static final String idEdgeMapKeyColumnName = "RUNTIME_ID";
@@ -111,7 +111,7 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * System generated persistence key.
 	 */
-	private String key;
+	private String key = "";
 	/**
 	 * The name of the user owning the graph.
 	 */
