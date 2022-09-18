@@ -11,6 +11,7 @@ import java.util.Collections;
 
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.logging.L2pLogger;
+import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.*;
@@ -75,6 +76,7 @@ public class Database {
 		
 		arangoDB = new ArangoDB.Builder().host(HOST, PORT).password(PASSWORD).serializer(new ArangoJack()).build();
 		db = arangoDB.db(DBNAME);
+		init();
 	}
 	
 	public void init() {	
@@ -192,7 +194,6 @@ public class Database {
 	}
 	
 	public CustomGraph getGraph(String key) {
-		p("start getgraph");
 		String transId = getTransactionId(CustomGraph.class, false);
 		CustomGraph graph;
 		try {	
@@ -216,15 +217,43 @@ public class Database {
 	 */
 	public CustomGraph getGraph(String username, String key) {
 		CustomGraph g = getGraph(key);
-//		if (g == null) {
-//			logger.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph key " + key);
-//		}
-//		else if(g.getUserName() != username) {
-//			logger.log(Level.WARNING, "user: " + username + "is not allowed to use Graph: " + key + " with user: " + g.getUserName());
-//			g = null;
-//		}
+		if (g == null) {
+			logger.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph key " + key);
+		}
+		else if(!username.equals(g.getUserName())) {
+			logger.log(Level.WARNING, "user: " + username + " is not allowed to use Graph: " + key + " with user: " + g.getUserName());
+			g = null;
+		}
 		return g;
 	}
+	
+	/**
+	 * Return all graphs of a user
+	 * 
+	 * @param username
+	 *            graphs owner
+	 * @return graph list
+	 */
+	public List<CustomGraph> getGraphs(String username) {
+		String transId = getTransactionId(CustomGraph.class, false);
+		List<CustomGraph> queryResults = new ArrayList<CustomGraph>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR g IN " + CustomGraph.collectionName + " FILTER g." + CustomGraph.userColumnName + " == @username RETURN g._key";
+			Map<String, Object> bindVars = Collections.singletonMap("username",username);
+			ArangoCursor<String> graphKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			for(String key : graphKeys) {
+				queryResults.add(CustomGraph.load(key,  db, transId));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+
+		return queryResults;
+	}
+	
 	/**
 	 * Return a list of specific graphs of a user
 	 * 
@@ -261,6 +290,32 @@ public class Database {
 		return queryResults;
 	}
 	
+	/**
+	 * Return all graphs with the right name
+	 * 
+	 * @param name
+	 *            graphs name
+	 * @return graph list
+	 */
+	public List<CustomGraph> getGraphsbyName(String name) {
+		String transId = getTransactionId(CustomGraph.class, false);
+		List<CustomGraph> queryResults = new ArrayList<CustomGraph>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR g IN " + CustomGraph.collectionName + " FILTER g." + CustomGraph.nameColumnName + " == @name RETURN g._key";
+			Map<String, Object> bindVars = Collections.singletonMap("name",name);
+			ArangoCursor<String> graphKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			for(String key : graphKeys) {
+				queryResults.add(CustomGraph.load(key,  db, transId));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+
+		return queryResults;
+	}	
 	
 	
 	public void deleteGraph(String key) {
@@ -326,20 +381,48 @@ public class Database {
 		}
 		return cover.getKey();
 	}
+	public Cover getCover(String username, String graphKey, String coverKey) {
+		CustomGraph graph = getGraph(username, graphKey);
+		if(graph == null) {
+			return null;
+		}
+		return getCover(coverKey, graph);
+		
+	}
+	
 	public Cover getCover(String key, CustomGraph g) {
 		String [] readCollections = collectionNames.subList(4, 8).toArray(new String[4]);
 		StreamTransactionEntity tx = db.beginStreamTransaction(new StreamTransactionOptions().readCollections(readCollections));
 		String transId = tx.getId();
-		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		Cover cover;
 		try {	
-			cover = Cover.load(key, g, db, readOpt);
+			cover = Cover.load(key, g, db, transId);
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
 			db.abortStreamTransaction(transId);
 			throw e;
 		}
 		return cover;
+	}
+	
+	public List<Cover> getCoversByName(String name, CustomGraph g){
+		String transId = getTransactionId(Cover.class, false);
+		List<Cover> queryResults = new ArrayList<Cover>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR c IN " + Cover.collectionName + " FILTER c." + Cover.nameColumnName + " == @name RETURN c._key";
+			Map<String, Object> bindVars = Collections.singletonMap("name",name);
+			ArangoCursor<String> coverKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			for(String key : coverKeys) {
+				queryResults.add(Cover.load(key, g,  db, transId));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+
+		return queryResults;
 	}
 	public void deleteCover(String key) {
 		
