@@ -27,20 +27,20 @@ public enum CoverCreationType implements EnumDisplayNames {
 	 * Abstract type usable e.g. for importing covers that were calculated externally by other algorithms.
 	 * Cannot be used for algorithm instantiation.
 	 */
-	UNDEFINED ("Undefined", CoverCreationMethod.class, 0),
+	UNDEFINED("Undefined", CoverCreationMethod.class, 0),
 	/**
 	 * Abstract type mainly intended for importing ground truth covers.
 	 * Cannot be used for algorithm instantiation.
 	 */
-	GROUND_TRUTH ("Ground Truth", CoverCreationMethod.class, 1),
+	GROUND_TRUTH("Ground Truth", CoverCreationMethod.class, 1),
 	/**
 	 * Type corresponding to the RandomWalkLabelPropagationAlgorithm.
 	 */
-	RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM ("Random Walk Label Propagation Algorithm", RandomWalkLabelPropagationAlgorithm.class, 2),
+	RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM("Random Walk Label Propagation Algorithm", RandomWalkLabelPropagationAlgorithm.class, 2),
 	/**
 	 * Type corresponding to the SpeakerListenerLabelPropagationAlgorithm.
 	 */
-	SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM ("Speaker Listener Label Propagation Algorithm", SpeakerListenerLabelPropagationAlgorithm.class, 3),
+	SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM("Speaker Listener Label Propagation Algorithm", SpeakerListenerLabelPropagationAlgorithm.class, 3),
 	/**
 	 * Type corresponding to the ExtendedSpeakerListenerLabelPropagationAlgorithm.
 	 */
@@ -48,19 +48,19 @@ public enum CoverCreationType implements EnumDisplayNames {
 	/**
 	 * Type corresponding to the SskAlgorithm.
 	 */
-	SSK_ALGORITHM ("SSK Algorithm", SskAlgorithm.class, 5),
+	SSK_ALGORITHM("SSK Algorithm", SskAlgorithm.class, 5),
 	/**
 	 * Type corresponding to the LinkCommunitiesAlgorithm.
 	 */
-	LINK_COMMUNITIES_ALGORITHM ("Link Communities Algorithm", LinkCommunitiesAlgorithm.class, 6),
+	LINK_COMMUNITIES_ALGORITHM("Link Communities Algorithm", LinkCommunitiesAlgorithm.class, 6),
 	/**
 	 * Type corresponding to the WeightedLinkCommunitiesAlgorithm.
 	 */
-	WEIGHTED_LINK_COMMUNITIES_ALGORITHM ("Weighted Link Communities Algorithm", WeightedLinkCommunitiesAlgorithm.class, 7),
+	WEIGHTED_LINK_COMMUNITIES_ALGORITHM("Weighted Link Communities Algorithm", WeightedLinkCommunitiesAlgorithm.class, 7),
 	/**
 	 * Type corresponding to the ClizzAlgorithm.
 	 */
-	CLIZZ_ALGORITHM ("CliZZ Algorithm", ClizzAlgorithm.class, 8),
+	CLIZZ_ALGORITHM("CliZZ Algorithm", ClizzAlgorithm.class, 8),
 	/**
 	 * Type corresponding to the MergingOfOverlappingCommunitiesAlgorithm.
 	 */
@@ -85,6 +85,7 @@ public enum CoverCreationType implements EnumDisplayNames {
 	 */
 	SIGNED_LFR("Signed LFR Benchmark", SignedLfrBenchmark.class, 13),
 	/**
+	 *
 	 */
 	COST_FUNC_OPT_CLUSTERING_ALGORITHM("Cost Function Optimization Clustering Algorithm", CostFunctionOptimizationClusteringAlgorithm.class, 14),
 	/**
@@ -93,35 +94,35 @@ public enum CoverCreationType implements EnumDisplayNames {
 	SIGNED_DMID_ALGORITHM("Signed DMID Algorithm", SignedDMIDAlgorithm.class, 15),
 	/**
 	 * Type corresponding to the EvolutionaryAlgorithmBasedOnSimilarity.
-	 */	
-	EVOLUTIONARY_ALGORITHM_BASED_ON_SIMILARITY("Evolutionary Algorithm Based On Similarity", EvolutionaryAlgorithmBasedOnSimilarity.class,16),
+	 */
+	EVOLUTIONARY_ALGORITHM_BASED_ON_SIMILARITY("Evolutionary Algorithm Based On Similarity", EvolutionaryAlgorithmBasedOnSimilarity.class, 16),
 	/**
 	 * Type corresponding to the SignedProbabilisticMixtureAlgorithm.
-	 */	
-	SIGNED_PROBABILISTIC_MIXTURE_ALGORITHM("Signed Probabilistic Mixture Algorithm", SignedProbabilisticMixtureAlgorithm.class,17),
+	 */
+	SIGNED_PROBABILISTIC_MIXTURE_ALGORITHM("Signed Probabilistic Mixture Algorithm", SignedProbabilisticMixtureAlgorithm.class, 17),
 //	/**
 //	 * Type corresponding to the SignedDMIDExtendedAlgorithm.
 //	 */	
 //	SIGNED_DMID_EXTENDED_ALGORITHM(SignedDMIDExtendedAlgorithm.class,17);
-	
+
 	/**
-	 * Type corresponding to the wordclustering algorithm with refinement.	
+	 * Type corresponding to the wordclustering algorithm with refinement.
 	 */
-	WORD_CLUSTERING_REF_ALGORITHM("Word Clustering Refinement Algorithm", WordClusteringRefinementAlgorithm.class, 18), 	
+	WORD_CLUSTERING_REF_ALGORITHM("Word Clustering Refinement Algorithm", WordClusteringRefinementAlgorithm.class, 18),
 	/**
-	 * Type corresponding to the AntColonyOptimization algorithm 
+	 * Type corresponding to the AntColonyOptimization algorithm
 	 */
 	ANT_COLONY_OPTIMIZATION("Ant Colony Optimization Algorithm", AntColonyOptimizationAlgorithm.class, 19),
 	/**
-	 * Type corresponding to the LocalSpectralClustering algorithm.	
+	 * Type corresponding to the LocalSpectralClustering algorithm.
 	 */
 	LOCAL_SPECTRAL_CLUSTERING_ALGORITHM("Local Spectral Clustering Algorithm", LocalSpectralClusteringAlgorithm.class, 20),
-	
+
 	/**
-	 * Type corresponding to the Louvain method algorithm.	
+	 * Type corresponding to the Louvain method algorithm.
 	 */
 	LOUVAIN_ALGORITHM("Louvain Algorithm", LouvainAlgorithm.class, 21),
-	
+
 	/**
 	 * Type corresponding to the DetectingOverlappingCommunities Algorithm.
 	 */
@@ -132,7 +133,7 @@ public enum CoverCreationType implements EnumDisplayNames {
 	 */
 	NISE_ALGORITHM("Neighborhood-Inflated Seed Expansion Algorithm", NISEAlgorithm.class, 23),
 
-        /**
+	/**
 	 * Type corresponding to the FuzzyCMeansSpectralClustering Algorithm.
 	 */
 	FUZZY_C_MEANS_SPECTRAL_CLUSTERING_ALGORITHM("Fuzzy C Means Spectral Clustering Algorithm", FuzzyCMeansSpectralClusteringAlgorithm.class, 24),
@@ -145,100 +146,105 @@ public enum CoverCreationType implements EnumDisplayNames {
 	/**
 	 * Type corresponding to the LabelPropagationAlgorithmWithNeighborNodeInfluence Algorithm.
 	 */
-	LABEL_PROPAGATION_ALGORITHM_WITH_NEIGHBOR_NODE_INFLUENCE("Label Propagation Algorithm with Neighbor Node Influence",LabelPropagationAlgorithmWithNeighborNodeInfluence.class, 26);
-	
+	LABEL_PROPAGATION_ALGORITHM_WITH_NEIGHBOR_NODE_INFLUENCE("Label Propagation Algorithm with Neighbor Node Influence", LabelPropagationAlgorithmWithNeighborNodeInfluence.class, 26);
+
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
 	 * Abstract types correspond to the CoverCreationMethod interface itself.
 	 */
 	private final Class<? extends CoverCreationMethod> creationMethodClass;
-	
+
 	/**
 	 * For persistence and other purposes.
 	 */
 	private final int id;
-	
+
 	/**
 	 * A display name for web frontends and more
 	 */
 	private final String displayName;
-	
+
 	/**
 	 * Creates a new instance.
-	 * @param displayName Defines the displayName attribute
+	 *
+	 * @param displayName         Defines the displayName attribute
 	 * @param creationMethodClass Defines the creationMethodClass attribute.
-	 * @param id Defines the id attribute.
+	 * @param id                  Defines the id attribute.
 	 */
 	private CoverCreationType(String displayName, Class<? extends CoverCreationMethod> creationMethodClass, int id) {
 		this.displayName = displayName;
 		this.creationMethodClass = creationMethodClass;
 		this.id = id;
 	}
-	
+
 	/**
 	 * Returns the CoverCreationMethod subclass corresponding to the type.
+	 *
 	 * @return The corresponding class.
 	 */
 	public Class<? extends CoverCreationMethod> getCreationMethodClass() {
 		return this.creationMethodClass;
 	}
-	
+
 	/**
 	 * Returns the unique id of the type.
+	 *
 	 * @return The id.
 	 */
 	public int getId() {
 		return id;
 	}
-	
+
 	/**
 	 * Returns the display name of the type.
+	 *
 	 * @return The name.
 	 */
 	public String getDisplayName() {
 		return displayName;
 	}
-	
+
 	/**
 	 * Returns the type corresponding to an id.
+	 *
 	 * @param id The id.
 	 * @return The corresponding type.
 	 */
 	public static CoverCreationType lookupType(int id) {
-        for (CoverCreationType type : CoverCreationType.values()) {
-            if (id == type.getId()) {
-                return type;
-            }
-        }
-        throw new InvalidParameterException();
+		for (CoverCreationType type : CoverCreationType.values()) {
+			if (id == type.getId()) {
+				return type;
+			}
+		}
+		throw new InvalidParameterException();
 	}
-	
+
 	/**
 	 * States whether the corresponding creation method class is actually an OcdAlgorithm.
+	 *
 	 * @return TRUE if the class is an OcdAlgorithm, otherwise FALSE.
 	 */
 	public boolean correspondsAlgorithm() {
-		if(OcdAlgorithm.class.isAssignableFrom(this.getCreationMethodClass())) {
+		if (OcdAlgorithm.class.isAssignableFrom(this.getCreationMethodClass())) {
 			return true;
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * States whether the corresponding CoverCreationMethod class is a ground truth benchmark.
+	 *
 	 * @return TRUE if the class is a ground truth benchmark, otherwise FALSE.
 	 */
 	public boolean correspondsGroundTruthBenchmark() {
-		if(GroundTruthBenchmark.class.isAssignableFrom(this.getCreationMethodClass())) {
+		if (GroundTruthBenchmark.class.isAssignableFrom(this.getCreationMethodClass())) {
 			return true;
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Returns the name of the type written in lower case letters and with any underscores replaced by space characters.
 	 */
@@ -249,3 +255,4 @@ public enum CoverCreationType implements EnumDisplayNames {
 		name = name.toLowerCase(Locale.ROOT);
 		return name;
 	}
+}

@@ -1195,6 +1195,10 @@ public class CustomGraph extends Graph2D {
 		return subGraph;
 	}
 
+	public Set<Integer> getNodeIds(){
+		return customNodes.keySet();
+	}
+
 	////////////////// THE FOLLOWING METHODS ARE ONLY OF INTERNAL PACKAGE USE
 	////////////////// AND FOR PERSISTENCE PURPOSES
 
