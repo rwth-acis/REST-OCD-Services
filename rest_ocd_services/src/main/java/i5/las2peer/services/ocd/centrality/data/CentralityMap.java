@@ -74,7 +74,7 @@ public class CentralityMap {
 	/**
 	 * System generated persistence key.
 	 */
-	private String key;
+	private String key = "";
 	/**
 	 * The name of the CentralityMap.
 	 */
@@ -285,24 +285,30 @@ public class CentralityMap {
 		
 	}
 	
-	public static CentralityMap load(String key, CustomGraph g, ArangoDatabase db, DocumentReadOptions opt) {
+	public static CentralityMap load(String key, CustomGraph g, ArangoDatabase db, String transId) {
 		CentralityMap cm = new CentralityMap(g);
 	
 		ArangoCollection collection = db.collection(collectionName);
-		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
 		if (bd != null) {
 			ObjectMapper om = new ObjectMapper();	//prepair attributes
+			String graphKey = bd.getAttribute(graphKeyColumnName).toString();
+			if(!graphKey.equals(g.getKey())) {
+				System.out.println("graph does not fit to centralityMap CM graphKey: " + graphKey + " CG graphKey: " + g.getKey());
+				return null;
+			}
 			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
 			Object objMap = bd.getAttribute(mapColumnName);
 			
 			//restore all attributes
 			cm.key = key;
 			cm.name = bd.getAttribute(nameColumnName).toString();
-			cm.creationMethod = CentralityCreationLog.load(creationMethodKey, db, opt);
+			cm.creationMethod = CentralityCreationLog.load(creationMethodKey, db, readOpt);
 			cm.map = om.convertValue(objMap, Map.class);
 		}	
 		else {
-			System.out.println("empty Cover document");
+			System.out.println("empty CentralityMap document");
 		}
 		return cm;
 	}
