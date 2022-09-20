@@ -44,12 +44,10 @@ import y.base.NodeCursor;
 public class DatabaseTest {
 	private static CustomGraph graph;
 	private static Node n[];
-	private int i;
 	
 	
 	public void testCentralityMapPersist() {
 		Database db = new Database();
-		db.init();
 		CustomGraph g = getGraph1();
 		String user = "mike";
 		g.setUserName(user);
@@ -59,11 +57,6 @@ public class DatabaseTest {
 		CustomGraph f = db.getGraph(key);
 		p("graph is readdy");
 		p(f.String());
-	}
-	
-	public void t() {
-		if(i == 0) {System.out.println("i ist 0");}
-		else {p("i :" + i);}
 	}
 	
 	public void test4() {
@@ -103,9 +96,9 @@ public class DatabaseTest {
 		}
 	}
 	
-	
+	@Test
 	public void persistGraphs() {
-		DatabaseConfig.setConfigFile(false);
+		DatabaseConfig.setConfigFile(true);
 		Database db = new Database();
 		db.deleteDatabase();
 		db.init();

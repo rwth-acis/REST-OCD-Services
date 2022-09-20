@@ -8,6 +8,7 @@ import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.utils.Database;
+import i5.las2peer.services.ocd.utils.DatabaseConfig;
 
 import java.awt.Color;
 import java.util.HashMap;
@@ -38,8 +39,9 @@ public class CoverDatabaseTest {
 	private static final Database database = new Database();
 	
 	
-	@Test
+	
 	public void testPersist() {
+		DatabaseConfig.setConfigFile(true);
 		database.deleteDatabase();
 		database.init();
 		CustomGraph graph = new CustomGraph();
