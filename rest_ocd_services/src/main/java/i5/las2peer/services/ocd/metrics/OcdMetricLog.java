@@ -44,9 +44,9 @@ public class OcdMetricLog {
 	public static final String coverIdColumnName = "COVER_ID";
 	public static final String graphIdColumnName = "GRAPH_ID";
 	public static final String graphUserColumnName = "USER_NAME";
-	private static final String statusIdColumnName = "STATUS";
+	public static final String statusIdColumnName = "STATUS";
 	
-	private static final String coverKeyColumnName = "COVER_KEY";
+	public static final String coverKeyColumnName = "COVER_KEY";
 	private static final String parameterColumnName = "PARAMETER";
 	public static final String collectionName = "ocdmetriclog";
 	/*
