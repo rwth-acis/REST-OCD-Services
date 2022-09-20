@@ -212,7 +212,7 @@ public class EntityHandler {
 	 * @return graph list
 	 * @throws AgentNotRegisteredException if the agent was not registered
 	 */
-	public List<CustomGraph> getGraphs(String username) throws AgentNotRegisteredException {	//TODO
+	public List<CustomGraph> getGraphs(String username) throws AgentNotRegisteredException {
 		List<CustomGraph> queryResults;
 		EntityManager em = getEntityManager();
 		String queryStr = "SELECT g FROM " + CustomGraph.class.getName() + " g WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username";
@@ -267,7 +267,7 @@ public class EntityHandler {
 	 *            id of the graph
 	 * @return the found Cover instance or null if the Cover does not exist
 	 */
-	public Cover getCover(String username, long graphId, long coverId) {		//TODO
+	public Cover getCover(String username, long graphId, long coverId) {
 
 		EntityManager em = getEntityManager();
 		CustomGraphId gId = new CustomGraphId(graphId, username);
@@ -403,7 +403,7 @@ public class EntityHandler {
 	 *            id of the graph
 	 * @return cover list
 	 */
-	public List<Cover> getCovers(String username, long graphId) {		//TODO
+	public List<Cover> getCovers(String username, long graphId) {
 
 		EntityManager em = getEntityManager();
 		String queryStr = "SELECT c from Cover c" + " JOIN c." + Cover.GRAPH_FIELD_NAME + " g" + " WHERE g."
@@ -433,7 +433,7 @@ public class EntityHandler {
 	 * @return a cover list
 	 */
 	public List<Cover> getCovers(String username, long graphId, List<Integer> executionStatusIds,
-			List<Integer> metricExecutionStatusIds, int firstIndex, int length, boolean includeMeta) {	//TODO
+			List<Integer> metricExecutionStatusIds, int firstIndex, int length, boolean includeMeta) {
 
 		EntityManager em = getEntityManager();
 

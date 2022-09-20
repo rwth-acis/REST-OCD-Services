@@ -207,7 +207,7 @@ public class Database {
 	}
 	
 	/**
-	 * Returns a persisted CustomGraph
+	 * Returns a persisted CustomGraph if it has the right username
 	 * 
 	 * @param username
 	 *            owner of the graph
@@ -359,19 +359,17 @@ public class Database {
 			graphCollection.deleteDocument(key, null, deleteOpt);		//delete the graph
 			
 			db.commitStreamTransaction(transId);
-			p("transaktion committed");
 		}catch(Exception e) {
-			p("transaktion abgebrochen");
 			db.abortStreamTransaction(transId);
 			throw e;
 		}
 	}
 	
 	
+	
+	/////////////////////////// COVERS ///////////////////////////
 	public String storeCover(Cover cover) {
-		String [] writeCollections = collectionNames.subList(4, 8).toArray(new String[4]);
-		StreamTransactionEntity tx = db.beginStreamTransaction(new StreamTransactionOptions().writeCollections(writeCollections));
-		String transId = tx.getId();
+		String transId = this.getTransactionId(Cover.class, true);
 		try {
 			cover.persist(db, transId);
 			db.commitStreamTransaction(transId);
@@ -381,19 +379,33 @@ public class Database {
 		}
 		return cover.getKey();
 	}
+	
+	/**
+	 * Get a stored community-cover of a graph by its index
+	 *
+	 * @param username
+	 * 			  the name of the user
+	 * @param graphKey
+	 *            key of the graph
+	 * @param coverKey
+	 *            key of the cover
+	 * @return the found Cover instance or null if the Cover does not exist
+	 */
 	public Cover getCover(String username, String graphKey, String coverKey) {
 		CustomGraph graph = getGraph(username, graphKey);
 		if(graph == null) {
 			return null;
 		}
-		return getCover(coverKey, graph);
-		
+		Cover cover = getCover(coverKey, graph);
+		if (cover == null) {
+			logger.log(Level.WARNING,
+					"user: " + username + ", " + "Cover does not exist: cover id " + coverKey + ", graph id " + graphKey);
+		}
+		return cover;
 	}
 	
 	public Cover getCover(String key, CustomGraph g) {
-		String [] readCollections = collectionNames.subList(4, 8).toArray(new String[4]);
-		StreamTransactionEntity tx = db.beginStreamTransaction(new StreamTransactionOptions().readCollections(readCollections));
-		String transId = tx.getId();
+		String transId = this.getTransactionId(Cover.class, false);
 		Cover cover;
 		try {	
 			cover = Cover.load(key, g, db, transId);
@@ -424,12 +436,84 @@ public class Database {
 
 		return queryResults;
 	}
+	
+	/**
+	 * Returns all Covers corresponding to a CustomGraph
+	 * 
+	 * @param username
+	 *            owner of the graph
+	 * @param graphKey
+	 *            id of the graph
+	 * @return cover list
+	 */
+	public List<Cover> getCovers(String username, String graphKey) {	//TODO testen
+		CustomGraph g = getGraph(username, graphKey);
+		String transId = getTransactionId(Cover.class, false);
+		List<Cover> covers = new ArrayList<Cover>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR c IN " + Cover.collectionName + " FILTER c." + Cover.graphKeyColumnName + " == @key RETURN c._key";
+			Map<String, Object> bindVars = Collections.singletonMap("key", graphKey);
+			ArangoCursor<String> coverKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			for(String key : coverKeys) {
+				covers.add(Cover.load(key, g,  db, transId));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return covers;
+	}
+	
+	/**
+	 * @param username
+	 * 		  the name of the user
+	 * @param graphKey
+	 * 		  the id of the graph
+	 * @param executionStatusIds
+	 * 		  the ids of the execution statuses
+	 * @param metricExecutionStatusIds
+	 * 		  the ids of the metric execution statuses
+	 * @param firstIndex
+	 * 		  the first index
+	 * @param length
+	 * 		  the length of the result set
+	 * @return a cover list
+	 */
+	public List<Cover> getCovers(String username, String graphKey, List<Integer> executionStatusIds,
+			List<Integer> metricExecutionStatusIds, int firstIndex, int length) {	//TODO was soll die funktion überhaupt machen?/ TESTEN
+		
+		CustomGraph g = getGraph(username, graphKey);
+		String transId = getTransactionId(Cover.class, false);
+		List<Cover> covers = new ArrayList<Cover>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+
+			String queryStr = "FOR c IN " + Cover.collectionName + " FOR a IN " + CoverCreationLog.collectionName + " FOR m IN " + OcdMetricLog.collectionName + 
+					" FILTER c." + Cover.graphKeyColumnName  + " == @gKey AND c." + Cover.creationMethodKeyColumnName + " == a._key AND a." + 
+					CoverCreationLog.statusIdColumnName + " IN " + executionStatusIds;
+			if (metricExecutionStatusIds != null && metricExecutionStatusIds.size() > 0) {
+				queryStr += " AND m." + OcdMetricLog.coverKeyColumnName + " == c._key AND " +"m." + OcdMetricLog.statusIdColumnName + " IN " + metricExecutionStatusIds;
+			} 
+			queryStr += " LIMIT " + firstIndex + "," + length + " RETURN DISTINCT c._key";
+			
+			Map<String, Object> bindVars = Collections.singletonMap("gKey", graphKey);
+			ArangoCursor<String> coverKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			for(String key : coverKeys) {
+				covers.add(Cover.load(key, g, db, transId));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return covers;
+	}
+
+	
 	public void deleteCover(String key) {
-		
-		String [] writeCollections = collectionNames.subList(4, 8).toArray(new String[4]);
-		StreamTransactionEntity tx = db.beginStreamTransaction(new StreamTransactionOptions().writeCollections(writeCollections));
-		String transId = tx.getId();	
-		
+		String transId = this.getTransactionId(Cover.class, true);
 		try {
 			
 			ArangoCollection coverCollection = db.collection(Cover.collectionName);
@@ -467,13 +551,10 @@ public class Database {
 	}
 	
 	public CentralityMap getCentralityMap(String key, CustomGraph g) {
-		String [] readCollections = collectionNames.subList(8, 10).toArray(new String[2]);
-		StreamTransactionEntity tx = db.beginStreamTransaction(new StreamTransactionOptions().readCollections(readCollections));
-		String transId = tx.getId();
-		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		String transId = this.getTransactionId(CentralityMap.class, false);
 		CentralityMap map;
 		try {	
-			map = CentralityMap.load(key, g, db, readOpt);
+			map = CentralityMap.load(key, g, db, transId);
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
 			db.abortStreamTransaction(transId);
@@ -483,9 +564,7 @@ public class Database {
 	}
 	
 	public String storeCentralityMap(CentralityMap map) {
-		String [] writeCollections = collectionNames.subList(8, 10).toArray(new String[2]);
-		StreamTransactionEntity tx = db.beginStreamTransaction(new StreamTransactionOptions().writeCollections(writeCollections));
-		String transId = tx.getId();
+		String transId = this.getTransactionId(CentralityMap.class, true);
 		try {
 			map.persist(db, transId);
 			db.commitStreamTransaction(transId);
@@ -497,11 +576,7 @@ public class Database {
 	}
 	
 	public void deleteCentralityMap(String key) {
-		
-		String [] writeCollections = collectionNames.subList(8, 10).toArray(new String[2]);
-		StreamTransactionEntity tx = db.beginStreamTransaction(new StreamTransactionOptions().writeCollections(writeCollections));
-		String transId = tx.getId();	
-		
+		String transId = this.getTransactionId(CentralityMap.class, true);		
 		try {
 			
 			ArangoCollection centralityMapCollection = db.collection(CentralityMap.collectionName);
