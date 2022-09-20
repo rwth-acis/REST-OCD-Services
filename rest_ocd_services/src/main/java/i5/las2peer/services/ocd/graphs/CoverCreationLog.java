@@ -34,7 +34,7 @@ public class CoverCreationLog {
 	 */
 	private static final String idColumnName = "ID";
 	private static final String typeColumnName = "TYPE";
-	private static final String statusIdColumnName = "STATUS";
+	public static final String statusIdColumnName = "STATUS";
 	
 	private static final String parameterColumnName = "PARAMETER";
 	private static final String compatibleGraphTypesColumnName = "COMPATIBLEGRAPHTYPES";
