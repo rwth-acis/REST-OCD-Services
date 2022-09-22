@@ -129,8 +129,6 @@ public class ServiceTest {
 		 */
 		DatabaseConfig.setConfigFile(true);
 		database = new Database();
-		database.deleteDatabase();
-		database.init();
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		createGraph(graph);
 		AperiodicTwoCommunitiesGraphKey = graph.getKey();
@@ -196,9 +194,7 @@ public class ServiceTest {
 	 */
 	@AfterClass
 	public static void shutDownServer() throws Exception {
-		database.deleteGraph(AperiodicTwoCommunitiesGraphKey);
-		database.deleteGraph(DolphinsGraphKey);
-		database.deleteGraph(SawmillGraphKey);
+		database.deleteDatabase();
 		connector.stop();
 		node.shutDown();
 
