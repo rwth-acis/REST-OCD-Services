@@ -153,7 +153,8 @@ public class ServiceClass extends RESTService {
 	}
 
 	public ServiceClass() {
-
+		DatabaseConfig.setConfigFile(true);		//angeben ob test datenbank oder hauptdatenbank gewählt wird
+		database = new Database();
 		setFieldValues();
 		// instantiate inactivityHandler to regularly remove content of inactive users.
 		inactivityHandler = new InactivityHandler(entityHandler, threadHandler, this);	//TODO inactivity handler muss von datenbank abhï¿½ngen
@@ -180,7 +181,7 @@ public class ServiceClass extends RESTService {
 	/**
 	 * The entity handler used for access stored entities.
 	 */
-	private final static Database database = new Database();
+	private static Database database;
 	private final static SimulationEntityHandler entityHandler = new SimulationEntityHandler();
 
 	/**
