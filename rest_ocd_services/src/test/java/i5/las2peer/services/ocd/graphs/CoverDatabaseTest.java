@@ -22,6 +22,8 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 
 import org.junit.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 
 import org.la4j.matrix.Matrix;
@@ -36,14 +38,20 @@ public class CoverDatabaseTest {
 	private static final String graphName = "coverPersistenceGraph";
 	private static final String coverName = "coverPersistenceCover";
 	private static final String invalidCoverName = "invalidCoverName";
-	private static final Database database = new Database();
+	private static Database database;
 	
+	@BeforeClass
+	public static void clearDatabase() {
+		DatabaseConfig.setConfigFile(true);
+		database = new Database();
+	}
 	
+	@AfterClass
+	public static void deleteDatabase() {
+		database.deleteDatabase();
+	}
 	
 	public void testPersist() {
-		DatabaseConfig.setConfigFile(true);
-		database.deleteDatabase();
-		database.init();
 		CustomGraph graph = new CustomGraph();
 		graph.setUserName(userName);
 		graph.setName(graphName);
@@ -57,6 +65,7 @@ public class CoverDatabaseTest {
 		graph.setEdgeWeight(edgeAB, 5);
 		Edge edgeBC = graph.createEdge(nodeB, nodeC);
 		graph.setEdgeWeight(edgeBC, 2.5);
+		
 		String Gkey = database.storeGraph(graph);
 		System.out.println("graph key: " + graph.getKey());
 
@@ -78,6 +87,7 @@ public class CoverDatabaseTest {
 		cover.addMetric(metric);
 		
 		database.storeCover(cover);
+		
 		List<Cover> queryResults = database.getCoversByName(coverName, cover.getGraph());
 		assertEquals(1, queryResults.size());
 		Cover persistedCover = queryResults.get(0);

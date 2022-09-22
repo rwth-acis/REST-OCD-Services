@@ -1,6 +1,9 @@
 package i5.las2peer.services.ocd.utils;
 
 import static org.junit.Assert.*;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -44,7 +47,18 @@ import y.base.NodeCursor;
 public class DatabaseTest {
 	private static CustomGraph graph;
 	private static Node n[];
+	private static Database database;
 	
+	@BeforeClass
+	public static void clearDatabase() {
+		DatabaseConfig.setConfigFile(true);
+		database = new Database();
+	}
+	
+	@AfterClass
+	public static void deleteDatabase() {
+		database.deleteDatabase();
+	}
 	
 	public void testCentralityMapPersist() {
 		Database db = new Database();
@@ -96,7 +110,7 @@ public class DatabaseTest {
 		}
 	}
 	
-	@Test
+	
 	public void persistGraphs() {
 		DatabaseConfig.setConfigFile(true);
 		Database db = new Database();

@@ -6,17 +6,11 @@ import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-
 import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
-import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -30,15 +24,19 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 public class DatabaseMethodTest {
 
 	public final ExpectedException exception = ExpectedException.none();
-	private final Database database = new Database();
+	private static Database database;
 
 	private EntityHandler entityHandler = new EntityHandler();
 
-	@Before
-	public void clearDatabase() {
+	@BeforeClass
+	public static void clearDatabase() {
 		DatabaseConfig.setConfigFile(true);
+		database = new Database();
+	}
+	
+	@AfterClass
+	public static void deleteDatabase() {
 		database.deleteDatabase();
-		database.init();
 	}
 
 	public CustomGraph getTestGraph() {

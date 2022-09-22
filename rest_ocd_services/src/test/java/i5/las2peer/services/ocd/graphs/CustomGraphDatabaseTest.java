@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.utils.Database;
+import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
@@ -22,6 +23,8 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 
 import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -35,12 +38,21 @@ public class CustomGraphDatabaseTest {
 	private static final String userName1 = "testUser1";
 	private static final String graphName1 = "persistenceTestGraph1";
 	private static final String invalidGraphName = "invalidGraphName";
-	private static final Database database = new Database();
+	private static Database database;
+	
+	@BeforeClass
+	public static void clearDatabase() {
+		DatabaseConfig.setConfigFile(true);
+		database = new Database();
+	}
+	
+	@AfterClass
+	public static void deleteDatabase() {
+		database.deleteDatabase();
+	}
 	
 	@Test
 	public void testPersist() {
-		database.deleteDatabase();
-		database.init();
 		CustomGraph graph = new CustomGraph();
 		graph.setUserName(userName1);
 		graph.setName(graphName1);
