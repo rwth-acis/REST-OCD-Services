@@ -11,7 +11,7 @@ plugins {
     id 'java-library'
 }
 
-def yFiles = "$rootDir/yFiles"
+def gsAlgo = "$rootDir/gsAlgo"
 def export = "$projectDir/export"
 def ocd = "$rootDir/ocd"
 
@@ -26,8 +26,6 @@ repositories {
 }
 
 dependencies {
-    //yGuard
-    compileOnly 'com.yworks:yguard:3.0.0'
 
     // Use JUnit test framework.
     testImplementation 'junit:junit:4.13'
@@ -81,8 +79,8 @@ dependencies {
     implementation "org.graphstream:gs-core:2.0"
     compileOnly "org.graphstream:gs-algo:2.0"
 
-    //yFiles
-    implementation fileTree(dir: "${yFiles}", include: '*.jar')
+    //gs-algo version that includes HopcroftTarjanBiconnectedComponents
+    implementation fileTree(dir: "${gsAlgo}", include: '*.jar')
 }
 
 configurations {
@@ -260,7 +258,6 @@ build.dependsOn "generateAgents"
 clean.doLast {
     file("$ocd/db").deleteDir()
     file("$ocd/indexes").deleteDir()
-    file("$ocd/yGuard").deleteDir()
 
     file("$rootDir/tmp").deleteDir()
     file("$rootDir/lib").deleteDir()
@@ -282,58 +279,6 @@ task cleanAll {
 
 test {
     workingDir = file("$rootDir")
-}
-
-task yguard {
-    group 'yGuard'
-    description 'Obfuscates and shrinks the java archive.'
-
-    mkdir "${export}/obfuscated"
-    mkdir "$ocd/yGuard"
-
-    doLast {
-        ant.taskdef(
-                name: 'yguard',
-                classname: 'com.yworks.yguard.YGuardTask',
-                classpath: '../lib/yGuard-3.0.0.jar'
-        )
-
-        ant.yguard {
-            // see the yGuard task documentation for information about the yGuard element
-            // Obfuscate the yFiles Jar.
-            inoutpair(in: "${yFiles}/y.jar", out: "./export/obfuscated/y.jar")
-            inoutpair(in: "${yFiles}/ysvg.jar", out: "./export/obfuscated/ysvg.jar")
-            // While obfuscating, adjust the names of yFiles features in the
-            // application's Jar file.
-            inoutpair(in: "${export}/jars/rest_ocd_services.jar", out: "${export}/obfuscated/rest_ocd_services.jar")
-
-            externalclasses {
-                //pathelement(location: configurations.compileOnly.asPath)
-                fileset(dir: "${rootDir}/lib") {
-                    include(name: '**/*.jar')
-                }
-            }
-            // ...using the yGuard 'rename' task.
-            rename(logfile: "${rootDir}/ocd/yGuard/log.xml", replaceClassNameStrings: "true") {
-                property(name: "obfuscation-prefix", value: "yguard")
-                keep {
-                    'class'(classes: "private", methods: "private", fields: "private") {
-                        patternset {
-                            //< !--define classes / methods / fields not to be renamed-- >
-                            include(name: "i5.**")
-                            //< !--exlude custom classes extending / implementing yFiles classes-->
-                            exclude(name: "i5.las2peer.services.ocd.graphs.CustomGraph")
-                            exclude(name: "i5.las2peer.services.ocd.graphs.CustomGraphListener")
-                        }
-                    }
-                    //< keep custom field names required for persistence
-                    field('class': "i5.las2peer.services.ocd.graphs.CustomGraph", name: "id")
-                    field('class': "i5.las2peer.services.ocd.graphs.CustomGraph", name: "userName")
-                    field('class': "i5.las2peer.services.ocd.graphs.CustomGraph", name: "creationMethod")
-                }
-            }
-        }
-    }
 }
 
 

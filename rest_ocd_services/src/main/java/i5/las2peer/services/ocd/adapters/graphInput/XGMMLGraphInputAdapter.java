@@ -29,9 +29,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 //import i5.las2peer.services.ocd.utils.DocIndexer;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
-import y.view.EdgeLabel;
-import y.view.EdgeRealizer;
-import y.view.LineType;
+
 
 import java.io.Reader;
 import java.io.FileReader;

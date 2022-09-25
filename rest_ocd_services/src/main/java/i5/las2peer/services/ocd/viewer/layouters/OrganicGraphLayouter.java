@@ -2,9 +2,7 @@ package i5.las2peer.services.ocd.viewer.layouters;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.layout.ParallelEdgeLayouter;
-import y.layout.organic.SmartOrganicLayouter;
-import y.layout.router.OrganicEdgeRouter;
+
 
 /**
  * Organic layouter, based on the Organic Layout Style of the yFiles library.

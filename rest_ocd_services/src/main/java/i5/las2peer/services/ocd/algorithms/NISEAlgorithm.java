@@ -22,7 +22,6 @@ import org.la4j.vector.functor.VectorAccumulator;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
-import y.algo.GraphConnectivity;
 
 /**
  * The original version of the overlapping community detection algorithm by Joyce Jiyoung Whang, David F. Gleich, and Inderjit S. Dhillon:

@@ -1,7 +1,6 @@
 package i5.las2peer.services.ocd.graphs.properties;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.algo.GraphConnectivity;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 

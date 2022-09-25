@@ -11,14 +11,12 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import org.graphstream.algorithm.flow.FlowAlgorithmBase;
 import org.graphstream.algorithm.flow.FordFulkersonAlgorithm;
-import y.algo.NetworkFlows;
-import y.base.DataProvider;
 import org.graphstream.graph.Edge;
 
-import y.base.EdgeMap;
+
 import org.graphstream.graph.Node;
 
-import y.util.Maps;
+
 
 /**
  * Implementation of Flow Centrality.
@@ -69,9 +67,6 @@ public class FlowBetweenness implements CentralityAlgorithm {
 				if(i != j) {
 					Node sink = nodeArray[j];
 					
-					// Instantiate data structures
-					Map<Edge, Integer> flowMap = new HashMap<Edge, Integer>();
-					EdgeMap flowEdgeMap = Maps.createEdgeMap(flowMap);
 					
 					// Calculate maximum flows with given source and sink
 					//TODO: Check whether yFiles and graphstream work differently with calculating flow when there are multi-edges or simply forward/backward edges

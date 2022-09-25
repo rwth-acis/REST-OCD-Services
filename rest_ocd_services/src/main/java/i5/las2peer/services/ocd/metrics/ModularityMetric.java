@@ -14,7 +14,6 @@ import java.util.Set;
 import org.la4j.vector.Vectors;
 import org.la4j.matrix.Matrix;
 
-import y.base.Edge;
 import org.graphstream.graph.Node;
 
 /**
