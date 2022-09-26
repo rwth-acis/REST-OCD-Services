@@ -15,9 +15,13 @@ import i5.las2peer.services.ocd.viewer.utils.CentralityVisualizationType;
 import java.awt.Color;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
+
+import org.graphstream.ui.layout.Layout;
+import org.graphstream.ui.layout.springbox.implementations.SpringBox;
 
 /**
  * Manages the integration of all layouting phases.
@@ -203,17 +207,33 @@ public class LayoutHandler {
 				// adds name label
 				node.setAttribute("ui.label", graph.getNodeName(node));
 				node.setAttribute("ui.text-alignment", "center");
+				node.setAttribute("ui.style", "fill-color: rgba(" + 200 + "," + 200 + "," + 240 + "," + 255 + ");"
+						+ "stroke-mode: plain;"
+						+ "stroke-color: black;"
+						+ "stroke-width: 1;" +
+						"size: 40;");
 			}
 		}
-		if(doLabelEdges) {
-			Iterator<Edge> edgesIt = graph.edges().iterator();
-			while (edgesIt.hasNext()) {
-				Edge edge = edgesIt.next();
-				// adds weight label
+
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+		while (edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
+			// adds weight label
+			edge.setAttribute("ui.style", "fill-color: black; shape: line; size: 2;");
+			if(doLabelEdges) {
 				edge.setAttribute("ui.label", graph.getEdgeWeight(edge));
 				edge.setAttribute("ui.text-alignment", "along");
 			}
 		}
+
+		//Layout layoutAlgo = new SpringBox();
+		//graph.addSink(layoutAlgo);
+		//layoutAlgo.do
+		while (graph.layout.getStabilization() < 0.9) {
+			graph.layout.compute();
+		}
+		//System.setProperty("org.graphstream.ui", "swing");
+		//graph.display();
 	}
 	
 	/**
