@@ -11,7 +11,7 @@ plugins {
     id 'java-library'
 }
 
-def gsAlgo = "$rootDir/gsAlgo"
+
 def export = "$projectDir/export"
 def ocd = "$rootDir/ocd"
 
@@ -77,10 +77,9 @@ dependencies {
     implementation "org.ojalgo:ojalgo:50.0.0"
     compileOnly "net.sbbi:sbbi-upnplib:1.0.4"
     implementation "org.graphstream:gs-core:2.0"
-    compileOnly "org.graphstream:gs-algo:2.0"
 
     //gs-algo version that includes HopcroftTarjanBiconnectedComponents
-    implementation fileTree(dir: "${gsAlgo}", include: '*.jar')
+    implementation "org.graphstream:gs-algo:2.0.ACIS"
 }
 
 configurations {
