@@ -33,10 +33,12 @@ public class LeaderRank implements CentralityAlgorithm {
 		while(nc.hasNext()) {
 			res.setNodeValue(nc.next(), 1.0);
 		}
-		nc = graph.iterator();
 		
 		// Add ground node
 		Node groundNode = graph.addNode("groundNode");
+
+		nc = graph.iterator();
+
 		while(nc.hasNext()) {
 			Node node = nc.next();
 			if(node != groundNode) {
