@@ -55,31 +55,16 @@ public class AlgorithmRunnable implements Runnable {
 		/*
 		 * Set algorithm state to running.
 		 */
-		CustomGraphId graphId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
-    	CoverId id = new CoverId(cover.getId(), graphId);
+		CustomGraphId graphId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
+		CoverId id = new CoverId(cover.getKey(), graphId);
     	RequestHandler requestHandler = new RequestHandler();
-    	EntityHandler entityHandler = new EntityHandler();
-    	EntityManager em = entityHandler.getEntityManager();
-    	EntityTransaction tx = em.getTransaction();
+    	Database database = new Database();
 		try {
-			tx.begin();
-			Cover cover = em.find(Cover.class, id);
-			if(cover == null) {
-				/*
-				 * Should not happen.
-				 */
-				requestHandler.log(Level.SEVERE, "Cover deleted while algorithm running.");
-				throw new IllegalStateException();
-			}
 			cover.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
-			tx.commit();
-		} catch( RuntimeException e ) {
-			if( tx != null && tx.isActive() ) {
-				tx.rollback();
-			}
+			database.updateCover(cover);
+		} catch( Exception e ) {
 			error = true;
 		}
-		em.close();
 		/*
 		 * Run algorithm.
 		 */

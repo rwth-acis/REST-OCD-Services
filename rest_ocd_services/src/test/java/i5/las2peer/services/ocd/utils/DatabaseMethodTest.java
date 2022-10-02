@@ -26,8 +26,6 @@ public class DatabaseMethodTest {
 	public final ExpectedException exception = ExpectedException.none();
 	private static Database database;
 
-	private EntityHandler entityHandler = new EntityHandler();
-
 	@BeforeClass
 	public static void clearDatabase() {
 		DatabaseConfig.setConfigFile(true);
@@ -63,14 +61,12 @@ public class DatabaseMethodTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("getGraph success");
 	}
 
 	@Test
 	public void getGraphNotFound() {
-		CustomGraph graph = entityHandler.getGraph("eve", 0);
+		CustomGraph graph = database.getGraph("eve", "0");
 		assertNull(graph);
-		System.out.println("Graphnotfound success");
 	}
 
 	@Test
@@ -88,7 +84,6 @@ public class DatabaseMethodTest {
 		assertEquals(graph.getUserName(), resultGraph.getUserName());
 		assertEquals(graph.nodeCount(), resultGraph.nodeCount());
 		assertEquals(graph.edgeCount(), resultGraph.edgeCount());
-		System.out.println("storeGraph success");
 	}
 
 	//@Test

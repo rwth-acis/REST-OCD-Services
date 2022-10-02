@@ -51,6 +51,7 @@ public class CoverDatabaseTest {
 		database.deleteDatabase();
 	}
 	
+	@Test
 	public void testPersist() {
 		CustomGraph graph = new CustomGraph();
 		graph.setUserName(userName);

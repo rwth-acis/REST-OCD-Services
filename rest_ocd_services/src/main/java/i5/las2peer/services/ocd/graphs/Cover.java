@@ -96,7 +96,7 @@ public class Cover {
 	/**
 	 * System generated persistence key.
 	 */
-	private String key;
+	private String key = "";
 	/**
 	 * The graph that the cover is based on.
 	 */
@@ -736,10 +736,10 @@ public class Cover {
 		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
 		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
 		if(this.graph == null) {
-			throw new NullPointerException("graph attribute of the cover to be persisted does not exist");
+			throw new IllegalArgumentException("graph attribute of the cover to be persisted does not exist");
 		}
 		else if(this.graph.getKey().equals("")) {
-			throw new NullPointerException("the graph of the cover is not persisted yet");
+			throw new IllegalArgumentException("the graph of the cover is not persisted yet");
 		}
 		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
 		bd.addAttribute(nameColumnName, this.name);
@@ -777,7 +777,7 @@ public class Cover {
 			ObjectMapper om = new ObjectMapper();	//prepair attributes
 			String graphKey = bd.getAttribute(graphKeyColumnName).toString();
 			if(!graphKey.equals(g.getKey())) {
-				System.out.println("graph does not fit to cover" + graphKey + " k k " + g.getKey());
+				System.out.println("graph with key: " + g.getKey() + " does not fit to cover with GraphKey: " + graphKey);
 				return null;
 			}
 			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
@@ -809,7 +809,15 @@ public class Cover {
 		return cover;
 	}
 	
-	
+	public void updateKey(String newKey, ArangoDatabase db, String transId) {
+		
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
+		bd.setKey(newKey);
+		collection.updateDocument(this.key,  bd, updateOptions);
+	}	
 
 	@Override
 	public String toString() {

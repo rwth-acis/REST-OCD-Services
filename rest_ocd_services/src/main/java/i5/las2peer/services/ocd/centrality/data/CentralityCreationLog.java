@@ -37,7 +37,7 @@ public class CentralityCreationLog {
 	private static final String idColumnName = "ID";
 	private static final String centralityTypeColumnName = "CENTRALITY_TYPE";
 	private static final String creationTypeColumnName = "CREATION_TYPE";
-	private static final String statusIdColumnName = "STATUS";
+	public static final String statusIdColumnName = "STATUS";
 	private static final String executionTimeColumnName = "EXECUTION_TIME";
 	//ArangoDB
 	public static final String collectionName = "centralitycreationlog";

@@ -10,9 +10,9 @@ import i5.las2peer.services.ocd.graphs.CoverId;
 public class OcdMetricLogId {
 
 	/**
-	 * The specific log id.
+	 * The specific log key.
 	 */
-    private long id;
+    private String key;
     
     /**
      * The id of the corresponding cover.
@@ -24,8 +24,8 @@ public class OcdMetricLogId {
      * @param id The log id.
      * @param coverId The id of the corresponding cover.
      */
-    public OcdMetricLogId(long id, CoverId coverId) {
-        this.id = id;
+    public OcdMetricLogId(String key, CoverId coverId) {
+        this.key = key;
         this.cover = coverId;
     }
  
@@ -33,7 +33,7 @@ public class OcdMetricLogId {
     public boolean equals(Object object) {
         if (object instanceof OcdMetricLogId) {
         	OcdMetricLogId pk = (OcdMetricLogId)object;
-            return cover.equals(cover) && id == pk.id;
+            return cover.equals(cover) && key.equals(pk.key);
         } else {
             return false;
         }
@@ -41,7 +41,7 @@ public class OcdMetricLogId {
  
     @Override
     public int hashCode() {
-        return (int)(id + cover.hashCode());
+        return (int)(key.hashCode() + cover.hashCode());
     }
     
     /**
@@ -53,11 +53,11 @@ public class OcdMetricLogId {
     }
     
     /**
-     * Returns the specific log id.
+     * Returns the specific log key.
      * @return The id.
      */
-    public long getId() {
-    	return id;
+    public String getKey() {
+    	return key;
     }
 	
 }

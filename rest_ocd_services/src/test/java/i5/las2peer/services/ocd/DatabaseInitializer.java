@@ -55,7 +55,7 @@ public class DatabaseInitializer {
 			throw e;
 		}
 		em.close();
-		return new CustomGraphId(graph.getId(), username);
+		return new CustomGraphId(graph.getKey(), username);
 	}
 	
 	public CoverId createRealWorldCover(OcdAlgorithm algorithm, CustomGraphId gId, String name, List<StatisticalMeasure> statMetrics) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
@@ -82,7 +82,7 @@ public class DatabaseInitializer {
 			throw e;
 		}
 		em.close();
-		return new CoverId(cover.getId(), gId);
+		return new CoverId(cover.getKey(), gId);
 	}
 	
 	@Test

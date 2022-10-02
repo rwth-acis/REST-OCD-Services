@@ -10,7 +10,7 @@ public class CustomGraphId {
 	/**
 	 * The graph-specific id.
 	 */
-    private long id;
+    private String key;
     
     /**
      * The name of the user owning the graph.
@@ -19,11 +19,11 @@ public class CustomGraphId {
  
     /**
      * Creates a new instance.
-     * @param id The graph-specific id.
+     * @param key The graph-specific key.
      * @param userName The name of the user owning the graph.
      */
-    public CustomGraphId(long id, String userName) {
-        this.id = id;
+    public CustomGraphId(String key, String userName) {
+        this.key = key;
         this.userName = userName;
     }
  
@@ -31,7 +31,7 @@ public class CustomGraphId {
     public boolean equals(Object object) {
         if (object instanceof CustomGraphId) {
         	CustomGraphId pk = (CustomGraphId)object;
-            return userName.equals(pk.userName) && id == pk.id;
+            return userName.equals(pk.userName) && key.equals(pk.key);
         } else {
             return false;
         }
@@ -39,7 +39,13 @@ public class CustomGraphId {
  
     @Override
     public int hashCode() {
-        return (int)(id + userName.hashCode());
+        return (int)(key.hashCode() + userName.hashCode());
+    }
+    public String getUser() {
+    	return userName;
+    }
+    public String getKey() {
+    	return key;
     }
 	
 }

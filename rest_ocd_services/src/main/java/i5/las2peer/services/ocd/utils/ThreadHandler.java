@@ -25,9 +25,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-
 /**
  * Handles the execution and synchronization of threads for running OCD algorithms, centrality algorithms, simulations, 
  * benchmarks and metrics.
@@ -74,7 +71,7 @@ public class ThreadHandler {
 	/**
 	 * Creates a new instance.
 	 */
-	private EntityHandler entityHandler = new EntityHandler();
+	private Database database = new Database();
 	/**
 	 * Runs an algorithm.
 	 * @param cover The cover that is already persisted but not holding any valid information aside the graph and id.
@@ -82,8 +79,8 @@ public class ThreadHandler {
 	 * @param componentNodeCountFilter The node count filter used by the OcdAlgorithmExecutor.
 	 */
 	public void runAlgorithm(Cover cover, OcdAlgorithm algorithm, int componentNodeCountFilter) {
-		CustomGraphId gId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
-		CoverId coverId = new CoverId(cover.getId(), gId);
+		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
+		CoverId coverId = new CoverId(cover.getKey(), gId);
 		AlgorithmRunnable runnable = new AlgorithmRunnable(cover, algorithm, componentNodeCountFilter, this);
 		CoverCreationLog log = cover.getCreationMethod();
 		synchronized (algorithms) {
@@ -98,8 +95,8 @@ public class ThreadHandler {
 	 * @param algorithm The algorithm to calculate the centrality values with.
 	 */
 	public void runCentralityAlgorithm(CentralityMap map, CentralityAlgorithm algorithm) {
-		CustomGraphId gId = new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName());
-		CentralityMapId mapId = new CentralityMapId(map.getId(), gId);
+		CustomGraphId gId = new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName());
+		CentralityMapId mapId = new CentralityMapId(map.getKey(), gId);
 		CentralityAlgorithmRunnable runnable = new CentralityAlgorithmRunnable(map, algorithm, this);
 		CentralityCreationLog log = map.getCreationMethod();
 		synchronized (centralityAlgorithms) {
@@ -114,8 +111,8 @@ public class ThreadHandler {
 	 * @param simulation The CentralitySimulation to calculate the centrality values with
 	 */
 	public void runCentralitySimulation(CentralityMap map, CentralitySimulation simulation) {
-		CustomGraphId gId = new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName());
-		CentralityMapId mapId = new CentralityMapId(map.getId(), gId);
+		CustomGraphId gId = new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName());
+		CentralityMapId mapId = new CentralityMapId(map.getKey(), gId);
 		CentralitySimulationRunnable runnable = new CentralitySimulationRunnable(map, simulation, this);
 		CentralityCreationLog log = map.getCreationMethod();
 		synchronized (centralityAlgorithms) {
@@ -130,8 +127,8 @@ public class ThreadHandler {
 	 * @param benchmark The benchmark model to calculate the ground truth cover with.
 	 */
 	public void runGroundTruthBenchmark(Cover cover, GroundTruthBenchmark benchmark) {
-		CustomGraphId gId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
-		CoverId coverId = new CoverId(cover.getId(), gId);
+		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
+		CoverId coverId = new CoverId(cover.getKey(), gId);
 		GroundTruthBenchmarkRunnable runnable = new GroundTruthBenchmarkRunnable(coverId, benchmark, this);
 		GraphCreationLog log = cover.getGraph().getCreationMethod();
 		synchronized (benchmarks) {
@@ -147,9 +144,9 @@ public class ThreadHandler {
 	 * @param cover The cover the metric shall run on.
 	 */
 	public void runStatisticalMeasure(OcdMetricLog metricLog, StatisticalMeasure metric, Cover cover) {
-		CustomGraphId gId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
-		CoverId coverId = new CoverId(cover.getId(), gId);
-		OcdMetricLogId logId = new OcdMetricLogId(metricLog.getId(), coverId);
+		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
+		CoverId coverId = new CoverId(cover.getKey(), gId);
+		OcdMetricLogId logId = new OcdMetricLogId(metricLog.getKey(), coverId);
 		StatisticalMeasureRunnable runnable = new StatisticalMeasureRunnable(logId, metric, cover, this);
 		synchronized (metrics) {
 			Future<OcdMetricLog> future = executor.<OcdMetricLog>submit(runnable, metricLog);
@@ -165,9 +162,9 @@ public class ThreadHandler {
 	 * @param groundTruth The ground truth cover to be used by the metric.
 	 */
 	public void runKnowledgeDrivenMeasure(OcdMetricLog metricLog, KnowledgeDrivenMeasure metric, Cover cover, Cover groundTruth) {
-		CustomGraphId gId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
-		CoverId coverId = new CoverId(cover.getId(), gId);
-		OcdMetricLogId logId = new OcdMetricLogId(metricLog.getId(), coverId);
+		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
+		CoverId coverId = new CoverId(cover.getKey(), gId);
+		OcdMetricLogId logId = new OcdMetricLogId(metricLog.getKey(), coverId);
 		KnowledgeDrivenMeasureRunnable runnable = new KnowledgeDrivenMeasureRunnable(logId, metric, cover, groundTruth, this);
 		synchronized (metrics) {
 			Future<OcdMetricLog> future = executor.<OcdMetricLog>submit(runnable, metricLog);
@@ -190,11 +187,8 @@ public class ThreadHandler {
     			return;
     		}
     		if(!error) {
-    			EntityManager em = entityHandler.getEntityManager();
-    			EntityTransaction tx = em.getTransaction();
-		    	try {
-					tx.begin();				
-					OcdMetricLog persistedLog = em.find(OcdMetricLog.class, logId);
+		    	try {				
+					OcdMetricLog persistedLog = database.getOcdMetricLog(logId);
 					if(persistedLog == null) {
 						/*
 						 * Should not happen.
@@ -204,21 +198,14 @@ public class ThreadHandler {
 					}
 					persistedLog.setValue(log.getValue());
 					persistedLog.setStatus(ExecutionStatus.COMPLETED);
-					tx.commit();
+					database.updateOcdMetricLog(persistedLog);
 		    	} catch( RuntimeException e ) {
-					if( tx != null && tx.isActive() ) {
-						tx.rollback();
-					}
 					error = true;
 				}
-		    	em.close();
     		}
     		if(error) {
-    			EntityManager em = entityHandler.getEntityManager();
-    			EntityTransaction tx = em.getTransaction();
     			try {
-					tx.begin();
-					OcdMetricLog persistedLog = em.find(OcdMetricLog.class, logId);
+					OcdMetricLog persistedLog = database.getOcdMetricLog(logId);
 					if(persistedLog == null) {
 						/*
 						 * Should not happen.
@@ -227,13 +214,9 @@ public class ThreadHandler {
 						throw new IllegalStateException();
 					}
 					persistedLog.setStatus(ExecutionStatus.ERROR);
-					tx.commit();
+					database.updateOcdMetricLog(persistedLog);
     			} catch( RuntimeException e ) {
-					if( tx != null && tx.isActive() ) {
-						tx.rollback();
-					}
     			}
-    			em.close();
 			}	
     		unsynchedInterruptMetric(logId);
 		}
@@ -248,17 +231,18 @@ public class ThreadHandler {
 	 * @param error Indicates whether an error occurred (true) during the calculation.
 	 */
 	public void createGroundTruthCover(Cover calculatedCover, CoverId coverId, boolean error) {
+		String cKey = coverId.getKey();
+		CustomGraphId gId = coverId.getGraphId();
+		String user = gId.getUser();
+		String gKey = gId.getKey();
     	synchronized (benchmarks) {
     		if(Thread.interrupted()) {
     			Thread.currentThread().interrupt();
     			return;
     		}
     		if(!error) {
-    			EntityManager em = entityHandler.getEntityManager();
-    			EntityTransaction tx = em.getTransaction();
     			try {
-    				tx.begin();
-    				Cover cover = em.find(Cover.class, coverId);
+    				Cover cover = database.getCover(user, gKey, cKey);
     				if(cover == null) {
     					/*
     					 * Should not happen.
@@ -266,19 +250,15 @@ public class ThreadHandler {
     					requestHandler.log(Level.WARNING, "Cover deleted while benchmark running.");
     					throw new IllegalStateException();
     				}
-    				cover.getGraph().setStructureFrom(calculatedCover.getGraph());
-    				cover.getGraph().getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
-    				tx.commit();
+    				CustomGraph graph = cover.getGraph();
+    				graph.setStructureFrom(calculatedCover.getGraph());
+    				graph.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+    				database.updateGraph(graph);
     			} catch( RuntimeException ex ) {
-    				if( tx != null && tx.isActive() ) tx.rollback();
     				error = true;
     			}
-    			em.close();
-    			em = entityHandler.getEntityManager();
-    			tx = em.getTransaction();
     			try {
-    				tx.begin();
-    				Cover cover = em.find(Cover.class, coverId);
+    				Cover cover = database.getCover(user, gKey, cKey);
     				if(cover == null) {
     					/*
     					 * Should not happen.
@@ -288,19 +268,14 @@ public class ThreadHandler {
     				}
     				cover.setMemberships(calculatedCover.getMemberships());
     				cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
-    				tx.commit();
+    				database.updateCover(cover);
     			} catch( RuntimeException ex ) {
-    				if( tx != null && tx.isActive() ) tx.rollback();
     				error = true;
     			}
-    			em.close();
     		}
 			if(error) {
-				EntityManager em = entityHandler.getEntityManager();
-				EntityTransaction tx = em.getTransaction();
 				try {
-    				tx.begin();
-    				Cover cover = em.find(Cover.class, coverId);
+    				Cover cover = database.getCover(user, gKey, cKey);
     				if(cover == null) {
     					/*
     					 * Should not happen.
@@ -310,17 +285,13 @@ public class ThreadHandler {
     				}
     				CustomGraph graph = cover.getGraph();
 					cover.getCreationMethod().setStatus(ExecutionStatus.ERROR);
+					database.updateCover(cover);	//TODO optimieren
 					graph.getCreationMethod().setStatus(ExecutionStatus.ERROR);
-					tx.commit();
+					database.updateGraph(graph);	//TODO muss beides in transaktion?
 				}  catch( RuntimeException e ) {
-    				if( tx != null && tx.isActive() ) {
-    					tx.rollback();
-    				}
     			}
-				em.close();
 			}
-			CustomGraphId graphId = coverId.getGraphId();
-			unsynchedInterruptBenchmark(graphId);
+			unsynchedInterruptBenchmark(gId);
     	}
 	}
 	
@@ -333,17 +304,18 @@ public class ThreadHandler {
 	 * @param error States whether an error occurred (true) during execution.
 	 */
 	public void createCover(Cover calculatedCover, CoverId coverId, boolean error) {
+		String cKey = coverId.getKey();
+		CustomGraphId gId = coverId.getGraphId();
+		String user = gId.getUser();
+		String gKey = gId.getKey();
     	synchronized (algorithms) {
     		if(Thread.interrupted()) {
     			Thread.currentThread().interrupt();
     			return;
     		}
     		if(!error) {
-    			EntityManager em = entityHandler.getEntityManager();
-    			EntityTransaction tx = em.getTransaction();
 		    	try {
-					tx.begin();
-					Cover cover = em.find(Cover.class, coverId);
+					Cover cover = database.getCover(user, gKey, cKey);
 					if(cover == null) {
 						/*
 						 * Should not happen.
@@ -357,21 +329,14 @@ public class ThreadHandler {
 					log.setStatus(ExecutionStatus.COMPLETED);
 					cover.addMetric(log);
 					cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
-					tx.commit();
-		    	} catch( RuntimeException e ) {
-					if( tx != null && tx.isActive() ) {
-						tx.rollback();
-					}
+					database.updateCover(cover);
+		    	} catch(Exception e ) {
 					error = true;
 				}
-		    	em.close();
     		}
     		if(error) {
-    			EntityManager em = entityHandler.getEntityManager();
-    			EntityTransaction tx = em.getTransaction();
     			try {
-					tx.begin();
-					Cover cover = em.find(Cover.class, coverId);
+					Cover cover = database.getCover(user, gKey, cKey);
 					if(cover == null) {
 						/*
 						 * Should not happen.
@@ -380,13 +345,10 @@ public class ThreadHandler {
 						throw new IllegalStateException();
 					}
 					cover.getCreationMethod().setStatus(ExecutionStatus.ERROR);
-					tx.commit();
-    			} catch( RuntimeException e ) {
-					if( tx != null && tx.isActive() ) {
-						tx.rollback();
-					}
+					database.updateCover(cover);		//TODO nur creation method updaten
+    			} catch( Exception e ) {
+    				
     			}
-    			em.close();
 			}	
 	    	unsynchedInterruptAlgorithm(coverId);
 		}
@@ -401,17 +363,18 @@ public class ThreadHandler {
 	 * @param error States whether an error occurred (true) during execution.
 	 */
 	public void createCentralityMap(CentralityMap calculatedMap, CentralityMapId mapId, boolean error) {
+		String mKey = mapId.getKey();
+		CustomGraphId gId = mapId.getGraphId();
+		String user = gId.getUser();
+		String gKey = gId.getKey();
     	synchronized (centralityAlgorithms) {
     		if(Thread.interrupted()) {
     			Thread.currentThread().interrupt();
     			return;
     		}
     		if(!error) {
-    			EntityManager em = entityHandler.getEntityManager();
-    			EntityTransaction tx = em.getTransaction();
 		    	try {
-					tx.begin();
-					CentralityMap map = em.find(CentralityMap.class, mapId);
+					CentralityMap map = database.getCentralityMap(user,  gKey, mKey);
 					if(map == null) {
 						/*
 						 * Should not happen.
@@ -422,21 +385,14 @@ public class ThreadHandler {
 					map.setMap(calculatedMap.getMap());
 					map.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
 					map.getCreationMethod().setExecutionTime(calculatedMap.getCreationMethod().getExecutionTime());
-					tx.commit();
-		    	} catch( RuntimeException e ) {
-					if( tx != null && tx.isActive() ) {
-						tx.rollback();
-					}
+					database.updateCentralityMap(map);
+		    	} catch(RuntimeException e ) {
 					error = true;
 				}
-		    	em.close();
     		}
     		if(error) {
-    			EntityManager em = entityHandler.getEntityManager();
-    			EntityTransaction tx = em.getTransaction();
     			try {
-					tx.begin();
-					CentralityMap map = em.find(CentralityMap.class, mapId);
+					CentralityMap map = database.getCentralityMap(user, gKey, mKey);
 					if(map == null) {
 						/*
 						 * Should not happen.
@@ -445,13 +401,9 @@ public class ThreadHandler {
 						throw new IllegalStateException();
 					}
 					map.getCreationMethod().setStatus(ExecutionStatus.ERROR);
-					tx.commit();
+					database.updateCentralityMap(map);
     			} catch( RuntimeException e ) {
-					if( tx != null && tx.isActive() ) {
-						tx.rollback();
-					}
     			}
-    			em.close();
 			}	
 	    	unsynchedInterruptAlgorithm(mapId);
 		}
@@ -496,7 +448,7 @@ public class ThreadHandler {
 	 */
 	public void interruptAll(Cover cover) {
 		synchronized (algorithms) {
-			unsynchedInterruptAlgorithm(new CoverId(cover.getId(), new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName())));
+			unsynchedInterruptAlgorithm(new CoverId(cover.getKey(), new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName())));
 		}
 		synchronized (metrics) {
 			unsynchedInterruptAllMetrics(cover);
@@ -509,7 +461,7 @@ public class ThreadHandler {
 	 */
 	public void interruptAll(CentralityMap map) {
 		synchronized (centralityAlgorithms) {
-			unsynchedInterruptAlgorithm(new CentralityMapId(map.getId(), new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName())));
+			unsynchedInterruptAlgorithm(new CentralityMapId(map.getKey(), new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName())));
 		}
 	}
 	
@@ -567,9 +519,9 @@ public class ThreadHandler {
 	 * @param cover The cover.
 	 */
 	private void unsynchedInterruptAllMetrics(Cover cover) {
-		CoverId coverId = new CoverId(cover.getId(), new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName()));
+		CoverId coverId = new CoverId(cover.getKey(), new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName()));
 		for(OcdMetricLog log : cover.getMetrics()) {
-			OcdMetricLogId logId = new OcdMetricLogId(log.getId(), coverId);
+			OcdMetricLogId logId = new OcdMetricLogId(log.getKey(), coverId);
 			unsynchedInterruptMetric(logId);
 		}
 	}

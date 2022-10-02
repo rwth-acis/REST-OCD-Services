@@ -272,12 +272,15 @@ public class CentralityMap {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
 		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
-		
-		bd.addAttribute(nameColumnName, this.name);
-		if(this.graph.getKey() == null) {
-			System.out.println("graph is not stored yet");
+	
+		if(this.graph == null) {
+			throw new NullPointerException("graph attribute of the centralityMap to be persisted does not exist");
+		}
+		else if(this.graph.getKey().equals("")) {
+			throw new NullPointerException("the graph of the centralityMap is not persisted yet");
 		}
 		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
+		bd.addAttribute(nameColumnName, this.name);
 		this.creationMethod.persist(db, createOptions);
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		bd.addAttribute(mapColumnName, this.map);
@@ -295,7 +298,7 @@ public class CentralityMap {
 			ObjectMapper om = new ObjectMapper();	//prepair attributes
 			String graphKey = bd.getAttribute(graphKeyColumnName).toString();
 			if(!graphKey.equals(g.getKey())) {
-				System.out.println("graph does not fit to centralityMap CM graphKey: " + graphKey + " CG graphKey: " + g.getKey());
+				System.out.println("graph with key: " + g.getKey() + " does not fit to centralityMap with GraphKey: " + graphKey);
 				return null;
 			}
 			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
@@ -312,6 +315,16 @@ public class CentralityMap {
 		}
 		return cm;
 	}
+	
+	public void updateKey(String newKey, ArangoDatabase db, String transId) {
+		
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
+		bd.setKey(newKey);
+		collection.updateDocument(this.key,  bd, updateOptions);
+	}	
 	
 	@Override
 	public String toString() {

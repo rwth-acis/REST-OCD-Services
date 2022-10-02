@@ -88,7 +88,7 @@ public class CustomGraph extends Graph2D {
 	private static final String coverKeysColumnName = "COVER_KEYS";
 	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
 	private static final String typesColumnName = "TYPES";
-	public static final String collectionName = "customgraph";
+	public static final String collectionName = "customgraph";		//do not chose the name "graph" here because it is reserved for querys
 	
 	/*
 	 * Field name definitions for JPQL queries.
@@ -1457,7 +1457,7 @@ public class CustomGraph extends Graph2D {
 		
 		bd = new BaseDocument();
 		
-		NodeCursor nodes = this.nodes();//TODO graphstream
+		NodeCursor nodes = this.nodes();
 		while (nodes.ok()) {		//persist all nodes from the graph
 			Node n = nodes.node();
 			CustomNode node = this.getCustomNode(n);
@@ -1482,7 +1482,7 @@ public class CustomGraph extends Graph2D {
 
 	public static CustomGraph load(String key, ArangoDatabase db, String transId) {
 		CustomGraph graph = new CustomGraph();
-		ArangoCollection collection = db.collection(collectionName);	
+		ArangoCollection collection = db.collection(collectionName);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
@@ -1541,7 +1541,57 @@ public class CustomGraph extends Graph2D {
 		}
 		return graph;
 	}
+
+	public void updateKey(String newKey, ArangoDatabase db, String transId) {
+		
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
+		bd.setKey(newKey);
+		collection.updateDocument(this.key,  bd, updateOptions);
+	}	
 	
+	public void updateDB(ArangoDatabase db, String transId) {		//only updates the nodes/edges/GraphCreationLog and graph Attributes
+		ArangoCollection collection = db.collection(collectionName);
+		String aktualGraphKey = this.key;
+		
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		
+		BaseDocument bd = collection.getDocument(aktualGraphKey, BaseDocument.class, readOpt);
+		
+		String gclKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+		ArangoCollection gclCollection = db.collection(GraphCreationLog.collectionName);
+		gclCollection.deleteDocument(gclKey, null, deleteOpt);			//delete GraphCreationLog
+		this.creationMethod.persist(db, createOptions);
+		bd.updateAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());	//update creation method key
+		
+		NodeCursor nodes = this.nodes();
+		while (nodes.ok()) {		//update all nodes from the graph
+			Node n = nodes.node();
+			CustomNode node = this.getCustomNode(n);
+			node.updateDB(db, updateOptions);
+			nodes.next();
+		}
+		EdgeCursor edges = this.edges();
+		while (edges.ok()) {		//updates all edges from the graph
+			Edge e = edges.edge();
+			CustomEdge edge = this.getCustomEdge(e);
+			edge.updateDB(db, updateOptions);
+		}
+		
+		bd.updateAttribute(userColumnName, this.userName);	//update all atributes
+		bd.updateAttribute(pathColumnName, this.path);
+		bd.updateAttribute(nameColumnName, this.name);
+		bd.updateAttribute(typesColumnName, this.types);
+		bd.updateAttribute(idColumnName,  this.id); 	//TODO nötig?
+		bd.updateAttribute(propertiesColumnName, this.properties);
+		
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
 	
 	//TODO funktion verwerfen
 	public void setNodeNames() {

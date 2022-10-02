@@ -83,7 +83,7 @@ public class InvocationHandler {
 		return communityMemberList;
 	}
 
-	public List<Integer> getCoverIdsByGraphId(long graphId, String username) {
+	public List<Integer> getCoverIdsByGraphId(long graphId, String username) {		//TODO is not used
 
 		List<Cover> queryResults;
 		EntityManager em = entityHandler.getEntityManager();

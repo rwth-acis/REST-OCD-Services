@@ -29,7 +29,7 @@ public class InactivityHandler {
      * Entity Handler for interacting with the database.
      */
     EntityHandler entityHandler;
-
+    Database database;
     /**
      * The thread handler used for algorithm, benchmark and metric execution.
      */
@@ -69,6 +69,7 @@ public class InactivityHandler {
         this.executor = ThreadHandler.getExecutor();
         this.service = serviceClass;
         this.maxInactiveDays = this.readAllowedInactivityDays();
+        this.database = new Database();
 
 
         // part of the code that will be executed regularly
@@ -92,8 +93,7 @@ public class InactivityHandler {
 
 
                         // get all graphs of a user to delete
-                        List<CustomGraph> userGraphs = entityHandler.getGraphs(user);
-
+                        List<CustomGraph> userGraphs = database.getGraphs(user);
                         System.out.println("need to delete " + user + " data. which has " + userGraphs.size() + " graphs.");
 
                         // check that user has graphs, to avoid unnecessary computations
@@ -102,7 +102,7 @@ public class InactivityHandler {
                            // System.out.print("Deleted graph ids: ");
                             // delete all graphs of a user
                             for (CustomGraph graph : userGraphs) {
-                                entityHandler.deleteGraph(user, graph.getId(), threadHandler);
+                                database.deleteGraph(user, graph.getKey(), threadHandler);
                                 System.out.print(graph.getId() + ", ");
                             }
                             System.out.println();

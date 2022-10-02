@@ -717,7 +717,7 @@ public class RequestHandler {
 	protected Node getIdElt(CustomGraph graph, Document doc) {
 		Element graphElt = doc.createElement("Graph");
 		Element graphIdElt = doc.createElement("Id");
-		graphIdElt.appendChild(doc.createTextNode(graph.getKey()));		//TODO
+		graphIdElt.appendChild(doc.createTextNode(graph.getKey()));	//done
 		graphElt.appendChild(graphIdElt);
 		return graphElt;
 	}
@@ -735,10 +735,10 @@ public class RequestHandler {
 		Element coverElt = doc.createElement("Cover");
 		Element idElt = doc.createElement("Id");
 		Element coverIdElt = doc.createElement("CoverId");
-		coverIdElt.appendChild(doc.createTextNode(Long.toString(cover.getId())));	//TODO
+		coverIdElt.appendChild(doc.createTextNode(cover.getKey()));	//done
 		idElt.appendChild(coverIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(cover.getGraph().getId())));	//TODO
+		graphIdElt.appendChild(doc.createTextNode(cover.getGraph().getKey()));	//done
 		idElt.appendChild(graphIdElt);
 		coverElt.appendChild(idElt);
 		return coverElt;
@@ -754,10 +754,10 @@ public class RequestHandler {
 		Element centralityMapElt = doc.createElement("CentralityMap");
 		Element idElt = doc.createElement("Id");
 		Element centralityMapIdElt = doc.createElement("CentralityMapId");
-		centralityMapIdElt.appendChild(doc.createTextNode(Long.toString(map.getId())));//TODO
+		centralityMapIdElt.appendChild(doc.createTextNode(map.getKey()));		
 		idElt.appendChild(centralityMapIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(map.getGraph().getId())));//TODO
+		graphIdElt.appendChild(doc.createTextNode(map.getGraph().getKey())); //done
 		idElt.appendChild(graphIdElt);
 		centralityMapElt.appendChild(idElt);
 		return centralityMapElt;
@@ -776,13 +776,13 @@ public class RequestHandler {
 		Element metricElt = doc.createElement("Metric");
 		Element idElt = doc.createElement("Id");
 		Element metricIdElt = doc.createElement("MetricId");
-		metricIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getId())));//TODO
+		metricIdElt.appendChild(doc.createTextNode(metricLog.getKey()));  	//done
 		idElt.appendChild(metricIdElt);
 		Element coverIdElt = doc.createElement("CoverId");
-		coverIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getCover().getId())));//TODO
+		coverIdElt.appendChild(doc.createTextNode(metricLog.getCover().getKey()));  //done
 		idElt.appendChild(coverIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getCover().getGraph().getId())));//TODO
+		graphIdElt.appendChild(doc.createTextNode(metricLog.getCover().getGraph().getKey()));	//done
 		idElt.appendChild(graphIdElt);
 		metricElt.appendChild(idElt);
 		return metricElt;
@@ -974,7 +974,7 @@ public class RequestHandler {
 			nameElt.appendChild(doc.createTextNode(map.getName()));
 			mapElt.appendChild(nameElt);
 			Element mapIdElt = doc.createElement("CentralityMapId");
-			mapIdElt.appendChild(doc.createTextNode(Long.toString(map.getId())));	//TODO
+			mapIdElt.appendChild(doc.createTextNode(map.getKey()));	//done
 			mapElt.appendChild(mapIdElt);
 			Element precisionElt = doc.createElement("Precision");
 			mapElt.appendChild(precisionElt);

@@ -9,9 +9,9 @@ import i5.las2peer.services.ocd.graphs.CustomGraphId;
 public class CentralityMapId {
 
 	/**
-	 * The map-specific id.
+	 * The map-specific key.
 	 */
-    private long id;
+    private String key;
     
     /**
      * The id of the graph the CentralityMap is based on.
@@ -20,11 +20,11 @@ public class CentralityMapId {
  
     /**
      * Creates a new instance.
-     * @param id The map-specific id.
+     * @param key The map-specific key.
      * @param graphId The id of the graph the CentralityMap is based on.
      */
-    public CentralityMapId(long id, CustomGraphId graphId) {
-        this.id = id;
+    public CentralityMapId(String key, CustomGraphId graphId) {
+        this.key = key;
         this.graph = graphId;
     }
  
@@ -32,7 +32,7 @@ public class CentralityMapId {
     public boolean equals(Object object) {
         if (object instanceof CentralityMapId) {
         	CentralityMapId pk = (CentralityMapId)object;
-            return graph.equals(graph) && id == pk.id;
+            return graph.equals(graph) && key.equals(pk.key);
         } else {
             return false;
         }
@@ -40,7 +40,7 @@ public class CentralityMapId {
  
     @Override
     public int hashCode() {
-        return (int)(id + graph.hashCode());
+        return (int)(key.hashCode() + graph.hashCode());
     }
 	
     /**
@@ -49,5 +49,12 @@ public class CentralityMapId {
      */
     public CustomGraphId getGraphId() {
     	return graph;
+    }
+    /**
+     * Getter for the map key.
+     * @return The map key.
+     */
+    public String getKey() {
+    	return key;
     }
 }

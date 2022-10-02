@@ -48,14 +48,11 @@ public class CentralitySimulationRunnable implements Runnable {
 		/*
 		 * Set simulation state to running.
 		 */
-		CustomGraphId graphId = new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName());
-    	CentralityMapId id = new CentralityMapId(map.getId(), graphId);
+		CustomGraphId graphId = new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName());
+    	CentralityMapId id = new CentralityMapId(map.getKey(), graphId);
     	RequestHandler requestHandler = new RequestHandler();
-    	EntityManager em = entityHandler.getEntityManager();
-    	EntityTransaction tx = em.getTransaction();
+    	Database database = new Database();
 		try {
-			tx.begin();
-			CentralityMap map = em.find(CentralityMap.class, id);
 			if(map == null) {
 				/*
 				 * Should not happen.
@@ -64,14 +61,10 @@ public class CentralitySimulationRunnable implements Runnable {
 				throw new IllegalStateException();
 			}
 			map.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
-			tx.commit();
+			database.updateCentralityMap(map);
 		} catch( RuntimeException e ) {
-			if( tx != null && tx.isActive() ) {
-				tx.rollback();
-			}
 			error = true;
 		}
-		em.close();
 		/*
 		 * Run simulation.
 		 */

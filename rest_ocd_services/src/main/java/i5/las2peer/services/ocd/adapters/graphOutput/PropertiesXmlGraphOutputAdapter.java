@@ -28,7 +28,7 @@ public class PropertiesXmlGraphOutputAdapter extends AbstractGraphOutputAdapter 
 			doc.appendChild(graphElt);
 
 			Element graphIdElt = doc.createElement("Id");
-			graphIdElt.appendChild(doc.createTextNode(Long.toString(graph.getId())));
+			graphIdElt.appendChild(doc.createTextNode(graph.getKey()));	//done
 			graphElt.appendChild(graphIdElt);
 
 			Element graphNameElt = doc.createElement("Name");			

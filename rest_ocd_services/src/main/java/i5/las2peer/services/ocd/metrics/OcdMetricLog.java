@@ -23,7 +23,7 @@ import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
 import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentReadOptions;
-
+import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -64,7 +64,7 @@ public class OcdMetricLog {
 	/**
 	 * System generated persistence key.
 	 */
-	private String key;
+	private String key = "";
 	/**
 	 * The cover the metric was run on.
 	 */
@@ -241,7 +241,16 @@ public class OcdMetricLog {
 		return oml;
 	}
 	
-
+	public void updateKey(String newKey, ArangoDatabase db, String transId) {
+		
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
+		bd.setKey(newKey);
+		collection.updateDocument(this.key,  bd, updateOptions);
+	}	
+	
 	public String String() {
 		String n = System.getProperty("line.separator");
 		String ret = "OcdMetricLog: " + n;

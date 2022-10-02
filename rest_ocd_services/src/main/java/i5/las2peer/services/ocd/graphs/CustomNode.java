@@ -20,6 +20,7 @@ import com.arangodb.entity.BaseDocument;
 import com.arangodb.entity.StreamTransactionEntity;
 import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -284,6 +285,14 @@ public class CustomNode {
 			System.out.println("leeres dokument");
 		}
 		return cn;
+	}
+	
+	public void updateDB(ArangoDatabase db, DocumentUpdateOptions opt) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(nameColumnName,  this.name);
+		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
+		collection.updateDocument(this.key, bd, opt);
 	}
 	
 	//TODO wird die funktion gebraucht?

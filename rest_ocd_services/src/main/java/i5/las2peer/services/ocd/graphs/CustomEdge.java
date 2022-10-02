@@ -17,6 +17,7 @@ import com.arangodb.entity.BaseEdgeDocument;
 import com.arangodb.entity.CollectionType;
 import com.arangodb.entity.StreamTransactionEntity;
 import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 import com.arangodb.model.EdgeCreateOptions;
 
 
@@ -264,13 +265,24 @@ public class CustomEdge {
 	public void persist(ArangoDatabase db, DocumentCreateOptions opt) {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseEdgeDocument bed = new BaseEdgeDocument();
-		bed.addAttribute(weightColumnName, this.weight); //TODO
+		bed.addAttribute(weightColumnName, this.weight);
 		bed.addAttribute(graphKeyColumnName, this.graph.getKey());
 		bed.setFrom(CustomNode.collectionName + "/" + this.source.getKey());
 		bed.setTo(CustomNode.collectionName + "/" + this.target.getKey());
 		
 		collection.insertDocument(bed, opt);
 		this.key = bed.getKey();
+	}
+	
+	public void updateDB(ArangoDatabase db, DocumentUpdateOptions opt) {
+		
+		ArangoCollection collection = db.collection(collectionName);
+		BaseEdgeDocument bed = new BaseEdgeDocument();
+		bed.addAttribute(weightColumnName, this.weight);
+		bed.addAttribute(graphKeyColumnName, this.graph.getKey());
+		bed.setFrom(CustomNode.collectionName + "/" + this.source.getKey());
+		bed.setTo(CustomNode.collectionName + "/" + this.target.getKey());
+		collection.updateDocument(this.key, bed, opt);
 	}
 	
 	public static CustomEdge load(BaseEdgeDocument bed, CustomNode source, CustomNode target, CustomGraph graph, ArangoDatabase db) {
@@ -283,7 +295,6 @@ public class CustomEdge {
 			}
 			ce.source = source;
 			ce.target = target;
-			//TODO variable cn.Graph muss noch gesetzt werden
 		}	
 		else {
 			System.out.println("leeres dokument");
