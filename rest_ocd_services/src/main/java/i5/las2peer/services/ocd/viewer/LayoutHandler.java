@@ -76,7 +76,8 @@ public class LayoutHandler {
 		 */
 		double minDegree = graph.getMinWeightedInDegree();
 		double maxDegree = graph.getMaxWeightedInDegree();
-		double scalingFactor = (maxNodeSize - minNodeSize) / (maxDegree - minDegree);
+		double degreeDifference = (maxDegree == minDegree) ? 1.0 : (maxDegree - minDegree);
+		double scalingFactor = (maxNodeSize - minNodeSize) / degreeDifference;
 		while(nodesIt.hasNext()) {
 			node = nodesIt.next();
 			node.setAttribute("ui.shape", "circle");
@@ -90,6 +91,7 @@ public class LayoutHandler {
 			if(graph.isOfType(GraphType.DIRECTED)) {
 				edge.setAttribute("ui.arrow-shape", "arrow");
 			}
+
 		}
 	}
 	
@@ -123,7 +125,6 @@ public class LayoutHandler {
 	 * @param paintingType The painting type defining which cover painter to use.
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
-	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public void doLayout(Cover cover, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges, 
 			double minNodeSize, double maxNodeSize, CoverPaintingType paintingType) throws InstantiationException, IllegalAccessException, InterruptedException {

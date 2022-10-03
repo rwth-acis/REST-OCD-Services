@@ -364,6 +364,41 @@ public class EntityHandler {
 	}
 
 	/**
+	 * Removes username from the InactivityData table from the database. This is to ensure that for users whose content
+	 * has been deleted and who are inactive, no processing power is wasted for checking their data.
+	 *
+	 * @param username      Username to remove from the table.
+	 * @param threadHandler the ThreadHandler.
+	 */
+	public void deleteUserInactivityData(String username, ThreadHandler threadHandler) {
+
+		synchronized (threadHandler) {
+			EntityManager em = getEntityManager();
+			EntityTransaction tx = em.getTransaction();
+
+			try {
+				tx.begin();
+				;
+
+				// find user to delete
+				String queryStr = "DELETE FROM " + InactivityData.class.getName() + " d WHERE d." + InactivityData.USER_NAME_FIELD_NAME + " = :username";
+				TypedQuery<InactivityData> query = em.createQuery(queryStr, InactivityData.class);
+				query.setParameter("username", username);
+				query.executeUpdate();
+
+				tx.commit();
+
+			} catch (RuntimeException e) {
+				if (tx != null && tx.isActive()) {
+					tx.rollback();
+				}
+				throw e;
+			}
+			em.close();
+		}
+	}
+
+	/**
 	 * Returns all Covers corresponding to a CustomGraph
 	 * 
 	 * @param username

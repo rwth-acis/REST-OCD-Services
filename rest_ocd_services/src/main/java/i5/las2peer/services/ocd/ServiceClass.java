@@ -7,7 +7,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 import javax.persistence.EntityManager;
@@ -38,11 +45,13 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.ManualDeployment;
 import i5.las2peer.api.security.UserAgent;
+import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
 import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
+import i5.las2peer.execution.ExecutionContext;
 import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -100,6 +109,10 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
+import i5.las2peer.services.ocd.utils.Error;
+import i5.las2peer.services.ocd.utils.ExecutionStatus;
+import i5.las2peer.services.ocd.utils.InvocationHandler;
+import i5.las2peer.services.ocd.utils.ThreadHandler;
 import i5.las2peer.services.ocd.viewer.LayoutHandler;
 import i5.las2peer.services.ocd.viewer.ViewerRequestHandler;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayoutType;
@@ -127,7 +140,6 @@ import io.swagger.annotations.SwaggerDefinition;
  * @author Sebastian
  *
  */
-//TODO: Consolidate connected component checks into CustomGraph class
 
 @ManualDeployment
 @ServicePath("/ocd")
@@ -145,6 +157,9 @@ public class ServiceClass extends RESTService {
 
 	public ServiceClass() {
 		setFieldValues();
+
+		// instantiate inactivityHandler to regularly remove content of inactive users.
+		inactivityHandler = new InactivityHandler(entityHandler, threadHandler, this);
 	}
 
 	///////////////////////////////////////////////////////////
@@ -200,6 +215,22 @@ public class ServiceClass extends RESTService {
 	 */
 	private final static LayoutHandler layoutHandler = new LayoutHandler();
 
+	/**
+	 * The inactivity handler for removing content of inactive users.
+	 */
+	private static InactivityHandler inactivityHandler;
+
+
+	/**
+	 * Number of days of inactivity allowed, before user content gets removed.
+	 */
+	private int maxInactiveDays;
+
+	/**
+	 * Password to be used to adjust number of days before inactive user content is removed.
+	 */
+	private String inactivityHandlerPassword;
+
 	//////////////////////////////////////////////////////////////////
 	///////// Utility Methods
 	//////////////////////////////////////////////////////////////////
@@ -211,6 +242,19 @@ public class ServiceClass extends RESTService {
 	public static String getUserId() {
 		return Context.getCurrent().getMainAgent().getIdentifier();
 	}
+
+	public int getMaxInactiveDays() { return this.maxInactiveDays; }
+
+	public String getInactivityHandlerPassword(){return this.inactivityHandlerPassword;}
+
+	/**
+	 * This method is used to set fresh field values, in case modifications were made in
+	 * i5.las2peer.services.ocd.ServiceClass.properties file
+	 */
+	public void setFreshFieldValues() {
+		setFieldValues();
+	}
+
 
 	//////////////////////////////////////////////////////////////////
 	///////// REST Service Methods
@@ -248,6 +292,8 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"special"}, value = "User validation", notes = "Simple function to validate a user login.")
 		public Response validateLogin() {
 			try {
+				// update user inactivity info when user logs in.
+				inactivityHandler.refreshUserInactivityData(getUserName());
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -3931,7 +3977,7 @@ public class ServiceClass extends RESTService {
 			return Response.ok().entity(series).build();
 	
 		}
-
+	
 		@GET
 		@Path("/simulation/meta")
 		@Consumes(MediaType.APPLICATION_JSON)
