@@ -2,9 +2,13 @@ package i5.las2peer.services.ocd.viewer.layouters;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 import y.layout.ParallelEdgeLayouter;
 import y.layout.organic.SmartOrganicLayouter;
 import y.layout.router.OrganicEdgeRouter;
+
+import java.util.Iterator;
 
 /**
  * Organic layouter, based on the Organic Layout Style of the yFiles library.
@@ -30,14 +34,30 @@ public class OrganicGraphLayouter implements GraphLayouter {
 						"node {" +
 						"	text-mode: normal;" +
 						"}");
-		if(graph.isOfType(GraphType.DIRECTED)) {	
+		Iterator<Node> nodesIt = graph.nodes().iterator();
+		while(nodesIt.hasNext()) {
+			Node node = nodesIt.next();
+			node.setAttribute("ui.style",node.getAttribute("ui.style") + "stroke-mode: plain;"
+					+ "stroke-color: black;"
+					+ "stroke-width: 1;");
+		}
+		if (graph.isOfType(GraphType.DIRECTED)) {
+			Iterator<Edge> edgesIt = graph.edges().iterator();
+			while(edgesIt.hasNext()) {
+				Edge edge = edgesIt.next();
+				edge.setAttribute("ui.style", edge.getAttribute("ui.style") + "fill-color: black; shape: line; size: 1.5;");
+			}
 //			ParallelEdgeLayouter parallelLayouter = new ParallelEdgeLayouter(layouter);
 //			parallelLayouter.setDirectedModeEnabled(true);
 //			parallelLayouter.setLineDistance(10);
 //			parallelLayouter.setLeadingEdgeAdjustmentEnabled(false);
 //			parallelLayouter.doLayout(graph);
-		}
-		else {
+		} else {
+			Iterator<Edge> edgesIt = graph.edges().iterator();
+			while(edgesIt.hasNext()) {
+				Edge edge = edgesIt.next();
+				edge.setAttribute("ui.style", edge.getAttribute("ui.style") + "fill-color: black; shape: line; size: 1.5;");
+			}
 //			OrganicEdgeRouter router = new OrganicEdgeRouter();
 //			router.setCoreLayouter(layouter);
 //			router.setEdgeNodeOverlapAllowed(false);
@@ -46,6 +66,19 @@ public class OrganicGraphLayouter implements GraphLayouter {
 //			router.setUsingBends(false);
 //			router.doLayout(graph);
 		}
-	}
 
-}
+		//graph.layout.addAttributeSink(graph);
+		graph.layout.shake();
+		graph.layout.compute();
+
+		while (graph.layout.getStabilization() < 1.0) {
+			graph.layout.compute();
+		}
+		//TODO:REMOVE
+		//System.setProperty("org.graphstream.ui", "swing");
+		//graph.display();
+
+		//while(true);
+		//TODO:REMOVE
+	}
+};

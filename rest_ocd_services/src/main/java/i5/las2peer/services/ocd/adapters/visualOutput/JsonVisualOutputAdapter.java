@@ -74,7 +74,7 @@ public class JsonVisualOutputAdapter extends AbstractVisualOutputAdapter {
 			}
 			
 			//Label
-			tmp.put("label", n.getLabel("ui.label").toString());
+			tmp.put("label", n.getLabel("label").toString());
 
 			JSONObject jsonNode = (JSONObject) JSONValue.parse(JSONValue.toJSONString(tmp));
 
