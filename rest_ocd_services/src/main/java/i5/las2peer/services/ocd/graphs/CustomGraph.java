@@ -24,6 +24,8 @@ import javax.persistence.Transient;
 import org.graphstream.graph.implementations.AbstractGraph;
 import org.graphstream.graph.implementations.AbstractNode;
 import org.graphstream.graph.implementations.MultiNode;
+import org.graphstream.ui.layout.Layout;
+import org.graphstream.ui.layout.springbox.implementations.SpringBox;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
@@ -199,6 +201,8 @@ public class CustomGraph extends MultiGraph {
 	@Transient
 	private Termmatrix termMatrix = new Termmatrix();
 
+	@Transient
+	public Layout layout;
 
 	//////////////////////////////////////////////////////////////////
 	///////// Constructor
@@ -209,7 +213,10 @@ public class CustomGraph extends MultiGraph {
 	 */
     public CustomGraph() {
 		super(UUID.randomUUID().toString());
-        this.addSink(new CustomGraphListener(this)); //TODO: Put corresponding listener here (if needed)
+        this.addSink(new CustomGraphListener(this));
+		layout = new SpringBox(false);
+		this.addSink(layout); //Layout listener
+		layout.addAttributeSink(this);
     }
 
 	/**
@@ -222,6 +229,9 @@ public class CustomGraph extends MultiGraph {
 	public CustomGraph(AbstractGraph graph) {
 		super(UUID.randomUUID().toString()); //TODO: CHANGE to correct super execution
 		this.addSink(new CustomGraphListener(this));
+		layout = new SpringBox(false);
+		this.addSink(layout); //Layout listener
+		layout.addAttributeSink(this);
 		//super(graph);
 		Node[] nodes = this.nodes().toArray(Node[]::new);
 		for(Node node : nodes) {
@@ -248,6 +258,10 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public CustomGraph(CustomGraph graph) {
 		super(UUID.randomUUID().toString());
+		this.addSink(new CustomGraphListener(this));
+		layout = new SpringBox(false);
+		this.addSink(layout); //Layout listener
+		layout.addAttributeSink(this);
 
 		Iterator<Node> nodesIt = graph.iterator();
 		while(nodesIt.hasNext()) {
@@ -265,7 +279,6 @@ public class CustomGraph extends MultiGraph {
 		this.creationMethod.setStatus(graph.creationMethod.getStatus());
 		this.customNodes = new HashMap<Integer, CustomNode>();
 		copyMappings(graph.customNodes, graph.customEdges, graph.nodeIds, graph.edgeIds);
-		this.addSink(new CustomGraphListener(this));
 		this.userName = new String(graph.userName);
 		this.name = new String(graph.name);
 		this.persistenceId = graph.persistenceId;

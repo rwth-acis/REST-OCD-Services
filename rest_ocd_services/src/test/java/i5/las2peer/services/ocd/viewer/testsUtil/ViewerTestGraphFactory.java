@@ -41,6 +41,7 @@ public class ViewerTestGraphFactory {
 			e[i] = graph.addEdge(UUID.randomUUID().toString(), n[i], n[(i+1)%10]);
 			graph.setEdgeWeight(e[i], 1.0);
 		}
+		graph.addType(GraphType.DIRECTED);
 		return new CustomGraph(graph);
 	}
 	
