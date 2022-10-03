@@ -102,7 +102,7 @@ public class InactivityHandler {
                            // System.out.print("Deleted graph ids: ");
                             // delete all graphs of a user
                             for (CustomGraph graph : userGraphs) {
-                                entityHandler.deleteGraph(user, graph.getId(), threadHandler);
+                                entityHandler.deleteGraph(user, graph.getPersistenceId(), threadHandler);
                                 System.out.print(graph.getId() + ", ");
                             }
                             System.out.println();
