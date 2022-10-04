@@ -72,20 +72,23 @@ public class GraphProcessor {
 	 *            The graph to be transformed.
 	 */
 	public void makeUndirected(CustomGraph graph) {
-		Iterator<Edge> edges = graph.edges().iterator();
+
+		// copy of the input graph to be used for iteration
+		CustomGraph graphCopy = new CustomGraph(graph);
+
+		Iterator<Edge> edges = graphCopy.edges().iterator();
 		while (edges.hasNext()) {
 			Edge edge = edges.next();
-			double edgeWeight = graph.getEdgeWeight(edge);
+			double edgeWeight = graphCopy.getEdgeWeight(edge);
 			Edge reverseEdge;
 			Node target = edge.getTargetNode();
 			Node source = edge.getSourceNode();
 			reverseEdge = target.getEdgeToward(source);
 			if (reverseEdge != null && reverseEdge.getIndex() > edge.getIndex() && !target.equals(source)) {
-				edgeWeight += graph.getEdgeWeight(reverseEdge);
-				graph.setEdgeWeight(edge, edgeWeight);
-				graph.setEdgeWeight(reverseEdge, edgeWeight);
+				graph.combineEdgeWeights(target.getId(), source.getId());
+
 			} else if (reverseEdge == null) {
-				reverseEdge = graph.addEdge(UUID.randomUUID().toString(), target, source);
+				reverseEdge = graph.addEdge(UUID.randomUUID().toString(), target.getId(), source.getId());
 				graph.setEdgeWeight(reverseEdge, edgeWeight);
 			}
 		}

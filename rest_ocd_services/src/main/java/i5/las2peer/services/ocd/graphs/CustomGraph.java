@@ -566,6 +566,35 @@ public class CustomGraph extends MultiGraph {
 		getCustomEdge(edge).setWeight(weight);
 	}
 
+	/**
+	 * Finds two nodes based on their identifiers and combines edge weights
+	 * between the found nodes. This is equivalent to having
+	 * a single undirected, weighted edge between two nodes.
+	 * @param fromId       First node
+	 * @param toId         Second node
+	 */
+	public void combineEdgeWeights(String fromId, String toId){
+		/*
+		 find nodes and edges based on the identifiers provided
+		 */
+		Node from = this.getNode(fromId);
+		Node to = this.getNode(toId);
+		Edge forward = from.getEdgeToward(to);
+		Edge backward = to.getEdgeToward(from);
+
+		/*
+		 calculate combined weight of edges between the above two nodes
+		 */
+		double edgeWeight = this.getEdgeWeight(forward) + this.getEdgeWeight(backward);
+
+		/*
+		 set the combined weight to be the weight of the edges between the above two nodes.
+		 */
+		this.setEdgeWeight(forward, edgeWeight);
+		this.setEdgeWeight(backward, edgeWeight);
+
+	}
+
 	// public long getEdgeId(Edge edge) {
 	// return getCustomEdge(edge).getId();
 	// }
