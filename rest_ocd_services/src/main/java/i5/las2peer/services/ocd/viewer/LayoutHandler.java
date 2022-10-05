@@ -140,7 +140,8 @@ public class LayoutHandler {
 		 */
 		double minDegree = graph.getMinWeightedInDegree();
 		double maxDegree = graph.getMaxWeightedInDegree();
-		double scalingFactor = (maxNodeSize - minNodeSize) / (maxDegree - minDegree);
+		double degreeDifference = (maxDegree == minDegree) ? 1.0 : (maxDegree - minDegree);
+		double scalingFactor = (maxNodeSize - minNodeSize) / degreeDifference;
 		while(nodesIt.hasNext()) {
 			node = nodesIt.next();
 			double curNodeSize = minNodeSize + (graph.getWeightedInDegree(node) - minDegree) * scalingFactor;
