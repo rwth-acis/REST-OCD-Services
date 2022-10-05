@@ -9,7 +9,6 @@ import java.io.IOException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import org.graphstream.stream.file.FileSinkSVG;
 
-//TODO: Check whether graphstream output acts similarly enough to yFiles output
 public class SvgVisualOutputAdapter extends AbstractVisualOutputAdapter {
 	
 	@Override

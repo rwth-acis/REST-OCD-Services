@@ -28,8 +28,6 @@ import org.graphstream.ui.layout.springbox.implementations.SpringBox;
  * @author Sebastian
  *
  */
-//TODO: Set that edges are always rendered before nodes (previously done in viewer defaults, now those methods arent needed except this one part)
-//TODO: text-mode: normal to print labels
 //TODO: Currently we need to work solely with the ui.style attribute of elements since the SVG visualization of graphstream refuses to look at other attributes, we should change to use single attributes when it it is possible
 public class LayoutHandler {
 	private static final Color CENTRALITY_COLOR = Color.BLUE;
@@ -81,7 +79,8 @@ public class LayoutHandler {
 		 */
 		double minDegree = graph.getMinWeightedInDegree();
 		double maxDegree = graph.getMaxWeightedInDegree();
-		double scalingFactor = (maxNodeSize - minNodeSize) / (maxDegree - minDegree);
+		double degreeDifference = (maxDegree == minDegree) ? 1.0 : (maxDegree - minDegree);
+		double scalingFactor = (maxNodeSize - minNodeSize) / degreeDifference;
 		while(nodesIt.hasNext()) {
 			node = nodesIt.next();
 			double curNodeSize = minNodeSize + (graph.getWeightedInDegree(node) - minDegree) * scalingFactor;
@@ -216,18 +215,13 @@ public class LayoutHandler {
 	 * Sets the view default attributes, such as the rendering order.
 	 * @param graph the graph view
 	 */
-	//TODO: Check if yFiles viewer defaults are mimicked closely enough and add extra styling if not.
 	private void setViewDefaults(CustomGraph graph) {
-//		DefaultGraph2DRenderer renderer = new DefaultGraph2DRenderer();
-//		graph.setGraph2DRenderer(renderer);
-//		renderer.setDrawEdgesFirst(true);
-//		graph.fitContent();
 		graph.setAttribute("ui.stylesheet",
 				"node {" +
-				"	z-index: 1;" +
+				"	z-index: 2;" +
 				"}" +
 				"edge {" +
-				"	z-index: 0;" +
+				"	z-index: 1;" +
 				"}");
 	}
 	
