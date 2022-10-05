@@ -54,20 +54,19 @@ public class JsonVisualOutputAdapter extends AbstractVisualOutputAdapter {
 			//TODO: Check whether default coloring makes sense here
 			//Color
 			//rgba(r,g,b,a)
-			Color nodeColor = new Color(0.f,0.f,1.f, 0.6f);
-			if(n.getAttribute("ui.ui.fill-color") != null) {
-				tmp.put("color", n.getLabel("ui.fill-color").toString());
+
+			float[] nodeColor = (float[]) n.getAttribute("nodeColorRGBA");
+			if(nodeColor == null) {
+				nodeColor = new float[]{0.f,0.f,1.f, 0.6f}; // default coloring
 			}
-			else {
-				tmp.put("color", "rgba(0," + nodeColor.getGreen() + "," + nodeColor.getBlue() + "," + nodeColor.getAlpha() + ")");
-			}
+			tmp.put("color", "rgba(" + nodeColor[0] + "," + nodeColor[1] + "," + nodeColor[2] + "," + nodeColor[3] + ")");
 
 			//TODO: Check whether default size makes sense here
 			//Size
 			//As the force graph representation uses circles and height and width are the same in our layoutHandler, this suffices
 			double nodeSize = .3f;
-			if(n.getAttribute("ui.size") != null) {
-				tmp.put("size", n.getAttribute("ui.size").toString());
+			if(n.getAttribute("nodeSize") != null) {
+				tmp.put("size", n.getAttribute("nodeSize").toString());
 			}
 			else {
 				tmp.put("size", nodeSize);

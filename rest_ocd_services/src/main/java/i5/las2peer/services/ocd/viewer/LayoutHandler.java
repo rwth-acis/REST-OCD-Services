@@ -147,6 +147,7 @@ public class LayoutHandler {
 			double curNodeSize = minNodeSize + (graph.getWeightedInDegree(node) - minDegree) * scalingFactor;
 			//"Declare" nodestyles
 			node.setAttribute("ui.style", "shape: circle; size: "+ curNodeSize +";");
+			node.setAttribute("nodeSize", curNodeSize); // set directly accessible attribute for node size
 		}
 
 		String arrowShape = "none";
@@ -291,6 +292,7 @@ public class LayoutHandler {
 			//TODO: Make nicer so that java color is not needed
 			Color color = new Color(colorCompArray[0], colorCompArray[1], colorCompArray[2], colorCompArray[3]);
 			node.setAttribute("ui.style",node.getAttribute("ui.style") + "fill-color: rgba(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "," + color.getAlpha() + ");");
+			node.setAttribute("nodeColorRGBA", new float[]{color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()/255}); // set directly accessible color attribute for node
 		}
 	}
 	
@@ -300,6 +302,7 @@ public class LayoutHandler {
 	 * @author Tobias
 	 */
 	private void paintNodesWithSingleColor(CentralityMap map) {
+		System.out.println("Inside paintNodesWithSingleColor in LayoutHandler.java");//TODO:DELETE 555
 		int r = CENTRALITY_COLOR.getRed();
 		int g = CENTRALITY_COLOR.getGreen();
 		int b = CENTRALITY_COLOR.getBlue();
