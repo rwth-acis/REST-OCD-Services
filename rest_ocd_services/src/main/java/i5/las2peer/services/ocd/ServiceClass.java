@@ -978,15 +978,14 @@ public class ServiceClass extends RESTService {
 								"Specified metric execution status does not exist.");
 					}
 				}
-				List<Cover> queryResults;
 				EntityManager em = entityHandler.getEntityManager();
 
 				/*
 				 * Efficiently query cover information needed for the WebClient
 				 */
 				ArrayList<CoverMeta>  queryResultMetaInformation = new ArrayList<>();
-				String queryStr_new = "";
-				queryStr_new = "SELECT c." + Cover.ID_FIELD_NAME
+				String queryStr = "";
+				queryStr = "SELECT c." + Cover.ID_FIELD_NAME
 						+ ", c." + Cover.NAME_FIELD_NAME
 						+ ", c." + Cover.COMMUNITY_COUNT_FIELD_NAME
 						+ ", g." + CustomGraph.ID_FIELD_NAME
@@ -996,18 +995,18 @@ public class ServiceClass extends RESTService {
 						+ " JOIN c." + Cover.GRAPH_FIELD_NAME + " g" + " JOIN c."
 						+ Cover.CREATION_METHOD_FIELD_NAME + " a";
 				if (!metricExecutionStatusesStr.equals("")) {
-					queryStr_new += " JOIN c." + Cover.METRICS_FIELD_NAME + " m";
+					queryStr += " JOIN c." + Cover.METRICS_FIELD_NAME + " m";
 				}
-				queryStr_new += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND a."
+				queryStr += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND a."
 						+ CoverCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
 				if (!metricExecutionStatusesStr.equals("")) {
-					queryStr_new += " AND m." + OcdMetricLog.STATUS_ID_FIELD_NAME + " IN :metricExecStatusIds";
+					queryStr += " AND m." + OcdMetricLog.STATUS_ID_FIELD_NAME + " IN :metricExecStatusIds";
 				}
 				if (!graphIdStr.equals("")) {
-					queryStr_new += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
+					queryStr += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
 				}
 
-				Query queryCovers = em.createQuery(queryStr_new);
+				Query queryCovers = em.createQuery(queryStr);
 
 				try {
 					int firstIndex = Integer.parseInt(firstIndexStr);
@@ -1067,7 +1066,29 @@ public class ServiceClass extends RESTService {
 						metric_logs.add((OcdMetricLog) metric_query_result.get(j));
 					}
 
-					// create CoverMeta instance holding meta information about the cover
+					if(graph_data[2] == null) { //TODO: This is to ensure backwards compatibility with older releases can be deleted in the future
+						System.out.println("Community count was null, fetching actual cover to fill the value!!!");
+
+						CustomGraphId gId = new CustomGraphId(((Long) graph_data[3]), username);
+						CoverId cId = new CoverId(((Long) graph_data[0]), gId);
+						EntityTransaction tx = em.getTransaction();
+						Cover cover;
+
+						try {
+							tx.begin();
+							cover = em.find(Cover.class, cId);
+							cover.setNumberOfCommunities(cover.communityCount());
+							tx.commit();
+						} catch (RuntimeException e) {
+							if (tx != null && tx.isActive()) {
+								tx.rollback();
+							}
+							throw e;
+						}
+
+						graph_data[2] = cover.communityCount();
+					}
+
 					CoverMeta coverMeta = new CoverMeta(
 							((Long) graph_data[0]), // cover id
 							((String) graph_data[1]), // cover name
