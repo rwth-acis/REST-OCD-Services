@@ -153,11 +153,11 @@ public class ServiceClass extends RESTService {
 	}
 
 	public ServiceClass() {
-		DatabaseConfig.setConfigFile(true);		//TODO angeben ob test datenbank oder hauptdatenbank gewählt wird
+		DatabaseConfig.setConfigFile(false);		//TODO angeben ob test datenbank oder hauptdatenbank gewählt wird
 		database = new Database();
 		setFieldValues();
 		// instantiate inactivityHandler to regularly remove content of inactive users.
-		inactivityHandler = new InactivityHandler(entityHandler, threadHandler, this);	//TODO inactivity handler muss von datenbank abhï¿½ngen
+		inactivityHandler = new InactivityHandler(database, threadHandler, this);	//TODO inactivity handler muss sich auf db beziehens
 	}
 
 	///////////////////////////////////////////////////////////
@@ -182,7 +182,7 @@ public class ServiceClass extends RESTService {
 	 * The entity handler used for access stored entities.
 	 */
 	private static Database database;
-	private final static SimulationEntityHandler entityHandler = new SimulationEntityHandler();
+	//private final static SimulationEntityHandler entityHandler = new SimulationEntityHandler();
 
 	/**
 	 * The factory used for creating benchmarks.
@@ -726,7 +726,8 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"export"}, value = "Export Graph", notes = "Returns a graph in a specified output format.")
 		public Response getGraph(@DefaultValue("GRAPH_ML") @QueryParam("outputFormat") String graphOutputFormatStr,
 				@PathParam("graphId") String graphIdStr) {
-			System.out.println("getGraph");
+			System.out.println("getGraph WORKS! :"  + database.DBNAME_STRING);
+			System.out.println("RealDB :" + database.db.dbName());
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				System.out.println("username :" + username);
@@ -740,6 +741,7 @@ public class ServiceClass extends RESTService {
 				}
 				
 				CustomGraph graph = database.getGraph(username, graphIdStr); //done
+				
 				if (graph == null)
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Graph does not exist: graph key " + graphIdStr);	//done
@@ -923,6 +925,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("") @QueryParam("metricExecutionStatuses") String metricExecutionStatusesStr,
 				@DefaultValue("") @QueryParam("graphId") String graphIdStr) 
 		{
+			System.out.println("getCovers");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				int length;
@@ -995,6 +998,7 @@ public class ServiceClass extends RESTService {
 				} else {
 					responseStr = requestHandler.writeCoverIds(queryResults);
 				}
+				System.out.println("RESPONSE STR : " + responseStr);
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -2023,7 +2027,7 @@ public class ServiceClass extends RESTService {
 	    public Response runGroundTruthBenchmark(@DefaultValue("unnamed") @QueryParam("coverName") String coverNameStr,
 	    		@DefaultValue("unnamed") @QueryParam("graphName") String graphNameStr,
 	    		@DefaultValue("LFR") @QueryParam("benchmark") String creationTypeStr, String contentStr) {
-	    	System.out.println("runGraoundTruthBenchmark");
+	    	System.out.println("runGroundTruthBenchmark");
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		GraphCreationType benchmarkType;
@@ -2056,27 +2060,35 @@ public class ServiceClass extends RESTService {
 	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
 	    			}
 	    		}
+	    		System.out.println("Parameter: " + parameters.toString());
+	    		System.out.println("Benchmark: " + benchmark.toString());
+	    		System.out.println("username: " + username);
 	    		
 	    		CustomGraph graph = new CustomGraph();
 	    		graph.setName(URLDecoder.decode(graphNameStr, "UTF-8"));
+	    		System.out.println("graphName : " + graph.getName());
 	    		graph.setUserName(username);
 	    		GraphCreationLog log = new GraphCreationLog(benchmarkType, parameters);
 	    		log.setStatus(ExecutionStatus.WAITING);
 	    		graph.setCreationMethod(log);
 	    		Cover cover = new Cover(graph, new CCSMatrix(graph.nodeCount(), 0));
 	    		cover.setName(URLDecoder.decode(coverNameStr, "UTF-8"));
+	    		System.out.println("coverName : " + cover.getName());
 	    		CoverCreationLog coverLog = new CoverCreationLog(coverCreationType, parameters,
 	    				new HashSet<GraphType>());
 	    		coverLog.setStatus(ExecutionStatus.WAITING);
 	    		cover.setCreationMethod(coverLog);
 	    		
 	    		synchronized (threadHandler) {
-	    			database.storeGraph(graph);
-	    			database.storeCover(cover);
+	    			System.out.println("GraphKey : " + database.storeGraph(graph));
+	    			System.out.println("CoverKey : " + database.storeCover(cover));
 	    			/*
 	    			 * Registers and starts benchmark creation.
 	    			 */
+	    			System.out.println("graph and cover stored, now run GTB");
+	    			database.printDB();
 	    			threadHandler.runGroundTruthBenchmark(cover, benchmark);
+	    			System.out.println("threadHandler.runGroundTruthBenchmar ausgeführt");
 	    		}
 	    		return Response.ok(requestHandler.writeId(cover)).build();
 	    	} catch (Exception e) {
@@ -2518,21 +2530,7 @@ public class ServiceClass extends RESTService {
 	    		}
 	    		
 	    		layoutHandler.doLayout(cover, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize, painting);
-	    		
-		    	EntityManager em = entityHandler.getEntityManager();
-		    	EntityTransaction tx = em.getTransaction();
-		    	try {		
-			    	tx.begin();			    	
-			    	em.merge(cover);	//TODO ?	    		
-			    	tx.commit();
-		    	} catch (RuntimeException e) {
-					if (tx != null && tx.isActive()) {
-						tx.rollback();
-					}
-					throw e;
-		    	}
-		    	em.close();
-	    		
+	    		database.updateCover(cover);    		
 	    		return requestHandler.writeCover(cover, format);
 	    	} catch (Exception e) {
 	    		requestHandler.log(Level.SEVERE, "", e);
@@ -2575,7 +2573,7 @@ public class ServiceClass extends RESTService {
 	    		@DefaultValue("FALSE") @QueryParam("doLabelEdges") String doLabelEdgesStr,
 	    		@DefaultValue("20") @QueryParam("minNodeSize") String minNodeSizeStr,
 	    		@DefaultValue("45") @QueryParam("maxNodeSize") String maxNodeSizeStr) {
-	    	System.out.println("getGraphVisualization");
+	    	System.out.println("getGraphVisualization WORKS");
 	    	try {
 	    		String username = getUserName();
 	    		double minNodeSize;
@@ -3527,7 +3525,7 @@ public class ServiceClass extends RESTService {
 			String userId = getUserId();
 			try {
 	
-				series = entityHandler.getSimulationSeriesByUser(userId);
+				//series = entityHandler.getSimulationSeriesByUser(userId);
 	
 			} catch (Exception e) {
 				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
@@ -3615,7 +3613,7 @@ public class ServiceClass extends RESTService {
 			SimulationSeries series = null;
 	
 			try {
-				series = entityHandler.getSimulationSeries(seriesId);
+				//series = entityHandler.getSimulationSeries(seriesId);
 	
 				if (series == null)
 					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + seriesId + " found")
@@ -3653,7 +3651,7 @@ public class ServiceClass extends RESTService {
 			SimulationSeries series = null;
 	
 			try {
-				series = entityHandler.getSimulationSeries(seriesId);
+				//series = entityHandler.getSimulationSeries(seriesId);
 	
 				if (series == null)
 					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + seriesId + " found")
@@ -3694,7 +3692,7 @@ public class ServiceClass extends RESTService {
 	
 			SimulationSeriesParameters parameters = null;
 			try {
-				parameters = entityHandler.getSimulationParameters(seriesId);
+				//parameters = entityHandler.getSimulationParameters(seriesId);
 			} catch (Exception e) {
 				logger.log(Level.WARNING, "fail to get simulation series parameters");
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series parameters")
@@ -3720,7 +3718,7 @@ public class ServiceClass extends RESTService {
 		public Response deleteSimulation(@PathParam("seriesId") long seriesId) {
 	
 			try {
-				entityHandler.deleteSeries(seriesId);
+				//entityHandler.deleteSeries(seriesId);
 			} catch (Exception e) {
 				return Response.serverError().entity(e.getMessage()).build();
 			}
@@ -3813,7 +3811,7 @@ public class ServiceClass extends RESTService {
 			List<SimulationSeries> series = new ArrayList<>(seriesIds.size());			
 			try {
 				for(Integer id: seriesIds) {
-					series.add(entityHandler.getSimulationSeries(id));				
+					//series.add(entityHandler.getSimulationSeries(id));				
 				}
 			} catch (Exception e) {
 				logger.log(Level.WARNING, "user: " + getUserName(), e);
@@ -3826,7 +3824,7 @@ public class ServiceClass extends RESTService {
 	
 				group = new SimulationSeriesGroup(series);
 				group.setName(name);
-				entityHandler.store(group, getUserId());
+				//entityHandler.store(group, getUserId());
 	
 	
 			} catch (Exception e) {
@@ -3849,9 +3847,9 @@ public class ServiceClass extends RESTService {
 			List<SimulationSeriesGroup> simulations = new ArrayList<>();
 			try {
 				if (firstIndex < 0 || length <= 0) {
-					simulations = entityHandler.getSimulationSeriesGroups(getUserId());
+					//simulations = entityHandler.getSimulationSeriesGroups(getUserId());
 				} else {
-					simulations = entityHandler.getSimulationSeriesGroups(getUserId(), firstIndex, length);
+					//simulations = entityHandler.getSimulationSeriesGroups(getUserId(), firstIndex, length);
 				}
 			} catch (Exception e) {
 				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
@@ -3895,7 +3893,7 @@ public class ServiceClass extends RESTService {
 			SimulationSeriesGroup series = null;
 	
 			try {
-				series = entityHandler.getSimulationSeriesGroup(groupId);
+				//series = entityHandler.getSimulationSeriesGroup(groupId);
 	
 				if (series == null)
 					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupId + " found")
@@ -3930,7 +3928,7 @@ public class ServiceClass extends RESTService {
 	
 			SimulationSeriesGroup simulation = null;
 			try {				
-				simulation = entityHandler.getSimulationSeriesGroup(groupId);
+				//simulation = entityHandler.getSimulationSeriesGroup(groupId);
 				if(!simulation.isEvaluated())
 					simulation.evaluate();
 	
@@ -3963,7 +3961,7 @@ public class ServiceClass extends RESTService {
 		public Response deleteSimulationSeriesGroup(@PathParam("groupId") long groupId) {
 	
 			try {
-				entityHandler.deleteGroup(groupId);
+				//entityHandler.deleteGroup(groupId);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return Response.serverError().entity(e.getMessage()).build();
