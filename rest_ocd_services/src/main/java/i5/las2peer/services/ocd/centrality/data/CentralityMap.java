@@ -62,18 +62,18 @@ public class CentralityMap {
 	 */
 	public static final String GRAPH_FIELD_NAME = "graph";
 	public static final String CREATION_METHOD_FIELD_NAME  = "creationMethod";
-	public static final String ID_FIELD_NAME = "id";
+	public static final String ID_FIELD_NAME = "key";
 	
 	/**
 	 * System generated persistence id.
 	 */
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-    @Column(name = idColumnName)
 	private long id;
 	/**
 	 * System generated persistence key.
 	 */
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Column(name = idColumnName)
 	private String key = "";
 	/**
 	 * The name of the CentralityMap.
@@ -288,13 +288,13 @@ public class CentralityMap {
 		
 	}
 	
-	public static CentralityMap load(String key, CustomGraph g, ArangoDatabase db, String transId) {
-		CentralityMap cm = new CentralityMap(g);
-	
+	public static CentralityMap load(String key, CustomGraph g, ArangoDatabase db, String transId) {	
+		CentralityMap cm = null;
 		ArangoCollection collection = db.collection(collectionName);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
 		if (bd != null) {
+			cm = new CentralityMap(g);
 			ObjectMapper om = new ObjectMapper();	//prepair attributes
 			String graphKey = bd.getAttribute(graphKeyColumnName).toString();
 			if(!graphKey.equals(g.getKey())) {
