@@ -1,32 +1,32 @@
 package i5.las2peer.services.ocd.utils;
 
-import static org.junit.Assert.*;
-
-import java.io.FileNotFoundException;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-
-import org.eclipse.persistence.config.PersistenceUnitProperties;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
-import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-
-public class EntityHandlerTest {
+//import static org.junit.Assert.*;
+//
+//import java.io.FileNotFoundException;
+//import java.nio.file.Paths;
+//import java.util.Collections;
+//import java.util.List;
+//
+//import javax.persistence.EntityManager;
+//import javax.persistence.EntityManagerFactory;
+//import javax.persistence.EntityTransaction;
+//import javax.persistence.Persistence;
+//import javax.persistence.Query;
+//import javax.persistence.TypedQuery;
+//
+//import org.eclipse.persistence.config.PersistenceUnitProperties;
+//import org.junit.Before;
+//import org.junit.Rule;
+//import org.junit.Test;
+//import org.junit.rules.ExpectedException;
+//
+//import i5.las2peer.services.ocd.adapters.AdapterException;
+//import i5.las2peer.services.ocd.graphs.Cover;
+//import i5.las2peer.services.ocd.graphs.CustomGraph;
+//import i5.las2peer.services.ocd.graphs.CustomGraphId;
+//import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
+//
+//public class EntityHandlerTest {
 
 //	@Rule
 //	public final ExpectedException exception = ExpectedException.none();
@@ -265,4 +265,4 @@ public class EntityHandlerTest {
 //		entityHandler.deleteCover("eve", 3, 1, new ThreadHandler());
 //	}
 
-}
+//}

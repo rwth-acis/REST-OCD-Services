@@ -25,6 +25,7 @@ import org.junit.Test;
 import y.base.Edge;
 import y.base.Node;
 
+@Ignore
 public class CustomGraphPersistenceTest {
 
 	private static final String userName1 = "testUser1";

@@ -21,12 +21,14 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 
 import org.junit.Test;
+import org.junit.Ignore;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import y.base.Edge;
 import y.base.Node;
 
+@Ignore
 public class CoverPersistenceTest {
 
 	private static final String userName = "coverPersistenceUser";

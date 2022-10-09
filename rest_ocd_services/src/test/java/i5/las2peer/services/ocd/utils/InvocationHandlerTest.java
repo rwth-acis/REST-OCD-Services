@@ -18,8 +18,8 @@ import y.base.Node;
 
 public class InvocationHandlerTest {
 
-	private static final String PERSISTENCE_UNIT_NAME = "ocd";
-	private static final EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+	//private static final String PERSISTENCE_UNIT_NAME = "ocd";
+	//private static final EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
 
 	String username;
 	String graphName;

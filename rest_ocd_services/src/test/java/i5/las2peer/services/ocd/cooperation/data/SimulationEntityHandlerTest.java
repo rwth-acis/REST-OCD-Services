@@ -16,6 +16,7 @@ import javax.persistence.Query;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.Ignore;
 
 import i5.las2peer.services.ocd.cooperation.data.simulation.AgentData;
 import i5.las2peer.services.ocd.cooperation.data.simulation.Evaluation;
@@ -25,6 +26,7 @@ import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesGrou
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesParameters;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
+@Ignore
 public class SimulationEntityHandlerTest {
 
 	private static final String PERSISTENCE_UNIT_NAME = "ocd";
@@ -62,7 +64,7 @@ public class SimulationEntityHandlerTest {
 	
 	@Test
 	public void storeSimulationSeries() {
-
+		System.out.println("store sim series");
 		SimulationSeries series = new SimulationSeries();
 		series.setCooperationEvaluation(new Evaluation(new double[]{1.0,2.0,3.0}));
 		long userId = 7;
