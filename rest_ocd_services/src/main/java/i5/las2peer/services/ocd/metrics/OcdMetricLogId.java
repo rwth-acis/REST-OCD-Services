@@ -21,7 +21,7 @@ public class OcdMetricLogId {
  
     /**
      * Creates a new instance.
-     * @param id The log id.
+     * @param key The log key.
      * @param coverId The id of the corresponding cover.
      */
     public OcdMetricLogId(String key, CoverId coverId) {

@@ -46,6 +46,7 @@ public class OcdMetricLog {
 	public static final String graphUserColumnName = "USER_NAME";
 	public static final String statusIdColumnName = "STATUS";
 	
+	//ArangoDB
 	public static final String coverKeyColumnName = "COVER_KEY";
 	private static final String parameterColumnName = "PARAMETER";
 	public static final String collectionName = "ocdmetriclog";
@@ -57,13 +58,13 @@ public class OcdMetricLog {
 	/**
 	 * System generated persistence id.
 	 */
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-    @Column(name = idColumnName)
 	private long id;
 	/**
 	 * System generated persistence key.
 	 */
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Column(name = idColumnName)
 	private String key = "";
 	/**
 	 * The cover the metric was run on.
@@ -207,12 +208,28 @@ public class OcdMetricLog {
 		bd.addAttribute(typeColumnName, this.typeId);
 		bd.addAttribute(statusIdColumnName, this.statusId);
 		bd.addAttribute(valueColumnName, this.value);
-		bd.addAttribute(parameterColumnName, this.parameters); //TODO 
+		bd.addAttribute(parameterColumnName, this.parameters); 
 		bd.addAttribute(coverKeyColumnName, this.cover.getKey());
 		
 		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
 	}
+	
+	public void updateDB( ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentUpdateOptions updateOpt = new DocumentUpdateOptions().streamTransactionId(transId);
+		
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(typeColumnName, this.typeId);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(valueColumnName, this.value);
+		bd.addAttribute(parameterColumnName, this.parameters);
+		bd.addAttribute(coverKeyColumnName, this.cover.getKey());
+		
+		collection.updateDocument(this.key, bd, updateOpt);
+	}	
+	
+	
 	
 	public static OcdMetricLog load(String key, Cover cover, ArangoDatabase db, DocumentReadOptions opt) {
 		OcdMetricLog oml = new OcdMetricLog();
@@ -240,16 +257,6 @@ public class OcdMetricLog {
 		}
 		return oml;
 	}
-	
-	public void updateKey(String newKey, ArangoDatabase db, String transId) {
-		
-		ArangoCollection collection = db.collection(collectionName);
-		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
-		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
-		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
-		bd.setKey(newKey);
-		collection.updateDocument(this.key,  bd, updateOptions);
-	}	
 	
 	public String String() {
 		String n = System.getProperty("line.separator");
