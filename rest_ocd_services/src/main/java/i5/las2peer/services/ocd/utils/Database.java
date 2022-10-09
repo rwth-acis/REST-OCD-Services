@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.logging.Level;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
+
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
@@ -62,7 +67,7 @@ public class Database {
 	private ArangoDB arangoDB;
 	public ArangoDatabase db;
 	
-	private List<String> collectionNames =new ArrayList<String>(10);
+	private List<String> collectionNames =new ArrayList<String>(11);
 	
 	
 	public Database() {
@@ -89,7 +94,6 @@ public class Database {
 		if(!db.exists()) {
 			System.out.println("Creating database...");
 			db.create();
-			System.out.println("Datenbank erfolgreich erstellt");
 		}
 	}
 	
@@ -108,65 +112,61 @@ public class Database {
 		collectionNames.add(CustomGraph.collectionName);		//0
 		collection = db.collection(CustomGraph.collectionName);
 		if(!collection.exists()) {
-			collection.create();
-			System.out.println(CustomGraph.collectionName + " erstellt");
+			collection.create();			
 		}
 		collectionNames.add(CustomNode.collectionName);			//1
 		collection = db.collection(CustomNode.collectionName);
 		if(!collection.exists()) {
 			collection.create();
-			System.out.println(CustomNode.collectionName + " erstellt");
 		}
 		collectionNames.add(CustomEdge.collectionName);			//2
 		collection = db.collection(CustomEdge.collectionName);
 		if(!collection.exists()) {
 			db.createCollection(CustomEdge.collectionName, new CollectionCreateOptions().type(CollectionType.EDGES));
-			System.out.println(CustomEdge.collectionName + " erstellt");
 		}
 		collectionNames.add(GraphCreationLog.collectionName);	//3
 		collection = db.collection(GraphCreationLog.collectionName);
 		if(!collection.exists()) {
 			collection.create();
-			System.out.println(GraphCreationLog.collectionName + " erstellt");
 		}
 		
 		collectionNames.add(Cover.collectionName);				//4
 		collection = db.collection(Cover.collectionName);
 		if(!collection.exists()) {
 			collection.create();
-			System.out.println(Cover.collectionName + " erstellt");
 		}
 		collectionNames.add(CoverCreationLog.collectionName);	//5
 		collection = db.collection(CoverCreationLog.collectionName);
 		if(!collection.exists()) {
 			collection.create();
-			System.out.println(CoverCreationLog.collectionName + " erstellt");
 		}
 		collectionNames.add(OcdMetricLog.collectionName);		//6
 		collection = db.collection(OcdMetricLog.collectionName);
 		if(!collection.exists()) {
 			collection.create();
-			System.out.println(OcdMetricLog.collectionName + " erstellt");
 		}
 		collectionNames.add(Community.collectionName);			//7
 		collection = db.collection(Community.collectionName);
 		if(!collection.exists()) {
 			collection.create();
-			System.out.println(Community.collectionName + " erstellt");
 		}
 		
 		collectionNames.add(CentralityMap.collectionName);		//8
 		collection = db.collection(CentralityMap.collectionName);
 		if(!collection.exists()) {
 			collection.create();
-			System.out.println(CentralityMap.collectionName + " erstellt");
 		}
 		collectionNames.add(CentralityCreationLog.collectionName);//9
 		collection = db.collection(CentralityCreationLog.collectionName);
 		if(!collection.exists()) {
 			collection.create();
-			System.out.println(CentralityCreationLog.collectionName + " erstellt");
 		}
+		collectionNames.add(InactivityData.collectionName);		//10
+		collection = db.collection(InactivityData.collectionName);
+		if(!collection.exists()) {
+			collection.create();
+		}
+		System.out.println("All collections created");
 		
 	}
 	
@@ -218,13 +218,17 @@ public class Database {
 	 */
 	public CustomGraph getGraph(String username, String key) {
 		CustomGraph g = getGraph(key);
+		
 		if (g == null) {
 			logger.log(Level.WARNING, "user: " + username + " Graph does not exist: graph key " + key);
+			System.out.println("graph existiert wirklich nicht");
 		}
 		else if(!username.equals(g.getUserName())) {
 			logger.log(Level.WARNING, "user: " + username + " is not allowed to use Graph: " + key + " with user: " + g.getUserName());
+			p("user: " + username + " is not allowed to use Graph: " + key + " with user: " + g.getUserName());
 			g = null;
 		}
+		
 		return g;
 	}
 	
@@ -326,6 +330,7 @@ public class Database {
 	 *            the graph
 	 */	
 	public void updateGraph(CustomGraph graph) {	//existenz des graphen muss bereits herausgefunden worden sein TESTEN
+		System.out.println("update graph");
 		String transId = this.getTransactionId(CustomGraph.class, true);
 		try {
 			graph.updateDB(db, transId);
@@ -336,16 +341,26 @@ public class Database {
 		}
 	}
 	
-	public void deleteGraph(String key) {
-		String [] writeCollections = collectionNames.subList(0, 10).toArray(new String[10]);
-		StreamTransactionEntity tx = db.beginStreamTransaction(new StreamTransactionOptions().writeCollections(writeCollections));
-		String transId = tx.getId();
-		
+	public void updateGraphCreationLog(CustomGraph graph) {
+		p("updateGraphCreationLog");
+		String transId = this.getTransactionId(GraphCreationLog.class, true);
+		try {
+			graph.getCreationMethod().updateDB(db, transId);
+			db.commitStreamTransaction(transId);
+		} catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}
+	
+	public void deleteGraph(String key) {		//TODO probably is not used
+		String transId = this.getTransactionId(null, true);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		try {	
 			ArangoCollection graphCollection = db.collection(CustomGraph.collectionName);
-			DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
-			DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
-			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+
 			
 			BaseDocument bd = graphCollection.getDocument(key, BaseDocument.class, readOpt);
 			String gclKey = bd.getAttribute(CustomGraph.creationMethodKeyColumnName).toString();
@@ -364,14 +379,14 @@ public class Database {
 			query = "FOR c IN " + Cover.collectionName + " FILTER c." + Cover.graphKeyColumnName 
 					+ " == \"" + key +"\" RETURN c._key";
 			ArangoCursor<String> coverKeys = db.query(query, queryOpt, String.class);
-			for(String coverKey : coverKeys) {							//delete all covers
-				deleteCover(coverKey);
+			for(String coverKey : coverKeys) {						//delete all covers
+				deleteCover(coverKey, transId);
 			}
 			query = "FOR cm IN " + CentralityMap.collectionName + " FILTER cm." + CentralityMap.graphKeyColumnName 
 					+ " == \"" + key +"\" RETURN cm._key";
 			ArangoCursor<String> centralityMapKeys = db.query(query, queryOpt, String.class);
 			for(String centralityMapKey : centralityMapKeys) {			//delete all centrality Maps
-				deleteCentralityMap(centralityMapKey);
+				deleteCentralityMap(centralityMapKey, transId);
 			}
 			
 			graphCollection.deleteDocument(key, null, deleteOpt);		//delete the graph
@@ -566,50 +581,84 @@ public class Database {
 		Map<String, CustomGraph> graphMap = new HashMap<String, CustomGraph>();
 		Set<String> graphKeySet = new HashSet<String>();
 		try {
+			ArangoCollection coverColl = db.collection(Cover.collectionName);
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 			Map<String, Object> bindVars;
-			
-			String queryStr = " FOR c IN " + Cover.collectionName + " FOR a IN " + CoverCreationLog.collectionName + " FOR m IN " + OcdMetricLog.collectionName + 
+			p("DB getCovers");
+			p("Username : " + username);
+			p("graphKey : " + graphKey);
+			String queryStr = " FOR c IN " + Cover.collectionName + " FOR a IN " + CoverCreationLog.collectionName +  
 					" FILTER c." + Cover.creationMethodKeyColumnName + " == a._key AND a." + CoverCreationLog.statusIdColumnName + " IN " + executionStatusIds;
 			if (metricExecutionStatusIds != null && metricExecutionStatusIds.size() > 0) {
-				queryStr += " AND m." + OcdMetricLog.coverKeyColumnName + " == c._key AND " +"m." + OcdMetricLog.statusIdColumnName + " IN " + metricExecutionStatusIds;
+				queryStr += " FOR m IN " + OcdMetricLog.collectionName + " FILTER m." + OcdMetricLog.coverKeyColumnName + " == c._key AND " +"m." + 
+						OcdMetricLog.statusIdColumnName + " IN " + metricExecutionStatusIds;
 			}
 			if(!graphKey.equals("")) {		//es gibt einen graphKey
 				queryStr += "AND c." + Cover.graphKeyColumnName  + " == @gKey";
 				bindVars = Collections.singletonMap("gKey", graphKey);
 			}
 			else {			//es gibt keinen graphKey
-				queryStr += "FOR g IN " + CustomGraph.collectionName + 
-						"FILTER g." + CustomGraph.userColumnName + " == @user AND c." + Cover.graphKeyColumnName + " == g._key";
+				queryStr += " FOR g IN " + CustomGraph.collectionName + 
+						" FILTER g." + CustomGraph.userColumnName + " == @user AND c." + Cover.graphKeyColumnName + " == g._key";
 				 bindVars = Collections.singletonMap("user", username);
 			}
-			queryStr += " LIMIT " + firstIndex + "," + length + " RETURN DISTINCT c";
-			
-			ArangoCursor<BaseDocument> coverDocs = db.query(queryStr, bindVars, queryOpt, BaseDocument.class);
+			//queryStr += " LIMIT " + firstIndex + ", " + length + " RETURN DISTINCT c"
+			queryStr += " RETURN DISTINCT c._key";
+			System.out.println(queryStr);
+			ArangoCursor<String> coverKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			List<String> keyList = coverKeys.asListRemaining();
+			p(keyList.toString());
 			//alle graphkeys in set einfügen
-			for(BaseDocument bd : coverDocs) {
+			p("los");
+			for (String cKey : keyList) {
+				System.out.println("key :" + cKey);
+				BaseDocument bd = coverColl.getDocument(cKey, BaseDocument.class, readOpt);
 				String gKey = bd.getAttribute(Cover.graphKeyColumnName).toString();
+				System.out.println(gKey);
 				graphKeySet.add(gKey);
 			}
+			p("graphKeySet : " + graphKeySet.toString());
 			if(graphKeySet.size()==1) {
 				CustomGraph g = CustomGraph.load(graphKeySet.iterator().next(), db, transId);
 				if(username.equals(g.getUserName())) {
-					for(BaseDocument bd : coverDocs) {
-						String cKey = bd.getKey();
+					p("username equal");
+					for(String cKey : keyList) {
 						covers.add(Cover.load(cKey, g, db, transId));
 					}
 				}	
 			}
 			else {	//cover mit zugehörigem graph laden
-				for(String gKey : graphKeySet) {
-					graphMap.put(gKey, getGraph(gKey));
+				for(String gk : graphKeySet) {
+					graphMap.put(gk, CustomGraph.load(gk, db, transId));
 				}
-				for(BaseDocument bd : coverDocs) {
-					String cKey = bd.getKey();
+				for(String cKey : keyList) {					
+					BaseDocument bd = coverColl.getDocument(cKey, BaseDocument.class, readOpt);
 					String gKey = bd.getAttribute(Cover.graphKeyColumnName).toString();
 					CustomGraph g = graphMap.get(gKey);
 					covers.add(Cover.load(cKey, g, db, transId));
 				}
+			}
+			p("es gibt " + covers.size() + " covers ...... Aktuelle DB: ");
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			System.out.println("transaction abort");
+			throw e;
+		}
+		
+		return covers;
+	}
+	
+	public List<String> getAllCoverKeys() {	//TODO testen
+		String transId = getTransactionId(Cover.class, false);
+		List<String> covers = new ArrayList<String>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR c IN " + Cover.collectionName + " RETURN c._key";
+			ArangoCursor<String> coverKeys = db.query(queryStr, queryOpt, String.class);
+			for(String key : coverKeys) {
+				covers.add(key);
 			}
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
@@ -618,6 +667,7 @@ public class Database {
 		}
 		return covers;
 	}
+	
 	/**
 	 * Updates a persisted cover by first deleting the current one,
 	 * then persisting the new one,
@@ -626,13 +676,12 @@ public class Database {
 	 * @param cover
 	 *            the cover
 	 */	
-	public void updateCover(Cover cover) {	//existenz des covers muss bereits herausgefunden worden sein TESTEN
+	public void updateCover(Cover cover) {	//TODO geht noch nicht
+		System.out.println("update cover");
 		String transId = this.getTransactionId(Cover.class, true);
 		String aktualKey = cover.getKey();
 		try {
-			deleteCover(aktualKey);
-			cover.persist(db, transId);
-			cover.updateKey(aktualKey, db, transId);
+			cover.updateDB(db, transId);
 			db.commitStreamTransaction(transId);
 		} catch(Exception e) {
 			db.abortStreamTransaction(transId);
@@ -640,35 +689,50 @@ public class Database {
 		}
 	}
 	
+	public void updateCoverCreationLog(Cover cover) {
+		p("updateCoverCreationLog");
+		String transId = this.getTransactionId(CoverCreationLog.class, true);
+		try {
+			cover.getCreationMethod().updateDB(db, transId);
+			db.commitStreamTransaction(transId);
+		} catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}
+	
+	public void deleteCover(String key, String transId) {		//Always use it inside a transaction
+		ArangoCollection coverCollection = db.collection(Cover.collectionName);
+		ArangoCollection cclCollection = db.collection(CoverCreationLog.collectionName);
+		
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		BaseDocument coverDoc = coverCollection.getDocument(key, BaseDocument.class, readOpt);
+			
+		ObjectMapper om = new ObjectMapper();
+		Object objCommunityKeys = coverDoc.getAttribute(Cover.communityKeysColumnName);
+		List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
+		for(String communityKey : communityKeys) {			//delete all communitys
+			ArangoCollection communityCollection = db.collection(Community.collectionName);
+			communityCollection.deleteDocument(communityKey, null, deleteOpt);
+		}
+		
+		Object objMetricKeys = coverDoc.getAttribute(Cover.metricKeysColumnName);
+		List<String> metricKeys = om.convertValue(objMetricKeys, List.class);
+		for(String metricKey : metricKeys) {			//delete all metric logs
+			ArangoCollection metricCollection = db.collection(OcdMetricLog.collectionName);
+			metricCollection.deleteDocument(metricKey, null, deleteOpt);
+		}
+		
+		String creationMethodKey = coverDoc.getAttribute(Cover.creationMethodKeyColumnName).toString();
+		cclCollection.deleteDocument(creationMethodKey, null, deleteOpt);	//delete CoverCreationLog
+		coverCollection.deleteDocument(key, null, deleteOpt);				//delete Cover
+	}
+	
 	public void deleteCover(String key) {
 		String transId = this.getTransactionId(Cover.class, true);
 		try {
-			
-			ArangoCollection coverCollection = db.collection(Cover.collectionName);
-			ArangoCollection cclCollection = db.collection(CoverCreationLog.collectionName);
-			
-			DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
-			DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
-			BaseDocument coverDoc = coverCollection.getDocument(key, BaseDocument.class, readOpt);
-				
-			ObjectMapper om = new ObjectMapper();
-			Object objCommunityKeys = coverDoc.getAttribute(Cover.communityKeysColumnName);
-			List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
-			for(String communityKey : communityKeys) {			//delete all communitys
-				ArangoCollection communityCollection = db.collection(Community.collectionName);
-				communityCollection.deleteDocument(communityKey, null, deleteOpt);
-			}
-			
-			Object objMetricKeys = coverDoc.getAttribute(Cover.metricKeysColumnName);
-			List<String> metricKeys = om.convertValue(objMetricKeys, List.class);
-			for(String metricKey : metricKeys) {			//delete all metric logs
-				ArangoCollection metricCollection = db.collection(OcdMetricLog.collectionName);
-				metricCollection.deleteDocument(metricKey, null, deleteOpt);
-			}
-			
-			String creationMethodKey = coverDoc.getAttribute(Cover.creationMethodKeyColumnName).toString();
-			cclCollection.deleteDocument(creationMethodKey, null, deleteOpt);	//delete CoverCreationLog
-			coverCollection.deleteDocument(key, null, deleteOpt);				//delete Cover
+			deleteCover(key, transId);			
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
 			db.abortStreamTransaction(transId);
@@ -711,7 +775,7 @@ public class Database {
 	 * @throws Exception
 	 * 			   if cover deletion failed
 	 */
-	public void deleteCover(String username, String graphKey, String coverKey, ThreadHandler threadHandler) throws Exception {	//TODO tests
+	public void deleteCover(String username, String graphKey, String coverKey, ThreadHandler threadHandler) throws Exception {
 
 		Cover cover = getCover(username, graphKey, coverKey);
 		if (cover == null)
@@ -720,9 +784,12 @@ public class Database {
 		if (cover.getCreationMethod().getType().correspondsGroundTruthBenchmark()
 				&& cover.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
 
-			this.deleteGraph(username, graphKey, threadHandler);		//TODO
+			this.deleteGraph(username, graphKey, threadHandler);
 		}
-		this.deleteCover(cover, threadHandler);		// TODO muss übersprungen werden im else fall?
+		else {
+			this.deleteCover(cover, threadHandler);		// TODO muss übersprungen werden im else fall?
+		}
+		
 	}
 	
 	/////////////////////////// CENTRALITY MAPS ///////////////////////////
@@ -824,8 +891,8 @@ public class Database {
 	 * 		  the length of the result set
 	 * @return a centralityMap list
 	 */
-	public List<CentralityMap> getCentralityMaps(String username, String graphKey, List<Integer> executionStatusIds, int firstIndex, int length) {
-
+	public List<CentralityMap> getCentralityMaps(String username, String graphKey, List<Integer> executionStatusIds, int firstIndex, int length) {	//TODO testen
+		System.out.println("DB getCentralityMaps");
 		String transId = getTransactionId(null, false);
 		List<CentralityMap> maps = new ArrayList<CentralityMap>();
 		Map<String, CustomGraph> graphMap = new HashMap<String, CustomGraph>();
@@ -843,7 +910,8 @@ public class Database {
 				bindVars.put("gKey", graphKey);
 			}
 			
-			queryStr += " LIMIT " + firstIndex + "," + length + " RETURN DISTINCT c";		//get each map only once
+			queryStr += " LIMIT " + firstIndex + ", " + length + " RETURN DISTINCT c";		//get each map only once
+			p(queryStr);
 			ArangoCursor<BaseDocument> cmDocs = db.query(queryStr, bindVars, queryOpt, BaseDocument.class);
 			
 			for(BaseDocument bd : cmDocs) {
@@ -866,6 +934,7 @@ public class Database {
 			db.abortStreamTransaction(transId);
 			throw e;
 		}
+		p("es gab so viele centrality maps : " + maps.size());
 		return maps;
 	}
 	/**
@@ -890,21 +959,24 @@ public class Database {
 		}
 	}
 	
+	public void deleteCentralityMap(String key, String transId) {	//only use it in transaction
+		ArangoCollection centralityMapCollection = db.collection(CentralityMap.collectionName);
+		ArangoCollection cclCollection = db.collection(CentralityCreationLog.collectionName);
+		
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		BaseDocument centralityMapDoc = centralityMapCollection.getDocument(key, BaseDocument.class, readOpt);
+			
+		String cclKey = centralityMapDoc.getAttribute(CentralityMap.creationMethodKeyColumnName).toString();
+		cclCollection.deleteDocument(cclKey, null, deleteOpt);		//delete the CentralityCreationLog
+
+		centralityMapCollection.deleteDocument(key, null, deleteOpt);//delete CentralityMap
+	}
+	
 	public void deleteCentralityMap(String key) {
 		String transId = this.getTransactionId(CentralityMap.class, true);		
 		try {
-			
-			ArangoCollection centralityMapCollection = db.collection(CentralityMap.collectionName);
-			ArangoCollection cclCollection = db.collection(CentralityCreationLog.collectionName);
-			
-			DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
-			DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
-			BaseDocument centralityMapDoc = centralityMapCollection.getDocument(key, BaseDocument.class, readOpt);
-				
-			String cclKey = centralityMapDoc.getAttribute(CentralityMap.creationMethodKeyColumnName).toString();
-			cclCollection.deleteDocument(cclKey, null, deleteOpt);		//delete the CentralityCreationLog
-	
-			centralityMapCollection.deleteDocument(key, null, deleteOpt);//delete CentralityMap
+			deleteCentralityMap(key, transId);			
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
 			e.printStackTrace();
@@ -990,7 +1062,7 @@ public class Database {
     	return getOcdMetricLog(user, gKey, cKey, mKey);
 	}
 	/**
-	 * Updates a persisted OcdMetricLog by first deleting the current one,
+	 * Updates a persisted OcdMetricLog,
 	 * then persisting the new one,
 	 * then updating the key of the cover to the old one.
 	 * 
@@ -998,16 +1070,9 @@ public class Database {
 	 *            the OcdMetricLog
 	 */	
 	public void updateOcdMetricLog(OcdMetricLog metricLog) {
-
 		String transId = this.getTransactionId(OcdMetricLog.class, true);
-		String aktualKey = metricLog.getKey();
-		try {
-			DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
-			DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);		
-			ArangoCollection metricCollection = db.collection(OcdMetricLog.collectionName);
-			metricCollection.deleteDocument(aktualKey, null, deleteOpt);
-			metricLog.persist(db, createOptions);
-			metricLog.updateKey(aktualKey, db, transId);
+		try {	
+			metricLog.updateDB(db, transId);
 			db.commitStreamTransaction(transId);
 		} catch(Exception e) {
 			db.abortStreamTransaction(transId);
@@ -1016,38 +1081,123 @@ public class Database {
 	}
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
 	
+	/////////////////////////// InactivityData ///////////////////////////
 
 	/**
-	 * Get QueryResults as list if it is not an Edge.
+	 * Persists a InactivityData
 	 * 
-	 * @param query 	A String of the query that should be executed
-	 * @param queryOpt	The queryOptions mainly used for the transaction
-	 * 
-	 * @return a list of all results of the query
+	 * @param inData
+	 *            CustomGraph
+	 * @return persistence key of the stored InactivityData
 	 */
-	private List<String> getQueryResultKeys(String query, Map<String, Object> bindVars, AqlQueryOptions queryOpt){	
-		List<String> results = new ArrayList<String>();
-		
-		ArangoCursor<String> docs = db.query(query, bindVars, queryOpt, String.class);
-		while (docs.hasNext()) {
-			String key = docs.next();
-			results.add(key);		
+	public String storeInactivityData(InactivityData inData) {
+		String transId = getTransactionId(InactivityData.class, true);
+		DocumentCreateOptions createOpt = new DocumentCreateOptions().streamTransactionId(transId);
+		try {
+			inData.persist(db, createOpt);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
 		}
-		this.getTransactionId(Cover.class,  true);
-		return  results;
-	}
+		System.out.println("INACTIVITYDATASTORED");
+		return inData.getKey();
+	}	
+	
+	public List<InactivityData> getInactivityData(String username) {
+		String transId = getTransactionId(InactivityData.class, false);
+		List<InactivityData> queryResults = new ArrayList<InactivityData>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+			
+			String queryStr = "FOR d IN " + InactivityData.collectionName + " FILTER d." + InactivityData.userColumnName +
+					" == @username RETURN d._key";
+			Map<String, Object> bindVars = Collections.singletonMap("username", username);
+			ArangoCursor<String> dataKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			for(String key : dataKeys) {
+				queryResults.add(InactivityData.load(key, db, readOpt));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return queryResults;
+	}	
+	
+	public List<InactivityData> getAllInactivityData() {
+		String transId = getTransactionId(InactivityData.class, false);
+		List<InactivityData> queryResults = new ArrayList<InactivityData>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+			
+			String queryStr = "FOR d IN " + InactivityData.collectionName + " RETURN d._key";
+			ArangoCursor<String> dataKeys = db.query(queryStr, queryOpt, String.class);
+			for(String key : dataKeys) {
+				queryResults.add(InactivityData.load(key, db, readOpt));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return queryResults;
+	}	
+	
+	/**
+	 * Updates the persisted InactivityData by updating the Attributes
+	 * 
+	 * @param inData
+	 *            the inactivityData
+	 */	
+	public void updateInactivityData(InactivityData inData) {	//existenz des graphen muss bereits herausgefunden worden sein TESTEN
+		String transId = this.getTransactionId(InactivityData.class, true);
+		try {
+			inData.updateDB(db, transId);
+			db.commitStreamTransaction(transId);
+		} catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}	
+	
+	/**
+	 * Removes username from the InactivityData table from the database. This is to ensure that for users whose content
+	 * has been deleted and who are inactive, no processing power is wasted for checking their data.
+	 *
+	 * @param username      Username to remove from the table.
+	 * @param threadHandler the ThreadHandler.
+	 */
+	public void deleteUserInactivityData(String username, ThreadHandler threadHandler) {
+		if(threadHandler == null) {
+			threadHandler = new ThreadHandler();
+		}
+		String transId = this.getTransactionId(InactivityData.class, true);
+		synchronized (threadHandler) {
+			try {	
+				AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+							
+				String query = "FOR d IN " + InactivityData.collectionName + " FILTER d." + InactivityData.userColumnName + 
+						" == @username REMOVE d IN " + InactivityData.collectionName + " RETURN OLD";
+				Map<String, Object> bindVars = Collections.singletonMap("username", username);
+				db.query(query, bindVars, queryOpt, BaseDocument.class);
+				db.commitStreamTransaction(transId);
+			}catch(Exception e) {
+				db.abortStreamTransaction(transId);
+				throw e;
+			}
+		}
+	}	
+	
+	
+
+	
+
+	
 	
 	private String getTransactionId(Class c, boolean write) {
 		String [] collections;
@@ -1063,6 +1213,15 @@ public class Database {
 		else if(c == OcdMetricLog.class) {
 			collections = collectionNames.subList(6, 7).toArray(new String[1]);
 		}
+		else if(c == CoverCreationLog.class) {
+			collections = collectionNames.subList(5, 6).toArray(new String[1]);
+		}
+		else if(c == GraphCreationLog.class) {
+			collections = collectionNames.subList(3, 4).toArray(new String[1]);
+		}
+		else if(c == InactivityData.class) {
+			collections = collectionNames.subList(10, 11).toArray(new String[1]);
+		}
 		else {
 			collections = collectionNames.subList(0, 10).toArray(new String[10]);
 		}
@@ -1075,6 +1234,26 @@ public class Database {
 		return tx.getId();
 	}
 	
+	public String printDB() {
+		String res = "";
+		String n = System.getProperty("line.separator");
+			for(String colName : collectionNames) {
+				String queryStr = "FOR x IN " + colName + " LIMIT 5 RETURN x";		
+				ArangoCursor<BaseDocument> docs = db.query(queryStr, BaseDocument.class);
+				res += "Collection : " + colName + n;
+				int i=0;
+				while(docs.hasNext()) {
+					i += 1;		
+					if( i >= 0) {
+						BaseDocument doc = docs.next();
+						res += "Doc " + i + " : " + doc.toString() + n;
+					}
+				}
+				res += "Größe : " + i + n;
+			}
+		System.out.println(res);
+		return res;
+	}
 	
 	private void p(String s) {	//TODO entfernen
 		System.out.println(s);

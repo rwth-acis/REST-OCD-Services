@@ -67,11 +67,16 @@ public class ThreadHandler {
 	 * Creates a new instance.
 	 */
 	private RequestHandler requestHandler = new RequestHandler();
-	
+
 	/**
 	 * Creates a new instance.
 	 */
-	private Database database = new Database();
+	private static Database database;
+	
+	public ThreadHandler() {
+		DatabaseConfig.setConfigFile(false);
+		database = new Database();
+	}
 	/**
 	 * Runs an algorithm.
 	 * @param cover The cover that is already persisted but not holding any valid information aside the graph and id.
@@ -127,14 +132,17 @@ public class ThreadHandler {
 	 * @param benchmark The benchmark model to calculate the ground truth cover with.
 	 */
 	public void runGroundTruthBenchmark(Cover cover, GroundTruthBenchmark benchmark) {
+		System.out.println("runGTB in Threadhandler");
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getKey(), gId);
 		GroundTruthBenchmarkRunnable runnable = new GroundTruthBenchmarkRunnable(coverId, benchmark, this);
 		GraphCreationLog log = cover.getGraph().getCreationMethod();
 		synchronized (benchmarks) {
+			System.out.println("runGTB in Threadhanlder synchronized");
 			Future<GraphCreationLog> future = executor.<GraphCreationLog>submit(runnable, log);
 			benchmarks.put(gId, future);
 		}
+		System.out.println("runGTB in Threadhandler ENDE");
 	}
 	
 	/**
@@ -231,6 +239,7 @@ public class ThreadHandler {
 	 * @param error Indicates whether an error occurred (true) during the calculation.
 	 */
 	public void createGroundTruthCover(Cover calculatedCover, CoverId coverId, boolean error) {
+		System.out.println("createGroundTruthCover");
 		String cKey = coverId.getKey();
 		CustomGraphId gId = coverId.getGraphId();
 		String user = gId.getUser();
@@ -242,8 +251,10 @@ public class ThreadHandler {
     		}
     		if(!error) {
     			try {
+    				System.out.println("threadhandler get cover funktion no error");
     				Cover cover = database.getCover(user, gKey, cKey);
     				if(cover == null) {
+    					System.out.println("Cover im threadhandler was null " + user + gKey + cKey);
     					/*
     					 * Should not happen.
     					 */
@@ -255,26 +266,34 @@ public class ThreadHandler {
     				graph.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
     				database.updateGraph(graph);
     			} catch( RuntimeException ex ) {
+    				System.out.println("hier kam der error 4");
     				error = true;
+    				ex.printStackTrace();//TODO weg
     			}
     			try {
+    				System.out.println("update cover abschnit " + user + gKey + cKey);
     				Cover cover = database.getCover(user, gKey, cKey);
     				if(cover == null) {
     					/*
     					 * Should not happen.
     					 */
+    					System.out.println("threadhandler cover war null 989");
     					requestHandler.log(Level.WARNING, "Cover deleted while benchmark running.");
     					throw new IllegalStateException();
     				}
     				cover.setMemberships(calculatedCover.getMemberships());
     				cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+    				System.out.println("update cover im thread handler 2 ");
     				database.updateCover(cover);
+    				System.out.println("cover updated");
     			} catch( RuntimeException ex ) {
+    				System.out.println("hier kam der error 5");
     				error = true;
     			}
     		}
 			if(error) {
 				try {
+					System.out.println("threadhandler get cover funktion error ");
     				Cover cover = database.getCover(user, gKey, cKey);
     				if(cover == null) {
     					/*
@@ -285,9 +304,9 @@ public class ThreadHandler {
     				}
     				CustomGraph graph = cover.getGraph();
 					cover.getCreationMethod().setStatus(ExecutionStatus.ERROR);
-					database.updateCover(cover);	//TODO optimieren
+					database.updateCoverCreationLog(cover);	//TODO optimieren
 					graph.getCreationMethod().setStatus(ExecutionStatus.ERROR);
-					database.updateGraph(graph);	//TODO muss beides in transaktion?
+					database.updateGraphCreationLog(graph);	//TODO muss beides in transaktion?
 				}  catch( RuntimeException e ) {
     			}
 			}
@@ -304,6 +323,7 @@ public class ThreadHandler {
 	 * @param error States whether an error occurred (true) during execution.
 	 */
 	public void createCover(Cover calculatedCover, CoverId coverId, boolean error) {
+		System.out.println("createCover");
 		String cKey = coverId.getKey();
 		CustomGraphId gId = coverId.getGraphId();
 		String user = gId.getUser();
@@ -499,6 +519,7 @@ public class ThreadHandler {
 			future.cancel(true);
 			benchmarks.remove(future);
 		}
+		System.out.println("TH unsynched InterruptBenchmark ende");
 	}
 	
 	/**
@@ -512,6 +533,7 @@ public class ThreadHandler {
 			future.cancel(true);
 			metrics.remove(future);
 		}
+		System.out.println("TH unsynched InterruptMetric ende");
 	}
 	
 	/**
