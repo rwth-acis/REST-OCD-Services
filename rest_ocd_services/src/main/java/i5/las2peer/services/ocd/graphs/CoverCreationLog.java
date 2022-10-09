@@ -19,6 +19,7 @@ import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
 import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 /**
@@ -168,16 +169,30 @@ public class CoverCreationLog {
 	}
 	
 	//persistence functions
-	public void persist(ArangoDatabase db, DocumentCreateOptions opt) {
+	public void persist(ArangoDatabase db, String transId) {
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
 		ArangoCollection collection = db.collection(collectionName);
+		
 		BaseDocument bd = new BaseDocument();
 		bd.addAttribute(typeColumnName, this.typeId);
 		bd.addAttribute(statusIdColumnName, this.statusId);
 		bd.addAttribute(parameterColumnName, this.parameters); //TODO
 		bd.addAttribute(compatibleGraphTypesColumnName, this.compatibleGraphTypes);
 		
-		collection.insertDocument(bd, opt);
+		collection.insertDocument(bd, createOptions);
 		this.key = bd.getKey();
+	}
+	
+	public void updateDB(ArangoDatabase db, String transId) {
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(typeColumnName, this.typeId);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(parameterColumnName, this.parameters);
+		bd.addAttribute(compatibleGraphTypesColumnName, this.compatibleGraphTypes);
+		collection.updateDocument(this.key, bd, updateOptions);
 	}
 	
 	public static CoverCreationLog load(String key, ArangoDatabase db, DocumentReadOptions opt) {

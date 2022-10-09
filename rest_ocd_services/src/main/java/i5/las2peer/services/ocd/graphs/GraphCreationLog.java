@@ -19,7 +19,7 @@ import com.arangodb.entity.BaseDocument;
 import com.arangodb.entity.StreamTransactionEntity;
 import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentReadOptions;
-
+import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * A log representation for a graph creation method, i.e. typically a OcdBenchmark execution.
@@ -150,6 +150,18 @@ public class GraphCreationLog {
 		
 		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
+	}
+	
+	public void updateDB(ArangoDatabase db, String transId) {
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(typeColumnName, this.typeId);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(parameterColumnName, this.parameters);
+
+		collection.updateDocument(this.key, bd, updateOptions);
 	}
 	
 	public static GraphCreationLog load(String key, ArangoDatabase db, DocumentReadOptions opt) {	

@@ -83,19 +83,19 @@ public class Cover {
 	public static final String GRAPH_FIELD_NAME = "graph";
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
 	public static final String METRICS_FIELD_NAME = "metrics";
-	public static final String ID_FIELD_NAME = "id";
+	public static final String ID_FIELD_NAME = "key";
 
 	////////////////////////////// ATTRIBUTES //////////////////////////////
 	/**
 	 * System generated persistence id.
 	 */
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = idColumnName)
 	private long id;
 	/**
 	 * System generated persistence key.
 	 */
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = idColumnName)
 	private String key = "";
 	/**
 	 * The graph that the cover is based on.
@@ -745,7 +745,7 @@ public class Cover {
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(simCostsColumnName, this.simCosts);
 		
-		this.creationMethod.persist(db, createOptions);
+		this.creationMethod.persist(db, transId);
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		collection.insertDocument(bd, createOptions);
 		this.key = bd.getKey();
@@ -766,14 +766,56 @@ public class Cover {
 		collection.updateDocument(this.key, bd, updateOptions);
 	}
 	
+	public void updateDB(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		ArangoCollection communityCollection = db.collection(Community.collectionName);
+		ObjectMapper om = new ObjectMapper();
+		
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		DocumentReadOptions readOptions = new DocumentReadOptions().streamTransactionId(transId);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		
+		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOptions);
+		
+		if(this.graph == null) {
+			throw new IllegalArgumentException("graph attribute of the cover to be updated does not exist");
+		}
+		else if(this.graph.getKey().equals("")) {
+			throw new IllegalArgumentException("the graph of the cover is not persisted yet");
+		}
+		bd.updateAttribute(nameColumnName, this.name);
+		bd.updateAttribute(simCostsColumnName, this.simCosts);
+		this.creationMethod.updateDB(db, transId);
+		
+		Object objCommunityKeys = bd.getAttribute(communityKeysColumnName);
+		List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
+		for(String communityKey : communityKeys) {			//delete all communitys
+			communityCollection.deleteDocument(communityKey, null, deleteOpt);
+		}		
+		
+		List<String> communityKeyList = new ArrayList<String>();
+		for(Community c : this.communities) {		//add new communities
+			c.persist(db, createOptions);
+			communityKeyList.add(c.getKey());
+		}	
+		bd.updateAttribute(communityKeysColumnName, communityKeyList);
+		
+		for(OcdMetricLog oml : this.metrics) {	//TODO hier könnten probleme kommen
+			oml.updateDB(db, transId);
+		}
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
+	
 	public static Cover load(String key, CustomGraph g, ArangoDatabase db, String transId) {
 		
-		Cover cover = new Cover(g);
+		Cover cover = null;
 		ArangoCollection collection = db.collection(collectionName);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
 		
 		if (bd != null) {
+			cover = new Cover(g);
 			ObjectMapper om = new ObjectMapper();	//prepair attributes
 			String graphKey = bd.getAttribute(graphKeyColumnName).toString();
 			if(!graphKey.equals(g.getKey())) {
@@ -816,6 +858,7 @@ public class Cover {
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
 		bd.setKey(newKey);
+		System.out.println("cover mit key " + this.key + " bekommt den altenKey " + newKey);
 		collection.updateDocument(this.key,  bd, updateOptions);
 	}	
 
