@@ -33,6 +33,7 @@ import com.arangodb.ArangoCursor;
 import y.base.Edge;
 import y.base.Node;
 
+@Ignore
 public class CustomGraphDatabaseTest {
 
 	private static final String userName1 = "testUser1";

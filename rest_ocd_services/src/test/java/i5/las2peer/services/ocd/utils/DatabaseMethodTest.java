@@ -11,6 +11,7 @@ import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -23,13 +24,20 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 public class DatabaseMethodTest {
 
+	@Rule
 	public final ExpectedException exception = ExpectedException.none();
+	
 	private static Database database;
 
 	@BeforeClass
-	public static void clearDatabase() {
+	public static void setupTestDatabase() {
 		DatabaseConfig.setConfigFile(true);
 		database = new Database();
+	}
+	@Before
+	public void clearDatabase() {
+		database.deleteDatabase();
+		database.init();
 	}
 	
 	@AfterClass
@@ -66,6 +74,10 @@ public class DatabaseMethodTest {
 	@Test
 	public void getGraphNotFound() {
 		CustomGraph graph = database.getGraph("eve", "0");
+		if(graph == null) {
+			System.out.println("graph ist null in getGraphNotFound");
+		}
+		else {System.out.println(graph.String());}
 		assertNull(graph);
 	}
 
@@ -86,9 +98,8 @@ public class DatabaseMethodTest {
 		assertEquals(graph.edgeCount(), resultGraph.edgeCount());
 	}
 
-	//@Test
+	@Test
 	public void deleteGraph() {
-
 		CustomGraph graph1 = null;
 		CustomGraph graph2 = null;
 		Cover cover = null;
@@ -109,13 +120,13 @@ public class DatabaseMethodTest {
 
 		String graphKey = graph1.getKey();
 		try {
-			//database.deleteGraph("eve", graphKey, new ThreadHandler());
+			database.deleteGraph("eve", graphKey, new ThreadHandler());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		List<CustomGraph> queryResults = database.getGraphs("eve");
-		assertEquals(2, queryResults.size());	//TODO auf 1 ändern nachdem graph1 gelöscht wurde
+		assertEquals(1, queryResults.size());
 	}
 
 	@Test
@@ -180,27 +191,23 @@ public class DatabaseMethodTest {
 		String graphKey = graph.getKey();
 		String cover2Key = cover2.getKey();
 
-//		try {
-//			database.deleteCover("eve", graphId, cover2Id, new ThreadHandler());
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//				
-//		List<Cover> queryResults;
-//		String queryStr = "SELECT c FROM Cover c";
-//		TypedQuery<Cover> query = em.createQuery(queryStr, Cover.class);		
-//		queryResults = query.getResultList();
-//		em.close();
-//		assertEquals(2, queryResults.size());
+		try {
+			database.deleteCover("eve", graphKey, cover2Key, new ThreadHandler());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+				
+		List<String> covers = database.getAllCoverKeys();
+		assertEquals(2, covers.size());
 	}
 	
 	@Test
 	public void deleteCoverNotFound() throws Exception {
 		 
-//		exception.expect(IllegalArgumentException.class);
-//		exception.expectMessage("Cover not found");
-//		
-//		entityHandler.deleteCover("eve", 3, 1, new ThreadHandler());
+		exception.expect(IllegalArgumentException.class);
+		exception.expectMessage("Cover not found");
+		
+		database.deleteCover("eve", "3", "1", new ThreadHandler());
 	}
 
 }

@@ -32,6 +32,7 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import y.base.Edge;
 import y.base.Node;
 
+@Ignore
 public class CoverDatabaseTest {
 
 	private static final String userName = "coverPersistenceUser";
