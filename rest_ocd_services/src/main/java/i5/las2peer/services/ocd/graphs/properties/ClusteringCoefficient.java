@@ -38,7 +38,7 @@ public class ClusteringCoefficient extends AbstractProperty {
 		for (int i = 0; i < length; i++) {
 			max += localClusterings[i];
 		}
-
+		if(length == 0) {return 0;}	//TODO ok?
 		return (max / length);
 	}
 	
