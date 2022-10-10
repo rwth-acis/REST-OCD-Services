@@ -88,6 +88,8 @@
           url: "pages/wiki/cooperation-simulations#cooperation-and-defection"
         - title: Deployment
           url: "pages/wiki/cooperation-simulations#Deployment"
+    - title: OCD Algorithm Implementation
+      url: "pages/wiki/alg-implementation"
 - title: Documentation
   url: docs
   links:
