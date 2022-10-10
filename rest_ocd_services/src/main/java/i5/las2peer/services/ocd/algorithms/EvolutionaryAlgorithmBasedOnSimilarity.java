@@ -80,7 +80,6 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.NEGATIVE_WEIGHTS);
 		compatibilities.add(GraphType.WEIGHTED);
-		compatibilities.add(GraphType.WEIGHTED);
 		return compatibilities;
 	}
 

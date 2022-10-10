@@ -133,17 +133,8 @@ public class LouvainAlgorithm implements OcdAlgorithm {
 		  throws InterruptedException {
 	  Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communitiesPerNode.length);
 	  membershipMatrix = membershipMatrix.blank();
-
-
-      //// this code block is meant to deal with the occasional crashes caused by the next loop
-      int index = communitiesPerNode.length;
-      if(communitiesPerNode.length > graph.nodeCount()){
-          index = graph.nodeCount();
-      }
-      ////////
-
-
-	  for(int i=0; i<index; i++) {
+	  
+	  for(int i=0; i<communitiesPerNode.length; i++) {
 		  if(Thread.interrupted()) {
 				throw new InterruptedException();
 		  }
@@ -229,28 +220,20 @@ public class LouvainAlgorithm implements OcdAlgorithm {
         }
     }
     //OWN TO GET BEST COMMUNITY BY MODULARITY
-
-      //TODO: this part of the code causes crash, hence it is uncommented till fix is found
-      //Account for the case that the original graph has the best modularity
-//    if(bestCommunityIndex <= 0 )
-//    {
-//    	int orgGraphCommunity[] = new int[graphs.get(0).size()];
-//    	for(int i=0; i<graphs.get(0).size(); i++) {
-//    		if(Thread.interrupted()) {
-//				throw new InterruptedException();
-//    		}
-//
-//    		orgGraphCommunity[i] = i;
-//    	}
-//    	return orgGraphCommunity;
-//    }
-
-
-      //TODO: temporary fix to avoid out of bounds exception in the next line if bestCommunityIndex is 0
-      if(bestCommunityIndex - 1 < 0){
-          bestCommunityIndex = 1;
-      }
-      
+    
+    //Account for the case that the original graph has the best modularity
+    if(bestCommunityIndex <= 0)
+    {
+    	int orgGraphCommunity[] = new int[graphs.get(0).size()];
+    	for(int i=0; i<graphs.get(0).size(); i++) {
+    		if(Thread.interrupted()) {
+				throw new InterruptedException();
+    		}
+    		
+    		orgGraphCommunity[i] = i;
+    	}
+    	return orgGraphCommunity;
+    }    
     return communities.get(bestCommunityIndex-1);
   }
 
