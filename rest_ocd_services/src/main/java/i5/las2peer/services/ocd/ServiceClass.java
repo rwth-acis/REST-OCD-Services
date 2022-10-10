@@ -20,7 +20,6 @@ import java.util.logging.Level;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -42,7 +41,6 @@ import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.graphstream.algorithm.ConnectedComponents;
-import org.graphstream.graph.Node;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.api.Context;
@@ -1578,7 +1576,7 @@ public class ServiceClass extends RESTService {
 
 				String responseStr;
 				if(includeMeta) {
-					responseStr = requestHandler.writeCentralityMapMetas_efficiently(centralityMetaInformation);
+					responseStr = requestHandler.writeCentralityMapMetasEfficiently(centralityMetaInformation);
 				}
 				else {
 					responseStr = requestHandler.writeCentralityMapIdsEfficiently(centralityMetaInformation);

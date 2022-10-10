@@ -69,6 +69,8 @@ public class CustomGraph extends MultiGraph {
 	public static final String idColumnName = "ID";
 	public static final String userColumnName = "USER_NAME";
 	private static final String nameColumnName = "NAME";
+	public static final String graphNodeCountColumnName = "NODE_COUNT";
+	public static final String graphEdgeCountColumnName = "EDGE_COUNT";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 	private static final String idEdgeMapKeyColumnName = "RUNTIME_ID";
@@ -81,7 +83,13 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public static final String USER_NAME_FIELD_NAME = "userName";
 	public static final String ID_FIELD_NAME = "persistenceId";
+	public static final String NAME_FIELD_NAME = "name";
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
+	public static final String NODE_COUNT_FIELD_NAME = "graphNodeCount";
+	public static final String EDGE_COUNT_FIELD_NAME = "graphEdgeCount";
+	public static final String TYPES_FIELD_NAME = "types";
+
+
 
 	//////////////////////////////////////////////////////////////////
 	///////// Attributes
@@ -114,6 +122,22 @@ public class CustomGraph extends MultiGraph {
 	 */
 	@Column(name = pathColumnName)
 	private String path = "";
+
+	/**
+	 * The number of nodes in the graph.
+	 */
+	@Column(name = graphNodeCountColumnName)
+	private long graphNodeCount;
+
+	/**
+	 * The number of edges in the graph.
+	 */
+	@Column(name = graphEdgeCountColumnName)
+	private long graphEdgeCount;
+
+
+
+
 
 	// /**
 	// * The description of the graph.
@@ -626,6 +650,14 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public void setNodeName(Node node, String name) {
 		getCustomNode(node).setName(name);
+	}
+
+	/**
+	 * Update node and edge count numbers
+	 */
+	public void setNodeEdgeCountColumnFields(){
+		this.graphNodeCount = this.nodes().count();
+		this.graphEdgeCount = this.edges().count();
 	}
 
 	public int getNodeId(Node node) {
@@ -1350,7 +1382,7 @@ public class CustomGraph extends MultiGraph {
 	public CustomGraph getSubGraph(List<Integer> nodeIds) {
 
 		CustomGraph subGraph = new CustomGraph();
-		int graphSize = nodeCount;
+		long graphSize = nodeCount;
 		int subSize = nodeIds.size();
 		Map<Integer, Node> nodeMap = new HashMap<>(subSize);
 

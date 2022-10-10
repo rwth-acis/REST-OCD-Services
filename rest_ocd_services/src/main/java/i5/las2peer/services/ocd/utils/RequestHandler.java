@@ -25,10 +25,7 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
 import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationType;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.GraphCreationType;
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 
@@ -458,7 +455,7 @@ public class RequestHandler {
 		Document doc = getDocument();
 		Element coversElt = doc.createElement("Covers");
 		for (CoverMeta coverMeta : coverMetas) {
-			String metaDocStr = writeCover_new(coverMeta);
+			String metaDocStr = writeCoverEfficiently(coverMeta);
 			Node metaDocNode = parseDocumentToNode(metaDocStr);
 			Node importNode = doc.importNode(metaDocNode, true);
 			coversElt.appendChild(importNode);
@@ -503,11 +500,11 @@ public class RequestHandler {
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
-	public String writeCentralityMapMetas_efficiently(List<CentralityMeta> centralityMetas) throws AdapterException, ParserConfigurationException, IOException, SAXException, InstantiationException, IllegalAccessException {
+	public String writeCentralityMapMetasEfficiently(List<CentralityMeta> centralityMetas) throws AdapterException, ParserConfigurationException, IOException, SAXException, InstantiationException, IllegalAccessException {
 		Document doc = getDocument();
 		Element mapsElt = doc.createElement("CentralityMaps");
 		for(CentralityMeta centralityMetaInfo : centralityMetas) {
-			String metaDocStr = writeCentralityMap_efficiently(centralityMetaInfo);
+			String metaDocStr = writeCentralityMapEfficiently(centralityMetaInfo);
 			Node metaDocNode = parseDocumentToNode(metaDocStr);
 			Node importNode = doc.importNode(metaDocNode, true);
 			mapsElt.appendChild(importNode);
@@ -641,7 +638,7 @@ public class RequestHandler {
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
-	public String writeCover_new(CoverMeta coverMeta)
+	public String writeCoverEfficiently(CoverMeta coverMeta)
 			throws AdapterException, InstantiationException, IllegalAccessException {
 		Writer writer = new StringWriter();
 		CoverMetaOutputAdapter adapter = new MetaXmlCoverMetaOutputAdapter();
@@ -680,7 +677,7 @@ public class RequestHandler {
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
-	public String writeCentralityMap_efficiently(CentralityMeta centralityMeta) throws AdapterException, InstantiationException, IllegalAccessException, ParserConfigurationException {
+	public String writeCentralityMapEfficiently(CentralityMeta centralityMeta) throws AdapterException, InstantiationException, IllegalAccessException, ParserConfigurationException {
 		Writer writer = new StringWriter();
 		CentralityMetaOutputAdapter adapter = new MetaXmlCentralityMetaOutputAdapter();
 		adapter.setWriter(writer);
@@ -932,7 +929,7 @@ public class RequestHandler {
 	protected Node getIdElt(CustomGraphMeta graphMeta, Document doc) {
 		Element graphElt = doc.createElement("Graph");
 		Element graphIdElt = doc.createElement("Id");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(graphMeta.getId())));
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(graphMeta.getPersistenceId())));
 		graphElt.appendChild(graphIdElt);
 		return graphElt;
 	}

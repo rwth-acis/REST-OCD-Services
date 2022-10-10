@@ -11,7 +11,7 @@ public class CustomGraphMeta {
     /**
      * id of the CustomGraph to which metadata belongs
      */
-    private long id;
+    private long persistenceId;
 
     /**
      * The name of the user owning the graph.
@@ -43,13 +43,13 @@ public class CustomGraphMeta {
      */
     GraphCreationLog graphCreationLog;
 
-    public CustomGraphMeta(long id) {
-        this.id = id;
-        System.out.println("creating with id = "+ id);
+    public CustomGraphMeta(long persistenceId) {
+        this.persistenceId = persistenceId;
+        System.out.println("creating with id = "+ persistenceId);
     }
 
-    public CustomGraphMeta(long id, String userName, String name, long nodeCount, long edgeCount, ArrayList<Integer> types, GraphCreationLog graphCreationLog) {
-        this.id = id;
+    public CustomGraphMeta(long persistenceId, String userName, String name, long nodeCount, long edgeCount, ArrayList<Integer> types, GraphCreationLog graphCreationLog) {
+        this.persistenceId = persistenceId;
         this.userName = userName;
         this.name = name;
         this.nodeCount = nodeCount;
@@ -64,12 +64,12 @@ public class CustomGraphMeta {
 
     }
 
-    public long getId() {
-        return id;
+    public long getPersistenceId() {
+        return persistenceId;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setPersistenceId(long persistenceId) {
+        this.persistenceId = persistenceId;
     }
 
     public String getUserName() {
@@ -123,7 +123,7 @@ public class CustomGraphMeta {
     @Override
     public String toString() {
         return "CustomGraphMeta{" +
-                "id=" + id +
+                "id=" + persistenceId +
                 ", userName='" + userName + '\'' +
                 ", name='" + name + '\'' +
                 ", nodeCount=" + nodeCount +

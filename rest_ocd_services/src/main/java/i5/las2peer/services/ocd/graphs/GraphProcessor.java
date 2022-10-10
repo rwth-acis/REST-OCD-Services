@@ -2,12 +2,7 @@ package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.utils.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.jena.atlas.iterator.Iter;
 import org.la4j.matrix.Matrix;
@@ -48,10 +43,10 @@ public class GraphProcessor {
 			if (edgeWeight < 0 && !graph.getTypes().contains(GraphType.NEGATIVE_WEIGHTS)) {
 				graph.addType(GraphType.NEGATIVE_WEIGHTS);
 			}
-			if (edge.source().equals(edge.target()) && !graph.getTypes().contains(GraphType.SELF_LOOPS)) {
+			if (edge.getSourceNode().equals(edge.getTargetNode()) && !graph.getTypes().contains(GraphType.SELF_LOOPS)) {
 				graph.addType(GraphType.SELF_LOOPS);
 			}
-			reverseEdge = edge.target().getEdgeTo(edge.source());
+			reverseEdge = edge.getTargetNode().getEdgeToward(edge.getSourceNode());
 			if ((reverseEdge == null || graph.getEdgeWeight(reverseEdge) != edgeWeight) && !graph.getTypes().contains(GraphType.DIRECTED)) {
 				graph.addType(GraphType.DIRECTED);
 			}			
