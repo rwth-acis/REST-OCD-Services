@@ -1,30 +1,23 @@
 package i5.las2peer.services.ocd.utils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationLog;
-import i5.las2peer.services.ocd.graphs.CoverId;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
-import i5.las2peer.services.ocd.graphs.GraphCreationLog;
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.glassfish.jersey.internal.inject.Custom;
 
 /**
  * Manages the access on persisted data for the Service Class.
@@ -225,6 +218,88 @@ public class EntityHandler {
 		em.close();
 
 		return queryResults;
+	}
+
+
+	/**
+	 * Return specified graphs' meta information of a user using an efficient approach. This approach only
+	 * loads necessary metadata about graphs. E.g. no information about nodes/edges is loaded
+	 *
+	 * @param username
+	 * 			  the users username
+	 * @param firstIndex
+	 *            id of the first graph
+	 * @param length
+	 *            number of graphs
+	 * @param executionStatusIds
+	 * 			  the execution status ids of the graphs
+	 * @return the list of graphs
+	 */
+	public ArrayList<CustomGraphMeta> getGraphMetaDataEfficiently(String username, int firstIndex, int length, List<Integer> executionStatusIds) {
+
+		EntityManager em = getEntityManager();
+
+		// Query graph info
+		String queryStrGraphInfo = "SELECT"
+				+ " g." + CustomGraph.ID_FIELD_NAME
+				+ ", g." + CustomGraph.USER_NAME_FIELD_NAME
+				+ ", g." + CustomGraph.NAME_FIELD_NAME
+				+ ", g." + CustomGraph.NODE_COUNT_FIELD_NAME
+				+ ", g." + CustomGraph.EDGE_COUNT_FIELD_NAME
+				+ ", g." + CustomGraph.CREATION_METHOD_FIELD_NAME
+				+ " FROM " + CustomGraph.class.getName() + " g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
+				+ " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND b."
+				+ GraphCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
+		Query queryGraphInfo = em.createQuery(queryStrGraphInfo);
+		queryGraphInfo.setFirstResult(firstIndex);
+		queryGraphInfo.setMaxResults(length);
+		queryGraphInfo.setParameter("username", username);
+		queryGraphInfo.setParameter("execStatusIds", executionStatusIds);
+
+
+		List graphInfoList = queryGraphInfo.getResultList();
+
+		// Create CustomGraphMeta that holds metadata for each of the graphs.
+		ArrayList<CustomGraphMeta> graphMetadatas = new ArrayList<>();
+
+		// Create CustomGraphMeta instance for each graph queried above
+		for(int i = 0; i < graphInfoList.size(); i++){
+
+			Object[] graph_data = (Object[]) graphInfoList.get(i);
+			// create a query for collection of graph types belonging to the currently observed graph
+			String queryStrGraphTypes = "SELECT g." + CustomGraph.TYPES_FIELD_NAME + " FROM " + CustomGraph.class.getName() + " g" + " JOIN g." + CustomGraph.CREATION_METHOD_FIELD_NAME + " b"
+					+ " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND g."
+					+ CustomGraph.ID_FIELD_NAME + " = :graphId" + " AND b."
+					+ GraphCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
+			Query queryGraphTypes = em.createQuery(queryStrGraphTypes);
+			queryGraphTypes.setFirstResult(firstIndex);
+			queryGraphTypes.setMaxResults(length);
+			queryGraphTypes.setParameter("username", username);
+			queryGraphTypes.setParameter("execStatusIds", executionStatusIds);
+			queryGraphTypes.setParameter("graphId", ((Long) graph_data[0]));
+
+			List graphTypeSetList = queryGraphTypes.getResultList();
+
+			ArrayList<Integer> graphTypeList = new ArrayList<Integer>();
+			for(int j = 0; j < graphTypeSetList.size(); j++){
+				graphTypeList.add((Integer) graphTypeSetList.get(j));
+			}
+
+			CustomGraphMeta graphMeta = new CustomGraphMeta(
+					(Long) graph_data[0], //id
+					(String) graph_data[1], // username
+					(String) graph_data[2], // name
+					(Long) graph_data[3], // nodeCount
+					(Long) graph_data[4], // edgeCount
+					graphTypeList,
+					(GraphCreationLog) graph_data[5] // graph creation log
+			);
+			graphMetadatas.add(graphMeta);
+		}
+		em.close();
+
+
+		return graphMetadatas;
 	}
 
 	/**

@@ -2,7 +2,12 @@ package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.utils.Pair;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.jena.atlas.iterator.Iter;
 import org.la4j.matrix.Matrix;
@@ -34,20 +39,20 @@ public class GraphProcessor {
 		while (edgesIt.hasNext()) {
 			edge = edgesIt.next();
 			double edgeWeight = graph.getEdgeWeight(edge);
-			if (edgeWeight != 1) {
+			if (edgeWeight != 1 && !graph.getTypes().contains(GraphType.WEIGHTED)) {
 				graph.addType(GraphType.WEIGHTED);
 			}
-			if (edgeWeight == 0) {
-				graph.addType(GraphType.ZERO_WEIGHTS);
+			if (edgeWeight == 0 && !graph.getTypes().contains(GraphType.ZERO_WEIGHTS)) {
+				graph.addType(GraphType.ZERO_WEIGHTS );
 			}
-			if (edgeWeight < 0) {
+			if (edgeWeight < 0 && !graph.getTypes().contains(GraphType.NEGATIVE_WEIGHTS)) {
 				graph.addType(GraphType.NEGATIVE_WEIGHTS);
 			}
-			if (edge.getSourceNode().equals(edge.getTargetNode())) {
+			if (edge.source().equals(edge.target()) && !graph.getTypes().contains(GraphType.SELF_LOOPS)) {
 				graph.addType(GraphType.SELF_LOOPS);
 			}
-			reverseEdge = edge.getTargetNode().getEdgeToward(edge.getSourceNode());
-			if (reverseEdge == null || graph.getEdgeWeight(reverseEdge) != edgeWeight) {
+			reverseEdge = edge.target().getEdgeTo(edge.source());
+			if ((reverseEdge == null || graph.getEdgeWeight(reverseEdge) != edgeWeight) && !graph.getTypes().contains(GraphType.DIRECTED)) {
 				graph.addType(GraphType.DIRECTED);
 			}			
 		}
@@ -91,8 +96,10 @@ public class GraphProcessor {
 				reverseEdge = graph.addEdge(UUID.randomUUID().toString(), target.getId(), source.getId());
 				graph.setEdgeWeight(reverseEdge, edgeWeight);
 			}
+
 		}
 		graph.removeType(GraphType.DIRECTED);
+		graph.setNodeEdgeCountColumnFields(); //update graph edge count info
 	}
 
 	/**
@@ -117,6 +124,7 @@ public class GraphProcessor {
 				nodePairWeights.put(nodePair, edgeWeight);
 				graph.removeEdge(edge);
 			}
+
 		}
 		edgesIt = graph.edges().iterator();
 		while (edgesIt.hasNext()) {
@@ -124,6 +132,7 @@ public class GraphProcessor {
 			double edgeWeight = nodePairWeights
 					.get(new Pair<Integer, Integer>(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex()));
 			graph.setEdgeWeight(edge, edgeWeight);
+
 		}
 	}
 
@@ -223,6 +232,7 @@ public class GraphProcessor {
 				componentGraph.setNodeName(newNode, graph.getNodeName(originalNode));
 				nodeMap.put(newNode, originalNode);
 				tmpNodeMap.put(originalNode, newNode);
+
 			}
 			/*
 			 * Sets component edges
@@ -238,6 +248,7 @@ public class GraphProcessor {
 					Edge newEdge = componentGraph.addEdge(UUID.randomUUID().toString(),tmpNodeMap.get(node), tmpNodeMap.get(target));
 					componentGraph.setEdgeWeight(newEdge, edgeWeight);
 				}
+
 			}
 			componentsList.add(new Pair<CustomGraph, Map<Node, Node>>(componentGraph, nodeMap));
 		}
@@ -282,6 +293,7 @@ public class GraphProcessor {
 					memberships.set(componentCover.getSecond().get(node).getIndex(), currentCoverFirstCommunityIndex + i,
 							belongingFactor);
 				}
+
 			}
 			currentCoverFirstCommunityIndex += currentCover.communityCount();
 			if (!currentCover.getCreationMethod().equals(algo)) {
@@ -366,6 +378,7 @@ public class GraphProcessor {
 				reverseEdge = graph.addEdge(UUID.randomUUID().toString(), target, source);
 				graph.setEdgeWeight(reverseEdge, edgeWeight);
 			}
+
 		}
 		graph.addType(GraphType.DIRECTED);
 	}
@@ -394,6 +407,7 @@ public class GraphProcessor {
 			int target = edge.getTargetNode().getIndex();
 			Edge newEdge = graphCopy.addEdge(UUID.randomUUID().toString(),t[source], t[target]);
 			graphCopy.setEdgeWeight(newEdge, graph.getEdgeWeight(edge));
+
 		}
 		return graphCopy;
 	}
@@ -411,6 +425,7 @@ public class GraphProcessor {
 		while(edges.hasNext()) {
 			Edge edge = edges.next();
 			graph.setEdgeWeight(edge, 1/graph.getEdgeWeight(edge));
+
 		}
 	}
 	

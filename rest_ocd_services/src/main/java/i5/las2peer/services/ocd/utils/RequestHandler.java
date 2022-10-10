@@ -20,8 +20,10 @@ import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapter;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
+import i5.las2peer.services.ocd.adapters.metaOutput.*;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
+import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
 import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
@@ -264,6 +266,26 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates an XML document containing multiple graph ids.
+	 * This method uses efficient approach and only loads necessary data
+	 * (e.g. no node/edge info is loaded)
+	 *
+	 * @param graphMetas
+	 *            The graph meta instances holding graph meta information.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parser config failed
+	 */
+	public String writeGraphIdsEfficiently(List<CustomGraphMeta> graphMetas) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element graphsElt = doc.createElement("Graphs");
+		for (int i = 0; i < graphMetas.size(); i++) {
+			graphsElt.appendChild(getIdElt(graphMetas.get(i), doc));
+		}
+		doc.appendChild(graphsElt);
+		return writeDoc(doc);
+	}
+
+	/**
 	 * Creates an XML document containing multiple cover ids.
 	 * 
 	 * @param covers
@@ -282,6 +304,26 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates an XML document containing multiple cover ids efficiently,
+	 * using CoverMeta instance instead of cover instance.
+	 *
+	 * @param coverMetas
+	 *            The covers.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parser config failed
+	 */
+	public String writeCoverIdsEfficiently(List<CoverMeta> coverMetas) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element coversElt = doc.createElement("Covers");
+		for (int i = 0; i < coverMetas.size(); i++) {
+			coversElt.appendChild(getIdElt(coverMetas.get(i), doc));
+		}
+		doc.appendChild(coversElt);
+		return writeDoc(doc);
+	}
+
+
+	/**
 	 * Creates an XML document containing multiple CentralityMap ids.
 	 * @param maps The CentralityMaps.
 	 * @return The document.
@@ -292,6 +334,23 @@ public class RequestHandler {
 		Element centralityMapElt = doc.createElement("CentralityMaps");
 		for(int i=0; i<maps.size(); i++) {
 			centralityMapElt.appendChild(getIdElt(maps.get(i), doc));
+		}
+		doc.appendChild(centralityMapElt);
+		return writeDoc(doc);
+	}
+
+
+	/**
+	 * Creates an XML document containing multiple CentralityMap ids.
+	 * @param centralityMetas The meta information list.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parser config failed
+	 */
+	public String writeCentralityMapIdsEfficiently(List<CentralityMeta> centralityMetas) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element centralityMapElt = doc.createElement("CentralityMaps");
+		for(int i=0; i<centralityMetas.size(); i++) {
+			centralityMapElt.appendChild(getIdElt(centralityMetas.get(i), doc));
 		}
 		doc.appendChild(centralityMapElt);
 		return writeDoc(doc);
@@ -316,6 +375,34 @@ public class RequestHandler {
 		Element graphsElt = doc.createElement("Graphs");
 		for (CustomGraph graph : graphs) {
 			String metaDocStr = writeGraph(graph, GraphOutputFormat.META_XML);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
+			Node importNode = doc.importNode(metaDocNode, true);
+			graphsElt.appendChild(importNode);
+		}
+		doc.appendChild(graphsElt);
+		return writeDoc(doc);
+	}
+
+	/**
+	 * Creates an XML document containing meta information about multiple
+	 * graphs. This is an efficient method that does not load more data
+	 * than necessary (e.g. no node/edge info is loaded)
+	 *
+	 * @param graphMetass The list of graph meta instances that hold graph meta information.
+	 * @return The document.
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeGraphMetasEfficiently(List<CustomGraphMeta> graphMetass) throws AdapterException, ParserConfigurationException,
+			IOException, SAXException, InstantiationException, IllegalAccessException {
+		Document doc = getDocument();
+		Element graphsElt = doc.createElement("Graphs");
+		for (CustomGraphMeta graphMeta : graphMetass) {
+			String metaDocStr = writeGraphEfficiently(graphMeta);
 			Node metaDocNode = parseDocumentToNode(metaDocStr);
 			Node importNode = doc.importNode(metaDocNode, true);
 			graphsElt.appendChild(importNode);
@@ -353,6 +440,34 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates an XML document containing meta information about multiple
+	 * covers.
+	 *
+	 * @param coverMetas
+	 *            The covers' meta information.
+	 * @return The document.
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeCoverMetasEfficiently(List<CoverMeta> coverMetas) throws AdapterException, ParserConfigurationException,
+			IOException, SAXException, InstantiationException, IllegalAccessException {
+		Document doc = getDocument();
+		Element coversElt = doc.createElement("Covers");
+		for (CoverMeta coverMeta : coverMetas) {
+			String metaDocStr = writeCover_new(coverMeta);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
+			Node importNode = doc.importNode(metaDocNode, true);
+			coversElt.appendChild(importNode);
+		}
+		doc.appendChild(coversElt);
+		return writeDoc(doc);
+	}
+
+	/**
 	 * Creates an XML document containing meta information about multiple centrality maps.
 	 * @param maps The centrality maps.
 	 * @return The document.
@@ -368,6 +483,31 @@ public class RequestHandler {
 		Element mapsElt = doc.createElement("CentralityMaps");
 		for(CentralityMap map : maps) {
 			String metaDocStr = writeCentralityMap(map, CentralityOutputFormat.META_XML);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
+			Node importNode = doc.importNode(metaDocNode, true);
+			mapsElt.appendChild(importNode);
+		}
+		doc.appendChild(mapsElt);
+		return writeDoc(doc);
+	}
+
+
+	/**
+	 * Creates an XML document containing meta information about multiple centrality maps.
+	 * @param centralityMetas The centrality meta information list.
+	 * @return The document.
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeCentralityMapMetas_efficiently(List<CentralityMeta> centralityMetas) throws AdapterException, ParserConfigurationException, IOException, SAXException, InstantiationException, IllegalAccessException {
+		Document doc = getDocument();
+		Element mapsElt = doc.createElement("CentralityMaps");
+		for(CentralityMeta centralityMetaInfo : centralityMetas) {
+			String metaDocStr = writeCentralityMap_efficiently(centralityMetaInfo);
 			Node metaDocNode = parseDocumentToNode(metaDocStr);
 			Node importNode = doc.importNode(metaDocNode, true);
 			mapsElt.appendChild(importNode);
@@ -452,6 +592,25 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates a graph output in a MetaXml format. This method uses efficient approach.
+	 * Only necessary information is loaded (e.g. no node/edge info)
+	 *            The graph.
+	 *
+	 * @param graphMeta
+	 *         Graph meta information
+	 * @return The graph output.
+	 * @throws AdapterException if adapter failed
+	 */
+	public String writeGraphEfficiently(CustomGraphMeta graphMeta)
+			throws AdapterException{
+		GraphMetaOutputAdapter adapter = new MetaXmlGraphMetaOutputAdapter();
+		Writer writer = new StringWriter();
+		adapter.setWriter(writer);
+		adapter.writeGraph(graphMeta);
+		return writer.toString();
+	}
+
+	/**
 	 * Creates a cover output in a specified format.
 	 * 
 	 * @param cover
@@ -473,6 +632,26 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates a cover output efficiently in MetaXml format
+	 *
+	 * @param coverMeta
+	 *            The cover meta information.
+	 * @return The cover output.
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeCover_new(CoverMeta coverMeta)
+			throws AdapterException, InstantiationException, IllegalAccessException {
+		Writer writer = new StringWriter();
+		CoverMetaOutputAdapter adapter = new MetaXmlCoverMetaOutputAdapter();
+		adapter.setWriter(writer);
+		adapter.writeCover(coverMeta);
+		return writer.toString();
+
+	}
+
+	/**
 	 * Creates a CentralityMap output.
 	 * @param map The CentralityMap.
 	 * @param outputFormat the output format for the centrality
@@ -487,6 +666,25 @@ public class RequestHandler {
 		CentralityOutputAdapter adapter = centralityOutputAdapterFactory.getInstance(outputFormat);
     	adapter.setWriter(writer);
 		adapter.writeCentralityMap(map);
+		return writer.toString();
+	}
+
+
+	/**
+	 * Creates a CentralityMap output in MetaXml format.
+	 * @param centralityMeta
+	 *               Metadata about centrality
+	 * @return The CentralityMap output.
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeCentralityMap_efficiently(CentralityMeta centralityMeta) throws AdapterException, InstantiationException, IllegalAccessException, ParserConfigurationException {
+		Writer writer = new StringWriter();
+		CentralityMetaOutputAdapter adapter = new MetaXmlCentralityMetaOutputAdapter();
+		adapter.setWriter(writer);
+		adapter.writeCentralityMap(centralityMeta);
 		return writer.toString();
 	}
 	
@@ -721,7 +919,26 @@ public class RequestHandler {
 		return graphElt;
 	}
 
+
 	/**
+	 * Returns an XML element node representing the id of a graph.
+	 *
+	 * @param graphMeta
+	 *            The graph meta information.
+	 * @param doc
+	 *            The document to create the element node for.
+	 * @return The element node.
+	 */
+	protected Node getIdElt(CustomGraphMeta graphMeta, Document doc) {
+		Element graphElt = doc.createElement("Graph");
+		Element graphIdElt = doc.createElement("Id");
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(graphMeta.getId())));
+		graphElt.appendChild(graphIdElt);
+		return graphElt;
+	}
+
+	/**
+
 	 * Returns an XML element node representing the id of a cover.
 	 * 
 	 * @param cover
@@ -738,6 +955,28 @@ public class RequestHandler {
 		idElt.appendChild(coverIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
 		graphIdElt.appendChild(doc.createTextNode(Long.toString(cover.getGraph().getPersistenceId())));
+		idElt.appendChild(graphIdElt);
+		coverElt.appendChild(idElt);
+		return coverElt;
+	}
+
+	/**
+	 * Returns an XML element node representing the id of a cover.
+	 *
+	 * @param coverMeta
+	 *            The cover meta information.
+	 * @param doc
+	 *            The document to create the element node for.
+	 * @return The element node.
+	 */
+	protected Node getIdElt(CoverMeta coverMeta, Document doc) {
+		Element coverElt = doc.createElement("Cover");
+		Element idElt = doc.createElement("Id");
+		Element coverIdElt = doc.createElement("CoverId");
+		coverIdElt.appendChild(doc.createTextNode(Long.toString(coverMeta.getId())));
+		idElt.appendChild(coverIdElt);
+		Element graphIdElt = doc.createElement("GraphId");
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(coverMeta.getGraphId())));
 		idElt.appendChild(graphIdElt);
 		coverElt.appendChild(idElt);
 		return coverElt;
@@ -761,7 +1000,25 @@ public class RequestHandler {
 		centralityMapElt.appendChild(idElt);
 		return centralityMapElt;
 	}
-	
+		/**
+	 * Returns an XML element node representing the id of a CentralityMap.
+	 * @param centralityMeta The CentralityMap.
+	 * @param doc The document to create the element node for.
+	 * @return The element node.
+	 */
+	protected Node getIdElt(CentralityMeta centralityMeta, Document doc) {
+		Element centralityMapElt = doc.createElement("CentralityMap");
+		Element idElt = doc.createElement("Id");
+		Element centralityMapIdElt = doc.createElement("CentralityMapId");
+		centralityMapIdElt.appendChild(doc.createTextNode(Long.toString(centralityMeta.getCentralityId())));
+		idElt.appendChild(centralityMapIdElt);
+		Element graphIdElt = doc.createElement("GraphId");
+		graphIdElt.appendChild(doc.createTextNode(Long.toString(centralityMeta.getGraphId())));
+		idElt.appendChild(graphIdElt);
+		centralityMapElt.appendChild(idElt);
+		return centralityMapElt;
+	}
+
 	/**
 	 * Returns an XML element node representing the id of a metric log.
 	 * 

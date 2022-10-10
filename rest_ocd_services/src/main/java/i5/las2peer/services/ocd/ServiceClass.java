@@ -19,6 +19,7 @@ import java.util.logging.Level;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -34,6 +35,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.centrality.data.*;
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.*;
 import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
@@ -45,13 +48,11 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.ManualDeployment;
 import i5.las2peer.api.security.UserAgent;
-import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
 import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.execution.ExecutionContext;
 import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -64,12 +65,6 @@ import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
-import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
-import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
-import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
-import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
-import i5.las2peer.services.ocd.centrality.data.CentralityMap;
-import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.centrality.evaluation.CorrelationCoefficient;
 import i5.las2peer.services.ocd.centrality.evaluation.StatisticalProcessor;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
@@ -90,16 +85,6 @@ import i5.las2peer.services.ocd.cooperation.simulation.SimulationBuilder;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
 import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationLog;
-import i5.las2peer.services.ocd.graphs.CoverCreationType;
-import i5.las2peer.services.ocd.graphs.CoverId;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
-import i5.las2peer.services.ocd.graphs.GraphCreationLog;
-import i5.las2peer.services.ocd.graphs.GraphCreationType;
-import i5.las2peer.services.ocd.graphs.GraphProcessor;
-import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
@@ -109,7 +94,6 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.InvocationHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
@@ -431,6 +415,7 @@ public class ServiceClass extends RESTService {
 				graph.setCreationMethod(log);
 				GraphProcessor processor = new GraphProcessor();
 				processor.determineGraphTypes(graph);
+				graph.setNodeEdgeCountColumnFields(); // before persisting the graph, update node/edge count information
 				if (doMakeUndirected) {
 					Set<GraphType> graphTypes = graph.getTypes();
 					if (graphTypes.remove(GraphType.DIRECTED)) {
@@ -589,7 +574,8 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				List<CustomGraph> queryResults;
+
+				List<CustomGraphMeta> queryResults;
 				List<Integer> executionStatusIds = new ArrayList<Integer>();
 				if (!executionStatusesStr.equals("")) {
 					try {
@@ -635,13 +621,14 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
 				}
-				queryResults = entityHandler.getGraphs(username, firstIndex, length, executionStatusIds);
+
+				queryResults = entityHandler.getGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
 
 				String responseStr;
 				if (includeMeta) {
-					responseStr = requestHandler.writeGraphMetas(queryResults);
+					responseStr = requestHandler.writeGraphMetasEfficiently(queryResults);
 				} else {
-					responseStr = requestHandler.writeGraphIds(queryResults);
+					responseStr = requestHandler.writeGraphIdsEfficiently(queryResults);
 				}
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {
@@ -937,12 +924,21 @@ public class ServiceClass extends RESTService {
 								"Specified metric execution status does not exist.");
 					}
 				}
-				List<Cover> queryResults;
 				EntityManager em = entityHandler.getEntityManager();
+
 				/*
-				 * Query
+				 * Efficiently query cover information needed for the WebClient
 				 */
-				String queryStr = "SELECT c from Cover c" + " JOIN c." + Cover.GRAPH_FIELD_NAME + " g" + " JOIN c."
+				ArrayList<CoverMeta>  queryResultMetaInformation = new ArrayList<>();
+				String queryStr = "";
+				queryStr = "SELECT c." + Cover.ID_FIELD_NAME
+						+ ", c." + Cover.NAME_FIELD_NAME
+						+ ", c." + Cover.COMMUNITY_COUNT_FIELD_NAME
+						+ ", g." + CustomGraph.ID_FIELD_NAME
+						+ ", g." + CustomGraph.NAME_FIELD_NAME
+						+ ", c." + Cover.CREATION_METHOD_FIELD_NAME
+						+ " from Cover c"
+						+ " JOIN c." + Cover.GRAPH_FIELD_NAME + " g" + " JOIN c."
 						+ Cover.CREATION_METHOD_FIELD_NAME + " a";
 				if (!metricExecutionStatusesStr.equals("")) {
 					queryStr += " JOIN c." + Cover.METRICS_FIELD_NAME + " m";
@@ -955,14 +951,12 @@ public class ServiceClass extends RESTService {
 				if (!graphIdStr.equals("")) {
 					queryStr += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
 				}
-				/*
-				 * Gets each cover only once.
-				 */
-				queryStr += " GROUP BY c";
-				TypedQuery<Cover> query = em.createQuery(queryStr, Cover.class);
+
+				Query queryCovers = em.createQuery(queryStr);
+
 				try {
 					int firstIndex = Integer.parseInt(firstIndexStr);
-					query.setFirstResult(firstIndex);
+					queryCovers.setFirstResult(firstIndex);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "First index is not valid.");
@@ -970,7 +964,7 @@ public class ServiceClass extends RESTService {
 				try {
 					if (!lengthStr.equals("")) {
 						int length = Integer.parseInt(lengthStr);
-						query.setMaxResults(length);
+						queryCovers.setMaxResults(length);
 					}
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -983,18 +977,83 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "", e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
 				}
-				query.setParameter("username", username);
-				query.setParameter("execStatusIds", executionStatusIds);
+				queryCovers.setParameter("username", username);
+				queryCovers.setParameter("execStatusIds", executionStatusIds);
 				if (!metricExecutionStatusesStr.equals("")) {
-					query.setParameter("metricExecStatusIds", metricExecutionStatusIds);
+					queryCovers.setParameter("metricExecStatusIds", metricExecutionStatusIds);
 				}
-				queryResults = query.getResultList();
+
+				List queryResults_new = queryCovers.getResultList();
+
+				for(int i = 0; i < queryResults_new.size(); i++) {
+
+					Object[] graph_data = (Object[]) queryResults_new.get(i);
+					ArrayList<OcdMetricLog> metric_logs = new ArrayList<>(); // this will hold metrics of the cover
+					// Query metric information of the covers queried above
+					String queryStr_metrics = "SELECT m FROM " + OcdMetricLog.class.getName() + " m JOIN m." + OcdMetricLog.COVER_FIELD_NAME +" c" +
+							" JOIN c." + Cover.CREATION_METHOD_FIELD_NAME + " a";
+					queryStr_metrics += " WHERE c." + Cover.ID_FIELD_NAME + " = :cid" +
+							" AND a." + CoverCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
+
+					if (!metricExecutionStatusesStr.equals("")) {
+						queryStr_metrics += " AND m." + OcdMetricLog.STATUS_ID_FIELD_NAME + " IN :metricExecStatusIds";
+					}
+
+					queryStr_metrics += " ORDER BY m." + OcdMetricLog.ID_FIELD_NAME;
+					Query query_metric = em.createQuery(queryStr_metrics);
+					query_metric.setParameter("execStatusIds", executionStatusIds);
+					if (!metricExecutionStatusesStr.equals("")) {
+						query_metric.setParameter("metricExecStatusIds", metricExecutionStatusIds);
+					}
+					query_metric.setParameter("cid", ((Long) graph_data[0]));
+					List metric_query_result = query_metric.getResultList();
+					for(int j = 0; j < metric_query_result.size(); j++){
+						//System.out.println("creating log with " + ((OcdMetricLog) metric_query_result.get(j)));
+						metric_logs.add((OcdMetricLog) metric_query_result.get(j));
+					}
+
+					if(graph_data[2] == null) { //TODO: This is to ensure backwards compatibility with older releases can be deleted in the future
+						System.out.println("Community count was null, fetching actual cover to fill the value!!!");
+
+						CustomGraphId gId = new CustomGraphId(((Long) graph_data[3]), username);
+						CoverId cId = new CoverId(((Long) graph_data[0]), gId);
+						EntityTransaction tx = em.getTransaction();
+						Cover cover;
+
+						try {
+							tx.begin();
+							cover = em.find(Cover.class, cId);
+							cover.setNumberOfCommunities(cover.communityCount());
+							tx.commit();
+						} catch (RuntimeException e) {
+							if (tx != null && tx.isActive()) {
+								tx.rollback();
+							}
+							throw e;
+						}
+
+						graph_data[2] = cover.communityCount();
+					}
+
+					CoverMeta coverMeta = new CoverMeta(
+							((Long) graph_data[0]), // cover id
+							((String) graph_data[1]), // cover name
+							((Integer) graph_data[2]), // number of communities
+							((Long) graph_data[3]), // graph id
+							((String) graph_data[4]), // graph name
+							((CoverCreationLog) graph_data[5]), // cover creation log
+							metric_logs // cover metric log array
+					);
+					queryResultMetaInformation.add(coverMeta);
+
+				}
 				em.close();
+
 				String responseStr;
 				if (includeMeta) {
-					responseStr = requestHandler.writeCoverMetas(queryResults);
+					responseStr = requestHandler.writeCoverMetasEfficiently(queryResultMetaInformation);
 				} else {
-					responseStr = requestHandler.writeCoverIds(queryResults);
+					responseStr = requestHandler.writeCoverIdsEfficiently(queryResultMetaInformation);
 				}
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {
@@ -1446,25 +1505,32 @@ public class ServiceClass extends RESTService {
 				}
 				List<CentralityMap> queryResults;
 				EntityManager em = entityHandler.getEntityManager();
+
 				/*
-				 * Query
+				 Query centrality metadata only, without loading the whole centrality
 				 */
-				String queryStr = "SELECT c from CentralityMap c"
+				String queryStr_centrality = "SELECT"
+						+ " c." + Cover.ID_FIELD_NAME
+						+ ", c." + Cover.NAME_FIELD_NAME
+						+ ", c." + Cover.CREATION_METHOD_FIELD_NAME
+						+ ", g." + CustomGraph.ID_FIELD_NAME
+						+ ", g." + CustomGraph.NAME_FIELD_NAME
+						+ ", g." + CustomGraph.NODE_COUNT_FIELD_NAME
+						+ " FROM " + CentralityMap.class.getName() +" c"
 						+ " JOIN c." + CentralityMap.GRAPH_FIELD_NAME + " g"
 						+ " JOIN c." + CentralityMap.CREATION_METHOD_FIELD_NAME + " a";
-				queryStr += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username"
+
+				queryStr_centrality += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username"
 						+ " AND a." + CentralityCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
+
 				if(!graphIdStr.equals("")) {
-					queryStr += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
+					queryStr_centrality += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
 				}
-				/*
-				 * Gets each CentralityMap only once.
-				 */
-				queryStr += " GROUP BY c";
-				TypedQuery<CentralityMap> query = em.createQuery(queryStr, CentralityMap.class);
+
+				Query query_centrality = em.createQuery(queryStr_centrality);
 				try {
 					int firstIndex = Integer.parseInt(firstIndexStr);
-					query.setFirstResult(firstIndex);
+					query_centrality.setFirstResult(firstIndex);
 				}
 				catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -1473,7 +1539,7 @@ public class ServiceClass extends RESTService {
 				try {
 					if(!lengthStr.equals("")) {
 						int length = Integer.parseInt(lengthStr);
-						query.setMaxResults(length);
+						query_centrality.setMaxResults(length);
 					}
 				}
 				catch (Exception e) {
@@ -1483,21 +1549,39 @@ public class ServiceClass extends RESTService {
 				boolean includeMeta;
 				try {
 					includeMeta = requestHandler.parseBoolean(includeMetaStr);
-		    	}
+				}
 				catch (Exception e) {
-		    		requestHandler.log(Level.WARNING, "", e);
-		    		return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
-		    	}
-				query.setParameter("username", username);
-				query.setParameter("execStatusIds", executionStatusIds);
-				queryResults = query.getResultList();
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
+				}
+				query_centrality.setParameter("username", username);
+				query_centrality.setParameter("execStatusIds", executionStatusIds);
+				List centrality_query_result = query_centrality.getResultList();
 				em.close();
+
+				// create CentralityMeta instance list using centrality meta queried
+				ArrayList<CentralityMeta> centralityMetaInformation = new ArrayList<>();
+				for(int i = 0; i < centrality_query_result.size(); i++) {
+					//System.out.println("object " + i);
+					Object[] centrality_data = (Object[]) centrality_query_result.get(i);
+
+					centralityMetaInformation.add(new CentralityMeta(
+							((Long) centrality_data[0]), // centrality id
+							((String) centrality_data[1]), // centrality name
+							((CentralityCreationLog) centrality_data[2]), // centrality creation log
+							((Long) centrality_data[3]), // graph id
+							((String) centrality_data[4]), // graph name
+							((Long) centrality_data[5]) // graph node count (size)
+					));
+
+				}
+
 				String responseStr;
 				if(includeMeta) {
-					responseStr = requestHandler.writeCentralityMapMetas(queryResults);
+					responseStr = requestHandler.writeCentralityMapMetas_efficiently(centralityMetaInformation);
 				}
 				else {
-					responseStr = requestHandler.writeCentralityMapIds(queryResults);
+					responseStr = requestHandler.writeCentralityMapIdsEfficiently(centralityMetaInformation);
 				}
 				return Response.ok(responseStr).build();
 	    	}

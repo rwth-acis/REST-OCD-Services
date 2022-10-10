@@ -55,6 +55,7 @@ public class Cover {
 	public static final String idColumnName = "ID";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
 	public static final String simCostsColumnName = "SIMILARITYCOSTS";
+	public static final String numberOfCommunitiesColumnName = "NUMBER_OF_COMMUNITIES";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 
@@ -65,6 +66,8 @@ public class Cover {
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
 	public static final String METRICS_FIELD_NAME = "metrics";
 	public static final String ID_FIELD_NAME = "id";
+	public static final String NAME_FIELD_NAME = "name";
+	public static final String COMMUNITY_COUNT_FIELD_NAME = "numberOfCommunities";
 
 	////////////////////////////// ATTRIBUTES //////////////////////////////
 	/**
@@ -90,6 +93,13 @@ public class Cover {
 	 */
 	@Column(name = nameColumnName)
 	private String name = "";
+
+	/**
+	 * The number of communities in the cover
+	 */
+	@Column(name = numberOfCommunitiesColumnName)
+	private Integer numberOfCommunities;
+
 
 	// /**
 	// * A description of the cover.
@@ -166,6 +176,7 @@ public class Cover {
 	public Cover(CustomGraph graph, Matrix memberships) {
 		this.graph = graph;
 		setMemberships(memberships, true);
+		this.numberOfCommunities = communityCount();
 	}
 
 	//////////////////////////// GETTER & SETTER ////////////////////////////
@@ -353,6 +364,7 @@ public class Cover {
 			}
 
 		}
+		this.setNumberOfCommunities(this.communityCount());
 	}
 
 	/**
@@ -370,6 +382,7 @@ public class Cover {
 	 */
 	public void setMemberships(Matrix memberships) {
 		setMemberships(memberships, false);
+		this.setNumberOfCommunities(this.communityCount());
 	}
 
 	//////////////////////////// METRICS ////////////////////////////
@@ -487,6 +500,16 @@ public class Cover {
 	 */
 	public void setCommunityName(int communityIndex, String name) {
 		communities.get(communityIndex).setName(name);
+	}
+
+	/**
+	 * Setter for the number of communities in the cover.
+	 *
+	 * @param numberOfCommunities
+	 *            The community count.
+	 */
+	public void setNumberOfCommunities(Integer numberOfCommunities) {
+		this.numberOfCommunities = numberOfCommunities;
 	}
 
 	/**

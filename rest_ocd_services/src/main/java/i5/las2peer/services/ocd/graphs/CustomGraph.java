@@ -34,7 +34,12 @@ import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.graphs.properties.AbstractProperty;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 
+
+
 import org.graphstream.graph.implementations.MultiGraph;
+
+
+
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
@@ -121,7 +126,7 @@ public class CustomGraph extends MultiGraph {
 	// @Version
 	// @Column(name = lastUpdateColumnName)
 	// private Timestamp lastUpdate;
-
+	
 	/**
 	 * The graph's types.
 	 */
@@ -133,7 +138,7 @@ public class CustomGraph extends MultiGraph {
 	 */
 	@ElementCollection
 	private List<Double> properties;
-
+	
 	/**
 	 * The log for the benchmark model the graph was created by.
 	 */
@@ -147,13 +152,13 @@ public class CustomGraph extends MultiGraph {
 	 */
 	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Cover> covers = new ArrayList<Cover>();
-
+	
 	/**
 	 * The simulations based on this graph.
 	 */
 	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<SimulationSeries> simulations = new ArrayList<>();
-
+	
 
 	///////////////////// THE FOLLOWING ATTRIBUTES ARE MAINTAINED AUTOMATICALLY
 	///////////////////// AND ONLY OF INTERNAL / PERSISTENCE USE
@@ -326,6 +331,7 @@ public class CustomGraph extends MultiGraph {
 		this.types.clear();
 
 		Node node;
+
         nodes = graph.nodes().toArray(Node[]::new);
         for(Node nodeToCopy : nodes) {
             node = this.addNode(nodeToCopy.getId());
@@ -643,6 +649,7 @@ public class CustomGraph extends MultiGraph {
 		double inDegree = 0;
 		for (Edge edge : inEdges) {
 			inDegree += getCustomEdge(edge).getWeight();
+
 		}
 		return inDegree;
 	}
@@ -741,6 +748,7 @@ public class CustomGraph extends MultiGraph {
 		double outDegree = 0;
 		for (Edge edge : outEdges) {
 			outDegree += getCustomEdge(edge).getWeight();
+
 		}
 		return outDegree;
 	}
@@ -759,6 +767,7 @@ public class CustomGraph extends MultiGraph {
 		double degree = 0;
 		for (Edge edge : edges) {
 			degree += getCustomEdge(edge).getWeight();
+
 		}
 		return degree;
 	}
@@ -796,6 +805,7 @@ public class CustomGraph extends MultiGraph {
 		int i = 0;
 		for (Edge edge : edges) {
 			res[i] = this.getEdgeWeight(edge);
+
 			i++;
 		}
 		return res;
@@ -817,6 +827,7 @@ public class CustomGraph extends MultiGraph {
 			if (edgeWeight > maxWeight) {
 				maxWeight = edgeWeight;
 			}
+
 		}
 		return maxWeight;
 	}
@@ -837,6 +848,7 @@ public class CustomGraph extends MultiGraph {
 			if (edgeWeight < minWeight) {
 				minWeight = edgeWeight;
 			}
+
 		}
 		return minWeight;
 	}
@@ -857,6 +869,7 @@ public class CustomGraph extends MultiGraph {
 			if (curDegree < minDegree) {
 				minDegree = curDegree;
 			}
+
 		}
 		return minDegree;
 	}
@@ -877,6 +890,7 @@ public class CustomGraph extends MultiGraph {
 			if (curDegree > maxDegree) {
 				maxDegree = curDegree;
 			}
+
 		}
 		return maxDegree;
 	}
@@ -923,6 +937,7 @@ public class CustomGraph extends MultiGraph {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
+
 			if (!neighbourSet.contains(neighbour)) {
 				neighbourSet.add(neighbour);
 			}
@@ -1089,6 +1104,7 @@ public class CustomGraph extends MultiGraph {
 				positiveEdges.add(edge);
 				break;
 			}
+
 		}
 		return positiveEdges;
 	}
@@ -1141,6 +1157,8 @@ public class CustomGraph extends MultiGraph {
 			if (getCustomEdge(incidentInEdge).getWeight() > 0) {
 				positiveInEdges.add(incidentInEdge);
 			}
+
+
 		}
 		return positiveInEdges;
 	}
@@ -1193,6 +1211,7 @@ public class CustomGraph extends MultiGraph {
 			if (getCustomEdge(incidentOutEdge).getWeight() > 0) {
 				positiveOutEdges.add(incidentOutEdge);
 			}
+
 		}
 		return positiveOutEdges;
 	}
@@ -1217,6 +1236,7 @@ public class CustomGraph extends MultiGraph {
 				negativeEdges.add(edge);
 				break;
 			}
+
 		}
 		return negativeEdges;
 	}
@@ -1240,9 +1260,11 @@ public class CustomGraph extends MultiGraph {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
+
 			if (getCustomEdge(incidentInEdge).getWeight() < 0) {
 				negativeInEdges.add(incidentInEdge);
 			}
+
 		}
 		return negativeInEdges;
 	}
@@ -1266,16 +1288,20 @@ public class CustomGraph extends MultiGraph {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
+
 			if (getCustomEdge(incidentOutEdge).getWeight() < 0) {
 				negativeOutEdges.add(incidentOutEdge);
 			}
+
 		}
 		return negativeOutEdges;
 	}
 
 	////////// properties ////////
-
+	
 	/**
+
+
 	 * @return properties list
 	 */
 	public List<Double> getProperties() {
@@ -1533,6 +1559,7 @@ public class CustomGraph extends MultiGraph {
 		Edge[] edges = this.edges().toArray(Edge[]::new);
 		for (Edge edge : edges) {
 			this.getCustomEdge(edge).update(this, edge);
+
 		}
 
 		initProperties();
@@ -1540,4 +1567,3 @@ public class CustomGraph extends MultiGraph {
 
 
 }
-
