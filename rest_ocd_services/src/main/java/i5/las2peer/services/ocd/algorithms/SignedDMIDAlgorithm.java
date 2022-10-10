@@ -97,6 +97,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.NEGATIVE_WEIGHTS);
 		compatibilities.add(GraphType.DIRECTED);
+		compatibilities.add(GraphType.WEIGHTED);
 		return compatibilities;
 	}
 
