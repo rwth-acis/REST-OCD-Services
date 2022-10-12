@@ -1531,8 +1531,6 @@ public class CustomGraph extends Graph2D {
 				graph.customEdges.put(i, edge);
 				i++;
 			}
-			
-			//TODO cover müssen vlt nicht geladen werden
 			graph.postLoad();
 		}	
 		else {
@@ -1541,16 +1539,6 @@ public class CustomGraph extends Graph2D {
 		}
 		return graph;
 	}
-
-	public void updateKey(String newKey, ArangoDatabase db, String transId) {
-		
-		ArangoCollection collection = db.collection(collectionName);
-		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
-		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
-		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
-		bd.setKey(newKey);
-		collection.updateDocument(this.key,  bd, updateOptions);
-	}	
 	
 	public void updateDB(ArangoDatabase db, String transId) {		//only updates the nodes/edges/GraphCreationLog and graph Attributes
 		this.prePersist();
@@ -1570,7 +1558,6 @@ public class CustomGraph extends Graph2D {
 		bd.updateAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());	//update creation method key
 		
 		NodeCursor nodes = this.nodes();
-		System.out.println("der graph hat beim update so viele nodes: " + nodes.size());
 		while (nodes.ok()) {		//update all nodes from the graph
 			Node n = nodes.node();
 			CustomNode node = this.getCustomNode(n);

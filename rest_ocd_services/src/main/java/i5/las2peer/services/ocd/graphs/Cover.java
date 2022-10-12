@@ -3,10 +3,12 @@ package i5.las2peer.services.ocd.graphs;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
+import i5.las2peer.services.ocd.utils.InactivityData;
 import i5.las2peer.services.ocd.utils.NonZeroEntriesVectorProcedure;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,6 +34,7 @@ import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 
 import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
 import com.arangodb.entity.StreamTransactionEntity;
@@ -76,7 +79,6 @@ public class Cover {
 	public static final String graphKeyColumnName = "GRAPH_KEY";
 	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
 	public static final String communityKeysColumnName = "COMMUNITY_KEYS";
-	public static final String metricKeysColumnName = "METRIC_KEYS";
 	/*
 	 * Field name definitions for JPQL queries.
 	 */
@@ -749,6 +751,7 @@ public class Cover {
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		collection.insertDocument(bd, createOptions);
 		this.key = bd.getKey();
+		
 		bd = new BaseDocument();
 		List<String> communityKeyList = new ArrayList<String>();
 		for(Community c : this.communities) {
@@ -757,12 +760,9 @@ public class Cover {
 		}
 		
 		bd.addAttribute(communityKeysColumnName, communityKeyList);
-		List<String> metricKeyList = new ArrayList<String>();
 		for(OcdMetricLog oml : this.metrics) {
 			oml.persist(db, createOptions);
-			metricKeyList.add(oml.getKey());
 		}
-		bd.addAttribute(metricKeysColumnName, metricKeyList);
 		collection.updateDocument(this.key, bd, updateOptions);
 	}
 	
@@ -800,9 +800,14 @@ public class Cover {
 			communityKeyList.add(c.getKey());
 		}	
 		bd.updateAttribute(communityKeysColumnName, communityKeyList);
-		
-		for(OcdMetricLog oml : this.metrics) {	//TODO hier könnten probleme kommen
-			oml.updateDB(db, transId);
+			
+		for(OcdMetricLog oml : this.metrics) {		//updates or persists a metric depending on its current existence
+			if(oml.getKey().equals("")) {
+				oml.persist(db, createOptions);
+			}
+			else {
+				oml.updateDB(db, transId);
+			}
 		}
 		collection.updateDocument(this.key, bd, updateOptions);
 	}
@@ -812,6 +817,7 @@ public class Cover {
 		Cover cover = null;
 		ArangoCollection collection = db.collection(collectionName);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
 		
 		if (bd != null) {
@@ -825,8 +831,6 @@ public class Cover {
 			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
 			Object objCommunityKeys = bd.getAttribute(communityKeysColumnName);
 			List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
-			Object objMetricKeys = bd.getAttribute(metricKeysColumnName);
-			List<String> metricKeys = om.convertValue(objMetricKeys, List.class);
 			Object objSimCost = bd.getAttribute(simCostsColumnName);
 			
 			//restore all attributes
@@ -837,6 +841,12 @@ public class Cover {
 				Community community = Community.load(communityKey,  cover, db, readOpt);
 				cover.communities.add(community);
 			}
+			
+			String queryStr = "FOR m IN " + OcdMetricLog.collectionName + " FILTER m." + OcdMetricLog.coverKeyColumnName +
+					" == @cKey RETURN m._key";
+			Map<String, Object> bindVars = Collections.singletonMap("cKey", key);
+			ArangoCursor<String> metricKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			
 			for(String metricKey : metricKeys) {
 				OcdMetricLog oml = OcdMetricLog.load(metricKey, cover, db, readOpt);
 				cover.metrics.add(oml);
@@ -849,17 +859,6 @@ public class Cover {
 			System.out.println("empty Cover document");
 		}
 		return cover;
-	}
-	
-	public void updateKey(String newKey, ArangoDatabase db, String transId) {
-		
-		ArangoCollection collection = db.collection(collectionName);
-		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
-		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
-		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
-		bd.setKey(newKey);
-		System.out.println("cover mit key " + this.key + " bekommt den altenKey " + newKey);
-		collection.updateDocument(this.key,  bd, updateOptions);
 	}	
 
 	@Override
