@@ -9,17 +9,13 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.utils.DatabaseConfig;
+import i5.las2peer.services.ocd.utils.ThreadHandler;
 
 import java.awt.Color;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
 
 import org.junit.Test;
 import org.junit.AfterClass;
@@ -122,8 +118,13 @@ public class CoverDatabaseTest {
 
 		queryResults = database.getCoversByName(invalidCoverName, graph);
 		assertEquals(0, queryResults.size());
+		try {
+			database.deleteGraph(userName, Gkey, new ThreadHandler());
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 		
-		database.deleteGraph(Gkey);
+		
 	}
 	
 	

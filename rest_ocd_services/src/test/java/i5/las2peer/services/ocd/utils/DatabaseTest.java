@@ -48,39 +48,19 @@ public class DatabaseTest {
 	private static CustomGraph graph;
 	private static Node n[];
 	private static Database database;
+	private String map = "MAP 11111";
 	
-	@BeforeClass
+	//@BeforeClass
 	public static void clearDatabase() {
 		DatabaseConfig.setConfigFile(true);
 		database = new Database();
 	}
 	
-	@AfterClass
+	//@AfterClass
 	public static void deleteDatabase() {
 		database.deleteDatabase();
 	}
 	
-	public void testCentralityMapPersist() {
-		Database db = new Database();
-		CustomGraph g = getGraph1();
-		String user = "mike";
-		g.setUserName(user);
-		p("vor persists");
-		String key = db.storeGraph(g);
-		p("graph stored with key :" + key);
-		CustomGraph f = db.getGraph(key);
-		p("graph is readdy");
-		p(f.String());
-	}
-	
-	public void test4() {
-		Database db = new Database();
-		db.init();
-		CustomGraph g = db.getGraph("473648");
-		Cover c = db.getCover("473690", g);
-		p(c.toString());
-		
-	}
 	
 	public void test() {
 		DatabaseConfig.setConfigFile(false);

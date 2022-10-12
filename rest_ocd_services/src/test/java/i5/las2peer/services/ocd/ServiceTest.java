@@ -31,6 +31,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.EntityHandler;
 import i5.las2peer.services.ocd.utils.RequestHandler;
+import i5.las2peer.services.ocd.utils.ThreadHandler;
 import i5.las2peer.testing.MockAgentFactory;
 import i5.las2peer.tools.LocalNodeStarter;
 import i5.las2peer.connectors.webConnector.WebConnector;
@@ -193,9 +194,11 @@ public class ServiceTest {
 	 */
 	@AfterClass
 	public static void shutDownServer() throws Exception {
-		database.deleteGraph(AperiodicTwoCommunitiesGraphKey);
-		database.deleteGraph(DolphinsGraphKey);
-		database.deleteGraph(SawmillGraphKey);
+		ThreadHandler t = new ThreadHandler();
+		String user = testAgent.getLoginName();
+		database.deleteGraph(user, AperiodicTwoCommunitiesGraphKey, t);
+		database.deleteGraph(user, DolphinsGraphKey, t);
+		database.deleteGraph(user, SawmillGraphKey, t);
 		database.deleteUserInactivityData("adam", null);
 		
 		connector.stop();

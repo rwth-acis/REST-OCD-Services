@@ -90,8 +90,7 @@ public class DatabaseMethodTest {
 
 		database.storeGraph(graph);
 		String graphKey = graph.getKey();
-		//CustomGraphId id = new CustomGraphId(graphId, "testUser231");
-		CustomGraph resultGraph = database.getGraph(graphKey);
+		CustomGraph resultGraph = database.getGraph("testUser231", graphKey);
 		assertEquals(graph.getName(), resultGraph.getName());
 		assertEquals(graph.getUserName(), resultGraph.getUserName());
 		assertEquals(graph.nodeCount(), resultGraph.nodeCount());

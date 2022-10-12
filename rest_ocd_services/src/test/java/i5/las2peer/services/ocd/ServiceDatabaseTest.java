@@ -19,14 +19,14 @@ public class ServiceDatabaseTest {
 	
 	private static Database database;
 
-	@BeforeClass
+	//@BeforeClass
 	public static void clearDatabase() {
 		DatabaseConfig.setConfigFile(false);
 		database = new Database();
 		System.out.println("-------------------START------------------");
 	}
 	
-	@Test
+	//@Test
 	public void test() {
 		List<Integer> l = new ArrayList<Integer>();
 		l.add(1);l.add(2);
