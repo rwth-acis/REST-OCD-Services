@@ -411,7 +411,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
 				String contentStr) {
-			System.out.println("createGraph");
+			System.out.println("createGraph WICHTIG FÜR GRAPHTYPES");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				GraphInputFormat format;
@@ -496,6 +496,7 @@ public class ServiceClass extends RESTService {
 					}
 				}
 				try {
+					System.out.println("Graph Typen" + graph.getTypes().toString());
 					database.storeGraph(graph); //done
 				} catch (Exception e) {
 					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
@@ -524,6 +525,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(tags = {"special"}, value = "Big Graph Import", notes = "Stores a graph step by step.")
 		public Response storeGraph(@DefaultValue("unnamed") @QueryParam("name") String nameStr, String contentStr) {
+			System.out.println("storeGraph(nothing to do here)");
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 			File graphDir = new File("tmp" + File.separator + username);
 			if (!graphDir.exists()) {
@@ -592,6 +594,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr) {
+			System.out.println("processStoredGraph(nothing to do here)");
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 			File graphDir = new File("tmp" + File.separator + username);
 			File graphFile = new File(graphDir + File.separator + nameStr + ".txt");
@@ -642,10 +645,10 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(tags = {"show"}, value = "Get Graphs Info", notes = "Returns the ids or meta information of multiple graphs.")
 		public Response getGraphs(@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
-				@DefaultValue("0") @QueryParam("length") String lengthStr,
+				@DefaultValue("") @QueryParam("length") String lengthStr,
 				@DefaultValue("FALSE") @QueryParam("includeMeta") String includeMetaStr,
 				@DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr) {
-			System.out.println("getGraphs 1");
+			System.out.println("getGraphs");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				List<CustomGraph> queryResults;
@@ -690,6 +693,9 @@ public class ServiceClass extends RESTService {
 					if (!lengthStr.equals("")) {
 						length = Integer.parseInt(lengthStr);
 					}
+					else {
+						length = Integer.MAX_VALUE;
+					}
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
@@ -726,8 +732,7 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"export"}, value = "Export Graph", notes = "Returns a graph in a specified output format.")
 		public Response getGraph(@DefaultValue("GRAPH_ML") @QueryParam("outputFormat") String graphOutputFormatStr,
 				@PathParam("graphId") String graphIdStr) {
-			System.out.println("getGraph WORKS! :"  + database.DBNAME_STRING);
-			System.out.println("RealDB :" + database.db.dbName());
+			System.out.println("getGraph ++");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				System.out.println("username :" + username);
@@ -925,7 +930,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("") @QueryParam("metricExecutionStatuses") String metricExecutionStatusesStr,
 				@DefaultValue("") @QueryParam("graphId") String graphIdStr) 
 		{
-			System.out.println("getCovers");
+			System.out.println("getCovers ++");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				int length;
@@ -990,15 +995,15 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "", e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
 				}
+				
 				queryResults = database.getCovers(username, graphIdStr, executionStatusIds, metricExecutionStatusIds, firstIndex, length);
-				//done
 				String responseStr;
 				if (includeMeta) {
+
 					responseStr = requestHandler.writeCoverMetas(queryResults);
 				} else {
 					responseStr = requestHandler.writeCoverIds(queryResults);
 				}
-				System.out.println("RESPONSE STR : " + responseStr);
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -1140,7 +1145,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM") @QueryParam("algorithm") String creationTypeStr,
 				String content, @DefaultValue("false") @QueryParam("contentWeighting") String contentWeighting,
 				@DefaultValue("0") @QueryParam("componentNodeCountFilter") String componentNodeCountFilterStr) {
-			System.out.println("runAlgorithm");
+			System.out.println("runAlgorithm +");
 			try {
 				int componentNodeCountFilter;
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -1459,6 +1464,7 @@ public class ServiceClass extends RESTService {
 	    		@DefaultValue("Degree Centrality") @QueryParam("algorithm") String centralityMeasureTypeStr, String content)
 	    {
 	    	System.out.println("calculateCentrality");
+	    	System.out.println("mit typ :" + centralityMeasureTypeStr);
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		CentralityMeasureType centralityMeasureType;
@@ -1507,9 +1513,11 @@ public class ServiceClass extends RESTService {
 							return Response.serverError().entity("Show Error: This centrality measure can only be used on a connected network.").build();
 						}
 					}
+			    	System.out.println(centralityMeasureType.getId() + "Centrality Typ Name : " + centralityMeasureType.getDisplayName());
 			    	map = new CentralityMap(graph);
 			    	map.setName(centralityMeasureType.getDisplayName());
 			    	log = new CentralityCreationLog(centralityMeasureType, CentralityCreationType.CENTRALITY_MEASURE, parametersCopy, algorithm.compatibleGraphTypes());
+			    	System.out.println(log.String());
 			    	map.setCreationMethod(log);
 			    	database.storeCentralityMap(map);	//done
 			    	/*
@@ -1556,7 +1564,7 @@ public class ServiceClass extends RESTService {
 	    		@DefaultValue("FALSE") @QueryParam("onlyTopNodes") String onlyTopNodesStr,
 	    		@DefaultValue("0") @QueryParam("topNodesNumber") String topNodesNumberStr)
 	    {
-	    	System.out.println("getCentralityMap");
+	    	System.out.println("getCentralityMap ++");
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		CentralityOutputFormat format;
@@ -1801,7 +1809,7 @@ public class ServiceClass extends RESTService {
 	    		@PathParam("graphId") String graphIdStr, 
 	    		@QueryParam("mapIds") List<Integer> ids,
 	    		@QueryParam("mapName") String averageMapName) {
-	    	System.out.println("getAverageCentralityMap");
+	    	System.out.println("getAverageCentralityMap +");
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	        	CustomGraph graph;
@@ -1842,6 +1850,7 @@ public class ServiceClass extends RESTService {
 					averageMap.setCreationMethod(log);
 					averageMap.setName(averageMapName);
 					database.storeCentralityMap(averageMap);
+					System.out.println(log.String());
 					threadHandler.createCentralityMap(averageMap, new CentralityMapId(averageMap.getKey(), gId), false);
 		    	}
 	        	
@@ -1905,7 +1914,7 @@ public class ServiceClass extends RESTService {
 	        	}
 	        	List<CentralityMap> maps = new ArrayList<CentralityMap>();
 	        	for(int id : mapIds) {
-	        		String mapIdStr = Integer.toString(id);	//TODO unschöner typecast
+	        		String mapIdStr = Integer.toString(id);	//TODO unschöner typecast von begin an Strings in request verwenden
 	    	    	CentralityMap map;
 	    	    	
 	    			map = database.getCentralityMap(username, graphIdStr, mapIdStr);
@@ -2027,7 +2036,7 @@ public class ServiceClass extends RESTService {
 	    public Response runGroundTruthBenchmark(@DefaultValue("unnamed") @QueryParam("coverName") String coverNameStr,
 	    		@DefaultValue("unnamed") @QueryParam("graphName") String graphNameStr,
 	    		@DefaultValue("LFR") @QueryParam("benchmark") String creationTypeStr, String contentStr) {
-	    	System.out.println("runGroundTruthBenchmark");
+	    	System.out.println("runGroundTruthBenchmark +");
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		GraphCreationType benchmarkType;
@@ -2060,35 +2069,28 @@ public class ServiceClass extends RESTService {
 	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
 	    			}
 	    		}
-	    		System.out.println("Parameter: " + parameters.toString());
-	    		System.out.println("Benchmark: " + benchmark.toString());
-	    		System.out.println("username: " + username);
-	    		
 	    		CustomGraph graph = new CustomGraph();
 	    		graph.setName(URLDecoder.decode(graphNameStr, "UTF-8"));
-	    		System.out.println("graphName : " + graph.getName());
 	    		graph.setUserName(username);
 	    		GraphCreationLog log = new GraphCreationLog(benchmarkType, parameters);
 	    		log.setStatus(ExecutionStatus.WAITING);
 	    		graph.setCreationMethod(log);
 	    		Cover cover = new Cover(graph, new CCSMatrix(graph.nodeCount(), 0));
 	    		cover.setName(URLDecoder.decode(coverNameStr, "UTF-8"));
-	    		System.out.println("coverName : " + cover.getName());
 	    		CoverCreationLog coverLog = new CoverCreationLog(coverCreationType, parameters,
 	    				new HashSet<GraphType>());
 	    		coverLog.setStatus(ExecutionStatus.WAITING);
 	    		cover.setCreationMethod(coverLog);
 	    		
 	    		synchronized (threadHandler) {
-	    			System.out.println("GraphKey : " + database.storeGraph(graph));
+	    			System.out.println("Graph Typen" + graph.getTypes().toString());
+	    			System.out.println("GraphKey : " + database.storeGraph(graph));	//TODO beides in einer transaktion
 	    			System.out.println("CoverKey : " + database.storeCover(cover));
 	    			/*
 	    			 * Registers and starts benchmark creation.
 	    			 */
-	    			System.out.println("graph and cover stored, now run GTB");
-	    			database.printDB();
 	    			threadHandler.runGroundTruthBenchmark(cover, benchmark);
-	    			System.out.println("threadHandler.runGroundTruthBenchmar ausgeführt");
+	    			System.out.println("runGroundTruthBenchmar response");
 	    		}
 	    		return Response.ok(requestHandler.writeId(cover)).build();
 	    	} catch (Exception e) {
@@ -2321,6 +2323,8 @@ public class ServiceClass extends RESTService {
     									+ cover.getCreationMethod().getStatus().name());
     				}
     				if (!groundTruthCoverIdStr.equals(coverIdStr)) {
+    					
+    					System.out.println("Cover und GT sind NICHT gleich");
     					groundTruth = database.getCover(username,  graphIdStr, groundTruthCoverIdStr);
     					if (groundTruth == null) {
     						requestHandler.log(Level.WARNING,
@@ -2331,6 +2335,7 @@ public class ServiceClass extends RESTService {
     								+ ", graph id " + graphIdStr);
     					}
     				} else {
+    					System.out.println("Cover und GT sind gleich : Cover :" + coverIdStr + " GroundTruth :" + groundTruthCoverIdStr);
     					groundTruth = cover;
     				}
     				if (groundTruth.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
@@ -2573,7 +2578,7 @@ public class ServiceClass extends RESTService {
 	    		@DefaultValue("FALSE") @QueryParam("doLabelEdges") String doLabelEdgesStr,
 	    		@DefaultValue("20") @QueryParam("minNodeSize") String minNodeSizeStr,
 	    		@DefaultValue("45") @QueryParam("maxNodeSize") String maxNodeSizeStr) {
-	    	System.out.println("getGraphVisualization WORKS");
+	    	System.out.println("getGraphVisualization ++");
 	    	try {
 	    		String username = getUserName();
 	    		double minNodeSize;
@@ -2710,7 +2715,7 @@ public class ServiceClass extends RESTService {
 	    			requestHandler.log(Level.WARNING, "", e);
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Label edges is not a boolean value.");
 	    		}
-	    		CentralityMap map = database.getCentralityMap(username, centralityMapIdStr, graphIdStr);	//done
+	    		CentralityMap map = database.getCentralityMap(username, graphIdStr, centralityMapIdStr);	//done
     			if(map == null) {
     				requestHandler.log(Level.WARNING, "user: " + username + ", " + "CentralityMap does not exist: CentralityMap id " + centralityMapIdStr + ", graph id " + graphIdStr);
     				return requestHandler.writeError(Error.PARAMETER_INVALID, "CentralityMap does not exist: CentralityMap id " + centralityMapIdStr + ", graph id " + graphIdStr);
@@ -2744,7 +2749,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(tags = {"defaults"}, value = "Return Default Algo Params", notes = "Returns the default parameters of an algorithm.")
 		public Response getAlgorithmDefaultParams(@PathParam("CoverCreationType") String coverCreationTypeStr) {
-			System.out.println("getAlgorithmDefaultParams");
+			System.out.println("getAlgorithmDefaultParams egal +");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				CoverCreationType creationType;
@@ -2874,6 +2879,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(tags = {"defaults"}, value = "Return default benchmark Params", notes = "Returns the default parameters of a benchmark.")
 		public Response getBenchmarkDefaultParams(@PathParam("GraphCreationType") String graphCreationTypeStr) {
+			System.out.println("getBenchmarkDefaultParams egal ++");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				GraphCreationType creationType;
@@ -2967,7 +2973,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(tags = {"possible_types"}, value = "Return Possible Covers", notes = "Returns the names of all possible ocd algorithms to run.")
 		public Response getCoverCreationMethodNames() {
-			System.out.println("getCoverCreationMethodNames");
+			System.out.println("getCoverCreationMethodNames egal");
 			try {
 				return Response.ok(requestHandler.writeEnumNames(CoverCreationType.class)).build();
 			} catch (Exception e) {
@@ -2990,6 +2996,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(tags = {"possible_types"}, value = "Return Covers Compatible Graph Types", notes = "Returns the graph types compatible for the specified cover type.")
 		public Response getAlgorithmCompatibleGraphTypes(@PathParam("CoverCreationType") String coverCreationTypeStr) {
+			System.out.println("getAlgorihtmCompatibleGraphTypes egal +");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				CoverCreationType creationType;
@@ -3028,6 +3035,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(tags = {"names"}, value = "Algorithms information", notes = "Returns all algorithm type names.")
 		public Response getAlgorithmNames() {
+			System.out.println("getAlgoithmNames egal+");
 			try {
 				return Response.ok(requestHandler.writeAlgorithmNames()).build();
 			} catch (Exception e) {
@@ -3051,6 +3059,7 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"names"}, value = "Get Possible Centralities",
 			notes = "Returns the names of all possible centrality measures to run.")
 	    public Response getCentralityNames() {
+	    	System.out.println("getCentralityNames egal");
 	    	try {
 				return Response.ok(requestHandler.writeCentralityMeasureNames()).build();
 	    	}
@@ -3074,6 +3083,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(tags = {"possible_types"}, value = "Return Centrality's Graph Types", notes = "Returns the possible graph types for a specified centrality measure type.")
 		public Response getCentralityCompatibleGraphTypes(@PathParam("CentralityMeasureType") String centralityMeasureTypeStr) {
+			System.out.println("getCentralityCompatibleGraphTypes egal");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				CentralityMeasureType centralityType;
@@ -3115,6 +3125,7 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"names"}, value = "Get Possible Centrality Simulations",
 			notes = "Returns the names of all possible centrality simulations to run.")
 	    public Response getSimulationNames() {
+	    	System.out.println("getSimulationNames egal");
 	    	try {
 				return Response.ok(requestHandler.writeCentralitySimulationNames()).build();
 	    	}
@@ -3138,6 +3149,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(tags = {"possible_types"}, value = "Get CentralitySims Graph Types", notes = "Returns the possible graph types for a specified centrality simulation type.")
 		public Response getCentralitySimulationCompatibleGraphTypes(@PathParam("CentralitySimulationType") String centralitySimulationTypeStr) {
+			System.out.println("getCentralitySimulationCompatibleGraphTypes egal");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				CentralitySimulationType simulationType;
@@ -3608,7 +3620,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getSimulation(@PathParam("seriesId") long seriesId) {
-	
+			System.out.println("getSimulation");
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 			SimulationSeries series = null;
 	
@@ -3646,7 +3658,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getSimulationTable(@PathParam("seriesId") long seriesId) {
-	
+			System.out.println("getSimulationTable");
 			String username = getUserName();
 			SimulationSeries series = null;
 	
@@ -3689,7 +3701,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getSimulationParameters(@PathParam("seriesId") long seriesId) {
-	
+			System.out.println("getSimulationParameters");
 			SimulationSeriesParameters parameters = null;
 			try {
 				//parameters = entityHandler.getSimulationParameters(seriesId);
@@ -3716,7 +3728,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response deleteSimulation(@PathParam("seriesId") long seriesId) {
-	
+			System.out.println("deleteSimulation");
 			try {
 				//entityHandler.deleteSeries(seriesId);
 			} catch (Exception e) {
@@ -3807,7 +3819,7 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"execution"}, value = "Run simulation group", notes = " Starts a simulation group of evolutionary cooperation or defection games ")
 		public Response putSimulationGroup(@DefaultValue("") @QueryParam("name") String name,
 				List<Integer> seriesIds) {
-	
+			System.out.println("putSimulationGroup");
 			List<SimulationSeries> series = new ArrayList<>(seriesIds.size());			
 			try {
 				for(Integer id: seriesIds) {
@@ -3843,7 +3855,7 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"show"}, value = "Get Simulation Group Meta", notes = "Returns the meta information for a performed group of simulations")
 		public Response getSimulationGroups(@DefaultValue("0") @QueryParam("firstIndex") int firstIndex,
 				@DefaultValue("0") @QueryParam("length") int length) {
-	
+			System.out.println("getSimulationGroups");
 			List<SimulationSeriesGroup> simulations = new ArrayList<>();
 			try {
 				if (firstIndex < 0 || length <= 0) {
@@ -3888,7 +3900,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getSimulationGroupTable(@PathParam("groupId") long groupId) {
-	
+			System.out.println("getSimulationGroupTable");
 			String username = getUserName();
 			SimulationSeriesGroup series = null;
 	
@@ -3925,7 +3937,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		@ApiOperation(tags = {"show"}, value = "Get a Simulation Group", notes = "Returns a performed simulation group")
 		public Response getSimulationGroup(@PathParam("groupId") long groupId) {
-	
+			System.out.println("getSimulationGroup");
 			SimulationSeriesGroup simulation = null;
 			try {				
 				//simulation = entityHandler.getSimulationSeriesGroup(groupId);
@@ -3959,7 +3971,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response deleteSimulationSeriesGroup(@PathParam("groupId") long groupId) {
-	
+			System.out.println("deleteSimulationSeriesGroup");
 			try {
 				//entityHandler.deleteGroup(groupId);
 			} catch (Exception e) {
@@ -4083,7 +4095,7 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getDynamics() {
-	
+			System.out.println("getDynamics");
 			return Response.status(Status.OK).entity(DynamicType.values()).build();
 	
 		}
@@ -4100,7 +4112,7 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getGames() {
-	
+			System.out.println("getGames");
 			return Response.status(Status.OK).entity(GameType.values()).build();
 	
 		}
@@ -4117,7 +4129,7 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getBreakConditions() {
-
+			System.out.println("getBreakConditions");
 			return Response.status(Status.OK).entity(ConditionType.values()).build();
 
 		}
