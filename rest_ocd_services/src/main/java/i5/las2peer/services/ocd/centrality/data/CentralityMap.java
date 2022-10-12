@@ -27,6 +27,7 @@ import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
 import com.arangodb.entity.StreamTransactionEntity;
 import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentDeleteOptions;
 import com.arangodb.model.DocumentReadOptions;
 import com.arangodb.model.DocumentUpdateOptions;
 
@@ -274,10 +275,10 @@ public class CentralityMap {
 		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
 	
 		if(this.graph == null) {
-			throw new NullPointerException("graph attribute of the centralityMap to be persisted does not exist");
+			throw new IllegalArgumentException("graph attribute of the centralityMap to be persisted does not exist");
 		}
 		else if(this.graph.getKey().equals("")) {
-			throw new NullPointerException("the graph of the centralityMap is not persisted yet");
+			throw new IllegalArgumentException("the graph of the centralityMap is not persisted yet");
 		}
 		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
 		bd.addAttribute(nameColumnName, this.name);
@@ -285,7 +286,29 @@ public class CentralityMap {
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		bd.addAttribute(mapColumnName, this.map);
 		collection.insertDocument(bd, createOptions);
+		this.key = bd.getKey();
 		
+	}
+	
+	public void updateDB(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);		
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		
+		BaseDocument bd = new BaseDocument();		
+		if(this.graph == null) {
+			throw new IllegalArgumentException("graph attribute of the map to be updated does not exist");
+		}
+		else if(this.graph.getKey().equals("")) {
+			throw new IllegalArgumentException("the graph of the map is not persisted yet");
+		}
+		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
+		bd.addAttribute(nameColumnName, this.name);
+		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
+		bd.addAttribute(mapColumnName, this.map);
+		
+		this.creationMethod.updateDB(db, transId);
+		
+		collection.updateDocument(this.key, bd, updateOptions);
 	}
 	
 	public static CentralityMap load(String key, CustomGraph g, ArangoDatabase db, String transId) {	
@@ -315,16 +338,6 @@ public class CentralityMap {
 		}
 		return cm;
 	}
-	
-	public void updateKey(String newKey, ArangoDatabase db, String transId) {
-		
-		ArangoCollection collection = db.collection(collectionName);
-		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
-		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
-		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
-		bd.setKey(newKey);
-		collection.updateDocument(this.key,  bd, updateOptions);
-	}	
 	
 	@Override
 	public String toString() {

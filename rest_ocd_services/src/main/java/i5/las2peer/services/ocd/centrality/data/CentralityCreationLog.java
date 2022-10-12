@@ -21,7 +21,7 @@ import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
 import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentReadOptions;
-
+import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -112,9 +112,12 @@ public class CentralityCreationLog {
 				this.centralityTypeId = ((CentralitySimulationType)centralityType).getId();
 			}
 			else {
+				System.out.println("centralityType set to 0");
 				this.centralityTypeId = 0;
 			}
+			System.out.println("centralityTypeId set : " + this.centralityTypeId);
 		}
+		
 		else {
 			this.centralityTypeId = CentralityMeasureType.UNDEFINED.getId();
 		}
@@ -231,9 +234,24 @@ public class CentralityCreationLog {
 		bd.addAttribute(statusIdColumnName, this.statusId);
 		bd.addAttribute(executionTimeColumnName, this.executionTime);
 		bd.addAttribute(compatibleGraphTypesColumnName, this.compatibleGraphTypes);
-		
+		System.out.println("persist creationtype" + this.centralityTypeId);
 		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
+	}
+	
+	public void updateDB(ArangoDatabase db, String transId) {
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		System.out.println(this.centralityTypeId);
+		bd.addAttribute(centralityTypeColumnName, this.centralityTypeId);
+		bd.addAttribute(creationTypeColumnName, this.creationTypeId);
+		bd.addAttribute(parameterColumnName, this.parameters);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(executionTimeColumnName, this.executionTime);
+		bd.addAttribute(compatibleGraphTypesColumnName, this.compatibleGraphTypes);
+		collection.updateDocument(this.key, bd, updateOptions);
 	}
 	
 	public static CentralityCreationLog load(String key, ArangoDatabase db, DocumentReadOptions opt) {	
@@ -266,8 +284,7 @@ public class CentralityCreationLog {
 			if(executionTimeString != null) {
 				ccl.executionTime= Long.parseLong(executionTimeString);
 			}
-			ccl.compatibleGraphTypes = om.convertValue(objCompGraph, Set.class);
-			
+			ccl.compatibleGraphTypes = om.convertValue(objCompGraph, Set.class);		
 		}
 		else {
 			System.out.println("empty CentralityCreationLog document");
@@ -278,7 +295,7 @@ public class CentralityCreationLog {
 		String n = System.getProperty("line.separator");
 		String ret = "CentralityCreationLog: " + n;
 		ret += "Key :             " + this.key +n ;
-		ret += "parameters :  " + this.parameters.toString() + n;
+		ret += "parameters :  " 	+ this.parameters.toString() + n;
 		ret += "centralityTypeId :" + this.centralityTypeId + n ; 
 		ret += "creationTypeId :  " + this.creationTypeId +n;
 		ret += "statusId :        " + this.statusId + n;
