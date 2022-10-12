@@ -232,12 +232,18 @@ public class OcdMetricLog {
 	
 	
 	public static OcdMetricLog load(String key, Cover cover, ArangoDatabase db, DocumentReadOptions opt) {
-		OcdMetricLog oml = new OcdMetricLog();
+		OcdMetricLog oml = null;
 		ArangoCollection collection = db.collection(collectionName);
-		
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
+		
 		if (bd != null) {
+			oml = new OcdMetricLog();
 			ObjectMapper om = new ObjectMapper();
+			String coverKey = bd.getAttribute(coverKeyColumnName).toString();
+			if(!coverKey.equals(cover.getKey())) {
+				System.out.println("cover with key: " + cover.getKey() + " does not fit to cover with CoverKey: " + coverKey);
+				return null;
+			}
 			Object objParameter = bd.getAttribute(parameterColumnName);
 			String valueString = bd.getAttribute(valueColumnName).toString();
 			String typeIdString = bd.getAttribute(typeColumnName).toString();
