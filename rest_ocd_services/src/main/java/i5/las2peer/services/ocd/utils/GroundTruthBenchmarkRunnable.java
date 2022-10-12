@@ -42,12 +42,11 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 		this.coverId = coverId;
 		this.benchmark = benchmark;
 		this.threadHandler = threadHandler;
-		System.out.println("Konstruktor");
 	}
 
 	@Override
 	public void run() {
-		System.out.println("GTB runnable wird ausgeführt");
+		System.out.println("GTB run start");
 		boolean error = false;
 		/*
 		 * Set algorithm and benchmark status to running.
@@ -56,7 +55,6 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 		
 		DatabaseConfig.setConfigFile(false);
 		Database database = new Database();
-		System.out.println(database.db.dbName().get());
 		
 		String cKey = coverId.getKey();
 		CustomGraphId gId = coverId.getGraphId();
@@ -75,17 +73,15 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 			CustomGraph graph = cover.getGraph();
 			cover.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
 			graph.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
-			
-			database.updateGraph(graph);	//TODO both in one transaction?
-			database.printDB();
+			database.updateGraphCreationLog(graph);	//TODO both in one transaction?
 			database.updateCoverCreationLog(cover);
-			database.printDB();
 		}  catch( RuntimeException e ) {
 			error = true;
 		}
 		Cover groundTruthCover = null;
 		if(!error) {
 			try {
+				System.out.println("execute calculateGTB");
 				OcdBenchmarkExecutor executor = new OcdBenchmarkExecutor();
 				groundTruthCover = executor.calculateGroundTruthBenchmark(benchmark);
 				if(Thread.interrupted()) {
@@ -101,5 +97,6 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 			}
 		}
 		threadHandler.createGroundTruthCover(groundTruthCover, coverId, error);
+		System.out.println("GTB run ende");
 	}
 }
