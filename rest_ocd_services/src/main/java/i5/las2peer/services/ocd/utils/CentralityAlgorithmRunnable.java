@@ -44,26 +44,39 @@ public class CentralityAlgorithmRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+		System.out.println("CAR run start");
 		boolean error = false;
 		/*
 		 * Set algorithm state to running.
 		 */
-		CustomGraphId graphId = new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName());
-    	CentralityMapId id = new CentralityMapId(map.getKey(), graphId);
+		String mKey = map.getKey();
+		String gKey = map.getGraph().getKey();
+		String user = map.getGraph().getUserName();
+		CustomGraphId graphId = new CustomGraphId(gKey, user);	
+		System.out.println("Map Key : " + mKey + " gKey: " + gKey);
+    	CentralityMapId id = new CentralityMapId(mKey, graphId);
+    	
     	RequestHandler requestHandler = new RequestHandler();
+    	
+    	DatabaseConfig.setConfigFile(false);
     	Database database = new Database();
 		try {
-			if(map == null) {
+			CentralityMap m = database.getCentralityMap(user, gKey, mKey);
+			if(m == null) {
 				/*
 				 * Should not happen.
 				 */
+				System.out.println("Centrality map deleted while algorithm running.");
 				requestHandler.log(Level.SEVERE, "Centrality map deleted while algorithm running.");
 				throw new IllegalStateException();
 			}
-			map.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
-			database.updateCentralityMap(map);
+			System.out.println("CAR set status to running");
+			m.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
+			database.updateCentralityCreationLog(m);
 		} catch(RuntimeException e ) {
 			error = true;
+			e.printStackTrace();
+			System.out.println("CAR erster error");
 		}
 		/*
 		 * Run algorithm.
@@ -72,6 +85,7 @@ public class CentralityAlgorithmRunnable implements Runnable {
 		if(!error) {
 	        CentralityAlgorithmExecutor executor = new CentralityAlgorithmExecutor();
 	        try {
+	        	System.out.println("CAR start execution");
 	        	resultMap = executor.execute(map.getGraph(), algorithm);
 	        	if(Thread.interrupted()) {
 	        		throw new InterruptedException();
@@ -86,6 +100,7 @@ public class CentralityAlgorithmRunnable implements Runnable {
 			}
 		}
     	threadHandler.createCentralityMap(resultMap, id, error);
+    	System.out.println("CAR run end");
 	}
 
 }

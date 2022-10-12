@@ -60,16 +60,19 @@ public class KnowledgeDrivenMeasureRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+		System.out.println("KDM run start");
 		boolean error = false;
 		/*
 		 * Set metric state to running.
 		 */
     	RequestHandler requestHandler = new RequestHandler();
-    	Database database = new Database();
+    	DatabaseConfig.setConfigFile(false);
+		Database database = new Database();
 
 		try {
 			OcdMetricLog persistedLog = database.getOcdMetricLog(logId);
 			if(persistedLog == null) {
+				System.out.println("metric log delited while metric running");
 				/*
 				 * Should not happen.
 				 */
@@ -102,6 +105,7 @@ public class KnowledgeDrivenMeasureRunnable implements Runnable {
 			}
 		}
     	threadHandler.createMetric(resultLog, logId, error);
+    	System.out.println("KDM run ende");
 	}
 
 }

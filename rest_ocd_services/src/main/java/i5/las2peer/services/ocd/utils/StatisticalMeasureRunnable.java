@@ -51,11 +51,13 @@ public class StatisticalMeasureRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+		System.out.println("SMR run start");
 		boolean error = false;
 		/*
 		 * Set metric state to running.
 		 */
     	RequestHandler requestHandler = new RequestHandler();
+    	DatabaseConfig.setConfigFile(false);
     	Database database = new Database();
 		try {
 			OcdMetricLog persistedLog = database.getOcdMetricLog(logId);
@@ -92,6 +94,7 @@ public class StatisticalMeasureRunnable implements Runnable {
 			}
 		}
 		threadHandler.createMetric(resultLog, logId, error);
+		System.out.println("SMR run ende");
 	}
 
 }

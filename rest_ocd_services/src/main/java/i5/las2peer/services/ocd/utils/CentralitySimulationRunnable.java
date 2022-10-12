@@ -28,7 +28,6 @@ public class CentralitySimulationRunnable implements Runnable {
 	/**
 	 * The entity handler in charge of accessing persisted data.
 	 */
-	private EntityHandler entityHandler = new EntityHandler();
 	
 	/**
 	 * Creates a new instance.
@@ -44,25 +43,36 @@ public class CentralitySimulationRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+		System.out.println("CSR run start");
 		boolean error = false;
 		/*
 		 * Set simulation state to running.
 		 */
-		CustomGraphId graphId = new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName());
-    	CentralityMapId id = new CentralityMapId(map.getKey(), graphId);
+		String mKey = map.getKey();
+		String gKey = map.getGraph().getKey();
+		String user = map.getGraph().getUserName();
+		CustomGraphId graphId = new CustomGraphId(gKey, user);		
+    	CentralityMapId id = new CentralityMapId(mKey, graphId);
+    	
     	RequestHandler requestHandler = new RequestHandler();
+    	
+    	DatabaseConfig.setConfigFile(false);
     	Database database = new Database();
 		try {
-			if(map == null) {
+			CentralityMap m = database.getCentralityMap(user, gKey, mKey);
+			if(m == null) {
 				/*
 				 * Should not happen.
 				 */
+				System.out.println("Centrality map deleted while simulation running.");
 				requestHandler.log(Level.SEVERE, "Centrality map deleted while simulation running.");
 				throw new IllegalStateException();
 			}
-			map.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
-			database.updateCentralityMap(map);
+			m.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
+			database.updateCentralityCreationLog(m);
 		} catch( RuntimeException e ) {
+			System.out.println("runtime exception");
+			e.printStackTrace();
 			error = true;
 		}
 		/*
@@ -86,6 +96,7 @@ public class CentralitySimulationRunnable implements Runnable {
 			}
 		}
     	threadHandler.createCentralityMap(resultMap, id, error);
+    	System.out.println("CSR run ende");
 	}
 
 }

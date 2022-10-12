@@ -51,18 +51,35 @@ public class AlgorithmRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+		System.out.println("AR run start");
 		boolean error = false;
 		/*
 		 * Set algorithm state to running.
 		 */
-		CustomGraphId graphId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
-		CoverId id = new CoverId(cover.getKey(), graphId);
+		String cKey = cover.getKey();
+		String gKey = cover.getGraph().getKey();
+		String user = cover.getGraph().getUserName();
+		CustomGraphId graphId = new CustomGraphId(gKey, user);
+		CoverId coverId = new CoverId(cKey, graphId);
+		
     	RequestHandler requestHandler = new RequestHandler();
-    	Database database = new Database();
+    	
+		DatabaseConfig.setConfigFile(false);
+		Database database = new Database();
 		try {
-			cover.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
-			database.updateCover(cover);
+			Cover c = database.getCover(user, gKey,  cKey);
+			if(c == null) {
+				System.out.println("Cover in AR run was null " + user + gKey + cKey);
+				/*
+				 * Should not happen.
+				 */
+				requestHandler.log(Level.SEVERE, "Cover deleted while algorithm running.");
+				throw new IllegalStateException();
+			}
+			c.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
+			database.updateCoverCreationLog(c);
 		} catch( Exception e ) {
+			System.out.println("AR fheler bei get cover oder updatecreationlog");
 			error = true;
 		}
 		/*
@@ -85,7 +102,8 @@ public class AlgorithmRunnable implements Runnable {
 				error = true;
 			}
 		}
-    	threadHandler.createCover(resultCover, id, error);
+    	threadHandler.createCover(resultCover, coverId, error);
+    	System.out.println("AR run ende");
 	}
 
 }
