@@ -84,6 +84,7 @@ public class ThreadHandler {
 	 * @param componentNodeCountFilter The node count filter used by the OcdAlgorithmExecutor.
 	 */
 	public void runAlgorithm(Cover cover, OcdAlgorithm algorithm, int componentNodeCountFilter) {
+		System.out.println("TH runAlgorihtm");
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getKey(), gId);
 		AlgorithmRunnable runnable = new AlgorithmRunnable(cover, algorithm, componentNodeCountFilter, this);
@@ -100,6 +101,7 @@ public class ThreadHandler {
 	 * @param algorithm The algorithm to calculate the centrality values with.
 	 */
 	public void runCentralityAlgorithm(CentralityMap map, CentralityAlgorithm algorithm) {
+		System.out.println("TH runCentralityAlgorithm");
 		CustomGraphId gId = new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName());
 		CentralityMapId mapId = new CentralityMapId(map.getKey(), gId);
 		CentralityAlgorithmRunnable runnable = new CentralityAlgorithmRunnable(map, algorithm, this);
@@ -116,6 +118,7 @@ public class ThreadHandler {
 	 * @param simulation The CentralitySimulation to calculate the centrality values with
 	 */
 	public void runCentralitySimulation(CentralityMap map, CentralitySimulation simulation) {
+		System.out.println("TH runCentralitySimulation");
 		CustomGraphId gId = new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName());
 		CentralityMapId mapId = new CentralityMapId(map.getKey(), gId);
 		CentralitySimulationRunnable runnable = new CentralitySimulationRunnable(map, simulation, this);
@@ -132,17 +135,15 @@ public class ThreadHandler {
 	 * @param benchmark The benchmark model to calculate the ground truth cover with.
 	 */
 	public void runGroundTruthBenchmark(Cover cover, GroundTruthBenchmark benchmark) {
-		System.out.println("runGTB in Threadhandler");
+		System.out.println("TH runGroundTruthBenchmark");
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getKey(), gId);
 		GroundTruthBenchmarkRunnable runnable = new GroundTruthBenchmarkRunnable(coverId, benchmark, this);
 		GraphCreationLog log = cover.getGraph().getCreationMethod();
 		synchronized (benchmarks) {
-			System.out.println("runGTB in Threadhanlder synchronized");
 			Future<GraphCreationLog> future = executor.<GraphCreationLog>submit(runnable, log);
 			benchmarks.put(gId, future);
 		}
-		System.out.println("runGTB in Threadhandler ENDE");
 	}
 	
 	/**
@@ -152,6 +153,7 @@ public class ThreadHandler {
 	 * @param cover The cover the metric shall run on.
 	 */
 	public void runStatisticalMeasure(OcdMetricLog metricLog, StatisticalMeasure metric, Cover cover) {
+		System.out.println("TH runStatisticalMeasure");
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getKey(), gId);
 		OcdMetricLogId logId = new OcdMetricLogId(metricLog.getKey(), coverId);
@@ -170,6 +172,7 @@ public class ThreadHandler {
 	 * @param groundTruth The ground truth cover to be used by the metric.
 	 */
 	public void runKnowledgeDrivenMeasure(OcdMetricLog metricLog, KnowledgeDrivenMeasure metric, Cover cover, Cover groundTruth) {
+		System.out.println("TH runKnowledgeDrivenMeasure");
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getKey(), gId);
 		OcdMetricLogId logId = new OcdMetricLogId(metricLog.getKey(), coverId);
@@ -189,6 +192,7 @@ public class ThreadHandler {
 	 * @param error States whether an error occurred (true) during execution.
 	 */
 	public void createMetric(OcdMetricLog log, OcdMetricLogId logId, boolean error) {
+		System.out.println("TH createMetric");
     	synchronized (metrics) {
     		if(Thread.interrupted()) {
     			Thread.currentThread().interrupt();
@@ -224,6 +228,7 @@ public class ThreadHandler {
 					persistedLog.setStatus(ExecutionStatus.ERROR);
 					database.updateOcdMetricLog(persistedLog);
     			} catch( RuntimeException e ) {
+    				e.printStackTrace();
     			}
 			}	
     		unsynchedInterruptMetric(logId);
@@ -239,7 +244,7 @@ public class ThreadHandler {
 	 * @param error Indicates whether an error occurred (true) during the calculation.
 	 */
 	public void createGroundTruthCover(Cover calculatedCover, CoverId coverId, boolean error) {
-		System.out.println("createGroundTruthCover");
+		System.out.println("TH createGroundTruthCover");
 		String cKey = coverId.getKey();
 		CustomGraphId gId = coverId.getGraphId();
 		String user = gId.getUser();
@@ -251,10 +256,8 @@ public class ThreadHandler {
     		}
     		if(!error) {
     			try {
-    				System.out.println("threadhandler get cover funktion no error");
     				Cover cover = database.getCover(user, gKey, cKey);
     				if(cover == null) {
-    					System.out.println("Cover im threadhandler was null " + user + gKey + cKey);
     					/*
     					 * Should not happen.
     					 */
@@ -266,34 +269,26 @@ public class ThreadHandler {
     				graph.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
     				database.updateGraph(graph);
     			} catch( RuntimeException ex ) {
-    				System.out.println("hier kam der error 4");
     				error = true;
-    				ex.printStackTrace();//TODO weg
     			}
     			try {
-    				System.out.println("update cover abschnit " + user + gKey + cKey);
     				Cover cover = database.getCover(user, gKey, cKey);
     				if(cover == null) {
     					/*
     					 * Should not happen.
     					 */
-    					System.out.println("threadhandler cover war null 989");
     					requestHandler.log(Level.WARNING, "Cover deleted while benchmark running.");
     					throw new IllegalStateException();
     				}
     				cover.setMemberships(calculatedCover.getMemberships());
     				cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
-    				System.out.println("update cover im thread handler 2 ");
     				database.updateCover(cover);
-    				System.out.println("cover updated");
     			} catch( RuntimeException ex ) {
-    				System.out.println("hier kam der error 5");
     				error = true;
     			}
     		}
 			if(error) {
 				try {
-					System.out.println("threadhandler get cover funktion error ");
     				Cover cover = database.getCover(user, gKey, cKey);
     				if(cover == null) {
     					/*
@@ -323,7 +318,7 @@ public class ThreadHandler {
 	 * @param error States whether an error occurred (true) during execution.
 	 */
 	public void createCover(Cover calculatedCover, CoverId coverId, boolean error) {
-		System.out.println("createCover");
+		System.out.println("TH createCover");
 		String cKey = coverId.getKey();
 		CustomGraphId gId = coverId.getGraphId();
 		String user = gId.getUser();
@@ -365,9 +360,9 @@ public class ThreadHandler {
 						throw new IllegalStateException();
 					}
 					cover.getCreationMethod().setStatus(ExecutionStatus.ERROR);
-					database.updateCover(cover);		//TODO nur creation method updaten
+					database.updateCoverCreationLog(cover);
     			} catch( Exception e ) {
-    				
+    				System.out.println("TH createCover letzte exception");
     			}
 			}	
 	    	unsynchedInterruptAlgorithm(coverId);
@@ -383,6 +378,7 @@ public class ThreadHandler {
 	 * @param error States whether an error occurred (true) during execution.
 	 */
 	public void createCentralityMap(CentralityMap calculatedMap, CentralityMapId mapId, boolean error) {
+		System.out.println("TH createCentralityMap");
 		String mKey = mapId.getKey();
 		CustomGraphId gId = mapId.getGraphId();
 		String user = gId.getUser();
@@ -421,7 +417,7 @@ public class ThreadHandler {
 						throw new IllegalStateException();
 					}
 					map.getCreationMethod().setStatus(ExecutionStatus.ERROR);
-					database.updateCentralityMap(map);
+					database.updateCentralityCreationLog(map);
     			} catch( RuntimeException e ) {
     			}
 			}	
@@ -519,7 +515,6 @@ public class ThreadHandler {
 			future.cancel(true);
 			benchmarks.remove(future);
 		}
-		System.out.println("TH unsynched InterruptBenchmark ende");
 	}
 	
 	/**
@@ -533,7 +528,6 @@ public class ThreadHandler {
 			future.cancel(true);
 			metrics.remove(future);
 		}
-		System.out.println("TH unsynched InterruptMetric ende");
 	}
 	
 	/**
