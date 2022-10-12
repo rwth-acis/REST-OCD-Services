@@ -24,7 +24,7 @@ public class ClusteringCoefficient extends AbstractProperty {
 		
 		if (graph == null)
 			throw new IllegalArgumentException();
-
+		if(graph.nodeCount() < 1) {return 0;}	//TODO ok?
 		double[] localClusterings = new double[graph.nodeCount()];
 		int nodeId = 0;
 		for (NodeCursor nc = graph.nodes(); nc.ok(); nc.next()) {
@@ -38,7 +38,7 @@ public class ClusteringCoefficient extends AbstractProperty {
 		for (int i = 0; i < length; i++) {
 			max += localClusterings[i];
 		}
-		if(length == 0) {return 0;}	//TODO ok?
+		
 		return (max / length);
 	}
 	
