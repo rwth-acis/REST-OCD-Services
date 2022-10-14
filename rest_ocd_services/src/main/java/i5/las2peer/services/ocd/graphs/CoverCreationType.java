@@ -20,6 +20,7 @@ import i5.las2peer.services.ocd.algorithms.LocalSpectralClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.AntColonyOptimizationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LouvainAlgorithm;
 import i5.las2peer.services.ocd.algorithms.DetectingOverlappingCommunitiesAlgorithm;
+import i5.las2peer.services.ocd.algorithms.MemeticLinkClusteringAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.SignedLfrBenchmark;
@@ -157,12 +158,18 @@ public enum CoverCreationType implements EnumDisplayNames {
 	 * Type corresponding to the FuzzyCMeansSpectralClustering Algorithm.
 	 */
 	FUZZY_C_MEANS_SPECTRAL_CLUSTERING_ALGORITHM("Fuzzy C Means Spectral Clustering Algorithm", FuzzyCMeansSpectralClusteringAlgorithm.class, 24),
-	
+
 	/**
 	 * Type corresponding to the WeakCliquePercolationMethodAlgorithm Algorithm.
 	 */
-	WEAK_CLIQUE_PERCOLATION_METHOD_ALGORITHM("Weak Clique Percolation Method Algorithm", WeakCliquePercolationMethodAlgorithm.class, 25);
-	
+	WEAK_CLIQUE_PERCOLATION_METHOD_ALGORITHM("Weak Clique Percolation Method Algorithm", WeakCliquePercolationMethodAlgorithm.class, 25),
+
+	/**
+	 * Type corresponding to the MemeticLinkClusteringAlgorithm Algorithm.
+	 */
+	M_LINK("M Link", MemeticLinkClusteringAlgorithm.class, 26);
+
+
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
 	 * Abstract types correspond to the CoverCreationMethod interface itself.

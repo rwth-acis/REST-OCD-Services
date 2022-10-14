@@ -130,6 +130,32 @@ public class EntityHandler {
 		}
 		return graph;
 	}
+	/**
+	 * Finds the graph in the databank and updates its nodes and edges
+	 *  
+	 * @param newGraph Graph with the new edges and nodes
+	 * @param graphId	Current graph ID
+	 * @param username	Username
+	 */
+	public void updateGraph(CustomGraph newGraph, long graphId, String username){
+		EntityManager em = getEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		CustomGraphId identity = new CustomGraphId(graphId, username);
+		CustomGraph graph;
+		try{
+			tx.begin();
+			graph = em.find(CustomGraph.class, identity);
+			graph.setStructureFrom(newGraph);
+
+			tx.commit();
+		} catch (RuntimeException e) {
+			if(tx != null && tx.isActive()) {
+				tx.rollback();
+			}
+			throw e;
+		}
+		em.close();
+	}
 
 	/**
 	 * Deletes a CustomGraph from the database
