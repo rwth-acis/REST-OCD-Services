@@ -6,12 +6,10 @@ import java.util.Random;
 import java.util.Set;
 
 import org.apache.jena.sparql.pfunction.library.assign;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 import java.util.ArrayList;
-
-import y.base.Edge;
-import y.base.Node;
-import y.base.EdgeCursor;
 
 /**
  * An Individual is displayed as a set of edges with the genes and the fitnes of that individual
@@ -140,8 +138,8 @@ public class MLinkIndividual {
                 assignCommunity.put(e, current);
                 // Fill in different versions of community representation
                 this.communities.get(current).add(e);
-                this.nodeCommunity.get(current).add(e.target());
-                this.nodeCommunity.get(current).add(e.source());
+                this.nodeCommunity.get(current).add(e.getTargetNode());
+                this.nodeCommunity.get(current).add(e.getSourceNode());
                 Edge neighbor = this.individual.get(e);
                 previous.add(e);
                 tracing++;
@@ -152,8 +150,8 @@ public class MLinkIndividual {
                     assignCommunity.put(neighbor,current);
 
                     this.communities.get(current).add(neighbor);
-                    this.nodeCommunity.get(current).add(neighbor.target());
-                    this.nodeCommunity.get(current).add(neighbor.source());
+                    this.nodeCommunity.get(current).add(neighbor.getTargetNode());
+                    this.nodeCommunity.get(current).add(neighbor.getSourceNode());
 
                     neighbor = this.individual.get(neighbor);
                     tracing++;
@@ -169,8 +167,8 @@ public class MLinkIndividual {
                         assignCommunity.put(prev, neighborCommunity);
 
                         this.communities.get(neighborCommunity).add(prev);
-                        this.nodeCommunity.get(neighborCommunity).add(prev.target());
-                        this.nodeCommunity.get(neighborCommunity).add(prev.source());
+                        this.nodeCommunity.get(neighborCommunity).add(prev.getTargetNode());
+                        this.nodeCommunity.get(neighborCommunity).add(prev.getSourceNode());
 
                         tracing = tracing - 1;
                     }
@@ -198,21 +196,21 @@ public class MLinkIndividual {
             if(rand.nextInt(100) < mutationProbability){
                 Edge gene = genes.get(key);
                 Set<Edge> neighbors = new HashSet<Edge>();
-                EdgeCursor targetEdges = key.target().edges();
-                int nghbSizeTrgt = targetEdges.size();
+                Edge[] targetEdges = key.getTargetNode().edges().toArray(Edge[]::new);
+                int nghbSizeTrgt = targetEdges.length;
                 for(int i = 0; i < nghbSizeTrgt; i++){
-                    if(targetEdges.edge() != key && targetEdges.edge() != gene){
-                        neighbors.add(targetEdges.edge());
+                    if(targetEdges[i] != key && targetEdges[i] != gene){
+                        neighbors.add(targetEdges[i]);
                     }
-                    targetEdges.cyclicNext();
+
                 }
-                EdgeCursor srcEdges = key.source().edges();
-                int nghbSizeSrc = srcEdges.size();
+                Edge[] srcEdges = key.getSourceNode().edges().toArray(Edge[]::new);
+                int nghbSizeSrc = srcEdges.length;
                 for(int i = 0; i < nghbSizeSrc; i++){
-                    if(srcEdges.edge() != key && srcEdges.edge() != gene){
-                        neighbors.add(srcEdges.edge());
+                    if(srcEdges[i] != key && srcEdges[i] != gene){
+                        neighbors.add(srcEdges[i]);
                     }
-                    srcEdges.cyclicNext();
+
                 }
                 int indSize = neighbors.size();
                 if(indSize > 0){
@@ -262,33 +260,42 @@ public class MLinkIndividual {
         }
         uCommunities.get(community2).add(edge1);
 
-        EdgeCursor edges = edge1.source().edges();
-        for(int i = 0; i < edges.size(); i++){
-            Edge e = edges.edge();
+
+        Edge[] edges = edge1.getSourceNode().edges().toArray(Edge[]::new);
+        int cyclicNext = 0;
+        for(int i = 0; i < edges.length; i++){
+            Edge e = edges[cyclicNext];
             if(e != edge1 && this.edges.get(e) == community1){
                 break;
             }
-            if(i == edges.size()-1){
-                uNodeCommunity.get(community1).remove(edge1.source());
+            if(i == edges.length-1){
+                uNodeCommunity.get(community1).remove(edge1.getSourceNode());
             }
-            edges.cyclicNext();
+            cyclicNext++;
+            if (cyclicNext >= edges.length){
+                cyclicNext = 0;
+            }
         }
-        edges = edge1.target().edges();
-        for(int i = 0; i < edges.size(); i++){
-            Edge e = edges.edge();
+        edges = edge1.getTargetNode().edges().toArray(Edge[]::new);
+        cyclicNext = 0;
+        for(int i = 0; i < edges.length; i++){
+            Edge e = edges[cyclicNext];
             if(e != edge1 && this.edges.get(e) == community1){
                 break;
             }
-            if(i == edges.size()-1){
-                uNodeCommunity.get(community1).remove(edge1.target());
+            if(i == edges.length-1){
+                uNodeCommunity.get(community1).remove(edge1.getTargetNode());
             }
-            edges.cyclicNext();
+            cyclicNext++;
+            if (cyclicNext >= edges.length){
+                cyclicNext = 0;
+            }
         }
 
         HashSet<Node> tmp = uNodeCommunity.get(community1);
         tmp = uNodeCommunity.get(community2);
-        tmp.add(edge1.source());
-        tmp.add(edge1.target());
+        tmp.add(edge1.getSourceNode());
+        tmp.add(edge1.getTargetNode());
 
         // if the fitness improves rearrange the genes
         double uFitness = deltaFitness(uCommunities, uNodeCommunity);
@@ -302,30 +309,30 @@ public class MLinkIndividual {
                 rearrange:
                 for(Edge e : this.communities.get(community1)){
                     if(this.individual.get(e) == edge1){
-                        EdgeCursor srcNgh = e.source().edges();
-                        EdgeCursor trgNgh = e.target().edges();
+                        Edge[] srcNgh = e.getSourceNode().edges().toArray(Edge[]::new);
+                        Edge[] trgNgh = e.getTargetNode().edges().toArray(Edge[]::new);
 
                         if(this.communities.get(community1).size() == 1){
                             this.individual.put(e,e);
                             break;
                         }
 
-                        for(int i = 0; i < srcNgh.size(); i++){
-                            Edge srcEdge = trgNgh.edge();
+                        for(int i = 0; i < srcNgh.length; i++){
+                            Edge srcEdge = trgNgh[i];
                             if(this.edges.get(srcEdge) == community1 && srcEdge != e){
                                 this.individual.put(e,srcEdge);
                                 continue rearrange;
                             }
-                            srcNgh.cyclicNext();
+
                         }
                         
-                        for(int i = 0; i < trgNgh.size(); i++){
-                            Edge trgEdge = trgNgh.edge();
+                        for(int i = 0; i < trgNgh.length; i++){
+                            Edge trgEdge = trgNgh[i];
                             if(this.edges.get(trgEdge) == community1 && trgEdge != e){
                                 this.individual.put(e, trgEdge);
                                 continue rearrange;
                             }
-                            trgNgh.cyclicNext();
+
                         }
                     }
                 }
@@ -343,28 +350,28 @@ public class MLinkIndividual {
     public void localSearch(){
         Genes:
         for(Edge key : this.individual.keySet()){
-            EdgeCursor tgtNeighbors = key.target().edges();
-            EdgeCursor srcNeighbors = key.source().edges();
+            Edge[] tgtNeighbors = key.getTargetNode().edges().toArray(Edge[]::new);
+            Edge[] srcNeighbors = key.getSourceNode().edges().toArray(Edge[]::new);
             // Run through every target edge
-            for(int i = 0; i < tgtNeighbors.size(); i++){
-                Edge cur = tgtNeighbors.edge();
+            for(int i = 0; i < tgtNeighbors.length; i++){
+                Edge cur = tgtNeighbors[i];
                 if(edges.get(cur) != edges.get(key)){
                     if(updateCommunities(key, cur)){
                         continue Genes;
                     }
                 }
-                tgtNeighbors.cyclicNext();
+
             }
 
             // Run through every source edge
-            for(int i = 0; i < srcNeighbors.size(); i++){
-                Edge cur = srcNeighbors.edge();
+            for(int i = 0; i < srcNeighbors.length; i++){
+                Edge cur = srcNeighbors[i];
                 if(edges.get(cur) != edges.get(key)){
                     if(updateCommunities(key, cur)){
                         continue Genes;
                     }
                 }
-                srcNeighbors.cyclicNext();
+
             }
         }
 

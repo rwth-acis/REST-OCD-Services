@@ -1,10 +1,13 @@
 package i5.las2peer.services.ocd.algorithms;
 
+import org.graphstream.graph.Node;
 import org.junit.Test;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.Cover;
-import y.base.Node;
+
+import java.util.UUID;
+
 
 public class MemeticLinkClusteringAlgorithmTest {
     
@@ -14,14 +17,19 @@ public class MemeticLinkClusteringAlgorithmTest {
 
         try {
             CustomGraph graph = new CustomGraph();
-            for(int i = 0; i < 2; i++){
-                Node n1 = graph.createNode();
-                Node n2 = graph.createNode();
-                Node n3 = graph.createNode();
-                graph.createEdge(n1,n2);
-                graph.createEdge(n2,n3);
-                graph.createEdge(n3,n1);
-            }
+            Node n1 = graph.addNode(Integer.toString(0));
+            Node n2 = graph.addNode(Integer.toString(1));
+            Node n3 = graph.addNode(Integer.toString(2));
+            Node n4 = graph.addNode(Integer.toString(3));
+            Node n5 = graph.addNode(Integer.toString(4));
+            Node n6 = graph.addNode(Integer.toString(5));
+
+            graph.addEdge(UUID.randomUUID().toString(), n1, n2);
+            graph.addEdge(UUID.randomUUID().toString(), n2, n3);
+            graph.addEdge(UUID.randomUUID().toString(), n3, n1);
+            graph.addEdge(UUID.randomUUID().toString(), n4, n5);
+            graph.addEdge(UUID.randomUUID().toString(), n5, n6);
+            graph.addEdge(UUID.randomUUID().toString(), n6, n4);
 
 
             OcdAlgorithm algo = new MemeticLinkClusteringAlgorithm();

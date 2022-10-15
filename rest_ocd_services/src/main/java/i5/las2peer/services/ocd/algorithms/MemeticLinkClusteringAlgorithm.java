@@ -26,10 +26,9 @@ import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
     
@@ -157,13 +156,13 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	 */
 	public CustomGraph removeDoubleEdges(CustomGraph graph){
 		CustomGraph encoding = new CustomGraph(graph);
-		Edge[] edgesArray = encoding.getEdgeArray();
+		Edge[] edgesArray = encoding.edges().toArray(Edge[]::new);
 		ArrayList<Edge> edges = new ArrayList<Edge>(Arrays.asList(edgesArray));
 		while(!edges.isEmpty()){
 			Edge tmp = edges.remove(0);
-			Node source = tmp.source();
-			Node target = tmp.target();
-			Edge reversed = target.getEdgeTo(source);
+			Node source = tmp.getSourceNode();
+			Node target = tmp.getTargetNode();
+			Edge reversed = target.getEdgeToward(source);
 			if(reversed != null){
 				encoding.removeEdge(reversed);
 				edges.remove(reversed);
@@ -232,15 +231,16 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				Node curNode = curEntry.getValue();
 				checkedNodes.add(curNode);
 
-				EdgeCursor adjEdges = curNode.edges();
+				Edge[] adjEdges = curNode.edges().toArray(Edge[]::new);
+				int cyclicNext = 0;
 				Edge last = null;
 				Edge cur;
 				Edge first = curEntry.getKey();
 				// Set first on an Edge that is inside the current community
 				if(first == null){
-					for(int i = 0; i < adjEdges.size(); i++){
-						cur = adjEdges.edge();
-						Node other = (curNode == cur.source())? cur.target():cur.source();
+					for(int i = 0; i < adjEdges.length; i++){
+						cur = adjEdges[cyclicNext];
+						Node other = (curNode == cur.getSourceNode())? cur.getTargetNode():cur.getSourceNode();
 						if(labels.get(other).equals(l)){
 							first = cur;
 							// adjEdges.cyclicNext();
@@ -248,19 +248,23 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 						} else if(!genes.keySet().contains(cur)) {
 							first = cur;
 						}
-						adjEdges.cyclicNext();
+						cyclicNext++;
+						if(cyclicNext >= adjEdges.length){
+							cyclicNext = 0;
+						}
 					}
 					if(first == null){
 						break;
 					}
 					// Set edge cursor back on first
-					while(adjEdges.edge() != first){
-						adjEdges.cyclicNext();
+					cyclicNext = 0;
+					while(adjEdges[cyclicNext] != first){
+						cyclicNext++;
 					}
 
 					// Put Root edge on itself
 					genes.put(first,first);
-					Node other = (curNode == first.source())? first.target():first.source();
+					Node other = (curNode == first.getSourceNode())? first.getTargetNode():first.getSourceNode();
 					if(labels.get(other).equals(l) && !isQueued.contains(other)){
 						queue.add(new SimpleEntry<Edge,Node>(first, other));
 						isQueued.add(other);
@@ -269,11 +273,13 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				last = first;
 
 				// Create a circle with the last edge pointing on the first
-				for(int i = 0; i < adjEdges.size(); i++){
-					adjEdges.cyclicNext();
-					cur = adjEdges.edge();
-
-					Node other = (curNode == cur.source())? cur.target():cur.source();
+				for(int i = 0; i < adjEdges.length; i++){
+					cyclicNext++;
+					if (cyclicNext >= adjEdges.length){
+						cyclicNext = 0;
+					}
+					cur = adjEdges[cyclicNext];
+					Node other = (curNode == cur.getSourceNode())? cur.getTargetNode():cur.getSourceNode();
 					if(labels.get(other).equals(l)){
 						if(!checkedNodes.contains(other)){
 							if(!isQueued.contains(other)){
@@ -302,7 +308,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				}
 			}
 		}
-		//System.out.println(genes.size());
+
 		return new MLinkIndividual(genes);
 	}
 
@@ -313,7 +319,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	 */
 	public MLinkIndividual labelPropagation(CustomGraph graph){
 		HashMap<Node,Integer> labels = new HashMap<Node,Integer>();
-		Node[] nodes = graph.getNodeArray();
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		// Each node receives a unique label
 		for(int i = 0; i < nodes.length; i++){
 			labels.put(nodes[i], i);
@@ -344,8 +350,8 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	 * @return new label
 	 */
 	public int getMostFrequentLabel(HashMap<Node,Integer> labels, Node selected){
-		NodeCursor neighbors = selected.neighbors();
-		int size = neighbors.size();
+		Node[] neighbors = selected.neighborNodes().toArray(Node[]::new);
+		int size = neighbors.length;
 		if(size == 0){
 			return labels.get(selected);
 		}
@@ -354,7 +360,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 		int maxCount = 0;
 		// count neighboring labels and save it in a hashmap
 		for(int i = 0; i < size; i++){
-			Node neighbor = neighbors.node();
+			Node neighbor = neighbors[i];
 			Integer label = labels.get(neighbor);
 			int count = labelCount.containsKey(label)?labelCount.get(label):0;
 			count++;
@@ -366,7 +372,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				maxLabels.add(label);
 			}
 			labelCount.put(label, count);
-			neighbors.cyclicNext();
+
 		}
 
 		
@@ -382,7 +388,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	 */
 	public MLinkIndividual localExpansion(CustomGraph graph){
 		HashMap<Node,Integer> communities = new HashMap<Node,Integer>();
-		Node[] nodeArr = graph.getNodeArray();
+		Node[] nodeArr = graph.nodes().toArray(Node[]::new);
 		ArrayList<Node> nodes = new ArrayList<Node>(Arrays.asList(nodeArr));
 		int curComm = 0;
 		Random rand = new Random();
@@ -395,26 +401,25 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 			nodes.remove(seed);
 
 			// Create natural community and remove nodes
-			NodeCursor neighbors = seed.neighbors();
-			for(int i = 0; i < neighbors.size(); i++){
-				Node cur = neighbors.node();
+			Node[] neighbors = seed.neighborNodes().toArray(Node[]::new);
+			for(int i = 0; i < neighbors.length; i++){
+				Node cur = neighbors[i];
 				communities.put(cur,curComm);
 				nodes.remove(cur);
-				neighbors.cyclicNext();
 			}
 			curComm++;
 		}
 		return translateToIndividual(communities);
 	}
 	/**
-	 * Create an individual using eigenvecotr centrality
+	 * Create an individual using eigenvecotor centrality
 	 */
 	public MLinkIndividual localExpansionEigen(CustomGraph graph){
 		try{
 			EigenvectorCentrality eigenVectorCentrality = new EigenvectorCentrality();
 			CentralityMap centralities = eigenVectorCentrality.getValues(graph);
 			HashMap<Node,Integer> communities = new HashMap<Node,Integer>();
-			ArrayList<Node> nodes = new ArrayList<Node>(Arrays.asList(graph.getNodeArray()));
+			ArrayList<Node> nodes = new ArrayList<Node>(Arrays.asList(graph.nodes().toArray(Node[]::new)));
 			int curComm = 0;
 			
 			while(!nodes.isEmpty()){
@@ -428,12 +433,12 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 				communities.put(seed, curComm);
 				nodes.remove(seed);
 				// Create natural community and remove nodes
-				NodeCursor neighbors = seed.neighbors();
-				for(int i = 0; i < neighbors.size(); i++){
-					Node cur = neighbors.node();
+				Node[] neighbors = seed.neighborNodes().toArray(Node[]::new);
+				for(int i = 0; i < neighbors.length; i++){
+					Node cur = neighbors[i];
 					communities.put(cur,curComm);
 					nodes.remove(cur);
-					neighbors.cyclicNext();
+
 				}
 				curComm++;
 			}
@@ -455,7 +460,7 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	public HashMap<Integer,HashSet<Node>> postProcessing(HashMap<Integer,HashSet<Node>> communitySet,CustomGraph graph){
 		HashMap<Node,HashSet<Integer>> nodes = new HashMap<Node,HashSet<Integer>>();
 		HashMap<Node,HashSet<Integer>> updatedNodes  = new HashMap<Node,HashSet<Integer>>();
-		for(Node n : graph.getNodeArray()){
+		for(Node n : graph.nodes().toArray(Node[]::new)){
 			nodes.put(n, new HashSet<Integer>());
 			updatedNodes.put(n, new HashSet<Integer>());
 		}
@@ -533,16 +538,16 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	public double intraDensity(HashSet<Node> nodes, HashMap<Node,HashSet<Integer>> communities){
 		double count = 0;
 		for(Node n : nodes){
-			EdgeCursor edges = n.edges();
-			for(int i = 0; i < edges.size(); i++){
-				Node target = edges.edge().target();
-				Node source = edges.edge().source();
+			Edge[] edges = n.edges().toArray(Edge[]::new);
+			for(int i = 0; i < edges.length; i++){
+				Node target = edges[i].getTargetNode();
+				Node source = edges[i].getSourceNode();
 				HashSet<Integer> intersection = new HashSet<Integer>(communities.get(source));
 				intersection.retainAll(communities.get(target));
 				if(!intersection.isEmpty()){
 					count++;
 				}
-				edges.cyclicNext();
+
 			}
 		}
 		return 2*((count/2)/nodes.size());
@@ -556,16 +561,16 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	public double intraDensity2(HashSet<Node> nodes, HashMap<Node,HashSet<Integer>> communities){
 		double count = 0;
 		for(Node n : nodes){
-			EdgeCursor edges = n.edges();
-			for(int i = 0; i < edges.size(); i++){
-				Node target = edges.edge().target();
-				Node source = edges.edge().source();
+			Edge[] edges = n.edges().toArray(Edge[]::new);
+			for(int i = 0; i < edges.length; i++){
+				Node target = edges[i].getTargetNode();
+				Node source = edges[i].getSourceNode();
 				HashSet<Integer> intersection = new HashSet<Integer>(communities.get(source));
 				intersection.retainAll(communities.get(target));
 				if(!intersection.isEmpty()){
 					count++;
 				}
-				edges.cyclicNext();
+
 			}
 		}
 		return 2*((count/2)/Math.pow(nodes.size(),1.5));
@@ -580,13 +585,13 @@ public class MemeticLinkClusteringAlgorithm implements OcdAlgorithm {
 	 * @return membership matrix
 	 */
 	public Matrix getMembershipMatrix(HashMap<Integer,HashSet<Node>> communitySet, CustomGraph graph, int communityNumber){
-		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),communityNumber);
+		Matrix membershipMatrix = new Basic2DMatrix(graph.getNodeCount(),communityNumber);
 		int counter = 0;
 		//System.out.println("comm: " + communitySet.size());
 		//System.out.println("nr: " + communityNumber);
 		for(Integer comm : communitySet.keySet()){
 			for(Node n : communitySet.get(comm)){
-				membershipMatrix.set(n.index(), counter, 1);
+				membershipMatrix.set(n.getIndex(), counter, 1);
 			}
 			counter++;
 		}
