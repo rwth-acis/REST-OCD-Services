@@ -172,6 +172,7 @@ public class LouvainGraphBuilder {
     this.layer = g.layer() + 1;
     initialise();
     int sum = 0;
+    int negatives = 0;
 
     for (final Iterator<HashMap.Entry<Long,Integer>> it = g.partitioning().commWeightIterator(); it.hasNext(); ) {
       if(Thread.interrupted()) {
@@ -181,15 +182,21 @@ public class LouvainGraphBuilder {
       Entry<Long, Integer> entry = it.next();
       final int weight = entry.getValue();
       long cmMatrixSize = g.partitioning().cMatrix().size();
-      if (weight != 0) {
+      if (weight > 0) {
         final int n1 = map.get(g.partitioning().cMatrix().sparseX(entry, cmMatrixSize));
         final int n2 = map.get(g.partitioning().cMatrix().sparseY(entry, cmMatrixSize));
         insertEdge(n1, n2, (int)weight);
         sum += weight;
       }
+      else{
+        // TODO: is this is correct? This part is necessary to avoid crash
+        if ( weight < 0){
+          negatives += weight;
+        }
+      }
     }
 
-    if (sum != g.size() * 2) {
+    if ((sum + negatives) != g.size() * 2) {
       throw new OcdAlgorithmException("Louvain graph builder recieved wrong weights: " + sum + " " + (g.size() * 2));
     }
     if (sum != sizeDbl) {
