@@ -1,8 +1,14 @@
 [
   {
-    "username": "user1",
+    "username": "default",
     "graphSize": "1000",
     "graphCount": "10",
     "coverCount": "15"
+  },
+  {
+    "username": "user1",
+    "graphSize": "1000",
+    "graphCount": "2",
+    "coverCount": "5"
   }
 ]

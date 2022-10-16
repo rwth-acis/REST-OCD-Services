@@ -259,20 +259,27 @@ public class ServiceClass extends RESTService {
 	 */
 	public static JSONObject getUserLimits(String username){
 		JSONParser jsonParser = new JSONParser();
+		JSONObject defaultUserLimits = null;
+		JSONObject userLimits;
 		try {
+			/* try to find specified user limits */
 			JSONArray userLimitsJson = (JSONArray) jsonParser.parse(new FileReader("etc/userLimitInformation.json"));
 			for (Object o : userLimitsJson) {
-				JSONObject userLimits = (JSONObject) o;
+
+				userLimits = (JSONObject) o;
 				String limitedUser = (String) userLimits.get("username");
 				if(limitedUser.equals(username)) {
 					return userLimits;
+				}
+				if(limitedUser.equals("default")){
+					defaultUserLimits = userLimits;
 				}
 			}
 		}catch (Exception e){
 			e.printStackTrace();
 		}
-
-		return null;
+		/* if user limit was not found, apply default limits */
+		return defaultUserLimits;
 	}
 
 	/**
@@ -491,7 +498,7 @@ public class ServiceClass extends RESTService {
                 */
 				if (reachedGraphCountLimit(username)){
 					requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
-					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one.");
+					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
 				}
 
 				GraphInputFormat format;
@@ -611,7 +618,7 @@ public class ServiceClass extends RESTService {
 			*/
 			if (reachedGraphCountLimit(username)){
 				requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
-				return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one.");
+				return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
 			}
 
 			File graphDir = new File("tmp" + File.separator + username);
@@ -929,7 +936,7 @@ public class ServiceClass extends RESTService {
 				 */
 				if (reachedCoverCountLimit(username)){
 					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
-					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one.");
+					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
 				}
 
 				long graphId;
@@ -1331,7 +1338,7 @@ public class ServiceClass extends RESTService {
 				 */
 				if (reachedCoverCountLimit(username)){
 					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
-					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one.");
+					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
 				}
 
 
@@ -2483,11 +2490,11 @@ public class ServiceClass extends RESTService {
 				 */
 				if (reachedGraphCountLimit(username)){
 					requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
-					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one.");
+					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
 				}
 				if (reachedCoverCountLimit(username)){
 					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
-					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one.");
+					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
 				}
 
 
@@ -2525,7 +2532,7 @@ public class ServiceClass extends RESTService {
 							if ( userLimits != null && userLimits.get("graphSize") != null &&
 									Integer.parseInt((String) userLimits.get("graphSize")) < Integer.parseInt(parameters.get("n"))){
 								requestHandler.log(Level.WARNING, "user: " + username + " is not allowed to generate graph of size " + parameters.get("n"));
-								return requestHandler.writeError(Error.INTERNAL, "Graph size is above the user's limit.");
+								return requestHandler.writeError(Error.INTERNAL, "Graph size is above the user's limit, contact administrator to adjust limits");
 							}
 						}
 
