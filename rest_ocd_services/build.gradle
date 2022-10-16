@@ -79,6 +79,7 @@ dependencies {
 
     //gs-algo version that includes HopcroftTarjanBiconnectedComponents
     implementation "org.graphstream:gs-algo:2.0.ACIS"
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
 }
 
 configurations {
