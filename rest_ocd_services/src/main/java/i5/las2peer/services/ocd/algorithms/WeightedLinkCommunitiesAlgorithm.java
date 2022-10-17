@@ -131,7 +131,9 @@ public class WeightedLinkCommunitiesAlgorithm implements
 				densestPartition = new ArrayList<Set<Edge>>(communityEdges);
 			}
 		}
-		return calculatePartitionCover(graph, densestPartition);
+		Cover c = calculatePartitionCover(graph, densestPartition);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
+		return c;
 	}
 	
 	/**

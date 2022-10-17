@@ -300,7 +300,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		// DEBUG: System.out.println("DETECTED FINAL:" + members.values().toString());
 
 		Cover c = new Cover(graph, coverMatrix);
-		
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
 		return c;
 	}
 

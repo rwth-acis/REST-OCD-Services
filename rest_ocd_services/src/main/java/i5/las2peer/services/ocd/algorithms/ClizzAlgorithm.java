@@ -93,7 +93,9 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		Map<Node, Double> leadershipValues = calculateLeadershipValues(graph, distances);
 		Map<Node, Integer> leaders = determineCommunityLeaders(graph, distances, leadershipValues);
 		Matrix memberships = calculateMemberships(graph, leaders);
-		return new Cover(graph, memberships);
+		Cover c = new Cover(graph, memberships);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
+		return c;
 	}
 	
 	@Override

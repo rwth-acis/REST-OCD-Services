@@ -97,8 +97,10 @@ public class LouvainAlgorithm implements OcdAlgorithm {
 	  int[] communities = cluster(maxLayers);
 	  
 	  Matrix memberships = getMembershipMatrix(graph, communities);
-	  
-	  return new Cover(graph, memberships);
+
+      Cover c = new Cover(graph, memberships);
+      System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
+	  return c;
   }
   
   @Override

@@ -104,7 +104,9 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		Vector leadershipVector = getLeadershipVector(graph);
 		List<Node> leaders = leaderFindingPhase(graph, leadershipVector);
-		return labelPropagationPhase(graph, leaders, leadershipVector);
+		Cover c = labelPropagationPhase(graph, leaders, leadershipVector);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
+		return c;
 	}
 
 	/**

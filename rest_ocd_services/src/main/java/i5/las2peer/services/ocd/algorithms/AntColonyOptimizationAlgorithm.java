@@ -236,8 +236,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			update(MCR, ants, nodeNr);	
 		}
 		
-		
-		return decodeMaximalCliques(graph, nodeNr);	
+		Cover c = decodeMaximalCliques(graph, nodeNr);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
+		return c;
 		
 	}
 	

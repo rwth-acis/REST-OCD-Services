@@ -101,7 +101,9 @@ public class NISEAlgorithm implements OcdAlgorithm {
 		NodeList seeds = seeding(biconnectedCore);
 		NodeList[] lowConductanceSets = expansion(biconnectedCore, seeds);
 		Matrix memberships = propagation(graph, lowConductanceSets, bridges, biconnectedCore);
-		return new Cover(graph, memberships);
+		Cover c = new Cover(graph, memberships);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
+		return c;
 	}
 	
 	@Override
@@ -233,7 +235,7 @@ public class NISEAlgorithm implements OcdAlgorithm {
 	/**
 	 * Algorithm Spread Hubs chooses an independent set of k (= seedCount) seeds by 
 	 * looking at the vertices in order of decreasing degree
-	 * @param biconnected core
+	 * @param biconnectedCore
 	 * @return list of the seed nodes
 	 */
 	private NodeList spreadHubs(Graph biconnectedCore) {

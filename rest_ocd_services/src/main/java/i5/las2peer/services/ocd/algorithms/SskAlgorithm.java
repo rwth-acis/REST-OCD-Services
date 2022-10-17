@@ -144,7 +144,9 @@ public class SskAlgorithm implements OcdAlgorithm {
 		Vector totalInfluences = executeRandomWalk(transitionMatrix);
 		Map<Node, Integer> leaders = determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
 		Matrix memberships = calculateMemberships(graph, leaders);
-		return new Cover(graph, memberships);
+		Cover c = new Cover(graph, memberships);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
+		return c;
 	}
 	
 	/**

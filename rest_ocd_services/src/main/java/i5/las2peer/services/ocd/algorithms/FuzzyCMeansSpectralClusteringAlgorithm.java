@@ -327,10 +327,10 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 		// build the cover using the input graph and the membership matrix built above
 	    resulting_cover = new Cover(graph,membership_matrix); 
 
-		System.out.println("================== CHOSEN SOLUTION =====================");
+		//System.out.println("================== CHOSEN SOLUTION =====================");
 		System.out.println("Optimal K is: " + optimal_K + " optimal modularity is: " + modularity);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + resulting_cover.communityCount() +" communities   ***");
 
-		
 		return resulting_cover;
 	}
 	

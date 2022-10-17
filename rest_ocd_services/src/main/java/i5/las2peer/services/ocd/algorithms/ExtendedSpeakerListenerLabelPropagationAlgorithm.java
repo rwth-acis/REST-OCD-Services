@@ -150,7 +150,9 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 		/*
 		 * Returns the cover based on the node memories.
 		 */
-		return calculateMembershipDegrees(graph, memories);
+		Cover c = calculateMembershipDegrees(graph, memories);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
+		return c;
 	}
 	
 	protected void initializeCommunityDetection(CustomGraph graph, List<List<Integer>> memories, List<Node> nodeOrder) throws InterruptedException {

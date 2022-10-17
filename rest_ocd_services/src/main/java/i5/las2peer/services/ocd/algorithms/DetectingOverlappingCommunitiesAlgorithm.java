@@ -104,6 +104,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 			Matrix membershipMatrix = getMembershipMatrix(graph);
 			
 			Cover cover = new Cover(graph, membershipMatrix);
+			System.out.println("***   "+ this.getClass().getSimpleName() + " found " + cover.communityCount() +" communities   ***");
 			return cover;
 		}
 		catch(InterruptedException e) {

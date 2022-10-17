@@ -121,7 +121,9 @@ public class MergingOfOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		}
 		double resolutionAlpha = determineResolutionAlpha(graph, inclusionAlphas, deactivatedBy, mainCommunities);
 		Matrix memberships = determineMembershipMatrix(graph, unactiveCommunities, deactivatedBy, inclusionAlphas, resolutionAlpha);
-		return new Cover(graph, memberships);
+		Cover c = new Cover(graph, memberships);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + c.communityCount() +" communities   ***");
+		return c;
 	}
 	
 	/**

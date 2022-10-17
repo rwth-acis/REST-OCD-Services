@@ -160,6 +160,7 @@ public class CostFunctionOptimizationClusteringAlgorithm implements OcdAlgorithm
 		res.setSimCosts(opt.getCosts());
 		time.stop();
 		time.setCoverExecutionTime(res);
+		System.out.println("***   "+ this.getClass().getSimpleName() + " found " + res.communityCount() +" communities   ***");
 		return res;
 	}
 	
