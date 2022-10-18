@@ -90,9 +90,10 @@ public class CentralityCreationLog {
 	 */
 	public CentralityCreationLog(CentralityType centralityType, CentralityCreationType creationType, Map<String, String> parameters, Set<GraphType> compatibleGraphTypes) {
 		if(centralityType != null) {
-			if(creationTypeId == CentralityCreationType.CENTRALITY_MEASURE.getId())
-				this.centralityTypeId = ((CentralityMeasureType)centralityType).getId();
-			else if(creationTypeId == CentralityCreationType.SIMULATION.getId()) {
+			if(creationType.getId() == CentralityCreationType.CENTRALITY_MEASURE.getId()) {
+				this.centralityTypeId = ((CentralityMeasureType) centralityType).getId();
+			}
+			else if(creationType.getId()  == CentralityCreationType.SIMULATION.getId()) {
 				this.centralityTypeId = ((CentralitySimulationType)centralityType).getId();
 			}
 			else {
