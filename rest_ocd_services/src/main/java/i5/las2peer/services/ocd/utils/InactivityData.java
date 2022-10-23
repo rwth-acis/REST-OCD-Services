@@ -26,8 +26,8 @@ public class InactivityData {
      */
     public static final String USER_NAME_FIELD_NAME = "username";
     public static final String ID_FIELD_NAME = "id";
-    public static final String LAST_LOGIN_DATE_FIELD_NAME = "id";
-    public static final String DELETION_DATE_FIELD_NAME = "id";
+    public static final String LAST_LOGIN_DATE_FIELD_NAME = "lastLoginDate";
+    public static final String DELETION_DATE_FIELD_NAME = "deletionDate";
 
     ////////////////////////////// ATTRIBUTES //////////////////////////////
     /**
@@ -43,9 +43,6 @@ public class InactivityData {
     @Column(name = USER_COLUMN_NAME)
     String username;
 
-
-    @Column(name = "MINUTE")
-    int min;
 
     /**
      * Date when the user last logged in.
@@ -68,9 +65,7 @@ public class InactivityData {
      * @return       return auto-generated unique id of InactivityData entry.
      */
     public Long getId() {
-
         return id;
-
     }
 
     /**
@@ -94,9 +89,7 @@ public class InactivityData {
      * @param username username of the user for which the data is saved.
      */
     public InactivityData(String username) {
-
         this.username = username;
-
     }
 
     /**
@@ -106,12 +99,9 @@ public class InactivityData {
      * @param inactivityTracker Pair holding last login and expiration dates of the user.
      */
     public InactivityData(String username, Pair<LocalDate, LocalDate> inactivityTracker) {
-
         this.username = username;
         this.lastLoginDate = inactivityTracker.getFirst();
         this.deletionDate = inactivityTracker.getSecond();
-
-
     }
 
     /**
@@ -120,9 +110,7 @@ public class InactivityData {
      * @return String representation of username
      */
     public String getUsername() {
-
         return username;
-
     }
 
     /**
@@ -131,9 +119,7 @@ public class InactivityData {
      * @param username      username to set.
      */
     public void setUsername(String username) {
-
         this.username = username;
-
     }
 
 
@@ -143,9 +129,7 @@ public class InactivityData {
      * @return LocalDate representing last login date of the user.
      */
     public LocalDate getLastLoginDate() {
-
         return lastLoginDate;
-
     }
 
     /**
@@ -154,9 +138,7 @@ public class InactivityData {
      * @param lastLoginDate      Date to set.
      */
     public void setLastLoginDate(LocalDate lastLoginDate) {
-
         this.lastLoginDate = lastLoginDate;
-
     }
 
     /**
@@ -165,9 +147,7 @@ public class InactivityData {
      * @return LocalDate representing content deletion date of the user.
      */
     public LocalDate getDeletionDate() {
-
         return deletionDate;
-
     }
 
     /**
@@ -176,8 +156,6 @@ public class InactivityData {
      * @param deletionDate      Date to set.
      */
     public void setDeletionDate(LocalDate deletionDate) {
-
         this.deletionDate = deletionDate;
-
     }
 }

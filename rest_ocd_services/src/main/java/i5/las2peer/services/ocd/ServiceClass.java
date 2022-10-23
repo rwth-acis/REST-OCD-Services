@@ -1,10 +1,6 @@
 package i5.las2peer.services.ocd;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -41,9 +37,7 @@ import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.graphstream.algorithm.ConnectedComponents;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import i5.las2peer.api.Context;
@@ -143,8 +137,12 @@ public class ServiceClass extends RESTService {
 	public ServiceClass() {
 		setFieldValues();
 
-		// instantiate inactivityHandler to regularly remove content of inactive users.
+		// instantiate InactivityHandler to regularly remove content of inactive users.
 		inactivityHandler = new InactivityHandler(entityHandler, threadHandler, this);
+
+		// instantiate UserLimitHandler to limit content for various users.
+		userLimitsHandler = new UserLimitsHandler(entityHandler);
+
 	}
 
 	///////////////////////////////////////////////////////////
@@ -205,16 +203,11 @@ public class ServiceClass extends RESTService {
 	 */
 	private static InactivityHandler inactivityHandler;
 
-
 	/**
-	 * Number of days of inactivity allowed, before user content gets removed.
+	 * User limit handler for inactive days allowed and size of user content allowed.
 	 */
-	private int maxInactiveDays;
+	private static UserLimitsHandler userLimitsHandler;
 
-	/**
-	 * Password to be used to adjust number of days before inactive user content is removed.
-	 */
-	private String inactivityHandlerPassword;
 
 	//////////////////////////////////////////////////////////////////
 	///////// Utility Methods
@@ -228,99 +221,6 @@ public class ServiceClass extends RESTService {
 		return Context.getCurrent().getMainAgent().getIdentifier();
 	}
 
-	public int getMaxInactiveDays() { return this.maxInactiveDays; }
-
-	public String getInactivityHandlerPassword(){return this.inactivityHandlerPassword;}
-
-	/**
-	 * This method is used to set fresh field values, in case modifications were made in
-	 * i5.las2peer.services.ocd.ServiceClass.properties file
-	 */
-	public void setFreshFieldValues() {
-		setFieldValues();
-	}
-
-
-	/**
-	 * This method returns json object with information about various limits applied to the given user
-	 * @param username   username the limits of which should be returned
-	 * @return           json object with user limit info
-	 */
-	public static JSONObject getUserLimits(String username){
-		JSONParser jsonParser = new JSONParser();
-		JSONObject defaultUserLimits = null;
-		JSONObject userLimits;
-		try {
-			/* try to find specified user limits */
-			JSONArray userLimitsJson = (JSONArray) jsonParser.parse(new FileReader("etc/userLimitInformation.json"));
-			for (Object o : userLimitsJson) {
-
-				userLimits = (JSONObject) o;
-				String limitedUser = (String) userLimits.get("username");
-				if(limitedUser.equals(username)) {
-					return userLimits;
-				}
-				if(limitedUser.equals("default")){
-					defaultUserLimits = userLimits;
-				}
-			}
-		}catch (Exception e){
-			e.printStackTrace();
-		}
-		/* if user limit was not found, apply default limits */
-		return defaultUserLimits;
-	}
-
-	/**
-	 * Check whether user has limit on number of graphs it can generate.
-	 * @param username     user to check the limits for
-	 * @return             true if the limit is reached
-	 */
-	public static Boolean reachedGraphCountLimit(String username){
-		// limits set for user in userLimitInformation.json file
-		JSONObject userLimits = getUserLimits(username);
-		if (userLimits != null) {
-			// Graph count limit check
-			try {
-				List<CustomGraph> userGraphs = entityHandler.getGraphs(username);
-				if (userLimits.get("graphCount") != null
-						&& userGraphs.size() >= Integer.parseInt((String) userLimits.get("graphCount"))) {
-					return true;
-				}
-			}catch(Exception e){
-				e.printStackTrace();
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Check whether user has limit on number of covers it can generate.
-	 * @param username     user to check the limits for
-	 * @return             true if the limit is reached
-	 */
-	public static Boolean reachedCoverCountLimit(String username){
-		// limits set for user in userLimitInformation.json file
-		JSONObject userLimits = getUserLimits(username);
-		if (userLimits != null) {
-			// Graph count limit check
-			try {
-				List<CustomGraph> userGraphs = entityHandler.getGraphs(username);
-				// Cover count limit check
-				int numberOfUserCovers = 0;
-				for (CustomGraph userGraph : userGraphs) {
-					numberOfUserCovers += entityHandler.getCovers(username, userGraph.getPersistenceId()).size();
-				}
-				if (userLimits.get("coverCount") != null
-						&& numberOfUserCovers >= Integer.parseInt((String) userLimits.get("coverCount"))){
-					return true;
-				}
-			}catch(Exception e){
-				e.printStackTrace();
-			}
-		}
-		return false;
-	}
 
 
 	//////////////////////////////////////////////////////////////////
@@ -427,7 +327,7 @@ public class ServiceClass extends RESTService {
 				/*
 				Check if user has a limit regarding number of graph throw an error if the limit is violated.
                 */
-				if (reachedGraphCountLimit(username)){
+				if (userLimitsHandler.reachedGraphCountLimit(username)){
 					requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
 					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
 				}
@@ -548,7 +448,7 @@ public class ServiceClass extends RESTService {
 			/*
 			Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
 			*/
-			if (reachedGraphCountLimit(username)){
+			if (userLimitsHandler.reachedGraphCountLimit(username)){
 				requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
 				return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
 			}
@@ -868,7 +768,7 @@ public class ServiceClass extends RESTService {
 				/*
 				Check if user has a limit regarding  covers and throw an error if the limit is violated.
 				 */
-				if (reachedCoverCountLimit(username)){
+				if (userLimitsHandler.reachedCoverCountLimit(username)){
 					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
 					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
 				}
@@ -1342,7 +1242,7 @@ public class ServiceClass extends RESTService {
 				/*
 				Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
 				 */
-				if (reachedCoverCountLimit(username)){
+				if (userLimitsHandler.reachedCoverCountLimit(username)){
 					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
 					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
 				}
@@ -2521,11 +2421,11 @@ public class ServiceClass extends RESTService {
 				/*
 				Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
 				 */
-				if (reachedGraphCountLimit(username)){
+				if (userLimitsHandler.reachedGraphCountLimit(username)){
 					requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
 					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
 				}
-				if (reachedCoverCountLimit(username)){
+				if (userLimitsHandler.reachedCoverCountLimit(username)){
 					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
 					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
 				}
@@ -2561,7 +2461,7 @@ public class ServiceClass extends RESTService {
 						 */
 						if (parameters.get("n") != null){
 							// limits set for user in userLimitInformation.json file
-							JSONObject userLimits = getUserLimits(username);
+							JSONObject userLimits = userLimitsHandler.getUserLimits(username);
 							if ( userLimits != null && userLimits.get("graphSize") != null &&
 									Integer.parseInt((String) userLimits.get("graphSize")) < Integer.parseInt(parameters.get("n"))){
 								requestHandler.log(Level.WARNING, "user: " + username + " is not allowed to generate graph of size " + parameters.get("n"));
