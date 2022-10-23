@@ -86,7 +86,7 @@ public class InactivityHandler {
 
                         /* check that user has graphs, to avoid unnecessary computations */
                         if (userGraphs.size() > 0) {
-                            // System.out.println("Deleting graphs of user " + user + " due to inactivity.");
+                            //System.out.println("Deleting graphs of user " + user + " due to inactivity.");
                             // System.out.print("Deleted graph ids: ");
 
                             /* delete all graphs of a user */
@@ -106,7 +106,7 @@ public class InactivityHandler {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 0, 1, TimeUnit.DAYS);
+        }, 0, 1, TimeUnit.MINUTES);
     }
 
 
@@ -127,11 +127,13 @@ public class InactivityHandler {
 
 
     /**
-     * Refreshes user's last login and deletion dates.
+     * Refreshes user's last login and deletion dates and returns deletion date
      *
      * @param username user for which the refreshment should be done.
+     * @param update   true if user inactivity data should be updated (used when user logs in).
+     * @return         user content deletion date
      */
-    public void refreshUserInactivityData(String username) {
+    public LocalDate getAndUpdateUserInactivityData(String username, boolean update) {
 
         LocalDate currentDate = LocalDate.now(); // current day
         LocalDate deletionDate = currentDate.plusDays(userLimitsHandler.getAllowedInactivityDays(username)); // when user data should be deleted if user does not relog
@@ -145,23 +147,27 @@ public class InactivityHandler {
         query.setParameter("username", username);
         List<InactivityData> queryResults = query.getResultList();
 
-        /* If user not known, add entry for it. If user is known, update the entry. */
-        if (queryResults.isEmpty()) {
-            System.out.println("User " + username + " unknown. creating entry for it.");
-            /* user unknown, create user entry. */
-            Pair<LocalDate, LocalDate> userInactivityTracker = new Pair<LocalDate, LocalDate>(currentDate, deletionDate);
-            InactivityData inData = new InactivityData(username, userInactivityTracker);
-            System.out.println("Created entry for " + inData.getUsername() + ". Last login date: " + inData.getLastLoginDate() + ". Content deletion date: " + inData.getDeletionDate());
-            em.persist(inData);
-        } else {
-            /* user known, update deletion info. */
-            System.out.println("User " + username + " is known. Last login date: " + currentDate + ". Content deletion date: " + deletionDate);
-            queryResults.get(0).setLastLoginDate(currentDate);
-            queryResults.get(0).setDeletionDate(deletionDate);
-        }
 
-        em.getTransaction().commit();
+        if (update) {
+            /* If user not known, add entry for it. If user is known, update the entry. */
+            if (queryResults.isEmpty()) {
+                System.out.println("User " + username + " unknown. creating entry for it.");
+                /* user unknown, create user entry. */
+                Pair<LocalDate, LocalDate> userInactivityTracker = new Pair<LocalDate, LocalDate>(currentDate, deletionDate);
+                InactivityData inData = new InactivityData(username, userInactivityTracker);
+                System.out.println("Created entry for " + inData.getUsername() + ". Last login date: " + inData.getLastLoginDate() + ". Content deletion date: " + inData.getDeletionDate());
+                em.persist(inData);
+            } else {
+                /* user known, update deletion info. */
+                System.out.println("User " + username + " is known. Last login date: " + currentDate + ". Content deletion date: " + deletionDate);
+                queryResults.get(0).setLastLoginDate(currentDate);
+                queryResults.get(0).setDeletionDate(deletionDate);
+            }
+            em.getTransaction().commit();
+        }
         em.close();
+
+        return deletionDate;
 
     }
 

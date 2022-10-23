@@ -35,6 +35,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -50,6 +51,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.math3.linear.RealMatrix;
+import org.mockito.cglib.core.Local;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -163,6 +165,34 @@ public class RequestHandler {
 			return Response.serverError().build();
 		}
 	}
+
+	/**
+	 * Creates an xml document string that holds user, user's content
+	 * deletion date and the number of days until the deletion
+	 * @param username        User for which the deletion date info is generated
+	 * @param deletionDate    Deletion date of the user's content
+	 * @return                Xml string of user's content deletion date info
+	 * @throws ParserConfigurationException
+	 */
+	public String writeDeletionDate(String username, LocalDate deletionDate) throws ParserConfigurationException {
+		LocalDate currentDate = LocalDate.now();
+		long daysTillDeletion = deletionDate.toEpochDay() - currentDate.toEpochDay();
+
+		Document doc = getDocument();
+		Element deletionInfoElt = doc.createElement("DeletionInfo");
+		Element userElt = doc.createElement("User");
+		userElt.appendChild(doc.createTextNode(username));
+		deletionInfoElt.appendChild(userElt);
+		Element dateElt = doc.createElement("DeletionDate");
+		dateElt.appendChild(doc.createTextNode(String.valueOf(deletionDate)));
+		deletionInfoElt.appendChild(dateElt);
+		Element daysTillDeletionElt = doc.createElement("DaysTillDeletion");
+		daysTillDeletionElt.appendChild(doc.createTextNode(String.valueOf(daysTillDeletion)));
+		deletionInfoElt.appendChild(daysTillDeletionElt);
+		doc.appendChild(deletionInfoElt);
+		return writeDoc(doc);
+	}
+	/////////////////////////
 
 	/**
 	 * Transforms a parameter xml into a parameter map.

@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -260,12 +261,35 @@ public class ServiceClass extends RESTService {
 		public Response validateLogin() {
 			try {
 				// update user inactivity info when user logs in.
-				inactivityHandler.refreshUserInactivityData(getUserName());
+				inactivityHandler.getAndUpdateUserInactivityData(getUserName(), true);
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
+		}
+
+		/**
+		 * Returns xml that stores user's content deletion date and the number of days before content deletion
+		 * @param usernameStr
+		 * @return
+		 */
+		@GET
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@Path("inactivity/{username}")
+		@ApiOperation(tags = {"show"}, value = "Content deletion date", notes = "Returns content deletion date of a user")
+		public Response getContentDeletionDate(@PathParam("username") String usernameStr) {
+			try {
+				LocalDate deletionDate = inactivityHandler.getAndUpdateUserInactivityData(usernameStr, false);
+
+				return Response.ok(requestHandler.writeDeletionDate(usernameStr, deletionDate)).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+
 		}
 
 		//////////////////////////////////////////////////////////////////////////
