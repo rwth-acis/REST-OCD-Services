@@ -36,7 +36,7 @@ public class MetaXmlGraphMetaOutputAdapter extends AbstractGraphMetaOutputAdapte
              * Basic Attributes
              */
             Element graphIdElt = doc.createElement("Id");
-            graphIdElt.appendChild(doc.createTextNode(Long.toString(graphMeta.getId())));
+            graphIdElt.appendChild(doc.createTextNode(graphMeta.getKey()));
             graphElt.appendChild(graphIdElt);
             Element graphNameElt = doc.createElement("Name");
             graphNameElt.appendChild(doc.createTextNode(graphMeta.getName()));
