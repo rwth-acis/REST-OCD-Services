@@ -26,7 +26,6 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
-import org.checkerframework.common.returnsreceiver.qual.This;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
@@ -35,12 +34,10 @@ import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
 import com.arangodb.entity.BaseEdgeDocument;
 import com.arangodb.ArangoCursor;
-import com.arangodb.entity.StreamTransactionEntity;
 import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentReadOptions;
 import com.arangodb.model.DocumentUpdateOptions;
 import com.arangodb.model.DocumentDeleteOptions;
-import com.arangodb.model.EdgeCreateOptions;
 import com.arangodb.model.AqlQueryOptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,7 +47,6 @@ import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.graphs.properties.AbstractProperty;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
-import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.GraphListener;
@@ -77,30 +73,40 @@ public class CustomGraph extends Graph2D {
 	public static final String idColumnName = "ID";
 	public static final String userColumnName = "USER_NAME";
 	public static final String nameColumnName = "NAME";
+	public static final String nodeCountColumnName = "NODE_COUNT";
+	public static final String edgeCountColumnName = "EDGE_COUNT";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 	private static final String idEdgeMapKeyColumnName = "RUNTIME_ID";
 	private static final String idNodeMapKeyColumnName = "RUNTIME_ID";
-	private static final String creationMethodColumnName = "CREATION_METHOD";
+	public static final String creationMethodColumnName = "CREATION_METHOD";
 	private static final String pathColumnName = "INDEX_PATH";
 	//ArangoDB 
 	private static final String propertiesColumnName = "PROPERTIES";
 	private static final String coverKeysColumnName = "COVER_KEYS";
 	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
-	private static final String typesColumnName = "TYPES";
-	public static final String collectionName = "customgraph";		//do not chose the name "graph" here because it is reserved for querys
+	public static final String typesColumnName = "TYPES";
+	public static final String collectionName = "customgraph";		//do not choose the name "graph" here because it is reserved for querys
 	
 	/*
 	 * Field name definitions for JPQL queries.
 	 */
 	public static final String USER_NAME_FIELD_NAME = "userName";
 	public static final String ID_FIELD_NAME = "key";
+	public static final String NAME_FIELD_NAME = "name";
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
+	public static final String NODE_COUNT_FIELD_NAME = "graphNodeCount";
+	public static final String EDGE_COUNT_FIELD_NAME = "graphEdgeCount";
+	public static final String TYPES_FIELD_NAME = "types";
 
 	//////////////////////////////////////////////////////////////////
 	///////// Attributes
 	//////////////////////////////////////////////////////////////////
-	
+
+
+	/**
+	 * System generated persistence key.
+	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = idColumnName)
@@ -109,9 +115,7 @@ public class CustomGraph extends Graph2D {
 	 * System generated persistence id.
 	 */
 	private long id;
-	/**
-	 * System generated persistence key.
-	 */
+
 
 	/**
 	 * The name of the user owning the graph.
@@ -132,6 +136,21 @@ public class CustomGraph extends Graph2D {
 	 */
 	@Column(name = pathColumnName)
 	private String path = "";
+
+	/**
+	 * The number of nodes in the graph.
+	 */
+	@Column(name = nodeCountColumnName)
+	private long graphNodeCount;
+
+	/**
+	 * The number of edges in the graph.
+	 */
+	@Column(name = edgeCountColumnName)
+	private long graphEdgeCount;
+
+
+
 
 	// /**
 	// * The description of the graph.
@@ -578,6 +597,14 @@ public class CustomGraph extends Graph2D {
 	 */
 	public void setNodeName(Node node, String name) {
 		getCustomNode(node).setName(name);
+	}
+
+	/**
+	 * Update node and edge count numbers
+	 */
+	public void setNodeEdgeCountColumnFields(){
+		this.graphNodeCount = this.nodeCount();
+		this.graphEdgeCount = this.edgeCount();
 	}
 
 	public int getNodeId(Node node) {
@@ -1440,6 +1467,7 @@ public class CustomGraph extends Graph2D {
 	}
 	
 	public void persist( ArangoDatabase db, String transId) {
+		this.setNodeEdgeCountColumnFields(); // update node/edge counts before persisting
 		this.prePersist();
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
@@ -1451,6 +1479,8 @@ public class CustomGraph extends Graph2D {
 		bd.addAttribute(pathColumnName, this.path);		//TODO muss gespeichert werden?
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(typesColumnName, this.types);
+		bd.addAttribute(nodeCountColumnName, this.graphNodeCount);
+		bd.addAttribute(edgeCountColumnName, this.graphEdgeCount);
 		this.creationMethod.persist(db, createOptions);
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		collection.insertDocument(bd, createOptions);
@@ -1501,9 +1531,11 @@ public class CustomGraph extends Graph2D {
 			Object objProperties = bd.getAttribute(propertiesColumnName);
 			graph.properties = om.convertValue(objProperties, List.class);
 			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+			graph.graphNodeCount = om.convertValue(bd.getAttribute(nodeCountColumnName), Long.class);
+			graph.graphEdgeCount = om.convertValue(bd.getAttribute(edgeCountColumnName), Long.class);
 			graph.creationMethod = GraphCreationLog.load(creationMethodKey, db, readOpt);
 			
-			//nodes werden in customNodes Map eingefügt
+			//nodes werden in customNodes Map eingefuegt
 			Map<String, CustomNode> customNodeKeyMap = new HashMap<String, CustomNode>();
 			String query = "FOR node IN " + CustomNode.collectionName + " FILTER node."
 				+ CustomNode.graphKeyColumnName +" == \"" + key +"\" RETURN node";
@@ -1517,7 +1549,7 @@ public class CustomGraph extends Graph2D {
 				i++;
 			}
 			
-			//edges werden in customNodes Map eingefügt
+			//edges werden in customNodes Map eingefuegt
 			query = "FOR edge IN " + CustomEdge.collectionName + " FILTER edge.";
 			query += CustomEdge.graphKeyColumnName +" == \"" + key +"\" RETURN edge";
 			ArangoCursor<BaseEdgeDocument> edgeDocuments = db.query(query, queryOpt, BaseEdgeDocument.class);
@@ -1585,6 +1617,8 @@ public class CustomGraph extends Graph2D {
 		bd.updateAttribute(nameColumnName, this.name);
 		bd.updateAttribute(typesColumnName, this.types);
 		bd.updateAttribute(propertiesColumnName, this.properties);
+		bd.updateAttribute(nodeCountColumnName, this.graphNodeCount);
+		bd.updateAttribute(edgeCountColumnName, this.graphEdgeCount);
 		
 		collection.updateDocument(this.key, bd, updateOptions);
 	}

@@ -308,7 +308,7 @@ public class Community {
 		Map<String, Double> membershipKeyMap = new HashMap<String, Double>();
 		
 		for (Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {	
-			membershipKeyMap.put(entry.getKey().getKey(), entry.getValue());	//CustomNode Keys müssen bekannt sein
+			membershipKeyMap.put(entry.getKey().getKey(), entry.getValue());	//CustomNode Keys muessen bekannt sein
 		}
 		bd.addAttribute(membershipKeyMapColumnName,  membershipKeyMap);
 		collection.insertDocument(bd, opt);

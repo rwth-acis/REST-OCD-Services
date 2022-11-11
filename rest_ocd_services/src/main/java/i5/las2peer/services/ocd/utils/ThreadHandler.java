@@ -267,6 +267,7 @@ public class ThreadHandler {
     				CustomGraph graph = cover.getGraph();
     				graph.setStructureFrom(calculatedCover.getGraph());
     				graph.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+					graph.setNodeEdgeCountColumnFields(); // before persisting to db, update node/edge count information
     				database.updateGraph(graph);
     			} catch( RuntimeException ex ) {
     				error = true;

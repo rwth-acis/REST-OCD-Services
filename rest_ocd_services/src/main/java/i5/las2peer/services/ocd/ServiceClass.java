@@ -32,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.*;
 import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
@@ -86,16 +87,6 @@ import i5.las2peer.services.ocd.cooperation.simulation.SimulationBuilder;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
 import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationLog;
-import i5.las2peer.services.ocd.graphs.CoverCreationType;
-import i5.las2peer.services.ocd.graphs.CoverId;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
-import i5.las2peer.services.ocd.graphs.GraphCreationLog;
-import i5.las2peer.services.ocd.graphs.GraphCreationType;
-import i5.las2peer.services.ocd.graphs.GraphProcessor;
-import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
@@ -153,7 +144,7 @@ public class ServiceClass extends RESTService {
 	}
 
 	public ServiceClass() {
-		DatabaseConfig.setConfigFile(false);		//TODO angeben ob test datenbank oder hauptdatenbank gewählt wird
+		DatabaseConfig.setConfigFile(false);		//TODO angeben ob test datenbank oder hauptdatenbank gewaehlt wird
 		database = new Database();
 		setFieldValues();
 		// instantiate inactivityHandler to regularly remove content of inactive users.
@@ -411,7 +402,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
 				String contentStr) {
-			System.out.println("createGraph WICHTIG FÜR GRAPHTYPES");
+			System.out.println("createGraph WICHTIG FUER GRAPHTYPES");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				GraphInputFormat format;
@@ -489,6 +480,7 @@ public class ServiceClass extends RESTService {
 				graph.setCreationMethod(log);
 				GraphProcessor processor = new GraphProcessor();
 				processor.determineGraphTypes(graph);
+				graph.setNodeEdgeCountColumnFields(); // update node/edge count information of a graph (for persistence)
 				if (doMakeUndirected) {
 					Set<GraphType> graphTypes = graph.getTypes();
 					if (graphTypes.remove(GraphType.DIRECTED)) {
@@ -651,7 +643,7 @@ public class ServiceClass extends RESTService {
 			System.out.println("getGraphs");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				List<CustomGraph> queryResults;
+				List<CustomGraphMeta> queryResults;
 				List<Integer> executionStatusIds = new ArrayList<Integer>();
 				if (!executionStatusesStr.equals("")) {
 					try {
@@ -700,13 +692,13 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
 				}
-				queryResults = database.getGraphs(username, firstIndex, length, executionStatusIds); //done
+				queryResults = database.getGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
 
 				String responseStr;
 				if (includeMeta) {
-					responseStr = requestHandler.writeGraphMetas(queryResults);
+					responseStr = requestHandler.writeGraphMetasEfficiently(queryResults);
 				} else {
-					responseStr = requestHandler.writeGraphIds(queryResults);
+					responseStr = requestHandler.writeGraphIdsEfficiently(queryResults);
 				}
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {
@@ -1914,7 +1906,7 @@ public class ServiceClass extends RESTService {
 	        	}
 	        	List<CentralityMap> maps = new ArrayList<CentralityMap>();
 	        	for(int id : mapIds) {
-	        		String mapIdStr = Integer.toString(id);	//TODO unschöner typecast von begin an Strings in request verwenden
+	        		String mapIdStr = Integer.toString(id);	//TODO unschoener typecast von begin an Strings in request verwenden
 	    	    	CentralityMap map;
 	    	    	
 	    			map = database.getCentralityMap(username, graphIdStr, mapIdStr);
@@ -2221,7 +2213,7 @@ public class ServiceClass extends RESTService {
     				log = new OcdMetricLog(metricType, 0, parameters, cover);
     				log.setStatus(ExecutionStatus.WAITING);
     				cover.addMetric(log);
-    				database.updateCover(cover);		//TODO hier muss eine funktion hin, die ein bestehendes cover ändert
+    				database.updateCover(cover);		//TODO hier muss eine funktion hin, die ein bestehendes cover aendert
 	    			threadHandler.runStatisticalMeasure(log, metric, cover);
 	    		}
 	    		return Response.ok(requestHandler.writeId(log)).build();

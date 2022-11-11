@@ -20,14 +20,12 @@ import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapter;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
+import i5.las2peer.services.ocd.adapters.metaOutput.GraphMetaOutputAdapter;
+import i5.las2peer.services.ocd.adapters.metaOutput.MetaXmlGraphMetaOutputAdapter;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
 import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationType;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.GraphCreationType;
-import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 
@@ -265,6 +263,26 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates an XML document containing multiple graph ids.
+	 * This method uses efficient approach and only loads necessary data
+	 * (e.g. no node/edge info is loaded)
+	 *
+	 * @param graphMetas
+	 *            The graph meta instances holding graph meta information.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parser config failed
+	 */
+	public String writeGraphIdsEfficiently(List<CustomGraphMeta> graphMetas) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element graphsElt = doc.createElement("Graphs");
+		for (int i = 0; i < graphMetas.size(); i++) {
+			graphsElt.appendChild(getIdElt(graphMetas.get(i), doc));
+		}
+		doc.appendChild(graphsElt);
+		return writeDoc(doc);
+	}
+
+	/**
 	 * Creates an XML document containing multiple cover ids.
 	 * 
 	 * @param covers
@@ -317,6 +335,34 @@ public class RequestHandler {
 		Element graphsElt = doc.createElement("Graphs");
 		for (CustomGraph graph : graphs) {
 			String metaDocStr = writeGraph(graph, GraphOutputFormat.META_XML);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
+			Node importNode = doc.importNode(metaDocNode, true);
+			graphsElt.appendChild(importNode);
+		}
+		doc.appendChild(graphsElt);
+		return writeDoc(doc);
+	}
+
+	/**
+	 * Creates an XML document containing meta information about multiple
+	 * graphs. This is an efficient method that does not load more data
+	 * than necessary (e.g. no node/edge info is loaded)
+	 *
+	 * @param graphMetass The list of graph meta instances that hold graph meta information.
+	 * @return The document.
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeGraphMetasEfficiently(List<CustomGraphMeta> graphMetass) throws AdapterException, ParserConfigurationException,
+			IOException, SAXException, InstantiationException, IllegalAccessException {
+		Document doc = getDocument();
+		Element graphsElt = doc.createElement("Graphs");
+		for (CustomGraphMeta graphMeta : graphMetass) {
+			String metaDocStr = writeGraphEfficiently(graphMeta);
 			Node metaDocNode = parseDocumentToNode(metaDocStr);
 			Node importNode = doc.importNode(metaDocNode, true);
 			graphsElt.appendChild(importNode);
@@ -449,6 +495,25 @@ public class RequestHandler {
 		Writer writer = new StringWriter();
 		adapter.setWriter(writer);
 		adapter.writeGraph(graph);
+		return writer.toString();
+	}
+
+	/**
+	 * Creates a graph output in a MetaXml format. This method uses efficient approach.
+	 * Only necessary information is loaded (e.g. no node/edge info)
+	 *            The graph.
+	 *
+	 * @param graphMeta
+	 *         Graph meta information
+	 * @return The graph output.
+	 * @throws AdapterException if adapter failed
+	 */
+	public String writeGraphEfficiently(CustomGraphMeta graphMeta)
+			throws AdapterException{
+		GraphMetaOutputAdapter adapter = new MetaXmlGraphMetaOutputAdapter();
+		Writer writer = new StringWriter();
+		adapter.setWriter(writer);
+		adapter.writeGraph(graphMeta);
 		return writer.toString();
 	}
 
@@ -706,7 +771,7 @@ public class RequestHandler {
 	}
 
 	/**
-	 * Returns an XML element node representing the id of a graph.
+	 * Returns an XML element node representing the id (key) of a graph.
 	 * 
 	 * @param graph
 	 *            The graph.
@@ -718,6 +783,23 @@ public class RequestHandler {
 		Element graphElt = doc.createElement("Graph");
 		Element graphIdElt = doc.createElement("Id");
 		graphIdElt.appendChild(doc.createTextNode(graph.getKey()));	//done
+		graphElt.appendChild(graphIdElt);
+		return graphElt;
+	}
+
+	/**
+	 * Returns an XML element node representing the id of a graph.
+	 *
+	 * @param graphMeta
+	 *            The graph meta information.
+	 * @param doc
+	 *            The document to create the element node for.
+	 * @return The element node.
+	 */
+	protected Node getIdElt(CustomGraphMeta graphMeta, Document doc) {
+		Element graphElt = doc.createElement("Graph");
+		Element graphIdElt = doc.createElement("Id");
+		graphIdElt.appendChild(doc.createTextNode(graphMeta.getKey()));
 		graphElt.appendChild(graphIdElt);
 		return graphElt;
 	}
@@ -745,7 +827,7 @@ public class RequestHandler {
 	}
 
 	/**
-	 * Returns an XML element node representing the id of a CentralityMap.
+	 * Returns an XML element node representing the id (key) of a CentralityMap.
 	 * @param map The CentralityMap.
 	 * @param doc The document to create the element node for.
 	 * @return The element node.
@@ -764,7 +846,7 @@ public class RequestHandler {
 	}
 	
 	/**
-	 * Returns an XML element node representing the id of a metric log.
+	 * Returns an XML element node representing the id (key) of a metric log.
 	 * 
 	 * @param metricLog
 	 *            The metric log.

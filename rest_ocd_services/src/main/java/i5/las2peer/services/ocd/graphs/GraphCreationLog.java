@@ -33,7 +33,7 @@ public class GraphCreationLog {
 	 * Database column name definitions.
 	 */
 	private static final String idColumnName = "ID";
-	private static final String typeColumnName = "TYPE";
+	public static final String typeColumnName = "TYPE";
 	public static final String statusIdColumnName = "STATUS";
 	
 	private static final String parameterColumnName = "PARAMETER";

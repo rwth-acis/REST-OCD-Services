@@ -203,6 +203,7 @@ public class Database {
 	 */	
 	public void updateGraph(CustomGraph graph) {	//existenz des graphen muss bereits herausgefunden worden sein TESTEN
 		p("DB update graph");
+		graph.setNodeEdgeCountColumnFields(); //before persisting to db, update node/edge count information
 		String transId = this.getTransactionId(CustomGraph.class, true);
 		try {
 			graph.updateDB(db, transId);
@@ -294,6 +295,59 @@ public class Database {
 
 		return queryResults;
 	}
+
+	/**
+	 * Return specified graphs' meta information of a user using an efficient approach. This approach only necessary
+	 * metadata about graphs. E.g. no information about nodes/edges (other than their count) is loaded.
+	 *
+	 * @param username
+	 * 			  the users username
+	 * @param firstIndex
+	 *            id of the first graph
+	 * @param length
+	 *            number of graphs
+	 * @param executionStatusIds
+	 * 			  the execution status ids of the graphs
+	 * @return the list of graphs
+	 */
+	public ArrayList<CustomGraphMeta> getGraphMetaDataEfficiently(String username, int firstIndex, int length,
+																  List<Integer> executionStatusIds){
+		String transId = getTransactionId(CustomGraph.class, false);
+		ObjectMapper objectMapper = new ObjectMapper(); // needed to instantiate CustomGraphMeta from JSON
+		ArrayList<CustomGraphMeta> customGraphMetas = new ArrayList<CustomGraphMeta>();
+
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR g IN " + CustomGraph.collectionName + " FOR gcl IN " + GraphCreationLog.collectionName +
+					" FILTER g." + CustomGraph.userColumnName + " == @username AND gcl._key == g." + CustomGraph.creationMethodKeyColumnName +
+					" AND gcl." + GraphCreationLog.statusIdColumnName +" IN " +
+					executionStatusIds + " LIMIT " + firstIndex + "," + length + " RETURN "+
+					"{\"key\" : g._key," +
+					"\"userName\" : g." + CustomGraph.userColumnName + "," +
+					"\"name\" : g." + CustomGraph.nameColumnName + "," +
+					"\"nodeCount\" : g." + CustomGraph.nodeCountColumnName + "," +
+					"\"edgeCount\" : g." + CustomGraph.edgeCountColumnName + "," +
+					"\"types\" : g." + CustomGraph.typesColumnName  +  "," +
+					"\"creationTypeId\" : gcl." + GraphCreationLog.typeColumnName + "," +
+					"\"creationStatusId\" : gcl." + GraphCreationLog.statusIdColumnName + "}";
+
+			Map<String, Object> bindVars = Collections.singletonMap("username",username);
+			ArangoCursor<String> customGraphMetaJson = db.query(queryStr, bindVars, queryOpt, String.class);
+
+			/* Create CustomGraphMeta instances based on the queried results and add them to the list to return */
+			while(customGraphMetaJson.hasNext()) {
+                /* Instantiate CustomGraphMeta from the json string acquired from a query.
+                Then add it to the list that will be returned*/
+				customGraphMetas.add(objectMapper.readValue(customGraphMetaJson.next(), CustomGraphMeta.class));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			e.printStackTrace();
+		}
+		return customGraphMetas;
+	}
+
 	
 	/**
 	 * Return a list of specific graphs of a user
@@ -331,6 +385,8 @@ public class Database {
 		}
 		return queryResults;
 	}
+
+
 	
 	/**
 	 * Return all graphs with the right name
@@ -941,7 +997,7 @@ public class Database {
 				graphKeySet.add(gKey);
 			}
 			p("graphKeySet : " + graphKeySet);
-			//cm mit zugehörigem graph laden
+			//cm mit zugehoerigem graph laden
 			for(String gKey : graphKeySet) {
 				graphMap.put(gKey, getGraph(gKey));
 			}
@@ -1265,9 +1321,6 @@ public class Database {
 	
 
 	
-
-	
-	
 	private String getTransactionId(Class c, boolean write) {
 		String [] collections;
 		if(c == CustomGraph.class) {
@@ -1321,7 +1374,7 @@ public class Database {
 						res += "Doc " + i + " : " + doc.toString() + n;
 					}
 				}
-				res += "Größe : " + i + n;
+				res += "Size : " + i + n;
 			}
 		p(res);
 		return res;

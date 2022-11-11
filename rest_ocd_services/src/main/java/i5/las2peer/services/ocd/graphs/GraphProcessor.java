@@ -41,20 +41,20 @@ public class GraphProcessor {
 		while (edges.ok()) {
 			edge = edges.edge();
 			double edgeWeight = graph.getEdgeWeight(edge);
-			if (edgeWeight != 1) {
+			if (edgeWeight != 1 && !graph.getTypes().contains(GraphType.WEIGHTED)) {
 				graph.addType(GraphType.WEIGHTED);
 			}
-			if (edgeWeight == 0) {
-				graph.addType(GraphType.ZERO_WEIGHTS);
+			if (edgeWeight == 0 && !graph.getTypes().contains(GraphType.ZERO_WEIGHTS)) {
+				graph.addType(GraphType.ZERO_WEIGHTS );
 			}
-			if (edgeWeight < 0) {
+			if (edgeWeight < 0 && !graph.getTypes().contains(GraphType.NEGATIVE_WEIGHTS)) {
 				graph.addType(GraphType.NEGATIVE_WEIGHTS);
 			}
-			if (edge.source().equals(edge.target())) {
+			if (edge.source().equals(edge.target()) && !graph.getTypes().contains(GraphType.SELF_LOOPS)) {
 				graph.addType(GraphType.SELF_LOOPS);
 			}
 			reverseEdge = edge.target().getEdgeTo(edge.source());
-			if (reverseEdge == null || graph.getEdgeWeight(reverseEdge) != edgeWeight) {
+			if ((reverseEdge == null || graph.getEdgeWeight(reverseEdge) != edgeWeight) && !graph.getTypes().contains(GraphType.DIRECTED)) {
 				graph.addType(GraphType.DIRECTED);
 			}			
 			edges.next();
@@ -99,6 +99,7 @@ public class GraphProcessor {
 			edges.next();
 		}
 		graph.removeType(GraphType.DIRECTED);
+		graph.setNodeEdgeCountColumnFields(); //update graph edge count info
 	}
 
 	/**
