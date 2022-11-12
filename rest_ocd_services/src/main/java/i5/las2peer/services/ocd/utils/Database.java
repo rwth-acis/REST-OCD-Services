@@ -708,6 +708,84 @@ public class Database {
 		
 		return covers;
 	}
+
+	/**
+	 * Returns metadata of covers efficiently, without loading full cover.
+	 *
+	 * @param username
+	 * 		  the name of the user
+	 * @param graphKey
+	 * 		  the key of the graph
+	 * @param executionStatusIds
+	 * 		  the ids of the execution statuses
+	 * @param metricExecutionStatusIds
+	 * 		  the ids of the metric execution statuses
+	 * @param firstIndex
+	 * 		  the first index
+	 * @param length
+	 * 		  the length of the result set
+	 * @return a cover list
+	 */
+	public List<CoverMeta> getCoverMetaDataEfficiently(String username, String graphKey, List<Integer> executionStatusIds,
+								 List<Integer> metricExecutionStatusIds, int firstIndex, int length) {
+		String transId = getTransactionId(null, false);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+
+		//List<Cover> covers = new ArrayList<Cover>();
+		Map<String, CustomGraph> graphMap = new HashMap<String, CustomGraph>();
+		Set<String> graphKeySet = new HashSet<String>();
+		ObjectMapper objectMapper = new ObjectMapper(); // needed to instantiate Covereta from JSON
+		ArrayList<CoverMeta> coverMetas = new ArrayList<CoverMeta>();
+
+		try {
+			ArangoCollection coverColl = db.collection(Cover.collectionName);
+			Map<String, Object> bindVars;
+			String queryStr = " FOR c IN " + Cover.collectionName + " FOR a IN " + CoverCreationLog.collectionName +
+					" FILTER c." + Cover.creationMethodKeyColumnName + " == a._key AND a." + CoverCreationLog.statusIdColumnName + " IN " + executionStatusIds;
+//            if (metricExecutionStatusIds != null && metricExecutionStatusIds.size() > 0) {
+//                queryStr += " FOR m IN " + OcdMetricLog.collectionName + " FILTER m." + OcdMetricLog.coverKeyColumnName + " == c._key AND " +"m." +
+//                        OcdMetricLog.statusIdColumnName + " IN " + metricExecutionStatusIds;
+//            }
+			if(!graphKey.equals("")) {		//es gibt einen graphKey
+				queryStr += " FOR g IN " + CustomGraph.collectionName
+						+" FILTER c." + Cover.graphKeyColumnName  + " == @gKey AND g._key == @gKey";
+				bindVars = Collections.singletonMap("gKey", graphKey);
+			}
+			else {			//es gibt keinen graphKey
+				queryStr += " FOR g IN " + CustomGraph.collectionName +
+						" FILTER g." + CustomGraph.userColumnName + " == @user AND c." + Cover.graphKeyColumnName + " == g._key";
+				bindVars = Collections.singletonMap("user", username);
+			}
+			queryStr += " LIMIT " + firstIndex + ", " + length + " RETURN " +
+					"{\"key\" : c._key," +
+					"\"name\" : c." + Cover.nameColumnName + "," +
+					"\"numberOfCommunities\" : c." + Cover.numberOfCommunitiesColumnName + "," +
+					"\"graphKey\" : g._key," +
+					"\"graphName\" : g." + CustomGraph.nameColumnName  +  "," +
+					"\"creationTypeId\" : a." + CoverCreationLog.typeColumnName + "," +
+					"\"creationStatusId\" : a." + GraphCreationLog.statusIdColumnName +
+					"}";
+
+			ArangoCursor<String> coverMetaJson = db.query(queryStr, bindVars, queryOpt, String.class);
+			while(coverMetaJson.hasNext()) {
+                /* Instantiate CustomGraphMeta from the json string acquired from a query.
+                Then add it to the list that will be returned*/
+				coverMetas.add(objectMapper.readValue(coverMetaJson.next(), CoverMeta.class));
+
+			}
+
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			System.out.println("transaction abort");
+			e.printStackTrace();
+		}
+
+		return coverMetas;
+	}
+
+
 	
 	/**
 	 * used for test purposes

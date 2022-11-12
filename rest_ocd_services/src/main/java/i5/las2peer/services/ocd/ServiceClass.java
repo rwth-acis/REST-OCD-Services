@@ -962,7 +962,7 @@ public class ServiceClass extends RESTService {
 					}
 				}
 				
-				List<Cover> queryResults;	
+				List<CoverMeta> queryResults;
 				try {
 					firstIndex = Integer.parseInt(firstIndexStr);
 				} catch (Exception e) {
@@ -987,14 +987,13 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "", e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
 				}
-				
-				queryResults = database.getCovers(username, graphIdStr, executionStatusIds, metricExecutionStatusIds, firstIndex, length);
+
+				queryResults = database.getCoverMetaDataEfficiently(username, graphIdStr, executionStatusIds, metricExecutionStatusIds, firstIndex, length);
 				String responseStr;
 				if (includeMeta) {
-
-					responseStr = requestHandler.writeCoverMetas(queryResults);
+					responseStr = requestHandler.writeCoverMetasEfficiently(queryResults);
 				} else {
-					responseStr = requestHandler.writeCoverIds(queryResults);
+					responseStr = requestHandler.writeCoverIdsEfficiently(queryResults);
 				}
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {
@@ -1405,9 +1404,7 @@ public class ServiceClass extends RESTService {
 		    		requestHandler.log(Level.WARNING, "", e);
 		    		return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
 		    	}
-
 				List<CentralityMap> queryResults = database.getCentralityMaps(username, graphIdStr, executionStatusIds, firstIndex, length);
-
 				String responseStr;
 				if(includeMeta) {
 					responseStr = requestHandler.writeCentralityMapMetas(queryResults);

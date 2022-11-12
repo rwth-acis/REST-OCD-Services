@@ -3,7 +3,6 @@ package i5.las2peer.services.ocd.graphs;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
-import i5.las2peer.services.ocd.utils.InactivityData;
 import i5.las2peer.services.ocd.utils.NonZeroEntriesVectorProcedure;
 
 import java.awt.Color;
@@ -37,7 +36,6 @@ import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
-import com.arangodb.entity.StreamTransactionEntity;
 import com.arangodb.model.AqlQueryOptions;
 import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentDeleteOptions;
@@ -45,7 +43,6 @@ import com.arangodb.model.DocumentReadOptions;
 import com.arangodb.model.DocumentUpdateOptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.lang.NullPointerException;
 import y.base.Node;
 import y.base.NodeCursor;
 
@@ -71,6 +68,7 @@ public class Cover {
 	public static final String idColumnName = "ID";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
 	public static final String simCostsColumnName = "SIMILARITYCOSTS";
+	public static final String numberOfCommunitiesColumnName = "NUMBER_OF_COMMUNITIES";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 	
@@ -86,6 +84,8 @@ public class Cover {
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
 	public static final String METRICS_FIELD_NAME = "metrics";
 	public static final String ID_FIELD_NAME = "key";
+	public static final String NAME_FIELD_NAME = "name";
+	public static final String COMMUNITY_COUNT_FIELD_NAME = "numberOfCommunities";
 
 	////////////////////////////// ATTRIBUTES //////////////////////////////
 	/**
@@ -113,6 +113,13 @@ public class Cover {
 	 */
 	@Column(name = nameColumnName)
 	private String name = "";
+
+	/**
+	 * The number of communities in the cover
+	 */
+	@Column(name = numberOfCommunitiesColumnName)
+	private Integer numberOfCommunities;
+
 
 	// /**
 	// * A description of the cover.
@@ -189,6 +196,7 @@ public class Cover {
 	public Cover(CustomGraph graph, Matrix memberships) {
 		this.graph = graph;
 		setMemberships(memberships, true);
+		this.numberOfCommunities = communityCount();
 	}
 
 	//////////////////////////// GETTER & SETTER ////////////////////////////
@@ -386,6 +394,7 @@ public class Cover {
 			}
 
 		}
+		this.updateNumberOfCommunities(this.communityCount());
 	}
 
 	/**
@@ -403,6 +412,7 @@ public class Cover {
 	 */
 	public void setMemberships(Matrix memberships) {
 		setMemberships(memberships, false);
+		this.updateNumberOfCommunities(this.communityCount());
 	}
 
 	//////////////////////////// METRICS ////////////////////////////
@@ -520,6 +530,16 @@ public class Cover {
 	 */
 	public void setCommunityName(int communityIndex, String name) {
 		communities.get(communityIndex).setName(name);
+	}
+
+	/**
+	 * Setter for the number of communities in the cover.
+	 *
+	 * @param numberOfCommunities
+	 *            The community count.
+	 */
+	public void updateNumberOfCommunities(Integer numberOfCommunities) {
+		this.numberOfCommunities = numberOfCommunities;
 	}
 
 	/**
@@ -746,6 +766,7 @@ public class Cover {
 		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(simCostsColumnName, this.simCosts);
+		bd.addAttribute(numberOfCommunitiesColumnName, this.numberOfCommunities);
 		
 		this.creationMethod.persist(db, transId);
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
@@ -800,6 +821,7 @@ public class Cover {
 			communityKeyList.add(c.getKey());
 		}	
 		bd.updateAttribute(communityKeysColumnName, communityKeyList);
+		bd.addAttribute(numberOfCommunitiesColumnName, this.numberOfCommunities);
 			
 		for(OcdMetricLog oml : this.metrics) {		//updates or persists a metric depending on its current existence
 			if(oml.getKey().equals("")) {
@@ -841,6 +863,7 @@ public class Cover {
 				Community community = Community.load(communityKey,  cover, db, readOpt);
 				cover.communities.add(community);
 			}
+			cover.numberOfCommunities = (Integer) bd.getAttribute(numberOfCommunitiesColumnName);
 			
 			String queryStr = "FOR m IN " + OcdMetricLog.collectionName + " FILTER m." + OcdMetricLog.coverKeyColumnName +
 					" == @cKey RETURN m._key";
