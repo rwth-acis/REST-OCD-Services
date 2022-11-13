@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Collections;
 
+import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.logging.L2pLogger;
@@ -1048,7 +1049,8 @@ public class Database {
 		String transId = getTransactionId(null, false);
 		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
-		Map<String, Object> bindVars = Collections.singletonMap("user", username );
+		HashMap<String, Object> bindVars = new HashMap<String, Object>();
+		bindVars.put("user", username);
 		ArangoCollection mapColl = db.collection(CentralityMap.collectionName);
 		
 		List<CentralityMap> maps = new ArrayList<CentralityMap>();
