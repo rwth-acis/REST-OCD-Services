@@ -118,5 +118,11 @@ public class OcdTestConstants {
 	public static final String spmResultFilePath = outputFolderPath + "spmResultPartyNetwork.txt";
 	public static final String meaResultFilePath = outputFolderPath + "meaSignedLfrGraphCommunityResult.pop";
 
+	/*
+	 * Metadata output filenames
+	 */
+	public static final String testMetaXmlGraphMetaOutputPath = outputFolderPath + "testMetaXmlGraphMeta";
+	public static final String testMetaXmlCoverMetaOutputPath = outputFolderPath + "testMetaXmlCoverMeta";
+	public static final String testMetaXmlMetricMetaOutputPath = outputFolderPath + "testMetaXmlCentralityMeta";
 
 }
