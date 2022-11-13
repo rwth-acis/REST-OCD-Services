@@ -1094,6 +1094,65 @@ public class Database {
 		}
 		return maps;
 	}
+
+	/**
+	 * Return metadata of centralities efficiently, without loading
+	 * unnecessary graph/cover/centrality data.
+	 *
+	 * @param username
+	 * 		  the name of the user
+	 * @param graphKey
+	 * 		  the key of the graph
+	 * @param executionStatusIds
+	 * 		  the ids of the execution statuses
+	 * @param firstIndex
+	 * 		  the first index
+	 * @param length
+	 * 		  the length of the result set
+	 * @return  CentralityMeta list
+	 */
+	public List<CentralityMeta> getCentralityMapsEfficiently(String username, String graphKey, List<Integer> executionStatusIds, int firstIndex, int length) {	//TODO testen
+		String transId = getTransactionId(null, false);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		HashMap<String, Object> bindVars = new HashMap<String, Object>();
+		bindVars.put("user", username);
+		ObjectMapper objectMapper = new ObjectMapper(); // needed to instantiate centralityMeta from JSON
+		ArrayList<CentralityMeta> centralityMetas = new ArrayList<CentralityMeta>();
+
+		try {
+			String queryStr = " FOR c IN " + CentralityMap.collectionName + " FOR a IN " +
+					CentralityCreationLog.collectionName + " FOR g IN " + CustomGraph.collectionName +
+					" FILTER g." + CustomGraph.userColumnName + " == @user AND c." +
+					CentralityMap.graphKeyColumnName + " == g._key AND c." +
+					CentralityMap.creationMethodKeyColumnName + " == a._key AND a." +
+					CentralityCreationLog.statusIdColumnName + " IN " + executionStatusIds;
+			if(!graphKey.equals("")) {
+				queryStr += " AND g._key == @gKey " ;
+				bindVars.put("gKey", graphKey);
+			}
+			queryStr += " LIMIT " + firstIndex + ", " + length + " RETURN " +
+					"{\"centralityKey\" : c._key," +
+					"\"centralityName\" : c." + CentralityMap.nameColumnName + "," +
+					"\"graphKey\" : c." + CentralityMap.graphKeyColumnName + "," +
+					"\"graphName\" : g." + CustomGraph.nameColumnName + "," +
+					"\"creationTypeId\" : a." + CentralityCreationLog.creationTypeColumnName  +  "," +
+					"\"creationStatusId\" : a." + CentralityCreationLog.statusIdColumnName + "," +
+					"\"executionTime\" : a." + CentralityCreationLog.executionTimeColumnName + "}";
+
+			ArangoCursor<String> centralityMetaJson = db.query(queryStr, bindVars, queryOpt, String.class);
+			while(centralityMetaJson.hasNext()) {
+                /* Instantiate centralityMeta from the json string acquired from a query.
+                Then add it to the list that will be returned */;
+				centralityMetas.add(objectMapper.readValue(centralityMetaJson.next(), CentralityMeta.class));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			e.printStackTrace();
+		}
+		return centralityMetas;
+	}
+
 	/**
 	 * Updates a persisted centralityMap,
 	 * 

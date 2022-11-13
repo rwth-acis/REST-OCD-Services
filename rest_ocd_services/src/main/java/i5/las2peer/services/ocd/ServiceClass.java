@@ -32,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.centrality.data.*;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.*;
 import i5.las2peer.services.ocd.utils.Error;
@@ -61,12 +62,6 @@ import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
-import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
-import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
-import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
-import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
-import i5.las2peer.services.ocd.centrality.data.CentralityMap;
-import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.centrality.evaluation.CorrelationCoefficient;
 import i5.las2peer.services.ocd.centrality.evaluation.StatisticalProcessor;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
@@ -1404,13 +1399,13 @@ public class ServiceClass extends RESTService {
 		    		requestHandler.log(Level.WARNING, "", e);
 		    		return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
 		    	}
-				List<CentralityMap> queryResults = database.getCentralityMaps(username, graphIdStr, executionStatusIds, firstIndex, length);
+				List<CentralityMeta> queryResults = database.getCentralityMapsEfficiently(username, graphIdStr, executionStatusIds, firstIndex, length);
 				String responseStr;
 				if(includeMeta) {
-					responseStr = requestHandler.writeCentralityMapMetas(queryResults);
+					responseStr = requestHandler.writeCentralityMapMetasEfficiently(queryResults);
 				}
 				else {
-					responseStr = requestHandler.writeCentralityMapIds(queryResults);
+					responseStr = requestHandler.writeCentralityMapIdsEfficiently(queryResults);
 				}
 				return Response.ok(responseStr).build();
 	    	}
