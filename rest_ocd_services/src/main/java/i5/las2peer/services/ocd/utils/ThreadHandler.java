@@ -520,7 +520,6 @@ public class ThreadHandler {
 	
 	/**
 	 * Interrupts a metric execution without synchronization.
-	 * @param cover The cover the metric is run on.
 	 * @param logId The id of the reserved persisted log the metric is calculating.
 	 */
 	private void unsynchedInterruptMetric(OcdMetricLogId logId) {

@@ -4,8 +4,6 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import i5.las2peer.services.ocd.cooperation.data.simulation.Evaluation;
-
 public class EvaluationTest {
 	
 	double[] values;
@@ -77,17 +75,17 @@ public class EvaluationTest {
 		
 		values = new double[]{1.4, 4.8, 0.7, 2.2};
 		evaluation = new Evaluation(values);		
-		result = evaluation.getMin();
+		result = evaluation.getMinimum();
 		assertEquals(0.7, result, 0.0001);
 		
 		values = new double[]{800.0, 1200.0, 400.0};
 		evaluation = new Evaluation(values);		
-		result = evaluation.getMin();
+		result = evaluation.getMinimum();
 		assertEquals(400, result, 0.0001);
 		
 		values = new double[]{0.0, 0.0, 0.0};
 		evaluation = new Evaluation(values);		
-		result = evaluation.getMin();
+		result = evaluation.getMinimum();
 		assertEquals(0, result, 0.0001);
 	}
 	
@@ -96,17 +94,17 @@ public class EvaluationTest {
 		
 		values = new double[]{1.4, 4.8, 0.7, 2.2};
 		evaluation = new Evaluation(values);		
-		result = evaluation.getMax();
+		result = evaluation.getMaximum();
 		assertEquals(4.8, result, 0.0001);
 		
 		values = new double[]{800.0, 1200.0, 400.0};
 		evaluation = new Evaluation(values);		
-		result = evaluation.getMax();
+		result = evaluation.getMaximum();
 		assertEquals(1200, result, 0.0001);
 		
 		values = new double[]{0.0, 0.0, 0.0};
 		evaluation = new Evaluation(values);		
-		result = evaluation.getMax();
+		result = evaluation.getMaximum();
 		assertEquals(0, result, 0.0001);
 
 	}

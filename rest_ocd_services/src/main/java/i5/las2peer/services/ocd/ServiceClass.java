@@ -3,8 +3,6 @@ package i5.las2peer.services.ocd;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -15,9 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -43,13 +38,11 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.ManualDeployment;
 import i5.las2peer.api.security.UserAgent;
-import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
 import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.execution.ExecutionContext;
 import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -69,7 +62,6 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmFactory;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulationFactory;
 import i5.las2peer.services.ocd.centrality.utils.MatrixOperations;
-import i5.las2peer.services.ocd.cooperation.data.SimulationEntityHandler;
 import i5.las2peer.services.ocd.cooperation.data.mapping.MappingFactory;
 import i5.las2peer.services.ocd.cooperation.data.mapping.SimulationGroupSetMapping;
 import i5.las2peer.services.ocd.cooperation.data.mapping.SimulationSeriesSetMapping;
@@ -91,7 +83,6 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.InvocationHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
@@ -3518,10 +3509,10 @@ public class ServiceClass extends RESTService {
 		public Response getSimulations(SimulationSeriesParameters parameters) {
 	
 			List<SimulationSeries> series = new ArrayList<>();
-			String userId = getUserId();
+			String userId = getUserName();
 			try {
-	
-				//series = entityHandler.getSimulationSeriesByUser(userId);
+
+				database.getSimulationSeriesByUser(userId);
 	
 			} catch (Exception e) {
 				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
@@ -3533,67 +3524,68 @@ public class ServiceClass extends RESTService {
 			return Response.ok().entity(series).build();
 	
 		}
-	
-//		@GET
-//		@Path("/simulation/meta")
-//		@Consumes(MediaType.APPLICATION_JSON)
-//		@Produces(MediaType.APPLICATION_JSON)
-//		@ApiOperation(tags = {"show"}, value = "Get Simulations Meta Info", notes = "Gets meta information of all the simulations performed by the user")
-//		@ApiResponses(value = {
-//				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
-//				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-//		public Response getSimulationMeta(@DefaultValue("0") @QueryParam("firstIndex") int firstIndex,
-//				@DefaultValue("0") @QueryParam("length") int length,
-//				@DefaultValue("0") @QueryParam("graphId") long graphId,
-//				SimulationSeriesParameters parameters) {
-//
-//			if (parameters == null) {
-//				parameters = new SimulationSeriesParameters();
-//			}
-//	
-//			List<SimulationSeries> simulations = new ArrayList<>();
-//			try {
-//				if (firstIndex < 0 || length <= 0) {
-//					simulations = entityHandler.getSimulationSeriesByUser(getUserId());
-//				} else {
-//					if (graphId <= 0) {
-//						simulations = entityHandler.getSimulationSeriesByUser(getUserId(), firstIndex, length);
-//					} else {
-//						simulations = entityHandler.getSimulationSeriesByUser(getUserId(), graphId, firstIndex, length);
-//					}
-//				}
-//			} catch (Exception e) {
-//				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
-//				//L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
-//				e.printStackTrace();
-//				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
-//			}
-//	
-//			if (simulations == null || simulations.size() < 1)
-//				return Response.status(Status.BAD_REQUEST).entity("No simulation series found").build();
-//	
-//			List<SimulationSeriesMetaData> metaList = new ArrayList<>(simulations.size());
-//			try {
-//				for (SimulationSeries simulation : simulations) {
-//					try {
-//						SimulationSeriesMetaData metaData = simulation.getMetaData();
-//						metaData.setGraphName(entityHandler.getGraph(getUserName(), simulation.getParameters().getGraphId()).getName());
-//						metaList.add(metaData);
-//					} catch (Exception e) {
-//	
-//					}
-//				}
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail parse meta data").build();
-//			}
-//			return Response.ok().entity(metaList).build();
-//		}
+
+		@GET
+		@Path("/simulation/meta")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(tags = {"show"}, value = "Get Simulations Meta Info", notes = "Gets meta information of all the simulations performed by the user")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getSimulationMeta(@DefaultValue("0") @QueryParam("firstIndex") int firstIndex,
+										  @DefaultValue("0") @QueryParam("length") int length,
+										  @DefaultValue("0") @QueryParam("graphId") String graphKey,
+										  SimulationSeriesParameters parameters) {
+
+			if (parameters == null) {
+				parameters = new SimulationSeriesParameters();
+			}
+
+			List<SimulationSeries> simulations = new ArrayList<>();
+			try {
+				if (firstIndex < 0 || length <= 0) {
+
+					simulations = database.getSimulationSeriesByUser(getUserName());
+				} else {
+					if (graphKey.equals("0")) {
+						simulations = database.getSimulationSeriesByUser(getUserName(), firstIndex, length);
+					} else {
+						simulations = database.getSimulationSeriesByUser(getUserName(), graphKey, firstIndex,length);
+					}
+				}
+			} catch (Exception e) {
+				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				//L2pLogger.logEvent(this, Event.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
+			}
+
+			if (simulations == null || simulations.size() < 1)
+				return Response.status(Status.BAD_REQUEST).entity("No simulation series found").build();
+
+			List<SimulationSeriesMetaData> metaList = new ArrayList<>(simulations.size());
+			try {
+				for (SimulationSeries simulation : simulations) {
+					try {
+						SimulationSeriesMetaData metaData = simulation.getMetaData();
+						metaData.setGraphName(database.getGraph(getUserName(), simulation.getSimulationSeriesParameters().getGraphKey()).getName());
+						metaList.add(metaData);
+					} catch (Exception e) {
+
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail parse meta data").build();
+			}
+			return Response.ok().entity(metaList).build();
+		}
 	
 		/**
 		 * Gets the results of a performed simulation series on a network
 		 *
-		 * @param seriesId the id of the series
+		 * @param seriesKey the key of the series
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -3603,16 +3595,16 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulation(@PathParam("seriesId") long seriesId) {
+		public Response getSimulation(@PathParam("seriesId") String seriesKey) {
 			System.out.println("getSimulation");
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 			SimulationSeries series = null;
 	
 			try {
-				//series = entityHandler.getSimulationSeries(seriesId);
+				series = database.getSimulationSeries(seriesKey);
 	
 				if (series == null)
-					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + seriesId + " found")
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + seriesKey + " found")
 							.build();
 	
 				if (!series.isEvaluated()) {
@@ -3624,14 +3616,14 @@ public class ServiceClass extends RESTService {
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
 			}
-	
-			return Response.ok().entity(series).build();
+			Response res = Response.ok().entity(series).build();
+			return res;
 		}
 	
 		/**
 		 * Gets the results of a performed simulation series on a network
 		 *
-		 * @param seriesId the id of the series
+		 * @param seriesKey the key of the series
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -3641,16 +3633,16 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulationTable(@PathParam("seriesId") long seriesId) {
+		public Response getSimulationTable(@PathParam("seriesId") String seriesKey) {
 			System.out.println("getSimulationTable");
 			String username = getUserName();
 			SimulationSeries series = null;
 	
 			try {
-				//series = entityHandler.getSimulationSeries(seriesId);
+				series = database.getSimulationSeries(seriesKey);
 	
 				if (series == null)
-					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + seriesId + " found")
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with key " + seriesKey + " found")
 							.build();
 	
 				series.evaluate();
@@ -3674,7 +3666,7 @@ public class ServiceClass extends RESTService {
 		/**
 		 * Gets the parameters of a simulation
 		 *
-		 * @param seriesId the id of the series
+		 * @param seriesKey the key of the series to which the parameters belong
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -3684,11 +3676,11 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulationParameters(@PathParam("seriesId") long seriesId) {
+		public Response getSimulationParameters(@PathParam("seriesId") String seriesKey) {
 			System.out.println("getSimulationParameters");
 			SimulationSeriesParameters parameters = null;
 			try {
-				//parameters = entityHandler.getSimulationParameters(seriesId);
+				parameters = database.getSimulationSeries(seriesKey).getSimulationSeriesParameters();
 			} catch (Exception e) {
 				logger.log(Level.WARNING, "fail to get simulation series parameters");
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series parameters")
@@ -3701,7 +3693,7 @@ public class ServiceClass extends RESTService {
 		/**
 		 * Deletes a performed simulation series on a network
 		 *
-		 * @param seriesId the id of the series
+		 * @param seriesKey the key of the series
 		 * @return HttpResponse with the returnString
 		 */
 		@DELETE
@@ -3711,10 +3703,10 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response deleteSimulation(@PathParam("seriesId") long seriesId) {
+		public Response deleteSimulation(@PathParam("seriesId") String seriesKey) {
 			System.out.println("deleteSimulation");
 			try {
-				//entityHandler.deleteSeries(seriesId);
+				database.deleteSimulationSeries(seriesKey);
 			} catch (Exception e) {
 				return Response.serverError().entity(e.getMessage()).build();
 			}
@@ -3723,74 +3715,72 @@ public class ServiceClass extends RESTService {
 	
 		}
 	
-//		/**
-//		 * Starts the simulation of a cooperation and defection game simulation
-//		 * 
-//		 * @param parameters the parameters
-//		 * 
-//		 * @return HttpResponse with the returnString
-//		 */
-//		@POST
-//		@Path("/simulation")
-//		@Produces(MediaType.TEXT_PLAIN)
-//		@Consumes(MediaType.APPLICATION_JSON)
-//		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
-//				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-//		@ApiOperation(tags = {"execution"}, value = "Run Simulation", notes = " Starts the simulation of a evolutionary cooperation and defection game.")
-//		public Response postSimulation(SimulationSeriesParameters parameters) {
-//	
-//			String username = getUserName();
-//	
-//			long graphId = parameters.getGraphId();
-//			CustomGraph network = entityHandler.getGraph(username, graphId);	//TODO
-//			if (network == null)
-//				return Response.status(Status.BAD_REQUEST).entity("graph not found").build();
-//	
-//			if (parameters.getPayoffCC() == 0.0 && parameters.getPayoffCD() == 0.0 && parameters.getPayoffDC() == 0.0
-//					&& parameters.getPayoffDD() == 0.0) {
-//	
-//				if (parameters.getBenefit() == 0.0 && parameters.getCost() == 0.0) {
-//					return Response.status(Status.BAD_REQUEST).entity("invalid payoff").build();
-//				}
-//			}
-//	
-//			if (parameters.getDynamic() == null || parameters.getDynamic() == DynamicType.UNKNOWN) {
-//				return Response.status(Status.BAD_REQUEST).entity("dynamic does not exist").build();
-//			}
-//			
-//			//@MaxKissgen Own if statement here to check for emptiness of condition. Otherwise ServiceTest will fail as there's going to be an internal server error resulting from an empty condition.
-//			if (parameters.getCondition() == null || parameters.getCondition() == ConditionType.UNKNOWN) {
-//				return Response.status(Status.BAD_REQUEST).entity("condition does not exist").build();
-//			}
-//	
-//			SimulationSeries series = null;
-//			try {
-//				// Simulation
-//				SimulationBuilder simulationBuilder = new SimulationBuilder();
-//				simulationBuilder.setParameters(parameters);
-//				simulationBuilder.setNetwork(network);
-//				series = simulationBuilder.simulate();
-//	
-//			} catch (Exception e) {
-//				logger.log(Level.WARNING, "user: " + username, e);
-//				e.printStackTrace();
-//				return Response.serverError().entity("simulation could not be carried out\n" + e.getMessage()).build();
-//			}
-//	
-//			if(series.getSimulationDatasets() == null || !(series.getSimulationDatasets().size() == parameters.getIterations())) 
-//				return Response.serverError().entity("something went wrong").build();
-//	
-//			long result;
-//			try {
-//				result = entityHandler.store(series, getUserId());
-//	
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//				return Response.serverError().entity("simulation not stored").build();
-//			}
-//	
-//			return Response.ok().entity("simulation done " + result).build();
-//		}
+		/**
+		 * Starts the simulation of a cooperation and defection game simulation
+		 *
+		 * @param parameters the parameters
+		 *
+		 * @return HttpResponse with the returnString
+		 */
+		@POST
+		@Path("/simulation")
+		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.APPLICATION_JSON)
+		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		@ApiOperation(tags = {"execution"}, value = "Run Simulation", notes = " Starts the simulation of a evolutionary cooperation and defection game.")
+		public Response postSimulation(SimulationSeriesParameters parameters) {
+
+			String username = getUserName();
+			CustomGraph network = database.getGraph(getUserName(), parameters.getGraphKey());
+			if (network == null)
+				return Response.status(Status.BAD_REQUEST).entity("graph not found").build();
+
+			if (parameters.getPayoffCC() == 0.0 && parameters.getPayoffCD() == 0.0 && parameters.getPayoffDC() == 0.0
+					&& parameters.getPayoffDD() == 0.0) {
+
+				if (parameters.getBenefit() == 0.0 && parameters.getCost() == 0.0) {
+					return Response.status(Status.BAD_REQUEST).entity("invalid payoff").build();
+				}
+			}
+			if (parameters.getDynamic() == null || parameters.getDynamic() == DynamicType.UNKNOWN) {
+				return Response.status(Status.BAD_REQUEST).entity("dynamic does not exist").build();
+			}
+
+			//@MaxKissgen Own if statement here to check for emptiness of condition. Otherwise ServiceTest will fail as there's going to be an internal server error resulting from an empty condition.
+			if (parameters.getCondition() == null || parameters.getCondition() == ConditionType.UNKNOWN) {
+				return Response.status(Status.BAD_REQUEST).entity("condition does not exist").build();
+			}
+
+			SimulationSeries series = null;
+
+			try {
+				// Simulation
+				SimulationBuilder simulationBuilder = new SimulationBuilder();
+				simulationBuilder.setParameters(parameters);
+				simulationBuilder.setNetwork(network);
+				series = simulationBuilder.simulate();
+
+			} catch (Exception e) {
+				logger.log(Level.WARNING, "user: " + username, e);
+				e.printStackTrace();
+				return Response.serverError().entity("simulation could not be carried out\n" + e.getMessage()).build();
+			}
+
+			if(series.getSimulationDatasets() == null || !(series.getSimulationDatasets().size() == parameters.getIterations()))
+				return Response.serverError().entity("something went wrong").build();
+
+			String result;
+			try {
+				result = database.storeSimulationSeries(series, getUserName());
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return Response.serverError().entity("simulation not stored").build();
+			}
+
+			return Response.ok().entity("simulation done " + result).build();
+		}
 	
 		///////////////////// Group ///////////////////////////////
 	
@@ -3802,12 +3792,12 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		@ApiOperation(tags = {"execution"}, value = "Run simulation group", notes = " Starts a simulation group of evolutionary cooperation or defection games ")
 		public Response putSimulationGroup(@DefaultValue("") @QueryParam("name") String name,
-				List<Integer> seriesIds) {
+				List<String> seriesKeys) {
 			System.out.println("putSimulationGroup");
-			List<SimulationSeries> series = new ArrayList<>(seriesIds.size());			
+			List<SimulationSeries> series = new ArrayList<>(seriesKeys.size());
 			try {
-				for(Integer id: seriesIds) {
-					//series.add(entityHandler.getSimulationSeries(id));				
+				for(String seriesKey: seriesKeys) {
+					series.add(database.getSimulationSeries(seriesKey));
 				}
 			} catch (Exception e) {
 				logger.log(Level.WARNING, "user: " + getUserName(), e);
@@ -3820,9 +3810,9 @@ public class ServiceClass extends RESTService {
 	
 				group = new SimulationSeriesGroup(series);
 				group.setName(name);
-				//entityHandler.store(group, getUserId());
-	
-	
+				group.calculateMetaData(); // calculate and store metadata that will be used for WebClient
+				database.storeSimulationSeriesGroup(group, getUserName());
+
 			} catch (Exception e) {
 				e.printStackTrace();
 				return Response.serverError().entity("fail store series group").build();
@@ -3843,9 +3833,9 @@ public class ServiceClass extends RESTService {
 			List<SimulationSeriesGroup> simulations = new ArrayList<>();
 			try {
 				if (firstIndex < 0 || length <= 0) {
-					//simulations = entityHandler.getSimulationSeriesGroups(getUserId());
+					simulations = database.getSimulationSeriesGroups(getUserName());
 				} else {
-					//simulations = entityHandler.getSimulationSeriesGroups(getUserId(), firstIndex, length);
+					simulations = database.getSimulationSeriesGroups(getUserName(), firstIndex, length);
 				}
 			} catch (Exception e) {
 				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
@@ -3854,26 +3844,29 @@ public class ServiceClass extends RESTService {
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
 			}
 	
-			if (simulations == null || simulations.size() < 1)
+			if (simulations == null || simulations.size() < 1) {
 				return Response.status(Status.BAD_REQUEST).entity("No simulation series found").build();
+			}
 	
 			List<SimulationSeriesGroupMetaData> metaList = new ArrayList<>(simulations.size());
 			try {
 				for (SimulationSeriesGroup simulation : simulations) {
-					SimulationSeriesGroupMetaData metaData = simulation.getMetaData();
+					SimulationSeriesGroupMetaData metaData = simulation.getGroupMetaData();
+					metaData.setKey(simulation.getKey()); // set group key, which became available when group was created
 					metaList.add(metaData);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail parse meta data").build();
 			}
+			Response res = Response.ok().entity(metaList).build();
 			return Response.ok().entity(metaList).build();
 		}
 	
 		/**
 		 * Gets the results of a performed simulation series group on a network
 		 *
-		 * @param groupId the id of the group
+		 * @param groupKey the id of the group
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -3883,16 +3876,16 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulationGroupTable(@PathParam("groupId") long groupId) {
+		public Response getSimulationGroupTable(@PathParam("groupId") String groupKey) {
 			System.out.println("getSimulationGroupTable");
 			String username = getUserName();
 			SimulationSeriesGroup series = null;
 	
 			try {
-				//series = entityHandler.getSimulationSeriesGroup(groupId);
+				series = database.getSimulationSeriesGroup(groupKey);
 	
 				if (series == null)
-					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupId + " found")
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupKey + " found")
 							.build();
 	
 				series.evaluate();
@@ -3920,11 +3913,18 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		@ApiOperation(tags = {"show"}, value = "Get a Simulation Group", notes = "Returns a performed simulation group")
-		public Response getSimulationGroup(@PathParam("groupId") long groupId) {
+		public Response getSimulationGroup(@PathParam("groupId") String groupKey) {
 			System.out.println("getSimulationGroup");
 			SimulationSeriesGroup simulation = null;
-			try {				
-				//simulation = entityHandler.getSimulationSeriesGroup(groupId);
+			try {
+				simulation = database.getSimulationSeriesGroup(groupKey);
+
+				List<SimulationSeries> simulationSeriesInGroup = new ArrayList<>();
+				for (String simulationSeriesKey : simulation.getSimulationSeriesKeys()){
+					simulationSeriesInGroup.add(database.getSimulationSeries(simulationSeriesKey));
+				}
+				simulation.setSimulationSeries(simulationSeriesInGroup);
+
 				if(!simulation.isEvaluated())
 					simulation.evaluate();
 	
@@ -3944,7 +3944,7 @@ public class ServiceClass extends RESTService {
 		/**
 		 * Deletes a simulation series group
 		 *
-		 * @param groupId the id of the group
+		 * @param groupKey the id of the group
 		 * @return HttpResponse with the returnString
 		 */
 		@DELETE
@@ -3954,10 +3954,10 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response deleteSimulationSeriesGroup(@PathParam("groupId") long groupId) {
+		public Response deleteSimulationSeriesGroup(@PathParam("groupId") String groupKey) {
 			System.out.println("deleteSimulationSeriesGroup");
 			try {
-				//entityHandler.deleteGroup(groupId);
+				database.deleteSimulationSeriesGroup(groupKey);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return Response.serverError().entity(e.getMessage()).build();
@@ -3968,102 +3968,112 @@ public class ServiceClass extends RESTService {
 	
 		///////////////////// Mapping ///////////////////////////////
 	
-//		@GET
-//		@Path("/simulation/group/{groupId}/mapping/")
-//		@Produces(MediaType.APPLICATION_JSON)
-//		@ApiOperation(tags = {"show"}, value = "Get Simulation Results", notes = "Gets the results of a performed simulation")
-//		@ApiResponses(value = {
-//				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
-//				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-//		public Response getSimulationGroupMapping(@PathParam("groupId") long groupId) {
-//	
-//			String username = getUserName();
-//			SimulationSeriesGroup simulationGroup = null;
-//			SimulationSeriesSetMapping mapping;
-//	
-//			try {
-//				simulationGroup = entityHandler.getSimulationSeriesGroup(groupId);
-//
-//				if (simulationGroup == null)
-//					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupId + " found")
-//							.build();
-//
-//				if (!simulationGroup.isEvaluated())
-//					simulationGroup.evaluate();
-//								
-//				MappingFactory factory = new MappingFactory();
-//				mapping = factory.build(simulationGroup.getSimulationSeries(), simulationGroup.getName());
-//				for(SimulationSeries sim: mapping.getSimulation()) {
-//					sim.setNetwork(entityHandler.getGraph(getUserName(), sim.getParameters().getGraphId()));
-//				}
-//				
-//				if (!mapping.isEvaluated())
-//					mapping.correlate();
-//
-//				
-//			} catch (Exception e) {
-//				logger.log(Level.WARNING, "user: " + username, e);
-//				e.printStackTrace();
-//				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
-//			}
-//	
-//			if(mapping == null)
-//				return Response.serverError().entity("no mapping found").build();
-//	
-//			return Response.ok().entity(mapping).build();
-//		}
-//		
-//		@PUT
-//		@Path("/simulation/group/mapping/")
-//		@Consumes(MediaType.APPLICATION_JSON)
-//		@Produces(MediaType.APPLICATION_JSON)
-//		@ApiOperation(tags = {"show"}, value = "Get Simulation Groups Results", notes = "Gets the results of multiple simulation groups")
-//		@ApiResponses(value = {
-//				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
-//				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-//		public Response getSimulationGroupsMapping(List<Long> groupIds) {
-//
-//			String username = getUserName();
-//			List<SimulationSeriesGroup> groups = new ArrayList<>(groupIds.size());
-//			SimulationGroupSetMapping mapping = null;
-//
-//			try {
-//				for (Long groupId : groupIds) {
-//					try {
-//						SimulationSeriesGroup group = entityHandler.getSimulationSeriesGroup(groupId);
-//						groups.add(group);
-//					
-//					} catch (Exception e) {
-//						e.printStackTrace();
-//					}
-//
-//				}
-//
-//				try {
-//
-//					for (int i = 0; i < groups.size(); i++) {
-//						for (int j = 0; j < groups.get(i).getSimulationSeries().size(); j++) {
-//							groups.get(i).getSimulationSeries().get(j).setNetwork(entityHandler.getGraph(getUserName(),
-//									groups.get(i).getSimulationSeries().get(j).getParameters().getGraphId()));
-//							groups.get(i).getSimulationSeries().get(j).evaluate();
-//						}
-//						groups.get(i).evaluate();
-//					}
-//					MappingFactory factory = new MappingFactory();
-//					mapping = factory.buildGroupMapping(groups, "Evaluation");
-//					mapping.correlate(username);
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//
-//			} catch (Exception e) {
-//				logger.log(Level.WARNING, "user: " + username, e);
-//				e.printStackTrace();
-//				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
-//			}
-//
-//			return Response.ok().entity(mapping).build();
-//		}
+		@GET
+		@Path("/simulation/group/{groupId}/mapping/")
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(tags = {"show"}, value = "Get Simulation Results", notes = "Gets the results of a performed simulation")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getSimulationGroupMapping(@PathParam("groupId") String groupKey) {
+
+			String username = getUserName();
+			SimulationSeriesGroup simulationGroup = null;
+			SimulationSeriesSetMapping mapping;
+
+			try {
+				simulationGroup = database.getSimulationSeriesGroup(groupKey);
+
+				List<SimulationSeries> simulationSeriesInGroup = new ArrayList<>();
+				for (String simulationSeriesKey : simulationGroup.getSimulationSeriesKeys()){
+					simulationSeriesInGroup.add(database.getSimulationSeries(simulationSeriesKey));
+				}
+				simulationGroup.setSimulationSeries(simulationSeriesInGroup);
+
+
+				if (simulationGroup == null) {
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupKey + " found")
+							.build();
+				}
+
+				if (!simulationGroup.isEvaluated()) {
+					simulationGroup.evaluate();
+				}
+
+				MappingFactory factory = new MappingFactory();
+				mapping = factory.build(simulationGroup.getSeriesList(), simulationGroup.getName());
+				for(SimulationSeries sim: mapping.getSimulation()) {
+					sim.setNetwork(database.getGraph(getUserName(), sim.getSimulationSeriesParameters().getGraphKey()));
+				}
+
+				if (!mapping.isEvaluated()) {
+					mapping.correlate();
+				}
+
+
+			} catch (Exception e) {
+				logger.log(Level.WARNING, "user: " + username, e);
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
+			}
+
+			if(mapping == null)
+				return Response.serverError().entity("no mapping found").build();
+
+			return Response.ok().entity(mapping).build();
+		}
+
+		@PUT
+		@Path("/simulation/group/mapping/")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		@ApiOperation(tags = {"show"}, value = "Get Simulation Groups Results", notes = "Gets the results of multiple simulation groups")
+		@ApiResponses(value = {
+				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
+				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
+		public Response getSimulationGroupsMapping(List<String> groupKeys) {
+
+			String username = getUserName();
+			List<SimulationSeriesGroup> groups = new ArrayList<>(groupKeys.size());
+			SimulationGroupSetMapping mapping = null;
+
+			try {
+				for (String groupKey : groupKeys) {
+					try {
+						SimulationSeriesGroup group = database.getSimulationSeriesGroup(groupKey);
+						groups.add(group);
+
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+				}
+
+				try {
+
+					for (int i = 0; i < groups.size(); i++) {
+						for (int j = 0; j < groups.get(i).getSeriesList().size(); j++) {
+							groups.get(i).getSeriesList().get(j).setNetwork(database.getGraph(getUserName(),
+									groups.get(i).getSeriesList().get(j).getSimulationSeriesParameters().getGraphKey()));
+							groups.get(i).getSeriesList().get(j).evaluate();
+						}
+						groups.get(i).evaluate();
+					}
+					MappingFactory factory = new MappingFactory();
+					mapping = factory.buildGroupMapping(groups, "Evaluation");
+					mapping.correlate(username);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+			} catch (Exception e) {
+				logger.log(Level.WARNING, "user: " + username, e);
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("internal error").build();
+			}
+
+			return Response.ok().entity(mapping).build();
+		}
 
 		////////////// Information //////////////////
 	

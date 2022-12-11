@@ -14,10 +14,10 @@ public class SimulationSeriesMetaData implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private long id;
+	private String id;
 	private String name;
 	private String graphName;
-	private long graphId;
+	private String graphId;
 	private SimulationSeriesParameters parameters;
 	private Evaluation evaluation;
 
@@ -27,19 +27,19 @@ public class SimulationSeriesMetaData implements Serializable {
 
 	public SimulationSeriesMetaData(SimulationSeries series) {
 
-		this.id = series.getId();
+		this.id = series.getKey();
 		this.name = series.getName();
-		this.parameters = series.getParameters();
+		this.parameters = series.getSimulationSeriesParameters();
 		this.evaluation = series.getCooperationEvaluation();		
-		this.graphId = series.getParameters().getGraphId();
-		this.graphName = series.getParameters().getGraphName();
+		this.graphId = series.getSimulationSeriesParameters().getGraphKey();
+		this.graphName = series.getSimulationSeriesParameters().getGraphName();
 
 	}
 
 	////// Getter //////
 
 	@JsonProperty
-	public long getId() {
+	public String getId() {
 		return id;
 	}
 
@@ -59,7 +59,7 @@ public class SimulationSeriesMetaData implements Serializable {
 	}
 
 	@JsonProperty
-	public long getGraphId() {
+	public String getGraphId() {
 		return graphId;
 	}
 
@@ -71,7 +71,7 @@ public class SimulationSeriesMetaData implements Serializable {
 	////// Setter //////
 
 	@JsonSetter
-	public void setId(long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -91,7 +91,7 @@ public class SimulationSeriesMetaData implements Serializable {
 	}
 
 	@JsonSetter
-	public void setGraphId(long graphId) {
+	public void setGraphId(String graphId) {
 		this.graphId = graphId;
 	}
 

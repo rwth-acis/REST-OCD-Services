@@ -1,18 +1,18 @@
 package i5.las2peer.services.ocd.cooperation.data.simulation;
 
+import java.beans.ConstructorProperties;
 import java.io.Serializable;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Transient;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 import i5.las2peer.services.ocd.cooperation.simulation.Simulation;
@@ -31,85 +31,103 @@ public class SimulationSeriesParameters implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	////////// Entity Fields //////////
+	//ArangoDB
+	public static final String collectionName = "simulationseriesparameters";
+	private static final String gameTypeColumnName = "GAME_TYPE";
+	private static final String payoffCCColumnName = "PAYOFF_CC";
+	private static final String payoffCDColumnName = "PAYOFF_CD";
+	private static final String payoffDDColumnName = "PAYOFF_DD";
+	private static final String payoffDCColumnName = "PAYOFF_DC";
+	private static final String dynamicValueColumnName = "DYNAMIC_VALUE";
+	private static final String dynamicTypeIdColumnName = "DYNAMIC_TYPE";
+	private static final String conditionTypeIdColumnName = "CONDITION_TYPE";
+	private static final String maxIterationsColumnName = "MAX_ITERATIONS";
+	private static final String minIterationsColumnName = "MIN_ITERATIONS";
+	private static final String timeWindowColumnName = "TIME_WINDOW";
+	private static final String thresholdColumnName = "THRESHOLD";
+	private static final String iterationsColumnName = "ITERATIONS";
+	private static final String simulationNameColumnName = "SIMULATION_NAME";
+	private static final String graphNameColumnName = "GRAPH_NAME";
 
-	@Column(name = "graphId")
-	private long graphId;
-	
-	@Enumerated(EnumType.STRING)
+
+	@JsonProperty
+	private String graphKey;
+
+	@JsonProperty
 	private GameType game;
 
-	@Basic
+
+	@JsonProperty
 	private double payoffCC;
 
-	@Basic
+	@JsonProperty
 	private double payoffCD;
 
-	@Basic
+	@JsonProperty
 	private double payoffDD;
 
-	@Basic
+
+	@JsonProperty
 	private double payoffDC;
 		
 	/**
 	* the payoff cost value. Used only with a cost variant game. 
 	*/
-	@Transient
 	private double cost; 
 	
 	/**
 	* the payoff benefit value. Used only with a cost variant game. 
 	*/
-	@Transient
 	private double benefit;
 
-	@Enumerated(EnumType.STRING)
+	@JsonProperty
 	private DynamicType dynamic;
 
-	@Basic
+	@JsonProperty
 	private double dynamicValue;
 
 	/**
 	 * the break condition for the simulaiton
 	 */
-	@Enumerated(EnumType.STRING)
+	@JsonProperty
 	private ConditionType condition;
+
 
 	/**
 	* the maximum rounds of a Simulation
 	*/
-	@Basic
+	@JsonProperty
 	private int maxIterations;
 	
 	/**
 	* the minimum rounds of a Simulation
 	*/
-	@Basic
+	@JsonProperty
 	private int minIterations;
 	
 	/**
 	* time window for the break condition
 	*/
-	@Basic
+	@JsonProperty
 	private int timeWindow;
 	
 	/**
 	* time window for the break condition
 	*/
-	@Basic
+	@JsonProperty
 	private int threshold;
 
 	/**
 	 * how often a {@link Simulation} is executed resulting in multiple
 	 * {@link SimulationDataset}s as part of one {@link SimulationSeries}
 	 */
-	@Basic
+	@JsonProperty
 	private int iterations;
 
-	@Basic
+	@JsonProperty
 	private String simulationName;
 
-	@Basic
+	@JsonProperty
 	private String graphName;
 
 	////////// Constructor //////////
@@ -118,44 +136,47 @@ public class SimulationSeriesParameters implements Serializable {
 
 	}
 
-	public SimulationSeriesParameters(SimulationSeries series, long graphId, GameType game, double payoffCC, double payoffCD,
-			double payoffDD, double payoffDC, DynamicType dynamic, double dynamicValue, int iterations) {
 
-		this.setGraphId(graphId);
+	@ConstructorProperties({"name", "iterations","payoffDC","payoffCC","payoffDD","payoffCD",
+			"dynamic","dynamicValue","condition","maxIterations","graphId"})
+	public SimulationSeriesParameters( String simulationName, int iterations, double payoffDC, double payoffCC, double payoffDD,
+									  double payoffCD, String dynamic, double dynamicValue, String condition,
+									  int maxIterations, String graphKey) {
+		this.graphKey = graphKey;
 		this.payoffCC = payoffCC;
 		this.payoffCD = payoffCD;
-		this.payoffDC = payoffDC;
 		this.payoffDD = payoffDD;
+		this.payoffDC = payoffDC;
 		this.setDynamic(dynamic);
-		this.setDynamicValue(dynamicValue);
-		this.setIterations(iterations);
+		this.dynamicValue = dynamicValue;
+		this.setCondition(condition);
+		this.maxIterations = maxIterations;
+		this.iterations = iterations;
+		this.simulationName = simulationName;
 	}
+
 
 	////////// Getter //////////
 
-	@JsonProperty
-	public String getName() {
-		return this.simulationName;
+
+
+	public String getGraphKey() {
+		return graphKey;
 	}
 
-	@JsonProperty
-	public long getGraphId() {
-		return graphId;
-	}
 
-	@JsonProperty
 	public DynamicType getDynamic() {
 		if(dynamic == null)
 			return DynamicType.UNKNOWN;
 		return dynamic;
 	}
 
-	@JsonProperty
+
 	public int getIterations() {
 		return iterations;
 	}
 
-	@JsonProperty
+
 	public GameType getGame() {
 		if (game == null) {
 			this.game = GameType.getGameType(payoffCC, payoffCD, payoffDC, payoffDD);
@@ -163,37 +184,31 @@ public class SimulationSeriesParameters implements Serializable {
 		return this.game;
 	}
 
-	@JsonProperty
+
 	public double getPayoffCC() {
 		return payoffCC;
 	}
 
-	@JsonProperty
 	public double getPayoffCD() {
 		return payoffCD;
 	}
 
-	@JsonProperty
 	public double getPayoffDD() {
 		return payoffDD;
 	}
 
-	@JsonProperty
 	public double getPayoffDC() {
 		return payoffDC;
 	}
 
-	@JsonProperty
 	public double getCost() {
 		return cost;
 	}
 
-	@JsonProperty
 	public double getBenefit() {
 		return benefit;
 	}
 
-	@JsonProperty
 	public ConditionType getCondition() {
 		if (condition == null)
 			return ConditionType.UNKNOWN;
@@ -231,80 +246,151 @@ public class SimulationSeriesParameters implements Serializable {
 
 	////////// Setter //////////
 
-	@JsonSetter
-	public void setName(String name) {
-		this.simulationName = name;
-	}
 
-	@JsonSetter
 	public void setIterations(int iterations) {
 		this.iterations = iterations;
 	}
 
-	@JsonSetter
-	public void setGraphId(long graphId) {
-		this.graphId = graphId;
+	public void setGraphKey(String graphKey) {
+		this.graphKey = graphKey;
 	}
 
-	@JsonSetter
 	public void setDynamic(String dynamic) {
 		this.dynamic = DynamicType.fromString(dynamic);
 	}
 
-	@JsonSetter
 	public void setGame(String game) {
 		this.game = GameType.fromString(game);
 	}
 
-	@JsonIgnore
 	public void setDynamic(DynamicType dynamic) {
 		this.dynamic = dynamic;
 	}
 
-	@JsonSetter
 	public void setCondition(String condition) {
 		this.condition = ConditionType.fromString(condition);
 	}
 
-	@JsonIgnore
 	public void setGame(GameType game) {
 		this.game = game;
 	}
 
-	@JsonSetter
 	public void setDynamicValue(double dynamicValue) {
 		this.dynamicValue = dynamicValue;
 	}
 
-	@JsonSetter
 	public void setPayoffCC(double payoffCC) {
 		this.payoffCC = payoffCC;
 	}
 
-	@JsonSetter
 	public void setPayoffCD(double payoffCD) {
 		this.payoffCD = payoffCD;
 	}
 
-	@JsonSetter
 	public void setPayoffDD(double payoffDD) {
 		this.payoffDD = payoffDD;
 	}
 
-	@JsonSetter
 	public void setPayoffDC(double payoffDC) {
 		this.payoffDC = payoffDC;
 	}
 
-	@JsonSetter
 	public void setBenefit(double benefit) {
 		this.benefit = benefit;
 	}
 
-	@JsonSetter
 	public void setCost(double cost) {
 		this.cost = cost;
 	}
+
+	public void setCondition(ConditionType condition) {
+		this.condition = condition;
+	}
+
+	public String getSimulationName() {
+		return simulationName;
+	}
+
+	public void setSimulationName(String simulationName) {
+		this.simulationName = simulationName;
+	}
+
+
+
+	/**
+	 * Update column values to be stored in the database.
+	 * @param bd       Document holding updated values.
+	 * @return         Document with updated values.
+	 */
+	public BaseDocument updateDocument(BaseDocument bd){
+		bd.addAttribute(gameTypeColumnName, this.game.humanRead());
+		bd.addAttribute(payoffCCColumnName, this.payoffCC);
+		bd.addAttribute(payoffCDColumnName, this.payoffCD);
+		bd.addAttribute(payoffDDColumnName, this.payoffDD);
+		bd.addAttribute(payoffDCColumnName, this.payoffDC);
+		bd.addAttribute(dynamicValueColumnName, this.dynamicValue);
+		bd.addAttribute(dynamicTypeIdColumnName, this.dynamic.humanRead());
+		bd.addAttribute(conditionTypeIdColumnName, this.condition.humanRead());
+		bd.addAttribute(maxIterationsColumnName, this.maxIterations);
+		bd.addAttribute(minIterationsColumnName, this.minIterations);
+		bd.addAttribute(timeWindowColumnName, this.timeWindow);
+		bd.addAttribute(thresholdColumnName, this.threshold);
+		bd.addAttribute(iterationsColumnName, this.iterations);
+		bd.addAttribute(simulationNameColumnName, this.simulationName);
+		bd.addAttribute(graphNameColumnName, this.graphName);
+
+		return bd;
+	}
+
+
+	// Persistence Methods
+	public void persist(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		BaseDocument bd = new BaseDocument();
+		updateDocument(bd);
+		collection.insertDocument(bd, createOptions);
+		//this.key = bd.getKey(); // if key is assigned before inserting (line above) the value is null
+	}
+
+	public void updateDB(ArangoDatabase db, String transId) {
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		updateDocument(bd);
+		//collection.updateDocument(this.key, bd, updateOptions);
+	}
+
+	public static SimulationSeriesParameters load(String key, ArangoDatabase db, String transId) {
+		SimulationSeriesParameters simulationSeriesParameters = new SimulationSeriesParameters();
+		ArangoCollection collection = db.collection(collectionName);
+
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
+		if (bd != null) {
+			//simulationSeriesParameters.setKey(bd.getKey());
+			simulationSeriesParameters.setGame(bd.getAttribute(gameTypeColumnName).toString());
+			simulationSeriesParameters.setPayoffCC((double) bd.getAttribute(payoffCCColumnName));
+			simulationSeriesParameters.setPayoffCD((double) bd.getAttribute(payoffCDColumnName));
+			simulationSeriesParameters.setPayoffDD((double) bd.getAttribute(payoffDDColumnName));
+			simulationSeriesParameters.setPayoffDC((double) bd.getAttribute(payoffDCColumnName));
+			simulationSeriesParameters.setDynamicValue((double) bd.getAttribute(dynamicValueColumnName));
+			simulationSeriesParameters.setDynamic(bd.getAttribute(dynamicTypeIdColumnName).toString());
+			simulationSeriesParameters.setCondition(bd.getAttribute(conditionTypeIdColumnName).toString());
+			simulationSeriesParameters.setMaxIterations((int) bd.getAttribute(maxIterationsColumnName));
+			simulationSeriesParameters.setMinIterations((int) bd.getAttribute(minIterationsColumnName));
+			simulationSeriesParameters.setTimeWindow((int) bd.getAttribute(timeWindowColumnName));
+			simulationSeriesParameters.setThreshold((int) bd.getAttribute(thresholdColumnName));
+			simulationSeriesParameters.setIterations((int) bd.getAttribute(iterationsColumnName));
+			simulationSeriesParameters.setSimulationName(bd.getAttribute(simulationNameColumnName).toString());
+			simulationSeriesParameters.setGraphName(bd.getAttribute(graphNameColumnName).toString());
+		}
+		else {
+			System.out.println("SimulationSeriesParameter with key " + key + " not found.");
+		}
+		return simulationSeriesParameters;
+	}
+
 
 	///////////// Methods /////////////
 	
@@ -395,4 +481,27 @@ public class SimulationSeriesParameters implements Serializable {
 		this.graphName = string;
 	}
 
+	@Override
+	public String toString() {
+		return "SimulationSeriesParameters{" +
+				"graphKey='" + graphKey + '\'' +
+				", game=" + game +
+				", payoffCC=" + payoffCC +
+				", payoffCD=" + payoffCD +
+				", payoffDD=" + payoffDD +
+				", payoffDC=" + payoffDC +
+				", cost=" + cost +
+				", benefit=" + benefit +
+				", dynamic=" + dynamic +
+				", dynamicValue=" + dynamicValue +
+				", condition=" + condition +
+				", maxIterations=" + maxIterations +
+				", minIterations=" + minIterations +
+				", timeWindow=" + timeWindow +
+				", threshold=" + threshold +
+				", iterations=" + iterations +
+				", simulationName='" + simulationName + '\'' +
+				", graphName='" + graphName + '\'' +
+				'}';
+	}
 }

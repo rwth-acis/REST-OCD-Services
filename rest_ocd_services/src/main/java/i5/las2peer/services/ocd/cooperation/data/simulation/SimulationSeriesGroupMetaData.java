@@ -1,11 +1,9 @@
 package i5.las2peer.services.ocd.cooperation.data.simulation;
 
-import java.io.Serializable;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 
-import i5.las2peer.services.ocd.graphs.CustomGraph;
+import java.io.Serializable;
 
 /**
  * Objects of this class contain the meta data of simulation series group. They are
@@ -16,9 +14,17 @@ public class SimulationSeriesGroupMetaData implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private long id;
+
+	@JsonProperty
+	private String key;
+
+	@JsonProperty
 	private String name;
+
+	@JsonProperty
 	private int size;
+
+	@JsonProperty
 	private Evaluation evaluation;
 
 	public SimulationSeriesGroupMetaData() {
@@ -27,32 +33,37 @@ public class SimulationSeriesGroupMetaData implements Serializable {
 
 	public SimulationSeriesGroupMetaData(SimulationSeriesGroup simulation) {
 
-		this.id = simulation.getId();
+		this.key = simulation.getKey();
 		this.name = simulation.getName();
 		this.size = simulation.size();
 		this.evaluation = simulation.getCooperationEvaluation();
 		
 	}
 
-	public long getId() {
-		return id;
+	@JsonProperty
+	public String getKey() {
+		return key;
 	}
 
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	@JsonProperty
 	public String getName() {
 		return name;
 	}
 
+	@JsonProperty
 	public int getSize() {
 		return size;
 	}
 
+	@JsonProperty
 	public Evaluation getEvaluation() {
 		return evaluation;
 	}
 
-	public void setId(long id) {
-		this.id = id;
-	}
 
 	public void setName(String name) {
 		this.name = name;
@@ -66,4 +77,13 @@ public class SimulationSeriesGroupMetaData implements Serializable {
 		this.evaluation = evaluation;
 	}
 
+	@Override
+	public String toString() {
+		return "SimulationSeriesGroupMetaData{" +
+				"key='" + key + '\'' +
+				", name='" + name + '\'' +
+				", size=" + size +
+				", evaluation=" + evaluation +
+				'}';
+	}
 }

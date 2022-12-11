@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Collections;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
+import i5.las2peer.services.ocd.cooperation.data.simulation.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.logging.L2pLogger;
@@ -68,7 +69,7 @@ public class Database {
 	private ArangoDB arangoDB;
 	public ArangoDatabase db;
 	
-	private List<String> collectionNames =new ArrayList<String>(11);
+	private List<String> collectionNames =new ArrayList<String>(13);
 	
 	
 	public Database() {
@@ -167,7 +168,42 @@ public class Database {
 		if(!collection.exists()) {
 			collection.create();
 		}
-		
+		collectionNames.add(SimulationSeries.collectionName);		//11
+		collection = db.collection(SimulationSeries.collectionName);
+		if(!collection.exists()) {
+			collection.create();
+		}
+		collectionNames.add(SimulationSeriesGroup.collectionName);		//12
+		collection = db.collection(SimulationSeriesGroup.collectionName);
+		if(!collection.exists()) {
+			collection.create();
+		}
+		//		collectionNames.add(SimulationSeriesParameters.collectionName);		//13
+//		collection = db.collection(SimulationSeriesParameters.collectionName);
+//		if(!collection.exists()) {
+//			collection.create();
+//		}
+//		collectionNames.add(AgentData.collectionName);		//14
+//		collection = db.collection(AgentData.collectionName);
+//		if(!collection.exists()) {
+//			collection.create();
+//		}
+//		collectionNames.add(SimulationDataset.collectionName);		//15
+//		collection = db.collection(SimulationDataset.collectionName);
+//		if(!collection.exists()) {
+//			collection.create();
+//		}
+//		collectionNames.add(Evaluation.collectionName);		//16
+//		collection = db.collection(Evaluation.collectionName);
+//		if(!collection.exists()) {
+//			collection.create();
+//		}
+//		collectionNames.add(GroupParameters.collectionName);		//17
+//		collection = db.collection(GroupParameters.collectionName);
+//		if(!collection.exists()) {
+//			collection.create();
+//		}
+
 	}
 	
 
@@ -1328,8 +1364,502 @@ public class Database {
 			throw e;
 		}
 	}
-	
-	
+
+	//////////////////////////////////////////////////////////////// SIMULATIONS //////////////////////////////////////
+
+	/////////////////// SimulationSeriesParameters ///////////////////
+
+//	public String storeSimulationSeriesParameters(SimulationSeriesParameters simulationSeriesParameters) {
+//		String transId = this.getTransactionId(SimulationSeriesParameters.class, true);
+//		try {
+//			simulationSeriesParameters.persist(db, transId);
+//			db.commitStreamTransaction(transId);
+//		}catch(Exception e) {
+//			db.abortStreamTransaction(transId);
+//			throw e;
+//		}
+//		return simulationSeriesParameters.getKey();
+//	}
+
+
+//	public void updateSimulationSeriesParameters(SimulationSeriesParameters simulationSeriesParameters) {
+//		String transId = this.getTransactionId(SimulationSeriesParameters.class, true);
+//		try {
+//			simulationSeriesParameters.updateDB(db, transId);
+//			db.commitStreamTransaction(transId);
+//		} catch(Exception e) {
+//			db.abortStreamTransaction(transId);
+//			throw e;
+//		}
+//	}
+
+	public SimulationSeriesParameters getSimulationSeriesParameters(String key) {
+		String transId = getTransactionId(SimulationSeriesParameters.class, false);
+		SimulationSeriesParameters simulationSeriesParameters;
+		try {
+			simulationSeriesParameters = SimulationSeriesParameters.load(key, db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return simulationSeriesParameters;
+	}
+
+	private void deleteSimulationSeriesParameters(String key, String transId) {
+		ArangoCollection simulationSeriesParametersCollection = db.collection(SimulationSeriesParameters.collectionName);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		simulationSeriesParametersCollection.deleteDocument(key, null, deleteOpt);
+	}
+
+	public void deleteSimulationSeriesParameters(String key) {
+		String transId = this.getTransactionId(SimulationSeriesParameters.class, true);
+		try {
+			deleteSimulationSeriesParameters(key, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			e.printStackTrace();
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}
+
+	/////////////////// AgentData ///////////////////
+
+//	public String storeAgentData(AgentData agentData) {
+//		String transId = this.getTransactionId(AgentData.class, true);
+//		try {
+//			agentData.persist(db, transId);
+//			db.commitStreamTransaction(transId);
+//		}catch(Exception e) {
+//			db.abortStreamTransaction(transId);
+//			throw e;
+//		}
+//		return agentData.getKey();
+//	}
+//
+//	public void updateAgentData(AgentData agentData) {
+//		String transId = this.getTransactionId(AgentData.class, true);
+//		try {
+//			agentData.updateDB(db, transId);
+//			db.commitStreamTransaction(transId);
+//		} catch(Exception e) {
+//			db.abortStreamTransaction(transId);
+//			throw e;
+//		}
+//	}
+
+//	public AgentData getAgentData(String key) {
+//		String transId = getTransactionId(AgentData.class, false);
+//		AgentData agentData;
+//		try {
+//			agentData = AgentData.load(key, db, transId);
+//			db.commitStreamTransaction(transId);
+//		}catch(Exception e) {
+//			db.abortStreamTransaction(transId);
+//			throw e;
+//		}
+//		return agentData;
+//	}
+
+	private void deleteAgentData(String key, String transId) {
+		ArangoCollection agentDataCollection = db.collection(AgentData.collectionName);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		agentDataCollection.deleteDocument(key, null, deleteOpt);
+	}
+
+	/////////////////// SimulationDataset ///////////////////
+
+	public String storeSimulationDataset(SimulationDataset simulationDataset) {
+		String transId = this.getTransactionId(SimulationDataset.class, true);
+		try {
+			simulationDataset.persist(db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return simulationDataset.getKey();
+	}
+
+	public void updateSimulationDataset(SimulationDataset simulationDataset) {
+		String transId = this.getTransactionId(SimulationDataset.class, true);
+		try {
+			simulationDataset.updateDB(db, transId);
+			db.commitStreamTransaction(transId);
+		} catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}
+
+	public SimulationDataset getSimulationDataset(String key) {
+		String transId = getTransactionId(SimulationDataset.class, false);
+		SimulationDataset simulationDataset;
+		try {
+			simulationDataset = SimulationDataset.load(key, db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return simulationDataset;
+	}
+
+	private void deleteSimulationDataset(String key, String transId) {
+		ArangoCollection simulationDatasetCollection = db.collection(SimulationDataset.collectionName);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		simulationDatasetCollection.deleteDocument(key, null, deleteOpt);
+	}
+
+	/////////////////// SimulationSeries ///////////////////
+
+	public String storeSimulationSeries(SimulationSeries simulationSeries) {
+		String transId = this.getTransactionId(SimulationSeries.class, true);
+		try {
+			simulationSeries.persist(db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return simulationSeries.getKey();
+	}
+
+	public String storeSimulationSeries(SimulationSeries simulationSeries, String userId) {
+		String transId = this.getTransactionId(SimulationSeries.class, true);
+		try {
+			simulationSeries.persist(db, transId, userId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return simulationSeries.getKey();
+	}
+
+
+	public void updateSimulationSeries(SimulationSeries simulationSeries) {
+		String transId = this.getTransactionId(SimulationSeries.class, true);
+		try {
+			simulationSeries.updateDB(db, transId);
+			db.commitStreamTransaction(transId);
+		} catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}
+
+	public SimulationSeries getSimulationSeries(String key) {
+		String transId = getTransactionId(SimulationDataset.class, false);
+		SimulationSeries simulationSeries;
+		try {
+			simulationSeries = SimulationSeries.load(key, db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return simulationSeries;
+	}
+
+	/**
+	 *
+	 * @param userId       Id of the user
+	 * @param returnSubset True if subset of SimulationSeries should be returned.
+	 * @param firstIndex   Index of the first simulation to return (only relevant if return Subset is true)
+	 * @param length       Number of simulations (only relevant if returnSubset is true)
+	 * @param graphKey     The graph's key
+	 * @return			   List of SimulationSeries of a specific user
+	 */
+	public List<SimulationSeries> getSimulationSeriesByUser(String userId, Boolean returnSubset, int firstIndex, int length, String graphKey){
+
+		String transId = getTransactionId(SimulationSeries.class, false);
+		List<SimulationSeries> seriesList = new ArrayList<SimulationSeries>();
+		HashMap<String, Object> bindVars = new HashMap<String, Object>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR ss IN " + SimulationSeries.collectionName + " FILTER ss." + SimulationSeries.userIdColumnName + " == @username ";
+			if (graphKey != ""){
+				queryStr += " AND ss." +   SimulationSeries.simulationSeriesParametersColumnName + ".graphKey == @gKey "; // graphKey refers to graphKey field in SimulationSeriesParameters
+				bindVars.put("gKey", graphKey);
+			}
+			if (returnSubset){
+				queryStr += " LIMIT " + firstIndex + ", " + length;
+			}
+			queryStr += " RETURN ss._key";
+
+			bindVars.put("username",userId);
+
+			ArangoCursor<String> mapKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			for(String key : mapKeys) {
+				SimulationSeries series = SimulationSeries.load(key, db, transId);
+				seriesList.add(series);
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+
+		return seriesList;
+	}
+
+	/**
+	 * @param userId the users id
+	 * @return all SimulationSeries of a specific user
+	 */
+	public List<SimulationSeries> getSimulationSeriesByUser(String userId) {
+		// get all simulations of a user (not limited to a subset)
+		return getSimulationSeriesByUser(userId, false,0,0, "");
+	}
+
+	/**
+	 * @param userId Id of the user
+	 * @param firstIndex Id of the first simulation
+	 * @param length Number of simulations
+	 * @return List of SimulationSeries of a specific user
+	 */
+	public List<SimulationSeries> getSimulationSeriesByUser(String userId, int firstIndex, int length){
+		return getSimulationSeriesByUser(userId,true, firstIndex, length, "");
+	}
+
+	private void deleteSimulationSeries(String key, String transId) {
+		ArangoCollection simulationDatasetCollection = db.collection(SimulationSeries.collectionName);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		simulationDatasetCollection.deleteDocument(key, null, deleteOpt);
+	}
+
+
+	public void deleteSimulationSeries(String key) {
+		String transId = this.getTransactionId(SimulationSeries.class, true);
+		try {
+			deleteSimulationSeries(key, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			e.printStackTrace();
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}
+
+	/**
+	 * Returns a list of SimulationSeries filtered by the graphId
+	 *
+	 * @param userId the users id
+	 * @param firstIndex the first index
+	 * @param length the length of the result set
+	 * @param graphKey the graphs key
+	 * @return simulation series list
+	 */
+	public List<SimulationSeries> getSimulationSeriesByUser(String userId, String graphKey, int firstIndex, int length){
+		return getSimulationSeriesByUser(userId,true,firstIndex,length,graphKey);
+	}
+
+
+	/////////////////// Evaluation ///////////////////
+
+//	public String storeEvaluation(Evaluation evaluation) {
+//		String transId = this.getTransactionId(Evaluation.class, true);
+//		try {
+//			evaluation.persist(db, transId);
+//			db.commitStreamTransaction(transId);
+//		}catch(Exception e) {
+//			db.abortStreamTransaction(transId);
+//			throw e;
+//		}
+//		return evaluation.getKey();
+//	}
+
+	public void updateEvaluation(Evaluation evaluation) {
+		String transId = this.getTransactionId(Evaluation.class, true);
+		try {
+			evaluation.updateDB(db, transId);
+			db.commitStreamTransaction(transId);
+		} catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}
+
+	public Evaluation getEvaluation(String key) {
+		String transId = getTransactionId(Evaluation.class, false);
+		Evaluation evaluation;
+		try {
+			evaluation = Evaluation.load(key, db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return evaluation;
+	}
+
+	private void deleteEvaluation(String key, String transId) {
+		ArangoCollection evaluationCollection = db.collection(Evaluation.collectionName);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		evaluationCollection.deleteDocument(key, null, deleteOpt);
+	}
+
+	/////////////////// GroupParameters ///////////////////
+
+//	public String storeGroupParameters(GroupParameters groupParameters) {
+//		String transId = this.getTransactionId(GroupParameters.class, true);
+//		try {
+//			groupParameters.persist(db, transId);
+//			db.commitStreamTransaction(transId);
+//		}catch(Exception e) {
+//			db.abortStreamTransaction(transId);
+//			throw e;
+//		}
+//		return groupParameters.getKey();
+//	}
+
+	public void updateGroupParameters(GroupParameters groupParameters) {
+		String transId = this.getTransactionId(GroupParameters.class, true);
+		try {
+			groupParameters.updateDB(db, transId);
+			db.commitStreamTransaction(transId);
+		} catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}
+
+	public GroupParameters getGroupParameters(String key) {
+		String transId = getTransactionId(GroupParameters.class, false);
+		GroupParameters groupParameters;
+		try {
+			groupParameters = GroupParameters.load(key, db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return groupParameters;
+	}
+
+	private void deleteGroupParameters(String key, String transId) {
+		ArangoCollection groupParametersCollection = db.collection(GroupParameters.collectionName);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		groupParametersCollection.deleteDocument(key, null, deleteOpt);
+	}
+
+	/////////////////// SimulationSeriesGroup ///////////////////
+
+	public String storeSimulationSeriesGroup(SimulationSeriesGroup simulationSeriesGroup) {
+		String transId = this.getTransactionId(SimulationSeriesGroup.class, true);
+		try {
+			simulationSeriesGroup.persist(db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return simulationSeriesGroup.getKey();
+	}
+
+	public String storeSimulationSeriesGroup(SimulationSeriesGroup simulationSeriesGroup, String userId) {
+		String transId = this.getTransactionId(SimulationSeriesGroup.class, true);
+		try {
+			simulationSeriesGroup.persist(db, transId, userId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return simulationSeriesGroup.getKey();
+	}
+
+	public void updateSimulationSeriesGroup(SimulationSeriesGroup simulationSeriesGroup) {
+		String transId = this.getTransactionId(SimulationSeriesGroup.class, true);
+		try {
+			simulationSeriesGroup.updateDB(db, transId);
+			db.commitStreamTransaction(transId);
+		} catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}
+
+	public SimulationSeriesGroup getSimulationSeriesGroup(String key) {
+		String transId = getTransactionId(SimulationSeriesGroup.class, false);
+		SimulationSeriesGroup simulationSeriesGroup;
+		try {
+			simulationSeriesGroup = SimulationSeriesGroup.load(key, db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return simulationSeriesGroup;
+	}
+
+	public List<SimulationSeriesGroup> getSimulationSeriesGroups(String userId, Boolean returnSubset, int firstIndex, int length) {
+		String transId = getTransactionId(SimulationSeriesGroup.class, false);
+		List<SimulationSeriesGroup> simulationSeriesGroupList = new ArrayList<SimulationSeriesGroup>();
+		HashMap<String, Object> bindVars = new HashMap<String, Object>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR ssg IN " + SimulationSeriesGroup.collectionName + " FILTER ssg."
+					+ SimulationSeries.userIdColumnName + " == @username ";
+			if (returnSubset){
+				queryStr += " LIMIT " + firstIndex + ", " + length;
+			}
+			queryStr += " RETURN ssg._key";
+			bindVars.put("username", userId);
+			ArangoCursor<String> simulationSeriesGroupKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			for(String key : simulationSeriesGroupKeys) {
+				SimulationSeriesGroup simulationSeriesGroup = SimulationSeriesGroup.load(key, db, transId);
+				simulationSeriesGroupList.add(simulationSeriesGroup);
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return simulationSeriesGroupList;
+	}
+
+	/**
+	 * @param userId the users id
+	 * @return all SimulationSeries of a specific user
+	 */
+	public List<SimulationSeriesGroup> getSimulationSeriesGroups(String userId) {
+		// get all simulations of a user (not limited to a subset)
+		return getSimulationSeriesGroups(userId, false,0,0);
+	}
+
+	/**
+	 * @param userId Id of the user
+	 * @param firstIndex Id of the first simulation
+	 * @param length Number of simulations
+	 * @return List of SimulationSeries of a specific user
+	 */
+	public List<SimulationSeriesGroup> getSimulationSeriesGroups(String userId, int firstIndex, int length){
+		return getSimulationSeriesGroups(userId,true, firstIndex, length);
+	}
+
+
+
+	public void deleteSimulationSeriesGroup(String key, String transId) {
+		ArangoCollection groupParametersCollection = db.collection(SimulationSeriesGroup.collectionName);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		groupParametersCollection.deleteDocument(key, null, deleteOpt);
+	}
+
+	public void deleteSimulationSeriesGroup(String key) {
+		String transId = this.getTransactionId(SimulationSeriesGroup.class, true);
+		try {
+			deleteSimulationSeriesGroup(key, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			e.printStackTrace();
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}
+
 
 	
 	/////////////////////////// InactivityData ///////////////////////////
@@ -1460,7 +1990,7 @@ public class Database {
 	
 
 	
-	private String getTransactionId(Class c, boolean write) {
+	public String getTransactionId(Class c, boolean write) {
 		String [] collections;
 		if(c == CustomGraph.class) {
 			collections = collectionNames.subList(0, 4).toArray(new String[4]);
@@ -1486,6 +2016,27 @@ public class Database {
 		else if(c == InactivityData.class) {
 			collections = collectionNames.subList(10, 11).toArray(new String[1]);
 		}
+		else if(c == SimulationSeries.class){
+			collections = collectionNames.subList(11,13).toArray(new String[1]);
+		}
+		else if(c == SimulationSeriesGroup.class){
+			collections = collectionNames.subList(11,13).toArray(new String[1]);
+		}
+//		else if(c == SimulationSeriesParameters.class){
+//			collections = collectionNames.subList(11,18).toArray(new String[1]);
+//		}
+//		else if(c == SimulationDataset.class){
+//			collections = collectionNames.subList(11,18).toArray(new String[1]);
+//		}
+//		else if(c == GroupParameters.class){
+//			collections = collectionNames.subList(11,18).toArray(new String[1]);
+//		}
+//		else if(c == AgentData.class){
+//			collections = collectionNames.subList(11,18).toArray(new String[1]);
+//		}
+//		else if(c == Evaluation.class){
+//			collections = collectionNames.subList(11,18).toArray(new String[1]);
+//		}
 		else {
 			collections = collectionNames.subList(0, 10).toArray(new String[10]);
 		}

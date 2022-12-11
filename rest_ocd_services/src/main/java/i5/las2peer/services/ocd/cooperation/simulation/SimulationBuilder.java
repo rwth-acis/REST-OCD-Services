@@ -68,7 +68,7 @@ public class SimulationBuilder {
 			setDynamicParameters(parameters);
 			setConditionParameters(parameters);
 			setIterations(parameters.getIterations());
-			setName(parameters.getName());
+			setName(parameters.getSimulationName());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -257,7 +257,7 @@ public class SimulationBuilder {
 		parameters.setPayoffCD(game.getPayoffAB());
 		parameters.setPayoffDC(game.getPayoffBA());
 		parameters.setPayoffDD(game.getPayoffBB());
-		parameters.setGraphId(graph.getId());
+		parameters.setGraphKey(graph.getKey());
 		parameters.setIterations(iterations);
 		parameters.setGraphName(graph.getName());
 		parameters.setMaxIterations(condition.getMaxIterations());
@@ -265,6 +265,7 @@ public class SimulationBuilder {
 
 		SimulationSeries series = new SimulationSeries(parameters, datasets);
 		series.setName(name);
+		series.setNetwork(graph); // graph on which the simulation is based
 		series.evaluate();
 		return (series);
 	}

@@ -3,12 +3,16 @@ package i5.las2peer.services.ocd.cooperation.data.simulation;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.persistence.Basic;
 import javax.persistence.Embeddable;
+
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 import org.apache.commons.math3.stat.StatUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 
@@ -20,23 +24,32 @@ import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 @Embeddable
 public class Evaluation implements Serializable {
 
+	//ArangoDB
+	public static final String collectionName = "evaluation";
+	public static final String averageColumnName = "AVERAGE";
+	public static final String varianceColumnName = "VARIANCE";
+	public static final String deviationColumnName = "DEVIATION";
+	public static final String maximumColumnName = "MAXIMUM";
+	public static final String minimumColumnName = "MINIMUM";
+	/////////////////////////
+
 	private static final long serialVersionUID = 1L;
 
 	///////// Entity Fields ///////////
 
-	@Basic
+	@JsonProperty
 	private double average;
 
-	@Basic
+	@JsonProperty
 	private double variance;
 
-	@Basic
+	@JsonProperty
 	private double deviation;
 
-	@Basic
+	@JsonProperty
 	private double maximum;
 
-	@Basic
+	@JsonProperty
 	private double minimum;
 
 	/////////// Constructor ///////////
@@ -124,59 +137,44 @@ public class Evaluation implements Serializable {
 
 	//////////// Getter /////////////
 
-	@JsonProperty
-	public double getAverage() {
-		return average;
-	}
+	public double getAverage() {return average; }
 
-	@JsonProperty
 	public double getVariance() {
 		return this.variance;
 	}
 
-	@JsonProperty
 	public double getDeviation() {
 		return this.deviation;
 	}
 
-	@JsonProperty
-	public double getMax() {
+	public double getMaximum() {
 		return maximum;
 	}
 
-	@JsonProperty
-	public double getMin() {
+	public double getMinimum() {
 		return minimum;
 	}
 
-	////// Setter //////
-
-	@JsonSetter
 	public void setAverage(double average) {
 		this.average = average;
 	}
 
-	@JsonSetter
 	public void setVariance(double variance) {
 		this.variance = variance;
 	}
 
-	@JsonSetter
 	public void setDeviation(double deviation) {
 		this.deviation = deviation;
 	}
 
-	@JsonSetter
-	public void setMax(double max) {
+	public void setMaximum(double max) {
 		this.maximum = max;
 	}
 
-	@JsonSetter
-	public void setMin(double min) {
+	public void setMinimum(double min) {
 		this.minimum = min;
 	}
 
-	/////////// Table ///////////
 
 	public TableRow toTableLine() {
 
@@ -192,4 +190,70 @@ public class Evaluation implements Serializable {
 		return line;
 	}
 
+
+
+	/**
+	 * Update column values to be stored in the database.
+	 * @param bd       Document holding updated values.
+	 * @return         Document with updated values.
+	 */
+	public BaseDocument updateDocument(BaseDocument bd){
+		bd.addAttribute(averageColumnName, this.getAverage());
+		bd.addAttribute(varianceColumnName, this.getVariance());
+		bd.addAttribute(deviationColumnName, this.getDeviation());
+		bd.addAttribute(maximumColumnName, this.getMaximum());
+		bd.addAttribute(minimumColumnName, this.getMinimum());
+		return bd;
+	}
+
+	// Persistence Methods
+	public void persist(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		BaseDocument bd = new BaseDocument();
+		updateDocument(bd);
+		collection.insertDocument(bd, createOptions);
+		//this.key = bd.getKey(); // if key is assigned before inserting (line above) the value is null
+	}
+
+	public void updateDB(ArangoDatabase db, String transId) {
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		updateDocument(bd);
+		System.out.println("about to store updated Evaluation with values: " + bd);//TODO:DELETE
+		//collection.updateDocument(this.key, bd, updateOptions);  //TODO: DELETE
+	}
+
+	public static Evaluation load(String key, ArangoDatabase db, String transId) {
+		Evaluation evaluation = new Evaluation();
+		ArangoCollection collection = db.collection(collectionName);
+
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
+		if (bd != null) {
+			//evaluation.setKey(bd.getKey());
+			evaluation.setAverage((double) bd.getAttribute(averageColumnName));
+			evaluation.setVariance((double) bd.getAttribute(varianceColumnName));
+			evaluation.setDeviation((double) bd.getAttribute(deviationColumnName));
+			evaluation.setMaximum((double) bd.getAttribute(maximumColumnName));
+			evaluation.setMinimum((double) bd.getAttribute(minimumColumnName));
+
+		}
+		else {
+			System.out.println("Evaluation with key " + key + " not found.");
+		}
+		return evaluation;
+	}
+
+	@Override
+	public String toString() {
+		return "Evaluation{" +
+				"average=" + average +
+				", variance=" + variance +
+				", deviation=" + deviation +
+				", maximum=" + maximum +
+				", minimum=" + minimum +
+				'}';
+	}
 }

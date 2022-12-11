@@ -1,22 +1,23 @@
 package i5.las2peer.services.ocd.cooperation.data.simulation;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import i5.las2peer.services.ocd.cooperation.data.mapping.correlation.Correlation;
 import i5.las2peer.services.ocd.cooperation.data.table.Table;
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
@@ -25,7 +26,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 /**
  * A SimulationSeries serves as a container for multiple SimulationDatasets.
- * 
+ *
  * If you repeat the same Simulation multiple times, you will get multiple
  * SimulationDatasets with the same parameters. This class is meant to group
  * them together and allow statistical evaluation of the data sets.
@@ -35,51 +36,45 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 @Entity
 public class SimulationSeries extends SimulationAbstract {
 
+	//ArangoDB
+	public static final String collectionName = "simulationseries";
+	public static final String simulationSeriesParametersColumnName = "SIMULATION_SERIES_PARAMETERS";
+	public static final String simulationDatasetsColumnName = "SIMULATION_DATASETS";
+	public static final String simulationSeriesGroupKeysColumnName = "SIMULATION_SERIES_GROUP_KEYS";
+	public static final String generationsColumnName = "GENERATIONS";
+
+
+
 	/////////////// Entity Fields ///////////////
 
-	/**
-	 * The id of the owner
-	 */
-	@Basic
-	private String userId;
 
 	/**
 	 * The simulation parameters used for this simulation series
 	 */
-	@Embedded
-	private SimulationSeriesParameters parameters;
+	private SimulationSeriesParameters simulationSeriesParameters;
+
 
 	/**
 	 * Statistical evaluation of the number of generations of the
 	 * SimulationDatasets
 	 */
-	@Transient
 	private Evaluation generationEvaluation;
 
 	/**
 	 * Correlation between the cooperation value and the average payoff of the
 	 * SimulationDatasets
 	 */
-	@Transient
 	private Correlation payoffCorrelation;
 
 	/**
 	 * A simulations series consists of multiple simulation datasets
 	 */
-	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JoinColumn
 	private List<SimulationDataset> simulationDatasets;
 
-	/**
-	 * A simulation series can be part of multiple groups
-	 */
-	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	private List<SimulationSeriesGroup> simulationGroups;
 
 	/**
 	 * Highest number of iterations of a dataset
 	 */
-	@Basic
 	private int generations;
 
 	///////////////// Constructor //////////////////
@@ -94,37 +89,29 @@ public class SimulationSeries extends SimulationAbstract {
 
 	/**
 	 * Creates a instance with datasets, parameters and graph.
-	 * 
-	 * @param parameters the parameters
+	 *
+	 * @param simulationSeriesParameters the parameters
 	 * @param datasets the datasets
 	 * @param graph the graph
 	 */
-	public SimulationSeries(SimulationSeriesParameters parameters, List<SimulationDataset> datasets, CustomGraph graph) {
-		this.setParameters(parameters);
+	public SimulationSeries(SimulationSeriesParameters simulationSeriesParameters, List<SimulationDataset> datasets, CustomGraph graph) {
+		this.setSimulationSeriesParameters(simulationSeriesParameters);
 		this.setSimulationDatasets(datasets);
 		this.setNetwork(graph);
 	}
-	
+
 	/**
 	 * Creates a instance with datasets and parameters
 	 *
-	 * @param parameters the parameters
+	 * @param simulationSeriesParameters the parameters
 	 * @param datasets the datasets
 	 */
-	public SimulationSeries(SimulationSeriesParameters parameters, List<SimulationDataset> datasets) {
-		this.setParameters(parameters);
+	public SimulationSeries(SimulationSeriesParameters simulationSeriesParameters, List<SimulationDataset> datasets) {
+		this.setSimulationSeriesParameters(simulationSeriesParameters);
 		this.setSimulationDatasets(datasets);
 	}
 
-	////////////////// Getter /////////////////////
 
-
-
-	@Override
-	@JsonIgnore
-	public String getUserId() {
-		return userId;
-	}
 
 	@JsonIgnore
 	public long getGenerations() {
@@ -132,8 +119,8 @@ public class SimulationSeries extends SimulationAbstract {
 	}
 
 	@JsonProperty
-	public SimulationSeriesParameters getParameters() {
-		return parameters;
+	public SimulationSeriesParameters getSimulationSeriesParameters() {
+		return simulationSeriesParameters;
 	}
 
 	@Override
@@ -149,50 +136,47 @@ public class SimulationSeries extends SimulationAbstract {
 
 	@JsonIgnore
 	public SimulationSeriesMetaData getMetaData() {
-		SimulationSeriesMetaData meta = new SimulationSeriesMetaData(this);		
+		SimulationSeriesMetaData meta = new SimulationSeriesMetaData(this);
 		return meta;
 	}
 
-	@JsonIgnore
-	public List<SimulationSeriesGroup> getSimulationSeriesGroups() {
-		return this.simulationGroups;
-	}
-	
-	////////////////// Setter /////////////////////
 
-	@Override
-	@JsonSetter
-	public void setUserId(String userId) {
-		this.userId = userId;
-	}
 
-	@JsonSetter
 	public void setGenerations(int generations) {
 		this.generations = generations;
 	}
 
-	@JsonSetter
-	public void setParameters(SimulationSeriesParameters parameters) {
-		this.parameters = parameters;
+
+	public void setSimulationSeriesParameters(SimulationSeriesParameters simulationSeriesParameters) {
+		this.simulationSeriesParameters = simulationSeriesParameters;
 	}
 
 	@Override
-	@JsonSetter
 	public void setGenerationEvaluation(Evaluation generationEvaluation) {
 		this.generationEvaluation = generationEvaluation;
 	}
 
-	@JsonSetter
 	public void setSimulationDatasets(List<SimulationDataset> simulationDatasets) {
 		this.simulationDatasets = simulationDatasets;
 	}
+
+
+	public Correlation getPayoffCorrelation() {
+		return payoffCorrelation;
+	}
+
+	public void setPayoffCorrelation(Correlation payoffCorrelation) {
+		this.payoffCorrelation = payoffCorrelation;
+	}
+
+
 
 	/////////////////// Methods ///////////////////////
 
 	/**
 	 * Create {@link Evaluation} objects with the values given by
 	 * {@link #getFinalCooperationValues()} and {@link #getFinalPayoffValues()}.
-	 * 
+	 *
 	 */
 	@Override
 	public void evaluate() {
@@ -263,7 +247,7 @@ public class SimulationSeries extends SimulationAbstract {
 	/**
 	 * Return the average community cooperation values of all SimulationDatasets
 	 * *
-	 * 
+	 *
 	 * @param communityList
 	 *            the list of communities
 	 * @return the values
@@ -286,7 +270,7 @@ public class SimulationSeries extends SimulationAbstract {
 	/**
 	 * Returns the average community cooperation value of the SimulationDatasets
 	 * *
-	 * 
+	 *
 	 * @param community
 	 *            the Community
 	 * @return average cooperation value
@@ -396,7 +380,7 @@ public class SimulationSeries extends SimulationAbstract {
 	@Override
 	public TableRow toTableLine() {
 
-		SimulationSeriesParameters parameters = getParameters();
+		SimulationSeriesParameters parameters = getSimulationSeriesParameters();
 		Evaluation coopEvaluation = getCooperationEvaluation();
 		Evaluation payoffEvaluation = getPayoffEvaluation();
 		// valuation generationEvaluation = getGenerationEvaluation();
@@ -411,7 +395,7 @@ public class SimulationSeries extends SimulationAbstract {
 
 	public TableRow toHeadLine() {
 
-		SimulationSeriesParameters parameters = getParameters();
+		SimulationSeriesParameters parameters = getSimulationSeriesParameters();
 		Evaluation coopEvaluation = getCooperationEvaluation();
 		Evaluation payoffEvaluation = getPayoffEvaluation();
 		// Evaluation generationEvaluation = getGenerationEvaluation();
@@ -424,6 +408,126 @@ public class SimulationSeries extends SimulationAbstract {
 
 		return line;
 
+	}
+
+
+
+
+
+	/**
+	 * Update column values to be stored in the database.
+	 * @param bd       Document holding updated values.
+	 * @return         Document with updated values.
+	 */
+	public BaseDocument updateDocument(BaseDocument bd){
+		bd.addAttribute(userIdColumnName, this.getUserId());
+		bd.addAttribute(simulationSeriesParametersColumnName, this.getSimulationSeriesParameters());
+		bd.addAttribute(generationsColumnName, this.getGenerations());
+		bd.addAttribute(simulationDatasetsColumnName, this.getSimulationDatasets());
+		// fields from superclass
+		bd.addAttribute(nameColumnName, this.getName());
+		bd.addAttribute(cooperativiatyColumnName, this.getCooperativiaty());
+		bd.addAttribute(wealthColumnName, this.getWealth());
+		bd.addAttribute(cooperationEvaluationColumnName, this.getCooperationEvaluation());
+		bd.addAttribute(payoffEvaluationColumnName, this.getPayoffEvaluation());
+		bd.addAttribute(generationEvaluationColumnName, this.getGenerationEvaluation());
+		if(this.getNetwork() != null) {
+			bd.addAttribute(graphKeyName, this.getNetwork().getKey());
+		}
+
+
+		return bd;
+	}
+
+	// Persistence Methods
+	public void persist(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		BaseDocument bd = new BaseDocument();
+		updateDocument(bd);
+		collection.insertDocument(bd, createOptions);
+		this.setKey(bd.getKey()); // if key is assigned before inserting (line above) the value is null
+	}
+
+	public void persist(ArangoDatabase db, String transId, String userId) {
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		BaseDocument bd = new BaseDocument();
+		updateDocument(bd);
+		bd.addAttribute(userIdColumnName, userId);
+		collection.insertDocument(bd, createOptions);
+		this.setKey(bd.getKey()); // if key is assigned before inserting (line above) the value is null
+	}
+
+
+	public void updateDB(ArangoDatabase db, String transId) {
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		updateDocument(bd);
+		collection.updateDocument(this.getKey(), bd, updateOptions);
+	}
+
+	/**
+	 * Helper method to convert object representation of a list
+	 * returned in a query into a list of datasets
+	 * @param simulationDatasetListObject         Object representing SimulationDataset list
+	 * @return                                    ArrayList representation of the input object
+	 */
+	public static List<SimulationDataset> objectToSimulationDatasetList(Object simulationDatasetListObject){
+		if (simulationDatasetListObject == null){
+			return new ArrayList<SimulationDataset>(); // TODO: should this return null or empty list?
+		}
+		ObjectMapper objectMapper = new ObjectMapper();
+		SimulationDataset[] simulationDatasetsArray = objectMapper.convertValue(simulationDatasetListObject, SimulationDataset[].class);
+		List<SimulationDataset> simulationDatasetsList = Arrays.asList(simulationDatasetsArray);
+
+		return simulationDatasetsList;
+	}
+
+	public static SimulationSeries load(String key, ArangoDatabase db, String transId) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		SimulationSeries simulationSeries = new SimulationSeries();
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
+		if (bd != null) {
+			simulationSeries.setKey(bd.getKey());
+			simulationSeries.setUserId((String) bd.getAttribute(userIdColumnName));
+			simulationSeries.setSimulationSeriesParameters(objectMapper.convertValue(bd.getAttribute(simulationSeriesParametersColumnName), SimulationSeriesParameters.class));
+			simulationSeries.setGenerations((int) bd.getAttribute(generationsColumnName));
+			simulationSeries.setSimulationDatasets(objectToSimulationDatasetList(bd.getAttribute(simulationDatasetsColumnName)));
+			// fields from superclass
+			simulationSeries.setName((String) bd.getAttribute(nameColumnName));
+			simulationSeries.setCooperativiaty((double) bd.getAttribute(cooperativiatyColumnName));
+			simulationSeries.setWealth((double) bd.getAttribute(wealthColumnName));
+			simulationSeries.setCooperationEvaluation(objectMapper.convertValue(bd.getAttribute(cooperationEvaluationColumnName), Evaluation.class));
+			simulationSeries.setPayoffEvaluation(objectMapper.convertValue(bd.getAttribute(payoffEvaluationColumnName), Evaluation.class));
+			simulationSeries.setGenerationEvaluation(objectMapper.convertValue(bd.getAttribute(generationEvaluationColumnName), Evaluation.class));
+
+			if(bd.getAttribute(graphKeyName) != null) {
+				simulationSeries.setNetwork(CustomGraph.load((String) bd.getAttribute(graphKeyName), db, transId));
+			}
+
+		}
+		else {
+			System.out.println("SimulationSeries with key " + key + " not found.");
+		}
+		return simulationSeries;
+	}
+
+	@Override
+	public String toString() {
+		return "SimulationSeries{" +
+				"key='" + this.getKey() + '\'' +
+				", cooperationEvaluation='" + getCooperationEvaluation() + '\'' +
+				", simulationSeriesParameters=" + simulationSeriesParameters +
+				", generationEvaluation=" + generationEvaluation +
+				", payoffCorrelation=" + payoffCorrelation +
+				", simulationDatasets=" + simulationDatasets +
+				", generations=" + generations +
+				'}';
 	}
 
 }
