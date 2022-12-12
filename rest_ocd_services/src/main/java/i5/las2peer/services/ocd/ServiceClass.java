@@ -4041,6 +4041,13 @@ public class ServiceClass extends RESTService {
 				for (String groupKey : groupKeys) {
 					try {
 						SimulationSeriesGroup group = database.getSimulationSeriesGroup(groupKey);
+						// load simulation series belonging to the group
+						// based on the simulation series keys stored in the group
+						List<SimulationSeries> simulationSeriesInGroup = new ArrayList<>();
+						for (String simulationSeriesKey : group.getSimulationSeriesKeys()){
+							simulationSeriesInGroup.add(database.getSimulationSeries(simulationSeriesKey));
+						}
+						group.setSimulationSeries(simulationSeriesInGroup);
 						groups.add(group);
 
 					} catch (Exception e) {
