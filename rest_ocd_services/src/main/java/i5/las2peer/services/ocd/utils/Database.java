@@ -178,31 +178,6 @@ public class Database {
 		if(!collection.exists()) {
 			collection.create();
 		}
-		//		collectionNames.add(SimulationSeriesParameters.collectionName);		//13
-//		collection = db.collection(SimulationSeriesParameters.collectionName);
-//		if(!collection.exists()) {
-//			collection.create();
-//		}
-//		collectionNames.add(AgentData.collectionName);		//14
-//		collection = db.collection(AgentData.collectionName);
-//		if(!collection.exists()) {
-//			collection.create();
-//		}
-//		collectionNames.add(SimulationDataset.collectionName);		//15
-//		collection = db.collection(SimulationDataset.collectionName);
-//		if(!collection.exists()) {
-//			collection.create();
-//		}
-//		collectionNames.add(Evaluation.collectionName);		//16
-//		collection = db.collection(Evaluation.collectionName);
-//		if(!collection.exists()) {
-//			collection.create();
-//		}
-//		collectionNames.add(GroupParameters.collectionName);		//17
-//		collection = db.collection(GroupParameters.collectionName);
-//		if(!collection.exists()) {
-//			collection.create();
-//		}
 
 	}
 	
@@ -1367,151 +1342,6 @@ public class Database {
 
 	//////////////////////////////////////////////////////////////// SIMULATIONS //////////////////////////////////////
 
-	/////////////////// SimulationSeriesParameters ///////////////////
-
-//	public String storeSimulationSeriesParameters(SimulationSeriesParameters simulationSeriesParameters) {
-//		String transId = this.getTransactionId(SimulationSeriesParameters.class, true);
-//		try {
-//			simulationSeriesParameters.persist(db, transId);
-//			db.commitStreamTransaction(transId);
-//		}catch(Exception e) {
-//			db.abortStreamTransaction(transId);
-//			throw e;
-//		}
-//		return simulationSeriesParameters.getKey();
-//	}
-
-
-//	public void updateSimulationSeriesParameters(SimulationSeriesParameters simulationSeriesParameters) {
-//		String transId = this.getTransactionId(SimulationSeriesParameters.class, true);
-//		try {
-//			simulationSeriesParameters.updateDB(db, transId);
-//			db.commitStreamTransaction(transId);
-//		} catch(Exception e) {
-//			db.abortStreamTransaction(transId);
-//			throw e;
-//		}
-//	}
-
-	public SimulationSeriesParameters getSimulationSeriesParameters(String key) {
-		String transId = getTransactionId(SimulationSeriesParameters.class, false);
-		SimulationSeriesParameters simulationSeriesParameters;
-		try {
-			simulationSeriesParameters = SimulationSeriesParameters.load(key, db, transId);
-			db.commitStreamTransaction(transId);
-		}catch(Exception e) {
-			db.abortStreamTransaction(transId);
-			throw e;
-		}
-		return simulationSeriesParameters;
-	}
-
-	private void deleteSimulationSeriesParameters(String key, String transId) {
-		ArangoCollection simulationSeriesParametersCollection = db.collection(SimulationSeriesParameters.collectionName);
-		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
-		simulationSeriesParametersCollection.deleteDocument(key, null, deleteOpt);
-	}
-
-	public void deleteSimulationSeriesParameters(String key) {
-		String transId = this.getTransactionId(SimulationSeriesParameters.class, true);
-		try {
-			deleteSimulationSeriesParameters(key, transId);
-			db.commitStreamTransaction(transId);
-		}catch(Exception e) {
-			e.printStackTrace();
-			db.abortStreamTransaction(transId);
-			throw e;
-		}
-	}
-
-	/////////////////// AgentData ///////////////////
-
-//	public String storeAgentData(AgentData agentData) {
-//		String transId = this.getTransactionId(AgentData.class, true);
-//		try {
-//			agentData.persist(db, transId);
-//			db.commitStreamTransaction(transId);
-//		}catch(Exception e) {
-//			db.abortStreamTransaction(transId);
-//			throw e;
-//		}
-//		return agentData.getKey();
-//	}
-//
-//	public void updateAgentData(AgentData agentData) {
-//		String transId = this.getTransactionId(AgentData.class, true);
-//		try {
-//			agentData.updateDB(db, transId);
-//			db.commitStreamTransaction(transId);
-//		} catch(Exception e) {
-//			db.abortStreamTransaction(transId);
-//			throw e;
-//		}
-//	}
-
-//	public AgentData getAgentData(String key) {
-//		String transId = getTransactionId(AgentData.class, false);
-//		AgentData agentData;
-//		try {
-//			agentData = AgentData.load(key, db, transId);
-//			db.commitStreamTransaction(transId);
-//		}catch(Exception e) {
-//			db.abortStreamTransaction(transId);
-//			throw e;
-//		}
-//		return agentData;
-//	}
-
-	private void deleteAgentData(String key, String transId) {
-		ArangoCollection agentDataCollection = db.collection(AgentData.collectionName);
-		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
-		agentDataCollection.deleteDocument(key, null, deleteOpt);
-	}
-
-	/////////////////// SimulationDataset ///////////////////
-
-	public String storeSimulationDataset(SimulationDataset simulationDataset) {
-		String transId = this.getTransactionId(SimulationDataset.class, true);
-		try {
-			simulationDataset.persist(db, transId);
-			db.commitStreamTransaction(transId);
-		}catch(Exception e) {
-			db.abortStreamTransaction(transId);
-			throw e;
-		}
-		return simulationDataset.getKey();
-	}
-
-	public void updateSimulationDataset(SimulationDataset simulationDataset) {
-		String transId = this.getTransactionId(SimulationDataset.class, true);
-		try {
-			simulationDataset.updateDB(db, transId);
-			db.commitStreamTransaction(transId);
-		} catch(Exception e) {
-			db.abortStreamTransaction(transId);
-			throw e;
-		}
-	}
-
-	public SimulationDataset getSimulationDataset(String key) {
-		String transId = getTransactionId(SimulationDataset.class, false);
-		SimulationDataset simulationDataset;
-		try {
-			simulationDataset = SimulationDataset.load(key, db, transId);
-			db.commitStreamTransaction(transId);
-		}catch(Exception e) {
-			db.abortStreamTransaction(transId);
-			throw e;
-		}
-		return simulationDataset;
-	}
-
-	private void deleteSimulationDataset(String key, String transId) {
-		ArangoCollection simulationDatasetCollection = db.collection(SimulationDataset.collectionName);
-		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
-		simulationDatasetCollection.deleteDocument(key, null, deleteOpt);
-	}
-
 	/////////////////// SimulationSeries ///////////////////
 
 	public String storeSimulationSeries(SimulationSeries simulationSeries) {
@@ -1656,95 +1486,6 @@ public class Database {
 		return getSimulationSeriesByUser(userId,true,firstIndex,length,graphKey);
 	}
 
-
-	/////////////////// Evaluation ///////////////////
-
-//	public String storeEvaluation(Evaluation evaluation) {
-//		String transId = this.getTransactionId(Evaluation.class, true);
-//		try {
-//			evaluation.persist(db, transId);
-//			db.commitStreamTransaction(transId);
-//		}catch(Exception e) {
-//			db.abortStreamTransaction(transId);
-//			throw e;
-//		}
-//		return evaluation.getKey();
-//	}
-
-	public void updateEvaluation(Evaluation evaluation) {
-		String transId = this.getTransactionId(Evaluation.class, true);
-		try {
-			evaluation.updateDB(db, transId);
-			db.commitStreamTransaction(transId);
-		} catch(Exception e) {
-			db.abortStreamTransaction(transId);
-			throw e;
-		}
-	}
-
-	public Evaluation getEvaluation(String key) {
-		String transId = getTransactionId(Evaluation.class, false);
-		Evaluation evaluation;
-		try {
-			evaluation = Evaluation.load(key, db, transId);
-			db.commitStreamTransaction(transId);
-		}catch(Exception e) {
-			db.abortStreamTransaction(transId);
-			throw e;
-		}
-		return evaluation;
-	}
-
-	private void deleteEvaluation(String key, String transId) {
-		ArangoCollection evaluationCollection = db.collection(Evaluation.collectionName);
-		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
-		evaluationCollection.deleteDocument(key, null, deleteOpt);
-	}
-
-	/////////////////// GroupParameters ///////////////////
-
-//	public String storeGroupParameters(GroupParameters groupParameters) {
-//		String transId = this.getTransactionId(GroupParameters.class, true);
-//		try {
-//			groupParameters.persist(db, transId);
-//			db.commitStreamTransaction(transId);
-//		}catch(Exception e) {
-//			db.abortStreamTransaction(transId);
-//			throw e;
-//		}
-//		return groupParameters.getKey();
-//	}
-
-	public void updateGroupParameters(GroupParameters groupParameters) {
-		String transId = this.getTransactionId(GroupParameters.class, true);
-		try {
-			groupParameters.updateDB(db, transId);
-			db.commitStreamTransaction(transId);
-		} catch(Exception e) {
-			db.abortStreamTransaction(transId);
-			throw e;
-		}
-	}
-
-	public GroupParameters getGroupParameters(String key) {
-		String transId = getTransactionId(GroupParameters.class, false);
-		GroupParameters groupParameters;
-		try {
-			groupParameters = GroupParameters.load(key, db, transId);
-			db.commitStreamTransaction(transId);
-		}catch(Exception e) {
-			db.abortStreamTransaction(transId);
-			throw e;
-		}
-		return groupParameters;
-	}
-
-	private void deleteGroupParameters(String key, String transId) {
-		ArangoCollection groupParametersCollection = db.collection(GroupParameters.collectionName);
-		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
-		groupParametersCollection.deleteDocument(key, null, deleteOpt);
-	}
-
 	/////////////////// SimulationSeriesGroup ///////////////////
 
 	public String storeSimulationSeriesGroup(SimulationSeriesGroup simulationSeriesGroup) {
@@ -1859,7 +1600,6 @@ public class Database {
 			throw e;
 		}
 	}
-
 
 	
 	/////////////////////////// InactivityData ///////////////////////////
@@ -2022,21 +1762,6 @@ public class Database {
 		else if(c == SimulationSeriesGroup.class){
 			collections = collectionNames.subList(11,13).toArray(new String[1]);
 		}
-//		else if(c == SimulationSeriesParameters.class){
-//			collections = collectionNames.subList(11,18).toArray(new String[1]);
-//		}
-//		else if(c == SimulationDataset.class){
-//			collections = collectionNames.subList(11,18).toArray(new String[1]);
-//		}
-//		else if(c == GroupParameters.class){
-//			collections = collectionNames.subList(11,18).toArray(new String[1]);
-//		}
-//		else if(c == AgentData.class){
-//			collections = collectionNames.subList(11,18).toArray(new String[1]);
-//		}
-//		else if(c == Evaluation.class){
-//			collections = collectionNames.subList(11,18).toArray(new String[1]);
-//		}
 		else {
 			collections = collectionNames.subList(0, 10).toArray(new String[10]);
 		}

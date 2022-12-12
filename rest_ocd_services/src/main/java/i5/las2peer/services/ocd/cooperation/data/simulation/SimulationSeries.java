@@ -43,8 +43,6 @@ public class SimulationSeries extends SimulationAbstract {
 	public static final String simulationSeriesGroupKeysColumnName = "SIMULATION_SERIES_GROUP_KEYS";
 	public static final String generationsColumnName = "GENERATIONS";
 
-
-
 	/////////////// Entity Fields ///////////////
 
 
@@ -409,10 +407,6 @@ public class SimulationSeries extends SimulationAbstract {
 		return line;
 
 	}
-
-
-
-
 
 	/**
 	 * Update column values to be stored in the database.

@@ -31,25 +31,6 @@ public class SimulationSeriesParameters implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	//ArangoDB
-	public static final String collectionName = "simulationseriesparameters";
-	private static final String gameTypeColumnName = "GAME_TYPE";
-	private static final String payoffCCColumnName = "PAYOFF_CC";
-	private static final String payoffCDColumnName = "PAYOFF_CD";
-	private static final String payoffDDColumnName = "PAYOFF_DD";
-	private static final String payoffDCColumnName = "PAYOFF_DC";
-	private static final String dynamicValueColumnName = "DYNAMIC_VALUE";
-	private static final String dynamicTypeIdColumnName = "DYNAMIC_TYPE";
-	private static final String conditionTypeIdColumnName = "CONDITION_TYPE";
-	private static final String maxIterationsColumnName = "MAX_ITERATIONS";
-	private static final String minIterationsColumnName = "MIN_ITERATIONS";
-	private static final String timeWindowColumnName = "TIME_WINDOW";
-	private static final String thresholdColumnName = "THRESHOLD";
-	private static final String iterationsColumnName = "ITERATIONS";
-	private static final String simulationNameColumnName = "SIMULATION_NAME";
-	private static final String graphNameColumnName = "GRAPH_NAME";
-
-
 	@JsonProperty
 	private String graphKey;
 
@@ -314,83 +295,6 @@ public class SimulationSeriesParameters implements Serializable {
 	public void setSimulationName(String simulationName) {
 		this.simulationName = simulationName;
 	}
-
-
-
-	/**
-	 * Update column values to be stored in the database.
-	 * @param bd       Document holding updated values.
-	 * @return         Document with updated values.
-	 */
-	public BaseDocument updateDocument(BaseDocument bd){
-		bd.addAttribute(gameTypeColumnName, this.game.humanRead());
-		bd.addAttribute(payoffCCColumnName, this.payoffCC);
-		bd.addAttribute(payoffCDColumnName, this.payoffCD);
-		bd.addAttribute(payoffDDColumnName, this.payoffDD);
-		bd.addAttribute(payoffDCColumnName, this.payoffDC);
-		bd.addAttribute(dynamicValueColumnName, this.dynamicValue);
-		bd.addAttribute(dynamicTypeIdColumnName, this.dynamic.humanRead());
-		bd.addAttribute(conditionTypeIdColumnName, this.condition.humanRead());
-		bd.addAttribute(maxIterationsColumnName, this.maxIterations);
-		bd.addAttribute(minIterationsColumnName, this.minIterations);
-		bd.addAttribute(timeWindowColumnName, this.timeWindow);
-		bd.addAttribute(thresholdColumnName, this.threshold);
-		bd.addAttribute(iterationsColumnName, this.iterations);
-		bd.addAttribute(simulationNameColumnName, this.simulationName);
-		bd.addAttribute(graphNameColumnName, this.graphName);
-
-		return bd;
-	}
-
-
-	// Persistence Methods
-	public void persist(ArangoDatabase db, String transId) {
-		ArangoCollection collection = db.collection(collectionName);
-		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
-		BaseDocument bd = new BaseDocument();
-		updateDocument(bd);
-		collection.insertDocument(bd, createOptions);
-		//this.key = bd.getKey(); // if key is assigned before inserting (line above) the value is null
-	}
-
-	public void updateDB(ArangoDatabase db, String transId) {
-		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
-
-		ArangoCollection collection = db.collection(collectionName);
-		BaseDocument bd = new BaseDocument();
-		updateDocument(bd);
-		//collection.updateDocument(this.key, bd, updateOptions);
-	}
-
-	public static SimulationSeriesParameters load(String key, ArangoDatabase db, String transId) {
-		SimulationSeriesParameters simulationSeriesParameters = new SimulationSeriesParameters();
-		ArangoCollection collection = db.collection(collectionName);
-
-		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
-		if (bd != null) {
-			//simulationSeriesParameters.setKey(bd.getKey());
-			simulationSeriesParameters.setGame(bd.getAttribute(gameTypeColumnName).toString());
-			simulationSeriesParameters.setPayoffCC((double) bd.getAttribute(payoffCCColumnName));
-			simulationSeriesParameters.setPayoffCD((double) bd.getAttribute(payoffCDColumnName));
-			simulationSeriesParameters.setPayoffDD((double) bd.getAttribute(payoffDDColumnName));
-			simulationSeriesParameters.setPayoffDC((double) bd.getAttribute(payoffDCColumnName));
-			simulationSeriesParameters.setDynamicValue((double) bd.getAttribute(dynamicValueColumnName));
-			simulationSeriesParameters.setDynamic(bd.getAttribute(dynamicTypeIdColumnName).toString());
-			simulationSeriesParameters.setCondition(bd.getAttribute(conditionTypeIdColumnName).toString());
-			simulationSeriesParameters.setMaxIterations((int) bd.getAttribute(maxIterationsColumnName));
-			simulationSeriesParameters.setMinIterations((int) bd.getAttribute(minIterationsColumnName));
-			simulationSeriesParameters.setTimeWindow((int) bd.getAttribute(timeWindowColumnName));
-			simulationSeriesParameters.setThreshold((int) bd.getAttribute(thresholdColumnName));
-			simulationSeriesParameters.setIterations((int) bd.getAttribute(iterationsColumnName));
-			simulationSeriesParameters.setSimulationName(bd.getAttribute(simulationNameColumnName).toString());
-			simulationSeriesParameters.setGraphName(bd.getAttribute(graphNameColumnName).toString());
-		}
-		else {
-			System.out.println("SimulationSeriesParameter with key " + key + " not found.");
-		}
-		return simulationSeriesParameters;
-	}
-
 
 	///////////// Methods /////////////
 	

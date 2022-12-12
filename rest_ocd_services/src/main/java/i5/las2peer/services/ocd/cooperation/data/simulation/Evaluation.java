@@ -24,18 +24,8 @@ import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 @Embeddable
 public class Evaluation implements Serializable {
 
-	//ArangoDB
-	public static final String collectionName = "evaluation";
-	public static final String averageColumnName = "AVERAGE";
-	public static final String varianceColumnName = "VARIANCE";
-	public static final String deviationColumnName = "DEVIATION";
-	public static final String maximumColumnName = "MAXIMUM";
-	public static final String minimumColumnName = "MINIMUM";
-	/////////////////////////
 
 	private static final long serialVersionUID = 1L;
-
-	///////// Entity Fields ///////////
 
 	@JsonProperty
 	private double average;
@@ -188,62 +178,6 @@ public class Evaluation implements Serializable {
 		TableRow line = new TableRow();
 		line.add("avg").add("std");
 		return line;
-	}
-
-
-
-	/**
-	 * Update column values to be stored in the database.
-	 * @param bd       Document holding updated values.
-	 * @return         Document with updated values.
-	 */
-	public BaseDocument updateDocument(BaseDocument bd){
-		bd.addAttribute(averageColumnName, this.getAverage());
-		bd.addAttribute(varianceColumnName, this.getVariance());
-		bd.addAttribute(deviationColumnName, this.getDeviation());
-		bd.addAttribute(maximumColumnName, this.getMaximum());
-		bd.addAttribute(minimumColumnName, this.getMinimum());
-		return bd;
-	}
-
-	// Persistence Methods
-	public void persist(ArangoDatabase db, String transId) {
-		ArangoCollection collection = db.collection(collectionName);
-		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
-		BaseDocument bd = new BaseDocument();
-		updateDocument(bd);
-		collection.insertDocument(bd, createOptions);
-		//this.key = bd.getKey(); // if key is assigned before inserting (line above) the value is null
-	}
-
-	public void updateDB(ArangoDatabase db, String transId) {
-		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
-
-		ArangoCollection collection = db.collection(collectionName);
-		BaseDocument bd = new BaseDocument();
-		updateDocument(bd);
-		System.out.println("about to store updated Evaluation with values: " + bd);//TODO:DELETE
-		//collection.updateDocument(this.key, bd, updateOptions);  //TODO: DELETE
-	}
-
-	public static Evaluation load(String key, ArangoDatabase db, String transId) {
-		Evaluation evaluation = new Evaluation();
-		ArangoCollection collection = db.collection(collectionName);
-
-		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
-		if (bd != null) {
-			//evaluation.setKey(bd.getKey());
-			evaluation.setAverage((double) bd.getAttribute(averageColumnName));
-			evaluation.setVariance((double) bd.getAttribute(varianceColumnName));
-			evaluation.setDeviation((double) bd.getAttribute(deviationColumnName));
-			evaluation.setMaximum((double) bd.getAttribute(maximumColumnName));
-			evaluation.setMinimum((double) bd.getAttribute(minimumColumnName));
-
-		}
-		else {
-			System.out.println("Evaluation with key " + key + " not found.");
-		}
-		return evaluation;
 	}
 
 	@Override

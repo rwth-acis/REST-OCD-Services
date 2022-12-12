@@ -24,28 +24,15 @@ import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 @Entity
 public class GroupParameters implements TableLineInterface {
 
-	//ArangoDB
-	public static final String collectionName = "groupparameters";
-	public static final String simulationSeriesGroupKeyColumnName = "SIMULATION_SERIES_GROUP_KEY";
-	public static final String graphKeyColumnName = "GRAPH_KEY";
-	private static final String gameTypeColumnName = "GAME_TYPE";
-	private static final String scalingColumnName = "SCALING";
-	private static final String dynamicTypeColumnName = "DYNAMIC_TYPE";
-
-	////////// Entity Fields //////////
-
 	@JsonProperty
 	private String graphKey;
 
-	//@Enumerated(EnumType.STRING)
 	@JsonProperty
 	private GroupType game; //TODO: why is this GroupType and not GameType?
 
-	//@Basic
 	@JsonProperty
 	private int scaling;
 
-	//@Enumerated(EnumType.STRING)
 	@JsonProperty
 	private DynamicType dynamic;
 
@@ -127,60 +114,6 @@ public class GroupParameters implements TableLineInterface {
 		TableRow line = new TableRow();
 		line.add("");
 		return line;
-	}
-
-
-
-	/**
-	 * Update column values to be stored in the database.
-	 * @param bd       Document holding updated values.
-	 * @return         Document with updated values.
-	 */
-	public BaseDocument updateDocument(BaseDocument bd){
-		//bd.addAttribute(simulationSeriesGroupKeyColumnName, this.getSimulationSeriesGroupKey());
-		bd.addAttribute(graphKeyColumnName, this.getGraphKey());
-		bd.addAttribute(gameTypeColumnName, this.getGame().humanRead());
-		bd.addAttribute(scalingColumnName, this.getScaling());
-		bd.addAttribute(dynamicTypeColumnName, this.getDynamic().humanRead());
-		return bd;
-	}
-
-	// Persistence Methods
-	public void persist(ArangoDatabase db, String transId) {
-		ArangoCollection collection = db.collection(collectionName);
-		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
-		BaseDocument bd = new BaseDocument();
-		updateDocument(bd);
-		collection.insertDocument(bd, createOptions);
-		//this.key = bd.getKey(); // if key is assigned before inserting (line above) the value is null
-	}
-
-	public void updateDB(ArangoDatabase db, String transId) {
-		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
-
-		ArangoCollection collection = db.collection(collectionName);
-		BaseDocument bd = new BaseDocument();
-		updateDocument(bd);
-		//collection.updateDocument(this.key, bd, updateOptions);
-	}
-
-	public static GroupParameters load(String key, ArangoDatabase db, String transId) {
-		GroupParameters groupParameters = new GroupParameters();
-		ArangoCollection collection = db.collection(collectionName);
-
-		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
-		if (bd != null) {
-			//groupParameters.setKey(bd.getKey());
-			groupParameters.setGraphKey(bd.getAttribute(graphKeyColumnName).toString());
-			groupParameters.setGame(bd.getAttribute(gameTypeColumnName).toString());
-			groupParameters.setScaling((int) bd.getAttribute(scalingColumnName));
-			groupParameters.setDynamic(bd.getAttribute(dynamicTypeColumnName).toString());
-
-		}
-		else {
-			System.out.println("GroupParameters with key " + key + " not found.");
-		}
-		return groupParameters;
 	}
 
 	@Override

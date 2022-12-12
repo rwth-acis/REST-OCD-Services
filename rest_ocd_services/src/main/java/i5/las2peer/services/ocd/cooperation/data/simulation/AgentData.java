@@ -4,11 +4,6 @@ import java.util.List;
 
 import javax.persistence.*;
 
-import com.arangodb.ArangoCollection;
-import com.arangodb.ArangoDatabase;
-import com.arangodb.entity.BaseDocument;
-import com.arangodb.model.DocumentCreateOptions;
-import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,15 +11,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AgentData {
-
-	//ArangoDB
-	public static final String collectionName = "agentdata";
-	public static final String simulationDatasetKeyColumnName = "SIMULATION_DATASET_KEY";
-	public static final String cooperativityColumnName = "COOPERATIVITY";
-	public static final String wealthColumnName = "WEALTH";
-	public static final String finalStrategyColumnName = "FINAL_STRATEGY";
-	public static final String finalPayoffColumnName = "FINAL_PAYOFF";
-
 
 	/**
 	 * The simulation dataset this agent data belongs to
@@ -161,57 +147,6 @@ public class AgentData {
 	}
 
 
-	/**
-	 * Update column values to be stored in the database.
-	 * @param bd       Document holding updated values.
-	 * @return         Document with updated values.
-	 */
-	public BaseDocument updateDocument(BaseDocument bd){
-		//bd.addAttribute(simulationDatasetKeyColumnName, this.simulationDatasetKey); //TODO: DELETE
-		bd.addAttribute(cooperativityColumnName, this.cooperativity);
-		bd.addAttribute(wealthColumnName, this.wealth);
-		bd.addAttribute(finalStrategyColumnName, this.finalStrategy);
-		bd.addAttribute(finalPayoffColumnName, this.finalPayoff);
-		return bd;
-	}
-
-	// Persistence Methods
-	public void persist(ArangoDatabase db, String transId) {
-		ArangoCollection collection = db.collection(collectionName);
-		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
-		BaseDocument bd = new BaseDocument();
-		updateDocument(bd);
-		collection.insertDocument(bd, createOptions);
-		//this.key = bd.getKey(); // if key is assigned before inserting (line above) the value is null
-	}
-
-	public void updateDB(ArangoDatabase db, String transId) {
-		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
-
-		ArangoCollection collection = db.collection(collectionName);
-		BaseDocument bd = new BaseDocument();
-		updateDocument(bd);
-		//collection.updateDocument(this.key, bd, updateOptions);
-	}
-
-
-	public static AgentData load(String key, ArangoDatabase db, String transId) {
-		AgentData agentData = new AgentData();
-		ArangoCollection collection = db.collection(collectionName);
-
-		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
-		if (bd != null) {
-			agentData.setCooperativity((double) bd.getAttribute(cooperativityColumnName));
-			agentData.setWealth((double) bd.getAttribute(wealthColumnName));
-			agentData.setFinalStrategy((boolean) bd.getAttribute(finalStrategyColumnName));
-			agentData.setFinalPayoff((double) bd.getAttribute(finalPayoffColumnName));
-
-		}
-		else {
-			System.out.println("AgentData with key " + key + " not found.");
-		}
-		return agentData;
-	}
 
 	@Override
 	public String toString() {

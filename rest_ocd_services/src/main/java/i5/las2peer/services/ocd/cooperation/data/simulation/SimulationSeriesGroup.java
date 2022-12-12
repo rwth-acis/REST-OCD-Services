@@ -356,18 +356,10 @@ public class SimulationSeriesGroup extends SimulationAbstract {
 		bd.addAttribute(super.cooperationEvaluationColumnName, new Evaluation(getAverageFinalCooperationValues()));
 		bd.addAttribute(super.payoffEvaluationColumnName, new Evaluation(getAverageFinalPayoffValues()));
 
-
-//		bd.addAttribute(super.generationEvaluationColumnName, super.getGenerationEvaluationKey());
-//		if(this.getNetwork() != null) {
-//			bd.addAttribute(graphKeyName, this.getNetwork().getKey());
-//		}
-
 		// extra attribute for the WebClient
 		if(this.getSimulationSeriesKeys() != null) {
 			bd.addAttribute("size", this.getSimulationSeriesKeys().size());
 		}
-
-
 
 		return bd;
 	}
@@ -433,10 +425,6 @@ public class SimulationSeriesGroup extends SimulationAbstract {
 			simulationSeriesGroup.setCooperationEvaluation(objectMapper.convertValue(bd.getAttribute(cooperationEvaluationColumnName), Evaluation.class));
 			simulationSeriesGroup.setPayoffEvaluation(objectMapper.convertValue(bd.getAttribute(payoffEvaluationColumnName), Evaluation.class));
 //			simulationSeriesGroup.setGenerationEvaluation(objectMapper.convertValue(bd.getAttribute(generationEvaluationColumnName), Evaluation.class));
-
-//			if(bd.getAttribute(graphKeyName) != null) {
-//				simulationSeriesGroup.setNetwork(CustomGraph.load((String) bd.getAttribute(graphKeyName), db, transId));
-//			}
 
 
 			// set metadata related to the simulation series group

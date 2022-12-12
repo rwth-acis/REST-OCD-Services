@@ -29,20 +29,8 @@ import i5.las2peer.services.ocd.graphs.Community;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SimulationDataset extends SimulationAbstract {
 
-	//ArangoDB
-	public static final String collectionName = "simulationdataset";
-	public static final String simulationSeriesKeyColumnName = "SIMULATION_SERIES_KEY";
-	public static final String finalCooperationValueColumnName = "FINAL_COOPERATION_VALUE";
-	public static final String finalPayoffValueColumnName = "FINAL_PAYOFF_VALUE";
-	public static final String iterationsColumnName = "ITERATIONS";
-	public static final String cooperationValuesColumnName = "COOPERATION_VALUES";
-	public static final String payoffValuesColumnName = "PAYOFF_VALUES";
-
-	////////// Entity Fields //////////
-
 	@JsonProperty
 	private List<AgentData> agentData;
-
 
 	@JsonProperty
 	private double finalCooperationValue;
@@ -281,51 +269,6 @@ public class SimulationDataset extends SimulationAbstract {
 		return table;
 	}
 
-
-	/**
-	 * Update column values to be stored in the database.
-	 * @param bd       Document holding updated values.
-	 * @return         Document with updated values.
-	 */
-	public BaseDocument updateDocument(BaseDocument bd){
-
-		bd.addAttribute(finalCooperationValueColumnName, this.getFinalCooperationValue());
-		bd.addAttribute(finalPayoffValueColumnName, this.getFinalPayoffValue());
-		bd.addAttribute(iterationsColumnName, this.getIterations());
-		bd.addAttribute(cooperationValuesColumnName, this.getCooperationValues());
-		bd.addAttribute(payoffValuesColumnName, this.getPayoffValues());
-		// fields from superclass
-//		bd.addAttribute(super.userIdColumnName, super.getUserId());
-//		bd.addAttribute(super.nameColumnName, super.getName());
-//		bd.addAttribute(super.cooperativiatyColumnName, super.getCooperativiaty());
-//		bd.addAttribute(super.wealthColumnName, super.getWealth());
-//		bd.addAttribute(super.cooperationEvaluationKeyName, super.getCooperationEvaluationKey());
-//		bd.addAttribute(super.payoffEvaluationKeyName, super.getPayoffEvaluationKey());
-//		bd.addAttribute(super.generationEvaluationKeyName, super.getGenerationEvaluationKey());
-//		bd.addAttribute(super.graphKeyName, super.getGraphKey());
-
-		return bd;
-	}
-
-	// Persistence Methods
-	public void persist(ArangoDatabase db, String transId) {
-		ArangoCollection collection = db.collection(collectionName);
-		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
-		BaseDocument bd = new BaseDocument();
-		updateDocument(bd);
-		collection.insertDocument(bd, createOptions);
-		//this.key = bd.getKey(); // if key is assigned before inserting (line above) the value is null
-	}
-
-	public void updateDB(ArangoDatabase db, String transId) {
-		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
-
-		ArangoCollection collection = db.collection(collectionName);
-		BaseDocument bd = new BaseDocument();
-		updateDocument(bd);
-		//collection.updateDocument(this.key, bd, updateOptions);
-	}
-
 	/**
 	 * Helper method to convert object representation of a list
 	 * returned in a query into an array list
@@ -337,34 +280,6 @@ public class SimulationDataset extends SimulationAbstract {
 		ArrayList<Double> res;
 		res = objectMapper.convertValue(listToParse, ArrayList.class);
 		return res;
-	}
-
-	public static SimulationDataset load(String key, ArangoDatabase db, String transId) {
-		SimulationDataset simulationDataset = new SimulationDataset();
-		ArangoCollection collection = db.collection(collectionName);
-
-		BaseDocument bd = collection.getDocument(key, BaseDocument.class);
-		if (bd != null) {
-			simulationDataset.setKey(bd.getKey());
-			simulationDataset.setFinalCooperationValue((double) bd.getAttribute(finalCooperationValueColumnName));
-			simulationDataset.setFinalPayoffValue((double) bd.getAttribute(finalPayoffValueColumnName));
-			simulationDataset.setIterations((double) bd.getAttribute(iterationsColumnName));
-			simulationDataset.setCooperationValues(documentToArrayList(bd.getAttribute(cooperationValuesColumnName)));
-			simulationDataset.setPayoffValues(documentToArrayList(bd.getAttribute(payoffValuesColumnName)));
-			// fields from superclass
-//			simulationDataset.setUserId(bd.getAttribute(userIdColumnName).toString());
-//			simulationDataset.setName(bd.getAttribute(nameColumnName).toString());
-//			simulationDataset.setCooperativiaty((double) bd.getAttribute(cooperativiatyColumnName));
-//			simulationDataset.setWealth((double) bd.getAttribute(wealthColumnName));
-//			simulationDataset.setCooperationEvaluationKey(bd.getAttribute(cooperationEvaluationKeyName).toString());
-//			simulationDataset.setPayoffEvaluationKey(bd.getAttribute(payoffEvaluationKeyName).toString());
-//			simulationDataset.setGenerationEvaluationKey(bd.getAttribute(generationEvaluationKeyName).toString());
-//			simulationDataset.setGraphKey(bd.getAttribute(graphKeyName).toString());
-		}
-		else {
-			System.out.println("SimulationDataset with key " + key + " not found.");
-		}
-		return simulationDataset;
 	}
 
 	@Override
