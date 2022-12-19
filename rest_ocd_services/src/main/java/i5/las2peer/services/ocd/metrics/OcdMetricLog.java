@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.metrics;
 
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.GraphCreationLog;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 import java.util.HashMap;
@@ -16,6 +17,14 @@ import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
+
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * A log representation for an OcdMetric execution.
@@ -35,8 +44,12 @@ public class OcdMetricLog {
 	public static final String coverIdColumnName = "COVER_ID";
 	public static final String graphIdColumnName = "GRAPH_ID";
 	public static final String graphUserColumnName = "USER_NAME";
-	private static final String statusIdColumnName = "STATUS";
+	public static final String statusIdColumnName = "STATUS";
 	
+	//ArangoDB
+	public static final String coverKeyColumnName = "COVER_KEY";
+	private static final String parameterColumnName = "PARAMETER";
+	public static final String collectionName = "ocdmetriclog";
 	/*
 	 * Field names
 	 */
@@ -47,10 +60,14 @@ public class OcdMetricLog {
 	/**
 	 * System generated persistence id.
 	 */
+	private long id;
+	/**
+	 * System generated persistence key.
+	 */
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
-	private long id;
+	private String key = "";
 	/**
 	 * The cover the metric was run on.
 	 */
@@ -121,7 +138,15 @@ public class OcdMetricLog {
 	public long getId() {
 		return id;
 	}
-
+	
+	/**
+	 * Returns the log key.
+	 * @return The key.
+	 */
+	public String getKey() {
+		return key;
+	}
+	
 	/**
 	 * Returns the type of the corresponding metric.
 	 * @return The type.
@@ -176,6 +201,82 @@ public class OcdMetricLog {
 	 */
 	public Cover getCover() {
 		return cover;
+	}
+	
+	//persistence functions
+	public void persist( ArangoDatabase db, DocumentCreateOptions opt) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(typeColumnName, this.typeId);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(valueColumnName, this.value);
+		bd.addAttribute(parameterColumnName, this.parameters); 
+		bd.addAttribute(coverKeyColumnName, this.cover.getKey());
+		
+		collection.insertDocument(bd, opt);
+		this.key = bd.getKey();
+	}
+	
+	public void updateDB( ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentUpdateOptions updateOpt = new DocumentUpdateOptions().streamTransactionId(transId);
+		
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(typeColumnName, this.typeId);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(valueColumnName, this.value);
+		bd.addAttribute(parameterColumnName, this.parameters);
+		bd.addAttribute(coverKeyColumnName, this.cover.getKey());
+		
+		collection.updateDocument(this.key, bd, updateOpt);
+	}	
+	
+	
+	
+	public static OcdMetricLog load(String key, Cover cover, ArangoDatabase db, DocumentReadOptions opt) {
+		OcdMetricLog oml = null;
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
+		
+		if (bd != null) {
+			oml = new OcdMetricLog();
+			ObjectMapper om = new ObjectMapper();
+			String coverKey = bd.getAttribute(coverKeyColumnName).toString();
+			if(!coverKey.equals(cover.getKey())) {
+				System.out.println("cover with key: " + cover.getKey() + " does not fit to cover with CoverKey: " + coverKey);
+				return null;
+			}
+			Object objParameter = bd.getAttribute(parameterColumnName);
+			String valueString = bd.getAttribute(valueColumnName).toString();
+			String typeIdString = bd.getAttribute(typeColumnName).toString();
+			String statusIdString = bd.getAttribute(statusIdColumnName).toString();	
+
+			oml.cover = cover;
+			if (objParameter != null) {
+				oml.parameters = om.convertValue(objParameter, Map.class);
+			}
+			oml.value = Double.parseDouble(valueString);
+			oml.typeId = Integer.parseInt(typeIdString);
+			oml.statusId = Integer.parseInt(statusIdString);
+			oml.key = key;
+		}	
+		else {
+			System.out.println("empty OcdMetricLog document");
+		}
+		return oml;
+	}
+	
+	public String String() {
+		String n = System.getProperty("line.separator");
+		String ret = "OcdMetricLog: " + n;
+		ret += "Key :           " + this.key + n;
+		if(this.cover != null) {ret += "cover attribut existiert";}
+		ret += "value :         " + this.value +n;
+		ret += "typeId :        " + this.typeId + n; 
+		ret += "statusId :      " + this.statusId + n;
+		ret += "parameters :    " + this.parameters.toString() + n;
+		
+		return ret;
 	}
 	
 }

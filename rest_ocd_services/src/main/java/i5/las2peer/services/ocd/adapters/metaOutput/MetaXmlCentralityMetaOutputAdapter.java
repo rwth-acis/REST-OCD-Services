@@ -21,7 +21,7 @@ import java.util.Map;
  * graph in XML format.
  *
  */
-public class MetaXmlCentralityMetaOutputAdapter extends AbstractCentralityMetaOutputAdapter{
+public class MetaXmlCentralityMetaOutputAdapter extends AbstractCentralityMetaOutputAdapter {
 
     @Override
     public void writeCentralityMap(CentralityMeta centralityMeta) throws AdapterException {
@@ -39,55 +39,52 @@ public class MetaXmlCentralityMetaOutputAdapter extends AbstractCentralityMetaOu
             mapElt.appendChild(nameElt);
             Element idElt = doc.createElement("Id");
             Element mapIdElt = doc.createElement("CentralityMapId");
-            mapIdElt.appendChild(doc.createTextNode(Long.toString(centralityMeta.getCentralityId())));
+            mapIdElt.appendChild(doc.createTextNode((centralityMeta.getCentralityKey())));
             idElt.appendChild(mapIdElt);
             Element graphIdElt = doc.createElement("GraphId");
-            graphIdElt.appendChild(doc.createTextNode(Long.toString(centralityMeta.getGraphId())));
+            graphIdElt.appendChild(doc.createTextNode(centralityMeta.getGraphKey()));
             idElt.appendChild(graphIdElt);
             mapElt.appendChild(idElt);
             Element graphElt = doc.createElement("Graph");
             Element graphNameElt = doc.createElement("GraphName");
             graphNameElt.appendChild(doc.createTextNode(centralityMeta.getGraphName()));
             graphElt.appendChild(graphNameElt);
-            Element graphSizeElt = doc.createElement("GraphSize");
-            graphSizeElt.appendChild(doc.createTextNode(Integer.toString(Math.toIntExact(centralityMeta.getGraphSize()))));
-            graphElt.appendChild(graphSizeElt);
             mapElt.appendChild(graphElt);
             /*
              * Creation Method
              */
             Element creationMethodElt = doc.createElement("CreationMethod");
             Element creationMethodTypeElt = doc.createElement("Type");
-            creationMethodTypeElt.appendChild(doc.createTextNode(centralityMeta.getCentralityCreationLog().getCreationType().name()));
-            creationMethodTypeElt.setAttribute("displayName", centralityMeta.getCentralityCreationLog().getCreationType().getDisplayName());
+            creationMethodTypeElt.appendChild(doc.createTextNode(centralityMeta.getCreationTypeName()));
+            creationMethodTypeElt.setAttribute("displayName", centralityMeta.getCreationTypeDisplayName());
             creationMethodElt.appendChild(creationMethodTypeElt);
-            /*
-             * Parameters
-             */
-            Element creationMethodParameters = doc.createElement("Parameters");
-            Map<String, String> parameters = centralityMeta.getCentralityCreationLog().getParameters();
-            for(String parameter : parameters.keySet()) {
-                Element creationMethodParameter = doc.createElement("Parameter");
-                Element creationMethodParameterName = doc.createElement("ParameterName");
-                creationMethodParameterName.appendChild(doc.createTextNode(parameter));
-                Element creationMethodParameterValue = doc.createElement("ParameterValue");
-                creationMethodParameterValue.appendChild(doc.createTextNode(parameters.get(parameter)));
-                creationMethodParameter.appendChild(creationMethodParameterName);
-                creationMethodParameter.appendChild(creationMethodParameterValue);
-                creationMethodParameters.appendChild(creationMethodParameter);
-            }
-            creationMethodElt.appendChild(creationMethodParameters);
+//            /*
+//             * Parameters
+//             */
+//            Element creationMethodParameters = doc.createElement("Parameters");
+//            Map<String, String> parameters = centralityMeta.getCentralityCreationLog().getParameters();
+//            for(String parameter : parameters.keySet()) {
+//                Element creationMethodParameter = doc.createElement("Parameter");
+//                Element creationMethodParameterName = doc.createElement("ParameterName");
+//                creationMethodParameterName.appendChild(doc.createTextNode(parameter));
+//                Element creationMethodParameterValue = doc.createElement("ParameterValue");
+//                creationMethodParameterValue.appendChild(doc.createTextNode(parameters.get(parameter)));
+//                creationMethodParameter.appendChild(creationMethodParameterName);
+//                creationMethodParameter.appendChild(creationMethodParameterValue);
+//                creationMethodParameters.appendChild(creationMethodParameter);
+//            }
+//            creationMethodElt.appendChild(creationMethodParameters);
             /*
              * Status
              */
             Element creationMethodStatusElt = doc.createElement("Status");
-            creationMethodStatusElt.appendChild(doc.createTextNode(centralityMeta.getCentralityCreationLog().getStatus().name()));
+            creationMethodStatusElt.appendChild(doc.createTextNode(centralityMeta.getCreationStatusName()));
             creationMethodElt.appendChild(creationMethodStatusElt);
             /*
              * Execution Time
              */
             Element creationMethodExecutionTimeElt = doc.createElement("ExecutionTime");
-            creationMethodExecutionTimeElt.appendChild(doc.createTextNode(Long.toString(centralityMeta.getCentralityCreationLog().getExecutionTime())));
+            creationMethodExecutionTimeElt.appendChild(doc.createTextNode(Long.toString(centralityMeta.getExecutionTime())));
             creationMethodElt.appendChild(creationMethodExecutionTimeElt);
 
             mapElt.appendChild(creationMethodElt);

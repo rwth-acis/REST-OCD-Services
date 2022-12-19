@@ -10,7 +10,7 @@
     "username": "user1",
     "allowedInactiveDays": "5",
     "graphSize": "1000",
-    "graphCount": "2",
-    "coverCount": "5"
+    "graphCount": "5",
+    "coverCount": "10"
   }
 ]

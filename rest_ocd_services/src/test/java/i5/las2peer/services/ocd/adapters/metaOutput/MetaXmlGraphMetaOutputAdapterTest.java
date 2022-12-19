@@ -17,7 +17,7 @@ public class MetaXmlGraphMetaOutputAdapterTest {
     public void writeGraph() {
 
 
-        Long id = Long.valueOf(1);
+        String key = "testKey";
         String username = "Alice";
         String name = "testGraph";
         Long nodeCount = Long.valueOf(5);
@@ -29,13 +29,14 @@ public class MetaXmlGraphMetaOutputAdapterTest {
         graphCreationLog.setStatus(ExecutionStatus.COMPLETED);
 
         CustomGraphMeta graphMeta = new CustomGraphMeta(
-                id,
+                key,
                 username,
                 name,
                 nodeCount,
                 edgeCount,
                 graphTypes,
-                graphCreationLog
+                graphCreationLog.getType().getId(),
+                graphCreationLog.getStatus().getId()
         );
 
         try {

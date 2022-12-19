@@ -382,7 +382,7 @@ public class RequestHandler {
 		doc.appendChild(centralityMapElt);
 		return writeDoc(doc);
 	}
-	
+
 	/**
 	 * Creates an XML document containing meta information about multiple
 	 * graphs.
@@ -542,7 +542,7 @@ public class RequestHandler {
 		doc.appendChild(mapsElt);
 		return writeDoc(doc);
 	}
-	
+
 	/**
 	 * Creates an XML document containing the id of a single graph.
 	 * 
@@ -695,7 +695,7 @@ public class RequestHandler {
 		adapter.writeCentralityMap(map);
 		return writer.toString();
 	}
-
+	
 
 	/**
 	 * Creates a CentralityMap output in MetaXml format.
@@ -930,7 +930,7 @@ public class RequestHandler {
 	}
 
 	/**
-	 * Returns an XML element node representing the id of a graph.
+	 * Returns an XML element node representing the id (key) of a graph.
 	 * 
 	 * @param graph
 	 *            The graph.
@@ -941,11 +941,10 @@ public class RequestHandler {
 	protected Node getIdElt(CustomGraph graph, Document doc) {
 		Element graphElt = doc.createElement("Graph");
 		Element graphIdElt = doc.createElement("Id");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(graph.getPersistenceId())));
+		graphIdElt.appendChild(doc.createTextNode(graph.getKey()));	//done
 		graphElt.appendChild(graphIdElt);
 		return graphElt;
 	}
-
 
 	/**
 	 * Returns an XML element node representing the id of a graph.
@@ -959,13 +958,12 @@ public class RequestHandler {
 	protected Node getIdElt(CustomGraphMeta graphMeta, Document doc) {
 		Element graphElt = doc.createElement("Graph");
 		Element graphIdElt = doc.createElement("Id");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(graphMeta.getPersistenceId())));
+		graphIdElt.appendChild(doc.createTextNode(graphMeta.getKey()));
 		graphElt.appendChild(graphIdElt);
 		return graphElt;
 	}
 
 	/**
-
 	 * Returns an XML element node representing the id of a cover.
 	 * 
 	 * @param cover
@@ -978,17 +976,17 @@ public class RequestHandler {
 		Element coverElt = doc.createElement("Cover");
 		Element idElt = doc.createElement("Id");
 		Element coverIdElt = doc.createElement("CoverId");
-		coverIdElt.appendChild(doc.createTextNode(Long.toString(cover.getId())));
+		coverIdElt.appendChild(doc.createTextNode(cover.getKey()));	//done
 		idElt.appendChild(coverIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(cover.getGraph().getPersistenceId())));
+		graphIdElt.appendChild(doc.createTextNode(cover.getGraph().getKey()));	//done
 		idElt.appendChild(graphIdElt);
 		coverElt.appendChild(idElt);
 		return coverElt;
 	}
 
 	/**
-	 * Returns an XML element node representing the id of a cover.
+	 * Returns an XML element node representing the id (key) of a cover.
 	 *
 	 * @param coverMeta
 	 *            The cover meta information.
@@ -1000,10 +998,10 @@ public class RequestHandler {
 		Element coverElt = doc.createElement("Cover");
 		Element idElt = doc.createElement("Id");
 		Element coverIdElt = doc.createElement("CoverId");
-		coverIdElt.appendChild(doc.createTextNode(Long.toString(coverMeta.getId())));
+		coverIdElt.appendChild(doc.createTextNode(coverMeta.getKey()));
 		idElt.appendChild(coverIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(coverMeta.getGraphId())));
+		graphIdElt.appendChild(doc.createTextNode(coverMeta.getGraphKey()));
 		idElt.appendChild(graphIdElt);
 		coverElt.appendChild(idElt);
 		return coverElt;
@@ -1019,15 +1017,16 @@ public class RequestHandler {
 		Element centralityMapElt = doc.createElement("CentralityMap");
 		Element idElt = doc.createElement("Id");
 		Element centralityMapIdElt = doc.createElement("CentralityMapId");
-		centralityMapIdElt.appendChild(doc.createTextNode(Long.toString(map.getId())));
+		centralityMapIdElt.appendChild(doc.createTextNode(map.getKey()));		
 		idElt.appendChild(centralityMapIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(map.getGraph().getPersistenceId())));
+		graphIdElt.appendChild(doc.createTextNode(map.getGraph().getKey())); //done
 		idElt.appendChild(graphIdElt);
 		centralityMapElt.appendChild(idElt);
 		return centralityMapElt;
 	}
-		/**
+	
+	/**
 	 * Returns an XML element node representing the id of a CentralityMap.
 	 * @param centralityMeta The CentralityMap.
 	 * @param doc The document to create the element node for.
@@ -1037,10 +1036,10 @@ public class RequestHandler {
 		Element centralityMapElt = doc.createElement("CentralityMap");
 		Element idElt = doc.createElement("Id");
 		Element centralityMapIdElt = doc.createElement("CentralityMapId");
-		centralityMapIdElt.appendChild(doc.createTextNode(Long.toString(centralityMeta.getCentralityId())));
+		centralityMapIdElt.appendChild(doc.createTextNode(centralityMeta.getCentralityKey()));
 		idElt.appendChild(centralityMapIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(centralityMeta.getGraphId())));
+		graphIdElt.appendChild(doc.createTextNode(centralityMeta.getGraphKey()));
 		idElt.appendChild(graphIdElt);
 		centralityMapElt.appendChild(idElt);
 		return centralityMapElt;
@@ -1059,13 +1058,13 @@ public class RequestHandler {
 		Element metricElt = doc.createElement("Metric");
 		Element idElt = doc.createElement("Id");
 		Element metricIdElt = doc.createElement("MetricId");
-		metricIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getId())));
+		metricIdElt.appendChild(doc.createTextNode(metricLog.getKey()));  	//done
 		idElt.appendChild(metricIdElt);
 		Element coverIdElt = doc.createElement("CoverId");
-		coverIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getCover().getId())));
+		coverIdElt.appendChild(doc.createTextNode(metricLog.getCover().getKey()));  //done
 		idElt.appendChild(coverIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(metricLog.getCover().getGraph().getPersistenceId())));
+		graphIdElt.appendChild(doc.createTextNode(metricLog.getCover().getGraph().getKey()));	//done
 		idElt.appendChild(graphIdElt);
 		metricElt.appendChild(idElt);
 		return metricElt;
@@ -1257,7 +1256,7 @@ public class RequestHandler {
 			nameElt.appendChild(doc.createTextNode(map.getName()));
 			mapElt.appendChild(nameElt);
 			Element mapIdElt = doc.createElement("CentralityMapId");
-			mapIdElt.appendChild(doc.createTextNode(Long.toString(map.getId())));
+			mapIdElt.appendChild(doc.createTextNode(map.getKey()));	//done
 			mapElt.appendChild(mapIdElt);
 			Element precisionElt = doc.createElement("Precision");
 			mapElt.appendChild(precisionElt);

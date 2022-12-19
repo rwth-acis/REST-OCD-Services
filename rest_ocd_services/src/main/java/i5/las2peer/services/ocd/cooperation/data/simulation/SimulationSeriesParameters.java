@@ -1,18 +1,18 @@
 package i5.las2peer.services.ocd.cooperation.data.simulation;
 
+import java.beans.ConstructorProperties;
 import java.io.Serializable;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Transient;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 import i5.las2peer.services.ocd.cooperation.simulation.Simulation;
@@ -31,85 +31,84 @@ public class SimulationSeriesParameters implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	////////// Entity Fields //////////
+	@JsonProperty
+	private String graphKey;
 
-	@Column(name = "graphId")
-	private long graphId;
-	
-	@Enumerated(EnumType.STRING)
+	@JsonProperty
 	private GameType game;
 
-	@Basic
+
+	@JsonProperty
 	private double payoffCC;
 
-	@Basic
+	@JsonProperty
 	private double payoffCD;
 
-	@Basic
+	@JsonProperty
 	private double payoffDD;
 
-	@Basic
+
+	@JsonProperty
 	private double payoffDC;
 		
 	/**
 	* the payoff cost value. Used only with a cost variant game. 
 	*/
-	@Transient
 	private double cost; 
 	
 	/**
 	* the payoff benefit value. Used only with a cost variant game. 
 	*/
-	@Transient
 	private double benefit;
 
-	@Enumerated(EnumType.STRING)
+	@JsonProperty
 	private DynamicType dynamic;
 
-	@Basic
+	@JsonProperty
 	private double dynamicValue;
 
 	/**
 	 * the break condition for the simulaiton
 	 */
-	@Enumerated(EnumType.STRING)
+	@JsonProperty
 	private ConditionType condition;
+
 
 	/**
 	* the maximum rounds of a Simulation
 	*/
-	@Basic
+	@JsonProperty
 	private int maxIterations;
 	
 	/**
 	* the minimum rounds of a Simulation
 	*/
-	@Basic
+	@JsonProperty
 	private int minIterations;
 	
 	/**
 	* time window for the break condition
 	*/
-	@Basic
+	@JsonProperty
 	private int timeWindow;
 	
 	/**
 	* time window for the break condition
 	*/
-	@Basic
+	@JsonProperty
 	private int threshold;
 
 	/**
 	 * how often a {@link Simulation} is executed resulting in multiple
 	 * {@link SimulationDataset}s as part of one {@link SimulationSeries}
 	 */
-	@Basic
+	@JsonProperty
 	private int iterations;
 
-	@Basic
+	@JsonProperty
 	private String simulationName;
 
-	@Basic
+	@JsonProperty
 	private String graphName;
 
 	////////// Constructor //////////
@@ -118,44 +117,47 @@ public class SimulationSeriesParameters implements Serializable {
 
 	}
 
-	public SimulationSeriesParameters(SimulationSeries series, long graphId, GameType game, double payoffCC, double payoffCD,
-			double payoffDD, double payoffDC, DynamicType dynamic, double dynamicValue, int iterations) {
 
-		this.setGraphId(graphId);
+	@ConstructorProperties({"name", "iterations","payoffDC","payoffCC","payoffDD","payoffCD",
+			"dynamic","dynamicValue","condition","maxIterations","graphId"})
+	public SimulationSeriesParameters( String simulationName, int iterations, double payoffDC, double payoffCC, double payoffDD,
+									  double payoffCD, String dynamic, double dynamicValue, String condition,
+									  int maxIterations, String graphKey) {
+		this.graphKey = graphKey;
 		this.payoffCC = payoffCC;
 		this.payoffCD = payoffCD;
-		this.payoffDC = payoffDC;
 		this.payoffDD = payoffDD;
+		this.payoffDC = payoffDC;
 		this.setDynamic(dynamic);
-		this.setDynamicValue(dynamicValue);
-		this.setIterations(iterations);
+		this.dynamicValue = dynamicValue;
+		this.setCondition(condition);
+		this.maxIterations = maxIterations;
+		this.iterations = iterations;
+		this.simulationName = simulationName;
 	}
+
 
 	////////// Getter //////////
 
-	@JsonProperty
-	public String getName() {
-		return this.simulationName;
+
+
+	public String getGraphKey() {
+		return graphKey;
 	}
 
-	@JsonProperty
-	public long getGraphId() {
-		return graphId;
-	}
 
-	@JsonProperty
 	public DynamicType getDynamic() {
 		if(dynamic == null)
 			return DynamicType.UNKNOWN;
 		return dynamic;
 	}
 
-	@JsonProperty
+
 	public int getIterations() {
 		return iterations;
 	}
 
-	@JsonProperty
+
 	public GameType getGame() {
 		if (game == null) {
 			this.game = GameType.getGameType(payoffCC, payoffCD, payoffDC, payoffDD);
@@ -163,37 +165,31 @@ public class SimulationSeriesParameters implements Serializable {
 		return this.game;
 	}
 
-	@JsonProperty
+
 	public double getPayoffCC() {
 		return payoffCC;
 	}
 
-	@JsonProperty
 	public double getPayoffCD() {
 		return payoffCD;
 	}
 
-	@JsonProperty
 	public double getPayoffDD() {
 		return payoffDD;
 	}
 
-	@JsonProperty
 	public double getPayoffDC() {
 		return payoffDC;
 	}
 
-	@JsonProperty
 	public double getCost() {
 		return cost;
 	}
 
-	@JsonProperty
 	public double getBenefit() {
 		return benefit;
 	}
 
-	@JsonProperty
 	public ConditionType getCondition() {
 		if (condition == null)
 			return ConditionType.UNKNOWN;
@@ -231,79 +227,73 @@ public class SimulationSeriesParameters implements Serializable {
 
 	////////// Setter //////////
 
-	@JsonSetter
-	public void setName(String name) {
-		this.simulationName = name;
-	}
 
-	@JsonSetter
 	public void setIterations(int iterations) {
 		this.iterations = iterations;
 	}
 
-	@JsonSetter
-	public void setGraphId(long graphId) {
-		this.graphId = graphId;
+	public void setGraphKey(String graphKey) {
+		this.graphKey = graphKey;
 	}
 
-	@JsonSetter
 	public void setDynamic(String dynamic) {
 		this.dynamic = DynamicType.fromString(dynamic);
 	}
 
-	@JsonSetter
 	public void setGame(String game) {
 		this.game = GameType.fromString(game);
 	}
 
-	@JsonIgnore
 	public void setDynamic(DynamicType dynamic) {
 		this.dynamic = dynamic;
 	}
 
-	@JsonSetter
 	public void setCondition(String condition) {
 		this.condition = ConditionType.fromString(condition);
 	}
 
-	@JsonIgnore
 	public void setGame(GameType game) {
 		this.game = game;
 	}
 
-	@JsonSetter
 	public void setDynamicValue(double dynamicValue) {
 		this.dynamicValue = dynamicValue;
 	}
 
-	@JsonSetter
 	public void setPayoffCC(double payoffCC) {
 		this.payoffCC = payoffCC;
 	}
 
-	@JsonSetter
 	public void setPayoffCD(double payoffCD) {
 		this.payoffCD = payoffCD;
 	}
 
-	@JsonSetter
 	public void setPayoffDD(double payoffDD) {
 		this.payoffDD = payoffDD;
 	}
 
-	@JsonSetter
 	public void setPayoffDC(double payoffDC) {
 		this.payoffDC = payoffDC;
 	}
 
-	@JsonSetter
 	public void setBenefit(double benefit) {
 		this.benefit = benefit;
 	}
 
-	@JsonSetter
 	public void setCost(double cost) {
 		this.cost = cost;
+	}
+
+	public void setCondition(ConditionType condition) {
+		this.condition = condition;
+	}
+
+	public String getSimulationName() {
+		return simulationName;
+	}
+
+	public void setSimulationName(String simulationName) {
+		this.simulationName = simulationName;
 	}
 
 	///////////// Methods /////////////
@@ -395,4 +385,27 @@ public class SimulationSeriesParameters implements Serializable {
 		this.graphName = string;
 	}
 
+	@Override
+	public String toString() {
+		return "SimulationSeriesParameters{" +
+				"graphKey='" + graphKey + '\'' +
+				", game=" + game +
+				", payoffCC=" + payoffCC +
+				", payoffCD=" + payoffCD +
+				", payoffDD=" + payoffDD +
+				", payoffDC=" + payoffDC +
+				", cost=" + cost +
+				", benefit=" + benefit +
+				", dynamic=" + dynamic +
+				", dynamicValue=" + dynamicValue +
+				", condition=" + condition +
+				", maxIterations=" + maxIterations +
+				", minIterations=" + minIterations +
+				", timeWindow=" + timeWindow +
+				", threshold=" + threshold +
+				", iterations=" + iterations +
+				", simulationName='" + simulationName + '\'' +
+				", graphName='" + graphName + '\'' +
+				'}';
+	}
 }

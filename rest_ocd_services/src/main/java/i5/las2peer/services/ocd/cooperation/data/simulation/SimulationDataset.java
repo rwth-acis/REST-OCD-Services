@@ -1,65 +1,53 @@
 package i5.las2peer.services.ocd.cooperation.data.simulation;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import javax.persistence.Entity;
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import i5.las2peer.services.ocd.cooperation.data.table.Table;
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 import i5.las2peer.services.ocd.graphs.Community;
 
 /**
  * Simulation Data
- * 
+ *
  * Objects of this class represent the data collected by simulation series The
  * objects can be stored
- * 
+ *
  */
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SimulationDataset extends SimulationAbstract {
 
-	/////////////// Entity Fields ///////////////
-
-	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumn
+	@JsonProperty
 	private List<AgentData> agentData;
-	
-	/**
-	 * A simulation is part of one simulation series
-	 */
-	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name="simulationSeries")
-	private SimulationSeries simulationSeries;
-	
-	@Basic
+
+	@JsonProperty
 	private double finalCooperationValue;
 
-	@Basic
+	@JsonProperty
 	private double finalPayoffValue;
 
-	@Basic
+	@JsonProperty
 	private double iterations;
 
-	@ElementCollection
+	@JsonProperty
 	private List<Double> cooperationValues;
 
-	@ElementCollection
+	@JsonProperty
 	private List<Double> payoffValues;
 
-	@Transient
+	@JsonProperty
 	private boolean stable;
 
 	/////////////// Constructor ///////////////
@@ -93,72 +81,65 @@ public class SimulationDataset extends SimulationAbstract {
 		this.finalPayoffValue = payoffValues.get(payoffValues.size() - 1);
 	}
 
-	/////////////// Getter ///////////////
+	/////////// Getters/Setters ////////////
 
-	@JsonProperty
-	public List<Double> getCooperationValues() {
-		return this.cooperationValues;
-	}
 
-	@JsonProperty
-	public List<Double> getPayoffValues() {
-		return this.payoffValues;
-	}
-
-	@JsonIgnore
 	public List<AgentData> getAgentData() {
-		return this.agentData;
+		return agentData;
 	}
 
-	@JsonProperty
+	public void setAgentData(List<AgentData> agentData) {
+		this.agentData = agentData;
+	}
+
 	public double getFinalCooperationValue() {
-		return this.finalCooperationValue;
-	}
-
-	@JsonProperty
-	public double getIterations() {
-		return this.iterations;
-	}
-
-	@JsonProperty
-	public double getFinalPayoffValue() {
-		return this.finalPayoffValue;
-	}
-
-	@JsonIgnore
-	public boolean isStable() {
-		return stable;
-	}
-
-	////// Setter /////
-
-	public void setAgentData(List<AgentData> agentList) {
-		this.agentData = agentList;
-	}
-
-	public void setCooperationValues(List<Double> cooperationValues) {
-		this.cooperationValues = cooperationValues;
-	}
-
-	public void setPayoffValues(List<Double> payoffValues) {
-		this.payoffValues = payoffValues;
-	}
-
-	public void setStable(boolean stable) {
-		this.stable = stable;
+		return finalCooperationValue;
 	}
 
 	public void setFinalCooperationValue(double finalCooperationValue) {
 		this.finalCooperationValue = finalCooperationValue;
 	}
 
+	public double getFinalPayoffValue() {
+		return finalPayoffValue;
+	}
+
 	public void setFinalPayoffValue(double finalPayoffValue) {
 		this.finalPayoffValue = finalPayoffValue;
 	}
 
-	public void setIterations(int iterations) {
+	public double getIterations() {
+		return iterations;
+	}
+
+	public void setIterations(double iterations) {
 		this.iterations = iterations;
 	}
+
+	public List<Double> getCooperationValues() {
+		return cooperationValues;
+	}
+
+	public void setCooperationValues(List<Double> cooperationValues) {
+		this.cooperationValues = cooperationValues;
+	}
+
+	public List<Double> getPayoffValues() {
+		return payoffValues;
+	}
+
+	public void setPayoffValues(List<Double> payoffValues) {
+		this.payoffValues = payoffValues;
+	}
+
+	public boolean isStable() {
+		return stable;
+	}
+
+	public void setStable(boolean stable) {
+		this.stable = stable;
+	}
+
 
 	//////////// Methods ////////////
 
@@ -223,14 +204,15 @@ public class SimulationDataset extends SimulationAbstract {
 		}
 
 		return cooperativitySum / memberCount;
+
 	}
 
-	@JsonIgnore
+
 	public boolean getAgentStrategy(int agentId) {
 		return getAgentData().get(agentId).getFinalStrategy();
 	}
 
-	@JsonIgnore
+
 	public double getAgentCooperativity(int agentId) {
 		return getAgentData().get(agentId).getCooperativity();
 	}
@@ -285,6 +267,31 @@ public class SimulationDataset extends SimulationAbstract {
 			table.add(new TableRow().add(value));
 		}
 		return table;
+	}
+
+	/**
+	 * Helper method to convert object representation of a list
+	 * returned in a query into an array list
+	 * @param listToParse         Object to parse as a list
+	 * @return                    ArrayList representation of the input object
+	 */
+	public static ArrayList<Double> documentToArrayList(Object listToParse){
+		ObjectMapper objectMapper = new ObjectMapper();
+		ArrayList<Double> res;
+		res = objectMapper.convertValue(listToParse, ArrayList.class);
+		return res;
+	}
+
+	@Override
+	public String toString() {
+		return "SimulationDataset{" +
+				", finalCooperationValue=" + finalCooperationValue +
+				", finalPayoffValue=" + finalPayoffValue +
+				", iterations=" + iterations +
+				", cooperationValues=" + cooperationValues +
+				", payoffValues=" + payoffValues +
+				", stable=" + stable +
+				'}';
 	}
 
 }

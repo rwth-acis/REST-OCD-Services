@@ -36,7 +36,7 @@ public class MetaXmlGraphMetaOutputAdapter extends AbstractGraphMetaOutputAdapte
              * Basic Attributes
              */
             Element graphIdElt = doc.createElement("Id");
-            graphIdElt.appendChild(doc.createTextNode(Long.toString(graphMeta.getPersistenceId())));
+            graphIdElt.appendChild(doc.createTextNode(graphMeta.getKey()));
             graphElt.appendChild(graphIdElt);
             Element graphNameElt = doc.createElement("Name");
             graphNameElt.appendChild(doc.createTextNode(graphMeta.getName()));
@@ -77,11 +77,11 @@ public class MetaXmlGraphMetaOutputAdapter extends AbstractGraphMetaOutputAdapte
              */
             Element creationMethodElt = doc.createElement("CreationMethod");
             Element creationMethodTypeElt = doc.createElement("Type");
-            creationMethodTypeElt.appendChild(doc.createTextNode(graphMeta.getGraphCreationLog().getType().name()));
-            creationMethodTypeElt.setAttribute("displayName", graphMeta.getGraphCreationLog().getType().getDisplayName());
+            creationMethodTypeElt.appendChild(doc.createTextNode(graphMeta.getCreationTypeName()));
+            creationMethodTypeElt.setAttribute("displayName", graphMeta.getCreationTypeDisplayName());
             creationMethodElt.appendChild(creationMethodTypeElt);
             Element creationMethodStatus = doc.createElement("Status");
-            creationMethodStatus.appendChild(doc.createTextNode(graphMeta.getGraphCreationLog().getStatus().name()));
+            creationMethodStatus.appendChild(doc.createTextNode(graphMeta.getCreationStatusName()));
             creationMethodElt.appendChild(creationMethodStatus);
             graphElt.appendChild(creationMethodElt);
             /*

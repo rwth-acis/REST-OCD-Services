@@ -58,7 +58,7 @@ public class MetaXmlSimulationOutputAdapter extends AbstractSimulationOutputAdap
 	private void writeElementsAbstract(SimulationAbstract simulation, Document doc, Element root) {
 
 		Element eltId = doc.createElement("Id");
-		eltId.appendChild(doc.createTextNode(Long.toString(simulation.getId())));
+		eltId.appendChild(doc.createTextNode(simulation.getKey()));
 		root.appendChild(eltId);
 
 		Element eltName = doc.createElement("Name");
@@ -75,7 +75,7 @@ public class MetaXmlSimulationOutputAdapter extends AbstractSimulationOutputAdap
 
 		Element eltGraph = doc.createElement("Graph");
 		Element eltGraphId = doc.createElement("Id");
-		eltGraphId.appendChild(doc.createTextNode(String.valueOf(simulation.getNetwork().getPersistenceId())));
+		eltGraphId.appendChild(doc.createTextNode(String.valueOf(simulation.getNetwork().getKey())));
 		eltGraph.appendChild(eltGraphId);
 		Element eltGraphName = doc.createElement("Name");
 		eltGraphName.appendChild(doc.createTextNode(String.valueOf(simulation.getNetwork().getName())));
@@ -86,7 +86,7 @@ public class MetaXmlSimulationOutputAdapter extends AbstractSimulationOutputAdap
 	private void writeElementsSeries(SimulationSeries simulation, Document doc, Element root) {
 
 		Element eltGraph = doc.createElement("Parameters");
-		SimulationSeriesParameters parameters = simulation.getParameters();
+		SimulationSeriesParameters parameters = simulation.getSimulationSeriesParameters();
 		Element eltGraphId = doc.createElement("Game");
 		eltGraphId.appendChild(doc.createTextNode(String.valueOf(parameters.getGame().humanRead())));
 		eltGraph.appendChild(eltGraphId);

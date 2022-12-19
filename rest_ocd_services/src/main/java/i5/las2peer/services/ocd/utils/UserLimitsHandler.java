@@ -28,13 +28,14 @@ public class UserLimitsHandler {
     private JSONObject defaultUserLimits;
 
     /**
-     * Entity handler used to get user related information from the database
+     * Database.
      */
-    private EntityHandler entityHandler;
+
+    private Database database;
 
 
-    public UserLimitsHandler(EntityHandler entityHandler) {
-        this.entityHandler = entityHandler;
+    public UserLimitsHandler(Database database) {
+        this.database = database;
     }
 
     /**
@@ -102,7 +103,7 @@ public class UserLimitsHandler {
         if (userLimits != null) {
             // Graph count limit check
             try {
-                List<CustomGraph> userGraphs = entityHandler.getGraphs(username);
+                List<CustomGraph> userGraphs = database.getGraphs(username);
                 if (userLimits.get("graphCount") != null
                         && userGraphs.size() >= Integer.parseInt((String) userLimits.get("graphCount"))) {
                     return true;
@@ -126,11 +127,11 @@ public class UserLimitsHandler {
         if (userLimits != null) {
             // Graph count limit check
             try {
-                List<CustomGraph> userGraphs = entityHandler.getGraphs(username);
+                List<CustomGraph> userGraphs = database.getGraphs(username);
                 // Cover count limit check
                 int numberOfUserCovers = 0;
                 for (CustomGraph userGraph : userGraphs) {
-                    numberOfUserCovers += entityHandler.getCovers(username, userGraph.getPersistenceId()).size();
+                    numberOfUserCovers += database.getCovers(username, userGraph.getKey()).size();
                 }
                 if (userLimits.get("coverCount") != null
                         && numberOfUserCovers >= Integer.parseInt((String) userLimits.get("coverCount"))) {

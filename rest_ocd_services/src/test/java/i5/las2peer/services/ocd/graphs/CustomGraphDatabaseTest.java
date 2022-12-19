@@ -5,13 +5,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.utils.Database;
+import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -19,24 +18,35 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.graphstream.graph.Node;
-import org.graphstream.graph.Edge;
-
-public class CustomGraphPersistenceTest {
+//@Ignore
+public class CustomGraphDatabaseTest {
 
 	private static final String userName1 = "testUser1";
 	private static final String graphName1 = "persistenceTestGraph1";
 	private static final String invalidGraphName = "invalidGraphName";
+	private static Database database;
 	
-	EntityManagerFactory emf = Persistence.createEntityManagerFactory("ocd");
+	@BeforeClass
+	public static void clearDatabase() {
+		DatabaseConfig.setConfigFile(true);
+		database = new Database();
+	}
+
+	@AfterClass
+	public static void deleteDatabase() {
+		database.deleteDatabase();
+	}
 	
 	@Test
 	public void testPersist() {
-		EntityManager em = emf.createEntityManager();
 		CustomGraph graph = new CustomGraph();
 		graph.setUserName(userName1);
 		graph.setName(graphName1);
@@ -51,20 +61,11 @@ public class CustomGraphPersistenceTest {
 		Edge edgeBC = graph.addEdge(UUID.randomUUID().toString(), nodeB, nodeC);
 		graph.setEdgeWeight(edgeBC, 2.5);
 		graph.addType(GraphType.DIRECTED);
-		EntityTransaction tx = em.getTransaction();
-		try {
-			tx.begin();
-			em.persist(graph);
-			tx.commit();
-		} catch( RuntimeException ex ) {
-			if( tx != null && tx.isActive() ) tx.rollback();
-			throw ex;
-		}
-		em.close();
-		em = emf.createEntityManager();
-		TypedQuery<CustomGraph> query = em.createQuery("Select g from CustomGraph g where g.name = :name", CustomGraph.class);
-		query.setParameter("name", graphName1);
-		List<CustomGraph> queryResults = query.getResultList();
+		
+		database.storeGraph(graph);
+
+		List<CustomGraph> queryResults = database.getGraphsbyName(graphName1);
+		
 		assertEquals(1, queryResults.size());
 	    CustomGraph persistedGraph = queryResults.get(0);
 	    assertNotNull(persistedGraph);
@@ -80,15 +81,17 @@ public class CustomGraphPersistenceTest {
 	    nodeNames.add("A");
 	    nodeNames.add("B");
 	    nodeNames.add("C");
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 	    for(int i=0; i<3; i++) {
-	    	Node node = persistedGraph.getNode(i);
+	    	Node node = nodes[i];
 	    	String name = persistedGraph.getNodeName(node);
 	    	System.out.println("Node: " + node.getIndex() + ", Name: " + persistedGraph.getNodeName(node));
 	    	assertTrue(nodeNames.contains(name));
 	    	nodeNames.remove(name);
 	    }
+		Edge[] edges = persistedGraph.edges().toArray(Edge[]::new);
 	    for(int i=0; i<2; i++) {
-	    	Edge edge = persistedGraph.getEdge(i);
+	    	Edge edge =edges[i];
 	    	Double weight = persistedGraph.getEdgeWeight(edge);
 	    	if(weight == 5) {
 	    		assertEquals("A", persistedGraph.getNodeName(edge.getSourceNode()));
@@ -105,79 +108,10 @@ public class CustomGraphPersistenceTest {
 	    assertEquals(1, persistedGraph.getTypes().size());
 	    assertTrue(persistedGraph.getTypes().contains(GraphType.DIRECTED));
 	    System.out.println("Types: " + graph.getTypes());
-		query = em.createQuery("Select graph from CustomGraph graph where graph.name = :name", CustomGraph.class);
-		query.setParameter("name", invalidGraphName);
-		queryResults = query.getResultList();
+	    
+	    queryResults = database.getGraphs(invalidGraphName);
+	    
 		assertEquals(0, queryResults.size());
-	}
-	
-	/*
-	 * Tests whether two instances of the same object obtained by a single entity manager
-	 * are indeed identical (i.e. the comparison == results in TRUE).
-	 */
-	@Ignore
-	@Test
-	public void testIdentity() {
-		EntityManager em = emf.createEntityManager();
-		CustomGraph graph = new CustomGraph();
-		graph.setUserName(userName1);
-		graph.setName(graphName1);
-		Node nodeA = graph.addNode("A");
-		Node nodeB = graph.addNode("B");
-		Node nodeC = graph.addNode("C");
-		graph.setNodeName(nodeA, "A");
-		graph.setNodeName(nodeB, "B");
-		graph.setNodeName(nodeC, "C");
-		EntityTransaction tx = em.getTransaction();
-		try {
-			tx.begin();
-			em.persist(graph);
-			tx.commit();
-		} catch( RuntimeException ex ) {
-			if( tx != null && tx.isActive() ) tx.rollback();
-			throw ex;
-		}
-		em.close();
-		em = emf.createEntityManager();
-		TypedQuery<CustomGraph> query = em.createQuery("Select g from CustomGraph g where g.name = :name", CustomGraph.class);
-		query.setParameter("name", graphName1);
-		List<CustomGraph> queryResults1 = query.getResultList();
-		assertEquals(1, queryResults1.size());
-	    CustomGraph persistedGraph1 = queryResults1.get(0);
-	    List<CustomGraph> queryResults2 = query.getResultList();
-		assertEquals(1, queryResults2.size());
-		CustomGraph persistedGraph2 = queryResults2.get(0);
-		assertTrue(persistedGraph1 == persistedGraph2);
-		Node node = persistedGraph1.getNode(0);
-		String name1 = persistedGraph1.getNodeName(node);
-		String name2 = persistedGraph2.getNodeName(node);
-		System.out.println("name1: " + name1);
-		System.out.println("name2: " + name2);
-		assertEquals(name1, name2);
-	}
-	
-	@Ignore
-	@Test
-	public void testEfficiency() throws AdapterException, FileNotFoundException {
-		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
-		EntityManager em = emf.createEntityManager();
-		EntityTransaction tx = em.getTransaction();
-		try {
-			tx.begin();
-			em.persist(graph);
-			System.out.println("Commit graph");
-			tx.commit();
-			System.out.println("Commited graph");
-		} catch( RuntimeException ex ) {
-			if( tx != null && tx.isActive() ) tx.rollback();
-			throw ex;
-		}
-		em.close();
-	}
-	
-	@After
-	public void after() {
-		emf.close();
 	}
 	
 }

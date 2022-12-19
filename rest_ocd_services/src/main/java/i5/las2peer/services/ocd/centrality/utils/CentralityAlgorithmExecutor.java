@@ -23,6 +23,7 @@ public class CentralityAlgorithmExecutor {
 	 * @throws InterruptedException In case of an algorithm interrupt.
 	 */
 	public CentralityMap execute(CustomGraph graph, CentralityAlgorithm algorithm) throws CentralityAlgorithmException, InterruptedException {
+
 		CustomGraph graphCopy = new CustomGraph(graph);
 		GraphProcessor processor = new GraphProcessor();
 		processor.makeCompatible(graphCopy, algorithm.compatibleGraphTypes());

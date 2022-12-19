@@ -18,7 +18,7 @@ import org.graphstream.graph.Edge;
  */
 public class InvocationHandler {
 
-	private EntityHandler entityHandler = new EntityHandler();
+	//private EntityHandler entityHandler = new EntityHandler();
 
 	//////////// GRAPH ////////////
 
@@ -83,30 +83,30 @@ public class InvocationHandler {
 		return communityMemberList;
 	}
 
-	public List<Integer> getCoverIdsByGraphId(long graphId, String username) {
-
-		List<Cover> queryResults;
-		EntityManager em = entityHandler.getEntityManager();
-
-		String queryStr = "SELECT c from Cover c" + " JOIN c." + Cover.GRAPH_FIELD_NAME + " g";
-		queryStr += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username";
-		queryStr += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
-
-		queryStr += " GROUP BY c";
-		TypedQuery<Cover> query = em.createQuery(queryStr, Cover.class);
-
-		query.setParameter("username", username);
-		queryResults = query.getResultList();
-		em.close();
-
-		int size = queryResults.size();
-		ArrayList<Integer> coverIds = new ArrayList<Integer>(size);
-		for (int i = 0; i < size; i++) {
-			coverIds.add((int) queryResults.get(i).getId());
-		}
-
-		return coverIds;
-
-	}
+//	public List<Integer> getCoverIdsByGraphId(long graphId, String username) {		//TODO is not used
+//
+//		List<Cover> queryResults;
+//		EntityManager em = entityHandler.getEntityManager();
+//
+//		String queryStr = "SELECT c from Cover c" + " JOIN c." + Cover.GRAPH_FIELD_NAME + " g";
+//		queryStr += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username";
+//		queryStr += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
+//
+//		queryStr += " GROUP BY c";
+//		TypedQuery<Cover> query = em.createQuery(queryStr, Cover.class);
+//
+//		query.setParameter("username", username);
+//		queryResults = query.getResultList();
+//		em.close();
+//
+//		int size = queryResults.size();
+//		ArrayList<Integer> coverIds = new ArrayList<Integer>(size);
+//		for (int i = 0; i < size; i++) {
+//			coverIds.add((int) queryResults.get(i).getId());
+//		}
+//
+//		return coverIds;
+//
+//	}
 
 }

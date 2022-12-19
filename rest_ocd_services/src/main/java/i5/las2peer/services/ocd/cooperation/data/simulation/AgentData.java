@@ -2,61 +2,43 @@ package i5.las2peer.services.ocd.cooperation.data.simulation;
 
 import java.util.List;
 
-import javax.persistence.Basic;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AgentData {
-
-	/**
-	 * identity. Used as persistence primary key
-	 */
-	@Id
-	@GeneratedValue
-	private long id;
 
 	/**
 	 * The simulation dataset this agent data belongs to
 	 */
-	@ManyToOne(fetch = FetchType.EAGER)
-	private SimulationDataset dataset;
+	private SimulationDataset simulationDataset;
 
 	/**
 	 * Used strategies of every generation
 	 */
-	@Transient
 	private List<Boolean> strategies;
 	
 	/**
 	 * Received payoff of every generation
 	 */
-	@Transient
 	private List<Double> payoff;
 
 	/**
 	 * The cooperativity value of the agent. Averaged over the last strategies
 	 */
-	@Basic
 	private double cooperativity;
 	
 	/**
 	 * The wealth value of the agent. Averaged over the last payoff values.
 	 */
-	@Basic
 	private double wealth;
 
-	@Basic
 	private boolean finalStrategy;
 
-	@Basic
 	private double finalPayoff;
 
 	///// Constructor /////
@@ -152,4 +134,30 @@ public class AgentData {
 		this.wealth = wealth;
 	}
 
+	public SimulationDataset getSimulationDataset() {
+		return simulationDataset;
+	}
+
+	public void setSimulationDataset(SimulationDataset simulationDataset) {
+		this.simulationDataset = simulationDataset;
+	}
+
+	public boolean isFinalStrategy() {
+		return finalStrategy;
+	}
+
+
+
+	@Override
+	public String toString() {
+		return "AgentData{" +
+				", simulationDataset=" + simulationDataset +
+				", strategies=" + strategies +
+				", payoff=" + payoff +
+				", cooperativity=" + cooperativity +
+				", wealth=" + wealth +
+				", finalStrategy=" + finalStrategy +
+				", finalPayoff=" + finalPayoff +
+				'}';
+	}
 }

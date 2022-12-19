@@ -1,5 +1,10 @@
 package i5.las2peer.services.ocd.centrality.data;
 
+import i5.las2peer.services.ocd.graphs.CoverCreationType;
+import i5.las2peer.services.ocd.utils.ExecutionStatus;
+
+import java.beans.ConstructorProperties;
+
 /**
  * Instance of this class holds meta information about a centrality and is used
  * for efficient requests that don't require accessing full centrality data
@@ -7,53 +12,87 @@ package i5.las2peer.services.ocd.centrality.data;
 public class CentralityMeta {
 
     /**
-     * The id of the CentralityMap.
+     * The key of the CentralityMap.
      */
-    Long centralityId;
+    private String centralityKey;
 
     /**
      * The name of the CentralityMap.
      */
-    String centralityName;
+    private String centralityName;
 
     /**
-     * The creation log of the CentralityMap.
+     * The key of the graph centrality is based on.
      */
-    CentralityCreationLog centralityCreationLog;
-
-    /**
-     * The id of the graph centrality is based on.
-     */
-    Long graphId;
+    private String graphKey;
 
     /**
      * The name of the graph centrality is based on.
      */
-    String graphName;
+    private String graphName;
 
 
     /**
-     * The node count of the graph centrality is based on.
+     * The type corresponding to the centrality creation log.
      */
-    Long graphSize;
+    private int creationTypeId;
 
+    /**
+     * The type corresponding to the graph creation log status.
+     */
+    private int creationStatusId;
 
-    public CentralityMeta(Long centralityId, String centralityName, CentralityCreationLog centralityCreationLog, Long graphId, String graphName, Long graphSize) {
-        this.centralityId = centralityId;
+    /**
+     * The execution time of the centrality in ms.
+     */
+    private long executionTime;
+
+    @ConstructorProperties({"centralityKey","centralityName","graphKey","graphName", "creationTypeId", "creationStatusId", "executionTime"})
+    public CentralityMeta(String centralityKey, String centralityName, String graphKey, String graphName,
+                          int creationTypeId, int creationStatusId, long executionTime) {
+        this.centralityKey = centralityKey;
         this.centralityName = centralityName;
-        this.centralityCreationLog = centralityCreationLog;
-        this.graphId = graphId;
+        this.graphKey = graphKey;
         this.graphName = graphName;
-        this.graphSize = graphSize;
-
+        this.creationTypeId = creationTypeId;
+        this.creationStatusId = creationStatusId;
+        this.executionTime = executionTime;
     }
 
-    public Long getCentralityId() {
-        return centralityId;
+    /**
+     * Finds and returns name of the centrality creation type of the
+     * centrality to which this meta data belongs.
+     * @return      Centrality creation type name.
+     */
+    public String getCreationTypeName(){
+        return CentralityCreationType.lookupType(this.creationTypeId).name();
     }
 
-    public void setCentralityId(Long centralityId) {
-        this.centralityId = centralityId;
+    /**
+     * Finds and returns display name of the centrality creation log of the
+     * centrality to which this meta data belongs.
+     * @return      Centrality creation log display name.
+     */
+    public String getCreationTypeDisplayName(){
+        return CentralityCreationType.lookupType(this.creationTypeId).getDisplayName();
+    }
+
+    /**
+     * Finds and returns name of the execution status of the
+     * centrality to which this meta data belongs.
+     * @return      Centrality execution status name.
+     */
+    public String getCreationStatusName(){
+
+        return ExecutionStatus.lookupStatus(this.creationStatusId).name();
+    }
+
+    public String getCentralityKey() {
+        return centralityKey;
+    }
+
+    public void setCentralityKey(String centralityKey) {
+        this.centralityKey = centralityKey;
     }
 
     public String getCentralityName() {
@@ -64,20 +103,12 @@ public class CentralityMeta {
         this.centralityName = centralityName;
     }
 
-    public CentralityCreationLog getCentralityCreationLog() {
-        return centralityCreationLog;
+    public String getGraphKey() {
+        return graphKey;
     }
 
-    public void setCentralityCreationLog(CentralityCreationLog centralityCreationLog) {
-        this.centralityCreationLog = centralityCreationLog;
-    }
-
-    public Long getGraphId() {
-        return graphId;
-    }
-
-    public void setGraphId(Long graphId) {
-        this.graphId = graphId;
+    public void setGraphKey(String graphKey) {
+        this.graphKey = graphKey;
     }
 
     public String getGraphName() {
@@ -88,23 +119,41 @@ public class CentralityMeta {
         this.graphName = graphName;
     }
 
-    public Long getGraphSize() {
-        return graphSize;
+    public int getCreationTypeId() {
+        return creationTypeId;
     }
 
-    public void setGraphSize(Long graphSize) {
-        this.graphSize = graphSize;
+    public void setCreationTypeId(int creationTypeId) {
+        this.creationTypeId = creationTypeId;
+    }
+
+    public int getCreationStatusId() {
+        return creationStatusId;
+    }
+
+    public void setCreationStatusId(int creationStatusId) {
+        this.creationStatusId = creationStatusId;
+    }
+
+    public long getExecutionTime() {
+        return executionTime;
+    }
+
+    public void setExecutionTime(long executionTime) {
+        this.executionTime = executionTime;
     }
 
     @Override
     public String toString() {
         return "CentralityMeta{" +
-                "centralityId=" + centralityId +
+                "centralityKey='" + centralityKey + '\'' +
                 ", centralityName='" + centralityName + '\'' +
-                ", centralityCreationLog=" + centralityCreationLog.getStatus() +
-                ", graphId=" + graphId +
+                ", graphKey='" + graphKey + '\'' +
                 ", graphName='" + graphName + '\'' +
-                ", graphSize=" + graphSize +
+                ", creationTypeId=" + creationTypeId +
+                ", creationStatusId=" + creationStatusId +
+                ", executionTime=" + executionTime +
                 '}';
     }
+
 }

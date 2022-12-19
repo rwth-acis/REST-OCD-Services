@@ -1,5 +1,8 @@
 package i5.las2peer.services.ocd.graphs;
 
+import i5.las2peer.services.ocd.utils.ExecutionStatus;
+
+import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 
 /**
@@ -9,9 +12,14 @@ import java.util.ArrayList;
 public class CustomGraphMeta {
 
     /**
+     * database key of the CustomGraph to which metadata belongs
+     */
+    private String key;
+
+    /**
      * id of the CustomGraph to which metadata belongs
      */
-    private long persistenceId;
+    private long id; //TODO: is this needed?
 
     /**
      * The name of the user owning the graph.
@@ -39,37 +47,56 @@ public class CustomGraphMeta {
     ArrayList<Integer> types;
 
     /**
-     * The graph creation log of the graph.
+     * The type corresponding to the graph creation log.
      */
-    GraphCreationLog graphCreationLog;
+    int creationTypeId;
 
-    public CustomGraphMeta(long persistenceId) {
-        this.persistenceId = persistenceId;
-        System.out.println("creating with id = "+ persistenceId);
-    }
+    /**
+     * The type corresponding to the graph creation log status.
+     */
+    int creationStatusId;
 
-    public CustomGraphMeta(long persistenceId, String userName, String name, long nodeCount, long edgeCount, ArrayList<Integer> types, GraphCreationLog graphCreationLog) {
-        this.persistenceId = persistenceId;
+
+    /**
+     * Constructor that is used to generate a CustomGraphMeta instance
+     * using the JSON input resulting from ArangoDB queries
+     *
+     * @param key               Key of the graph
+     * @param userName          Creator of the graph
+     * @param name              Name of the graph
+     * @param nodeCount         Node count of the graph
+     * @param edgeCount         Edge count of the graph
+     * @param types             Array of graph types
+     * @param creationTypeId    Id of the graph creation log
+     * @param creationStatusId  Status of the graph creation log
+     */
+    @ConstructorProperties({"key","userName","name","nodeCount","edgeCount", "types", "creationTypeId", "creationStatusId"})
+    public CustomGraphMeta(String key, String userName, String name, Long nodeCount, Long edgeCount, ArrayList<Integer> types, int creationTypeId, int creationStatusId) {
+        this.key = key;
         this.userName = userName;
         this.name = name;
         this.nodeCount = nodeCount;
         this.edgeCount = edgeCount;
-        this.graphCreationLog = graphCreationLog;
+        this.creationTypeId = creationTypeId;
+        this.creationStatusId = creationStatusId;
 
-        if(types != null) {
-            this.types = types;
+       if(types != null) {
+            this.types =  types;
         }else{
             this.types = new ArrayList<>();
         }
-
     }
 
-    public long getPersistenceId() {
-        return persistenceId;
+    public String getKey() {return key;}
+
+    public void setKey(String key) {this.key = key;}
+
+    public long getId() {
+        return id;
     }
 
-    public void setPersistenceId(long persistenceId) {
-        this.persistenceId = persistenceId;
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getUserName() {
@@ -112,23 +139,62 @@ public class CustomGraphMeta {
         this.types = types;
     }
 
-    public GraphCreationLog getGraphCreationLog() {
-        return graphCreationLog;
+    public int getCreationTypeId() {
+        return creationTypeId;
     }
 
-    public void setGraphCreationLog(GraphCreationLog graphCreationLog) {
-        this.graphCreationLog = graphCreationLog;
+    public void setCreationTypeId(int creationTypeId) {
+        this.creationTypeId = creationTypeId;
     }
+
+    public int getCreationStatusId() {
+        return creationStatusId;
+    }
+
+    public void setCreationStatusId(int creationStatusId) {
+        this.creationStatusId = creationStatusId;
+    }
+
+    /**
+     * Finds and returns name of the graph creation type of the
+     * graph to which this meta data belongs.
+     * @return      Graph creation type name.
+     */
+    public String getCreationTypeName(){
+        return GraphCreationType.lookupType(this.creationTypeId).name();
+    }
+
+    /**
+     * Finds and returns display name of the creation log s of the
+     * graph to which this meta data belongs.
+     * @return      Graph creation log display name.
+     */
+    public String getCreationTypeDisplayName(){
+        return GraphCreationType.lookupType(this.creationTypeId).getDisplayName();
+    }
+
+    /**
+     * Finds and returns name of the execution status of the
+     * graph to which this meta data belongs.
+     * @return      Graph execution status name.
+     */
+    public String getCreationStatusName(){
+        return ExecutionStatus.lookupStatus(this.creationStatusId).name();
+    }
+
+
 
     @Override
     public String toString() {
         return "CustomGraphMeta{" +
-                "id=" + persistenceId +
+                "key=" + key +
                 ", userName='" + userName + '\'' +
                 ", name='" + name + '\'' +
                 ", nodeCount=" + nodeCount +
                 ", edgeCount=" + edgeCount +
                 ", types=" + types +
+                ", creationType=" + creationTypeId +
+                ", creationStatus=" + creationStatusId +
                 '}';
     }
 }

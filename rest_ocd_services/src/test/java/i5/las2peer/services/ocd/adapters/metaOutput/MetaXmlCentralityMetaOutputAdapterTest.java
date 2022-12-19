@@ -18,25 +18,25 @@ public class MetaXmlCentralityMetaOutputAdapterTest {
     @Test
     public void writeCentralityMap() {
 
-        Long id = Long.valueOf(1);
-
+        String centralityKey = "centralityTestKey";
         String centralityName = "testCentrality";
-        Long graphId = Long.valueOf(1);
-        Long graphSize = Long.valueOf(10);
+        String graphKey = "graphTestKey";
         String graphName = "testGraph";
         HashSet<GraphType> compatibleGraphTypes = new HashSet<GraphType>();
+        Long executionTime = Long.valueOf(20);
         compatibleGraphTypes.add(GraphType.WEIGHTED);
         CentralityCreationLog centralityCreationLog = new CentralityCreationLog(CentralityMeasureType.DEGREE_CENTRALITY,  CentralityCreationType.CENTRALITY_MEASURE, new HashMap<String,String>(),compatibleGraphTypes );
         centralityCreationLog.setExecutionTime(1);
         centralityCreationLog.setStatus(ExecutionStatus.COMPLETED);
 
         CentralityMeta centralityMeta = new CentralityMeta(
-                id,
+                centralityKey,
                 centralityName,
-                centralityCreationLog,
-                graphId,
+                graphKey,
                 graphName,
-                graphSize
+                centralityCreationLog.getCreationType().getId(),
+                centralityCreationLog.getStatus().getId(),
+                executionTime
         );
 
         try {

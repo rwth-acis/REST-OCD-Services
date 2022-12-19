@@ -104,7 +104,7 @@ public class DefaultXmlCentralityOutputAdapter extends AbstractCentralityOutputA
 		mapIdElt.appendChild(doc.createTextNode(Long.toString(map.getId())));
 		idElt.appendChild(mapIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(map.getGraph().getPersistenceId())));
+		graphIdElt.appendChild(doc.createTextNode(map.getGraph().getKey()));
 		idElt.appendChild(graphIdElt);
 		mapElt.appendChild(idElt);
 		Element graphElt = doc.createElement("Graph");

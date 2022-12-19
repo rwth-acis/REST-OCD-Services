@@ -38,10 +38,10 @@ public class MetaXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 			 */
 			Element idElt = doc.createElement("Id");
 			Element coverIdElt = doc.createElement("CoverId");
-			coverIdElt.appendChild(doc.createTextNode(Long.toString(cover.getId())));
+			coverIdElt.appendChild(doc.createTextNode(cover.getKey()));		//done
 			idElt.appendChild(coverIdElt);
 			Element graphIdElt = doc.createElement("GraphId");
-			graphIdElt.appendChild(doc.createTextNode(Long.toString(cover.getGraph().getPersistenceId())));
+			graphIdElt.appendChild(doc.createTextNode(cover.getGraph().getKey()));		//done
 			idElt.appendChild(graphIdElt);
 			coverElt.appendChild(idElt);
 			Element coverNameElt = doc.createElement("Name");
@@ -81,7 +81,7 @@ public class MetaXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 				OcdMetricLog metric = cover.getMetrics().get(i);
 				Element metricElt = doc.createElement("Metric");
 				Element metricIdElt = doc.createElement("Id");
-				metricIdElt.appendChild(doc.createTextNode(Long.toString(metric.getId())));
+				metricIdElt.appendChild(doc.createTextNode(metric.getKey()));
 				metricElt.appendChild(metricIdElt);
 				Element metricTypeElt = doc.createElement("Type");
 				metricTypeElt.appendChild(doc.createTextNode(metric.getType().name()));

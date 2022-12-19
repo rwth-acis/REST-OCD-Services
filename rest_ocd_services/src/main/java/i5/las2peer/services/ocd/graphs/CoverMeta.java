@@ -1,7 +1,9 @@
 package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
+import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
+import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 
 /**
@@ -11,9 +13,9 @@ import java.util.ArrayList;
 public class CoverMeta {
 
     /**
-     * The id of the cover
+     * database key of the Cover to which metadata belongs
      */
-    private long id;
+    private String key;
 
     /**
      * The name of the cover
@@ -23,81 +25,146 @@ public class CoverMeta {
     /**
      * The number of communities of the cover
      */
-    private Integer numberOfCommunities;
+    private long numberOfCommunities;
 
     /**
-     * The id of the graph.
+     * The key of the graph the cover is based on.
      */
-    private Long graphId;
+    private String graphKey;
 
     /**
      * The name of the graph
      */
-    private String graphName = "";
+    private String graphName;
 
     /**
-     * The graph creation log of the graph.
+     * The type corresponding to the graph creation log.
      */
-    private CoverCreationLog coverCreationLog;
+    int creationTypeId;
 
     /**
-     * Metrics of the cover
+     * The type corresponding to the graph creation log status.
      */
-    private ArrayList<OcdMetricLog> metrics;
+    int creationStatusId;
 
-    public CoverMeta(long id, String name, Integer numberOfCommunities, Long graphId, String graphName, CoverCreationLog coverCreationLog, ArrayList<OcdMetricLog> metrics) {
-        this.id = id;
+
+    /**
+     *
+     * @param key                   Key of the cover
+     * @param name                  Name of the cover
+     * @param numberOfCommunities   Number of communities in the cover
+     * @param graphKey              Key of the graph the cover is based on
+     * @param graphName             Name of the graph
+     * @param creationTypeId        Id of the cover creation log
+     * @param creationStatusId      Status of the Cover creation log
+     */
+    @ConstructorProperties({"key","name","numberOfCommunities","graphKey", "graphName", "creationTypeId", "creationStatusId"})
+    public CoverMeta(String key, String name, long numberOfCommunities, String graphKey,
+                     String graphName, int creationTypeId, int creationStatusId) {
+        this.key = key;
         this.name = name;
         this.numberOfCommunities = numberOfCommunities;
-        this.graphId = graphId;
+        this.graphKey = graphKey;
         this.graphName = graphName;
-        this.coverCreationLog = coverCreationLog;
-
-        if(metrics != null) {
-            this.metrics = metrics;
-        }else{
-            this.metrics = new ArrayList<>();
-        }
+        this.creationTypeId = creationTypeId;
+        this.creationStatusId = creationStatusId;
     }
 
-    public long getId() {
-        return id;
+
+    /**
+     * Finds and returns name of the cover creation type of the
+     * cover to which this meta data belongs.
+     * @return      Cover creation type name.
+     */
+    public String getCreationTypeName(){
+        return CoverCreationType.lookupType(this.creationTypeId).name();
+    }
+
+    /**
+     * Finds and returns display name of the creation log of the
+     * cover to which this meta data belongs.
+     * @return      Cover creation log display name.
+     */
+    public String getCreationTypeDisplayName(){
+        return CoverCreationType.lookupType(this.creationTypeId).getDisplayName();
+    }
+
+    /**
+     * Finds and returns name of the execution status of the
+     * cover to which this meta data belongs.
+     * @return      Cover execution status name.
+     */
+    public String getCreationStatusName(){
+
+        return ExecutionStatus.lookupStatus(this.creationStatusId).name();
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getName() {
         return name;
     }
 
-    public Integer getNumberOfCommunities() {
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public long getNumberOfCommunities() {
         return numberOfCommunities;
     }
 
-    public Long getGraphId() {
-        return graphId;
+    public void setNumberOfCommunities(long numberOfCommunities) {
+        this.numberOfCommunities = numberOfCommunities;
+    }
+
+    public String getGraphKey() {
+        return graphKey;
+    }
+
+    public void setGraphKey(String graphKey) {
+        this.graphKey = graphKey;
     }
 
     public String getGraphName() {
         return graphName;
     }
 
-    public CoverCreationLog getCoverCreationLog() {
-        return coverCreationLog;
+    public void setGraphName(String graphName) {
+        this.graphName = graphName;
     }
 
-    public ArrayList<OcdMetricLog> getMetrics() {
-        return metrics;
+    public int getCreationTypeId() {
+        return creationTypeId;
+    }
+
+    public void setCreationTypeId(int creationTypeId) {
+        this.creationTypeId = creationTypeId;
+    }
+
+    public int getCreationStatusId() {
+        return creationStatusId;
+    }
+
+    public void setCreationStatusId(int creationStatusId) {
+        this.creationStatusId = creationStatusId;
     }
 
     @Override
     public String toString() {
         return "CoverMeta{" +
-                "id=" + id +
+                "key='" + key + '\'' +
                 ", name='" + name + '\'' +
                 ", numberOfCommunities=" + numberOfCommunities +
-                ", graphId=" + graphId +
+                ", graphKey='" + graphKey + '\'' +
                 ", graphName='" + graphName + '\'' +
-                ", graphCreationLog=" + coverCreationLog.getType().getDisplayName() +
-                ", metrics=" + metrics +
+                ", creationTypeId=" + creationTypeId +
+                ", creationStatusId=" + creationStatusId +
                 '}';
     }
 }

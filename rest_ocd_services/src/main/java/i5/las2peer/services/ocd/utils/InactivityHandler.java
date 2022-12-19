@@ -1,3 +1,4 @@
+
 package i5.las2peer.services.ocd.utils;
 
 
@@ -7,7 +8,11 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -22,10 +27,10 @@ import java.util.concurrent.TimeUnit;
 public class InactivityHandler {
 
     /**
-     * Entity Handler for interacting with the database.
+     * Database.
      */
-    EntityHandler entityHandler;
 
+    Database database;
     /**
      * The thread handler used for algorithm, benchmark and metric execution.
      */
@@ -55,64 +60,61 @@ public class InactivityHandler {
     /**
      * Constructor for InactivityHandler
      *
-     * @param entityHandler EntityHandler passed from ServiceClass
+     * @param database		Database passed from ServiceClass
      * @param threadHandler ThreadHandler passed from ServiceClass
      * @param serviceClass  ServiceClass instance
      */
-    public InactivityHandler(EntityHandler entityHandler, ThreadHandler threadHandler, ServiceClass serviceClass) {
+    public InactivityHandler(Database database, ThreadHandler threadHandler, ServiceClass serviceClass) {
 
-        this.entityHandler = entityHandler;
         this.threadHandler = threadHandler;
         this.executor = ThreadHandler.getExecutor();
         this.service = serviceClass;
-        this.userLimitsHandler = new UserLimitsHandler(entityHandler);
+        this.userLimitsHandler = new UserLimitsHandler(database);
+        this.database = database;
 
         // part of the code that will be executed regularly
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleAtFixedRate(() -> {
-            try {
 
+            try {
                 /* get up-to-date user inactivity info */
                 inactivityTracker = this.getDeletionData();
-
                 /* Check if user data needs to be deleted. If yes, delete the data. */
                 for (String user : inactivityTracker.keySet()) {
-                    //System.out.println("Checking inactivity of " + user + " last login date: " + inactivityTracker.get(user).getFirst() + ". Deletion date: " + inactivityTracker.get(user).getSecond());
-
+                    System.out.println("checking inactivity of " + user + " lastLoginDate: " + inactivityTracker.get(user).getFirst() + " DeletionDate: " + inactivityTracker.get(user).getSecond());
                     if (shouldDelete(inactivityTracker.get(user))) {
-                        /* get all graphs of a user to delete */
-                        List<CustomGraph> userGraphs = entityHandler.getGraphs(user);
-                        System.out.println("Need to delete " + user + " data. which has " + userGraphs.size() + " graphs.");
-
-                        /* check that user has graphs, to avoid unnecessary computations */
+                        // get all graphs of a user to delete
+                        List<CustomGraph> userGraphs = database.getGraphs(user);
+                        System.out.println("need to delete " + user + " data. which has " + userGraphs.size() + " graphs.");
+                        // check that user has graphs, to avoid unnecessary computations
                         if (userGraphs.size() > 0) {
-                            //System.out.println("Deleting graphs of user " + user + " due to inactivity.");
-                            // System.out.print("Deleted graph ids: ");
-
-                            /* delete all graphs of a user */
+                           // System.out.println("Deleting graphs of user " + user + " due to inactivity.");
+                           // System.out.print("Deleted graph ids: ");
+                            // delete all graphs of a user
                             for (CustomGraph graph : userGraphs) {
-                                entityHandler.deleteGraph(user, graph.getPersistenceId(), threadHandler);
-                                System.out.print(graph.getId() + ", ");
+                                database.deleteGraph(user, graph.getKey(), threadHandler);
+                                System.out.print(graph.getKey() + ", ");
                             }
                             System.out.println();
-
                         } else {
-                            // System.out.println("nothing to delete for " + user);
-                            /* user has no graphs, so remove the user from known users. */
-                            entityHandler.deleteUserInactivityData(user, threadHandler);
+                           // System.out.println("nothing to delete for " + user);
+                            // user has no graphs, so remove the user from known users.
+                        	database.deleteUserInactivityData(user, threadHandler);
                         }
                     }
                 }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
         }, 0, 1, TimeUnit.DAYS);
     }
 
 
     /**
-     * Checks whether user content should be removed. This is done by comparing if the deletion date is greater or equal
-     * to the current date.
+     * Checks whether user content should be removed. This is done by comparing
+     * if the deletion date is greater or equal to the current date.
      *
      * @param userDeletionInfo Pair object that holds last login and content deletion dates of user.
      * @return true if content of the user should be removed at the time of calling this method.
@@ -125,7 +127,6 @@ public class InactivityHandler {
 
     }
 
-
     /**
      * Refreshes user's last login and deletion dates and returns deletion date
      *
@@ -135,37 +136,32 @@ public class InactivityHandler {
      */
     public LocalDate getAndUpdateUserInactivityData(String username, boolean update) {
 
-        LocalDate currentDate = LocalDate.now(); // current day
-        LocalDate deletionDate = currentDate.plusDays(userLimitsHandler.getAllowedInactivityDays(username)); // when user data should be deleted if user does not relog
+        // current day
+        LocalDate currentDate = LocalDate.now();
+        // date when user data should be deleted if user does not relogin
+        LocalDate deletionDate = currentDate.plusDays(userLimitsHandler.getAllowedInactivityDays(username));
 
-        EntityManager em = this.entityHandler.getEntityManager();
-        em.getTransaction().begin();
-
-        /* try to find deletion info for user with a given username */
-        String queryStr = "SELECT d FROM " + InactivityData.class.getName() + " d WHERE d." + InactivityData.USER_NAME_FIELD_NAME + " = :username";
-        TypedQuery<InactivityData> query = em.createQuery(queryStr, InactivityData.class);
-        query.setParameter("username", username);
-        List<InactivityData> queryResults = query.getResultList();
-
+        // try to find deletion info for user with a given username
+        List<InactivityData> queryResults = database.getInactivityData(username);
 
         if (update) {
-            /* If user not known, add entry for it. If user is known, update the entry. */
+            /* If user not known, add an entry for it. If user is known, update the entry. */
             if (queryResults.isEmpty()) {
-                System.out.println("User " + username + " unknown. creating entry for it.");
-                /* user unknown, create user entry. */
+                System.out.println("username " + username + " unknown. creating entry for it.");
+                // user unknown, create user entry.
                 Pair<LocalDate, LocalDate> userInactivityTracker = new Pair<LocalDate, LocalDate>(currentDate, deletionDate);
                 InactivityData inData = new InactivityData(username, userInactivityTracker);
                 System.out.println("Created entry for " + inData.getUsername() + ". Last login date: " + inData.getLastLoginDate() + ". Content deletion date: " + inData.getDeletionDate());
-                em.persist(inData);
+                database.storeInactivityData(inData);
             } else {
-                /* user known, update deletion info. */
+                // user known, update deletion info.
                 System.out.println("User " + username + " is known. Last login date: " + currentDate + ". Content deletion date: " + deletionDate);
-                queryResults.get(0).setLastLoginDate(currentDate);
-                queryResults.get(0).setDeletionDate(deletionDate);
+                InactivityData inData = queryResults.get(0);
+                inData.setLastLoginDate(currentDate);
+                inData.setDeletionDate(deletionDate);
+                database.updateInactivityData(inData);
             }
-            em.getTransaction().commit();
         }
-        em.close();
 
         return deletionDate;
 
@@ -180,14 +176,7 @@ public class InactivityHandler {
     public HashMap<String, Pair<LocalDate, LocalDate>> getDeletionData() {
 
         HashMap<String, Pair<LocalDate, LocalDate>> inactivityTracker = new HashMap<String, Pair<LocalDate, LocalDate>>();
-        EntityManager em = entityHandler.getEntityManager();
-
-        List<InactivityData> queryResults;
-        String queryStr = "SELECT d FROM " + InactivityData.class.getName() + " d";
-        TypedQuery<InactivityData> query = em.createQuery(queryStr, InactivityData.class);
-        queryResults = query.getResultList();
-
-        em.close();
+        List<InactivityData> queryResults = database.getAllInactivityData();
 
         for (InactivityData data : queryResults) {
             /* recalculate deletion date in case it has changed. */

@@ -44,11 +44,13 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.ManualDeployment;
 import i5.las2peer.api.security.UserAgent;
+import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
 import i5.las2peer.api.logging.MonitoringEvent;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
+import i5.las2peer.execution.ExecutionContext;
 import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -61,6 +63,12 @@ import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
+import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
+import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
+import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
+import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
+import i5.las2peer.services.ocd.centrality.data.CentralityMap;
+import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.centrality.evaluation.CorrelationCoefficient;
 import i5.las2peer.services.ocd.centrality.evaluation.StatisticalProcessor;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
@@ -68,7 +76,6 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmFactory;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulationFactory;
 import i5.las2peer.services.ocd.centrality.utils.MatrixOperations;
-import i5.las2peer.services.ocd.cooperation.data.SimulationEntityHandler;
 import i5.las2peer.services.ocd.cooperation.data.mapping.MappingFactory;
 import i5.las2peer.services.ocd.cooperation.data.mapping.SimulationGroupSetMapping;
 import i5.las2peer.services.ocd.cooperation.data.mapping.SimulationSeriesSetMapping;
@@ -81,6 +88,16 @@ import i5.las2peer.services.ocd.cooperation.simulation.SimulationBuilder;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
 import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CoverCreationLog;
+import i5.las2peer.services.ocd.graphs.CoverCreationType;
+import i5.las2peer.services.ocd.graphs.CoverId;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomGraphId;
+import i5.las2peer.services.ocd.graphs.GraphCreationLog;
+import i5.las2peer.services.ocd.graphs.GraphCreationType;
+import i5.las2peer.services.ocd.graphs.GraphProcessor;
+import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
@@ -90,6 +107,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
+import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.InvocationHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
@@ -136,13 +154,13 @@ public class ServiceClass extends RESTService {
 	}
 
 	public ServiceClass() {
+		DatabaseConfig.setConfigFile(false);		//TODO angeben ob test datenbank oder hauptdatenbank gewaehlt wird
+		database = new Database();
 		setFieldValues();
-
-		// instantiate InactivityHandler to regularly remove content of inactive users.
-		inactivityHandler = new InactivityHandler(entityHandler, threadHandler, this);
-
+        // instantiate inactivityHandler to regularly remove content of inactive users.
+		inactivityHandler = new InactivityHandler(database, threadHandler, this); //TODO inactivity handler muss sich auf db beziehens
 		// instantiate UserLimitHandler to limit content for various users.
-		userLimitsHandler = new UserLimitsHandler(entityHandler);
+		userLimitsHandler = new UserLimitsHandler(database);
 
 	}
 
@@ -167,7 +185,7 @@ public class ServiceClass extends RESTService {
 	/**
 	 * The entity handler used for access stored entities.
 	 */
-	private final static SimulationEntityHandler entityHandler = new SimulationEntityHandler();
+	private static Database database;
 
 	/**
 	 * The factory used for creating benchmarks.
@@ -204,10 +222,12 @@ public class ServiceClass extends RESTService {
 	 */
 	private static InactivityHandler inactivityHandler;
 
+
 	/**
 	 * User limit handler for inactive days allowed and size of user content allowed.
 	 */
 	private static UserLimitsHandler userLimitsHandler;
+
 
 
 	//////////////////////////////////////////////////////////////////
@@ -221,6 +241,7 @@ public class ServiceClass extends RESTService {
 	public static String getUserId() {
 		return Context.getCurrent().getMainAgent().getIdentifier();
 	}
+
 
 
 
@@ -283,7 +304,6 @@ public class ServiceClass extends RESTService {
 		public Response getContentDeletionDate(@PathParam("username") String usernameStr) {
 			try {
 				LocalDate deletionDate = inactivityHandler.getAndUpdateUserInactivityData(usernameStr, false);
-
 				return Response.ok(requestHandler.writeDeletionDate(usernameStr, deletionDate)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -347,10 +367,10 @@ public class ServiceClass extends RESTService {
 				String contentStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-
 				/*
 				Check if user has a limit regarding number of graph throw an error if the limit is violated.
                 */
+
 				if (userLimitsHandler.reachedGraphCountLimit(username)){
 					requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
 					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
@@ -439,7 +459,8 @@ public class ServiceClass extends RESTService {
 					}
 				}
 				try {
-					entityHandler.storeGraph(graph);
+					System.out.println("Graph Typen" + graph.getTypes().toString());
+					database.storeGraph(graph); //done
 				} catch (Exception e) {
 					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
 				}
@@ -468,10 +489,10 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"special"}, value = "Big Graph Import", notes = "Stores a graph step by step.")
 		public Response storeGraph(@DefaultValue("unnamed") @QueryParam("name") String nameStr, String contentStr) {
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-
 			/*
 			Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
 			*/
+
 			if (userLimitsHandler.reachedGraphCountLimit(username)){
 				requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
 				return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
@@ -594,12 +615,11 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(tags = {"show"}, value = "Get Graphs Info", notes = "Returns the ids or meta information of multiple graphs.")
 		public Response getGraphs(@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
-				@DefaultValue("0") @QueryParam("length") String lengthStr,
+				@DefaultValue("") @QueryParam("length") String lengthStr,
 				@DefaultValue("FALSE") @QueryParam("includeMeta") String includeMetaStr,
 				@DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-
 				List<CustomGraphMeta> queryResults;
 				List<Integer> executionStatusIds = new ArrayList<Integer>();
 				if (!executionStatusesStr.equals("")) {
@@ -642,12 +662,14 @@ public class ServiceClass extends RESTService {
 					if (!lengthStr.equals("")) {
 						length = Integer.parseInt(lengthStr);
 					}
+					else {
+						length = Integer.MAX_VALUE;
+					}
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
 				}
-
-				queryResults = entityHandler.getGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
+				queryResults = database.getGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
 
 				String responseStr;
 				if (includeMeta) {
@@ -680,27 +702,23 @@ public class ServiceClass extends RESTService {
 		public Response getGraph(@DefaultValue("GRAPH_ML") @QueryParam("outputFormat") String graphOutputFormatStr,
 				@PathParam("graphId") String graphIdStr) {
 			try {
-				long graphId;
+
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				GraphOutputFormat format;
 				try {
-					graphId = Long.parseLong(graphIdStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-				}
-				try {
+
 					format = GraphOutputFormat.valueOf(graphOutputFormatStr);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Specified graph output format does not exist.");
 				}
-
-				CustomGraph graph = entityHandler.getGraph(username, graphId);
+				
+				CustomGraph graph = database.getGraph(username, graphIdStr); //done
+				
 				if (graph == null)
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Graph does not exist: graph id " + graphId);
+							"Graph does not exist: graph key " + graphIdStr);	//done
 
 				return Response.ok(requestHandler.writeGraph(graph, format)).build();
 			} catch (Exception e) {
@@ -715,10 +733,10 @@ public class ServiceClass extends RESTService {
 		 * If a benchmark is currently calculating the graph the execution is
 		 * terminated. If an algorithm is currently calculating a cover based on
 		 * the graph it is terminated. If a metric is currently running on a
-		 * cover based on the grap it is terminated.
+		 * cover based on the graph it is terminated.
 		 * 
 		 * @param graphIdStr
-		 *            The graph id.
+		 *            The graph key.
 		 * @return A confirmation xml. Or an error xml.
 		 */
 		@DELETE
@@ -729,17 +747,10 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"delete"}, value = "Delete Graph", notes = "Deletes a graph.")
 		public Response deleteGraph(@PathParam("graphId") String graphIdStr) {
 			try {
-				long graphId;
+
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				try {
-					graphId = Long.parseLong(graphIdStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-				}
-
-				try {
-					entityHandler.deleteGraph(username, graphId, threadHandler);
+					database.deleteGraph(username, graphIdStr, threadHandler);	//done
 
 				} catch (Exception e) {
 					if(e.getMessage() != null) {
@@ -797,13 +808,6 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
 				}
 
-				long graphId;
-				try {
-					graphId = Long.parseLong(graphIdStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-				}
 				CoverInputFormat format;
 				try {
 					format = CoverInputFormat.valueOf(coverInputFormatStr);
@@ -829,38 +833,28 @@ public class ServiceClass extends RESTService {
 				}
 				CoverCreationLog log = new CoverCreationLog(algorithmType, new HashMap<String, String>(), graphTypes);
 				log.setStatus(ExecutionStatus.COMPLETED);
-				EntityManager em = entityHandler.getEntityManager();
-				EntityTransaction tx = em.getTransaction();
+				
 				Cover cover;
+				CustomGraph graph;
 				try {
-					CustomGraph graph;
-					try {
-						graph = entityHandler.getGraph(username, graphId);
-					} catch (Exception e) {
-						requestHandler.log(Level.WARNING,
-								"user: " + username + ", " + "Graph does not exist: graph id " + graphId);
-						return requestHandler.writeError(Error.PARAMETER_INVALID,
-								"Graph does not exist: graph id " + graphId);
-					}
-					try {
-						cover = requestHandler.parseCover(contentStr, graph, format);
-					} catch (Exception e) {
-						requestHandler.log(Level.WARNING, "user: " + username, e);
-						return requestHandler.writeError(Error.PARAMETER_INVALID,
-								"Input cover does not correspond to the specified format.");
-					}
-					cover.setCreationMethod(log);
-					cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
-					tx.begin();
-					em.persist(cover);
-					tx.commit();
-				} catch (RuntimeException e) {
-					if (tx != null && tx.isActive()) {
-						tx.rollback();
-					}
-					throw e;
+					graph = database.getGraph(username, graphIdStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING,
+							"user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Graph does not exist: graph id " + graphIdStr);
 				}
-				em.close();
+				try {
+					cover = requestHandler.parseCover(contentStr, graph, format);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Input cover does not correspond to the specified format.");
+				}
+				cover.setCreationMethod(log);
+				cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
+				
+				database.storeCover(cover);	//done
 				return Response.ok(requestHandler.writeId(cover)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -915,15 +909,8 @@ public class ServiceClass extends RESTService {
 		{
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				long graphId = 0;
-				if (!graphIdStr.equals("")) {
-					try {
-						graphId = Long.parseLong(graphIdStr);
-					} catch (Exception e) {
-						requestHandler.log(Level.WARNING, "user: " + username, e);
-						return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-					}
-				}
+				int length;
+				int firstIndex;
 				List<Integer> executionStatusIds = new ArrayList<Integer>();
 				if (!executionStatusesStr.equals("")) {
 					try {
@@ -958,47 +945,20 @@ public class ServiceClass extends RESTService {
 								"Specified metric execution status does not exist.");
 					}
 				}
-				EntityManager em = entityHandler.getEntityManager();
-
-				/*
-				 * Efficiently query cover information needed for the WebClient
-				 */
-				ArrayList<CoverMeta>  queryResultMetaInformation = new ArrayList<>();
-				String queryStr = "";
-				queryStr = "SELECT c." + Cover.ID_FIELD_NAME
-						+ ", c." + Cover.NAME_FIELD_NAME
-						+ ", c." + Cover.COMMUNITY_COUNT_FIELD_NAME
-						+ ", g." + CustomGraph.ID_FIELD_NAME
-						+ ", g." + CustomGraph.NAME_FIELD_NAME
-						+ ", c." + Cover.CREATION_METHOD_FIELD_NAME
-						+ " from Cover c"
-						+ " JOIN c." + Cover.GRAPH_FIELD_NAME + " g" + " JOIN c."
-						+ Cover.CREATION_METHOD_FIELD_NAME + " a";
-				if (!metricExecutionStatusesStr.equals("")) {
-					queryStr += " JOIN c." + Cover.METRICS_FIELD_NAME + " m";
-				}
-				queryStr += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username" + " AND a."
-						+ CoverCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
-				if (!metricExecutionStatusesStr.equals("")) {
-					queryStr += " AND m." + OcdMetricLog.STATUS_ID_FIELD_NAME + " IN :metricExecStatusIds";
-				}
-				if (!graphIdStr.equals("")) {
-					queryStr += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
-				}
-
-				Query queryCovers = em.createQuery(queryStr);
-
+				
+				List<CoverMeta> queryResults;
 				try {
-					int firstIndex = Integer.parseInt(firstIndexStr);
-					queryCovers.setFirstResult(firstIndex);
+					firstIndex = Integer.parseInt(firstIndexStr);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "First index is not valid.");
 				}
 				try {
 					if (!lengthStr.equals("")) {
-						int length = Integer.parseInt(lengthStr);
-						queryCovers.setMaxResults(length);
+						length = Integer.parseInt(lengthStr);
+					}
+					else {
+						length = Integer.MAX_VALUE;
 					}
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -1011,83 +971,13 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "", e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
 				}
-				queryCovers.setParameter("username", username);
-				queryCovers.setParameter("execStatusIds", executionStatusIds);
-				if (!metricExecutionStatusesStr.equals("")) {
-					queryCovers.setParameter("metricExecStatusIds", metricExecutionStatusIds);
-				}
 
-				List queryResults_new = queryCovers.getResultList();
-
-				for(int i = 0; i < queryResults_new.size(); i++) {
-
-					Object[] graph_data = (Object[]) queryResults_new.get(i);
-					ArrayList<OcdMetricLog> metric_logs = new ArrayList<>(); // this will hold metrics of the cover
-					// Query metric information of the covers queried above
-					String queryStr_metrics = "SELECT m FROM " + OcdMetricLog.class.getName() + " m JOIN m." + OcdMetricLog.COVER_FIELD_NAME +" c" +
-							" JOIN c." + Cover.CREATION_METHOD_FIELD_NAME + " a";
-					queryStr_metrics += " WHERE c." + Cover.ID_FIELD_NAME + " = :cid" +
-							" AND a." + CoverCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
-
-					if (!metricExecutionStatusesStr.equals("")) {
-						queryStr_metrics += " AND m." + OcdMetricLog.STATUS_ID_FIELD_NAME + " IN :metricExecStatusIds";
-					}
-
-					queryStr_metrics += " ORDER BY m." + OcdMetricLog.ID_FIELD_NAME;
-					Query query_metric = em.createQuery(queryStr_metrics);
-					query_metric.setParameter("execStatusIds", executionStatusIds);
-					if (!metricExecutionStatusesStr.equals("")) {
-						query_metric.setParameter("metricExecStatusIds", metricExecutionStatusIds);
-					}
-					query_metric.setParameter("cid", ((Long) graph_data[0]));
-					List metric_query_result = query_metric.getResultList();
-					for(int j = 0; j < metric_query_result.size(); j++){
-						//System.out.println("creating log with " + ((OcdMetricLog) metric_query_result.get(j)));
-						metric_logs.add((OcdMetricLog) metric_query_result.get(j));
-					}
-
-					if(graph_data[2] == null) { //TODO: This is to ensure backwards compatibility with older releases can be deleted in the future
-						System.out.println("Community count was null, fetching actual cover to fill the value!!!");
-
-						CustomGraphId gId = new CustomGraphId(((Long) graph_data[3]), username);
-						CoverId cId = new CoverId(((Long) graph_data[0]), gId);
-						EntityTransaction tx = em.getTransaction();
-						Cover cover;
-
-						try {
-							tx.begin();
-							cover = em.find(Cover.class, cId);
-							cover.setNumberOfCommunities(cover.communityCount());
-							tx.commit();
-						} catch (RuntimeException e) {
-							if (tx != null && tx.isActive()) {
-								tx.rollback();
-							}
-							throw e;
-						}
-
-						graph_data[2] = cover.communityCount();
-					}
-
-					CoverMeta coverMeta = new CoverMeta(
-							((Long) graph_data[0]), // cover id
-							((String) graph_data[1]), // cover name
-							((Integer) graph_data[2]), // number of communities
-							((Long) graph_data[3]), // graph id
-							((String) graph_data[4]), // graph name
-							((CoverCreationLog) graph_data[5]), // cover creation log
-							metric_logs // cover metric log array
-					);
-					queryResultMetaInformation.add(coverMeta);
-
-				}
-				em.close();
-
+				queryResults = database.getCoverMetaDataEfficiently(username, graphIdStr, executionStatusIds, metricExecutionStatusIds, firstIndex, length);
 				String responseStr;
 				if (includeMeta) {
-					responseStr = requestHandler.writeCoverMetasEfficiently(queryResultMetaInformation);
+					responseStr = requestHandler.writeCoverMetasEfficiently(queryResults);
 				} else {
-					responseStr = requestHandler.writeCoverIdsEfficiently(queryResultMetaInformation);
+					responseStr = requestHandler.writeCoverIdsEfficiently(queryResults);
 				}
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {
@@ -1117,20 +1007,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("LABELED_MEMBERSHIP_MATRIX") @QueryParam("outputFormat") String coverOutputFormatStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				long graphId;
-				try {
-					graphId = Long.parseLong(graphIdStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-				}
-				long coverId;
-				try {
-					coverId = Long.parseLong(coverIdStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Cover id is not valid.");
-				}
+
 				CoverOutputFormat format;
 				try {
 					format = CoverOutputFormat.valueOf(coverOutputFormatStr);
@@ -1142,7 +1019,7 @@ public class ServiceClass extends RESTService {
 
 				Cover cover = null;
 				try {
-					cover = entityHandler.getCover(username, graphId, coverId);
+					cover = database.getCover(username, graphIdStr, coverIdStr);	//done
 					
 					// Paint cover if not yet done when requested type is default XML
 					if(format == CoverOutputFormat.DEFAULT_XML && !cover.isPainted()) { 
@@ -1153,9 +1030,9 @@ public class ServiceClass extends RESTService {
 				} catch (Exception e) {
 
 					requestHandler.log(Level.WARNING, "user: " + username + ", " + "Cover does not exist: cover id "
-							+ coverId + ", graph id " + graphId);
+							+ coverIdStr + ", graph id " + graphIdStr);
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Cover does not exist: cover id " + coverId + ", graph id " + graphId);
+							"Cover does not exist: cover id " + coverIdStr + ", graph id " + graphIdStr);
 				}
 				return Response.ok(requestHandler.writeCover(cover, format)).build();
 			} catch (Exception e) {
@@ -1186,23 +1063,9 @@ public class ServiceClass extends RESTService {
 		public Response deleteCover(@PathParam("coverId") String coverIdStr, @PathParam("graphId") String graphIdStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				long graphId;
-				try {
-					graphId = Long.parseLong(graphIdStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-				}
-				long coverId;
-				try {
-					coverId = Long.parseLong(coverIdStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Cover id is not valid.");
-				}
 
 				try {
-					entityHandler.deleteCover(username, graphId, coverId, threadHandler);
+					database.deleteCover(username, graphIdStr, coverIdStr, threadHandler);	//TODO
 					return Response.ok(requestHandler.writeConfirmationXml()).build();
 				} catch (IllegalArgumentException e) {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, e.getMessage());
@@ -1259,7 +1122,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("0") @QueryParam("componentNodeCountFilter") String componentNodeCountFilterStr) {
 			try {
 				int componentNodeCountFilter;
-				long graphId;
+
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				CoverCreationType algorithmType;
 
@@ -1271,14 +1134,8 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
 				}
 
+				try {
 
-				try {
-					graphId = Long.parseLong(graphIdStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-				}
-				try {
 					componentNodeCountFilter = Integer.parseInt(componentNodeCountFilterStr);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -1308,68 +1165,58 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
 				}
 				Cover cover;
-				EntityManager em = entityHandler.getEntityManager();
-				CustomGraphId id = new CustomGraphId(graphId, username);
+
 				CoverCreationLog log;
 				synchronized (threadHandler) {
-					EntityTransaction tx = em.getTransaction();
+
 					CustomGraph graph;
-					try {
-						tx.begin();
-						graph = em.find(CustomGraph.class, id);
-						if (graph == null) {
-							requestHandler.log(Level.WARNING,
-									"user: " + username + ", " + "Graph does not exist: graph id " + graphId);
-							return requestHandler.writeError(Error.PARAMETER_INVALID,
-									"Graph does not exist: graph id " + graphId);
-						}
-						if (graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
-							requestHandler.log(Level.WARNING,
-									"user: " + username + ", "
-											+ "Invalid graph creation method status for metric execution: "
-											+ graph.getCreationMethod().getStatus().name());
-							return requestHandler.writeError(Error.PARAMETER_INVALID,
-									"Invalid graph creation method status for metric execution: "
-											+ graph.getCreationMethod().getStatus().name());
-						}
-						boolean weight = Boolean.parseBoolean(contentWeighting);
-						if(!graph.isOfType(GraphType.CONTENT_LINKED) && !graph.isOfType(GraphType.CONTENT_UNLINKED) && (weight || (algorithm
-								.getAlgorithmType() == CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM
-								|| algorithm.getAlgorithmType() == CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM))) {
-							requestHandler.log(Level.WARNING,
-									"user: " + username + ", "
-											+ "Content weighted algorithm chosen for non-content graph: "
-											+ algorithm.getAlgorithmType().toString() + " " + graph.getTypes() + " " + graph.getPath());
-							return requestHandler.writeError(Error.PARAMETER_INVALID,
-									"Content weighted algorithm chosen for non-content graph");
-						}
-						if (weight && (algorithm
-								.getAlgorithmType() == CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM
-								|| algorithm.getAlgorithmType() == CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM)) {
-							requestHandler.log(Level.WARNING,
-									"user: " + username + ", "
-											+ "Invalid algorithm in combination of weighting requested: "
-											+ algorithm.getAlgorithmType().toString());
-							return requestHandler.writeError(Error.PARAMETER_INVALID,
-									"Invalid algorithm in combination of weighting requested");
-						}
-						if (weight) {
-							ContentBasedWeightingAlgorithm weightAlgo = new ContentBasedWeightingAlgorithm();
-							graph = weightAlgo.detectOverlappingCommunities(graph, new ExecutionTime());
-						}
-						cover = new Cover(graph, new CCSMatrix(graph.getNodeCount(), 0));
-						log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
-						cover.setCreationMethod(log);
-						cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
-						em.persist(cover);
-						tx.commit();
-					} catch (RuntimeException e) {
-						if (tx != null && tx.isActive()) {
-							tx.rollback();
-						}
-						throw e;
+					graph = database.getGraph(username, graphIdStr);
+					if (graph == null) {
+						requestHandler.log(Level.WARNING,
+								"user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Graph does not exist: graph id " + graphIdStr);
 					}
-					em.close();
+					if (graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+						requestHandler.log(Level.WARNING,
+								"user: " + username + ", "
+										+ "Invalid graph creation method status for metric execution: "
+										+ graph.getCreationMethod().getStatus().name());
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Invalid graph creation method status for metric execution: "
+										+ graph.getCreationMethod().getStatus().name());
+					}
+					boolean weight = Boolean.parseBoolean(contentWeighting);
+					if(!graph.isOfType(GraphType.CONTENT_LINKED) && !graph.isOfType(GraphType.CONTENT_UNLINKED) && (weight || (algorithm
+							.getAlgorithmType() == CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM
+							|| algorithm.getAlgorithmType() == CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM))) {
+						requestHandler.log(Level.WARNING,
+								"user: " + username + ", "
+										+ "Content weighted algorithm chosen for non-content graph: "
+										+ algorithm.getAlgorithmType().toString() + " " + graph.getTypes() + " " + graph.getPath());
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Content weighted algorithm chosen for non-content graph");
+					}
+					if (weight && (algorithm
+							.getAlgorithmType() == CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM
+							|| algorithm.getAlgorithmType() == CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM)) {
+						requestHandler.log(Level.WARNING,
+								"user: " + username + ", "
+										+ "Invalid algorithm in combination of weighting requested: "
+										+ algorithm.getAlgorithmType().toString());
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Invalid algorithm in combination of weighting requested");
+					}
+					if (weight) {
+						ContentBasedWeightingAlgorithm weightAlgo = new ContentBasedWeightingAlgorithm();
+						graph = weightAlgo.detectOverlappingCommunities(graph, new ExecutionTime());
+						database.updateGraph(graph);	//done
+					}
+					cover = new Cover(graph, new CCSMatrix(graph.getNodeCount(), 0));
+					log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
+					cover.setCreationMethod(log);
+					cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
+					database.storeCover(cover);		//done
 					/*
 					 * Registers and starts algorithm
 					 */
@@ -1413,15 +1260,10 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
 				@DefaultValue("NODE_VALUE_LIST") @QueryParam("inputFormat") String centralityInputFormatStr,
 				String contentStr) {
+			System.out.println("importCentralityMap");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				long graphId;
-				try {
-					graphId = Long.parseLong(graphIdStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-				}
+
 				CentralityInputFormat format;
 				try {
 					format = CentralityInputFormat.valueOf(centralityInputFormatStr);
@@ -1439,39 +1281,30 @@ public class ServiceClass extends RESTService {
 				}
 				CentralityCreationLog log = new CentralityCreationLog(null, creationType, null, null);
 				log.setStatus(ExecutionStatus.COMPLETED);
-				EntityManager em = entityHandler.getEntityManager();
-				EntityTransaction tx = em.getTransaction();
+				
 				CentralityMap map;
+				CustomGraph graph;
 				try {
-					CustomGraph graph;
-					try {
-						graph = entityHandler.getGraph(username, graphId);
-					} catch (Exception e) {
-						requestHandler.log(Level.WARNING,
-								"user: " + username + ", " + "Graph does not exist: graph id " + graphId);
-						return requestHandler.writeError(Error.PARAMETER_INVALID,
-								"Graph does not exist: graph id " + graphId);
-					}
-					try {
-						map = requestHandler.parseCentralityMap(contentStr, graph, format);
-					} catch (Exception e) {
-						requestHandler.log(Level.WARNING, "user: " + username, e);
-						return requestHandler.writeError(Error.PARAMETER_INVALID,
-								"Input centrality data does not correspond to the specified format.");
-					}
-					map.setCreationMethod(log);
-					map.setName(nameStr);
-					tx.begin();
-					em.persist(map);
-					tx.commit();
-				} catch (RuntimeException e) {
-					if (tx != null && tx.isActive()) {
-						tx.rollback();
-					}
-					throw e;
+					graph = database.getGraph(username, graphIdStr);	//done
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING,
+							"user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Graph does not exist: graph id " + graphIdStr);
 				}
-				em.close();
+				try {
+					map = requestHandler.parseCentralityMap(contentStr, graph, format);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Input centrality data does not correspond to the specified format.");
+				}
+				map.setCreationMethod(log);
+				map.setName(nameStr);
+				
+				database.storeCentralityMap(map);	//done
 				return Response.ok(requestHandler.writeId(map)).build();
+				
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
@@ -1518,16 +1351,7 @@ public class ServiceClass extends RESTService {
 	    {
 	    	try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				long graphId = 0;
-				if(!graphIdStr.equals("")) {
-		    		try {
-		    			graphId = Long.parseLong(graphIdStr);
-		    		}
-		    		catch (Exception e) {
-		    			requestHandler.log(Level.WARNING, "user: " + username, e);
-						return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-		    		}
-				}
+
 				List<Integer> executionStatusIds = new ArrayList<Integer>();
 				if(!executionStatusesStr.equals("")) {
 		    		try {
@@ -1547,43 +1371,21 @@ public class ServiceClass extends RESTService {
 						executionStatusIds.add(executionStatus.getId());
 					}
 				}
-				List<CentralityMap> queryResults;
-				EntityManager em = entityHandler.getEntityManager();
-
-				/*
-				 Query centrality metadata only, without loading the whole centrality
-				 */
-				String queryStr_centrality = "SELECT"
-						+ " c." + Cover.ID_FIELD_NAME
-						+ ", c." + Cover.NAME_FIELD_NAME
-						+ ", c." + Cover.CREATION_METHOD_FIELD_NAME
-						+ ", g." + CustomGraph.ID_FIELD_NAME
-						+ ", g." + CustomGraph.NAME_FIELD_NAME
-						+ ", g." + CustomGraph.NODE_COUNT_FIELD_NAME
-						+ " FROM " + CentralityMap.class.getName() +" c"
-						+ " JOIN c." + CentralityMap.GRAPH_FIELD_NAME + " g"
-						+ " JOIN c." + CentralityMap.CREATION_METHOD_FIELD_NAME + " a";
-
-				queryStr_centrality += " WHERE g." + CustomGraph.USER_NAME_FIELD_NAME + " = :username"
-						+ " AND a." + CentralityCreationLog.STATUS_ID_FIELD_NAME + " IN :execStatusIds";
-
-				if(!graphIdStr.equals("")) {
-					queryStr_centrality += " AND g." + CustomGraph.ID_FIELD_NAME + " = " + graphId;
-				}
-
-				Query query_centrality = em.createQuery(queryStr_centrality);
+				int firstIndex;
 				try {
-					int firstIndex = Integer.parseInt(firstIndexStr);
-					query_centrality.setFirstResult(firstIndex);
+					firstIndex = Integer.parseInt(firstIndexStr);
 				}
 				catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "First index is not valid.");
 				}
+				int length;
 				try {
 					if(!lengthStr.equals("")) {
-						int length = Integer.parseInt(lengthStr);
-						query_centrality.setMaxResults(length);
+						length = Integer.parseInt(lengthStr);
+					}
+					else {
+						length = Integer.MAX_VALUE;
 					}
 				}
 				catch (Exception e) {
@@ -1593,39 +1395,18 @@ public class ServiceClass extends RESTService {
 				boolean includeMeta;
 				try {
 					includeMeta = requestHandler.parseBoolean(includeMetaStr);
-				}
+		    	}
 				catch (Exception e) {
-					requestHandler.log(Level.WARNING, "", e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
-				}
-				query_centrality.setParameter("username", username);
-				query_centrality.setParameter("execStatusIds", executionStatusIds);
-				List centrality_query_result = query_centrality.getResultList();
-				em.close();
-
-				// create CentralityMeta instance list using centrality meta queried
-				ArrayList<CentralityMeta> centralityMetaInformation = new ArrayList<>();
-				for(int i = 0; i < centrality_query_result.size(); i++) {
-					//System.out.println("object " + i);
-					Object[] centrality_data = (Object[]) centrality_query_result.get(i);
-
-					centralityMetaInformation.add(new CentralityMeta(
-							((Long) centrality_data[0]), // centrality id
-							((String) centrality_data[1]), // centrality name
-							((CentralityCreationLog) centrality_data[2]), // centrality creation log
-							((Long) centrality_data[3]), // graph id
-							((String) centrality_data[4]), // graph name
-							((Long) centrality_data[5]) // graph node count (size)
-					));
-
-				}
-
+		    		requestHandler.log(Level.WARNING, "", e);
+		    		return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
+		    	}
+				List<CentralityMeta> queryResults = database.getCentralityMapsEfficiently(username, graphIdStr, executionStatusIds, firstIndex, length);
 				String responseStr;
 				if(includeMeta) {
-					responseStr = requestHandler.writeCentralityMapMetasEfficiently(centralityMetaInformation);
+					responseStr = requestHandler.writeCentralityMapMetasEfficiently(queryResults);
 				}
 				else {
-					responseStr = requestHandler.writeCentralityMapIdsEfficiently(centralityMetaInformation);
+					responseStr = requestHandler.writeCentralityMapIdsEfficiently(queryResults);
 				}
 				return Response.ok(responseStr).build();
 	    	}
@@ -1668,17 +1449,11 @@ public class ServiceClass extends RESTService {
 	    		@DefaultValue("Degree Centrality") @QueryParam("algorithm") String centralityMeasureTypeStr, String content)
 	    {
 	    	try {
-	    		long graphId;
+
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		CentralityMeasureType centralityMeasureType;
 	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		}
-	    		catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
-	    		try {
+
 	    			centralityMeasureType = CentralityMeasureType.valueOf(centralityMeasureTypeStr);
 	    			if(centralityMeasureType == CentralityMeasureType.UNDEFINED) {
 	    				requestHandler.log(Level.WARNING, "user: " + username + ", " + "Specified centrality measure type is not valid for this request: " + centralityMeasureType.getDisplayName());
@@ -1704,45 +1479,35 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
 	    		}
 	    		CentralityMap map;
-		    	EntityManager em = entityHandler.getEntityManager();
-		    	CustomGraphId id = new CustomGraphId(graphId, username);
+
 		    	synchronized(threadHandler) {
-		    		EntityTransaction tx = em.getTransaction();
+		    		
 			    	CustomGraph graph;
 			    	CentralityCreationLog log;
-			    	try {
-			    		tx.begin();
-						graph = em.find(CustomGraph.class, id);
-				    	if(graph == null) {
-				    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphId);
-							return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphId);
-				    	}
-				    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
-				    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for centrality algorithm execution: " + graph.getCreationMethod().getStatus().name());
-							return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for centrality algorithm execution: " + graph.getCreationMethod().getStatus().name());
-				    	}
-				    	// Some centrality measures cannot be computed or do not give meaningful results on unconnected graphs
-				    	if(algorithm.getCentralityMeasureType() == CentralityMeasureType.CURRENT_FLOW_BETWEENNESS || algorithm.getCentralityMeasureType() == CentralityMeasureType.CURRENT_FLOW_CLOSENESS || algorithm.getCentralityMeasureType() == CentralityMeasureType.ECCENTRICITY || algorithm.getCentralityMeasureType() == CentralityMeasureType.CLOSENESS_CENTRALITY) {
-							ConnectedComponents ccAlgo = new ConnectedComponents(graph);
-							if(graph.getEdgeCount() < graph.getNodeCount() || ccAlgo.getGiantComponent().getNodeCount() != graph.getNodeCount()) { //I.e. the graph is not connected
-								return Response.serverError().entity("Show Error: This centrality measure can only be used on a connected network.").build();
-							}
-						}
-				    	map = new CentralityMap(graph);
-				    	map.setName(centralityMeasureType.getDisplayName());
-				    	log = new CentralityCreationLog(centralityMeasureType, CentralityCreationType.CENTRALITY_MEASURE, parametersCopy, algorithm.compatibleGraphTypes());
-				    	map.setCreationMethod(log);
-				    	em.persist(map);
-						tx.commit();
+		    		graph = database.getGraph(username, graphIdStr);
+			    	if(graph == null) {
+			    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
+						return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphIdStr);
 			    	}
-			    	catch( RuntimeException e ) {
-						if( tx != null && tx.isActive() ) {
-							tx.rollback();
+			    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+			    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for centrality algorithm execution: " + graph.getCreationMethod().getStatus().name());
+						return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for centrality algorithm execution: " + graph.getCreationMethod().getStatus().name());
+			    	}
+			    	// Some centrality measures cannot be computed or do not give meaningful results on unconnected graphs
+			    	if(algorithm.getCentralityMeasureType() == CentralityMeasureType.CURRENT_FLOW_BETWEENNESS || algorithm.getCentralityMeasureType() == CentralityMeasureType.CURRENT_FLOW_CLOSENESS || algorithm.getCentralityMeasureType() == CentralityMeasureType.ECCENTRICITY || algorithm.getCentralityMeasureType() == CentralityMeasureType.CLOSENESS_CENTRALITY) {
+						ConnectedComponents ccAlgo = new ConnectedComponents(graph);
+						if(graph.getEdgeCount() < graph.getNodeCount() || ccAlgo.getGiantComponent().getNodeCount() != graph.getNodeCount()) { //I.e. the graph is not connected
+							return Response.serverError().entity("Show Error: This centrality measure can only be used on a connected network.").build();
 						}
-						throw e;
-					}
-					em.close();
 
+					}
+			    	System.out.println(centralityMeasureType.getId() + "Centrality Typ Name : " + centralityMeasureType.getDisplayName());
+			    	map = new CentralityMap(graph);
+			    	map.setName(centralityMeasureType.getDisplayName());
+			    	log = new CentralityCreationLog(centralityMeasureType, CentralityCreationType.CENTRALITY_MEASURE, parametersCopy, algorithm.compatibleGraphTypes());
+			    	System.out.println(log.String());
+			    	map.setCreationMethod(log);
+			    	database.storeCentralityMap(map);	//done
 			    	/*
 			    	 * Registers and starts algorithm
 			    	 */	
@@ -1789,22 +1554,7 @@ public class ServiceClass extends RESTService {
 	    {
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-	    		long graphId;
-	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		}
-	    		catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
-	    		long mapId;
-	    		try {
-	    			mapId = Long.parseLong(mapIdStr);
-	    		}
-	    		catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Centrality map id is not valid.");
-	    		}
+
 	    		CentralityOutputFormat format;
 	    		try {
 			    	format = CentralityOutputFormat.valueOf(centralityOutputFormatStr);
@@ -1828,7 +1578,7 @@ public class ServiceClass extends RESTService {
 	    			requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Top nodes number is not valid.");
 	    		}
-	    		CentralityMap map = entityHandler.getCentralityMap(username, graphId, mapId);
+	    		CentralityMap map = database.getCentralityMap(username, graphIdStr, mapIdStr);	//done
 	    		if(onlyTopNodes && topNodesNumber != 0) {
 	    			return Response.ok(requestHandler.writeCentralityMapTopNodes(map, topNodesNumber)).build();
 	    		}
@@ -1864,25 +1614,8 @@ public class ServiceClass extends RESTService {
 	    		@PathParam("graphId") String graphIdStr)
 	    {
 	    	try {
-	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-	    		long graphId;
-	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		}
-	    		catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
-	    		long mapId;
-	    		try {
-	    			mapId = Long.parseLong(mapIdStr);
-	    		}
-	    		catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Centrality map id is not valid.");
-	    		}
-	    		
-		    	entityHandler.deleteCentralityMap(username, graphId, mapId, threadHandler);
+	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();    		
+		    	database.deleteCentralityMap(username, graphIdStr, mapIdStr, threadHandler);	//done
 		    	return Response.ok(requestHandler.writeConfirmationXml()).build();
 	    	}
 	    	catch (Exception e) {
@@ -1913,40 +1646,19 @@ public class ServiceClass extends RESTService {
 	    	double eigenvalue;
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-	    		long graphId;
-	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		}
-	    		catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
 
-	    		EntityManager em = entityHandler.getEntityManager();
-		    	CustomGraphId id = new CustomGraphId(graphId, username);
 		    	synchronized(threadHandler) {
-		    		EntityTransaction tx = em.getTransaction();
+
 			    	CustomGraph graph;
-			    	try {
-			    		tx.begin();
-						graph = em.find(CustomGraph.class, id);
-				    	if(graph == null) {
-				    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphId);
-							return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphId);
-				    	}
-				    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
-				    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for eigenvalue calculation: " + graph.getCreationMethod().getStatus().name());
-							return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for eigenvalue calculation: " + graph.getCreationMethod().getStatus().name());
-				    	}
-						tx.commit();
+		    		graph = database.getGraph(username, graphIdStr);
+			    	if(graph == null) {
+			    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
+						return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphIdStr);
 			    	}
-			    	catch( RuntimeException e ) {
-						if( tx != null && tx.isActive() ) {
-							tx.rollback();
-						}
-						throw e;
-					}
-					em.close();
+			    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+			    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for eigenvalue calculation: " + graph.getCreationMethod().getStatus().name());
+						return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for eigenvalue calculation: " + graph.getCreationMethod().getStatus().name());
+			    	}
 					eigenvalue = MatrixOperations.calculateAbsolutePrincipalEigenvalue(graph.getNeighbourhoodMatrix());
 		    	}	
 		    	return Response.ok(requestHandler.writeValueXml(eigenvalue)).build();
@@ -1990,18 +1702,12 @@ public class ServiceClass extends RESTService {
 	    		@DefaultValue("SIR Simulation") @QueryParam("simulation") String simulationTypeStr, String content)
 	    {
 	    	try {
-	    		long graphId;
+
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 	    		CentralitySimulationType simulationType;
 	    		CentralitySimulation simulation;
 	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		}
-	    		catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
-	    		try {
+
 	    			simulationType = CentralitySimulationType.valueOf(simulationTypeStr);
 	    		}
 		    	catch (Exception e) {
@@ -2022,24 +1728,22 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
 	    		}
 	    		CentralityMap map;
-		    	EntityManager em = entityHandler.getEntityManager();
-		    	CustomGraphId id = new CustomGraphId(graphId, username);
+
 		    	synchronized(threadHandler) {
-		    		EntityTransaction tx = em.getTransaction();
+
 			    	CustomGraph graph;
 			    	CentralityCreationLog log;
 			    	try {
-			    		tx.begin();
-						graph = em.find(CustomGraph.class, id);
+						graph = database.getGraph(username, graphIdStr);	//done
 				    	if(graph == null) {
-				    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphId);
-							return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphId);
+				    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
+							return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphIdStr);
 				    	}
 				    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
 				    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for simulation execution: " + graph.getCreationMethod().getStatus().name());
 							return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for simulation execution: " + graph.getCreationMethod().getStatus().name());
 				    	}
-				    	if(simulation.getSimulationType() == CentralitySimulationType.RANDOM_PACKAGE_TRANSMISSION_UNWEIGHTED) {
+						if(simulation.getSimulationType() == CentralitySimulationType.RANDOM_PACKAGE_TRANSMISSION_UNWEIGHTED) {
 							ConnectedComponents ccAlgo = new ConnectedComponents(graph);
 							if(graph.getEdgeCount() < graph.getNodeCount() || ccAlgo.getGiantComponent().getNodeCount() != graph.getNodeCount()) { //I.e. the graph is not connected
 								return Response.serverError().entity("Show Error: This simulation can only be used on a connected network.").build();
@@ -2049,16 +1753,13 @@ public class ServiceClass extends RESTService {
 				    	map.setName(simulationType.getDisplayName());
 				    	log = new CentralityCreationLog(simulationType, CentralityCreationType.SIMULATION, parametersCopy, simulation.compatibleGraphTypes());
 				    	map.setCreationMethod(log);
-				    	em.persist(map);
-						tx.commit();
+				    	database.storeCentralityMap(map);	//done
 			    	}
 			    	catch( RuntimeException e ) {
-						if( tx != null && tx.isActive() ) {
-							tx.rollback();
-						}
+
 						throw e;
 					}
-					em.close();
+
 			    	/*
 			    	 * Registers and starts algorithm
 			    	 */	
@@ -2104,63 +1805,37 @@ public class ServiceClass extends RESTService {
 	    		@QueryParam("mapName") String averageMapName) {
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-	        	long graphId;
-	        	try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		}
-	    		catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
+
 	        	CustomGraph graph;
-	        	EntityManager em = entityHandler.getEntityManager();
-	        	CustomGraphId gId = new CustomGraphId(graphId, username);
+
+	        	CustomGraphId gId = new CustomGraphId(graphIdStr, username);
 	        	synchronized(threadHandler) {
-	        		EntityTransaction tx = em.getTransaction();
 	    	    	try {
-	    	    		tx.begin();
-	    				graph = em.find(CustomGraph.class, gId);
+	    				graph = database.getGraph(username, graphIdStr);
 	    		    	if(graph == null) {
-	    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphId);
-	    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphId);
+	    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
+	    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphIdStr);
 	    		    	}
 	    		    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
 	    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for centrality calculation: " + graph.getCreationMethod().getStatus().name());
 	    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for centrality calculation: " + graph.getCreationMethod().getStatus().name());
 	    		    	}
-	    				tx.commit();
+
 	    	    	}
 	    	    	catch( RuntimeException e ) {
-	    				if( tx != null && tx.isActive() ) {
-	    					tx.rollback();
-	    				}
+
 	    				throw e;
 	    			}
-	    			em.close();
+
 	        	}
 	        	
 	        	List<CentralityMap> maps = new LinkedList<CentralityMap>();
 	        	for(int id : ids) {
-	        		long mapId = (long) id;
-	        		em = entityHandler.getEntityManager();
-	    	    	CentralityMapId cId = new CentralityMapId(mapId, gId);
-	    	    	
-	    	    	EntityTransaction tx = em.getTransaction();
-	    	    	CentralityMap map;
-	    	    	try {
-	    				tx.begin();
-	    				map = em.find(CentralityMap.class, cId);
-	    				tx.commit();
-	    			}
-	    	    	catch( RuntimeException e ) {
-	    				if( tx != null && tx.isActive() ) {
-	    					tx.rollback();
-	    				}
-	    				throw e;
-	    			}
+	        		String mapIdStr = Integer.toString(id);
+	    	    	CentralityMap map = database.getCentralityMap(username, graphIdStr, mapIdStr);
 	    	    	if(map == null) {
-	    	    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Centrality map does not exist: Centrality map id " + mapId + ", graph id " + graphId);
-	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Centrality map does not exist: Centrality map id " + mapId + ", graph id " + graphId);
+	    	    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Centrality map does not exist: Centrality map id " + mapIdStr + ", graph id " + graphIdStr);
+	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Centrality map does not exist: Centrality map id " + mapIdStr + ", graph id " + graphIdStr);
 	    	    	}
 	    	    	maps.add(map);
 	        	}
@@ -2169,23 +1844,12 @@ public class ServiceClass extends RESTService {
 	        	Map<String, String> parameters = new HashMap<String, String>();
 	        	parameters.put("Number of measures", Integer.toString(ids.size()));
 	        	synchronized(threadHandler) {
-			    	EntityTransaction tx = em.getTransaction();
-			    	try {
-						tx.begin();
-						log = new CentralityCreationLog(CentralityMeasureType.UNDEFINED, CentralityCreationType.AVERAGE, parameters, new HashSet<GraphType>(Arrays.asList(GraphType.values())));
-						averageMap.setCreationMethod(log);
-						averageMap.setName(averageMapName);
-						em.persist(averageMap);
-						tx.commit();
-					}
-			    	catch( RuntimeException e ) {
-						if( tx != null && tx.isActive() ) {
-							tx.rollback();
-						}
-						throw e;
-					}
-					em.close();
-					threadHandler.createCentralityMap(averageMap, new CentralityMapId(averageMap.getId(), new CustomGraphId(graphId, username)), false);
+					log = new CentralityCreationLog(CentralityMeasureType.UNDEFINED, CentralityCreationType.AVERAGE, parameters, new HashSet<GraphType>(Arrays.asList(GraphType.values())));
+					averageMap.setCreationMethod(log);
+					averageMap.setName(averageMapName);
+					database.storeCentralityMap(averageMap);
+					System.out.println(log.String());
+					threadHandler.createCentralityMap(averageMap, new CentralityMapId(averageMap.getKey(), gId), false); // 444 should be " new CustomGraphId(graphId, username)" instead of gid
 		    	}
 	        	
 	        	return Response.ok(requestHandler.writeId(averageMap)).build();
@@ -2232,62 +1896,30 @@ public class ServiceClass extends RESTService {
 		    		requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified correlation coefficient does not exist.");
 		    	}
-	        	long graphId;
-	        	try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		}
-	    		catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
+
 	        	CustomGraph graph;
-	        	EntityManager em = entityHandler.getEntityManager();
-	        	CustomGraphId gId = new CustomGraphId(graphId, username);
+
 	        	synchronized(threadHandler) {
-	        		EntityTransaction tx = em.getTransaction();
-	    	    	try {
-	    	    		tx.begin();
-	    				graph = em.find(CustomGraph.class, gId);
-	    		    	if(graph == null) {
-	    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphId);
-	    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphId);
-	    		    	}
-	    		    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
-	    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for correlation calculation: " + graph.getCreationMethod().getStatus().name());
-	    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for correlation calculation: " + graph.getCreationMethod().getStatus().name());
-	    		    	}
-	    				tx.commit();
-	    	    	}
-	    	    	catch( RuntimeException e ) {
-	    				if( tx != null && tx.isActive() ) {
-	    					tx.rollback();
-	    				}
-	    				throw e;
-	    			}
-	    			em.close();
+    				graph = database.getGraph(username, graphIdStr);
+    		    	if(graph == null) {
+    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
+    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphIdStr);
+    		    	}
+    		    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for correlation calculation: " + graph.getCreationMethod().getStatus().name());
+    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for correlation calculation: " + graph.getCreationMethod().getStatus().name());
+    		    	}
+
 	        	}
 	        	List<CentralityMap> maps = new ArrayList<CentralityMap>();
 	        	for(int id : mapIds) {
-	        		long mapId = (long) id;
-	        		em = entityHandler.getEntityManager();
-	    	    	CentralityMapId cId = new CentralityMapId(mapId, gId);
-	    	    	
-	    	    	EntityTransaction tx = em.getTransaction();
+	        		String mapIdStr = Integer.toString(id);	//TODO unschoener typecast von begin an Strings in request verwenden
 	    	    	CentralityMap map;
-	    	    	try {
-	    				tx.begin();
-	    				map = em.find(CentralityMap.class, cId);
-	    				tx.commit();
-	    			}
-	    	    	catch( RuntimeException e ) {
-	    				if( tx != null && tx.isActive() ) {
-	    					tx.rollback();
-	    				}
-	    				throw e;
-	    			}
+
+	    			map = database.getCentralityMap(username, graphIdStr, mapIdStr);
 	    	    	if(map == null) {
-	    	    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Centrality map does not exist: Centrality map id " + mapId + ", graph id " + graphId);
-	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Centrality map does not exist: Centrality map id " + mapId + ", graph id " + graphId);
+	    	    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Centrality map does not exist: Centrality map id " + mapIdStr + ", graph id " + graphIdStr);
+	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Centrality map does not exist: Centrality map id " + mapIdStr + ", graph id " + graphIdStr);
 	    	    	}
 	    	    	maps.add(map);
 	        	}
@@ -2335,62 +1967,26 @@ public class ServiceClass extends RESTService {
 	    			requestHandler.log(Level.WARNING, "user: " + username, e);
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameter k is not valid.");
 	    		}
-	        	long graphId;
-	        	try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		}
-	    		catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
+
 	        	CustomGraph graph;
-	        	EntityManager em = entityHandler.getEntityManager();
-	        	CustomGraphId gId = new CustomGraphId(graphId, username);
 	        	synchronized(threadHandler) {
-	        		EntityTransaction tx = em.getTransaction();
-	    	    	try {
-	    	    		tx.begin();
-	    				graph = em.find(CustomGraph.class, gId);
-	    		    	if(graph == null) {
-	    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphId);
-	    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphId);
-	    		    	}
-	    		    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
-	    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for correlation calculation: " + graph.getCreationMethod().getStatus().name());
-	    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for correlation calculation: " + graph.getCreationMethod().getStatus().name());
-	    		    	}
-	    				tx.commit();
-	    	    	}
-	    	    	catch( RuntimeException e ) {
-	    				if( tx != null && tx.isActive() ) {
-	    					tx.rollback();
-	    				}
-	    				throw e;
-	    			}
-	    			em.close();
+    				graph = database.getGraph(username, graphIdStr);
+    		    	if(graph == null) {
+    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
+    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph does not exist: graph id " + graphIdStr);
+    		    	}
+    		    	if(graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+    		    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Invalid graph creation method status for correlation calculation: " + graph.getCreationMethod().getStatus().name());
+    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Invalid graph creation method status for correlation calculation: " + graph.getCreationMethod().getStatus().name());
+    		    	}
 	        	}
 	        	List<CentralityMap> maps = new ArrayList<CentralityMap>();
 	        	for(int id : mapIds) {
-	        		long mapId = (long) id;
-	        		em = entityHandler.getEntityManager();
-	    	    	CentralityMapId cId = new CentralityMapId(mapId, gId);
-	    	    	
-	    	    	EntityTransaction tx = em.getTransaction();
-	    	    	CentralityMap map;
-	    	    	try {
-	    				tx.begin();
-	    				map = em.find(CentralityMap.class, cId);
-	    				tx.commit();
-	    			}
-	    	    	catch( RuntimeException e ) {
-	    				if( tx != null && tx.isActive() ) {
-	    					tx.rollback();
-	    				}
-	    				throw e;
-	    			}
+	        		String mapIdStr = Integer.toString(id);
+                        CentralityMap map = database.getCentralityMap(username, graphIdStr, mapIdStr);
 	    	    	if(map == null) {
-	    	    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Centrality map does not exist: Centrality map id " + mapId + ", graph id " + graphId);
-	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Centrality map does not exist: Centrality map id " + mapId + ", graph id " + graphId);
+	    	    		requestHandler.log(Level.WARNING, "user: " + username + ", " + "Centrality map does not exist: Centrality map id " + mapIdStr + ", graph id " + graphIdStr);
+	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Centrality map does not exist: Centrality map id " + mapIdStr + ", graph id " + graphIdStr);
 	    	    	}
 	    	    	maps.add(map);
 	        	}
@@ -2442,7 +2038,7 @@ public class ServiceClass extends RESTService {
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 
-				/*
+								/*
 				Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
 				 */
 				if (userLimitsHandler.reachedGraphCountLimit(username)){
@@ -2499,7 +2095,7 @@ public class ServiceClass extends RESTService {
 	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
 	    			}
 	    		}
-	    		EntityManager em = entityHandler.getEntityManager();
+
 	    		CustomGraph graph = new CustomGraph();
 	    		graph.setName(URLDecoder.decode(graphNameStr, "UTF-8"));
 	    		graph.setUserName(username);
@@ -2513,20 +2109,9 @@ public class ServiceClass extends RESTService {
 	    		coverLog.setStatus(ExecutionStatus.WAITING);
 	    		cover.setCreationMethod(coverLog);
 	    		synchronized (threadHandler) {
-	
-	    			EntityTransaction tx = em.getTransaction();
-	    			try {
-	    				tx.begin();
-	    				em.persist(graph);
-	    				em.persist(cover);
-	    				tx.commit();
-	    			} catch (RuntimeException e) {
-	    				if (tx != null && tx.isActive()) {
-	    					tx.rollback();
-	    				}
-	    				throw e;
-	    			}
-	    			em.close();
+	    			System.out.println("Graph Typen" + graph.getTypes().toString());
+	    			System.out.println("GraphKey : " + database.storeGraph(graph));	//TODO beides in einer transaktion
+	    			System.out.println("CoverKey : " + database.storeCover(cover));
 	    			/*
 	    			 * Registers and starts benchmark creation.
 	    			 */
@@ -2576,20 +2161,7 @@ public class ServiceClass extends RESTService {
 	    		String contentStr) {
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-	    		long graphId;
-	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
-	    		long coverId;
-	    		try {
-	    			coverId = Long.parseLong(coverIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Cover id is not valid.");
-	    		}
+
 	    		OcdMetricType metricType;
 	    		try {
 	    			metricType = OcdMetricType.valueOf(metricTypeStr);
@@ -2618,80 +2190,68 @@ public class ServiceClass extends RESTService {
 	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
 	    			}
 	    		}
-	
-	    		EntityManager em = entityHandler.getEntityManager();
-	    		CustomGraphId gId = new CustomGraphId(graphId, username);
-	    		CoverId cId = new CoverId(coverId, gId);
+
 	    		/*
 	    		 * Finds cover
 	    		 */
 	    		OcdMetricLog log;
 	    		synchronized (threadHandler) {
-	    			EntityTransaction tx = em.getTransaction();
+
 	    			Cover cover;
-	    			try {
-	    				tx.begin();
-	    				cover = em.find(Cover.class, cId);
-	    				if (cover == null) {
-	    					requestHandler.log(Level.WARNING, "user: " + username + ", "
-	    							+ "Cover does not exist: cover id " + coverId + ", graph id " + graphId);
-	    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Cover does not exist.");
+    				cover = database.getCover(username, graphIdStr, coverIdStr);	//done
+    				if (cover == null) {
+    					requestHandler.log(Level.WARNING, "user: " + username + ", "
+    							+ "Cover does not exist: cover id " + coverIdStr + ", graph id " + graphIdStr);
+    					return requestHandler.writeError(Error.PARAMETER_INVALID, "Cover does not exist.");
+    				}
+    				if (cover.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+    					requestHandler.log(Level.WARNING,
+    							"user: " + username + ", "
+    									+ "Invalid cover creation method status for metric execution: "
+    									+ cover.getCreationMethod().getStatus().name());
+    					return requestHandler.writeError(Error.PARAMETER_INVALID,
+    							"Invalid cover creation method status for metric execution: "
+    									+ cover.getCreationMethod().getStatus().name());
+    				}
+    				
+    				boolean compatibleType = false;
+    				if(cover.getGraph().getTypes().isEmpty()) 
+    				{
+    					compatibleType = true;
+    				}
+    				else {
+	    				for(GraphType type : cover.getGraph().getTypes()) {
+	    					if(metric.compatibleGraphTypes().contains(type))
+	    					{
+	    						compatibleType = true;
+	    						break;
+	    					}	    					
 	    				}
-	    				if (cover.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
-	    					requestHandler.log(Level.WARNING,
-	    							"user: " + username + ", "
-	    									+ "Invalid cover creation method status for metric execution: "
-	    									+ cover.getCreationMethod().getStatus().name());
-	    					return requestHandler.writeError(Error.PARAMETER_INVALID,
-	    							"Invalid cover creation method status for metric execution: "
-	    									+ cover.getCreationMethod().getStatus().name());
-	    				}
-	    				
-	    				boolean compatibleType = false;
-	    				if(cover.getGraph().getTypes().isEmpty()) 
-	    				{
-	    					compatibleType = true;
-	    				}
-	    				else {
-		    				for(GraphType type : cover.getGraph().getTypes()) {
-		    					if(metric.compatibleGraphTypes().contains(type))
-		    					{
-		    						compatibleType = true;
-		    						break;
-		    					}	    					
-		    				}
-	    				}
-	    				if(!compatibleType) {
-							requestHandler.log(Level.WARNING,
-									"user: " + username + ", "
-											+ "Metric not applicable with graph, needs one of these types: "
-											+  metric.compatibleGraphTypes().toString());
-							return requestHandler.writeError(Error.PARAMETER_INVALID,
-									"Metric not applicable with graph, needs one of these types: " + metric.compatibleGraphTypes().toString());
-						}
-	    				else if (metric instanceof NewmanModularityCombined && !cover.getGraph().isOfType(GraphType.CONTENT_LINKED) && !cover.getGraph().isOfType(GraphType.CONTENT_UNLINKED))
-	    				{
-	    					requestHandler.log(Level.WARNING,
-									"user: " + username + ", "
-											+ "Metric not applicable with graph, needs to be a graph with node content "
-											+  metric.compatibleGraphTypes().toString());
-							return requestHandler.writeError(Error.PARAMETER_INVALID,
-									"Metric not applicable with graph, needs to be a graph with node content");
-	    				}
-	    				
-	    				log = new OcdMetricLog(metricType, 0, parameters, cover);
-	    				log.setStatus(ExecutionStatus.WAITING);
-	    				cover.addMetric(log);
-	    				tx.commit();
-	    			} catch (RuntimeException e) {
-	    				if (tx != null && tx.isActive()) {
-	    					tx.rollback();
-	    				}
-	    				throw e;
-	    			}
+    				}
+    				if(!compatibleType) {
+						requestHandler.log(Level.WARNING,
+								"user: " + username + ", "
+										+ "Metric not applicable with graph, needs one of these types: "
+										+  metric.compatibleGraphTypes().toString());
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Metric not applicable with graph, needs one of these types: " + metric.compatibleGraphTypes().toString());
+					}
+    				else if (metric instanceof NewmanModularityCombined && !cover.getGraph().isOfType(GraphType.CONTENT_LINKED) && !cover.getGraph().isOfType(GraphType.CONTENT_UNLINKED))
+    				{
+    					requestHandler.log(Level.WARNING,
+								"user: " + username + ", "
+										+ "Metric not applicable with graph, needs to be a graph with node content "
+										+  metric.compatibleGraphTypes().toString());
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Metric not applicable with graph, needs to be a graph with node content");
+    				}
+    				log = new OcdMetricLog(metricType, 0, parameters, cover);
+    				log.setStatus(ExecutionStatus.WAITING);
+    				cover.addMetric(log);
+    				database.updateCover(cover);		//TODO hier muss eine funktion hin, die ein bestehendes cover aendert
 	    			threadHandler.runStatisticalMeasure(log, metric, cover);
 	    		}
-	
+
 	    		return Response.ok(requestHandler.writeId(log)).build();
 	    	} catch (Exception e) {
 	    		requestHandler.log(Level.SEVERE, "", e);
@@ -2737,27 +2297,7 @@ public class ServiceClass extends RESTService {
 	    		@PathParam("groundTruthCoverId") String groundTruthCoverIdStr, String contentStr) {
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-	    		long graphId;
-	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
-	    		long coverId;
-	    		try {
-	    			coverId = Long.parseLong(coverIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Cover id is not valid.");
-	    		}
-	    		long groundTruthCoverId;
-	    		try {
-	    			groundTruthCoverId = Long.parseLong(groundTruthCoverIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Ground truth cover id is not valid.");
-	    		}
+
 	    		OcdMetricType metricType;
 	    		try {
 	    			metricType = OcdMetricType.valueOf(metricTypeStr);
@@ -2786,68 +2326,61 @@ public class ServiceClass extends RESTService {
 	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
 	    			}
 	    		}
-	    		EntityManager em = entityHandler.getEntityManager();
-	    		CustomGraphId gId = new CustomGraphId(graphId, username);
-	    		CoverId cId = new CoverId(coverId, gId);
-	    		CoverId gtId = new CoverId(groundTruthCoverId, gId);
+
 	    		/*
 	    		 * Finds cover
 	    		 */
 	    		OcdMetricLog log;
 	    		synchronized (threadHandler) {
-	    			EntityTransaction tx = em.getTransaction();
 	    			Cover cover;
 	    			Cover groundTruth;
-	    			try {
-	    				tx.begin();
-	    				cover = em.find(Cover.class, cId);
-	    				if (cover == null) {
-	    					requestHandler.log(Level.WARNING, "user: " + username + ", "
-	    							+ "Cover does not exist: cover id " + coverId + ", graph id " + graphId);
-	    					return requestHandler.writeError(Error.PARAMETER_INVALID,
-	    							"Cover does not exist: cover id " + coverId + ", graph id " + graphId);
-	    				}
-	    				if (cover.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
-	    					requestHandler.log(Level.WARNING,
-	    							"user: " + username + ", "
-	    									+ "Invalid cover creation method status for metric execution: "
-	    									+ cover.getCreationMethod().getStatus().name());
-	    					return requestHandler.writeError(Error.PARAMETER_INVALID,
-	    							"Invalid cover creation method status for metric execution: "
-	    									+ cover.getCreationMethod().getStatus().name());
-	    				}
-	    				if (groundTruthCoverId != coverId) {
-	    					groundTruth = em.find(Cover.class, gtId);
-	    					if (groundTruth == null) {
-	    						requestHandler.log(Level.WARNING,
-	    								"user: " + username + ", " + "Ground truth cover does not exist: cover id "
-	    										+ groundTruthCoverId + ", graph id " + graphId);
-	    						return requestHandler.writeError(Error.PARAMETER_INVALID,
-	    								"Ground truth cover does not exist: cover id " + groundTruthCoverId
-	    								+ ", graph id " + graphId);
-	    					}
-	    				} else {
-	    					groundTruth = cover;
-	    				}
-	    				if (groundTruth.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
-	    					requestHandler.log(Level.WARNING,
-	    							"user: " + username + ", "
-	    									+ "Invalid ground truth cover creation method status for metric execution: "
-	    									+ groundTruth.getCreationMethod().getStatus().name());
-	    					return requestHandler.writeError(Error.PARAMETER_INVALID,
-	    							"Invalid ground truth cover creation method status for metric execution: "
-	    									+ groundTruth.getCreationMethod().getStatus().name());
-	    				}
-	    				log = new OcdMetricLog(metricType, 0, parameters, cover);
-	    				log.setStatus(ExecutionStatus.WAITING);
-	    				cover.addMetric(log);
-	    				tx.commit();
-	    			} catch (RuntimeException e) {
-	    				if (tx != null && tx.isActive()) {
-	    					tx.rollback();
-	    				}
-	    				throw e;
-	    			}
+	    			
+    				cover = database.getCover(username,  graphIdStr, coverIdStr);
+    				if (cover == null) {
+    					requestHandler.log(Level.WARNING, "user: " + username + ", "
+    							+ "Cover does not exist: cover id " + coverIdStr + ", graph id " + graphIdStr);
+    					return requestHandler.writeError(Error.PARAMETER_INVALID,
+    							"Cover does not exist: cover id " + coverIdStr + ", graph id " + graphIdStr);
+    				}
+    				if (cover.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+    					requestHandler.log(Level.WARNING,
+    							"user: " + username + ", "
+    									+ "Invalid cover creation method status for metric execution: "
+    									+ cover.getCreationMethod().getStatus().name());
+    					return requestHandler.writeError(Error.PARAMETER_INVALID,
+    							"Invalid cover creation method status for metric execution: "
+    									+ cover.getCreationMethod().getStatus().name());
+    				}
+    				if (!groundTruthCoverIdStr.equals(coverIdStr)) {
+    					
+    					System.out.println("Cover und GT sind NICHT gleich");
+    					groundTruth = database.getCover(username,  graphIdStr, groundTruthCoverIdStr);
+    					if (groundTruth == null) {
+    						requestHandler.log(Level.WARNING,
+    								"user: " + username + ", " + "Ground truth cover does not exist: cover id "
+    										+ groundTruthCoverIdStr + ", graph id " + graphIdStr);
+    						return requestHandler.writeError(Error.PARAMETER_INVALID,
+    								"Ground truth cover does not exist: cover id " + groundTruthCoverIdStr
+    								+ ", graph id " + graphIdStr);
+    					}
+    				} else {
+    					System.out.println("Cover und GT sind gleich : Cover :" + coverIdStr + " GroundTruth :" + groundTruthCoverIdStr);
+    					groundTruth = cover;
+    				}
+    				if (groundTruth.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+    					requestHandler.log(Level.WARNING,
+    							"user: " + username + ", "
+    									+ "Invalid ground truth cover creation method status for metric execution: "
+    									+ groundTruth.getCreationMethod().getStatus().name());
+    					return requestHandler.writeError(Error.PARAMETER_INVALID,
+    							"Invalid ground truth cover creation method status for metric execution: "
+    									+ groundTruth.getCreationMethod().getStatus().name());
+    				}
+    				log = new OcdMetricLog(metricType, 0, parameters, cover);
+    				log.setStatus(ExecutionStatus.WAITING);
+    				cover.addMetric(log);
+    				
+    				database.updateCover(cover);	//done ?
 	    			threadHandler.runKnowledgeDrivenMeasure(log, metric, cover, groundTruth);
 	    		}
 	    		return Response.ok(requestHandler.writeId(log)).build();
@@ -2879,54 +2412,23 @@ public class ServiceClass extends RESTService {
 	    		@PathParam("metricId") String metricIdStr) {
 	    	try {
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-	    		long graphId;
-	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
-	    		long coverId;
-	    		try {
-	    			coverId = Long.parseLong(coverIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Cover id is not valid.");
-	    		}
-	    		long metricId;
-	    		try {
-	    			metricId = Long.parseLong(metricIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Metric id is not valid.");
-	    		}
-	    		EntityManager em = entityHandler.getEntityManager();
-	    		CustomGraphId gId = new CustomGraphId(graphId, username);
-	    		CoverId cId = new CoverId(coverId, gId);
-	    		OcdMetricLogId mId = new OcdMetricLogId(metricId, cId);
-	    		EntityTransaction tx = em.getTransaction();
+	    		
+	    		CustomGraphId gId = new CustomGraphId(graphIdStr, username);
+	    		CoverId cId = new CoverId(coverIdStr, gId);
+	    		OcdMetricLogId mId = new OcdMetricLogId(metricIdStr, cId);
 	    		OcdMetricLog log;
 	    		/*
 	    		 * Deletes the metric.
 	    		 */
 	    		synchronized (threadHandler) {
-	    			tx = em.getTransaction();
-	    			try {
-	    				tx.begin();
-	    				log = em.find(OcdMetricLog.class, mId);
-	    				tx.commit();
-	    			} catch (RuntimeException e) {
-	    				if (tx != null && tx.isActive()) {
-	    					tx.rollback();
-	    				}
-	    				throw e;
-	    			}
+
+	    			log = database.getOcdMetricLog(username, graphIdStr, coverIdStr, metricIdStr);
 	    			if (log == null) {
 	    				requestHandler.log(Level.WARNING,
-	    						"user: " + username + ", " + "Metric does not exist: cover id " + coverId
-	    						+ ", graph id " + graphId + ", metric id " + metricId);
+	    						"user: " + username + ", " + "Metric does not exist: cover id " + coverIdStr
+	    						+ ", graph id " + graphIdStr + ", metric id " + metricIdStr);
 	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "Metric does not exist: cover id "
-	    						+ coverId + ", graph id " + graphId + ", metric id " + metricId);
+	    						+ coverIdStr + ", graph id " + graphIdStr + ", metric id " + metricIdStr);
 	    			}
 	    			/*
 	    			 * Interrupts metric.
@@ -2935,19 +2437,9 @@ public class ServiceClass extends RESTService {
 	    			/*
 	    			 * Removes metric
 	    			 */
-	    			tx = em.getTransaction();
-	    			try {
-	    				tx.begin();
-	    				log.getCover().removeMetric(log);
-	    				em.remove(log);
-	    				tx.commit();
-	    			} catch (RuntimeException e) {
-	    				if (tx != null && tx.isActive()) {
-	    					tx.rollback();
-	    				}
-	    				throw e;
-	    			}
-	    			em.close();
+	    			Cover cover = log.getCover();
+	    			cover.removeMetric(log);
+	    			database.updateCover(cover);
 	    			return Response.ok(requestHandler.writeConfirmationXml()).build();
 	    		}
 	    	} catch (Exception e) {
@@ -3002,21 +2494,9 @@ public class ServiceClass extends RESTService {
 	    		@DefaultValue("20") @QueryParam("minNodeSize") String minNodeSizeStr,
 	    		@DefaultValue("45") @QueryParam("maxNodeSize") String maxNodeSizeStr) {
 	    	try {
-	    		long graphId;
+	    		
 	    		String username = getUserName();
-	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
-	    		long coverId;
-	    		try {
-	    			coverId = Long.parseLong(coverIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Cover id is not valid.");
-	    		}
+
 	    		double minNodeSize;
 	    		try {
 	    			minNodeSize = Double.parseDouble(minNodeSizeStr);
@@ -3074,30 +2554,16 @@ public class ServiceClass extends RESTService {
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Label edges is not a boolean value.");
 	    		}
 
-	    		Cover cover = entityHandler.getCover(username, graphId, coverId);
+	    		Cover cover = database.getCover(username, graphIdStr, coverIdStr);	//done
 	    		if (cover == null) {
 	    			requestHandler.log(Level.WARNING, "user: " + username + ", " + "Cover does not exist: cover id "
-	    					+ coverId + ", graph id " + graphId);
+	    					+ coverIdStr + ", graph id " + graphIdStr);
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID,
-	    					"Cover does not exist: cover id " + coverId + ", graph id " + graphId);
+	    					"Cover does not exist: cover id " + coverIdStr + ", graph id " + graphIdStr);
 	    		}
 	    		
 	    		layoutHandler.doLayout(cover, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize, painting);
-	    		
-		    	EntityManager em = entityHandler.getEntityManager();
-		    	EntityTransaction tx = em.getTransaction();
-		    	try {		
-			    	tx.begin();			    	
-			    	em.merge(cover);		    		
-			    	tx.commit();
-		    	} catch (RuntimeException e) {
-					if (tx != null && tx.isActive()) {
-						tx.rollback();
-					}
-					throw e;
-		    	}
-		    	em.close();
-	    		
+	    		database.updateCover(cover);    		
 	    		return requestHandler.writeCover(cover, format);
 	    	} catch (Exception e) {
 	    		requestHandler.log(Level.SEVERE, "", e);
@@ -3141,14 +2607,9 @@ public class ServiceClass extends RESTService {
 	    		@DefaultValue("20") @QueryParam("minNodeSize") String minNodeSizeStr,
 	    		@DefaultValue("45") @QueryParam("maxNodeSize") String maxNodeSizeStr) {
 	    	try {
-	    		long graphId;
+
 	    		String username = getUserName();
-	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
+
 	    		double minNodeSize;
 	    		try {
 	    			minNodeSize = Double.parseDouble(minNodeSizeStr);
@@ -3199,12 +2660,12 @@ public class ServiceClass extends RESTService {
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Label edges is not a boolean value.");
 	    		}
 
-	    		CustomGraph graph = entityHandler.getGraph(username, graphId);
+	    		CustomGraph graph = database.getGraph(username, graphIdStr);	//done
 	    		if (graph == null) {
 	    			requestHandler.log(Level.WARNING,
-	    					"user: " + username + ", " + "Graph does not exist: graph id " + graphId);
+	    					"user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID,
-	    					"Graph does not exist: graph id " + graphId);
+	    					"Graph does not exist: graph id " + graphIdStr);
 	    		}
 
 	    		layoutHandler.doLayout(graph, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize);
@@ -3246,21 +2707,9 @@ public class ServiceClass extends RESTService {
 	    		@DefaultValue("TRUE") @QueryParam("doLabelNodes") String doLabelNodesStr,
 	    		@DefaultValue("TRUE") @QueryParam("showEdgeWeights") String showEdgeWeightsStr) {
 	    	try {
-	    		long graphId;
+
 	    		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-	    		try {
-	    			graphId = Long.parseLong(graphIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Graph id is not valid.");
-	    		}
-	    		long centralityMapId;
-	    		try {
-	    			centralityMapId = Long.parseLong(centralityMapIdStr);
-	    		} catch (Exception e) {
-	    			requestHandler.log(Level.WARNING, "user: " + username, e);
-	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "CentralityMap id is not valid.");
-	    		}
+
 	    		VisualOutputFormat format;
 	    		GraphLayoutType layout;
 	    		boolean doLabelNodes;
@@ -3295,27 +2744,14 @@ public class ServiceClass extends RESTService {
 	    		} catch (Exception e) {
 	    			requestHandler.log(Level.WARNING, "", e);
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Label edges is not a boolean value.");
-	    		}
-	    		EntityManager em = entityHandler.getEntityManager();
-	    		CustomGraphId gId = new CustomGraphId(graphId, username);
-	    		CentralityMapId cId = new CentralityMapId(centralityMapId, gId);
-	    		EntityTransaction tx = em.getTransaction();
-	    		CentralityMap map;
-	    		try {
-	    			tx.begin();
-	    			map = em.find(CentralityMap.class, cId);
-	    			if(map == null) {
-	    				requestHandler.log(Level.WARNING, "user: " + username + ", " + "CentralityMap does not exist: CentralityMap id " + centralityMapId + ", graph id " + graphId);
-	    				return requestHandler.writeError(Error.PARAMETER_INVALID, "CentralityMap does not exist: CentralityMap id " + centralityMapId + ", graph id " + graphId);
-	    			}
-	    			tx.commit();
-	    		} catch( RuntimeException e ) {
-	    			if( tx != null && tx.isActive() ) {
-	    				tx.rollback();
-	    			}
-	    			throw e;
-	    		}
-	    		em.close();
+	    		}	    		
+
+
+	    		CentralityMap map = database.getCentralityMap(username, graphIdStr, centralityMapIdStr);	//444 should take gId
+    			if(map == null) {
+    				requestHandler.log(Level.WARNING, "user: " + username + ", " + "CentralityMap does not exist: CentralityMap id " + centralityMapIdStr + ", graph id " + graphIdStr);
+    				return requestHandler.writeError(Error.PARAMETER_INVALID, "CentralityMap does not exist: CentralityMap id " + centralityMapIdStr + ", graph id " + graphIdStr);
+    			}
 	    		if(doLabelEdges) {
 	    			doLabelEdges = map.getGraph().getTypes().contains(GraphType.WEIGHTED) ? true : false;
 	    		}
@@ -4118,10 +3554,10 @@ public class ServiceClass extends RESTService {
 		public Response getSimulations(SimulationSeriesParameters parameters) {
 	
 			List<SimulationSeries> series = new ArrayList<>();
-			String userId = getUserId();
+			String userId = getUserName();
 			try {
 	
-				series = entityHandler.getSimulationSeriesByUser(userId);
+				series = database.getSimulationSeriesByUser(userId);
 	
 			} catch (Exception e) {
 				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
@@ -4143,23 +3579,24 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getSimulationMeta(@DefaultValue("0") @QueryParam("firstIndex") int firstIndex,
-				@DefaultValue("0") @QueryParam("length") int length,
-				@DefaultValue("0") @QueryParam("graphId") long graphId,
-				SimulationSeriesParameters parameters) {
+										  @DefaultValue("0") @QueryParam("length") int length,
+										  @DefaultValue("0") @QueryParam("graphId") String graphKey,
+										  SimulationSeriesParameters parameters) {
 
 			if (parameters == null) {
 				parameters = new SimulationSeriesParameters();
 			}
-	
+
 			List<SimulationSeries> simulations = new ArrayList<>();
 			try {
 				if (firstIndex < 0 || length <= 0) {
-					simulations = entityHandler.getSimulationSeriesByUser(getUserId());
+
+					simulations = database.getSimulationSeriesByUser(getUserName());
 				} else {
-					if (graphId <= 0) {
-						simulations = entityHandler.getSimulationSeriesByUser(getUserId(), firstIndex, length);
+					if (graphKey.equals("0")) {
+						simulations = database.getSimulationSeriesByUser(getUserName(), firstIndex, length);
 					} else {
-						simulations = entityHandler.getSimulationSeriesByUser(getUserId(), graphId, firstIndex, length);
+						simulations = database.getSimulationSeriesByUser(getUserName(), graphKey, firstIndex,length);
 					}
 				}
 			} catch (Exception e) {
@@ -4177,7 +3614,7 @@ public class ServiceClass extends RESTService {
 				for (SimulationSeries simulation : simulations) {
 					try {
 						SimulationSeriesMetaData metaData = simulation.getMetaData();
-						metaData.setGraphName(entityHandler.getGraph(getUserName(), simulation.getParameters().getGraphId()).getName());
+						metaData.setGraphName(database.getGraph(getUserName(), simulation.getSimulationSeriesParameters().getGraphKey()).getName());
 						metaList.add(metaData);
 					} catch (Exception e) {
 	
@@ -4193,7 +3630,7 @@ public class ServiceClass extends RESTService {
 		/**
 		 * Gets the results of a performed simulation series on a network
 		 *
-		 * @param seriesId the id of the series
+		 * @param seriesKey the key of the series
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -4203,16 +3640,16 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulation(@PathParam("seriesId") long seriesId) {
-	
+		public Response getSimulation(@PathParam("seriesId") String seriesKey) {
+			System.out.println("getSimulation");
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 			SimulationSeries series = null;
 	
 			try {
-				series = entityHandler.getSimulationSeries(seriesId);
+				series = database.getSimulationSeries(seriesKey);
 	
 				if (series == null)
-					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + seriesId + " found")
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + seriesKey + " found")
 							.build();
 	
 				if (!series.isEvaluated()) {
@@ -4231,7 +3668,7 @@ public class ServiceClass extends RESTService {
 		/**
 		 * Gets the results of a performed simulation series on a network
 		 *
-		 * @param seriesId the id of the series
+		 * @param seriesKey the key of the series
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -4241,16 +3678,16 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulationTable(@PathParam("seriesId") long seriesId) {
-	
+		public Response getSimulationTable(@PathParam("seriesId") String seriesKey) {
+			System.out.println("getSimulationTable");
 			String username = getUserName();
 			SimulationSeries series = null;
 	
 			try {
-				series = entityHandler.getSimulationSeries(seriesId);
+				series = database.getSimulationSeries(seriesKey);
 	
 				if (series == null)
-					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + seriesId + " found")
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with key " + seriesKey + " found")
 							.build();
 	
 				series.evaluate();
@@ -4274,7 +3711,7 @@ public class ServiceClass extends RESTService {
 		/**
 		 * Gets the parameters of a simulation
 		 *
-		 * @param seriesId the id of the series
+		 * @param seriesKey the key of the series to which the parameters belong
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -4284,11 +3721,11 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulationParameters(@PathParam("seriesId") long seriesId) {
-	
+		public Response getSimulationParameters(@PathParam("seriesId") String seriesKey) {
+
 			SimulationSeriesParameters parameters = null;
 			try {
-				parameters = entityHandler.getSimulationParameters(seriesId);
+				parameters = database.getSimulationSeries(seriesKey).getSimulationSeriesParameters();
 			} catch (Exception e) {
 				logger.log(Level.WARNING, "fail to get simulation series parameters");
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series parameters")
@@ -4301,7 +3738,7 @@ public class ServiceClass extends RESTService {
 		/**
 		 * Deletes a performed simulation series on a network
 		 *
-		 * @param seriesId the id of the series
+		 * @param seriesKey the key of the series
 		 * @return HttpResponse with the returnString
 		 */
 		@DELETE
@@ -4311,10 +3748,10 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response deleteSimulation(@PathParam("seriesId") long seriesId) {
-	
+		public Response deleteSimulation(@PathParam("seriesId") String seriesKey) {
+			System.out.println("deleteSimulation");
 			try {
-				entityHandler.deleteSeries(seriesId);
+				database.deleteSimulationSeries(seriesKey);
 			} catch (Exception e) {
 				return Response.serverError().entity(e.getMessage()).build();
 			}
@@ -4325,9 +3762,9 @@ public class ServiceClass extends RESTService {
 	
 		/**
 		 * Starts the simulation of a cooperation and defection game simulation
-		 * 
+		 *
 		 * @param parameters the parameters
-		 * 
+		 *
 		 * @return HttpResponse with the returnString
 		 */
 		@POST
@@ -4340,9 +3777,7 @@ public class ServiceClass extends RESTService {
 		public Response postSimulation(SimulationSeriesParameters parameters) {
 	
 			String username = getUserName();
-	
-			long graphId = parameters.getGraphId();
-			CustomGraph network = entityHandler.getGraph(username, graphId);
+			CustomGraph network = database.getGraph(getUserName(), parameters.getGraphKey());
 			if (network == null)
 				return Response.status(Status.BAD_REQUEST).entity("graph not found").build();
 	
@@ -4376,14 +3811,14 @@ public class ServiceClass extends RESTService {
 				e.printStackTrace();
 				return Response.serverError().entity("simulation could not be carried out\n" + e.getMessage()).build();
 			}
-	
-			if(series.getSimulationDatasets() == null || !(series.getSimulationDatasets().size() == parameters.getIterations())) 
+
+			if(series.getSimulationDatasets() == null || !(series.getSimulationDatasets().size() == parameters.getIterations()))
 				return Response.serverError().entity("something went wrong").build();
-	
-			long result;
+
+			String result;
 			try {
-				result = entityHandler.store(series, getUserId());
-	
+				result = database.storeSimulationSeries(series, getUserName());
+
 			} catch (Exception e) {
 				e.printStackTrace();
 				return Response.serverError().entity("simulation not stored").build();
@@ -4393,38 +3828,7 @@ public class ServiceClass extends RESTService {
 		}
 	
 		///////////////////// Group ///////////////////////////////
-		/**
-		 * Takes in the Graph ID and the content in graphML format.
-		 * Creates a dummy graph with only the nodes and edges.
-		 * 
-		 * @param graphId current graph ID
-		 * @param content content as plain text in graphML format
-		 * @return
-		 */
-		@PUT
-		@Path("/update/{graphId}")
-		@Produces(MediaType.TEXT_PLAIN)
-		@Consumes(MediaType.TEXT_PLAIN)
-		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
-				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		@ApiOperation(value = "POST SIMULATION", notes = " Starts the simulation of a evolutionary cooperation and defection game ")
-		public Response putGraph(@PathParam("graphId") String graphId, String content) {
-			try{
-				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-
-				long id = Long.parseLong(graphId);
-
-				CustomGraph newGraph = requestHandler.parseGraph(content, GraphInputFormat.GRAPH_ML);
-
-				entityHandler.updateGraph(newGraph, id, username);
-
-				return Response.ok().entity("done").build();
-			} catch(Exception e){
-				requestHandler.log(Level.SEVERE, "", e);
-					return requestHandler.writeError(Error.INTERNAL,"Internal System error");
-			}
-		}
-		
+	
 		@PUT
 		@Path("/simulation/group")
 		@Produces(MediaType.TEXT_PLAIN)
@@ -4433,12 +3837,12 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		@ApiOperation(tags = {"execution"}, value = "Run simulation group", notes = " Starts a simulation group of evolutionary cooperation or defection games ")
 		public Response putSimulationGroup(@DefaultValue("") @QueryParam("name") String name,
-				List<Integer> seriesIds) {
-	
-			List<SimulationSeries> series = new ArrayList<>(seriesIds.size());			
+				List<String> seriesKeys) {
+
+			List<SimulationSeries> series = new ArrayList<>(seriesKeys.size());
 			try {
-				for(Integer id: seriesIds) {
-					series.add(entityHandler.getSimulationSeries(id));				
+				for(String seriesKey: seriesKeys) {
+					series.add(database.getSimulationSeries(seriesKey));
 				}
 			} catch (Exception e) {
 				logger.log(Level.WARNING, "user: " + getUserName(), e);
@@ -4451,9 +3855,9 @@ public class ServiceClass extends RESTService {
 	
 				group = new SimulationSeriesGroup(series);
 				group.setName(name);
-				entityHandler.store(group, getUserId());
-	
-	
+				group.calculateMetaData(); // calculate and store metadata that will be used for WebClient
+				database.storeSimulationSeriesGroup(group, getUserName());
+
 			} catch (Exception e) {
 				e.printStackTrace();
 				return Response.serverError().entity("fail store series group").build();
@@ -4470,13 +3874,13 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"show"}, value = "Get Simulation Group Meta", notes = "Returns the meta information for a performed group of simulations")
 		public Response getSimulationGroups(@DefaultValue("0") @QueryParam("firstIndex") int firstIndex,
 				@DefaultValue("0") @QueryParam("length") int length) {
-	
+
 			List<SimulationSeriesGroup> simulations = new ArrayList<>();
 			try {
 				if (firstIndex < 0 || length <= 0) {
-					simulations = entityHandler.getSimulationSeriesGroups(getUserId());
+					simulations = database.getSimulationSeriesGroups(getUserName());
 				} else {
-					simulations = entityHandler.getSimulationSeriesGroups(getUserId(), firstIndex, length);
+					simulations = database.getSimulationSeriesGroups(getUserName(), firstIndex, length);
 				}
 			} catch (Exception e) {
 				Context.getCurrent().monitorEvent(this, MonitoringEvent.SERVICE_ERROR, "fail to get simulation series. " + e.toString());
@@ -4484,27 +3888,29 @@ public class ServiceClass extends RESTService {
 				e.printStackTrace();
 				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail to get simulation series").build();
 			}
-	
-			if (simulations == null || simulations.size() < 1)
+
+			if (simulations == null || simulations.size() < 1) {
 				return Response.status(Status.BAD_REQUEST).entity("No simulation series found").build();
-	
-			List<SimulationSeriesGroupMetaData> metaList = new ArrayList<>(simulations.size());
-			try {
-				for (SimulationSeriesGroup simulation : simulations) {
-					SimulationSeriesGroupMetaData metaData = simulation.getMetaData();
-					metaList.add(metaData);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail parse meta data").build();
 			}
-			return Response.ok().entity(metaList).build();
-		}
+
+				List<SimulationSeriesGroupMetaData> metaList = new ArrayList<>(simulations.size());
+				try {
+					for (SimulationSeriesGroup simulation : simulations) {
+						SimulationSeriesGroupMetaData metaData = simulation.getGroupMetaData();
+						metaData.setKey(simulation.getKey()); // set group key, which became available when group was created
+						metaList.add(metaData);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail parse meta data").build();
+				}
+				return Response.ok().entity(metaList).build();
+				}
 	
 		/**
 		 * Gets the results of a performed simulation series group on a network
 		 *
-		 * @param groupId the id of the group
+		 * @param groupKey the id of the group
 		 * @return HttpResponse with the returnString
 		 */
 		@GET
@@ -4514,16 +3920,16 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulationGroupTable(@PathParam("groupId") long groupId) {
-	
+		public Response getSimulationGroupTable(@PathParam("groupId") String groupKey) {
+			System.out.println("getSimulationGroupTable");
 			String username = getUserName();
 			SimulationSeriesGroup series = null;
 	
 			try {
-				series = entityHandler.getSimulationSeriesGroup(groupId);
+				series = database.getSimulationSeriesGroup(groupKey);
 	
 				if (series == null)
-					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupId + " found")
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupKey + " found")
 							.build();
 	
 				series.evaluate();
@@ -4551,11 +3957,18 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = { @ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		@ApiOperation(tags = {"show"}, value = "Get a Simulation Group", notes = "Returns a performed simulation group")
-		public Response getSimulationGroup(@PathParam("groupId") long groupId) {
-	
+		public Response getSimulationGroup(@PathParam("groupId") String groupKey) {
+			System.out.println("getSimulationGroup");
 			SimulationSeriesGroup simulation = null;
-			try {				
-				simulation = entityHandler.getSimulationSeriesGroup(groupId);
+			try {
+				simulation = database.getSimulationSeriesGroup(groupKey);
+
+				List<SimulationSeries> simulationSeriesInGroup = new ArrayList<>();
+				for (String simulationSeriesKey : simulation.getSimulationSeriesKeys()){
+					simulationSeriesInGroup.add(database.getSimulationSeries(simulationSeriesKey));
+				}
+				simulation.setSimulationSeries(simulationSeriesInGroup);
+
 				if(!simulation.isEvaluated())
 					simulation.evaluate();
 	
@@ -4575,7 +3988,7 @@ public class ServiceClass extends RESTService {
 		/**
 		 * Deletes a simulation series group
 		 *
-		 * @param groupId the id of the group
+		 * @param groupKey the id of the group
 		 * @return HttpResponse with the returnString
 		 */
 		@DELETE
@@ -4585,10 +3998,10 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response deleteSimulationSeriesGroup(@PathParam("groupId") long groupId) {
-	
+		public Response deleteSimulationSeriesGroup(@PathParam("groupId") String groupKey) {
+			System.out.println("deleteSimulationSeriesGroup");
 			try {
-				entityHandler.deleteGroup(groupId);
+				database.deleteSimulationSeriesGroup(groupKey);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return Response.serverError().entity(e.getMessage()).build();
@@ -4606,30 +4019,40 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulationGroupMapping(@PathParam("groupId") long groupId) {
-	
+		public Response getSimulationGroupMapping(@PathParam("groupId") String groupKey) {
+
 			String username = getUserName();
 			SimulationSeriesGroup simulationGroup = null;
 			SimulationSeriesSetMapping mapping;
 	
 			try {
-				simulationGroup = entityHandler.getSimulationSeriesGroup(groupId);
+				simulationGroup = database.getSimulationSeriesGroup(groupKey);
 
-				if (simulationGroup == null)
-					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupId + " found")
-							.build();
-
-				if (!simulationGroup.isEvaluated())
-					simulationGroup.evaluate();
-								
-				MappingFactory factory = new MappingFactory();
-				mapping = factory.build(simulationGroup.getSimulationSeries(), simulationGroup.getName());
-				for(SimulationSeries sim: mapping.getSimulation()) {
-					sim.setNetwork(entityHandler.getGraph(getUserName(), sim.getParameters().getGraphId()));
+				List<SimulationSeries> simulationSeriesInGroup = new ArrayList<>();
+				for (String simulationSeriesKey : simulationGroup.getSimulationSeriesKeys()){
+					simulationSeriesInGroup.add(database.getSimulationSeries(simulationSeriesKey));
 				}
-				
-				if (!mapping.isEvaluated())
+				simulationGroup.setSimulationSeries(simulationSeriesInGroup);
+
+
+				if (simulationGroup == null) {
+					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupKey + " found")
+							.build();
+				}
+
+				if (!simulationGroup.isEvaluated()) {
+					simulationGroup.evaluate();
+				}
+
+				MappingFactory factory = new MappingFactory();
+				mapping = factory.build(simulationGroup.getSeriesList(), simulationGroup.getName());
+				for(SimulationSeries sim: mapping.getSimulation()) {
+					sim.setNetwork(database.getGraph(getUserName(), sim.getSimulationSeriesParameters().getGraphKey()));
+				}
+
+				if (!mapping.isEvaluated()) {
 					mapping.correlate();
+				}
 
 				
 			} catch (Exception e) {
@@ -4644,7 +4067,6 @@ public class ServiceClass extends RESTService {
 			return Response.ok().entity(mapping).build();
 		}
 		
-		
 		@PUT
 		@Path("/simulation/group/mapping/")
 		@Consumes(MediaType.APPLICATION_JSON)
@@ -4653,16 +4075,23 @@ public class ServiceClass extends RESTService {
 		@ApiResponses(value = {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
-		public Response getSimulationGroupsMapping(List<Long> groupIds) {
+		public Response getSimulationGroupsMapping(List<String> groupKeys) {
 
 			String username = getUserName();
-			List<SimulationSeriesGroup> groups = new ArrayList<>(groupIds.size());
+			List<SimulationSeriesGroup> groups = new ArrayList<>(groupKeys.size());
 			SimulationGroupSetMapping mapping = null;
 
 			try {
-				for (Long groupId : groupIds) {
+				for (String groupKey : groupKeys) {
 					try {
-						SimulationSeriesGroup group = entityHandler.getSimulationSeriesGroup(groupId);
+						SimulationSeriesGroup group = database.getSimulationSeriesGroup(groupKey);
+						// load simulation series belonging to the group
+						// based on the simulation series keys stored in the group
+						List<SimulationSeries> simulationSeriesInGroup = new ArrayList<>();
+						for (String simulationSeriesKey : group.getSimulationSeriesKeys()){
+							simulationSeriesInGroup.add(database.getSimulationSeries(simulationSeriesKey));
+						}
+						group.setSimulationSeries(simulationSeriesInGroup);
 						groups.add(group);
 					
 					} catch (Exception e) {
@@ -4674,10 +4103,10 @@ public class ServiceClass extends RESTService {
 				try {
 
 					for (int i = 0; i < groups.size(); i++) {
-						for (int j = 0; j < groups.get(i).getSimulationSeries().size(); j++) {
-							groups.get(i).getSimulationSeries().get(j).setNetwork(entityHandler.getGraph(getUserName(),
-									groups.get(i).getSimulationSeries().get(j).getParameters().getGraphId()));
-							groups.get(i).getSimulationSeries().get(j).evaluate();
+						for (int j = 0; j < groups.get(i).getSeriesList().size(); j++) {
+							groups.get(i).getSeriesList().get(j).setNetwork(database.getGraph(getUserName(),
+									groups.get(i).getSeriesList().get(j).getSimulationSeriesParameters().getGraphKey()));
+							groups.get(i).getSeriesList().get(j).evaluate();
 						}
 						groups.get(i).evaluate();
 					}
@@ -4754,7 +4183,7 @@ public class ServiceClass extends RESTService {
 	//////////////////////////////////////////////////////////////////
 	///////// RMI Methods
 	//////////////////////////////////////////////////////////////////
-	//TODO: Check if we even need those RMI methods anymore
+
 	//////////// GRAPH ////////////
 
 	/**
@@ -4765,17 +4194,17 @@ public class ServiceClass extends RESTService {
 	 * method invocation. It returns only default types and classes.
 	 * 
 	 * 
-	 * @param graphId
+	 * @param graphIdStr
 	 *            Id of the requested stored graph
 	 * @return HashMap
 	 * 
 	 */
-	public Map<String, Object> getGraphById(long graphId) {
-
+	public Map<String, Object> getGraphById(String graphIdStr) {
+		System.out.println("getGraphById");
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 		CustomGraph graph;
 		try {
-			graph = entityHandler.getGraph(username, graphId);
+			graph = database.getGraph(username, graphIdStr);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -4798,7 +4227,7 @@ public class ServiceClass extends RESTService {
 		graphData.put("name", name);
 		graphData.put("graph", adjList);
 
-		logger.log(Level.INFO, "RMI requested a graph: " + graphId);
+		logger.log(Level.INFO, "RMI requested a graph: " + graphIdStr);
 		return graphData;
 	}
 
@@ -4808,14 +4237,14 @@ public class ServiceClass extends RESTService {
 	 * @return List
 	 * @throws AgentNotRegisteredException if the agent was not registered
 	 */
-	public List<Long> getGraphIds() throws AgentNotRegisteredException {
-
+	public List<String> getGraphIds() throws AgentNotRegisteredException {
+		System.out.println("getGraphIds");
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-		List<Long> graphIdList = new ArrayList<Long>();
+		List<String> graphIdList = new ArrayList<String>();
 
-		List<CustomGraph> graphList = entityHandler.getGraphs(username);
+		List<CustomGraph> graphList = database.getGraphs(username);
 		for (int i = 0, si = graphList.size(); i < si; i++) {
-			graphIdList.add(graphList.get(i).getPersistenceId());
+			graphIdList.add(graphList.get(i).getKey());
 		}
 
 		logger.log(Level.INFO, "RMI requested graph Ids");
@@ -4830,9 +4259,9 @@ public class ServiceClass extends RESTService {
 	 * This method is intended to be used by other las2peer services for remote
 	 * method invocation. It returns only default types and classes.
 	 * 
-	 * @param graphId
+	 * @param graphIdStr
 	 *            Index of the requested graph
-	 * @param coverId
+	 * @param coverIdStr
 	 *            Index of the requested community cover
 	 * 
 	 * @return HashMap including the community members lists. The outer list has
@@ -4840,12 +4269,12 @@ public class ServiceClass extends RESTService {
 	 *         contains the indices of the member nodes.
 	 * 
 	 */
-	public Map<String, Object> getCoverById(long graphId, long coverId) {
-
+	public Map<String, Object> getCoverById(String graphIdStr, String coverIdStr) {
+		System.out.println("getCoverById");
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 		Cover cover;
 		try {
-			cover = entityHandler.getCover(username, graphId, coverId);
+			cover = database.getCover(username, graphIdStr, coverIdStr);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -4860,8 +4289,8 @@ public class ServiceClass extends RESTService {
 		Map<String, Object> coverData = new HashMap<String, Object>();
 		coverData.put("size", communityCount);
 		coverData.put("algorithm", algorithm);
-		coverData.put("graphId", graphId);
-		coverData.put("coverId", coverId);
+		coverData.put("graphId", graphIdStr);
+		coverData.put("coverId", coverIdStr);
 		coverData.put("cover", communityMemberList);
 
 		return coverData;
@@ -4873,22 +4302,22 @@ public class ServiceClass extends RESTService {
 	 * This method is intended to be used by other las2peer services for remote
 	 * method invocation. It returns only default types and classes.
 	 * 
-	 * @param graphId
+	 * @param graphIdStr
 	 *            Index of the requested graph
 	 * 
 	 * @return list containing cover indices.
 	 * 
 	 */
-	public List<Long> getCoverIdsByGraphId(long graphId) {
-
+	public List<String> getCoverIdsByGraphId(String graphIdStr) {
+		System.out.println("getCoverIdsByGraphId");
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 
-		List<Cover> covers = entityHandler.getCovers(username, graphId);
+		List<Cover> covers = database.getCovers(username, graphIdStr);
 		int size = covers.size();
 
-		List<Long> coverIds = new ArrayList<>(size);
+		List<String> coverIds = new ArrayList<>(size);
 		for (int i = 0; i < size; i++) {
-			coverIds.add(covers.get(i).getId());
+			coverIds.add(covers.get(i).getKey());
 		}
 
 		return coverIds;

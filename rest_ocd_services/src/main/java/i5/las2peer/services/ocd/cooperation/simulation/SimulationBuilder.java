@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import i5.las2peer.api.execution.ServiceInvocationException;
 import i5.las2peer.services.ocd.cooperation.data.simulation.AgentData;
 import i5.las2peer.services.ocd.cooperation.data.simulation.GroupType;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationDataset;
@@ -69,7 +68,7 @@ public class SimulationBuilder {
 			setDynamicParameters(parameters);
 			setConditionParameters(parameters);
 			setIterations(parameters.getIterations());
-			setName(parameters.getName());
+			setName(parameters.getSimulationName());
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -202,9 +201,8 @@ public class SimulationBuilder {
 	 * 
 	 * @return SimulationSeries
 	 * @throws IllegalStateException if validation failed
-	 * @throws ServiceInvocationException if service invocation failed
 	 */
-	public SimulationSeries simulate() throws IllegalStateException, ServiceInvocationException {
+	public SimulationSeries simulate() throws IllegalStateException {
 
 		try {
 			validate();
@@ -258,7 +256,7 @@ public class SimulationBuilder {
 		parameters.setPayoffCD(game.getPayoffAB());
 		parameters.setPayoffDC(game.getPayoffBA());
 		parameters.setPayoffDD(game.getPayoffBB());
-		parameters.setGraphId(graph.getPersistenceId());
+		parameters.setGraphKey(graph.getKey());
 		parameters.setIterations(iterations);
 		parameters.setGraphName(graph.getName());
 		parameters.setMaxIterations(condition.getMaxIterations());
@@ -266,6 +264,7 @@ public class SimulationBuilder {
 
 		SimulationSeries series = new SimulationSeries(parameters, datasets);
 		series.setName(name);
+		series.setNetwork(graph); // graph on which the simulation is based
 		series.evaluate();
 		return (series);
 	}

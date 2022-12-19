@@ -92,7 +92,7 @@ public class DefaultXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 				OcdMetricLog metric = cover.getMetrics().get(i);
 				Element metricElt = doc.createElement("Metric");
 				Element metricIdElt = doc.createElement("Id");
-				metricIdElt.appendChild(doc.createTextNode(Long.toString(metric.getId())));
+				metricIdElt.appendChild(doc.createTextNode(metric.getKey()));	//done
 				metricElt.appendChild(metricIdElt);
 				Element metricTypeElt = doc.createElement("Type");
 				metricTypeElt.appendChild(doc.createTextNode(metric.getType().name()));

@@ -2,15 +2,17 @@ package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.utils.Pair;
 
-import java.util.*;
 
-import org.apache.jena.atlas.iterator.Iter;
+
+import org.apache.jena.atlas.iterator.Iter;//TODO: why this iterator? i think iterator is already in java.util
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
 import org.graphstream.algorithm.ConnectedComponents;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
+
+import java.util.*;
 
 /**
  * Pre-processes graphs to facilitate community detection.
@@ -50,6 +52,7 @@ public class GraphProcessor {
 			if ((reverseEdge == null || graph.getEdgeWeight(reverseEdge) != edgeWeight) && !graph.getTypes().contains(GraphType.DIRECTED)) {
 				graph.addType(GraphType.DIRECTED);
 			}			
+
 		}
 		if (graph.getPath() != "" && graph.getPath() != null) {
 			if (graph.getEdgeCount() == 0) {

@@ -8,6 +8,11 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -19,22 +24,16 @@ import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 @Entity
 public class GroupParameters implements TableLineInterface {
 
-	////////// Entity Fields //////////
+	@JsonProperty
+	private String graphKey;
 
-	@Id
-	@OneToOne(fetch = FetchType.EAGER)
-	SimulationSeriesGroup simulations;
+	@JsonProperty
+	private GroupType game; //TODO: why is this GroupType and not GameType?
 
-	@Basic
-	private long graphId;
-
-	@Enumerated(EnumType.STRING)
-	private GroupType game;
-
-	@Basic
+	@JsonProperty
 	private int scaling;
 
-	@Enumerated(EnumType.STRING)
+	@JsonProperty
 	private DynamicType dynamic;
 
 	////////// Constructor //////////
@@ -42,66 +41,44 @@ public class GroupParameters implements TableLineInterface {
 	public GroupParameters() {
 
 	}
-	////////// Getter //////////
-	
-	@JsonIgnore
-	public SimulationSeriesGroup getSimulations() {
-		return simulations;
-	}
-	
-	@JsonProperty
-	public long getGraphId() {
-		return graphId;
-	}
-	
-	@JsonProperty
+
 	public GroupType getGame() {
 		return game;
 	}
-	
-	@JsonProperty
+
 	public int getScaling() {
 		return scaling;
 	}
-	
-	@JsonProperty
+
 	public DynamicType getDynamic() {
 		return dynamic;
 	}
 
-	////////// Setter //////////
-	
-	@JsonIgnore
-	public void setSimulations(SimulationSeriesGroup simulations) {
-		this.simulations = simulations;
+	public String getGraphKey() {
+		return graphKey;
 	}
-	
-	@JsonSetter
-	public void setGraphId(long graphId) {
-		this.graphId = graphId;
+
+	public void setGraphKey(String graphKey) {
+		this.graphKey = graphKey;
 	}
-	
-	@JsonIgnore
+
 	public void setGame(GroupType game) {
 		this.game = game;
 	}
-	
-	@JsonSetter
+
 	public void setGame(String game) {
 		this.game = GroupType.fromString(game);
 	}	
-	
-	@JsonSetter
+
 	public void setScaling(int scaling) {
 		this.scaling = scaling;
 	}
-	
-	@JsonIgnore
+
 	public void setDynamic(DynamicType dynamic) {
 		this.dynamic = dynamic;
 	}
 	
-	@JsonSetter
+
 	public void setDynamic(String dynamic) {
 		this.dynamic = DynamicType.fromString(dynamic);
 	}
@@ -110,7 +87,7 @@ public class GroupParameters implements TableLineInterface {
 	
 	public boolean validate() {
 		
-		if(getGraphId() == 0)
+		if(getGraphKey() == "0")
 			return false;
 		if(getGame() == null)
 			return false;
@@ -139,4 +116,13 @@ public class GroupParameters implements TableLineInterface {
 		return line;
 	}
 
+	@Override
+	public String toString() {
+		return "GroupParameters{" +
+				", graphKey='" + graphKey + '\'' +
+				", game=" + game +
+				", scaling=" + scaling +
+				", dynamic=" + dynamic +
+				'}';
+	}
 }

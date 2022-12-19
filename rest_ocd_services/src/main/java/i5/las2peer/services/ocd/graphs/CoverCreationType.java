@@ -158,18 +158,19 @@ public enum CoverCreationType implements EnumDisplayNames {
 	 * Type corresponding to the FuzzyCMeansSpectralClustering Algorithm.
 	 */
 	FUZZY_C_MEANS_SPECTRAL_CLUSTERING_ALGORITHM("Fuzzy C Means Spectral Clustering Algorithm", FuzzyCMeansSpectralClusteringAlgorithm.class, 24),
-
+	
 	/**
 	 * Type corresponding to the WeakCliquePercolationMethodAlgorithm Algorithm.
 	 */
 	WEAK_CLIQUE_PERCOLATION_METHOD_ALGORITHM("Weak Clique Percolation Method Algorithm", WeakCliquePercolationMethodAlgorithm.class, 25),
-
-	/**
-	 * Type corresponding to the MemeticLinkClusteringAlgorithm Algorithm.
+	
+	 /** Type corresponding to the MemeticLinkClusteringAlgorithm Algorithm.
 	 */
 	M_LINK("M Link", MemeticLinkClusteringAlgorithm.class, 26);
-
-
+//	/**
+//	 * Type corresponding to the LOCAlgoirthm Algorithm.
+//	 */
+//	LOC_ALGORITHM("LOC Algorithm", LOCAlgorithm.class, 27);
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
 	 * Abstract types correspond to the CoverCreationMethod interface itself.

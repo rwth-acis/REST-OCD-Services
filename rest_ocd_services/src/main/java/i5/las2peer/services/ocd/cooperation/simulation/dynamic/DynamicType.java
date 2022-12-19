@@ -1,5 +1,7 @@
 package i5.las2peer.services.ocd.cooperation.simulation.dynamic;
 
+import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
+
 import java.security.InvalidParameterException;
 
 
@@ -129,6 +131,20 @@ public enum DynamicType {
 	public static DynamicType getType(Class<? extends Dynamic> dynamicClass) {
 		for (DynamicType type : DynamicType.values()) {
 			if (dynamicClass == type.getDynamicClass()) {
+				return type;
+			}
+		}
+		throw new InvalidParameterException();
+	}
+
+	/**
+	 * Returns the type corresponding to an id.
+	 * @param id The id.
+	 * @return The corresponding type.
+	 */
+	public static DynamicType lookupType(int id) {
+		for (DynamicType type : DynamicType.values()) {
+			if (id == type.getId()) {
 				return type;
 			}
 		}

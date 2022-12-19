@@ -51,17 +51,16 @@ public class StatisticalMeasureRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+		System.out.println("SMR run start");
 		boolean error = false;
 		/*
 		 * Set metric state to running.
 		 */
     	RequestHandler requestHandler = new RequestHandler();
-    	EntityHandler entityHandler = new EntityHandler();
-    	EntityManager em = entityHandler.getEntityManager();
-    	EntityTransaction tx = em.getTransaction();
+    	DatabaseConfig.setConfigFile(false);
+    	Database database = new Database();
 		try {
-			tx.begin();
-			OcdMetricLog persistedLog = em.find(OcdMetricLog.class, logId);
+			OcdMetricLog persistedLog = database.getOcdMetricLog(logId);
 			if(persistedLog == null) {
 				/*
 				 * Should not happen.
@@ -70,14 +69,10 @@ public class StatisticalMeasureRunnable implements Runnable {
 				throw new IllegalStateException();
 			}
 			persistedLog.setStatus(ExecutionStatus.RUNNING);
-			tx.commit();
+			database.updateOcdMetricLog(persistedLog);
 		} catch( RuntimeException e ) {
-			if( tx != null && tx.isActive() ) {
-				tx.rollback();
-			}
 			error = true;
 		}
-		em.close();
 		/*
 		 * Run metric.
 		 */
@@ -99,6 +94,7 @@ public class StatisticalMeasureRunnable implements Runnable {
 			}
 		}
 		threadHandler.createMetric(resultLog, logId, error);
+		System.out.println("SMR run ende");
 	}
 
 }

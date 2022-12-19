@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.adapters.metaOutput;
 
-import i5.las2peer.services.ocd.graphs.CoverCreationLog;
-import i5.las2peer.services.ocd.graphs.CoverCreationType;
-import i5.las2peer.services.ocd.graphs.CoverMeta;
-import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
@@ -19,11 +16,11 @@ public class MetaXmlCoverMetaOutputAdapterTest {
     @Test
     public void writeCover() {
 
-        Long id = Long.valueOf(3);
+        String key = "coverTestKey";
         String username = "Alice";
         String name = "testCover";
         Integer numberOfCommunities = 7;
-        Long graphId = Long.valueOf(1);
+        String graphKey = "graphTestKey";
         String graphName = "testGraph";
         ArrayList<Integer> graphTypes = new ArrayList<Integer>();
         graphTypes.add(0);
@@ -40,13 +37,13 @@ public class MetaXmlCoverMetaOutputAdapterTest {
 
 
         CoverMeta coverMeta = new CoverMeta(
-                id,
+                key,
                 name,
                 numberOfCommunities,
-                graphId,
+                graphKey,
                 graphName,
-                coverCreationLog,
-                new ArrayList<OcdMetricLog>());
+                coverCreationLog.getType().getId(),
+                coverCreationLog.getStatus().getId());
 
         try {
             MetaXmlCoverMetaOutputAdapter adapter = new MetaXmlCoverMetaOutputAdapter();

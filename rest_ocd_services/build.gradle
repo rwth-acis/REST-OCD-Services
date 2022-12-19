@@ -11,6 +11,7 @@ plugins {
     id 'java-library'
 }
 
+
 def export = "$projectDir/export"
 def ocd = "$rootDir/ocd"
 
@@ -25,6 +26,7 @@ repositories {
 }
 
 dependencies {
+
 
     // Use JUnit test framework.
     testImplementation 'junit:junit:4.13'
@@ -80,6 +82,10 @@ dependencies {
     //gs-algo version that includes HopcroftTarjanBiconnectedComponents
     implementation "org.graphstream:gs-algo:2.0.ACIS"
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+
+    //arangoDB Java driver
+    implementation "com.arangodb:arangodb-java-driver:6.18.0"
+    implementation "com.arangodb:jackson-dataformat-velocypack:3.0.1"
 }
 
 configurations {
@@ -98,8 +104,10 @@ jar {
         // Exclude signatures to be able to natively bundle signed jars
         exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
     }
+   duplicatesStrategy = 'include' // this is needed due to duplicate error in gradle 7.0 which seems to be a bug
 
-    duplicatesStrategy = 'include' // this is needed due to duplicate error in gradle 7.0 which seems to be a bug
+
+
 }
 
 application {
@@ -258,6 +266,7 @@ clean.doLast {
     file("$ocd/db").deleteDir()
     file("$ocd/indexes").deleteDir()
 
+
     file("$rootDir/tmp").deleteDir()
     file("$rootDir/lib").deleteDir()
     file("$rootDir/servicebundle").deleteDir()
@@ -279,6 +288,8 @@ task cleanAll {
 test {
     workingDir = file("$rootDir")
 }
+
+
 
 
 // Only required when using Eclipse:

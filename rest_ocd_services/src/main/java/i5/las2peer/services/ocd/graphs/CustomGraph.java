@@ -28,14 +28,23 @@ import org.graphstream.ui.layout.Layout;
 import org.graphstream.ui.layout.springbox.implementations.SpringBox;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.entity.BaseEdgeDocument;
+import com.arangodb.ArangoCursor;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+import com.arangodb.model.DocumentDeleteOptions;
+import com.arangodb.model.AqlQueryOptions;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.graphs.properties.AbstractProperty;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
-
-
-
 import org.graphstream.graph.implementations.MultiGraph;
 
 
@@ -47,7 +56,7 @@ import org.graphstream.graph.Edge;
 /**
  * Represents a graph (or network), i.e. the node / edge structure and
  * additional meta information.
- *
+ * 
  * @author Sebastian
  *
  */
@@ -68,40 +77,48 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public static final String idColumnName = "ID";
 	public static final String userColumnName = "USER_NAME";
-	private static final String nameColumnName = "NAME";
-	public static final String graphNodeCountColumnName = "NODE_COUNT";
-	public static final String graphEdgeCountColumnName = "EDGE_COUNT";
+	public static final String nameColumnName = "NAME";
+	public static final String nodeCountColumnName = "NODE_COUNT";
+	public static final String edgeCountColumnName = "EDGE_COUNT";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 	private static final String idEdgeMapKeyColumnName = "RUNTIME_ID";
 	private static final String idNodeMapKeyColumnName = "RUNTIME_ID";
-	private static final String creationMethodColumnName = "CREATION_METHOD";
+	public static final String creationMethodColumnName = "CREATION_METHOD";
 	private static final String pathColumnName = "INDEX_PATH";
-
+	//ArangoDB 
+	private static final String propertiesColumnName = "PROPERTIES";
+	private static final String coverKeysColumnName = "COVER_KEYS";
+	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
+	public static final String typesColumnName = "TYPES";
+	public static final String collectionName = "customgraph";		//do not choose the name "graph" here because it is reserved for querys
+	
 	/*
 	 * Field name definitions for JPQL queries.
 	 */
 	public static final String USER_NAME_FIELD_NAME = "userName";
-	public static final String ID_FIELD_NAME = "persistenceId";
+	public static final String ID_FIELD_NAME = "key";
 	public static final String NAME_FIELD_NAME = "name";
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
 	public static final String NODE_COUNT_FIELD_NAME = "graphNodeCount";
 	public static final String EDGE_COUNT_FIELD_NAME = "graphEdgeCount";
 	public static final String TYPES_FIELD_NAME = "types";
 
-
-
 	//////////////////////////////////////////////////////////////////
 	///////// Attributes
 	//////////////////////////////////////////////////////////////////
 
 	/**
-	 * System generated persistence id.
+	 * System generated persistence key.
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = idColumnName)
-	private long persistenceId;
+	private String key = "";
+	/**
+	 * System generated persistence id.
+	 */
+	private long id;
 
 	/**
 	 * The name of the user owning the graph.
@@ -126,15 +143,14 @@ public class CustomGraph extends MultiGraph {
 	/**
 	 * The number of nodes in the graph.
 	 */
-	@Column(name = graphNodeCountColumnName)
+	@Column(name = nodeCountColumnName)
 	private long graphNodeCount;
 
 	/**
 	 * The number of edges in the graph.
 	 */
-	@Column(name = graphEdgeCountColumnName)
+	@Column(name = edgeCountColumnName)
 	private long graphEdgeCount;
-
 
 
 
@@ -310,7 +326,7 @@ public class CustomGraph extends MultiGraph {
 		copyMappings(graph.customNodes, graph.customEdges, graph.nodeIds, graph.edgeIds);
 		this.userName = new String(graph.userName);
 		this.name = new String(graph.name);
-		this.persistenceId = graph.persistenceId;
+		this.key = graph.key;
 		this.path = graph.path;
 		// this.description = new String(graph.description);
 		// if(graph.lastUpdate != null) {
@@ -384,8 +400,8 @@ public class CustomGraph extends MultiGraph {
 	 *
 	 * @return The persistence id.
 	 */
-	public long getPersistenceId() {
-		return persistenceId;
+	public String getKey() {
+		return key;
 	}
 
 	/**
@@ -820,6 +836,7 @@ public class CustomGraph extends MultiGraph {
 		double degree = 0;
 		for (Edge edge : edges) {
 			degree += Math.abs(getCustomEdge(edge).getWeight());
+
 		}
 		return degree;
 	}
@@ -1190,7 +1207,6 @@ public class CustomGraph extends MultiGraph {
 				positiveInEdges.add(incidentInEdge);
 			}
 
-
 		}
 		return positiveInEdges;
 	}
@@ -1342,7 +1358,7 @@ public class CustomGraph extends MultiGraph {
 
 
 
-	/**
+	/**	 
 	 * Returns a specific graph property
 	 *
 	 * @param property requested property
@@ -1385,7 +1401,7 @@ public class CustomGraph extends MultiGraph {
 		long graphSize = nodeCount;
 		int subSize = nodeIds.size();
 		Map<Integer, Node> nodeMap = new HashMap<>(subSize);
-
+		
 		for (int i = 0; i < subSize; i++) {
 			int nodeId = nodeIds.get(i);
 
@@ -1466,9 +1482,24 @@ public class CustomGraph extends MultiGraph {
 	 *            A node which must belong to this graph.
 	 * @return The corresponding custom node object.
 	 */
+
 	protected CustomNode getCustomNode(Node node) {
-		int index = nodeIds.get(node);
-		return customNodes.get(index);
+
+		if ( nodeIds.get(node) != null) {
+			int index = nodeIds.get(node);
+			return customNodes.get(index);
+		}
+
+
+		//TODO: is this addition to avoid nullpointer exception correct?
+		for (CustomNode customNode : customNodes.values()){
+			if (node.getId().equals(customNode.getName())){
+				return customNode;
+			}
+		}
+		return null;
+
+
 	}
 
 	/**
@@ -1591,11 +1622,220 @@ public class CustomGraph extends MultiGraph {
 		Edge[] edges = this.edges().toArray(Edge[]::new);
 		for (Edge edge : edges) {
 			this.getCustomEdge(edge).update(this, edge);
-
 		}
-
+		
 		initProperties();
 	}
 
+	//persistence functions
+	protected CustomNode getCustomNodeByKey(String key) {
+		CustomNode ret = null;
+		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
+		for(CustomNode cn : nodes) {
+			if(key.equals(cn.getKey())) {
+				ret = cn;
+				break;
+			}
+		}
+		if(ret == null) {
+			System.out.println("CustomNode with Key : " + key + "does not exist in this graph.");
+		}
+		return ret;
+	}
+	
+	public void persist( ArangoDatabase db, String transId) throws InterruptedException {
+		this.setNodeEdgeCountColumnFields(); // update node/edge counts before persisting
+		this.prePersist();
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		//options for the transaction
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		//EdgeCreateOptions edgeCreateOptions = new EdgeCreateOptions().streamTransactionId(transId);
+		bd.addAttribute(userColumnName, this.userName);
+		bd.addAttribute(pathColumnName, this.path);		//TODO muss gespeichert werden?
+		bd.addAttribute(nameColumnName, this.name);
+		bd.addAttribute(typesColumnName, this.types);
+		bd.addAttribute(nodeCountColumnName, this.graphNodeCount);
+		bd.addAttribute(edgeCountColumnName, this.graphEdgeCount);
+		this.creationMethod.persist(db, createOptions);
+		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
+		collection.insertDocument(bd, createOptions);
+		this.key = bd.getKey();
+		
+		bd = new BaseDocument();
+
+		//TODO: is this a valid replacement to store customNode?
+//		NodeCursor nodes = this.nodes();
+//		while (nodes.ok()) {		//persist all nodes from the graph
+//			Node n = nodes.node();
+//			CustomNode node = this.getCustomNode(n);
+//			node.persist(db, createOptions);
+//			nodes.next();
+//		}
+		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
+		for (CustomNode customNode : nodes) {
+			customNode.persist(db,createOptions);
+		}
+
+
+		List<CustomEdge> edges = new ArrayList<CustomEdge>(this.customEdges.values());
+		for (CustomEdge customEdge : edges) {
+			customEdge.persist(db, createOptions);
+		}
+
+//		Iterator<Edge> edges = this.edges().iterator();
+//		while (edges.hasNext()) { //persist all edges from the graph
+//			Edge edge = edges.next();
+//			edge.
+//		}
+
+		bd.addAttribute(propertiesColumnName, this.properties);	
+		//TODO covers variable speichern?
+		
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
+
+	public static CustomGraph load(String key, ArangoDatabase db, String transId) {
+		CustomGraph graph = null;
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
+		
+		if (bd != null) {
+			graph = new CustomGraph();
+			ObjectMapper om = new ObjectMapper();	
+			Object objId = bd.getAttribute(idColumnName);
+			if(objId!= null) {
+				graph.id = Long.parseLong(objId.toString());
+			}
+			graph.key = key;
+			graph.userName = bd.getAttribute(userColumnName).toString();
+			graph.path = bd.getAttribute(pathColumnName).toString();
+			graph.name = bd.getAttribute(nameColumnName).toString();
+			Object objTypes = bd.getAttribute(typesColumnName);
+			graph.types = om.convertValue(objTypes, Set.class);
+			Object objProperties = bd.getAttribute(propertiesColumnName);
+			graph.properties = om.convertValue(objProperties, List.class);
+			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+			graph.graphNodeCount = om.convertValue(bd.getAttribute(nodeCountColumnName), Long.class);
+			graph.graphEdgeCount = om.convertValue(bd.getAttribute(edgeCountColumnName), Long.class);
+			graph.creationMethod = GraphCreationLog.load(creationMethodKey, db, readOpt);
+
+			//nodes werden in customNodes Map eingefuegt
+			Map<String, CustomNode> customNodeKeyMap = new HashMap<String, CustomNode>();
+			String query = "FOR node IN " + CustomNode.collectionName + " FILTER node."
+				+ CustomNode.graphKeyColumnName +" == \"" + key +"\" RETURN node";
+			ArangoCursor<BaseDocument> nodeDocuments = db.query(query, queryOpt, BaseDocument.class);
+
+			int i=0;
+			while(nodeDocuments.hasNext()) {
+				BaseDocument nodeDocument = nodeDocuments.next();
+				CustomNode node = CustomNode.load(nodeDocument, graph);
+				graph.customNodes.put(i, node);
+				customNodeKeyMap.put(CustomNode.collectionName +"/"+node.getKey(), node);
+				i++;
+			}
+			
+			//edges werden in customNodes Map eingefuegt
+			query = "FOR edge IN " + CustomEdge.collectionName + " FILTER edge.";
+			query += CustomEdge.graphKeyColumnName +" == \"" + key +"\" RETURN edge";
+			ArangoCursor<BaseEdgeDocument> edgeDocuments = db.query(query, queryOpt, BaseEdgeDocument.class);
+			i=0;
+			
+			while(edgeDocuments.hasNext()) {
+				BaseEdgeDocument edgeDocument = edgeDocuments.next();
+				CustomNode source = customNodeKeyMap.get(edgeDocument.getFrom());
+				CustomNode target = customNodeKeyMap.get(edgeDocument.getTo());
+				CustomEdge edge = CustomEdge.load(edgeDocument, source, target, graph, db);
+				graph.customEdges.put(i, edge);
+				i++;
+			}
+			graph.postLoad();
+		}	
+		else {
+			System.out.println("leeres Graph dokument");
+			System.out.println(" DB name: " + db.dbName().get());
+		}
+		return graph;
+	}
+	
+	public void updateDB(ArangoDatabase db, String transId) throws InterruptedException {		//only updates the nodes/edges/GraphCreationLog and graph Attributes
+		this.prePersist();
+		ArangoCollection collection = db.collection(collectionName);
+		
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		
+		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
+		
+		String gclKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+		ArangoCollection gclCollection = db.collection(GraphCreationLog.collectionName);
+		gclCollection.deleteDocument(gclKey, null, deleteOpt);			//delete GraphCreationLog
+		this.creationMethod.persist(db, createOptions);
+		bd.updateAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());	//update creation method key
+
+
+		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
+		for (CustomNode customNode : nodes) { // update all nodes from the graph
+			if(customNode.getKey() == null) {
+				customNode.persist(db, createOptions);
+			}else {
+				customNode.updateDB(db, updateOptions);
+			}
+		}
+
+
+		List<CustomEdge> edges = new ArrayList<CustomEdge>(this.customEdges.values());
+		for (CustomEdge customEdge : edges) {
+			if(customEdge.getKey() == null) {
+				customEdge.persist(db, createOptions);
+			}else {
+				customEdge.updateDB(db, updateOptions);
+			}
+		}
+
+
+		
+		bd.updateAttribute(userColumnName, this.userName);	//update all atributes
+		bd.updateAttribute(pathColumnName, this.path);
+		bd.updateAttribute(nameColumnName, this.name);
+		bd.updateAttribute(typesColumnName, this.types);
+		bd.updateAttribute(propertiesColumnName, this.properties);
+		bd.updateAttribute(nodeCountColumnName, this.graphNodeCount);
+		bd.updateAttribute(edgeCountColumnName, this.graphEdgeCount);
+		
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
+	
+	//TODO funktion verwerfen
+	public void setNodeNames() {
+		Set<MultiNode> nodes = this.nodeIds.keySet();
+		int i = 0;
+		for(Node node : nodes) {
+			i++;
+			this.setNodeName(node,"Node : " + i);
+		}
+	}
+	
+	public String String() {
+		String n = System.getProperty("line.separator");
+		String ret = "CustomGraph: " + n;
+		ret += "Key :         " + this.key +n ;
+		ret += "userName :    " + this.userName + n ; 
+		ret += "name :        " + this.name+n;
+		ret += "path :        " + this.path + n;
+		if(this.types != null) {ret += "types :       " + this.types.toString()+n;}
+		else { ret += "no types" +n;}
+		if(this.properties != null) { ret += "properties :  " + this.properties + n;}
+		else { ret += "no properties" +n;}
+		if(this.creationMethod != null) { ret += "creationMethod :  " + this.creationMethod.String() + n;}
+		else { ret += "no creationMethod" +n;}
+		ret += "Es gibt : " + this.covers.size() + " cover"+n;
+		return ret;
+	}
 
 }
