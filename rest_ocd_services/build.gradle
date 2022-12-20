@@ -289,7 +289,19 @@ test {
     workingDir = file("$rootDir")
 }
 
-
+// Executes WebOCD tests without database tests. This task is used for github actions.
+task testWithoutDB(type: Test) {
+    workingDir = file("$rootDir")
+    filter {
+        excludeTestsMatching '**.ServiceDatabaseTest'
+        excludeTestsMatching '**.ServiceTest'
+        excludeTestsMatching '**.SimulationPersistenceTest'
+        excludeTestsMatching '**.CoverDatabaseTest'
+        excludeTestsMatching '**.CustomGraphDatabaseTest'
+        excludeTestsMatching '**.DatabaseMethodTest'
+        excludeTestsMatching '**.DatabaseTest'
+    }
+}
 
 
 // Only required when using Eclipse:
