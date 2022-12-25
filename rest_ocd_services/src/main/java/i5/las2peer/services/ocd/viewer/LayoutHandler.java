@@ -88,6 +88,7 @@ public class LayoutHandler {
 			//"Declare" nodestyles
 			node.setAttribute("ui.style", "fill-color: rgba(" + 200 + "," + 200 + "," + 240 + "," + 255 + ");"
 					+ "shape: circle; size: "+ curNodeSize +";");
+			node.setAttribute("ui.size", curNodeSize);  // needed for JsonVisualOutputAdapter
 		}
 
 		String arrowShape = "none";
@@ -126,6 +127,7 @@ public class LayoutHandler {
 		painter.doPaint(cover);
 		paintNodes(cover);
 		setViewDefaults(graph);
+
 	}
 
 	/**
@@ -202,7 +204,12 @@ public class LayoutHandler {
 		Iterator<Node> nodesIt = graph.iterator();
 		while(nodesIt.hasNext()) {
 			Node node = nodesIt.next();
-			node.setAttribute("ui.shape", "circle");
+			node.setAttribute("ui.shape", "circle;");
+
+			int defaultCentralityNodeSize = 30;
+			node.setAttribute("ui.style","size: "+ defaultCentralityNodeSize +";"+ "fill-color: rgba(" + 200 + "," + 200 + "," + 240 + "," + 255 + ");");  // default color
+
+
 		}
 
 		String arrowShape = "none";
@@ -244,7 +251,11 @@ public class LayoutHandler {
 				Node node = nodes.next();
 				// adds name label
 				node.setAttribute("label", graph.getNodeName(node)); //For SVG Viz label needs to not have "ui." in front, for graphstream desktop UIs it does
-				node.setAttribute("ui.style",node.getAttribute("ui.style") + "text-alignment: center;"
+				String initial_string = "";
+				if(node.getAttribute("ui.style") != null){
+					initial_string += node.getAttribute("ui.style");
+				}
+				node.setAttribute("ui.style",initial_string + "text-alignment: center;"
 						+ "text-size: 12;"
 						+ "text-style: bold;"
 						+ "text-font: Arial;");
@@ -317,6 +328,7 @@ public class LayoutHandler {
 			float nodeSaturation = (float) ((map.getNodeValue(node) - min) / (max - min));
 			Color color = Color.getHSBColor(hsbValues[0], nodeSaturation, hsbValues[2]); // Use HSB for saturation here
 			node.setAttribute("ui.style",node.getAttribute("ui.style") + "fill-color: rgba(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "," + color.getAlpha() + ");");
+			node.setAttribute("ui.fill-color", new float[]{color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()/255}); // TODO: new. set directly accessible color attribute for node, used for JSON visiualization adapter
 		}
 	}
 	
@@ -345,6 +357,8 @@ public class LayoutHandler {
 			float hue = (float) (hsbValuesMin[0] + (hsbValuesMax[0] - hsbValuesMin[0]) * (centralityValue - min) / (max - min));
 			Color color = Color.getHSBColor(hue, 1.0f, 1.0f);
 			node.setAttribute("ui.style",node.getAttribute("ui.style") + "fill-color: rgba(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "," + color.getAlpha() + ");");
+			node.setAttribute("ui.fill-color", new float[]{color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()/255}); // set directly accessible color attribute for node
+
 		}
 	}
 	
@@ -356,6 +370,10 @@ public class LayoutHandler {
 	private void setProportionalNodeSizes(CentralityMap map) {
 		double min = map.getMinValue();
 		double max = map.getMaxValue();
+		if (max == min){
+			// avoid division by 0
+			max++;
+		}
 		CustomGraph graph = map.getGraph();
 		Iterator<Node> nodesIt = graph.iterator();
 		while(nodesIt.hasNext()) {
@@ -363,6 +381,7 @@ public class LayoutHandler {
 			double centralityValue = map.getNodeValue(node);
 			double nodeSize = MIN_NODE_SIZE + (MAX_NODE_SIZE - MIN_NODE_SIZE) * (centralityValue - min) / (max - min);
 			node.setAttribute("ui.style",node.getAttribute("ui.style") + "size:" + nodeSize +";");
+			node.setAttribute("ui.size", nodeSize);  // needed for JsonVisualOutputAdapter
 		}
 	}
 
