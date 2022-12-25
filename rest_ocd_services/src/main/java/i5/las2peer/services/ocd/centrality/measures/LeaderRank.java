@@ -51,7 +51,6 @@ public class LeaderRank implements CentralityAlgorithm {
 		}
 		nc = graph.iterator();
 		res.setNodeValue(groundNode, 0.0);
-		
 		for(int k = 0; k < 50; k++) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
@@ -78,7 +77,7 @@ public class LeaderRank implements CentralityAlgorithm {
 			Node node = nc.next();
 			res.setNodeValue(node, res.getNodeValue(node) + share);
 		}
-		
+		res.getMap().remove(null); // this is needed to avoid storing groundNode (used for calculations) in the database
 		return res;
 	}
 
