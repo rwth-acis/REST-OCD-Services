@@ -10,6 +10,7 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import org.graphstream.algorithm.Dijkstra;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 
 
@@ -25,7 +26,17 @@ public class Eccentricity implements CentralityAlgorithm {
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.ECCENTRICITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
-		
+
+		// Set edge length attribute for the Dijkstra algorithm
+		Iterator<Edge> edges = graph.edges().iterator();
+		Edge edge;
+		HashMap<Edge, Double> edgeweights = new HashMap<Edge, Double>();
+		while (edges.hasNext()) {
+			edge = edges.next();
+			edge.setAttribute("edgeLength", graph.getEdgeWeight(edge));
+
+		}
+
 		Iterator<Node> nc = graph.iterator();
 		double[] edgeWeights = graph.getEdgeWeights();
 		while(nc.hasNext()) {
@@ -35,18 +46,21 @@ public class Eccentricity implements CentralityAlgorithm {
 			Node node = nc.next();
 			double[] dist = new double[graph.getNodeCount()];
 
-			//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
-			//ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
-			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
+			// Length is determined by edge weight
+			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "edgeLength");
 			dijkstra.init(graph);
 			dijkstra.setSource(node);
 			dijkstra.compute();
 
 			double max = 0.0;
-			for(double d : dist) {
-				if(d > max)
+			Iterator<Node> nc2 = graph.iterator();
+			while(nc2.hasNext()){
+				double d = dijkstra.getPathLength(nc2.next());
+				if(d > max) {
 					max = d;
+				}
 			}
+
 			if(max == 0) {
 				res.setNodeValue(node, 0);
 			}

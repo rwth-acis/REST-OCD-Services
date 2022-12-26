@@ -10,6 +10,7 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import org.graphstream.algorithm.Dijkstra;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 
 
@@ -20,20 +21,29 @@ import org.graphstream.graph.Node;
  *
  */
 public class Radiality implements CentralityAlgorithm {
-	
+
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {
+
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.RADIALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
-		
 		Iterator<Node> nc = graph.iterator();
 		// If there is only a single node
 		if(graph.getNodeCount() == 1) {
 			res.setNodeValue(nc.next(), 0);
 			return res;
 		}
-		
+
+		// Set edge length attribute for the Dijkstra algorithm
+		Iterator<Edge> edges = graph.edges().iterator();
+		Edge edge;
+		HashMap<Edge, Double> edgeweights = new HashMap<Edge, Double>();
+		while (edges.hasNext()) {
+			edge = edges.next();
+
+			edge.setAttribute("edgeLength", graph.getEdgeWeight(edge));
+		}
+
 		// Calculate the sum of distances and the number of reachable nodes for all nodes and find the diameter of the graph
-		double[] edgeWeights = graph.getEdgeWeights();
 		Map<Node, Integer> reachableNodes = new HashMap<Node, Integer>();
 		double maxDistance = 0;
 		while(nc.hasNext()) {
@@ -43,16 +53,18 @@ public class Radiality implements CentralityAlgorithm {
 			Node node = nc.next();
 			double[] dist = new double[graph.getNodeCount()];
 
-			//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
-			//ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
-			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
+			// Length is determined by edge weight
+			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null,"edgeLength");
 			dijkstra.init(graph);
 			dijkstra.setSource(node);
 			dijkstra.compute();
 
 			double distSum = 0.0;
 			int reachableNodesCounter = 0;
-			for(double d : dist) {
+
+			Iterator<Node> nc2 = graph.iterator();
+			while(nc2.hasNext()){
+				double d = dijkstra.getPathLength(nc2.next());
 				if(d != Double.POSITIVE_INFINITY && d != 0) {
 					distSum += d;
 					reachableNodesCounter++;
@@ -63,14 +75,14 @@ public class Radiality implements CentralityAlgorithm {
 			reachableNodes.put(node, reachableNodesCounter);
 			res.setNodeValue(node, distSum);
 		}
-		
+
 		// Reverse distances
 		nc = graph.iterator();
 		while(nc.hasNext()) {
 			Node node = nc.next();
 			double distSum = res.getNodeValue(node);
 			/*
-			 * Each distance in the sum is reversed which is equivalent to multiplying the number of reachable nodes with the 
+			 * Each distance in the sum is reversed which is equivalent to multiplying the number of reachable nodes with the
 			 * diameter of the graph and subtracting the sum of distances (+ 1 added to differentiate disconnected nodes).
 			 */
 			res.setNodeValue(node, (reachableNodes.get(node) * (1 + maxDistance) - distSum)/(graph.getNodeCount()-1));
@@ -90,12 +102,12 @@ public class Radiality implements CentralityAlgorithm {
 	public CentralityMeasureType getCentralityMeasureType() {
 		return CentralityMeasureType.RADIALITY;
 	}
-	
+
 	@Override
 	public HashMap<String, String> getParameters() {
 		return new HashMap<String, String>();
 	}
-	
+
 	@Override
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
 		if(parameters.size() > 0) {

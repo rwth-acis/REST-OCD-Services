@@ -10,6 +10,7 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import org.graphstream.algorithm.Dijkstra;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 
 /**
@@ -30,7 +31,17 @@ public class ClosenessCentrality implements CentralityAlgorithm {
 			res.setNodeValue(nc.next(), 0);
 			return res;
 		}
-		
+
+		// Set edge length attribute for the Dijkstra algorithm
+		Iterator<Edge> edges = graph.edges().iterator();
+		Edge edge;
+		HashMap<Edge, Double> edgeweights = new HashMap<Edge, Double>();
+		while (edges.hasNext()) {
+			edge = edges.next();
+
+			edge.setAttribute("edgeLength", graph.getEdgeWeight(edge));
+		}
+
 		double[] edgeWeights = graph.getEdgeWeights();
 		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
@@ -39,8 +50,8 @@ public class ClosenessCentrality implements CentralityAlgorithm {
 			Node node = nc.next();
 			double[] distArray = new double[graph.getNodeCount()];
 
-			//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
-			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
+			// Length is determined by edge weight
+			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "edgeLength");
 			dijkstra.init(graph);
 			dijkstra.setSource(node);
 			dijkstra.compute();
@@ -54,10 +65,6 @@ public class ClosenessCentrality implements CentralityAlgorithm {
 				distSum += d;
 				k++;
 			}
-			//ShortestPaths.dijkstra(graph, node, true, edgeWeights, distArray);
-			//for(double d : distArray) {
-			//	distSum += d;
-			//}
 
 			res.setNodeValue(node, (graph.getNodeCount()-1)/distSum);
 		}

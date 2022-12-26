@@ -37,25 +37,32 @@ public class ResidualCloseness implements CentralityAlgorithm {
 			}
 			return res;
 		}
+
+		// Set edge length attribute for the Dijkstra algorithm
+		Iterator<Edge> edges = graph.edges().iterator();
+		Edge edge;
+		while (edges.hasNext()) {
+			edge = edges.next();
+			edge.setAttribute("edgeLength", graph.getEdgeWeight(edge));
+		}
 		
 		// Calculate the network closeness (for normalization)
-		double[] edgeWeights = graph.getEdgeWeights();
-		double networkCloseness = 0.0;	
+		double networkCloseness = 0.0;
 		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
 			Node node = nc.next();
-			double[] dist = new double[graph.getNodeCount()];
 
-			//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
-			//ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
-			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
+			// Length is determined by edge weight
+			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "edgeLength");
 			dijkstra.init(graph);
 			dijkstra.setSource(node);
 			dijkstra.compute();
 
-			for(double d : dist) {
+			Iterator<Node> nc2 = graph.iterator();
+			while(nc2.hasNext()){
+				double d = dijkstra.getPathLength(nc2.next());
 				if(d != 0) {
 					networkCloseness += 1.0/Math.pow(2, d);
 				}
@@ -65,13 +72,29 @@ public class ResidualCloseness implements CentralityAlgorithm {
 		Matrix A = graph.getNeighbourhoodMatrix();
 		int n = graph.getNodeCount();
 		Node[] nodes = graph.nodes().toArray(Node[]::new);
+
 		// Remove and re-add each node (by removing its edges)
 		for(int k = 0; k < n; k++) {
 			Node currentNode = nodes[k];
-			// Remove edges
+			ArrayList<Edge> edgesToRemove = new ArrayList<>();
+
+			// Select edges to remove
 			Iterator<Edge> currentNodeEdges = currentNode.edges().iterator();
 			while(currentNodeEdges.hasNext()) {
-				graph.removeEdge(currentNodeEdges.next());
+				Edge currEdge = currentNodeEdges.next();
+				edgesToRemove.add(currEdge);
+			}
+
+			// Remove the edges selected for removal
+			for (Edge edgeToRemove : edgesToRemove){
+				graph.removeEdge(edgeToRemove);
+			}
+
+			// set edge length attribute for the Dijkstra algorithm
+			edges = graph.edges().iterator();
+			while (edges.hasNext()) {
+				edge = edges.next();
+				edge.setAttribute("edgeLength", graph.getEdgeWeight(edge));
 			}
 			
 			nc = graph.iterator();
@@ -85,18 +108,20 @@ public class ResidualCloseness implements CentralityAlgorithm {
 				Node node = nc.next();
 				double[] dist = new double[graph.getNodeCount()];
 
-				//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
-				//ShortestPaths.dijkstra(graph, node, true, newEdgeWeights, dist);
-				Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
+				// Length is determined by edge weight
+				Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "edgeLength");
 				dijkstra.init(graph);
 				dijkstra.setSource(node);
 				dijkstra.compute();
 
-				for(double d : dist) {
+				Iterator<Node> nc2 = graph.iterator();
+				while(nc2.hasNext()){
+					double d = dijkstra.getPathLength(nc2.next());
 					if(d != 0) {
 						distSum += 1.0/Math.pow(2, d);
 					}
 				}
+
 			}
 			res.setNodeValue(currentNode, networkCloseness/distSum);
 			

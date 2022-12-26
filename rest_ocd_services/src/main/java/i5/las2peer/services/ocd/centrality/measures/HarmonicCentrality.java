@@ -11,6 +11,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import org.graphstream.algorithm.Dijkstra;
 
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 
 
@@ -32,8 +33,16 @@ public class HarmonicCentrality implements CentralityAlgorithm {
 			res.setNodeValue(nc.next(), 0);
 			return res;
 		}
-		
-		double[] edgeWeights = graph.getEdgeWeights();
+
+		// Set edge length attribute for the Dijkstra algorithm
+		Iterator<Edge> edges = graph.edges().iterator();
+		Edge edge;
+
+		while (edges.hasNext()) {
+			edge = edges.next();
+			edge.setAttribute("edgeLength", graph.getEdgeWeight(edge));
+		}
+
 		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
@@ -41,15 +50,17 @@ public class HarmonicCentrality implements CentralityAlgorithm {
 			Node node = nc.next();
 			double[] dist = new double[graph.getNodeCount()];
 
-			//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
-			//ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
-			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
+			// Length is determined by edge weight
+			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "edgeLength");
 			dijkstra.init(graph);
 			dijkstra.setSource(node);
 			dijkstra.compute();
 
 			double inverseDistSum = 0.0;
-			for(double d : dist) {
+
+			Iterator<Node> nc2 = graph.iterator();
+			while(nc2.hasNext()){
+				double d = dijkstra.getPathLength(nc2.next());
 				if(d != 0.0) {
 					inverseDistSum += 1.0/d;
 				}

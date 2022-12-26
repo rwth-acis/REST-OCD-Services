@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.centrality.measures;
 
 import java.util.*;
 
+import org.graphstream.graph.Edge;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
@@ -32,7 +33,15 @@ public class CentroidValue implements CentralityAlgorithm {
 		
 		Iterator<Node> nc = graph.iterator();
 		int n = graph.getNodeCount();
-		double[] edgeWeights = graph.getEdgeWeights();
+
+		// Set edge length attribute for the Dijkstra algorithm
+		Iterator<Edge> edges = graph.edges().iterator();
+		Edge edge;
+		while (edges.hasNext()) {
+			edge = edges.next();
+			edge.setAttribute("edgeLength", graph.getEdgeWeight(edge));
+		}
+
 		Matrix dist = new CCSMatrix(n, n);
 		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
@@ -42,8 +51,8 @@ public class CentroidValue implements CentralityAlgorithm {
 			// Create matrix containing all the distances between nodes
 			double[] distArray = new double[n];
 
-			//TODO: Check if dijkstra computation similar enough to old yFiles one, figure out length attribute
-			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, "result", "length");
+			// Length is determined by edge weight
+			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "edgeLength");
 			dijkstra.init(graph);
 			dijkstra.setSource(node);
 			dijkstra.compute();
