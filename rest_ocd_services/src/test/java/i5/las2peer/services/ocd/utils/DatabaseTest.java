@@ -13,7 +13,7 @@ import java.awt.Color;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;//graphen schnell erstellen
 import i5.las2peer.services.ocd.testsUtils.OcdTestCoverFactory;//cover schnell erstellen
 
-//import i5.las2peer.services.ocd.algorithms.LOCAlgorithm; //TODO: before release: uncomment this when LOC OCDA is graphstream-compatible
+import i5.las2peer.services.ocd.algorithms.LOCAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
 
@@ -107,8 +107,7 @@ public class DatabaseTest {
 		Database db = new Database();
 		db.init();
 		
-		//Cover c1 = getLOCCover(g); 	//TODO: before release: replace line below with this line when LOC OCDA is graphstream-compatible
-		Cover c1 = getSLLPCover(g);
+		Cover c1 = getLOCCover(g);
 		Cover c2 = getSLLPCover(g);
 		g.setNodeNames();
 		g.setName("Test Graph 4 ");
@@ -155,17 +154,17 @@ public class DatabaseTest {
 		p(cm2.toString());
 	}
 
-	//TODO: before release: uncomment this when LOC OCDA is graphstream-compatible
-//	private Cover getLOCCover(CustomGraph g) {
-//		LOCAlgorithm loca = new LOCAlgorithm();
-//		Cover cover = new Cover(g);
-//		try {
-//			cover = loca.detectOverlappingCommunities(g);
-//		} catch ( Exception e) {
-//			e.printStackTrace();
-//		}
-//		return cover;
-//	}
+
+	private Cover getLOCCover(CustomGraph g) {
+		LOCAlgorithm loca = new LOCAlgorithm();
+		Cover cover = new Cover(g);
+		try {
+			cover = loca.detectOverlappingCommunities(g);
+		} catch ( Exception e) {
+			e.printStackTrace();
+		}
+		return cover;
+	}
 	private Cover getSLLPCover(CustomGraph g) {
 		SpeakerListenerLabelPropagationAlgorithm sllp = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = new Cover(g);

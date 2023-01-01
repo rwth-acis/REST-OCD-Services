@@ -21,13 +21,15 @@ import i5.las2peer.services.ocd.algorithms.AntColonyOptimizationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LouvainAlgorithm;
 import i5.las2peer.services.ocd.algorithms.DetectingOverlappingCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.MemeticLinkClusteringAlgorithm;
+import i5.las2peer.services.ocd.algorithms.FuzzyCMeansSpectralClusteringAlgorithm;
+import i5.las2peer.services.ocd.algorithms.WeakCliquePercolationMethodAlgorithm;
+import i5.las2peer.services.ocd.algorithms.LOCAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.SignedLfrBenchmark;
 import i5.las2peer.services.ocd.utils.EnumDisplayNames;
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
-import i5.las2peer.services.ocd.algorithms.FuzzyCMeansSpectralClusteringAlgorithm;
-import i5.las2peer.services.ocd.algorithms.WeakCliquePercolationMethodAlgorithm;
+
 
 import java.security.InvalidParameterException;
 import java.util.Locale;
@@ -166,11 +168,11 @@ public enum CoverCreationType implements EnumDisplayNames {
 	
 	 /** Type corresponding to the MemeticLinkClusteringAlgorithm Algorithm.
 	 */
-	M_LINK("M Link", MemeticLinkClusteringAlgorithm.class, 26);
-//	/**
-//	 * Type corresponding to the LOCAlgoirthm Algorithm.
-//	 */
-//	LOC_ALGORITHM("LOC Algorithm", LOCAlgorithm.class, 27);
+	M_LINK("M Link", MemeticLinkClusteringAlgorithm.class, 26),
+	/**
+	 * Type corresponding to the LOCAlgoirthm Algorithm.
+	 */
+	LOC_ALGORITHM("LOC Algorithm", LOCAlgorithm.class, 27);
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
 	 * Abstract types correspond to the CoverCreationMethod interface itself.
