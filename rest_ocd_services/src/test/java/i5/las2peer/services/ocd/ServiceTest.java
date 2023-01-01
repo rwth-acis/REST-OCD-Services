@@ -156,6 +156,23 @@ public class ServiceTest {
 		System.out.println(requestHandler.writeId(graph));
 	}
 
+	/**
+	 * Persists a simulation for database setup.
+	 *
+	 * @param simulation
+	 * @throws ParserConfigurationException
+	 */
+	public static String createSimulation(SimulationSeries simulation)
+			throws ParserConfigurationException {
+		simulation.setUserId(testAgent.getIdentifier());
+		String sId;
+		try {
+			sId = database.storeSimulationSeries(simulation);
+		} catch (RuntimeException e) {
+			throw e;
+		}
+		return sId;
+	}
 
 	/**
 	 * Called after the tests have finished. Shuts down the server and prints
@@ -293,74 +310,76 @@ public class ServiceTest {
 	}
 
 	///////////////////////////// Simulations /////////////////////////////
-	
-//	@Test TODO: 444 make this arango compatible
-//	public void getSimulation() throws AdapterException, FileNotFoundException {
-//		MiniClient c = new MiniClient();
-//		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
-//		
-//		SimulationSeries s1 = new SimulationSeries();
-//		s1.setName("name");
-//		long id1 = 0;
-//		SimulationSeries s2 = new SimulationSeries();
-//		s1.setName("name2");
-//		long id2 = 0;
-//		
-//		try {
-//			id1 = createSimulation(s1);
-//			id2 = createSimulation(s2);
-//		} catch (ParserConfigurationException e1) {
-//			e1.printStackTrace();
-//		}	
-//		System.out.print(id1);
-//		
-//		try {
-//			c.setLogin(testAgent.getIdentifier(), testPass);
-//
-//			ClientResponse result = c.sendRequest("GET",
-//					mainPath + "simulation/" + 124, "");
-//			System.out.println("Result of 'getSimulation' " + result.getResponse().trim());
-//			assertEquals(400, result.getHttpCode());
-//			
-//			result = c.sendRequest("GET",
-//					mainPath + "simulation/" + id1, "");
-//			System.out.println("Result of 'getSimulation' " + result.getResponse().trim());
-//			assertEquals(200, result.getHttpCode());
-//			
-//			result = c.sendRequest("GET",
-//					mainPath + "simulation/" + id2, "");
-//			System.out.println("Result of 'getSimulation' " + result.getResponse().trim());
-//			assertEquals(200, result.getHttpCode());
-//
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			fail("Exception: " + e);
-//		}
-//	}
-//	
-//	@Test
-//	public void startSimulation() throws AdapterException, FileNotFoundException {
-//		MiniClient c = new MiniClient();
-//		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
-//		
-//		try {
-//			c.setLogin(testAgent.getIdentifier(), testPass);
-//			ClientResponse result = c.sendRequest("POST",
-//					mainPath + "simulation" , "{\"graphId\":2,\"dynamic\":\"Moran\",\"dynamicValues\":[],\"payoffCC\":1.0,\"payoffCD\":1.0,\"payoffDC\":1.0,\"payoffDD\":1.0,\"iterations\":20}", "application/json", "", new HashMap<>());
-//			System.out.println("Result of 'startSimulation' " + result.getResponse().trim());
-//			assertEquals(400, result.getHttpCode());
-//			
-//			c.setLogin(testAgent.getIdentifier(), testPass);
-//			result = c.sendRequest("POST",
-//					mainPath + "simulation" , "{\"graphId\":2,\"dynamic\":\"Moran\",\"dynamicValues\":[],\"payoffValues\":[1.0,2.0,3.1,0.0],\"iterations\":20}", "application/json", "", new HashMap<>());
-//			System.out.println("Result of 'startSimulation' " + result.getResponse().trim());
-//			assertEquals(400, result.getHttpCode());
-//
-//						
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			fail("Exception: " + e);
-//		}
-//	}
-//	
+	@Test
+	public void getSimulation() throws AdapterException, FileNotFoundException {
+		MiniClient c = new MiniClient();
+		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
+
+		SimulationSeries s1 = new SimulationSeries();
+		s1.setName("name");
+		String id1 = "0";
+		SimulationSeries s2 = new SimulationSeries();
+		s1.setName("name2");
+		String id2 = "0";
+
+		try {
+			id1 = createSimulation(s1);
+			id2 = createSimulation(s2);
+		} catch (ParserConfigurationException e1) {
+			e1.printStackTrace();
+		}
+		System.out.print(id1);
+
+		try {
+			c.setLogin(testAgent.getIdentifier(), testPass);
+
+			ClientResponse result = c.sendRequest("GET",
+					mainPath + "simulation/" + 124, "");
+			System.out.println("Result of 'getSimulation' " + result.getResponse().trim());
+			String resultString = result.getResponse().trim(); // trimmed response string
+			String[] afterSplit = resultString.split(",")[0].split(":"); // value of simulation key
+			System.out.println(result.getResponse());
+			assertEquals("null", afterSplit[1]); // returned key value should be null (keys are strings)
+
+			result = c.sendRequest("GET",
+					mainPath + "simulation/" + id1, "");
+			System.out.println("Result of 'getSimulation' " + result.getResponse().trim());
+			assertEquals(200, result.getHttpCode());
+
+			result = c.sendRequest("GET",
+					mainPath + "simulation/" + id2, "");
+			System.out.println("Result of 'getSimulation' " + result.getResponse().trim());
+			assertEquals(200, result.getHttpCode());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception: " + e);
+		}
+	}
+
+	@Test
+	public void startSimulation() throws AdapterException, FileNotFoundException {
+		MiniClient c = new MiniClient();
+		c.setConnectorEndpoint(HTTP_ADDRESS +":"+ HTTP_PORT);
+
+		try {
+			c.setLogin(testAgent.getIdentifier(), testPass);
+			ClientResponse result = c.sendRequest("POST",
+					mainPath + "simulation" , "{\"graphId\":2,\"dynamic\":\"Moran\",\"dynamicValues\":[],\"payoffCC\":1.0,\"payoffCD\":1.0,\"payoffDC\":1.0,\"payoffDD\":1.0,\"iterations\":20}", "application/json", "", new HashMap<>());
+			System.out.println("Result of 'startSimulation' " + result.getResponse().trim());
+			assertEquals(400, result.getHttpCode());
+
+			c.setLogin(testAgent.getIdentifier(), testPass);
+			result = c.sendRequest("POST",
+					mainPath + "simulation" , "{\"graphId\":2,\"dynamic\":\"Moran\",\"dynamicValues\":[],\"payoffValues\":[1.0,2.0,3.1,0.0],\"iterations\":20}", "application/json", "", new HashMap<>());
+			System.out.println("Result of 'startSimulation' " + result.getResponse().trim());
+			assertEquals(400, result.getHttpCode());
+
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception: " + e);
+		}
+	}
+
 }
