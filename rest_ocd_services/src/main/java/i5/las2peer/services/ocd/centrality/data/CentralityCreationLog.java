@@ -232,7 +232,6 @@ public class CentralityCreationLog {
 		bd.addAttribute(statusIdColumnName, this.statusId);
 		bd.addAttribute(executionTimeColumnName, this.executionTime);
 		bd.addAttribute(compatibleGraphTypesColumnName, this.compatibleGraphTypes);
-		System.out.println("persist creationtype" + this.centralityTypeId);
 		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
 	}
@@ -242,7 +241,6 @@ public class CentralityCreationLog {
 		
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
-		System.out.println(this.centralityTypeId);
 		bd.addAttribute(centralityTypeColumnName, this.centralityTypeId);
 		bd.addAttribute(creationTypeColumnName, this.creationTypeId);
 		bd.addAttribute(parameterColumnName, this.parameters);

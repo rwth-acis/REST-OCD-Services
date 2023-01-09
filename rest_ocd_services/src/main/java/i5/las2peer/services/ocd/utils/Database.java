@@ -1455,7 +1455,6 @@ public class Database {
 				+" RETURN ssg._key";
 		ArangoCursor<String> simulationSeriesGroupKeys = db.query(query, queryOpt, String.class);
 		for(String simulationSeriesGroup : simulationSeriesGroupKeys) {
-			System.out.println("deleting ssg " + simulationSeriesGroup);//TODO:DELETE 333
 			deleteSimulationSeriesGroup(simulationSeriesGroup, transId);
 		}
 
@@ -1613,7 +1612,6 @@ public class Database {
 	 * @return persistence key of the stored InactivityData
 	 */
 	public String storeInactivityData(InactivityData inData) {
-		System.out.println("DB storeIncativityData");
 		String transId = getTransactionId(InactivityData.class, true);
 		DocumentCreateOptions createOpt = new DocumentCreateOptions().streamTransactionId(transId);
 		try {
@@ -1634,7 +1632,6 @@ public class Database {
 	 * @return A List of the InactivityData of a user
 	 */
 	public List<InactivityData> getInactivityData(String username) {
-		System.out.println("DB getIncativityData");
 		String transId = getTransactionId(InactivityData.class, false);
 		List<InactivityData> queryResults = new ArrayList<InactivityData>();
 		try {
@@ -1662,7 +1659,6 @@ public class Database {
 	 * @return A List of every InactivityData
 	 */
 	public List<InactivityData> getAllInactivityData() {
-		System.out.println("DB getAllIncativityData");
 		String transId = getTransactionId(InactivityData.class, false);
 		List<InactivityData> queryResults = new ArrayList<InactivityData>();
 		try {

@@ -1755,7 +1755,7 @@ public class CustomGraph extends MultiGraph {
 			graph.postLoad();
 		}	
 		else {
-			System.out.println("leeres Graph dokument");
+			System.out.println("Empty Graph document");
 			System.out.println(" DB name: " + db.dbName().get());
 		}
 		return graph;

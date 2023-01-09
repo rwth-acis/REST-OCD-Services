@@ -230,9 +230,9 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 					new_modularity = modularityFunction(new_membership_matrix, A, customThreshold);
 
-					System.out.println("modularity with K = " + i + " and custom threshold = " + customThreshold
-							+ " :   " + new_modularity);
-					System.out.println();
+//					System.out.println("modularity with K = " + i + " and custom threshold = " + customThreshold
+//							+ " :   " + new_modularity);
+//					System.out.println();
 
 					// if modularity of some cluster size is better that modularity value of cluster
 					// sizes seen before, set that cluster size as optimal
@@ -254,8 +254,8 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 				modularity = modularityFunction(membership_matrix, A, customThreshold); 
 				
-				System.out.println("modularity without optimizing cluster quantity and with K = " + K
-						+ " and custom threshold = " + customThreshold + " is  " + modularity);
+//				System.out.println("modularity without optimizing cluster quantity and with K = " + K
+//						+ " and custom threshold = " + customThreshold + " is  " + modularity);
 
 			}
 
@@ -288,8 +288,8 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 					// Calculate modularity function output for the clusters found above
 					new_modularity = modularityFunction(new_membership_matrix, A);
 
-					System.out.println("modularity with K = " + i + " is " + new_modularity);
-					System.out.println();
+//					System.out.println("modularity with K = " + i + " is " + new_modularity);
+//					System.out.println();
 
 					// if modularity of some cluster size is better than modularity value of cluster
 					// sizes seen before, set that cluster size as optimal
@@ -312,7 +312,7 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 				
 				modularity = modularityFunction(membership_matrix, A);
 				
-				System.out.println("modularity without optimizing cluster quantity and K = " + K + " is  " + modularity);
+//				System.out.println("modularity without optimizing cluster quantity and K = " + K + " is  " + modularity);
 
 			}
 			
@@ -323,8 +323,8 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 		// build the cover using the input graph and the membership matrix built above
 	    resulting_cover = new Cover(graph,membership_matrix); 
 
-		System.out.println("================== CHOSEN SOLUTION =====================");
-		System.out.println("Optimal K is: " + optimal_K + " optimal modularity is: " + modularity);
+//		System.out.println("================== CHOSEN SOLUTION =====================");
+//		System.out.println("Optimal K is: " + optimal_K + " optimal modularity is: " + modularity);
 
 		
 		return resulting_cover;

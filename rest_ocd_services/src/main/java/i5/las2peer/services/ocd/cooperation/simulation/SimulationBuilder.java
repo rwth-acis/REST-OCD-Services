@@ -232,9 +232,9 @@ public class SimulationBuilder {
 		List<SimulationDataset> datasets = new ArrayList<>();
 		Simulation simulation = new Simulation(System.currentTimeMillis(), network, game, dynamic, condition);
 
-		System.out.println("simulate");
-		System.out.println(simulation.getBreakCondition().getMaxIterations());
-		System.out.println(simulation.getBreakCondition().toString());
+//		System.out.println("simulate");
+//		System.out.println(simulation.getBreakCondition().getMaxIterations());
+//		System.out.println(simulation.getBreakCondition().toString());
 		for (int i = 0; i < iterations; i++) {
 
 			simulation.start();

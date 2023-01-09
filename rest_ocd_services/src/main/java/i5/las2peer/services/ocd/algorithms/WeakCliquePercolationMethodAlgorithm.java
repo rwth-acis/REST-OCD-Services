@@ -90,7 +90,7 @@ public class WeakCliquePercolationMethodAlgorithm implements OcdAlgorithm {
 		
 		Cover resulting_cover = new Cover(graph, community_matrix);
 		
-		System.out.println("****** Number of found communities: " + identified_communities.size() + " ******");
+		//System.out.println("****** Number of found communities: " + identified_communities.size() + " ******");
 		return resulting_cover;
 		
 	}

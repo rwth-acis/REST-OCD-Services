@@ -1259,7 +1259,6 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
 				@DefaultValue("NODE_VALUE_LIST") @QueryParam("inputFormat") String centralityInputFormatStr,
 				String contentStr) {
-			System.out.println("importCentralityMap");
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 
@@ -1500,11 +1499,11 @@ public class ServiceClass extends RESTService {
 						}
 
 					}
-			    	System.out.println(centralityMeasureType.getId() + "Centrality Typ Name : " + centralityMeasureType.getDisplayName());
+			    	//System.out.println(centralityMeasureType.getId() + "Centrality Typ Name : " + centralityMeasureType.getDisplayName());
 			    	map = new CentralityMap(graph);
 			    	map.setName(centralityMeasureType.getDisplayName());
 			    	log = new CentralityCreationLog(centralityMeasureType, CentralityCreationType.CENTRALITY_MEASURE, parametersCopy, algorithm.compatibleGraphTypes());
-			    	System.out.println(log.String());
+			    	//System.out.println(log.String());
 			    	map.setCreationMethod(log);
 			    	database.storeCentralityMap(map);	//done
 			    	/*
@@ -1847,7 +1846,7 @@ public class ServiceClass extends RESTService {
 					averageMap.setCreationMethod(log);
 					averageMap.setName(averageMapName);
 					database.storeCentralityMap(averageMap);
-					System.out.println(log.String());
+					//System.out.println(log.String());
 					threadHandler.createCentralityMap(averageMap, new CentralityMapId(averageMap.getKey(), gId), false); // 444 should be " new CustomGraphId(graphId, username)" instead of gid
 		    	}
 	        	
@@ -2108,7 +2107,6 @@ public class ServiceClass extends RESTService {
 	    		coverLog.setStatus(ExecutionStatus.WAITING);
 	    		cover.setCreationMethod(coverLog);
 	    		synchronized (threadHandler) {
-	    			System.out.println("Graph Typen" + graph.getTypes().toString());
 	    			System.out.println("GraphKey : " + database.storeGraph(graph));	//TODO beides in einer transaktion
 	    			System.out.println("CoverKey : " + database.storeCover(cover));
 	    			/*
@@ -2352,7 +2350,7 @@ public class ServiceClass extends RESTService {
     				}
     				if (!groundTruthCoverIdStr.equals(coverIdStr)) {
     					
-    					System.out.println("Cover und GT sind NICHT gleich");
+    					//System.out.println("Cover und GT are not equal");
     					groundTruth = database.getCover(username,  graphIdStr, groundTruthCoverIdStr);
     					if (groundTruth == null) {
     						requestHandler.log(Level.WARNING,
@@ -2363,7 +2361,7 @@ public class ServiceClass extends RESTService {
     								+ ", graph id " + graphIdStr);
     					}
     				} else {
-    					System.out.println("Cover und GT sind gleich : Cover :" + coverIdStr + " GroundTruth :" + groundTruthCoverIdStr);
+    					//System.out.println("Cover und GT are equal : Cover :" + coverIdStr + " GroundTruth :" + groundTruthCoverIdStr);
     					groundTruth = cover;
     				}
     				if (groundTruth.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
@@ -3640,7 +3638,6 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getSimulation(@PathParam("seriesId") String seriesKey) {
-			System.out.println("getSimulation");
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 			SimulationSeries series = null;
 	
@@ -3678,7 +3675,6 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getSimulationTable(@PathParam("seriesId") String seriesKey) {
-			System.out.println("getSimulationTable");
 			String username = getUserName();
 			SimulationSeries series = null;
 	
@@ -3748,7 +3744,6 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response deleteSimulation(@PathParam("seriesId") String seriesKey) {
-			System.out.println("deleteSimulation");
 			try {
 				database.deleteSimulationSeries(seriesKey);
 			} catch (Exception e) {
@@ -3920,7 +3915,6 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response getSimulationGroupTable(@PathParam("groupId") String groupKey) {
-			System.out.println("getSimulationGroupTable");
 			String username = getUserName();
 			SimulationSeriesGroup simulationSeriesGroup = null;
 	
@@ -3963,7 +3957,6 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		@ApiOperation(tags = {"show"}, value = "Get a Simulation Group", notes = "Returns a performed simulation group")
 		public Response getSimulationGroup(@PathParam("groupId") String groupKey) {
-			System.out.println("getSimulationGroup");
 			SimulationSeriesGroup simulation = null;
 			try {
 				simulation = database.getSimulationSeriesGroup(groupKey);
@@ -4004,7 +3997,6 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = HttpURLConnection.HTTP_OK, message = "OK"),
 				@ApiResponse(code = HttpURLConnection.HTTP_UNAUTHORIZED, message = "Unauthorized") })
 		public Response deleteSimulationSeriesGroup(@PathParam("groupId") String groupKey) {
-			System.out.println("deleteSimulationSeriesGroup");
 			try {
 				database.deleteSimulationSeriesGroup(groupKey);
 			} catch (Exception e) {
@@ -4205,7 +4197,6 @@ public class ServiceClass extends RESTService {
 	 * 
 	 */
 	public Map<String, Object> getGraphById(String graphIdStr) {
-		System.out.println("getGraphById");
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 		CustomGraph graph;
 		try {
@@ -4243,7 +4234,6 @@ public class ServiceClass extends RESTService {
 	 * @throws AgentNotRegisteredException if the agent was not registered
 	 */
 	public List<String> getGraphIds() throws AgentNotRegisteredException {
-		System.out.println("getGraphIds");
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 		List<String> graphIdList = new ArrayList<String>();
 
@@ -4275,7 +4265,6 @@ public class ServiceClass extends RESTService {
 	 * 
 	 */
 	public Map<String, Object> getCoverById(String graphIdStr, String coverIdStr) {
-		System.out.println("getCoverById");
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 		Cover cover;
 		try {
@@ -4314,7 +4303,6 @@ public class ServiceClass extends RESTService {
 	 * 
 	 */
 	public List<String> getCoverIdsByGraphId(String graphIdStr) {
-		System.out.println("getCoverIdsByGraphId");
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 
 		List<Cover> covers = database.getCovers(username, graphIdStr);
