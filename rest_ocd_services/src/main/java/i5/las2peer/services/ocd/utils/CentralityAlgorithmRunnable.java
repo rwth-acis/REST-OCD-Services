@@ -53,7 +53,7 @@ public class CentralityAlgorithmRunnable implements Runnable {
 		String gKey = map.getGraph().getKey();
 		String user = map.getGraph().getUserName();
 		CustomGraphId graphId = new CustomGraphId(gKey, user);	
-		System.out.println("Map Key : " + mKey + " gKey: " + gKey);
+		//System.out.println("Map Key : " + mKey + " gKey: " + gKey);
     	CentralityMapId id = new CentralityMapId(mKey, graphId);
     	
     	RequestHandler requestHandler = new RequestHandler();
@@ -70,7 +70,7 @@ public class CentralityAlgorithmRunnable implements Runnable {
 				requestHandler.log(Level.SEVERE, "Centrality map deleted while algorithm running.");
 				throw new IllegalStateException();
 			}
-			System.out.println("CAR set status to running");
+			//System.out.println("CAR set status to running");
 			m.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
 			database.updateCentralityCreationLog(m);
 		} catch(RuntimeException e ) {

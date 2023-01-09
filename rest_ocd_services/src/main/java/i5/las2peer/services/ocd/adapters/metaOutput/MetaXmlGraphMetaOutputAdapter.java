@@ -25,7 +25,6 @@ public class MetaXmlGraphMetaOutputAdapter extends AbstractGraphMetaOutputAdapte
 
     @Override
     public void writeGraph(CustomGraphMeta graphMeta) throws AdapterException {
-        //System.out.println("start: writing Graph in MetaXmlGraphMetaOutputAdapter");
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         try {
             DocumentBuilder builder = builderFactory.newDocumentBuilder();

@@ -46,7 +46,6 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("GTB run start");
 		boolean error = false;
 		/*
 		 * Set algorithm and benchmark status to running.
@@ -63,7 +62,7 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 		try {
 			Cover cover = database.getCover(user, gKey, cKey);
 			if(cover == null) {
-				System.out.println("Cover im GTB runnable was null " + user + gKey + cKey);
+				System.out.println("Cover in GroundTruthBenchmarkRunnable runnable was null " + user + gKey + cKey);
 				/*
 				 * Should not happen.
 				 */
@@ -81,7 +80,6 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 		Cover groundTruthCover = null;
 		if(!error) {
 			try {
-				System.out.println("execute calculateGTB");
 				OcdBenchmarkExecutor executor = new OcdBenchmarkExecutor();
 				groundTruthCover = executor.calculateGroundTruthBenchmark(benchmark);
 				if(Thread.interrupted()) {
@@ -97,6 +95,5 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 			}
 		}
 		threadHandler.createGroundTruthCover(groundTruthCover, coverId, error);
-		System.out.println("GTB run ende");
 	}
 }

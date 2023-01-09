@@ -459,7 +459,6 @@ public class ServiceClass extends RESTService {
 					}
 				}
 				try {
-					System.out.println("Graph Typen" + graph.getTypes().toString());
 					database.storeGraph(graph); //done
 				} catch (Exception e) {
 					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");

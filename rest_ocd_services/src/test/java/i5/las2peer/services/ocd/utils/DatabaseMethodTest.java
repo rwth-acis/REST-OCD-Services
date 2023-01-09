@@ -77,7 +77,7 @@ public class DatabaseMethodTest {
 	public void getGraphNotFound() {
 		CustomGraph graph = database.getGraph("eve", "0");
 		if(graph == null) {
-			System.out.println("graph ist null in getGraphNotFound");
+			System.out.println("graph is null in getGraphNotFound");
 		}
 		else {System.out.println(graph.String());}
 		assertNull(graph);

@@ -61,10 +61,8 @@ public class DatabaseTest {
 		db.init();
 		List<Integer> i = new ArrayList<Integer>();
 		i.add(1);i.add(2);
-		p("start");
 		try {
 			for(CustomGraph g : db.getGraphs("marcel", 0, 4, i)) {
-				p(g.String());
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
@@ -100,7 +98,6 @@ public class DatabaseTest {
 		this.persistExampleGraphCoverCMap(g2);
 		this.persistExampleGraphCoverCMap(g3);
 		this.persistExampleGraphCoverCMap(g4);
-		p("graphs stored");
 	}
 	
 	public void persistExampleGraphCoverCMap(CustomGraph g) {
@@ -130,7 +127,8 @@ public class DatabaseTest {
 			c1.setCommunityColor(0, Color.blue);
 			c1.setCommunityColor(1,  Color.red);
 		}catch(Exception e) {
-			p("es gibt nicht genug communitys");
+			// there aren't enough communities
+			e.printStackTrace();
 		}
 		
 
@@ -144,14 +142,9 @@ public class DatabaseTest {
 		
 		db.storeCover(c1);
 		db.storeCover(c2);
-		
-		p(c1.toString());
-		p(c2.toString());
+
 		db.storeCentralityMap(cm);
 		db.storeCentralityMap(cm2);
-		p("Centrality Maps : : : ");
-		p(cm.toString());
-		p(cm2.toString());
 	}
 
 
@@ -254,9 +247,7 @@ public class DatabaseTest {
         }
 		return ca;
 	}
-	private void p(String s) {
-		System.out.println(s);
-	}
+
 	
 	
 	// Creates graph1 from Paper

@@ -12,9 +12,9 @@ public class DatabaseConfigTest {
 	
 	@Test
 	public void test() {
-		System.out.println("config vor dbconfigtest : " + dc.getConfigProperties().toString());
+		System.out.println("config before dbconfigtest : " + dc.getConfigProperties().toString());
 		DatabaseConfig.setConfigFile(false);
-		System.out.println("config nachdem sie auf normale db gesetzt wurde : " + dc.getConfigProperties().toString());
+		System.out.println("config after the main (non-test) database was set : " + dc.getConfigProperties().toString());
 	}
 
 

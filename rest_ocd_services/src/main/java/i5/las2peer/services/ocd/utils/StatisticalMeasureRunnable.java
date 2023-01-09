@@ -51,7 +51,6 @@ public class StatisticalMeasureRunnable implements Runnable {
 	
 	@Override
 	public void run() {
-		System.out.println("SMR run start");
 		boolean error = false;
 		/*
 		 * Set metric state to running.
@@ -94,7 +93,6 @@ public class StatisticalMeasureRunnable implements Runnable {
 			}
 		}
 		threadHandler.createMetric(resultLog, logId, error);
-		System.out.println("SMR run ende");
 	}
 
 }

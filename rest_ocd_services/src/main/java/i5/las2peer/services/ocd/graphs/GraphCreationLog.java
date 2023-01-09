@@ -183,7 +183,7 @@ public class GraphCreationLog {
 			gcl.parameters = om.convertValue(obj, Map.class);	
 		}	
 		else {
-			System.out.println("leeres dokument");
+			System.out.println("Empty Document");
 		}
 		return gcl;
 	}

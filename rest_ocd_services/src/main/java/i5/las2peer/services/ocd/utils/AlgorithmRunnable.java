@@ -68,7 +68,7 @@ public class AlgorithmRunnable implements Runnable {
 		try {
 			Cover c = database.getCover(user, gKey,  cKey);
 			if(c == null) {
-				System.out.println("Cover in AR run was null " + user + gKey + cKey);
+				//System.out.println("Cover in AR run was null " + user + gKey + cKey);
 				/*
 				 * Should not happen.
 				 */
@@ -78,7 +78,6 @@ public class AlgorithmRunnable implements Runnable {
 			c.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
 			database.updateCoverCreationLog(c);
 		} catch( Exception e ) {
-			System.out.println("AR fheler bei get cover oder updatecreationlog");
 			error = true;
 		}
 

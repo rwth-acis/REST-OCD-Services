@@ -195,7 +195,6 @@ public class Database {
 	 * @return persistence key of the stored graph
 	 */
 	public String storeGraph(CustomGraph graph) {
-		p("DB storeGraph");
 		String transId = getTransactionId(CustomGraph.class, true);
 		try {
 			graph.persist(db, transId);
@@ -215,7 +214,6 @@ public class Database {
 	 *            the graph
 	 */	
 	public void updateGraph(CustomGraph graph) {	//existenz des graphen muss bereits herausgefunden worden sein TESTEN
-		p("DB update graph");
 		graph.setNodeEdgeCountColumnFields(); //before persisting to db, update node/edge count information
 		String transId = this.getTransactionId(CustomGraph.class, true);
 		try {
@@ -235,7 +233,6 @@ public class Database {
 	 *            the graph
 	 */	
 	public void updateGraphCreationLog(CustomGraph graph) {
-		p("DB updateGraphCreationLog");
 		String transId = this.getTransactionId(GraphCreationLog.class, true);
 		try {
 			graph.getCreationMethod().updateDB(db, transId);
@@ -393,7 +390,6 @@ public class Database {
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
 			db.abortStreamTransaction(transId);
-			p("abort getGraphs");
 			throw e;
 		}
 		return queryResults;
@@ -454,7 +450,6 @@ public class Database {
 					+ " == \"" + key +"\" RETURN c._key";
 			ArangoCursor<String> coverKeys = db.query(query, queryOpt, String.class);
 			for(String coverKey : coverKeys) {						//delete all covers	should not be used
-				p("es fehlt das cover : " + coverKey);
 				deleteCover(coverKey, transId);
 			}
 			
@@ -462,7 +457,6 @@ public class Database {
 					+ " == \"" + key +"\" RETURN cm._key";
 			ArangoCursor<String> centralityMapKeys = db.query(query, queryOpt, String.class);
 			for(String mapKey : centralityMapKeys) {			//delete all centrality Maps should not be used
-				p("es fehlt die cm : " + mapKey);
 				deleteCentralityMap(mapKey, transId);
 			}
 
@@ -470,7 +464,6 @@ public class Database {
 					+ " == \"" + key +"\" RETURN ss._key";
         	ArangoCursor<String> seriesKeys = db.query(query, queryOpt, String.class);
         	for(String seriesKey : seriesKeys) {
-				System.out.println("deleting ss " + seriesKey);//TODO:DELETE 333
 				deleteSimulationSeries(seriesKey, transId);
         	}
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -496,7 +489,6 @@ public class Database {
 	 * @throws Exception if cover deletion failed
 	 */
 	public void deleteGraph(String username, String graphKey, ThreadHandler threadHandler) throws Exception {	//SC
-		System.out.println("DB deleteGraph");
 		CustomGraphId id = new CustomGraphId(graphKey, username);
 
 		synchronized (threadHandler) {
@@ -661,7 +653,6 @@ public class Database {
 	 */
 	public List<Cover> getCovers(String username, String graphKey, List<Integer> executionStatusIds,
 			List<Integer> metricExecutionStatusIds, int firstIndex, int length) {
-		p("DB getCovers");
 		String transId = getTransactionId(null, false);
 		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
@@ -707,7 +698,6 @@ public class Database {
 				}	
 			}
 			else {	//load cover with associated graph
-				p("Graph Key Set : " + graphKeySet.toString());
 				for(String gk : graphKeySet) {
 					graphMap.put(gk, CustomGraph.load(gk, db, transId));
 					
@@ -839,7 +829,6 @@ public class Database {
 	 *            the cover
 	 */	
 	public void updateCover(Cover cover) {
-		System.out.println("DB update cover");
 		String transId = this.getTransactionId(Cover.class, true);
 		try {
 			cover.updateDB(db, transId);
@@ -858,7 +847,6 @@ public class Database {
 	 *            the cover
 	 */	
 	public void updateCoverCreationLog(Cover cover) {
-		p("DB updateCoverCreationLog");
 		String transId = this.getTransactionId(CoverCreationLog.class, true);
 		try {
 			cover.getCreationMethod().updateDB(db, transId);
@@ -968,7 +956,6 @@ public class Database {
 	 * @return persistence key of the stored map
 	 */
 	public String storeCentralityMap(CentralityMap map) {
-		p("DB storeCentralityMap");
 		String transId = this.getTransactionId(CentralityMap.class, true);
 		try {
 			map.persist(db, transId);
@@ -1005,7 +992,6 @@ public class Database {
 	 * @return the found Cover instance or null if the Cover does not exist
 	 */
 	public CentralityMap getCentralityMap(String username, String graphKey, String mapKey) {
-		p("DB getCentralityMap");
 		CustomGraph graph = getGraph(username, graphKey);
 		CentralityMap map = null;
 		if(!(graph == null)) {
@@ -1065,7 +1051,6 @@ public class Database {
 	 * @return a centralityMap list
 	 */
 	public List<CentralityMap> getCentralityMaps(String username, String graphKey, List<Integer> executionStatusIds, int firstIndex, int length) {	//TODO testen
-		p("DB getCentralityMaps");
 		String transId = getTransactionId(null, false);
 		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
@@ -1096,7 +1081,6 @@ public class Database {
 				String gKey = bd.getAttribute(CentralityMap.graphKeyColumnName).toString();
 				graphKeySet.add(gKey);
 			}
-			p("graphKeySet : " + graphKeySet);
 			//cm mit zugehoerigem graph laden
 			for(String gKey : graphKeySet) {
 				graphMap.put(gKey, getGraph(gKey));
@@ -1180,7 +1164,6 @@ public class Database {
 	 *            the centralityMap
 	 */	
 	public void updateCentralityMap(CentralityMap map) {	//existenz der map muss bereits herausgefunden worden sein TESTEN
-		p("DB updateCentralityMap");
 		String transId = this.getTransactionId(CentralityMap.class, true);
 		try {
 			map.updateDB(db, transId);
@@ -1198,7 +1181,6 @@ public class Database {
 	 *            the centralityMap
 	 */	
 	public void updateCentralityCreationLog(CentralityMap map) {
-		p("DB updateCentralityCreationLog");
 		String transId = this.getTransactionId(CentralityCreationLog.class, true);
 		try {
 			map.getCreationMethod().updateDB(db, transId);
@@ -1276,7 +1258,6 @@ public class Database {
 	/////////////////////////////////////////////// OCDMETRICLOG ///////////////////////////////////////////////////////////////////////
 	
 	private OcdMetricLog getOcdMetricLog(String key, Cover c) {
-		p("DB getOcdMetricLog");
 		String transId = this.getTransactionId(OcdMetricLog.class, false);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		OcdMetricLog metric;
@@ -1708,7 +1689,6 @@ public class Database {
 	 *            the inactivityData
 	 */	
 	public void updateInactivityData(InactivityData inData) {
-		System.out.println("DB updateIncativityData");
 		String transId = this.getTransactionId(InactivityData.class, true);
 		try {
 			inData.updateDB(db, transId);
@@ -1811,11 +1791,7 @@ public class Database {
 				}
 				res += "Size : " + i + n;
 			}
-		p(res);
 		return res;
 	}
-	
-	private void p(String s) {	//TODO entfernen
-		System.out.println(s);
-	}
+
 }

@@ -299,7 +299,7 @@ public class CustomEdge {
 			ce.target = target;
 		}	
 		else {
-			System.out.println("leeres dokument");
+			System.out.println("Empty Document");
 		}
 		return ce;
 	}

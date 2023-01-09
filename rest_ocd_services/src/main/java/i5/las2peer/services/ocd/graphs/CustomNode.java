@@ -286,7 +286,7 @@ public class CustomNode {
 
 		}	
 		else {
-			System.out.println("leeres dokument");
+			System.out.println("Empty Document");
 		}
 		return cn;
 	}
@@ -315,7 +315,7 @@ public class CustomNode {
 			}
 		}	
 		else {
-			System.out.println("empty CustomNode document");
+			System.out.println("Empty CustomNode Document");
 		}
 		return cn;
 	}

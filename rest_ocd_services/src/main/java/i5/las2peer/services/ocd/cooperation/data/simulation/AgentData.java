@@ -10,6 +10,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Class to hold agent related data
+ */
 public class AgentData {
 
 	/**

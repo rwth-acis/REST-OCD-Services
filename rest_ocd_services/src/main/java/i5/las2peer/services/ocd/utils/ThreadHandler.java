@@ -87,7 +87,6 @@ public class ThreadHandler {
 	 * @param componentNodeCountFilter The node count filter used by the OcdAlgorithmExecutor.
 	 */
 	public void runAlgorithm(Cover cover, OcdAlgorithm algorithm, int componentNodeCountFilter) {
-		System.out.println("TH runAlgorihtm");
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getKey(), gId);
 		AlgorithmRunnable runnable = new AlgorithmRunnable(cover, algorithm, componentNodeCountFilter, this);
@@ -104,7 +103,6 @@ public class ThreadHandler {
 	 * @param algorithm The algorithm to calculate the centrality values with.
 	 */
 	public void runCentralityAlgorithm(CentralityMap map, CentralityAlgorithm algorithm) {
-		System.out.println("TH runCentralityAlgorithm");
 		CustomGraphId gId = new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName());
 		CentralityMapId mapId = new CentralityMapId(map.getKey(), gId);
 		CentralityAlgorithmRunnable runnable = new CentralityAlgorithmRunnable(map, algorithm, this);
@@ -121,7 +119,6 @@ public class ThreadHandler {
 	 * @param simulation The CentralitySimulation to calculate the centrality values with
 	 */
 	public void runCentralitySimulation(CentralityMap map, CentralitySimulation simulation) {
-		System.out.println("TH runCentralitySimulation");
 		CustomGraphId gId = new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName());
 		CentralityMapId mapId = new CentralityMapId(map.getKey(), gId);
 		CentralitySimulationRunnable runnable = new CentralitySimulationRunnable(map, simulation, this);
@@ -138,7 +135,6 @@ public class ThreadHandler {
 	 * @param benchmark The benchmark model to calculate the ground truth cover with.
 	 */
 	public void runGroundTruthBenchmark(Cover cover, GroundTruthBenchmark benchmark) {
-		System.out.println("TH runGroundTruthBenchmark");
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getKey(), gId);
 		GroundTruthBenchmarkRunnable runnable = new GroundTruthBenchmarkRunnable(coverId, benchmark, this);
@@ -156,7 +152,6 @@ public class ThreadHandler {
 	 * @param cover The cover the metric shall run on.
 	 */
 	public void runStatisticalMeasure(OcdMetricLog metricLog, StatisticalMeasure metric, Cover cover) {
-		System.out.println("TH runStatisticalMeasure");
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getKey(), gId);
 		OcdMetricLogId logId = new OcdMetricLogId(metricLog.getKey(), coverId);
@@ -175,7 +170,6 @@ public class ThreadHandler {
 	 * @param groundTruth The ground truth cover to be used by the metric.
 	 */
 	public void runKnowledgeDrivenMeasure(OcdMetricLog metricLog, KnowledgeDrivenMeasure metric, Cover cover, Cover groundTruth) {
-		System.out.println("TH runKnowledgeDrivenMeasure");
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getKey(), gId);
 		OcdMetricLogId logId = new OcdMetricLogId(metricLog.getKey(), coverId);
@@ -250,7 +244,6 @@ public class ThreadHandler {
 	 * @param error Indicates whether an error occurred (true) during the calculation.
 	 */
 	public void createGroundTruthCover(Cover calculatedCover, CoverId coverId, boolean error) {
-		System.out.println("TH createGroundTruthCover");
 		String cKey = coverId.getKey();
 		CustomGraphId gId = coverId.getGraphId();
 		String user = gId.getUser();
@@ -333,7 +326,6 @@ public class ThreadHandler {
 	 * @param error States whether an error occurred (true) during execution.
 	 */
 	public void createCover(Cover calculatedCover, CoverId coverId, boolean error) {
-		System.out.println("TH createCover");
 		String cKey = coverId.getKey();
 		CustomGraphId gId = coverId.getGraphId();
 		String user = gId.getUser();
@@ -380,7 +372,7 @@ public class ThreadHandler {
 					cover.getCreationMethod().setStatus(ExecutionStatus.ERROR);
 					database.updateCoverCreationLog(cover);
     			} catch( Exception e ) {
-    				System.out.println("TH createCover letzte exception");
+    				e.printStackTrace();
     			}
 
 			}	
@@ -397,7 +389,6 @@ public class ThreadHandler {
 	 * @param error States whether an error occurred (true) during execution.
 	 */
 	public void createCentralityMap(CentralityMap calculatedMap, CentralityMapId mapId, boolean error) {
-		System.out.println("TH createCentralityMap");
 		String mKey = mapId.getKey();
 		CustomGraphId gId = mapId.getGraphId();
 		String user = gId.getUser();
