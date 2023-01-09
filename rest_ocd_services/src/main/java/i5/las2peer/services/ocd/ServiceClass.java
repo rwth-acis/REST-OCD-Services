@@ -3893,19 +3893,19 @@ public class ServiceClass extends RESTService {
 				return Response.status(Status.BAD_REQUEST).entity("No simulation series found").build();
 			}
 
-				List<SimulationSeriesGroupMetaData> metaList = new ArrayList<>(simulations.size());
-				try {
-					for (SimulationSeriesGroup simulation : simulations) {
-						SimulationSeriesGroupMetaData metaData = simulation.getGroupMetaData();
-						metaData.setKey(simulation.getKey()); // set group key, which became available when group was created
-						metaList.add(metaData);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail parse meta data").build();
+			List<SimulationSeriesGroupMetaData> metaList = new ArrayList<>(simulations.size());
+			try {
+				for (SimulationSeriesGroup simulation : simulations) {
+					SimulationSeriesGroupMetaData metaData = simulation.getGroupMetaData();
+					metaData.setKey(simulation.getKey()); // set group key, which became available when group was created
+					metaList.add(metaData);
 				}
-				return Response.ok().entity(metaList).build();
-				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity("fail parse meta data").build();
+			}
+			return Response.ok().entity(metaList).build();
+		}
 	
 		/**
 		 * Gets the results of a performed simulation series group on a network
@@ -3923,16 +3923,22 @@ public class ServiceClass extends RESTService {
 		public Response getSimulationGroupTable(@PathParam("groupId") String groupKey) {
 			System.out.println("getSimulationGroupTable");
 			String username = getUserName();
-			SimulationSeriesGroup series = null;
+			SimulationSeriesGroup simulationSeriesGroup = null;
 	
 			try {
-				series = database.getSimulationSeriesGroup(groupKey);
+				simulationSeriesGroup = database.getSimulationSeriesGroup(groupKey);
+
+				List<SimulationSeries> simulationSeriesInGroup = new ArrayList<>();
+				for (String simulationSeriesKey : simulationSeriesGroup.getSimulationSeriesKeys()){
+					simulationSeriesInGroup.add(database.getSimulationSeries(simulationSeriesKey));
+				}
+				simulationSeriesGroup.setSimulationSeries(simulationSeriesInGroup);
 	
-				if (series == null)
+				if (simulationSeriesGroup == null)
 					return Response.status(Status.BAD_REQUEST).entity("no simulation with id " + groupKey + " found")
 							.build();
 	
-				series.evaluate();
+				simulationSeriesGroup.evaluate();
 	
 			} catch (Exception e) {
 				logger.log(Level.WARNING, "user: " + username, e);
@@ -3942,7 +3948,7 @@ public class ServiceClass extends RESTService {
 	
 			String responseString = "";
 			try {
-				responseString = series.toTable().print();
+				responseString = simulationSeriesGroup.toTable().print();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

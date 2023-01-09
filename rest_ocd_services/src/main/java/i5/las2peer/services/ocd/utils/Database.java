@@ -465,6 +465,14 @@ public class Database {
 				p("es fehlt die cm : " + mapKey);
 				deleteCentralityMap(mapKey, transId);
 			}
+
+			query = "FOR ss IN " + SimulationSeries.collectionName + " FILTER ss." + SimulationSeries.graphKeyName
+					+ " == \"" + key +"\" RETURN ss._key";
+        	ArangoCursor<String> seriesKeys = db.query(query, queryOpt, String.class);
+        	for(String seriesKey : seriesKeys) {
+				System.out.println("deleting ss " + seriesKey);//TODO:DELETE 333
+				deleteSimulationSeries(seriesKey, transId);
+        	}
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////
 			
 			graphCollection.deleteDocument(key, null, deleteOpt);		//delete the graph			
@@ -1458,7 +1466,18 @@ public class Database {
 	private void deleteSimulationSeries(String key, String transId) {
 		ArangoCollection simulationDatasetCollection = db.collection(SimulationSeries.collectionName);
 		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		simulationDatasetCollection.deleteDocument(key, null, deleteOpt);
+
+		/* Delete simulation series groups of which the deleted simulation series was a part of */
+		String query = "FOR ssg IN " + SimulationSeriesGroup.collectionName + " FILTER \"" + key + "\" IN ssg." + SimulationSeriesGroup.simulationSeriesKeysColumnName
+				+" RETURN ssg._key";
+		ArangoCursor<String> simulationSeriesGroupKeys = db.query(query, queryOpt, String.class);
+		for(String simulationSeriesGroup : simulationSeriesGroupKeys) {
+			System.out.println("deleting ssg " + simulationSeriesGroup);//TODO:DELETE 333
+			deleteSimulationSeriesGroup(simulationSeriesGroup, transId);
+		}
+
 	}
 
 
@@ -1764,7 +1783,7 @@ public class Database {
 			collections = collectionNames.subList(11,13).toArray(new String[1]);
 		}
 		else {
-			collections = collectionNames.subList(0, 10).toArray(new String[10]);
+			collections = collectionNames.subList(0, 13).toArray(new String[10]);
 		}
 		StreamTransactionEntity tx;
 		if(write) {

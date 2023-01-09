@@ -105,21 +105,17 @@ public class CentralityCreationLog {
 	 * @param compatibleGraphTypes The graph types which are compatible with the creation method.
 	 */
 	public CentralityCreationLog(CentralityType centralityType, CentralityCreationType creationType, Map<String, String> parameters, Set<GraphType> compatibleGraphTypes) {
-		System.out.println(creationType.getId() + " " + CentralityCreationType.CENTRALITY_MEASURE.getId());
 		if(centralityType != null) {
 			if(creationType.getId() == CentralityCreationType.CENTRALITY_MEASURE.getId()) {
 				this.centralityTypeId = ((CentralityMeasureType) centralityType).getId();
 			}
-			else if(creationTypeId == CentralityCreationType.SIMULATION.getId()) {
+			else if(creationType.getId()  == CentralityCreationType.SIMULATION.getId()) {
 				this.centralityTypeId = ((CentralitySimulationType)centralityType).getId();
 			}
 			else {
-				System.out.println("centralityType set to 0");
 				this.centralityTypeId = 0;
 			}
-			System.out.println("centralityTypeId set : " + this.centralityTypeId);
 		}
-		
 		else {
 			this.centralityTypeId = CentralityMeasureType.UNDEFINED.getId();
 		}

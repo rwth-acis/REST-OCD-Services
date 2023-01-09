@@ -351,6 +351,16 @@ public class ServiceTest {
 			System.out.println("Result of 'getSimulation' " + result.getResponse().trim());
 			assertEquals(200, result.getHttpCode());
 
+			result = c.sendRequest("DELETE",
+					mainPath + "simulation/" + id1, "");
+			System.out.println("Result of 'deleteSimulation' " + result.getResponse().trim());
+			assertEquals(200, result.getHttpCode());
+
+			result = c.sendRequest("DELETE",
+					mainPath + "simulation/" + id2, "");
+			System.out.println("Result of 'deleteSimulation' " + result.getResponse().trim());
+			assertEquals(200, result.getHttpCode());
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Exception: " + e);

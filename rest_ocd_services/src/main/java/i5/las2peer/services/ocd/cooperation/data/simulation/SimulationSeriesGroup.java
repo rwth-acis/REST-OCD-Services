@@ -33,7 +33,7 @@ public class SimulationSeriesGroup extends SimulationAbstract {
 
 	//ArangoDB
 	public static final String collectionName = "simulationseriesgroup";
-	private static final String simulationSeriesKeysColumnName = "SIMULATION_SERIES_KEYS";
+	public static final String simulationSeriesKeysColumnName = "SIMULATION_SERIES_KEYS";
 	private static final String groupParametersColumnName = "GROUP_PARAMETERS";
 	private static final String groupMetaDataColumnName = "GROUP_METADATA";
 

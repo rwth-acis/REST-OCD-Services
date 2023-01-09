@@ -22,7 +22,7 @@ public class ServiceDatabaseTest {
 
 	@BeforeClass
 	public static void clearDatabase() {
-		DatabaseConfig.setConfigFile(false);
+		DatabaseConfig.setConfigFile(true);
 		database = new Database();
 	}
 
