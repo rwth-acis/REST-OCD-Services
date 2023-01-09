@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
@@ -16,8 +17,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import y.base.Edge;
-import y.base.EdgeCursor;
+import org.graphstream.graph.Edge;
 
 public class EvolutionaryAlgorithmBasedOnSimilarityTest {
 	/*
@@ -31,16 +31,15 @@ public class EvolutionaryAlgorithmBasedOnSimilarityTest {
 		GraphProcessor processor = new GraphProcessor();
 		processor.makeUndirected(graph);
 		EvolutionaryAlgorithmBasedOnSimilarity algo = new EvolutionaryAlgorithmBasedOnSimilarity();
-		EdgeCursor edges = graph.edges();
+		Iterator<Edge> edges = graph.edges().iterator();
 		Edge edge;
 		System.out.println("Graph:");
-		while (edges.ok()) {
+		while (edges.hasNext()) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			edge = edges.edge();
+			edge = edges.next();
 			System.out.println(edge + " " + graph.getEdgeWeight(edge));
-			edges.next();
 		}
 		algo.writeNetworkFile(graph);
 	}

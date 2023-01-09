@@ -8,9 +8,9 @@ package i5.las2peer.services.ocd.graphs;
 public class CoverId {
 
 	/**
-	 * The cover-specific id.
+	 * The cover-specific key.
 	 */
-    private long id;
+    private String key;
     
     /**
      * The id of the graph the cover is based on.
@@ -19,11 +19,11 @@ public class CoverId {
  
     /**
      * Creates a new instance.
-     * @param id The cover-specific id.
+     * @param key The cover-specific id.
      * @param graphId The id of the graph the cover is based on.
      */
-    public CoverId(long id, CustomGraphId graphId) {
-        this.id = id;
+    public CoverId(String key, CustomGraphId graphId) {
+        this.key = key;
         this.graph = graphId;
     }
  
@@ -31,7 +31,7 @@ public class CoverId {
     public boolean equals(Object object) {
         if (object instanceof CoverId) {
         	CoverId pk = (CoverId)object;
-            return graph.equals(graph) && id == pk.id;
+            return graph.equals(graph) && key.equals(pk.key);
         } else {
             return false;
         }
@@ -39,7 +39,7 @@ public class CoverId {
  
     @Override
     public int hashCode() {
-        return (int)(id + graph.hashCode());
+        return (int)(key.hashCode() + graph.hashCode());
     }
 	
     /**
@@ -48,5 +48,8 @@ public class CoverId {
      */
     public CustomGraphId getGraphId() {
     	return graph;
+    }
+    public String getKey() {
+    	return key;
     }
 }

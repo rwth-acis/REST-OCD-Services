@@ -16,7 +16,10 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import sim.field.network.Network;
 import sim.util.Bag;
-import y.base.Node;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
+
+import java.util.UUID;
 
 public class SimulationBuilderTest {
 	
@@ -98,16 +101,16 @@ public class SimulationBuilderTest {
 				
 		SimulationBuilder simulationBuilder = new SimulationBuilder();
 		CustomGraph graph = new CustomGraph();
-		Node n0 = graph.createNode();
-		Node n1 = graph.createNode();
-		Node n2 = graph.createNode();
-		Node n3 = graph.createNode();
-		Node n4 = graph.createNode();
+		Node n0 = graph.addNode("n0");
+		Node n1 = graph.addNode("n1");
+		Node n2 = graph.addNode("n2");
+		Node n3 = graph.addNode("n3");
+		Node n4 = graph.addNode("n4");
 		
-		graph.createEdge(n0, n1);
-		graph.createEdge(n1, n2);
-		graph.createEdge(n3, n2);
-		graph.createEdge(n4, n1);
+		graph.addEdge(UUID.randomUUID().toString(), n0, n1);
+		graph.addEdge(UUID.randomUUID().toString(), n1, n2);
+		graph.addEdge(UUID.randomUUID().toString(), n3, n2);
+		graph.addEdge(UUID.randomUUID().toString(), n4, n1);
 
 		Network network = simulationBuilder.buildNetwork(graph);		
 		assertNotNull(network);		
@@ -143,14 +146,14 @@ public class SimulationBuilderTest {
 		//@MaxKissgen Previously, SELF_LOOPS was only added to the Set returned from getTypes().
 		//This set is not the internal list of types of a graph, and SELF_LOOPS would therefore not have been added to it and the SimulationBuilderTest would have failed.
 		graph.addType(GraphType.SELF_LOOPS);
-		
-		Node n0 = graph.createNode();
-		Node n1 = graph.createNode();
-		Node n2 = graph.createNode();
-		
-		graph.createEdge(n0, n1);
-		graph.createEdge(n1, n1);
-		graph.createEdge(n0, n2);
+
+		Node n0 = graph.addNode("n0");
+		Node n1 = graph.addNode("n1");
+		Node n2 = graph.addNode("n2");
+
+		graph.addEdge(UUID.randomUUID().toString(), n0, n1);
+		graph.addEdge(UUID.randomUUID().toString(), n1, n1);
+		graph.addEdge(UUID.randomUUID().toString(), n0, n2);
 		
 		simulationBuilder.buildNetwork(graph);		
 			

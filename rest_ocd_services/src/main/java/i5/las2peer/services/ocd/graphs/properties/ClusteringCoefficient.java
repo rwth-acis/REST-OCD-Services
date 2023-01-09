@@ -1,12 +1,10 @@
 package i5.las2peer.services.ocd.graphs.properties;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.algo.GraphConnectivity;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
-import y.base.NodeList;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
+
+import java.util.*;
 
 /**
  * This class handles the clustering coefficient computation of a CustomGraph.
@@ -20,23 +18,24 @@ public class ClusteringCoefficient extends AbstractProperty {
 	 * @return the clustering coefficient
 	 */
 	@Override
-	public double calculate(CustomGraph graph) {
+	public double calculate(CustomGraph graph) throws InterruptedException {
 		
 		if (graph == null)
 			throw new IllegalArgumentException();
 
-		double[] localClusterings = new double[graph.nodeCount()];
+		double[] localClusterings = new double[graph.getNodeCount()];
 		int nodeId = 0;
-		for (NodeCursor nc = graph.nodes(); nc.ok(); nc.next()) {
-			Node node = nc.node();
+		Iterator<Node> nodeIterator = graph.iterator();
+		while(nodeIterator.hasNext()) {
+			Node node = nodeIterator.next();
 			localClusterings[nodeId] = calculateLocal(node, graph);
 			nodeId++;
 		}
 
 		double max = 0;
 		double length = localClusterings.length;
-		for (int i = 0; i < length; i++) {
-			max += localClusterings[i];
+		for (double localClustering : localClusterings) {
+			max += localClustering;
 		}
 
 		return (max / length);
@@ -48,22 +47,24 @@ public class ClusteringCoefficient extends AbstractProperty {
 	 *  	 
 	 * @param node the node
 	 * @param graph the containing graph
-	 * @return the local clustering coefficient 
+	 * @return the local clustering coefficient
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	protected double calculateLocal(Node node, CustomGraph graph) {
-		
-		NodeList nodeNeighbours = GraphConnectivity.getNeighbors(graph, new NodeList(node), 1);
+	protected double calculateLocal(Node node, CustomGraph graph) throws InterruptedException {
+		//TODO: Check if neighbor and out edge iteration behaves similarly to yFiles here
+		//GraphConnectivity.getNeighbors(graph, new NodeList(node), 1);
+		Set<Node> nodeNeighbours = graph.getNeighbours(node);
 		int links = 0;
-		for (NodeCursor outerNodeCursor = nodeNeighbours.nodes(); outerNodeCursor.ok(); outerNodeCursor.next()) {
-			Node neighbour = outerNodeCursor.node();
-			for (EdgeCursor ec = neighbour.outEdges(); ec.ok(); ec.next()) {
-				Edge edge = ec.edge();
-				if (nodeNeighbours.contains(edge.target()))
+		for(Node neighbour : nodeNeighbours) {
+			Iterator<Edge> neighborOutEdgeIt = neighbour.leavingEdges().iterator();
+			while (neighborOutEdgeIt.hasNext()) {
+				Edge edge = neighborOutEdgeIt.next();
+				if (nodeNeighbours.contains(edge.getTargetNode()))
 					links++;
 			}
 		}
 		
-		int degree = node.degree() / 2;
+		int degree = node.getDegree() / 2;
 		if(graph.isDirected())
 			return localDirected(links, degree);
 		

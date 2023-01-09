@@ -23,7 +23,9 @@ import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
 import i5.las2peer.services.ocd.metrics.ModularityMetric;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import y.base.Node;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 public class AntColonyOptimizationTest {
 	
@@ -34,7 +36,7 @@ public class AntColonyOptimizationTest {
 	public void testCDDistanceTest() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
 		
-		Node[] nmap = graph.getNodeArray();
+		Node[] nmap =  graph.nodes().toArray(Node[]::new);
 		Node v1 = nmap[1]; 
 		Node v2 = nmap[7]; 
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();

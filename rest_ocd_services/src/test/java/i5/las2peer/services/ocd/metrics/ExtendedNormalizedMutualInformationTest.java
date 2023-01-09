@@ -54,7 +54,7 @@ public class ExtendedNormalizedMutualInformationTest {
 	public void testWithKnownResult() throws OcdAlgorithmException, OcdMetricException, InterruptedException {
 	CustomGraph graph = new CustomGraph();
 	for(int i=0; i<11; i++) {
-		graph.createNode();
+		graph.addNode(Integer.toString(i));
 	}
 	Matrix memberships1 = new CCSMatrix(11, 2);
 	memberships1.set(0, 0, 1);

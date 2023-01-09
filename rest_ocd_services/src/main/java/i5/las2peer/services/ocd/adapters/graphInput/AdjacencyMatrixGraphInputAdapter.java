@@ -5,12 +5,13 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.Adapters;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 /**
  * A graph input adapter for adjacency matrix format.
@@ -39,7 +40,7 @@ public class AdjacencyMatrixGraphInputAdapter extends AbstractGraphInputAdapter 
 			int nodeCount = line.size();
 			List<Node> nodes = new ArrayList<>();
 			for (int i = 0; i < nodeCount; i++) {
-				nodes.add(i, graph.createNode());
+				nodes.add(i, graph.addNode(String.valueOf(i)));
 				graph.setNodeName(nodes.get(i), String.valueOf(i+1));
 			}
 
@@ -49,7 +50,7 @@ public class AdjacencyMatrixGraphInputAdapter extends AbstractGraphInputAdapter 
 					Node targetNode = nodes.get(column);
 					double edgeWeight = Double.parseDouble(line.get(column));
 					if (edgeWeight > 0) {
-						Edge edge = graph.createEdge(sourceNode, targetNode);
+						Edge edge = graph.addEdge(UUID.randomUUID().toString(), sourceNode, targetNode);
 						graph.setEdgeWeight(edge, edgeWeight);
 					}
 				}

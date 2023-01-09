@@ -1,12 +1,7 @@
 package i5.las2peer.services.ocd.graphs;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -26,19 +21,37 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
+import org.graphstream.graph.implementations.AbstractGraph;
+import org.graphstream.graph.implementations.AbstractNode;
+import org.graphstream.graph.implementations.MultiNode;
+import org.graphstream.ui.layout.Layout;
+import org.graphstream.ui.layout.springbox.implementations.SpringBox;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.entity.BaseEdgeDocument;
+import com.arangodb.ArangoCursor;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+import com.arangodb.model.DocumentDeleteOptions;
+import com.arangodb.model.AqlQueryOptions;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.graphs.properties.AbstractProperty;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.GraphListener;
-import y.base.Node;
-import y.base.NodeCursor;
-import y.view.Graph2D;
+import org.graphstream.graph.implementations.MultiGraph;
+
+
+
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
+
 
 /**
  * Represents a graph (or network), i.e. the node / edge structure and
@@ -49,7 +62,13 @@ import y.view.Graph2D;
  */
 @Entity
 @IdClass(CustomGraphId.class)
-public class CustomGraph extends Graph2D {
+//TODO: Add boolean/function to check if graph is connected or not.
+//TODO: Decide about undirected edges, graphstream would have own functionalities for that.
+//TODO: Check whether UUIDs work out as unique graph IDs, collision chances should however be extremely low
+//TODO: Check whether UUIDs work out as unique edge IDs, collision chances should however be extremely low
+//TODO: Check whether UUIDs work out as unique node IDs, collision chances should however be extremely low. Check whether this could actually replace the current node names. Would however break style with the naming of the other classes.
+//TODO: Integrate graphstream attributes into persistence or not?
+public class CustomGraph extends MultiGraph {
 
 	/////////////////// DATABASE COLUMN NAMES
 
@@ -58,31 +77,47 @@ public class CustomGraph extends Graph2D {
 	 */
 	public static final String idColumnName = "ID";
 	public static final String userColumnName = "USER_NAME";
-	private static final String nameColumnName = "NAME";
+	public static final String nameColumnName = "NAME";
+	public static final String nodeCountColumnName = "NODE_COUNT";
+	public static final String edgeCountColumnName = "EDGE_COUNT";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 	private static final String idEdgeMapKeyColumnName = "RUNTIME_ID";
 	private static final String idNodeMapKeyColumnName = "RUNTIME_ID";
-	private static final String creationMethodColumnName = "CREATION_METHOD";
+	public static final String creationMethodColumnName = "CREATION_METHOD";
 	private static final String pathColumnName = "INDEX_PATH";
-
+	//ArangoDB 
+	private static final String propertiesColumnName = "PROPERTIES";
+	private static final String coverKeysColumnName = "COVER_KEYS";
+	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
+	public static final String typesColumnName = "TYPES";
+	public static final String collectionName = "customgraph";		//do not choose the name "graph" here because it is reserved for querys
+	
 	/*
 	 * Field name definitions for JPQL queries.
 	 */
 	public static final String USER_NAME_FIELD_NAME = "userName";
-	public static final String ID_FIELD_NAME = "id";
+	public static final String ID_FIELD_NAME = "key";
+	public static final String NAME_FIELD_NAME = "name";
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
+	public static final String NODE_COUNT_FIELD_NAME = "graphNodeCount";
+	public static final String EDGE_COUNT_FIELD_NAME = "graphEdgeCount";
+	public static final String TYPES_FIELD_NAME = "types";
 
 	//////////////////////////////////////////////////////////////////
 	///////// Attributes
 	//////////////////////////////////////////////////////////////////
 
 	/**
-	 * System generated persistence id.
+	 * System generated persistence key.
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = idColumnName)
+	private String key = "";
+	/**
+	 * System generated persistence id.
+	 */
 	private long id;
 
 	/**
@@ -104,6 +139,21 @@ public class CustomGraph extends Graph2D {
 	 */
 	@Column(name = pathColumnName)
 	private String path = "";
+
+	/**
+	 * The number of nodes in the graph.
+	 */
+	@Column(name = nodeCountColumnName)
+	private long graphNodeCount;
+
+	/**
+	 * The number of edges in the graph.
+	 */
+	@Column(name = edgeCountColumnName)
+	private long graphEdgeCount;
+
+
+
 
 	// /**
 	// * The description of the graph.
@@ -176,12 +226,12 @@ public class CustomGraph extends Graph2D {
 	 * Mapping from nodes to fix node ids.
 	 */
 	@Transient
-	private Map<Node, Integer> nodeIds = new HashMap<Node, Integer>();
+	private Map<MultiNode, Integer> nodeIds = new HashMap<MultiNode, Integer>();
 	/*
 	 * Mapping from custom nodes to nodes.
 	 */
 	@Transient
-	private Map<CustomNode, Node> reverseNodeMap = new HashMap<CustomNode, Node>();
+	private Map<CustomNode, MultiNode> reverseNodeMap = new HashMap<CustomNode, MultiNode>();
 	/*
 	 * Used for assigning runtime edge indices.
 	 */
@@ -196,54 +246,79 @@ public class CustomGraph extends Graph2D {
 	@Transient
 	private Termmatrix termMatrix = new Termmatrix();
 
+	@Transient
+	public Layout layout;
 
 	//////////////////////////////////////////////////////////////////
 	///////// Constructor
 	//////////////////////////////////////////////////////////////////
 
 	/**
-	 * Creates a new instance.
+	 * Creates a new instance. The name attribute will be a random UUID
 	 */
-	public CustomGraph() {
-		this.addGraphListener(new CustomGraphListener());
-	}
+    public CustomGraph() {
+		super(UUID.randomUUID().toString());
+        this.addSink(new CustomGraphListener(this));
+		layout = new SpringBox(false);
+		this.addSink(layout); //Layout listener
+		layout.addAttributeSink(this);
+    }
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param graph
 	 *            The graph to copy.
 	 */
-	public CustomGraph(Graph2D graph) {
-		super(graph);
-		NodeCursor nodes = this.nodes();
-		while (nodes.ok()) {
-			Node node = nodes.node();
-			this.addCustomNode(node);
-			nodes.next();
+	//TODO: Refactor this to actually copy nodes/edges
+	public CustomGraph(AbstractGraph graph) {
+		super(UUID.randomUUID().toString()); //TODO: CHANGE to correct super execution
+		this.addSink(new CustomGraphListener(this));
+		layout = new SpringBox(false);
+		this.addSink(layout); //Layout listener
+		layout.addAttributeSink(this);
+		//super(graph);
+		Node[] nodes = this.nodes().toArray(Node[]::new);
+		for(Node node : nodes) {
+			//TODO: Maybe checks needed whether MultiNode or not
+			this.addNode(node.getId());
 		}
-		EdgeCursor edges = this.edges();
-		while (edges.ok()) {
-			Edge edge = edges.edge();
-			this.addCustomEdge(edge);
-			edges.next();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
+		for(Edge edge : edges) {
+			this.addEdge(edge.getId(), edge.getSourceNode().getId(),edge.getTargetNode().getId());
 		}
-		Iterator<?> listenerIt = this.getGraphListeners();
-		while (listenerIt.hasNext()) {
-			this.removeGraphListener((GraphListener) listenerIt.next());
-			listenerIt.remove();
-		}
-		this.addGraphListener(new CustomGraphListener());
+//        Iterator<?> listenerIt = this.getGraphListeners();
+//        while (listenerIt.hasNext()) {
+//           this.removeGraphListener((GraphListener) listenerIt.next());
+//            listenerIt.remove();
+//        }
+//        this.addGraphListener(new CustomGraphListener());
 	}
 
 	/**
 	 * Copy constructor.
-	 * 
+	 *
 	 * @param graph
 	 *            The graph to copy.
 	 */
 	public CustomGraph(CustomGraph graph) {
-		super(graph);
+		super(UUID.randomUUID().toString());
+		this.addSink(new CustomGraphListener(this));
+		layout = new SpringBox(false);
+		this.addSink(layout); //Layout listener
+		layout.addAttributeSink(this);
+
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
+			this.addNode(nodesIt.next().getId());
+		}
+
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+		while(edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
+			this.addEdge(edge.getId(),edge.getSourceNode().getId(),edge.getTargetNode().getId());
+		}
+
 		this.creationMethod = new GraphCreationLog(graph.creationMethod.getType(),
 				graph.creationMethod.getParameters());
 		this.creationMethod.setStatus(graph.creationMethod.getStatus());
@@ -251,7 +326,7 @@ public class CustomGraph extends Graph2D {
 		copyMappings(graph.customNodes, graph.customEdges, graph.nodeIds, graph.edgeIds);
 		this.userName = new String(graph.userName);
 		this.name = new String(graph.name);
-		this.id = graph.id;
+		this.key = graph.key;
 		this.path = graph.path;
 		// this.description = new String(graph.description);
 		// if(graph.lastUpdate != null) {
@@ -270,20 +345,18 @@ public class CustomGraph extends Graph2D {
 	 * Sets all the structural information to that of another graph. This
 	 * includes the structure of the nodes and edges, their custom information
 	 * and the graph types.
-	 * 
+	 *
 	 * @param graph
 	 *            The graph to obtain data from.
 	 */
+	//TODO: Possibly add graphstream attributes as well here (provided we start saving them as well)
 	public void setStructureFrom(CustomGraph graph) {
-		NodeCursor nodes = this.nodes();
-		Node node;
+		Node[] nodes = this.nodes().toArray(Node[]::new);
 		/*
 		 * Removes all nodes and edges including their custom information.
 		 */
-		while (nodes.ok()) {
-			node = nodes.node();
-			this.removeNode(node);
-			nodes.next();
+		for(Node NodeToRemove : nodes) {
+			this.removeNode(NodeToRemove);
 		}
 		/*
 		 * Adds new nodes and edges.
@@ -296,42 +369,44 @@ public class CustomGraph extends Graph2D {
 		this.nodeIndexer = 0;
 		this.reverseNodeMap.clear();
 		this.types.clear();
-		nodes = graph.nodes();
-		while (nodes.ok()) {
-			node = this.createNode();
-			this.setNodeName(node, graph.getNodeName(nodes.node()));
-			nodes.next();
-		}
-		Node[] nodeArr = this.getNodeArray();
-		EdgeCursor edges = graph.edges();
-		Edge edge;
-		Edge refEdge;
-		while (edges.ok()) {
-			refEdge = edges.edge();
-			edge = this.createEdge(nodeArr[refEdge.source().index()], nodeArr[refEdge.target().index()]);
-			this.setEdgeWeight(edge, graph.getEdgeWeight(refEdge));
-			edges.next();
-		}
-		/*
-		 * Updates graph types.
-		 */
-		for (GraphType type : graph.getTypes()) {
-			this.addType(type);
-		}
+
+		Node node;
+
+        nodes = graph.nodes().toArray(Node[]::new);
+        for(Node nodeToCopy : nodes) {
+            node = this.addNode(nodeToCopy.getId());
+            this.setNodeName(node, graph.getNodeName(nodeToCopy));
+        }
+        Node[] nodeArr = this.nodes().toArray(Node[]::new);
+
+        Iterator<Edge> edges = graph.edges().iterator();
+        Edge edge;
+        Edge refEdge;
+        while (edges.hasNext()) {
+            refEdge = edges.next();
+            edge = this.addEdge(UUID.randomUUID().toString(), nodeArr[refEdge.getSourceNode().getIndex()], nodeArr[refEdge.getTargetNode().getIndex()]);
+            this.setEdgeWeight(edge, graph.getEdgeWeight(refEdge));
+        }
+        /*
+         * Updates graph types.
+         */
+        for (GraphType type : graph.getTypes()) {
+            this.addType(type);
+        }
 	}
 
 	/**
-	 * Getter for the id.
-	 * 
-	 * @return The id.
+	 * Getter for the persistence id.
+	 *
+	 * @return The persistence id.
 	 */
-	public long getId() {
-		return id;
+	public String getKey() {
+		return key;
 	}
 
 	/**
 	 * Getter for the user name.
-	 * 
+	 *
 	 * @return The name.
 	 */
 	public String getUserName() {
@@ -340,7 +415,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Setter for the user name.
-	 * 
+	 *
 	 * @param user
 	 *            The name.
 	 */
@@ -350,7 +425,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Getter for the graph name.
-	 * 
+	 *
 	 * @return The name.
 	 */
 	public String getName() {
@@ -359,7 +434,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Setter for the graph name.
-	 * 
+	 *
 	 * @param name
 	 *            The name.
 	 */
@@ -369,7 +444,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Getter for the graphs path to the index for the node content.
-	 * 
+	 *
 	 * @return The index path.
 	 */
 	public String getPath() {
@@ -378,7 +453,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Setter for the graphs path to the index for the node content.
-	 * 
+	 *
 	 * @param path
 	 *            The index path.
 	 */
@@ -408,7 +483,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Setter for the creation method.
-	 * 
+	 *
 	 * @param creationMethod
 	 *            The creation method.
 	 */
@@ -418,7 +493,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Getter for the creation method.
-	 * 
+	 *
 	 * @return The creation method.
 	 */
 	public GraphCreationLog getCreationMethod() {
@@ -429,7 +504,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * States whether the graph is of a certain type.
-	 * 
+	 *
 	 * @param type
 	 *            The graph type.
 	 * @return TRUE if the graph is of the type, otherwise FALSE.
@@ -440,7 +515,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Adds a graph type to the graph.
-	 * 
+	 *
 	 * @param type
 	 *            The graph type.
 	 */
@@ -450,7 +525,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Removes a graph type from the graph.
-	 * 
+	 *
 	 * @param type
 	 *            The graph type.
 	 */
@@ -467,7 +542,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Getter for the graph types.
-	 * 
+	 *
 	 * @return The types.
 	 */
 	public Set<GraphType> getTypes() {
@@ -493,8 +568,30 @@ public class CustomGraph extends Graph2D {
 	}
 
 	/**
+	 * TODO
+	 * @param edgeId
+	 *             Id of the edge to be added.
+	 * @param src
+	 *             Source node
+	 * @param srcId
+	 *             Source node id
+	 * @param dst
+	 *             Destination node
+	 * @param dstId
+	 *             Destination node id
+	 * @param directed
+	 *             True if edge is directed
+	 * @return The directed edge
+	 */
+	protected Edge addEdge(String edgeId, AbstractNode src, String srcId, AbstractNode dst, String dstId,
+								  boolean directed) {
+		Edge edge = super.addEdge(edgeId, src, srcId, dst, dstId, true);
+		return edge;
+	}
+
+	/**
 	 * Getter for the edge weight of a certain edge.
-	 * 
+	 *
 	 * @param edge
 	 *            The edge.
 	 * @return The edge weight.
@@ -505,7 +602,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Setter for the edge weight of a certain edge.
-	 * 
+	 *
 	 * @param edge
 	 *            The edge.
 	 * @param weight
@@ -515,13 +612,42 @@ public class CustomGraph extends Graph2D {
 		getCustomEdge(edge).setWeight(weight);
 	}
 
+	/**
+	 * Finds two nodes based on their identifiers and combines edge weights
+	 * between the found nodes. This is equivalent to having
+	 * a single undirected, weighted edge between two nodes.
+	 * @param fromId       First node
+	 * @param toId         Second node
+	 */
+	public void combineEdgeWeights(String fromId, String toId){
+		/*
+		 find nodes and edges based on the identifiers provided
+		 */
+		Node from = this.getNode(fromId);
+		Node to = this.getNode(toId);
+		Edge forward = from.getEdgeToward(to);
+		Edge backward = to.getEdgeToward(from);
+
+		/*
+		 calculate combined weight of edges between the above two nodes
+		 */
+		double edgeWeight = this.getEdgeWeight(forward) + this.getEdgeWeight(backward);
+
+		/*
+		 set the combined weight to be the weight of the edges between the above two nodes.
+		 */
+		this.setEdgeWeight(forward, edgeWeight);
+		this.setEdgeWeight(backward, edgeWeight);
+
+	}
+
 	// public long getEdgeId(Edge edge) {
 	// return getCustomEdge(edge).getId();
 	// }
 
 	/**
 	 * Getter for the node name of a certain node.
-	 * 
+	 *
 	 * @param node
 	 *            The node.
 	 * @return The node name.
@@ -532,7 +658,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Setter for the node name of a certain node.
-	 * 
+	 *
 	 * @param node
 	 *            The node.
 	 * @param name
@@ -540,6 +666,14 @@ public class CustomGraph extends Graph2D {
 	 */
 	public void setNodeName(Node node, String name) {
 		getCustomNode(node).setName(name);
+	}
+
+	/**
+	 * Update node and edge count numbers
+	 */
+	public void setNodeEdgeCountColumnFields(){
+		this.graphNodeCount = this.nodes().count();
+		this.graphEdgeCount = this.edges().count();
 	}
 
 	public int getNodeId(Node node) {
@@ -551,18 +685,19 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * Returns weighted in-degree, i.e. the sum of the weights of all incoming
 	 * edges of a node.
-	 * 
+	 *
 	 * @param node
 	 *            The node.
 	 * @return The weighted in-degree.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	public double getWeightedInDegree(Node node) {
+	//TODO: Check whether we need to account extra for parallel edges here (and in all other edge methods)
+	public double getWeightedInDegree(Node node) throws InterruptedException {
+		Edge[] inEdges = Stream.concat(this.getPositiveInEdges(node).stream(), this.getNegativeInEdges(node).stream()).toArray(Edge[]::new);
 		double inDegree = 0;
-		EdgeCursor inEdges = node.inEdges();
-		while (inEdges.ok()) {
-			Edge edge = inEdges.edge();
+		for (Edge edge : inEdges) {
 			inDegree += getCustomEdge(edge).getWeight();
-			inEdges.next();
+
 		}
 		return inDegree;
 	}
@@ -570,21 +705,19 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * Returns positive in-degree, i.e. the weight sum of all positive incoming
 	 * edges of a node.
-	 * 
+	 *
 	 * @param node
 	 *            The node.
 	 * @return The positive in-degree.
-	 * 
+	 * @throws InterruptedException If the executing thread was interrupted.
+	 *
 	 * @author YLi
 	 */
-	public double getPositiveInDegree(Node node) {
+	public double getPositiveInDegree(Node node) throws InterruptedException {
+		Edge[] inEdges = this.getPositiveInEdges(node).toArray(Edge[]::new);
 		double inDegree = 0;
-		EdgeCursor inEdges = node.inEdges();
-		while (inEdges.ok()) {
-			Edge edge = inEdges.edge();
-			if (getCustomEdge(edge).getWeight() > 0)
-				inDegree += getCustomEdge(edge).getWeight();
-			inEdges.next();
+		for (Edge edge : inEdges) {
+			inDegree += getCustomEdge(edge).getWeight();
 		}
 		return inDegree;
 	}
@@ -592,21 +725,19 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * Returns positive out-degree, i.e. the weight sum of all positive outgoing
 	 * edges of a node.
-	 * 
+	 *
 	 * @param node
 	 *            The concerned node.
 	 * @return The positive out-degree.
-	 * 
+	 * @throws InterruptedException If the executing thread was interrupted.
+	 *
 	 * @author YLi
 	 */
-	public double getPositiveOutDegree(Node node) {
+	public double getPositiveOutDegree(Node node) throws InterruptedException {
+		Edge[] outEdges = this.getPositiveOutEdges(node).toArray(Edge[]::new);
 		double outDegree = 0;
-		EdgeCursor outEdges = node.outEdges();
-		while (outEdges.ok()) {
-			Edge edge = outEdges.edge();
-			if (getCustomEdge(edge).getWeight() > 0)
-				outDegree += getCustomEdge(edge).getWeight();
-			outEdges.next();
+		for (Edge edge : outEdges) {
+			outDegree += getCustomEdge(edge).getWeight();
 		}
 		return outDegree;
 	}
@@ -614,21 +745,19 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * Returns negative in-degree, i.e. the sum of all negative incoming edges
 	 * of a node.
-	 * 
+	 *
 	 * @param node
 	 *            The node under observation.
 	 * @return The negative in-degree.
-	 * 
+	 * @throws InterruptedException If the executing thread was interrupted.
+	 *
 	 * @author YLi
 	 */
-	public double getNegativeInDegree(Node node) {
+	public double getNegativeInDegree(Node node) throws InterruptedException {
+		Edge[] inEdges = this.getNegativeInEdges(node).toArray(Edge[]::new);
 		double inDegree = 0;
-		EdgeCursor inEdges = node.inEdges();
-		while (inEdges.ok()) {
-			Edge edge = inEdges.edge();
-			if (getCustomEdge(edge).getWeight() < 0)
-				inDegree += getCustomEdge(edge).getWeight();
-			inEdges.next();
+		for (Edge edge : inEdges) {
+			inDegree += getCustomEdge(edge).getWeight();
 		}
 		return inDegree;
 	}
@@ -636,21 +765,19 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * Returns negative out-degree, i.e. the sum of all negative outgoing edges
 	 * of a node.
-	 * 
+	 *
 	 * @param node
 	 *            The node under observation.
 	 * @return The negative out-degree.
-	 * 
+	 * @throws InterruptedException If the executing thread was interrupted.
+	 *
 	 * @author YLi
 	 */
-	public double getNegativeOutDegree(Node node) {
+	public double getNegativeOutDegree(Node node) throws InterruptedException {
+		Edge[] outEdges = this.getNegativeOutEdges(node).toArray(Edge[]::new);
 		double outDegree = 0;
-		EdgeCursor outEdges = node.outEdges();
-		while (outEdges.ok()) {
-			Edge edge = outEdges.edge();
-			if (getCustomEdge(edge).getWeight() < 0)
-				outDegree += getCustomEdge(edge).getWeight();
-			outEdges.next();
+		for (Edge edge : outEdges) {
+			outDegree += getCustomEdge(edge).getWeight();
 		}
 		return outDegree;
 	}
@@ -658,18 +785,18 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * Returns the weighted out-degree, i.e. the sum of the weights of all
 	 * outgoing edges of a node.
-	 * 
+	 *
 	 * @param node
 	 *            The node.
 	 * @return The weighted out-degree.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	public double getWeightedOutDegree(Node node) {
+	public double getWeightedOutDegree(MultiNode node) throws InterruptedException {
+		Edge[] outEdges = Stream.concat(this.getPositiveOutEdges(node).stream(), this.getNegativeOutEdges(node).stream()).toArray(Edge[]::new);
 		double outDegree = 0;
-		EdgeCursor outEdges = node.outEdges();
-		while (outEdges.ok()) {
-			Edge edge = outEdges.edge();
+		for (Edge edge : outEdges) {
 			outDegree += getCustomEdge(edge).getWeight();
-			outEdges.next();
+
 		}
 		return outDegree;
 	}
@@ -677,18 +804,18 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * Returns the weighted node degree, i.e. the sum of the weights of all
 	 * incident edges of a node.
-	 * 
+	 *
 	 * @param node
 	 *            The node.
 	 * @return The weighted degree.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	public double getWeightedNodeDegree(Node node) {
+	public double getWeightedNodeDegree(MultiNode node) throws InterruptedException {
+		Edge[] edges = node.edges().toArray(Edge[]::new);
 		double degree = 0;
-		EdgeCursor edges = node.edges();
-		while (edges.ok()) {
-			Edge edge = edges.edge();
+		for (Edge edge : edges) {
 			degree += getCustomEdge(edge).getWeight();
-			edges.next();
+
 		}
 		return degree;
 	}
@@ -696,123 +823,123 @@ public class CustomGraph extends Graph2D {
 	/**
 	 * Returns the absolute node degree, i.e. the sum of absolute weights of all
 	 * incident edges of a node.
-	 * 
+	 *
 	 * @param node
 	 *            The node.
 	 * @return The absolute degree.
-	 * 
+	 * @throws InterruptedException If the executing thread was interrupted.
+	 *
 	 * @author YLi
 	 */
-	public double getAbsoluteNodeDegree(Node node) {
+	public double getAbsoluteNodeDegree(MultiNode node) throws InterruptedException {
+		Edge[] edges = node.edges().toArray(Edge[]::new);
 		double degree = 0;
-		EdgeCursor edges = node.edges();
-		Edge edge;
-		while (edges.ok()) {
-			edge = edges.edge();
+		for (Edge edge : edges) {
 			degree += Math.abs(getCustomEdge(edge).getWeight());
-			edges.next();
+
 		}
 		return degree;
 	}
-	 
+
 	/**
 	 * Returns all edge weights
 	 * @return Double array containing all edge weights
-	 * 
+	 *
 	 * @author Tobias
 	 */
 	public double[] getEdgeWeights() {
-		double[] res = new double[this.edgeCount()];
-		
-		EdgeCursor edges = this.edges();
+		double[] res = new double[this.edgeCount];
+		Edge[] edges = this.edges().toArray(Edge[]::new);
+
 		int i = 0;
-		while(edges.ok()) {
-			Edge edge = edges.edge();
+		for (Edge edge : edges) {
 			res[i] = this.getEdgeWeight(edge);
-			edges.next();
+
 			i++;
-		}	
+		}
 		return res;
 	}
-	
+
 	/**
 	 * Returns the maximum edge weight of the graph.
-	 * 
+	 *
 	 * @return The maximum edge weight or negative infinity, if there are no
 	 *         edges in the graph.
 	 */
 	public double getMaxEdgeWeight() {
 		double maxWeight = Double.NEGATIVE_INFINITY;
 		double edgeWeight;
-		EdgeCursor edges = this.edges();
-		while (edges.ok()) {
-			Edge edge = edges.edge();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
+
+		for (Edge edge : edges) {
 			edgeWeight = getCustomEdge(edge).getWeight();
 			if (edgeWeight > maxWeight) {
 				maxWeight = edgeWeight;
 			}
-			edges.next();
+
 		}
 		return maxWeight;
 	}
 
 	/**
 	 * Returns the minimum edge weight of the graph.
-	 * 
+	 *
 	 * @return The minimum edge weight or positive infinity, if there are no
 	 *         edges in the graph.
 	 */
 	public double getMinEdgeWeight() {
 		double minWeight = Double.POSITIVE_INFINITY;
 		double edgeWeight;
-		EdgeCursor edges = this.edges();
-		while (edges.ok()) {
-			Edge edge = edges.edge();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
+
+		for (Edge edge : edges) {
 			edgeWeight = getCustomEdge(edge).getWeight();
 			if (edgeWeight < minWeight) {
 				minWeight = edgeWeight;
 			}
-			edges.next();
+
 		}
 		return minWeight;
 	}
 
 	/**
 	 * Returns the minimum weighted in-degree of the graph.
-	 * 
+	 *
 	 * @return The weighted in-degree or positive infinity if the graph does not
 	 *         contain any nodes.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	public double getMinWeightedInDegree() {
+	public double getMinWeightedInDegree() throws InterruptedException {
 		double minDegree = Double.POSITIVE_INFINITY;
-		NodeCursor nodes = this.nodes();
+		Node[] nodes = this.nodes().toArray(Node[]::new);
 		double curDegree;
-		while (nodes.ok()) {
-			curDegree = getWeightedInDegree(nodes.node());
+		for (Node node : nodes) {
+			curDegree = getWeightedInDegree(node);
 			if (curDegree < minDegree) {
 				minDegree = curDegree;
 			}
-			nodes.next();
+
 		}
 		return minDegree;
 	}
 
 	/**
 	 * Returns the maximum weighted in-degree of the graph.
-	 * 
+	 *
 	 * @return The weighted in-degree or negative infinity if the graph does not
 	 *         contain any nodes.
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	public double getMaxWeightedInDegree() {
+	public double getMaxWeightedInDegree() throws InterruptedException {
 		double maxDegree = Double.NEGATIVE_INFINITY;
-		NodeCursor nodes = this.nodes();
+		Node[] nodes = this.nodes().toArray(Node[]::new);
 		double curDegree;
-		while (nodes.ok()) {
-			curDegree = getWeightedInDegree(nodes.node());
+		for (Node node : nodes) {
+			curDegree = getWeightedInDegree(node);
 			if (curDegree > maxDegree) {
 				maxDegree = curDegree;
 			}
-			nodes.next();
+
 		}
 		return maxDegree;
 	}
@@ -820,333 +947,436 @@ public class CustomGraph extends Graph2D {
 	/////////////// neighbours ///////////
 	/**
 	 * Returns the neighbourhood matrix.
-	 * 
+	 *
 	 * @return The neighbourhood matrix.
-	 * 
+	 *
 	 * @author YLi
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Matrix getNeighbourhoodMatrix() throws InterruptedException {
-		int nodeNumber = this.nodeCount();
+		int nodeNumber = this.nodeCount;
 		Matrix neighbourhoodMatrix = new CCSMatrix(nodeNumber, nodeNumber);
-		EdgeCursor edges = this.edges();
-		Edge edge;
-		while (edges.ok()) {
+		Edge[] edges = this.edges().toArray(Edge[]::new);
+		for (Edge edge : edges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			edge = edges.edge();
-			neighbourhoodMatrix.set(edge.source().index(), edge.target().index(), this.getEdgeWeight(edge));
-			edges.next();
+			neighbourhoodMatrix.set(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex(), this.getEdgeWeight(edge));
 		}
 		return neighbourhoodMatrix;
 	}
 
 	/**
 	 * Returns the set of all neighbours of a given node.
-	 * 
+	 *
 	 * @param node
 	 *            The node under observation.
-	 * 
+	 *
 	 * @return The neighbour set of the given node.
-	 * 
+	 *
 	 * @author YLi
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	public Set<Node> getNeighbours(Node node) throws InterruptedException {
 		Set<Node> neighbourSet = new HashSet<Node>();
-		NodeCursor neighbours = node.neighbors();
-		Node neighbour;
-		while (neighbours.ok()) {
+		Node[] neighbours = node.neighborNodes().toArray(Node[]::new); // Gets every "opposite" node of all adjacent edges, can therefore have duplicates
+
+		for (Node neighbour : neighbours) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			neighbour = neighbours.node();
+
 			if (!neighbourSet.contains(neighbour)) {
 				neighbourSet.add(neighbour);
 			}
-			neighbours.next();
+		}
+		return neighbourSet;
+	}
+
+	/**
+	 * Returns the set of all neighbours of a given node.
+	 *
+	 * @param node
+	 *            The node under observation.
+	 *
+	 * @return The neighbour set of the given node.
+	 *
+	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
+	 */
+	public Set<Node> getSuccessorNeighbours(Node node) throws InterruptedException {
+		Set<Node> neighbourSet = new HashSet<Node>();
+		Node[] neighbours = node.neighborNodes().toArray(Node[]::new);
+
+		for (Node neighbour : neighbours) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			if (!neighbourSet.contains(neighbour) && neighbour.hasEdgeFrom(node)) {
+				neighbourSet.add(neighbour);
+			}
+		}
+		return neighbourSet;
+	}
+
+	/**
+	 * Returns the set of all neighbours of a given node that have an edge toward it.
+	 *
+	 * @param node
+	 *            The node under observation.
+	 *
+	 * @return The neighbour set of the given node.
+	 *
+	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
+	 */
+	public Set<Node> getPredecessorNeighbours(Node node) throws InterruptedException {
+		Set<Node> neighbourSet = new HashSet<Node>();
+		Node[] neighbours = node.neighborNodes().toArray(Node[]::new);
+
+		for (Node neighbour : neighbours) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
+			if (!neighbourSet.contains(neighbour) && neighbour.hasEdgeToward(node)) {
+				neighbourSet.add(neighbour);
+			}
 		}
 		return neighbourSet;
 	}
 
 	/**
 	 * Returns the set of all positive neighbours of a given node.
-	 * 
+	 *
 	 * @param node
 	 *            The node under observation.
-	 * 
+	 *
 	 * @return The positive neighbour set of the given node.
-	 * 
+	 *
 	 * @author YLi
 	 * @throws InterruptedException if the thread was interrupted
 	 */
-	public Set<Node> getPositiveNeighbours(Node node) throws InterruptedException {
-		Set<Node> positiveNeighbour = new HashSet<Node>();
-		Set<Node> neighbours = this.getNeighbours(node);
+	public Set<Node> getPositiveNeighbours(MultiNode node) throws InterruptedException {
+		Set<Node> positiveNeighbourSet = new HashSet<Node>();
+		Node[] neighbours = node.neighborNodes().toArray(Node[]::new);
+
 		for (Node neighbour : neighbours) {
 			/*
 			 * if node a->b positive or node b->a positive
 			 */
-			Edge edge = node.getEdgeTo(neighbour);
-			Edge reverseEdge = node.getEdgeFrom(neighbour);
-			if (edge != null) {
-				if (this.getEdgeWeight(edge) > 0) {
-					positiveNeighbour.add(neighbour);
-					continue;
-				}
-			}
-			if (reverseEdge != null) {
-				if (this.getEdgeWeight(reverseEdge) > 0) {
-					positiveNeighbour.add(neighbour);
+			Edge[] edges = node.getEdgeSetBetween(neighbour).toArray(Edge[]::new);
+			for (Edge edge : edges) {
+				if (this.getEdgeWeight(edge) >= 0) {
+					positiveNeighbourSet.add(neighbour);
+					break;
 				}
 			}
 		}
-		return positiveNeighbour;
+		return positiveNeighbourSet;
 	}
 
 	/**
 	 * Returns the set of all negative neighbours of a given node.
-	 * 
+	 *
 	 * @param node
 	 *            The node under observation.
-	 * 
+	 *
 	 * @return The negative neighbour set of the given node.
-	 * 
+	 *
 	 * @author YLi
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
-	public Set<Node> getNegativeNeighbours(Node node) throws InterruptedException {
-		Set<Node> negativeNeighbour = new HashSet<Node>();
-		Set<Node> neighbours = this.getNeighbours(node);
+	public Set<Node> getNegativeNeighbours(MultiNode node) throws InterruptedException {
+		Set<Node> negativeNeighbourSet = new HashSet<Node>();
+		Node[] neighbours = (Node[]) node.neighborNodes().toArray(Node[]::new);
+
 		for (Node neighbour : neighbours) {
 			/*
-			 * if node a->b positive or node b->a positive
+			 * if node a->b negative or node b->a negative
 			 */
-			Edge edge = node.getEdgeTo(neighbour);
-			Edge reverseEdge = node.getEdgeFrom(neighbour);
-			if (edge != null) {
+			Edge[] edges = node.getEdgeSetBetween(neighbour).toArray(Edge[]::new);
+			for (Edge edge : edges) {
 				if (this.getEdgeWeight(edge) < 0) {
-					negativeNeighbour.add(neighbour);
-					continue;
-				}
-			}
-			if (reverseEdge != null) {
-				if (this.getEdgeWeight(reverseEdge) < 0) {
-					negativeNeighbour.add(neighbour);
+					negativeNeighbourSet.add(neighbour);
+					break;
 				}
 			}
 		}
-		return negativeNeighbour;
+		return negativeNeighbourSet;
 	}
 
 	////////// incident edges ////////
 
 	/**
 	 * Returns the set of all positive edges incident to a given node.
-	 * 
+	 *
 	 * @param node
 	 *            The node under observation.
-	 * 
+	 *
 	 * @return The positive edge set of the given node.
-	 * 
+	 *
 	 * @author YLi
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getPositiveEdges(Node node) throws InterruptedException {
 		Set<Edge> positiveEdges = new HashSet<Edge>();
-		EdgeCursor incidentEdges = node.edges();
-		Edge incidentEdge;
-		while (incidentEdges.ok()) {
-			if (Thread.interrupted()) {
-				throw new InterruptedException();
+		Edge[] edges = node.edges().toArray(Edge[]::new);
+		for (Edge edge : edges) {
+			if (this.getEdgeWeight(edge) >= 0) {
+				positiveEdges.add(edge);
+				break;
 			}
-			incidentEdge = incidentEdges.edge();
-			if (getCustomEdge(incidentEdge).getWeight() > 0) {
-				positiveEdges.add(incidentEdge);
+		}
+		return positiveEdges;
+	}
+
+	/**
+	 * Returns the set of all positive edges incident to a given node.
+	 *
+	 * @param node
+	 *            The node under observation.
+	 *
+	 * @return The positive edge set of the given node.
+	 *
+	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
+	 */
+
+	public Set<Edge> getPositiveEdgesAboveZero(Node node) throws InterruptedException {
+		Set<Edge> positiveEdges = new HashSet<Edge>();
+		Edge[] edges = node.edges().toArray(Edge[]::new);
+		for (Edge edge : edges) {
+			if (this.getEdgeWeight(edge) > 0) {
+				positiveEdges.add(edge);
+				break;
 			}
-			incidentEdges.next();
+
 		}
 		return positiveEdges;
 	}
 
 	/**
 	 * Returns the set of all positive incoming edges for a given node.
-	 * 
+	 *
 	 * @param node
 	 *            The node under observation.
-	 * 
+	 *
 	 * @return The positive incoming edge set of the given node.
-	 * 
+	 *
 	 * @author YLi
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getPositiveInEdges(Node node) throws InterruptedException {
 		Set<Edge> positiveInEdges = new HashSet<Edge>();
-		EdgeCursor incidentInEdges = node.inEdges();
-		Edge incidentInEdge;
-		while (incidentInEdges.ok()) {
+		Edge[] incidentInEdges = node.enteringEdges().toArray(Edge[]::new);
+		for (Edge incidentInEdge : incidentInEdges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			incidentInEdge = incidentInEdges.edge();
+			if (getCustomEdge(incidentInEdge).getWeight() >= 0) {
+				positiveInEdges.add(incidentInEdge);
+			}
+		}
+		return positiveInEdges;
+	}
+
+	/**
+	 * Returns the set of all positive incoming edges for a given node.
+	 *
+	 * @param node
+	 *            The node under observation.
+	 *
+	 * @return The positive incoming edge set of the given node.
+	 *
+	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
+	 */
+
+	public Set<Edge> getPositiveInEdgesAboveZero(Node node) throws InterruptedException {
+		Set<Edge> positiveInEdges = new HashSet<Edge>();
+		Edge[] incidentInEdges = node.enteringEdges().toArray(Edge[]::new);
+		for (Edge incidentInEdge : incidentInEdges) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			if (getCustomEdge(incidentInEdge).getWeight() > 0) {
 				positiveInEdges.add(incidentInEdge);
 			}
-			incidentInEdges.next();
+
 		}
 		return positiveInEdges;
 	}
 
 	/**
 	 * Returns the set of all positive outgoing edges for a given node.
-	 * 
+	 *
 	 * @param node
 	 *            The node under observation.
-	 * 
+	 *
 	 * @return The positive outgoing edge set of the given node.
-	 * 
+	 *
 	 * @author YLi
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getPositiveOutEdges(Node node) throws InterruptedException {
 		Set<Edge> positiveOutEdges = new HashSet<Edge>();
-		EdgeCursor incidentOutEdges = node.outEdges();
-		Edge incidentOutEdge;
-		while (incidentOutEdges.ok()) {
+		Edge[] incidentOutEdges = node.leavingEdges().toArray(Edge[]::new);
+		for (Edge incidentOutEdge : incidentOutEdges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			incidentOutEdge = incidentOutEdges.edge();
+			if (getCustomEdge(incidentOutEdge).getWeight() >= 0) {
+				positiveOutEdges.add(incidentOutEdge);
+			}
+		}
+		return positiveOutEdges;
+	}
+
+	/**
+	 * Returns the set of all positive outgoing edges for a given node.
+	 *
+	 * @param node
+	 *            The node under observation.
+	 *
+	 * @return The positive outgoing edge set of the given node.
+	 *
+	 * @author YLi
+	 * @throws InterruptedException if the thread was interrupted
+	 */
+
+	public Set<Edge> getPositiveOutEdgesAboveZero(Node node) throws InterruptedException {
+		Set<Edge> positiveOutEdges = new HashSet<Edge>();
+		Edge[] incidentOutEdges = node.leavingEdges().toArray(Edge[]::new);
+		for (Edge incidentOutEdge : incidentOutEdges) {
+			if (Thread.interrupted()) {
+				throw new InterruptedException();
+			}
 			if (getCustomEdge(incidentOutEdge).getWeight() > 0) {
 				positiveOutEdges.add(incidentOutEdge);
 			}
-			incidentOutEdges.next();
+
 		}
 		return positiveOutEdges;
 	}
 
 	/**
 	 * Returns the set of all negative edges incident to a given node.
-	 * 
+	 *
 	 * @param node
 	 *            The node under observation.
-	 * 
+	 *
 	 * @return The negative edge set of the given node.
-	 * 
+	 *
 	 * @author YLi
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getNegativeEdges(Node node) throws InterruptedException {
 		Set<Edge> negativeEdges = new HashSet<Edge>();
-		EdgeCursor incidentEdges = node.edges();
-		Edge incidentEdge;
-		while (incidentEdges.ok()) {
-			if (Thread.interrupted()) {
-				throw new InterruptedException();
+		Edge[] edges = node.edges().toArray(Edge[]::new);
+		for (Edge edge : edges) {
+			if (this.getEdgeWeight(edge) < 0) {
+				negativeEdges.add(edge);
+				break;
 			}
-			incidentEdge = incidentEdges.edge();
-			if (getCustomEdge(incidentEdge).getWeight() < 0) {
-				negativeEdges.add(incidentEdge);
-			}
-			incidentEdges.next();
+
 		}
 		return negativeEdges;
 	}
 
 	/**
 	 * Returns the set of all negative incoming edges for a given node.
-	 * 
+	 *
 	 * @param node
 	 *            The node under observation.
-	 * 
+	 *
 	 * @return The negative incoming edge set of the given node.
-	 * 
+	 *
 	 * @author YLi
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getNegativeInEdges(Node node) throws InterruptedException {
 		Set<Edge> negativeInEdges = new HashSet<Edge>();
-		EdgeCursor incidentInEdges = node.inEdges();
-		Edge incidentInEdge;
-		while (incidentInEdges.ok()) {
+		Edge[] incidentInEdges = node.enteringEdges().toArray(Edge[]::new);
+		for (Edge incidentInEdge : incidentInEdges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			incidentInEdge = incidentInEdges.edge();
+
 			if (getCustomEdge(incidentInEdge).getWeight() < 0) {
 				negativeInEdges.add(incidentInEdge);
 			}
-			incidentInEdges.next();
+
 		}
 		return negativeInEdges;
 	}
 
 	/**
 	 * Returns the set of all negative outgoing edges for a given node.
-	 * 
+	 *
 	 * @param node
 	 *            The node under observation.
-	 * 
+	 *
 	 * @return The negative outgoing edge set of the given node.
-	 * 
+	 *
 	 * @author YLi
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 
 	public Set<Edge> getNegativeOutEdges(Node node) throws InterruptedException {
 		Set<Edge> negativeOutEdges = new HashSet<Edge>();
-		EdgeCursor incidentOutEdges = node.outEdges();
-		Edge incidentOutEdge;
-		while (incidentOutEdges.ok()) {
+		Edge[] incidentOutEdges = node.leavingEdges().toArray(Edge[]::new);
+		for (Edge incidentOutEdge : incidentOutEdges) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			incidentOutEdge = incidentOutEdges.edge();
+
 			if (getCustomEdge(incidentOutEdge).getWeight() < 0) {
 				negativeOutEdges.add(incidentOutEdge);
 			}
-			incidentOutEdges.next();
+
 		}
 		return negativeOutEdges;
-	}	
-	
+	}
+
 	////////// properties ////////
 	
-	/** 
+	/**
+
+
 	 * @return properties list
 	 */
 	public List<Double> getProperties() {
 		return this.properties;
 	}
-	
 
-	
+
+
 	/**	 
 	 * Returns a specific graph property
-	 *  
+	 *
 	 * @param property requested property
-	 * 
+	 *
 	 * @return the graph property
-	 * 
+	 *
 	 */
 	public double getProperty(GraphProperty property) {
 		return getProperties().get(property.getId());
 	}
-	
-	/**	 
+
+	/**
 	 * Initialize the properties
-	 * 
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	public void initProperties() {
-		
+	//TODO: Figure out what this means
+	public void initProperties() throws InterruptedException {
+
 		this.properties = new ArrayList<>(GraphProperty.size());
 		for (int i = 0; i < GraphProperty.size(); i++) {
 			AbstractProperty property = null;
@@ -1157,18 +1387,18 @@ public class CustomGraph extends Graph2D {
 			}
 			this.properties.add(i, property.calculate(this));
 		}
-	}	
-	
+	}
+
 	/**
 	 * Returns a new sub graph of a CustomGraph
-	 * 
+	 *
 	 * @param nodeIds The node ids for the sub graph
 	 * @return sub graph
 	 */
 	public CustomGraph getSubGraph(List<Integer> nodeIds) {
 
 		CustomGraph subGraph = new CustomGraph();
-		int graphSize = nodeCount();
+		long graphSize = nodeCount;
 		int subSize = nodeIds.size();
 		Map<Integer, Node> nodeMap = new HashMap<>(subSize);
 		
@@ -1181,15 +1411,15 @@ public class CustomGraph extends Graph2D {
 			if (nodeId > graphSize)
 				throw new IllegalArgumentException("Invalid node id; id to high");
 
-			nodeMap.put(nodeId, subGraph.createNode());
+			nodeMap.put(nodeId, subGraph.addNode(UUID.randomUUID().toString()));
 		}
 
-		for (Edge edge : getEdgeArray()) {
-			int source = edge.source().index();
-			int target = edge.target().index();
-			
+		for (Edge edge : edges().toArray(Edge[]::new)) {
+			int source = edge.getSourceNode().getIndex();
+			int target = edge.getTargetNode().getIndex();
+
 			if (nodeIds.contains(source) && nodeIds.contains(target)) {
-				subGraph.createEdge(nodeMap.get(source), nodeMap.get(target));
+				subGraph.addEdge(UUID.randomUUID().toString(), nodeMap.get(source), nodeMap.get(target));
 			}
 		}
 		return subGraph;
@@ -1200,7 +1430,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Initializes all node and edge mappings for the copy constructor.
-	 * 
+	 *
 	 * @param customNodes
 	 *            The custom node mapping of the copied custom graph.
 	 * @param customEdges
@@ -1211,7 +1441,7 @@ public class CustomGraph extends Graph2D {
 	 *            The edge id mapping of the copied custom graph.
 	 */
 	protected void copyMappings(Map<Integer, CustomNode> customNodes, Map<Integer, CustomEdge> customEdges,
-			Map<Node, Integer> nodeIds, Map<Edge, Integer> edgeIds) {
+								Map<MultiNode, Integer> nodeIds, Map<Edge, Integer> edgeIds) {
 
 		for (Map.Entry<Integer, CustomNode> entry : customNodes.entrySet()) {
 			this.customNodes.put(entry.getKey(), new CustomNode(entry.getValue()));
@@ -1219,24 +1449,23 @@ public class CustomGraph extends Graph2D {
 		for (Map.Entry<Integer, CustomEdge> entry : customEdges.entrySet()) {
 			this.customEdges.put(entry.getKey(), new CustomEdge(entry.getValue()));
 		}
-		Node[] nodeArr = this.getNodeArray();
-		for (Map.Entry<Node, Integer> entry : nodeIds.entrySet()) {
-			this.nodeIds.put(nodeArr[entry.getKey().index()], entry.getValue());
+		Node[] nodeArr = this.nodes().toArray(Node[]::new);
+		for (Map.Entry<MultiNode, Integer> entry : nodeIds.entrySet()) {
+			this.nodeIds.put((MultiNode) nodeArr[entry.getKey().getIndex()], entry.getValue());
 		}
-		NodeCursor nodes = this.nodes();
-		while (nodes.ok()) {
-			this.reverseNodeMap.put(this.getCustomNode(nodes.node()), nodes.node());
-			nodes.next();
+		Node[] nodes = this.nodes().toArray(Node[]::new);
+		for (Node node : nodes) {
+			this.reverseNodeMap.put(this.getCustomNode(node), (MultiNode) node);
 		}
-		Edge[] edgeArr = this.getEdgeArray();
+		Edge[] edgeArr = this.edges().toArray(Edge[]::new);
 		for (Map.Entry<Edge, Integer> entry : edgeIds.entrySet()) {
-			this.edgeIds.put(edgeArr[entry.getKey().index()], entry.getValue());
+			this.edgeIds.put(edgeArr[entry.getKey().getIndex()], entry.getValue());
 		}
 	}
 
 	/**
 	 * Returns the custom edge object corresponding to an edge.
-	 * 
+	 *
 	 * @param edge
 	 *            An edge which must belong to this graph.
 	 * @return The corresponding custom edge object.
@@ -1248,21 +1477,36 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Returns the custom node object corresponding to a node.
-	 * 
+	 *
 	 * @param node
 	 *            A node which must belong to this graph.
 	 * @return The corresponding custom node object.
 	 */
+
 	protected CustomNode getCustomNode(Node node) {
-		int index = nodeIds.get(node);
-		return customNodes.get(index);
+
+		if ( nodeIds.get(node) != null) {
+			int index = nodeIds.get(node);
+			return customNodes.get(index);
+		}
+
+
+		//TODO: is this addition to avoid nullpointer exception correct?
+		for (CustomNode customNode : customNodes.values()){
+			if (node.getId().equals(customNode.getName())){
+				return customNode;
+			}
+		}
+		return null;
+
+
 	}
 
 	/**
 	 * Returns the node object corresponding to a custom node.
-	 * 
+	 *
 	 * @param customNode
-	 *            A customNode which must belong to this graph.
+	 *            A customMultiNode which must belong to this graph.
 	 * @return The corresponding node object.
 	 */
 	protected Node getNode(CustomNode customNode) {
@@ -1271,11 +1515,11 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Creates a new custom node object and maps the node to it.
-	 * 
+	 *
 	 * @param node
 	 *            The node.
 	 */
-	protected void addCustomNode(Node node) {
+	protected void addCustomNode(MultiNode node) {
 		CustomNode customNode = new CustomNode();
 		this.nodeIds.put(node, this.nodeIndexer);
 		this.customNodes.put(nodeIndexer, customNode);
@@ -1285,11 +1529,11 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Removes the mappings between a node and its custom node object.
-	 * 
+	 *
 	 * @param node
 	 * 		  the node
 	 */
-	protected void removeCustomNode(Node node) {
+	protected void removeCustomNode(MultiNode node) {
 		CustomNode customNode = this.getCustomNode(node);
 		int id = this.nodeIds.get(node);
 		this.nodeIds.remove(node);
@@ -1299,7 +1543,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Creates a new custom edge object and maps the edge to it.
-	 * 
+	 *
 	 * @param edge
 	 *            The edge.
 	 */
@@ -1312,7 +1556,7 @@ public class CustomGraph extends Graph2D {
 
 	/**
 	 * Removes the mapping from an edge to its custom edge.
-	 * 
+	 *
 	 * @param edge
 	 * 		  the edge
 	 */
@@ -1335,9 +1579,9 @@ public class CustomGraph extends Graph2D {
 		this.nodeIds.clear();
 		this.customNodes.clear();
 		for (CustomNode customNode : nodes) {
-			Node node = customNode.createNode(this);
-			this.nodeIds.put(node, node.index());
-			this.customNodes.put(node.index(), customNode);
+			MultiNode node = (MultiNode) customNode.createNode(this);
+			this.nodeIds.put(node, node.getIndex());
+			this.customNodes.put(node.getIndex(), customNode);
 			this.reverseNodeMap.put(customNode, node);
 		}
 		List<CustomEdge> edges = new ArrayList<CustomEdge>(this.customEdges.values());
@@ -1346,44 +1590,252 @@ public class CustomGraph extends Graph2D {
 		for (CustomEdge customEdge : edges) {
 			Edge edge = customEdge.createEdge(this, reverseNodeMap.get(customEdge.getSource()),
 					this.reverseNodeMap.get(customEdge.getTarget()));
-			this.edgeIds.put(edge, edge.index());
-			this.customEdges.put(edge.index(), customEdge);
+			this.edgeIds.put(edge, edge.getIndex());
+			this.customEdges.put(edge.getIndex(), customEdge);
 		}
-		nodeIndexer = this.nodeCount();
-		edgeIndexer = this.edgeCount();
-		Iterator<?> listenerIt = this.getGraphListeners();
-		while (listenerIt.hasNext()) {
-			this.removeGraphListener((GraphListener) listenerIt.next());
-			listenerIt.remove();
-		}
-		this.addGraphListener(new CustomGraphListener());
+		nodeIndexer = this.nodeCount;
+		edgeIndexer = this.edgeCount;
+//        Iterator<?> listenerIt = this.getGraphListeners();
+//        while (listenerIt.hasNext()) {
+//            this.removeGraphListener((GraphListener) listenerIt.next());
+//            listenerIt.remove();
+//        }
+//        this.addGraphListener(new CustomGraphListener());
 	}
 
 
 	/**
 	 * PrePersist Method. Writes the attributes of nodes and edges into their
 	 * corresponding custom nodes and edges.
-	 * 
+	 *
 	 * Makes sure the Graph Properties are up-to-date.
+	 *
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	@PrePersist
 	@PreUpdate
-	protected void prePersist() {
-		NodeCursor nodes = this.nodes();
-		while (nodes.ok()) {
-			Node node = nodes.node();
-			this.getCustomNode(node).update(this, node);
-			nodes.next();
+	protected void prePersist() throws InterruptedException {
+		Node[] nodes = this.nodes().toArray(Node[]::new);
+		for (Node node : nodes) {
+			this.getCustomNode(node).update(this, (Node)node);
 		}
-		EdgeCursor edges = this.edges();
-		while (edges.ok()) {
-			Edge edge = edges.edge();
+		Edge[] edges = this.edges().toArray(Edge[]::new);
+		for (Edge edge : edges) {
 			this.getCustomEdge(edge).update(this, edge);
-			edges.next();
 		}
 		
 		initProperties();
 	}
 
+	//persistence functions
+	protected CustomNode getCustomNodeByKey(String key) {
+		CustomNode ret = null;
+		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
+		for(CustomNode cn : nodes) {
+			if(key.equals(cn.getKey())) {
+				ret = cn;
+				break;
+			}
+		}
+		if(ret == null) {
+			System.out.println("CustomNode with Key : " + key + "does not exist in this graph.");
+		}
+		return ret;
+	}
+	
+	public void persist( ArangoDatabase db, String transId) throws InterruptedException {
+		this.setNodeEdgeCountColumnFields(); // update node/edge counts before persisting
+		this.prePersist();
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		//options for the transaction
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		//EdgeCreateOptions edgeCreateOptions = new EdgeCreateOptions().streamTransactionId(transId);
+		bd.addAttribute(userColumnName, this.userName);
+		bd.addAttribute(pathColumnName, this.path);		//TODO muss gespeichert werden?
+		bd.addAttribute(nameColumnName, this.name);
+		bd.addAttribute(typesColumnName, this.types);
+		bd.addAttribute(nodeCountColumnName, this.graphNodeCount);
+		bd.addAttribute(edgeCountColumnName, this.graphEdgeCount);
+		this.creationMethod.persist(db, createOptions);
+		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
+		collection.insertDocument(bd, createOptions);
+		this.key = bd.getKey();
+		
+		bd = new BaseDocument();
+
+		//TODO: is this a valid replacement to store customNode?
+//		NodeCursor nodes = this.nodes();
+//		while (nodes.ok()) {		//persist all nodes from the graph
+//			Node n = nodes.node();
+//			CustomNode node = this.getCustomNode(n);
+//			node.persist(db, createOptions);
+//			nodes.next();
+//		}
+		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
+		for (CustomNode customNode : nodes) {
+			customNode.persist(db,createOptions);
+		}
+
+
+		List<CustomEdge> edges = new ArrayList<CustomEdge>(this.customEdges.values());
+		for (CustomEdge customEdge : edges) {
+			customEdge.persist(db, createOptions);
+		}
+
+//		Iterator<Edge> edges = this.edges().iterator();
+//		while (edges.hasNext()) { //persist all edges from the graph
+//			Edge edge = edges.next();
+//			edge.
+//		}
+
+		bd.addAttribute(propertiesColumnName, this.properties);	
+		//TODO covers variable speichern?
+		
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
+
+	public static CustomGraph load(String key, ArangoDatabase db, String transId) {
+		CustomGraph graph = null;
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
+		
+		if (bd != null) {
+			graph = new CustomGraph();
+			ObjectMapper om = new ObjectMapper();	
+			Object objId = bd.getAttribute(idColumnName);
+			if(objId!= null) {
+				graph.id = Long.parseLong(objId.toString());
+			}
+			graph.key = key;
+			graph.userName = bd.getAttribute(userColumnName).toString();
+			graph.path = bd.getAttribute(pathColumnName).toString();
+			graph.name = bd.getAttribute(nameColumnName).toString();
+			Object objTypes = bd.getAttribute(typesColumnName);
+			graph.types = om.convertValue(objTypes, Set.class);
+			Object objProperties = bd.getAttribute(propertiesColumnName);
+			graph.properties = om.convertValue(objProperties, List.class);
+			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+			graph.graphNodeCount = om.convertValue(bd.getAttribute(nodeCountColumnName), Long.class);
+			graph.graphEdgeCount = om.convertValue(bd.getAttribute(edgeCountColumnName), Long.class);
+			graph.creationMethod = GraphCreationLog.load(creationMethodKey, db, readOpt);
+
+			//nodes werden in customNodes Map eingefuegt
+			Map<String, CustomNode> customNodeKeyMap = new HashMap<String, CustomNode>();
+			String query = "FOR node IN " + CustomNode.collectionName + " FILTER node."
+				+ CustomNode.graphKeyColumnName +" == \"" + key +"\" RETURN node";
+			ArangoCursor<BaseDocument> nodeDocuments = db.query(query, queryOpt, BaseDocument.class);
+
+			int i=0;
+			while(nodeDocuments.hasNext()) {
+				BaseDocument nodeDocument = nodeDocuments.next();
+				CustomNode node = CustomNode.load(nodeDocument, graph);
+				graph.customNodes.put(i, node);
+				customNodeKeyMap.put(CustomNode.collectionName +"/"+node.getKey(), node);
+				i++;
+			}
+			
+			//edges werden in customNodes Map eingefuegt
+			query = "FOR edge IN " + CustomEdge.collectionName + " FILTER edge.";
+			query += CustomEdge.graphKeyColumnName +" == \"" + key +"\" RETURN edge";
+			ArangoCursor<BaseEdgeDocument> edgeDocuments = db.query(query, queryOpt, BaseEdgeDocument.class);
+			i=0;
+			
+			while(edgeDocuments.hasNext()) {
+				BaseEdgeDocument edgeDocument = edgeDocuments.next();
+				CustomNode source = customNodeKeyMap.get(edgeDocument.getFrom());
+				CustomNode target = customNodeKeyMap.get(edgeDocument.getTo());
+				CustomEdge edge = CustomEdge.load(edgeDocument, source, target, graph, db);
+				graph.customEdges.put(i, edge);
+				i++;
+			}
+			graph.postLoad();
+		}	
+		else {
+			System.out.println("leeres Graph dokument");
+			System.out.println(" DB name: " + db.dbName().get());
+		}
+		return graph;
+	}
+	
+	public void updateDB(ArangoDatabase db, String transId) throws InterruptedException {		//only updates the nodes/edges/GraphCreationLog and graph Attributes
+		this.prePersist();
+		ArangoCollection collection = db.collection(collectionName);
+		
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		
+		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
+		
+		String gclKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+		ArangoCollection gclCollection = db.collection(GraphCreationLog.collectionName);
+		gclCollection.deleteDocument(gclKey, null, deleteOpt);			//delete GraphCreationLog
+		this.creationMethod.persist(db, createOptions);
+		bd.updateAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());	//update creation method key
+
+
+		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
+		for (CustomNode customNode : nodes) { // update all nodes from the graph
+			if(customNode.getKey() == null) {
+				customNode.persist(db, createOptions);
+			}else {
+				customNode.updateDB(db, updateOptions);
+			}
+		}
+
+
+		List<CustomEdge> edges = new ArrayList<CustomEdge>(this.customEdges.values());
+		for (CustomEdge customEdge : edges) {
+			if(customEdge.getKey() == null) {
+				customEdge.persist(db, createOptions);
+			}else {
+				customEdge.updateDB(db, updateOptions);
+			}
+		}
+
+
+		
+		bd.updateAttribute(userColumnName, this.userName);	//update all atributes
+		bd.updateAttribute(pathColumnName, this.path);
+		bd.updateAttribute(nameColumnName, this.name);
+		bd.updateAttribute(typesColumnName, this.types);
+		bd.updateAttribute(propertiesColumnName, this.properties);
+		bd.updateAttribute(nodeCountColumnName, this.graphNodeCount);
+		bd.updateAttribute(edgeCountColumnName, this.graphEdgeCount);
+		
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
+	
+	//TODO funktion verwerfen
+	public void setNodeNames() {
+		Set<MultiNode> nodes = this.nodeIds.keySet();
+		int i = 0;
+		for(Node node : nodes) {
+			i++;
+			this.setNodeName(node,"Node : " + i);
+		}
+	}
+	
+	public String String() {
+		String n = System.getProperty("line.separator");
+		String ret = "CustomGraph: " + n;
+		ret += "Key :         " + this.key +n ;
+		ret += "userName :    " + this.userName + n ; 
+		ret += "name :        " + this.name+n;
+		ret += "path :        " + this.path + n;
+		if(this.types != null) {ret += "types :       " + this.types.toString()+n;}
+		else { ret += "no types" +n;}
+		if(this.properties != null) { ret += "properties :  " + this.properties + n;}
+		else { ret += "no properties" +n;}
+		if(this.creationMethod != null) { ret += "creationMethod :  " + this.creationMethod.String() + n;}
+		else { ret += "no creationMethod" +n;}
+		ret += "Es gibt : " + this.covers.size() + " cover"+n;
+		return ret;
+	}
 
 }

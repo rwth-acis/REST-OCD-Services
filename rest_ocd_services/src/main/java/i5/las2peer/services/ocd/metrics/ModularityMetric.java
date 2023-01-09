@@ -14,8 +14,7 @@ import java.util.Set;
 import org.la4j.vector.Vectors;
 import org.la4j.matrix.Matrix;
 
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 /**
  * Implements the modularity metric.
@@ -37,16 +36,16 @@ public class ModularityMetric implements StatisticalMeasure {
 	@Override
 	public double measure(Cover cover) throws OcdMetricException, InterruptedException, OcdAlgorithmException {
 		CustomGraph graph = cover.getGraph(); 
-		int edgeCount = graph.edgeCount()/2; 
+		int edgeCount = graph.getEdgeCount()/2; 
 		double modularity = 0;
 		Matrix adjacency = graph.getNeighbourhoodMatrix();
-		Node[] nodes = graph.getNodeArray(); 
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		
-		for(int i = 0; i < graph.nodeCount(); i++) {
+		for(int i = 0; i < graph.getNodeCount(); i++) {
 			Node n1 = nodes[i];
 			double deg1 = graph.getNeighbours(n1).size(); 
 			List<Integer> com1 = cover.getCommunityIndices(n1); 
-			for(int j = i+1; j < graph.nodeCount(); j++) {
+			for(int j = i+1; j < graph.getNodeCount(); j++) {
 				Node n2 = nodes[j];
 				List<Integer> com2 = cover.getCommunityIndices(n2); 
 			    com2.retainAll(com1);

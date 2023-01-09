@@ -9,9 +9,10 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 /**
  * A graph input adapter for node weighted edge list format.
@@ -53,8 +54,9 @@ public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAda
 			 * Reads nodes
 			 */
 			while(line.size() == 1) {
-				Node node = graph.createNode();
 				String nodeName = line.get(0);
+				Node node = graph.addNode(nodeName);
+
 				if(!reverseNodeNames.containsKey(nodeName)) {
 					graph.setNodeName(node, nodeName);
 					reverseNodeNames.put(nodeName, node);
@@ -79,7 +81,7 @@ public class NodeWeightedEdgeListGraphInputAdapter extends AbstractGraphInputAda
 				if(targetNode == null) {
 					throw new AdapterException("Node not specified: " + targetNodeName);
 				}
-				Edge edge = graph.createEdge(sourceNode, targetNode);
+				Edge edge = graph.addEdge(UUID.randomUUID().toString(), sourceNode, targetNode);
 				graph.setEdgeWeight(edge, edgeWeight);
 				line = Adapters.readLine(reader);
 			}

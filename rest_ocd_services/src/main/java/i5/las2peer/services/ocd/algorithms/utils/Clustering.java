@@ -7,7 +7,7 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 public class Clustering {
 	private double costs;
@@ -54,14 +54,14 @@ public class Clustering {
 	///////////////////////////
 
 	public Matrix createMembershipMatrix(CustomGraph graph) {
-		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),
+		Matrix membershipMatrix = new Basic2DMatrix(graph.getNodeCount(),
 				this.cluster.size());
 		int communityIndex = 0;
 		for(Iterator<Cluster> it = cluster.iterator(); it.hasNext();){
 			Cluster curr = it.next();
 			for(Iterator<Point> itp = curr.getPoints().iterator(); itp.hasNext();){
 				Point p = itp.next();
-				membershipMatrix.set(p.getNode().index(), communityIndex, 1.0);
+				membershipMatrix.set(p.getNode().getIndex(), communityIndex, 1.0);
 			}
 			communityIndex++;			
 		}
@@ -69,12 +69,12 @@ public class Clustering {
 	}
 	
 	public Matrix createMembershipMatrixNode(CustomGraph graph){
-		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), this.cluster.size());
+		Matrix membershipMatrix = new Basic2DMatrix(graph.getNodeCount(), this.cluster.size());
 		int communityIndex = 0;
 		for(Iterator<Cluster> it = cluster.iterator(); it.hasNext();){
 			Cluster curr = it.next();
 			for(Node node: curr.getNodes()){
-				membershipMatrix.set(node.index(), communityIndex, 1.0);
+				membershipMatrix.set(node.getIndex(), communityIndex, 1.0);
 			}
 			communityIndex++;
 		}

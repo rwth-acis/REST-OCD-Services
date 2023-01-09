@@ -47,7 +47,7 @@ public class ExtendedNormalizedMutualInformationMetric implements KnowledgeDrive
 		double communityEntropy;
 		double probability_x0;
 		double probability_x1;
-		int nodeCount = cover1.getGraph().nodeCount();
+		int nodeCount = cover1.getGraph().getNodeCount();
 		for(int i=0; i<cover1.communityCount(); i++) {
 			minParticularConditionalEntropy = Double.POSITIVE_INFINITY;
 			for(int j=0; j<cover2.communityCount(); j++) {

@@ -79,7 +79,16 @@ public class OcdTestConstants {
 	public static final String sawmillWeightedEdgeListOutputPath = outputFolderPath + "SawmillWeightedEdgeList.txt";
 	public static final String sawmillGraphMlOutputPath = outputFolderPath + "SawmillGraphMl.xml";
 	public static final String sawmillMetaXmlOutputPath = outputFolderPath + "SawmillMetaXml.xml";
-	
+
+	/*
+	 * Metadata output filenames
+	 */
+	public static final String testMetaXmlGraphMetaOutputPath = outputFolderPath + "testMetaXmlGraphMeta";
+	public static final String testMetaXmlCoverMetaOutputPath = outputFolderPath + "testMetaXmlCoverMeta";
+	public static final String testMetaXmlMetricMetaOutputPath = outputFolderPath + "testMetaXmlCentralityMeta";
+
+
+
 	/*
 	 * Graph names
 	 */

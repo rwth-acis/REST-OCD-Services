@@ -8,18 +8,11 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.utils.Pair;
 import io.reactivex.internal.observers.ForEachWhileObserver;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.graphstream.algorithm.ConnectedComponents;
+import org.graphstream.algorithm.HopcroftTarjanBiconnectedComponents;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -27,14 +20,8 @@ import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 import org.la4j.vector.functor.VectorAccumulator;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.EdgeList;
-import y.base.Graph;
-import y.base.Node;
-import y.base.NodeList;
-import y.base.NodeCursor;
-import y.algo.GraphConnectivity;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 /**
  * The original version of the overlapping community detection algorithm by Joyce Jiyoung Whang, David F. Gleich, and Inderjit S. Dhillon:
@@ -95,11 +82,11 @@ public class NISEAlgorithm implements OcdAlgorithm {
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph)
 			throws OcdAlgorithmException, InterruptedException {
-		Pair<Graph, EdgeList> biconnctedCoreInformation = filtering(graph);
-		Graph biconnectedCore = biconnctedCoreInformation.getFirst();
-		EdgeList bridges = biconnctedCoreInformation.getSecond();
-		NodeList seeds = seeding(biconnectedCore);
-		NodeList[] lowConductanceSets = expansion(biconnectedCore, seeds);
+		Pair<CustomGraph, ArrayList<Edge>> biconnectedCoreInformation = filtering(graph);
+		CustomGraph biconnectedCore = biconnectedCoreInformation.getFirst();
+		ArrayList<Edge> bridges = biconnectedCoreInformation.getSecond();
+		ArrayList<Node> seeds = seeding(biconnectedCore);
+		ArrayList<ArrayList<Node>> lowConductanceSets = expansion(biconnectedCore, seeds);
 		Matrix memberships = propagation(graph, lowConductanceSets, bridges, biconnectedCore);
 		return new Cover(graph, memberships);
 	}
@@ -153,68 +140,73 @@ public class NISEAlgorithm implements OcdAlgorithm {
 	 * @param graph
 	 * @return Pair<Graph, EdgeList> with the biconnectedCore and the bridges
 	 */
-	private Pair<Graph, EdgeList> filtering(CustomGraph graph) {
-		Graph biconnectedCore = graph.createCopy();
+	private Pair<CustomGraph, ArrayList<Edge>> filtering(CustomGraph graph) throws InterruptedException {
+		CustomGraph biconnectedCore = new CustomGraph(graph);
 		//HashMap to get the connection between the nodes of the original graph and the biconnectedCore
 		HashMap<Edge,Edge> edgeMapping = new HashMap<Edge,Edge>();
 		//Add all edges to the hashmap
-		EdgeCursor graphCursor = graph.edges();
-		EdgeCursor biconnectedCoreCursor = biconnectedCore.edges();
-		while(graphCursor.ok()) {
-			edgeMapping.put(biconnectedCoreCursor.edge(), graphCursor.edge());
-			biconnectedCoreCursor.next();
-			graphCursor.next();
+		Iterator<Edge> graphCursor = graph.edges().iterator();
+		Iterator<Edge> biconnectedCoreCursor = biconnectedCore.edges().iterator();
+		while(graphCursor.hasNext()) {
+			edgeMapping.put(biconnectedCoreCursor.next(), graphCursor.next());
 		}
 		//Add all nodes to the hashmap (defined globally)
-		NodeCursor graphNodeCursor = graph.nodes();
-		NodeCursor biconnectedCoreNodeCursor = biconnectedCore.nodes();
-		while(graphNodeCursor.ok()) {
-			nodeMapping.put(biconnectedCoreNodeCursor.node(), graphNodeCursor.node());
-			biconnectedCoreNodeCursor.next();
-			graphNodeCursor.next();
+		Iterator<Node> graphNodeCursor = graph.iterator();
+		Iterator<Node> biconnectedCoreNodeCursor = biconnectedCore.iterator();
+		while(graphNodeCursor.hasNext()) {
+			nodeMapping.put(biconnectedCoreNodeCursor.next(), graphNodeCursor.next());
 		}
-		
+
+		//TODO: Check this
 		//Retrieve all biconnected components of the graph and save the bridges
-		EdgeList[] biconnectedComponents = GraphConnectivity.biconnectedComponents(biconnectedCore);
+		HopcroftTarjanBiconnectedComponents bccAlgo = new HopcroftTarjanBiconnectedComponents(biconnectedCore);
+		bccAlgo.compute();
+		ArrayList<HopcroftTarjanBiconnectedComponents.BiconnectedComponent> biconnectedComponents = bccAlgo.getBiconnectedComponents();
+		ArrayList<Edge[]> biconnectedComponentsEdges = new ArrayList<Edge[]>();
+		for (HopcroftTarjanBiconnectedComponents.BiconnectedComponent bcc : biconnectedComponents) {
+			biconnectedComponentsEdges.add(bcc.edges().toArray(Edge[]::new));
+		}
 		
 		//Remove all biconnected components of size one (as graphs are directed the edgeSize is 2)
 		LinkedList<Edge> singleEdgeBiconnectedComponents = new LinkedList<Edge>();
-		for (EdgeList edgeList : biconnectedComponents) {
-			if(edgeList.size() == 2) {
-				biconnectedCore.removeEdge(edgeList.firstEdge());
-				biconnectedCore.removeEdge(edgeList.lastEdge());
-				singleEdgeBiconnectedComponents.add(edgeList.firstEdge());
-				singleEdgeBiconnectedComponents.add(edgeList.lastEdge());
+		for (Edge[] edgeArray : biconnectedComponentsEdges) {
+			if(edgeArray.length == 2) {
+				biconnectedCore.removeEdge(edgeArray[0]);
+				biconnectedCore.removeEdge(edgeArray[edgeArray.length-1]);
+				singleEdgeBiconnectedComponents.add(edgeArray[0]);
+				singleEdgeBiconnectedComponents.add(edgeArray[edgeArray.length-1]);
 			}
 		}
-		
+
+		//TODO: Check this
 		//Find all nodes that are part of the biconnected core
-		NodeList[] connectedComponents = GraphConnectivity.connectedComponents(biconnectedCore);
-		NodeList coreNodes = new NodeList();
-		for (NodeList nodeList: connectedComponents) {
-			if(nodeList.size() > coreNodes.size()) {
-				coreNodes = nodeList;
-			}
-		}
+		ConnectedComponents ccAlgo = new ConnectedComponents(biconnectedCore);
+		ccAlgo.compute();
+		List<Node> coreNodes = List.of(ccAlgo.getGiantComponent().nodes().toArray(Node[]::new));
+//		for (Node[] nodeList: connectedComponents) {
+//			if(nodeList.length > coreNodes.size()) {
+//				coreNodes = nodeList;
+//			}
+//		}
 		
 		//Get all bridges (only those from the biconnected core to the whisker)
-		EdgeList bridges = new EdgeList();
+		ArrayList<Edge> bridges = new ArrayList<Edge>();
 		for (Edge edge : singleEdgeBiconnectedComponents) {
-			if(coreNodes.contains(edge.source()) && !coreNodes.contains(edge.target())) {
+			if(coreNodes.contains(edge.getSourceNode()) && !coreNodes.contains(edge.getTargetNode())) {
 				//Add the mapped edge (which belongs to graph and not biconnectedCore) to the bridges array
 				bridges.add(edgeMapping.get(edge));
 			}
 		}
 		
 		//Remove all nodes without neighbors from the biconnected core
-		Node[] nodes = biconnectedCore.getNodeArray();
+		Node[] nodes = biconnectedCore.nodes().toArray(Node[]::new);
 		for (Node node : nodes) {
-			if(node.neighbors().size() == 0) {
+			if(graph.getNeighbours(node).size() == 0) {
 				biconnectedCore.removeNode(node);
 			}
 		}
 			
-		return new Pair<Graph, EdgeList>(biconnectedCore, bridges);
+		return new Pair<CustomGraph, ArrayList<Edge>>(biconnectedCore, bridges);
 	}
 	
 	/**
@@ -224,8 +216,8 @@ public class NISEAlgorithm implements OcdAlgorithm {
 	 * @param biconnectedCore
 	 * @return list of the seed nodes
 	 */
-	private NodeList seeding(Graph biconnectedCore) {
-		NodeList seeds = new NodeList();
+	private ArrayList<Node> seeding(CustomGraph biconnectedCore) throws InterruptedException {
+		ArrayList<Node> seeds = new ArrayList<Node>();
 		seeds = spreadHubs(biconnectedCore);
 		return seeds;
 	}
@@ -233,12 +225,12 @@ public class NISEAlgorithm implements OcdAlgorithm {
 	/**
 	 * Algorithm Spread Hubs chooses an independent set of k (= seedCount) seeds by 
 	 * looking at the vertices in order of decreasing degree
-	 * @param biconnected core
+	 * @param biconnectedCore
 	 * @return list of the seed nodes
 	 */
-	private NodeList spreadHubs(Graph biconnectedCore) {
-		NodeList seeds = new NodeList();
-		Node[] coreNodesArray = biconnectedCore.getNodeArray();
+	private ArrayList<Node> spreadHubs(CustomGraph biconnectedCore) throws InterruptedException {
+		ArrayList<Node> seeds = new ArrayList<Node>();
+		Node[] coreNodesArray = biconnectedCore.nodes().toArray(Node[]::new);
 		ConcurrentHashMap<Node, Boolean> coreNodesMap = new ConcurrentHashMap<Node, Boolean>();
 		for (Node node : coreNodesArray) {
 			// All nodes of the core are unmarked
@@ -257,13 +249,13 @@ public class NISEAlgorithm implements OcdAlgorithm {
 				if(!entry.getValue()) {
 					//Indicate that so far not every node has been marked
 					allMarked = false;
-					if(entry.getKey().degree() > maxDegree) {
-						maxDegree = entry.getKey().degree();
+					if(entry.getKey().getDegree() > maxDegree) {
+						maxDegree = entry.getKey().getDegree();
 						maxDegreeNodes = new LinkedList<Map.Entry<Node,Boolean>>();
 						maxDegreeNodes.add(entry);
 					}
 					else {
-						if(entry.getKey().degree() == maxDegree) {
+						if(entry.getKey().getDegree() == maxDegree) {
 							maxDegreeNodes.add(entry);
 						}
 					}
@@ -276,11 +268,10 @@ public class NISEAlgorithm implements OcdAlgorithm {
 					seeds.add(entry.getKey());
 					entry.setValue(true);
 					//Iterate over all neighbors and mark them as well
-					NodeCursor neighborsCursor = entry.getKey().neighbors();
-					for (int j = 0; j < neighborsCursor.size(); j++) {
-						Node neighbor = neighborsCursor.node();
+					Iterator<Node> neighborsIt = biconnectedCore.getNeighbours(entry.getKey()).iterator(); //TODO: previously was .neighbors. Check if behaves the same
+					while (neighborsIt.hasNext()) {
+						Node neighbor = neighborsIt.next();
 						coreNodesMap.put(neighbor, true);
-						neighborsCursor.next();
 					}
 				}
 			}
@@ -296,11 +287,11 @@ public class NISEAlgorithm implements OcdAlgorithm {
 	 * @param seeds which should be expanded
 	 * @return Array of expanded clusters
 	 */
-	private NodeList[] expansion(Graph biconnectedCore, NodeList seeds) {
-		Node[] seedsArray = seeds.toNodeArray();
-		NodeList[] lowConductanceSets = new NodeList[seedsArray.length];
+	private ArrayList<ArrayList<Node>> expansion(CustomGraph biconnectedCore, ArrayList<Node> seeds) throws InterruptedException {
+		Node[] seedsArray = seeds.toArray(Node[]::new);
+		ArrayList<ArrayList<Node>> lowConductanceSets = new ArrayList<ArrayList<Node>>(seedsArray.length);
 		for(int i = 0; i < seedsArray.length; i++) {
-			lowConductanceSets[i] = computeLowConductanceSet(biconnectedCore, seedsArray[i]);
+			lowConductanceSets.add(i, computeLowConductanceSet(biconnectedCore, seedsArray[i]));
 		}
 		return lowConductanceSets;
 	}
@@ -311,15 +302,14 @@ public class NISEAlgorithm implements OcdAlgorithm {
 	 * @param seed to compute the lowConductanceSet for
 	 * @return List of nodes belong to the set of low conductance for that seed node
 	 */
-	private NodeList computeLowConductanceSet(Graph biconnectedCore, Node seed) {
+	private ArrayList<Node> computeLowConductanceSet(CustomGraph biconnectedCore, Node seed) throws InterruptedException {
 		//Set of restart nodes
 		Set<Node> restartNodes = new HashSet<Node>();
 		restartNodes.add(seed);
 		//Iterate over all neighbors add them to the restart nodes
-		NodeCursor neighbors = seed.neighbors();
-		for (int j = 0; j < neighbors.size(); j++) {
-			restartNodes.add(neighbors.node());
-			neighbors.next();
+		Iterator<Node> neighbors = biconnectedCore.getNeighbours(seed).iterator();
+		while (neighbors.hasNext()) {
+			restartNodes.add(neighbors.next());
 		}
 		
 		HashMap<Node, Double> x = new HashMap<Node, Double>();
@@ -336,7 +326,7 @@ public class NISEAlgorithm implements OcdAlgorithm {
 			stop = true;
 			for (Map.Entry<Node, Double> entry : r.entrySet()) {
 				Node v = entry.getKey();
-				if(r.containsKey(v) && (r.get(v) > (v.degree()*accuracy))) {
+				if(r.containsKey(v) && (r.get(v) > (v.getDegree()*accuracy))) {
 					stop = false;
 					//Update the value in x for v
 					if(x.containsKey(v)) {
@@ -349,19 +339,18 @@ public class NISEAlgorithm implements OcdAlgorithm {
 					}
 					
 					//Update r of all neighbor nodes
-					NodeCursor neighborsCursor = v.neighbors();
-					while(neighborsCursor.ok()) {
-						Node neighbor = neighborsCursor.node();
+					Iterator<Node> neighborsIterator = biconnectedCore.getNeighbours(v).iterator();
+					while(neighborsIterator.hasNext()) {
+						Node neighbor = neighborsIterator.next();
 						//Update r of the neighbor node
 						if(r.containsKey(neighbor)) {
-							double newR = r.get(neighbor) + ((probability * r.get(v))/(2*v.neighbors().size()));
+							double newR = r.get(neighbor) + ((probability * r.get(v))/(2*biconnectedCore.getNeighbours(v).size()));
 							r.put(neighbor, newR);
 						}
 						else {
-							double newR = 0 + ((probability * r.get(v))/(2*v.neighbors().size()));
+							double newR = 0 + ((probability * r.get(v))/(2*biconnectedCore.getNeighbours(v).size()));
 							r.put(neighbor, newR);
 						}
-						neighborsCursor.next();
 					}
 					
 					//Update r of v
@@ -375,7 +364,7 @@ public class NISEAlgorithm implements OcdAlgorithm {
 		TreeMap<Double, Node> sortedNodes = new TreeMap<Double, Node>();
 		for (Map.Entry<Node, Double> entry : x.entrySet()) {
 			Node v = entry.getKey();
-			sortedNodes.put((x.get(v)/v.degree()), v);
+			sortedNodes.put((x.get(v)/v.getDegree()), v);
 		}
 		
 		//Calculate the min conductance of the decreasing set        
@@ -393,8 +382,8 @@ public class NISEAlgorithm implements OcdAlgorithm {
             }
         }
 		
-        //Parse into NodeList and return minConductanceSet
-        NodeList minConductanceSet = new NodeList();
+        //Parse into ArrayList<Node> and return minConductanceSet
+        ArrayList<Node> minConductanceSet = new ArrayList<Node>();
         for (Node node : currentMinConductanceSet) {
 			minConductanceSet.add(node);
 		}
@@ -408,7 +397,7 @@ public class NISEAlgorithm implements OcdAlgorithm {
 	 * @param biconnectedCore
 	 * @return calculated conductance
 	 */
-	private double calculateConductance(HashSet<Node> nodeSet, Graph biconnectedCore) {
+	private double calculateConductance(HashSet<Node> nodeSet, CustomGraph biconnectedCore) throws InterruptedException {
 		// Number of edges between the nodeSet and the coreNodes\nodeSet
 		int numberC_V_C = 0;
 		// Number of edges between the nodeSet and the coreNodes
@@ -419,10 +408,10 @@ public class NISEAlgorithm implements OcdAlgorithm {
 		int allCoreEdges = 0;
 		
 		//Count the numbers of edges
-		for (Node node : biconnectedCore.getNodeArray()) {
-			NodeCursor neighbors = node.neighbors();
-			while (neighbors.ok()) {
-				Node neighbor = neighbors.node();
+		for (Node node : biconnectedCore.nodes().toArray(Node[]::new)) {
+			Iterator<Node> neighbors = biconnectedCore.getNeighbours(node).iterator();
+			while (neighbors.hasNext()) {
+				Node neighbor = neighbors.next();
 				if(nodeSet.contains(node)) {
 					if(!nodeSet.contains(neighbor)) {
 						numberC_V_C++;
@@ -430,7 +419,6 @@ public class NISEAlgorithm implements OcdAlgorithm {
 					numberC_V++;
 				}
 				allCoreEdges++;
-				neighbors.next();
 			}
 		}
 		
@@ -462,22 +450,22 @@ public class NISEAlgorithm implements OcdAlgorithm {
 	 * @param biconnectedCore
 	 * @return membership matrix
 	 */
-	private Matrix propagation(CustomGraph graph, NodeList[] lowConductanceSets, EdgeList bridges, Graph biconnectedCore) {
-		Matrix memberships = new Basic2DMatrix(graph.nodeCount(), lowConductanceSets.length);
+	private Matrix propagation(CustomGraph graph, ArrayList<ArrayList<Node>> lowConductanceSets, ArrayList<Edge> bridges, CustomGraph biconnectedCore) throws InterruptedException {
+		Matrix memberships = new Basic2DMatrix(graph.getNodeCount(), lowConductanceSets.size());
 		memberships = memberships.blank();
 		
 		//iterate over all communities and set the values for all coreNodes
-		for (int i = 0; i < lowConductanceSets.length; i++) {
-			Node[] currentCommunity = lowConductanceSets[i].toNodeArray();
+		for (int i = 0; i < lowConductanceSets.size(); i++) {
+			Node[] currentCommunity = lowConductanceSets.get(i).toArray(Node[]::new);
 			//iterate over all the nodes in that community
 			for (Node node : currentCommunity) {
-				memberships.set(nodeMapping.get(node).index(), i, 1);
+				memberships.set(nodeMapping.get(node).getIndex(), i, 1);
 			}
 		}
 				
 		//Determine the whiskers and copy the value of the corresponding coreNodes to the whiskerNodes
 		while (!bridges.isEmpty()) {
-			Edge bridge = bridges.firstEdge();
+			Edge bridge = bridges.get(0);
 			//Remove the bridge
 			bridges.remove(0);
 			
@@ -485,8 +473,8 @@ public class NISEAlgorithm implements OcdAlgorithm {
 			//Bridges are saved so that the source is the coreNode
 			Node coreNode;
 			Node whiskerNode;
-			coreNode = bridge.source();
-			whiskerNode = bridge.target();
+			coreNode = bridge.getSourceNode();
+			whiskerNode = bridge.getTargetNode();
 			
 			//Determine the whole whisker
 			HashSet<Node> whisker = new HashSet<Node>();
@@ -498,21 +486,20 @@ public class NISEAlgorithm implements OcdAlgorithm {
 				if(!whisker.contains(currentNode)) {
 					whisker.add(currentNode);
 					//Add all neighbors to toSearch
-					NodeCursor neighbors = currentNode.neighbors();
-					for(int j = 0; j < neighbors.size(); j++) {
-						Node neighbor = neighbors.node();
+					Iterator<Node> neighbors = biconnectedCore.getNeighbours(currentNode).iterator();
+					while (neighbors.hasNext()) {
+						Node neighbor = neighbors.next();
 						if(!toSearch.contains(neighbor) && !whisker.contains(neighbor) && !coreNode.equals(neighbor)) {
 							toSearch.add(neighbor);
 						}
-						neighbors.next();
 					}
 				}
 			}
 			
 			//Copy the values of the coreNode to the whisker nodes
-			Vector coreRow = memberships.getRow(coreNode.index());
+			Vector coreRow = memberships.getRow(coreNode.getIndex());
 			for (Node currentWhiskerNode: whisker) {
-				memberships.setRow(currentWhiskerNode.index(), coreRow);
+				memberships.setRow(currentWhiskerNode.getIndex(), coreRow);
 			}
 		}
 		

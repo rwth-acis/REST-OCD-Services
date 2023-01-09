@@ -16,7 +16,7 @@ import org.junit.Test;
 public class PredefinedColorsCoverPainterTest {
 
 	@Test
-	public void testOnSawmill() throws AdapterException, IOException, InstantiationException, IllegalAccessException {
+	public void testOnSawmill() throws AdapterException, IOException, InstantiationException, IllegalAccessException, InterruptedException {
 		Cover cover = ViewerTestGraphFactory.getSlpaSawmillCover();
 		LayoutHandler handler = new LayoutHandler();
 		handler.doLayout(cover, GraphLayoutType.ORGANIC, true, false, 20, 45, CoverPaintingType.PREDEFINED_COLORS);
@@ -26,7 +26,7 @@ public class PredefinedColorsCoverPainterTest {
 	}
 	
 	@Test
-	public void testOnDolphins() throws AdapterException, IOException, InstantiationException, IllegalAccessException {
+	public void testOnDolphins() throws AdapterException, IOException, InstantiationException, IllegalAccessException, InterruptedException {
 		Cover cover = ViewerTestGraphFactory.getSlpaDolphinsCover();
 		LayoutHandler handler = new LayoutHandler();
 		handler.doLayout(cover, GraphLayoutType.ORGANIC, true, false, 20, 45, CoverPaintingType.PREDEFINED_COLORS);

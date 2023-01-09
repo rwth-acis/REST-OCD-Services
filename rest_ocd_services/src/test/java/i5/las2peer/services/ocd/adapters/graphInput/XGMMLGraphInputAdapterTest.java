@@ -21,6 +21,6 @@ public class XGMMLGraphInputAdapterTest {
 		XGMMLGraphInputAdapter inputAdapter = new XGMMLGraphInputAdapter();
     	inputAdapter.setParameter(adapterParam);
 		CustomGraph graph = inputAdapter.readGraph();
-		System.out.println(graph.nodeCount());
+		System.out.println(graph.getNodeCount());
 	}
 }

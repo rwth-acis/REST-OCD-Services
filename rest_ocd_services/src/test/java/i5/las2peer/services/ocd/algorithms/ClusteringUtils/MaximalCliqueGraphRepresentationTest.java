@@ -13,8 +13,8 @@ import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueSearch;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import y.base.Node;
 
+import org.graphstream.graph.Node;
 
 public class MaximalCliqueGraphRepresentationTest {
 	

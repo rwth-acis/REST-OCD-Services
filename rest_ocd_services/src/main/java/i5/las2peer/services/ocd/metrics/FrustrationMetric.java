@@ -1,17 +1,13 @@
 package i5.las2peer.services.ocd.metrics;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.matrix.Matrix;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Edge;
-import y.base.EdgeCursor;
+import org.graphstream.graph.Edge;
 
 /** 
  * @author YLi
@@ -80,22 +76,22 @@ public class FrustrationMetric implements StatisticalMeasure {
 		int communityCount = cover.communityCount();
 		int intraEdgeNegative = 0;
 		int interEdgePositive = 0;
-		int effectiveEdges = graph.edgeCount();
-		EdgeCursor edges = graph.edges();
+		int effectiveEdges = graph.getEdgeCount();
+		Iterator<Edge> edges = graph.edges().iterator();
 		Edge edge;
-		while (edges.ok()) {
+		while (edges.hasNext()) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			edge = edges.edge();
+			edge = edges.next();
 			int belongingToSameCommunity = 0;
 			int belongingToDiffCommunity = 0;
 			for (int i = 0; i < communityCount; i++) {
-				if (membership.get(edge.source().index(), i) * membership.get(edge.target().index(), i) != 0.0) {
+				if (membership.get(edge.getSourceNode().getIndex(), i) * membership.get(edge.getTargetNode().getIndex(), i) != 0.0) {
 					belongingToSameCommunity++;
-				} else if (membership.get(edge.source().index(), i) * membership.get(edge.target().index(), i) == 0.0
-						& (membership.get(edge.source().index(), i)
-								+ membership.get(edge.target().index(), i)) != 0.0) {
+				} else if (membership.get(edge.getSourceNode().getIndex(), i) * membership.get(edge.getTargetNode().getIndex(), i) == 0.0
+						& (membership.get(edge.getSourceNode().getIndex(), i)
+								+ membership.get(edge.getTargetNode().getIndex(), i)) != 0.0) {
 					belongingToDiffCommunity++;
 				}
 			}
@@ -119,7 +115,6 @@ public class FrustrationMetric implements StatisticalMeasure {
 				 */
 				interEdgePositive++;
 			}
-			edges.next();
 		}
 		return (weightingParameter * intraEdgeNegative + (1 - weightingParameter) * interEdgePositive) / effectiveEdges;
 	}

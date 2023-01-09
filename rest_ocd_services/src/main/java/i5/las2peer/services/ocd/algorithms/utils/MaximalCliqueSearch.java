@@ -10,8 +10,9 @@ import java.util.List;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 
 
@@ -35,29 +36,33 @@ public class MaximalCliqueSearch{
 	
 	/**
 	 * Method to find all maximal cliques of a graph.  
-	 * @param graph: the graph in which to find the all maximal cliques
+	 * @param graph
+	 *          the graph in which to find the all maximal cliques
 	 *
 	 * @return the maximal cliques in a hashmap
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	public HashMap<Integer,HashSet<Node>> cliques(CustomGraph graph) {
-		List<Node> nodes = Arrays.asList(graph.getNodeArray());
+	public HashMap<Integer,HashSet<Node>> cliques(CustomGraph graph) throws InterruptedException {
+		List<Node> nodes = Arrays.asList(graph.nodes().toArray(Node[]::new));
 		List<Node> subg = new ArrayList<Node>(nodes);
 		List<Node> cand = new ArrayList<Node>(nodes);
 		maxClq = new HashSet<Node>();
 		maxCliques = new HashMap<Integer,HashSet<Node>>();
 		clqNr = 0; 
-		expand(subg,cand);
+		expand(graph, subg,cand);
 		return maxCliques;
 	}
 	
 	/**
 	 * Recursive function to find all the maximal cliques in depth-first search approach with pruning 
 	 * to make it more usable on big graphs
-	 * @param subg: set of vertices in which is needed to find a complete subgraph. It is defined as
-	 * the set of all vertices with are not neighbors of the current largest complete subgraph. 
-	 * @param cand: All the vertices which not have been processed by the algorithm
+	 * @param graph Input custom graph
+	 * @param subg set of vertices in which is needed to find a complete subgraph. It is defined as
+	 * the set of all vertices with are not neighbors of the current largest complete subgraph.
+	 * @param cand All the vertices which not have been processed by the algorithm
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	protected void expand(List<Node> subg, List<Node> cand){
+	protected void expand(CustomGraph graph, List<Node> subg, List<Node> cand) throws InterruptedException {
 		if(subg.isEmpty() == true) {// found a maximal connected subgraph
 			if(maxClq.size() < 3) {
 				return; 
@@ -71,16 +76,13 @@ public class MaximalCliqueSearch{
 			int maxcount = 0; 
 			HashSet<Node> maxOverlap = new HashSet<Node>();
 			for(Node v: subg) {
-				NodeCursor neighbors = v.neighbors();
 				HashSet<Node> overlap = new HashSet<Node>(); 
 				
 				// find nodes that are neighbors of the current node and the current subset
-				while(neighbors.ok()) {
-					Node u = neighbors.node();
+				for(Node u : graph.getNeighbours(v).toArray(Node[]::new)) {
 					if(cand.contains(u)) {
 						overlap.add(u);
 					}
-					neighbors.next(); 
 				}
 				// to find the maximum neighborhood overlap with the current subgraph
 				if(overlap.size() >= maxcount){
@@ -94,27 +96,24 @@ public class MaximalCliqueSearch{
 			Ext_u.removeAll(maxOverlap);
 			
 			for(Node q: Ext_u) {
-					List<Node> q_neighbors = new ArrayList<Node>();
+				List<Node> q_neighbors = new ArrayList<Node>();
+
+				maxClq.add(q); // current clique (not maximal yet)
+
+				// find neighbors
+				q_neighbors.addAll(Arrays.asList(graph.getNeighbours(q).toArray(Node[]::new)));
 					
-					maxClq.add(q); // current clique (not maximal yet)
-					NodeCursor n = q.neighbors();
-					
-					while(n.ok()) { // find neighbors
-						q_neighbors.add(n.node());
-						n.next();
-					}
-					
-					//update the candidate and the subgraph set to the neighbors of q
-					List<Node> subgr2 = new ArrayList<Node>(subg);
-					List<Node> cand2 = new ArrayList<Node>(cand);
-					subgr2.retainAll(q_neighbors);
-					cand2.retainAll(q_neighbors);
-					cand2.remove(q);
-					
-					expand(subgr2,cand2); // process the neighbors of q 
-					
-					cand.remove(q); // make sure that the node to processed twice
-					maxClq.remove(q); // prepare a clique set
+				//update the candidate and the subgraph set to the neighbors of q
+				List<Node> subgr2 = new ArrayList<Node>(subg);
+				List<Node> cand2 = new ArrayList<Node>(cand);
+				subgr2.retainAll(q_neighbors);
+				cand2.retainAll(q_neighbors);
+				cand2.remove(q);
+
+				expand(graph, subgr2,cand2); // process the neighbors of q
+
+				cand.remove(q); // make sure that the node to processed twice
+				maxClq.remove(q); // prepare a clique set
 			}
 		}
 	}

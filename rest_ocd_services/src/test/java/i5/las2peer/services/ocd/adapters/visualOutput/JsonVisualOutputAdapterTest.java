@@ -19,7 +19,7 @@ import org.junit.Test;
 public class JsonVisualOutputAdapterTest {
 	
 	@Test
-	public void testOnTinyCircleGraph() throws IOException, AdapterException, InstantiationException, IllegalAccessException {
+	public void testOnTinyCircleGraph() throws IOException, AdapterException, InstantiationException, IllegalAccessException, InterruptedException {
 		CustomGraph graph = ViewerTestGraphFactory.getTinyCircleGraph();
 		LayoutHandler handler = new LayoutHandler();
 		handler.doLayout(graph, GraphLayoutType.ORGANIC, true, false, 20, 45);
@@ -29,7 +29,7 @@ public class JsonVisualOutputAdapterTest {
 	}
 	
 	@Test
-	public void testOnTwoCommunitiesGraph() throws AdapterException, IOException, InstantiationException, IllegalAccessException {
+	public void testOnTwoCommunitiesGraph() throws AdapterException, IOException, InstantiationException, IllegalAccessException, InterruptedException {
 		CustomGraph graph = ViewerTestGraphFactory.getTwoCommunitiesGraph();
 		LayoutHandler handler = new LayoutHandler();
 		handler.doLayout(graph, GraphLayoutType.ORGANIC, true, false, 20, 45);
@@ -39,7 +39,7 @@ public class JsonVisualOutputAdapterTest {
 	}
 	
 	@Test
-	public void testSvgOnSawmillGraph() throws AdapterException, IOException, InstantiationException, IllegalAccessException {
+	public void testSvgOnSawmillGraph() throws AdapterException, IOException, InstantiationException, IllegalAccessException, InterruptedException {
 		CustomGraph graph = ViewerTestGraphFactory.getSawmillGraph();
 		JsonVisualOutputAdapter adapter = new JsonVisualOutputAdapter();
 		LayoutHandler handler = new LayoutHandler();

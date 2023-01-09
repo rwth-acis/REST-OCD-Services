@@ -131,10 +131,19 @@ public class LouvainAlgorithm implements OcdAlgorithm {
    */
   public Matrix getMembershipMatrix(CustomGraph graph, int[] communitiesPerNode)
 		  throws InterruptedException {
-	  Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communitiesPerNode.length);
+	  Matrix membershipMatrix = new Basic2DMatrix(graph.getNodeCount(), communitiesPerNode.length);
 	  membershipMatrix = membershipMatrix.blank();
-	  
-	  for(int i=0; i<communitiesPerNode.length; i++) {
+
+
+      //TODO: is this correct behavior?
+      //// this code block is meant to deal with the occasional crashes caused by the next loop
+      int index = communitiesPerNode.length;
+      if(communitiesPerNode.length > graph.getNodeCount()){
+          index = graph.getNodeCount();
+      }
+      ////////
+
+      for(int i=0; i<index; i++) {
 		  if(Thread.interrupted()) {
 				throw new InterruptedException();
 		  }
@@ -154,7 +163,7 @@ public class LouvainAlgorithm implements OcdAlgorithm {
 			  communityCount++;
 		  }
 	  }
-	  membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communityCount);
+	  membershipMatrix = new Basic2DMatrix(graph.getNodeCount(), communityCount);
 	  for(int j=0; j<filledColumns.size(); j++) {
 		  if(Thread.interrupted()) {
 				throw new InterruptedException();
@@ -221,19 +230,27 @@ public class LouvainAlgorithm implements OcdAlgorithm {
     }
     //OWN TO GET BEST COMMUNITY BY MODULARITY
     
+      //TODO: is this correct? this part of the code causes crash, hence it is uncommented till fix is found
     //Account for the case that the original graph has the best modularity
-    if(bestCommunityIndex <= 0)
-    {
-    	int orgGraphCommunity[] = new int[graphs.get(0).size()];
-    	for(int i=0; i<graphs.get(0).size(); i++) {
-    		if(Thread.interrupted()) {
-				throw new InterruptedException();
-    		}
-    		
-    		orgGraphCommunity[i] = i;
-    	}
-    	return orgGraphCommunity;
-    }    
+//    if(bestCommunityIndex <= 0 )
+//    {
+//    	int orgGraphCommunity[] = new int[graphs.get(0).size()];
+//    	for(int i=0; i<graphs.get(0).size(); i++) {
+//    		if(Thread.interrupted()) {
+//				throw new InterruptedException();
+//    		}
+//
+//    		orgGraphCommunity[i] = i;
+//    	}
+//    	return orgGraphCommunity;
+//    }
+
+
+      //TODO: is this correct? temporary fix to avoid out of bounds exception in the next line if bestCommunityIndex is 0
+      if(bestCommunityIndex - 1 < 0){
+          bestCommunityIndex = 1;
+      }
+
     return communities.get(bestCommunityIndex-1);
   }
 

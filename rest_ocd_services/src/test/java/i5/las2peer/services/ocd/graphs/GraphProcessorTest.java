@@ -16,17 +16,12 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.Pair;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.junit.Test;
 
-import y.base.Edge;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 public class GraphProcessorTest {
 
@@ -35,71 +30,68 @@ public class GraphProcessorTest {
 	 * and edge weight setting, on sawmill.
 	 */
 	@Test
-	public void testMakeUndirected() throws AdapterException, FileNotFoundException {
+	public void testMakeUndirected() throws AdapterException, FileNotFoundException, InterruptedException {
 		/*
 		 * Note that getSawmillGraph makes use of makeUndirected.
 		 */
 		CustomGraph undirectedGraph = OcdTestGraphFactory.getSawmillGraph();
 		CustomGraph directedGraph = OcdTestGraphFactory.getDirectedSawmillGraph();
-		assertEquals(undirectedGraph.nodeCount(), directedGraph.nodeCount());
+		assertEquals(undirectedGraph.getNodeCount(), directedGraph.getNodeCount());
 		/*
 		 * Assures that the undirected graph has precisely twice as many edges
 		 */
-		assertEquals(undirectedGraph.edgeCount(), 2 * directedGraph.edgeCount());
-		System.out.println("Edge Count Directed Graph: " + directedGraph.edgeCount());
-		System.out.println("Edge Count Undirected Graph: " + undirectedGraph.edgeCount());
+		assertEquals(undirectedGraph.getEdgeCount(), 2 * directedGraph.getEdgeCount());
+		System.out.println("Edge Count Directed Graph: " + directedGraph.getEdgeCount());
+		System.out.println("Edge Count Undirected Graph: " + undirectedGraph.getEdgeCount());
 		/*
 		 * Assures that the undirected graph includes all the original and the reverse edges
 		 * and possesses correct edge weights.
 		 */
-		NodeCursor directedNodes = directedGraph.nodes();
-		Node[] undirectedNodes = undirectedGraph.getNodeArray();
-		while(directedNodes.ok()) {
-			Node directedNode = directedNodes.node();
-			Node undirectedNode = undirectedNodes[directedNode.index()];
-			NodeCursor directedSuccessors = directedNode.successors();
-			while(directedSuccessors.ok()) {
-				Node directedSuccessor = directedSuccessors.node();
-				Node undirectedSuccessor = undirectedNodes[directedSuccessor.index()];
-				Edge edge = directedNode.getEdge(directedSuccessor);
+		Node[] directedNodes = directedGraph.nodes().toArray(Node[]::new);
+		Node[] undirectedNodes = undirectedGraph.nodes().toArray(Node[]::new);
+		for (Node directedNode : directedNodes) {
+			Node undirectedNode = undirectedNodes[directedNode.getIndex()];
+			Iterator<Node> directedSuccessors = directedGraph.getSuccessorNeighbours(directedNode).iterator();
+			while(directedSuccessors.hasNext()) {
+				Node directedSuccessor = directedSuccessors.next();
+				Node undirectedSuccessor = undirectedNodes[directedSuccessor.getIndex()];
+				Edge edge = directedNode.getEdgeToward(directedSuccessor);
 				double weight = directedGraph.getEdgeWeight(edge);
-				Edge toEdge = undirectedNode.getEdgeTo(undirectedSuccessor);
+				Edge toEdge = undirectedNode.getEdgeToward(undirectedSuccessor);
 				Edge fromEdge = undirectedNode.getEdgeFrom(undirectedSuccessor);
 				assertNotNull(toEdge);
 				assertNotNull(fromEdge);
 				assertEquals(weight, undirectedGraph.getEdgeWeight(toEdge), 0);
 				assertEquals(weight, undirectedGraph.getEdgeWeight(fromEdge), 0);
-				directedSuccessors.next();
 			}
-			directedNodes.next();
 		}
 	}
-	
+
 	/*
 	 * Tests removing multi edges from a graph.
 	 */
 	@Test
 	public void testRemoveMultiEdges() {
 		CustomGraph graph = new CustomGraph();
-		Node node1 = graph.createNode();
-		Node node2 = graph.createNode();
-		Edge edge1 = graph.createEdge(node1, node2);
+		Node node1 = graph.addNode("1");
+		Node node2 = graph.addNode("2");
+		Edge edge1 = graph.addEdge(UUID.randomUUID().toString(), node1, node2);
 		graph.setEdgeWeight(edge1, 2d);
-		graph.createEdge(node1, node2);
+		graph.addEdge(UUID.randomUUID().toString(),node1, node2);
 		System.out.println("Multi Edge Graph");
-		System.out.println("Edge Count: " + graph.edgeCount() + "\nEdge Weights:");
-		for(Edge edge : graph.getEdgeArray()) {
+		System.out.println("Edge Count: " + graph.getEdgeCount() + "\nEdge Weights:");
+		for(Edge edge : graph.edges().toArray(Edge[]::new)) {
 			System.out.println(graph.getEdgeWeight(edge));
 		}
 		GraphProcessor processor = new GraphProcessor();
 		processor.removeMultiEdges(graph);
 		System.out.println("Single Edge Graph");
-		System.out.println("Edge Count: " + graph.edgeCount() + "\nEdge Weights:");
-		for(Edge edge : graph.getEdgeArray()) {
+		System.out.println("Edge Count: " + graph.getEdgeCount() + "\nEdge Weights:");
+		for(Edge edge : graph.edges().toArray(Edge[]::new)) {
 			System.out.println(graph.getEdgeWeight(edge));
 		}
-		assertEquals(1, graph.edgeCount());
-		assertEquals(3d, graph.getEdgeWeight(graph.getEdgeArray()[0]), 0.00001);
+		assertEquals(1, graph.getEdgeCount());
+		assertEquals(3d, graph.getEdgeWeight(graph.getEdge(0)), 0.00001);
 	}
 	
 	/*
@@ -137,9 +129,9 @@ public class GraphProcessorTest {
 		/*
 		 * One directed edge.
 		 */
-		Node node0 = graph.createNode();
-		Node node1 = graph.createNode();
-		graph.createEdge(node0, node1);
+		Node node0 = graph.addNode("0");
+		Node node1 = graph.addNode("1");
+		graph.addEdge(UUID.randomUUID().toString(), node0, node1);
 		processor.determineGraphTypes(graph);
 		System.out.println("One directed edge.");
 		System.out.println(graph.getTypes());
@@ -148,7 +140,7 @@ public class GraphProcessorTest {
 		/*
 		 * One undirected edge.
 		 */
-		graph.createEdge(node1, node0);
+		graph.addEdge(UUID.randomUUID().toString(), node1, node0);
 		processor.determineGraphTypes(graph);
 		System.out.println("One undirected edge.");
 		System.out.println(graph.getTypes());
@@ -156,7 +148,7 @@ public class GraphProcessorTest {
 		/*
 		 * Undirected edge and self loop.
 		 */
-		Edge edge2 = graph.createEdge(node0, node0);
+		Edge edge2 = graph.addEdge(UUID.randomUUID().toString(), node0, node0);
 		processor.determineGraphTypes(graph);
 		System.out.println("Undirected edge and self loop.");
 		System.out.println(graph.getTypes());
@@ -186,8 +178,8 @@ public class GraphProcessorTest {
 		/*
 		 * Undirected edge, 0 weight self loop and directed negative edge.
 		 */
-		Node node2 = graph.createNode();
-		Edge edge3 = graph.createEdge(node0, node2);
+		Node node2 = graph.addNode("2");
+		Edge edge3 = graph.addEdge(UUID.randomUUID().toString(), node0, node2);
 		graph.setEdgeWeight(edge3, -1);
 		processor.determineGraphTypes(graph);
 		System.out.println("Undirected edge, 0 weight self loop and directed negative edge.");
@@ -237,17 +229,17 @@ public class GraphProcessorTest {
 		compatibleTypes.add(GraphType.WEIGHTED);
 		compatibleTypes.add(GraphType.DIRECTED);
 		compatibleTypes.add(GraphType.SELF_LOOPS);
-		Node node0 = graph.createNode();
-		Node node1 = graph.createNode();
-		Node node2 = graph.createNode();
-		Node node3 = graph.createNode();
-		graph.createEdge(node0, node1);
-		graph.createEdge(node1, node0);
-		graph.createEdge(node0, node0);
-		Edge edge3 = graph.createEdge(node0, node2);
-		Edge edge4 = graph.createEdge(node1, node2);
-		Edge edge5 = graph.createEdge(node2, node1);
-		Edge edge6 = graph.createEdge(node2, node3);
+		Node node0 = graph.addNode("0");
+		Node node1 = graph.addNode("1");
+		Node node2 = graph.addNode("2");
+		Node node3 = graph.addNode("3");
+		graph.addEdge(UUID.randomUUID().toString(), node0, node1);
+		graph.addEdge(UUID.randomUUID().toString(), node1, node0);
+		graph.addEdge(UUID.randomUUID().toString(), node0, node0);
+		Edge edge3 = graph.addEdge(UUID.randomUUID().toString(), node0, node2);
+		Edge edge4 = graph.addEdge(UUID.randomUUID().toString(), node1, node2);
+		Edge edge5 = graph.addEdge(UUID.randomUUID().toString(), node2, node1);
+		Edge edge6 = graph.addEdge(UUID.randomUUID().toString(), node2, node3);
 		graph.setEdgeWeight(edge3, 3);
 		graph.setEdgeWeight(edge4, -1);
 		graph.setEdgeWeight(edge5, 0);

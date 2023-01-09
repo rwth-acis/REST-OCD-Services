@@ -1,15 +1,12 @@
 package i5.las2peer.services.ocd.metrics;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+
+import java.util.*;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Graph;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 public class ExtendedModularityMetricCoMembership implements StatisticalMeasure {
 	
@@ -37,24 +34,22 @@ public Set<GraphType> compatibleGraphTypes() {
 	@Override
 	public double measure(Cover cover) throws InterruptedException {
 		double metricValue = 0;
-		Graph graph = cover.getGraph();
-		NodeCursor nodesA = graph.nodes();
-		NodeCursor nodesB = graph.nodes();
+		CustomGraph graph = cover.getGraph();
+		Iterator<Node> nodesA = graph.iterator();
+		Iterator<Node> nodesB = graph.iterator();
 		Node nodeA;
 		Node nodeB;
-		while(nodesA.ok()) {
-			nodeA = nodesA.node();
-			nodesB.toFirst();
-			while(nodesB.ok()) {
-				nodeB = nodesB.node();
+		while(nodesA.hasNext()) {
+			nodeA = nodesA.next();
+			nodesB = graph.iterator();
+			while(nodesB.hasNext()) {
+				nodeB = nodesB.next();
 				metricValue +=
 						getNodePairModularityContribution(cover, nodeA, nodeB);
-				nodesB.next();
 			}
- 			nodesA.next();
 		}
-		if(graph.edgeCount() > 0) {
-			metricValue /= (graph.edgeCount() * 2);
+		if(graph.getEdgeCount() > 0) {
+			metricValue /= (graph.getEdgeCount() * 2);
 		}
 		return metricValue;
 	}
@@ -75,12 +70,12 @@ public Set<GraphType> compatibleGraphTypes() {
 		}
 		
 		double adjacencyEntry = 0;
-		if(cover.getGraph().containsEdge(nodeA, nodeB)){
+		if(nodeA.hasEdgeBetween(nodeB)){ //TODO: Check this method regarding same behaviour to with yFiles containsEdge, in theory this one should be more correct
 			adjacencyEntry = 1;
 		}
 		
-		degreeProd = nodeA.inDegree() * nodeB.inDegree();
-		edgeCont = (adjacencyEntry - (degreeProd / (cover.getGraph().edgeCount() * 2)));
+		degreeProd = nodeA.getInDegree() * nodeB.getInDegree();
+		edgeCont = (adjacencyEntry - (degreeProd / (cover.getGraph().getEdgeCount() * 2)));
 		cont = edgeCont * coMembership;
 		
 		

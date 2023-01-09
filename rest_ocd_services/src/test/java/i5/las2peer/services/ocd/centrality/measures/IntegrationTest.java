@@ -12,6 +12,7 @@ public class IntegrationTest {
 	@Test
 	public void testUndirectedUnweighted() throws InterruptedException, CentralityAlgorithmException {
 		CustomGraph graph = OcdTestGraphFactory.getSimpleGraphUndirectedUnweighted();
+
 		Integration algorithm = new Integration();
 		CentralityAlgorithmExecutor executor = new CentralityAlgorithmExecutor();
 		CentralityMap result = executor.execute(graph, algorithm);

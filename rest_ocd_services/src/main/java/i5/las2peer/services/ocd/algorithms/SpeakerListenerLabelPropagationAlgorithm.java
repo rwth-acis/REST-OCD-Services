@@ -24,8 +24,9 @@ import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.sparse.CompressedVector;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * Implements the original version of the Speaker Listener Label Propagation Algorithm by J. Xie, B. K. Szymanski, and X. Liu:
@@ -132,12 +133,12 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 		List<Integer> memory;
 		for(int t=0; t+1<memorySize; t++) {
 			Collections.shuffle(nodeOrder);
-			for(int i=0; i<graph.nodeCount(); i++) {
+			for(int i=0; i<graph.getNodeCount(); i++) {
 				if(Thread.interrupted()) {
 					throw new InterruptedException();
 				}
 				listener = nodeOrder.get(i);
-				memory = memories.get(listener.index());
+				memory = memories.get(listener.getIndex());
 				memory.add(getNextLabel(graph, memories, listener));
 			}
 		}
@@ -149,11 +150,12 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	
 	protected void initializeCommunityDetection(CustomGraph graph, List<List<Integer>> memories, List<Node> nodeOrder) {
 		List<Integer> memory;
-		for(int i=0; i<graph.nodeCount(); i++) {
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
+		for(int i=0; i<graph.getNodeCount(); i++) {
 			memory = new ArrayList<Integer>();
 			memory.add(i);
 			memories.add(memory);
-			nodeOrder.add(graph.getNodeArray()[i]);
+			nodeOrder.add(nodes[i]);
 		}
 	}
 	
@@ -164,15 +166,15 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 	 * @param memories the speakers memories
 	 * @param listener the listener
 	 * @return the next label
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	protected int getNextLabel(CustomGraph graph, List<List<Integer>> memories, Node listener) {
+	protected int getNextLabel(CustomGraph graph, List<List<Integer>> memories, Node listener) throws InterruptedException {
 		Map<Node, Integer> receivedLabels = new HashMap<Node, Integer>();
-		NodeCursor speakers = listener.successors();
+		Iterator<Node> speakersIt = graph.getSuccessorNeighbours(listener).iterator();
 		Node speaker;
-		while(speakers.ok()) {
-			speaker = speakers.node();
-			receivedLabels.put(speaker, speakerRule.getLabel(graph, speaker, memories.get(speaker.index())));
-			speakers.next();
+		while(speakersIt.hasNext()) {
+			speaker = speakersIt.next();
+			receivedLabels.put(speaker, speakerRule.getLabel(graph, speaker, memories.get(speaker.getIndex())));
 		}
 		return listenerRule.getLabel(graph, listener, receivedLabels);
 	}
@@ -207,7 +209,7 @@ public class SpeakerListenerLabelPropagationAlgorithm implements
 				/*
 				 * Adapts matrix size for new communities.
 				 */
-		    	membershipMatrix = membershipMatrix.resize(graph.nodeCount(), nodeMembershipDegrees.length());
+		    	membershipMatrix = membershipMatrix.resize(graph.getNodeCount(), nodeMembershipDegrees.length());
 		    }
 		    membershipMatrix.setRow(i, nodeMembershipDegrees);
 		}

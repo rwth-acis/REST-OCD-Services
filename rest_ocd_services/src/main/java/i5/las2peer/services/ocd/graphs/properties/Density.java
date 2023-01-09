@@ -19,7 +19,7 @@ public class Density extends AbstractProperty {
 		if (graph == null)
 			throw new IllegalArgumentException();
 		
-		return calculate(graph.nodeCount(), graph.edgeCount());
+		return calculate(graph.getNodeCount(), graph.getEdgeCount());
 	}
 	
 	/**

@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -12,14 +9,14 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.algo.NetworkFlows;
-import y.base.DataProvider;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.EdgeMap;
-import y.base.Node;
-import y.base.NodeCursor;
-import y.util.Maps;
+import org.graphstream.algorithm.flow.FlowAlgorithmBase;
+import org.graphstream.algorithm.flow.FordFulkersonAlgorithm;
+import org.graphstream.graph.Edge;
+
+
+import org.graphstream.graph.Node;
+
+
 
 /**
  * Implementation of Flow Centrality.
@@ -32,21 +29,32 @@ public class FlowBetweenness implements CentralityAlgorithm {
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.FLOW_BETWEENNESS, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
-		
-		Node[] nodeArray = graph.getNodeArray();
-		// The flow capacities are given by the edge weights, only integers are supported
-		double[] weights = graph.getEdgeWeights();
-		int[] intWeights = new int[weights.length];
-		for(int i = 0; i < graph.getEdgeWeights().length; i++) {
-			intWeights[i] = (int) weights[i];
+
+		Node[] nodeArray = graph.nodes().toArray(Node[]::new);
+
+		FordFulkersonAlgorithm fordFulkerson = new FordFulkersonAlgorithm();
+		fordFulkerson.init(graph);
+
+
+
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+		while(edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
+			if(graph.isWeighted()) {
+				double modifiedWeight = 0.0f;
+				modifiedWeight = graph.getEdgeWeight(edge);
+
+				fordFulkerson.setCapacity(edge.getSourceNode(), edge.getTargetNode(), fordFulkerson.getCapacity(edge.getSourceNode(), edge.getTargetNode()) + modifiedWeight);
+			}
+			else {
+				fordFulkerson.setCapacity(edge.getSourceNode(), edge.getTargetNode(), 1.0);
+			}
 		}
-		DataProvider capacities = Maps.createIndexEdgeMap(intWeights);
 		
 		// Set initial values to 0
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), 0.0);
-			nc.next();
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
+			res.setNodeValue(nc.next(), 0.0);
 		}
 		
 		// For each pair (i,j) of nodes calculate the maximum flow and add flows through the individual nodes to their centrality values
@@ -59,29 +67,41 @@ public class FlowBetweenness implements CentralityAlgorithm {
 				if(i != j) {
 					Node sink = nodeArray[j];
 					
-					// Instantiate data structures
-					Map<Edge, Integer> flowMap = new HashMap<Edge, Integer>();
-					EdgeMap flowEdgeMap = Maps.createEdgeMap(flowMap);
 					
 					// Calculate maximum flows with given source and sink
-					int maximumFlow = NetworkFlows.calcMaxFlow(graph, source, sink, capacities, flowEdgeMap);
-					
+					//TODO: Check whether yFiles and graphstream work differently with calculating flow when there are multi-edges or simply forward/backward edges
+					//int maximumFlow = NetworkFlows.calcMaxFlow(graph, source, sink, capacities, flowEdgeMap);
+					fordFulkerson.setSourceId(source.getId());
+					fordFulkerson.setSinkId(sink.getId());
+
+					if(Objects.equals(source.getId(), "1") && Objects.equals(sink.getId(), "0")) { //TODO: Remove
+						System.out.println();
+					}
+
+					fordFulkerson.compute();
+					double maximumFlow = fordFulkerson.getMaximumFlow();
+
 					// Measure flow through all the nodes
-					nc = graph.nodes();
-					while(nc.ok()) {
-						Node node = nc.node();
+					nc = graph.iterator();
+					while(nc.hasNext()) {
+						Node node = nc.next();
 						if(node != source && node != sink && maximumFlow != 0) {
 							// Calculate flow through node
 							int maximumFlowThroughNode = 0;
-							EdgeCursor inEdges = node.inEdges();
-							while(inEdges.ok()) {
-								maximumFlowThroughNode += flowEdgeMap.getInt(inEdges.edge());
-								inEdges.next();
+							Set<Node> inNeighborsCheck = graph.getPredecessorNeighbours(node);
+							Iterator<Node> inNeighbors = graph.getPredecessorNeighbours(node).iterator();
+							while(inNeighbors.hasNext()) {
+								Node nextneighbor = inNeighbors.next();
+								if (!graph.isDirected()) {
+									maximumFlowThroughNode += fordFulkerson.getFlow(nextneighbor, node) < 0 ? -fordFulkerson.getFlow(nextneighbor, node) : fordFulkerson.getFlow(nextneighbor, node); //counter-act negative flows from graphstream for back edges in undirected graphs
+								}
+								else {
+									maximumFlowThroughNode += fordFulkerson.getFlow(nextneighbor, node) < 0 ? 0 : fordFulkerson.getFlow(nextneighbor, node); //TODO: Check this with graph that have forth/back edges
+								}
 							}
 							res.setNodeValue(node, res.getNodeValue(node) + maximumFlowThroughNode/maximumFlow);
 						}
-						nc.next();
-					}	
+					}
 				}
 			}	
 		}

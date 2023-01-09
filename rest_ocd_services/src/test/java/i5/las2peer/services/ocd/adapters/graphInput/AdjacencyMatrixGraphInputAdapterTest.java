@@ -4,14 +4,14 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.Iterator;
 
 import org.junit.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 public class AdjacencyMatrixGraphInputAdapterTest {
 
@@ -20,14 +20,13 @@ public class AdjacencyMatrixGraphInputAdapterTest {
 		GraphInputAdapter inputAdapter =
 				new AdjacencyMatrixGraphInputAdapter(new FileReader(OcdTestConstants.sawmillAdjacencyMatrixInputPath));
 		CustomGraph graph = inputAdapter.readGraph();
-		assertEquals(36, graph.nodeCount());
-		assertEquals(62, graph.edgeCount());
-		NodeCursor nodes = graph.nodes();
-		while(nodes.ok()) {
-			Node node = nodes.node();
-			assertEquals(graph.getNodeName(node), Integer.toString(node.index()+1));
-			nodes.next();
+		assertEquals(36, graph.getNodeCount());
+		assertEquals(62, graph.getEdgeCount());
+		Iterator<Node> nodes = graph.iterator();
+		while(nodes.hasNext()) {
+			Node node = nodes.next();
+			assertEquals(graph.getNodeName(node), Integer.toString(node.getIndex()+1));
 		}
 	}
-	}
+}
 

@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -12,8 +9,9 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiNode;
+
 
 /**
  * Implementation of the H-index.
@@ -28,24 +26,23 @@ public class HIndex implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.H_INDEX, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();		
+			Node node = nc.next();		
 			int h = 0;
 			boolean checkNext = true;
-			NodeCursor neighbors = node.successors();		
-			while(graph.getWeightedNodeDegree(node)/2 >= h && checkNext) {
+			Iterator<Node> neighbors = graph.getSuccessorNeighbours(node).iterator();
+			while(graph.getWeightedNodeDegree((MultiNode) node)/2 >= h && checkNext) {
 				checkNext = false;
-				neighbors.toFirst();
+				neighbors = graph.getSuccessorNeighbours(node).iterator();
 				int counter = 0;		
-				while(neighbors.ok() && counter < h) {
-					if(graph.getWeightedNodeDegree(neighbors.node())/2 >= h) {
+				while(neighbors.hasNext() && counter < h) {
+					if(graph.getWeightedNodeDegree((MultiNode) neighbors.next())/2 >= h) {
 						counter++;
 					}
-					neighbors.next();
 				}
 				if(counter >= h) {
 					h++;
@@ -53,7 +50,6 @@ public class HIndex implements CentralityAlgorithm {
 				}
 			}
 			res.setNodeValue(node, h-1);
-			nc.next();
 		}
 		return res;
 	}

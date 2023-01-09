@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
@@ -17,8 +14,8 @@ import i5.las2peer.services.ocd.centrality.utils.MatrixOperations;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 
 /**
  * Implementation of Bargaining Centrality.
@@ -39,50 +36,40 @@ public class BargainingCentrality implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.BARGAINING_CENTRALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
+		Node[] nc = graph.nodes().toArray(Node[]::new);
 		// If the graph contains no edges
-		if(graph.edgeCount() == 0) {
-			while(nc.ok()) {
-				Node node = nc.node();
+		if(graph.getEdgeCount() == 0) {
+			for(Node node : nc) {
 				res.setNodeValue(node, 0);
-				nc.next();
 			}
 			return res;
 		}
 		
-		int n = nc.size();
+		int n = nc.length;
 		Matrix R = graph.getNeighbourhoodMatrix();
 		Vector c = new BasicVector(n);
 		
 		for(int k = 0; k < 50; k++) {
-			while(nc.ok()) {
+			for(Node i : nc) {
 				if(Thread.interrupted()) {
 					throw new InterruptedException();
 				}
-				Node i = nc.node();
 				double sum = 0.0;
-				NodeCursor neighbors = i.successors();
-				while(neighbors.ok()) {
-					Node j = neighbors.node();
-					double Rij = R.get(i.index(), j.index());
-					double cj = c.get(j.index());
+				Set<Node> neighbors = graph.getSuccessorNeighbours(i);
+				for(Node j : neighbors) {
+					double Rij = R.get(i.getIndex(), j.getIndex());
+					double cj = c.get(j.getIndex());
 					sum += (alpha + beta * cj) * Rij;
-					neighbors.next();
-				}	
-				c.set(i.index(), sum);
-				nc.next();
+				}
+				c.set(i.getIndex(), sum);
 			}
-			nc.toFirst();
 		}
 		
 		double norm = MatrixOperations.norm(c);
 		c = c.multiply(n/norm);
-		
-		nc.toFirst();
-		while(nc.ok()) {
-			Node node = nc.node();
-			res.setNodeValue(node, c.get(node.index()));
-			nc.next();
+
+		for(Node node : nc) {
+			res.setNodeValue(node, c.get(node.getIndex()));
 		}
 		return res;
 	}

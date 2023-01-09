@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -95,9 +95,10 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 		try {
 			if(!involvedUsers.isEmpty()) {
 				//System.out.println("Users: " + involvedUsers + " " + involvedUsers.size() + " <" + involvedUserURIs + ">");
+				int i = 0;
 				for(String userUri : involvedUsers) {
 					if(users.containsKey(userUri)) {
-						Node userNode = graph.createNode(); 
+						Node userNode = graph.addNode(Integer.toString(i++));
 						if(showUserNames) {
 							graph.setNodeName(userNode, users.get(userUri));
 						}
@@ -111,8 +112,9 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 			}
 			else {
 				//create nodes for all users
+				int i = 0;
 				for(Map.Entry<String, String> user : users.entrySet()) {
-					Node userNode = graph.createNode(); 
+					Node userNode = graph.addNode(Integer.toString(i++));
 					if(showUserNames) {
 						graph.setNodeName(userNode, user.getValue());
 					}
@@ -137,7 +139,7 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 				for(String interactingUser : interactingUsers) {
 					//System.out.println("USERS: " + user.getKey() + " " + interactingUser);
 					if(nodeIds.containsKey(interactingUser)) {
-						graph.createEdge(nodeIds.get(interactingUser), user.getValue());
+						graph.addEdge(UUID.randomUUID().toString(), nodeIds.get(interactingUser), user.getValue());
 					}
 				}
 			}

@@ -21,10 +21,11 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import i5.las2peer.services.ocd.algorithms.utils.Similarities;
 import i5.las2peer.services.ocd.algorithms.utils.Point;
-import y.base.Node;
 import i5.las2peer.services.ocd.algorithms.utils.Cluster;
 import i5.las2peer.services.ocd.algorithms.utils.CostFunction;
 import i5.las2peer.services.ocd.algorithms.utils.Clustering;
+
+import org.graphstream.graph.Node;
 
 /**
  * Implements one of the algorithms by Sabrina Haefele conceived in the thesis:

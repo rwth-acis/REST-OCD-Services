@@ -32,62 +32,61 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 @MappedSuperclass
 public abstract class SimulationAbstract implements TableInterface {
 
+	//ArangoDB
+	public static final String nameColumnName = "NAME";
+	public static final String userIdColumnName = "USER";
+	public static final String cooperativiatyColumnName = "COOPERATIVIATY";
+	public static final String wealthColumnName = "WEALTH";
+	public static final String cooperationEvaluationColumnName = "COOPERATION_EVALUATION";
+	public static final String payoffEvaluationColumnName = "PAYOFF_EVALUATION";
+	public static final String generationEvaluationColumnName = "GENERATION_EVALUATION";
+	public static final String graphKeyName = "GRAPH_KEY";
+
+	////////// Entity Fields //////////
+
 	/**
-	 * The id is used as persistence primary key
+	 * System generated persistence key.
 	 */
-	@Id
-	@GeneratedValue
-	private long Id;
+	private String key;
 
 	/**
 	 * The name of the simulation
 	 */
-	@Basic
+	@JsonProperty
 	private String name;
 
 	/**
 	 * The Id of the owning user
 	 */
-	@Basic
 	private String userId;
 
 	/**
 	 * cooperativity the simulation
 	 */
-	@Basic
 	private double cooperativiaty;
 
 	/**
 	 * Wealth the simulation
 	 */
-	@Basic
 	private double wealth;
 
 	/**
 	 * Statistical evaluation of the cooperation values of the
 	 * SimulationDatasets
 	 */
-	@Embedded
 	private Evaluation cooperationEvaluation;
+
 
 	/**
 	 * Statistical evaluation of the payoff values of the SimulationDatasets
 	 */
-	@AttributeOverrides({
-		    @AttributeOverride(name="average",column=@Column(name="payoffAverage")),
-			@AttributeOverride(name = "variance", column = @Column(name = "payoffvariance")),
-			@AttributeOverride(name = "deviation", column = @Column(name = "payoffdeviation")),
-			@AttributeOverride(name = "maximum", column = @Column(name = "payoffmaximum")),
-			@AttributeOverride(name = "minimum", column = @Column(name = "payoffminimum")),
-		  })
-	@Embedded
 	private Evaluation payoffEvaluation;
+
 
 	/**
 	 * Statistical evaluation of the number of generations of the
 	 * SimulationDatasets
 	 */
-	@Transient
 	private Evaluation generationEvaluation;
 
 	/*
@@ -100,53 +99,45 @@ public abstract class SimulationAbstract implements TableInterface {
 	/**
 	 * The network on which the simulation was performed.
 	 */
-	@ManyToOne(cascade = CascadeType.ALL, targetEntity = CustomGraph.class, fetch=FetchType.LAZY)
-	@JoinColumns({
-			@JoinColumn(name = "graphId", referencedColumnName = CustomGraph.idColumnName, insertable = false, updatable = false),
-			@JoinColumn(name = "username", referencedColumnName = CustomGraph.userColumnName, insertable = false, updatable = false) })
-	private CustomGraph graph = new CustomGraph();
+	private CustomGraph graph;
 
 	///// Getter /////
 
 	/**
-	 * Returns a unique id.
-	 * 
-	 * @return the persistence id
-	 */
-	@JsonIgnore
-	public long getId() {
-		return this.Id;
-	}
-
-	/**
 	 * Returns the name or the id if no name is set.
-	 * 
+	 *
 	 * @return the name
 	 */
-	@Override
-	@JsonProperty
 	public String getName() {
 		if (name == null || name == "")
-			return String.valueOf(getId());
+			return String.valueOf(getKey());
 		return name;
 	}
 
-	@JsonIgnore
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	//@JsonIgnore
 	public String getUserId() {
 		return this.userId;
 	}
 
-	@JsonProperty
+	//@JsonProperty
 	public Evaluation getCooperationEvaluation() {
 		return cooperationEvaluation;
 	}
 
-	@JsonProperty
+	//@JsonProperty
 	public Evaluation getPayoffEvaluation() {
 		return payoffEvaluation;
 	}
 
-	@JsonProperty
+	//@JsonProperty
 	public Evaluation getGenerationEvaluation() {
 		return generationEvaluation;
 	}
@@ -155,7 +146,6 @@ public abstract class SimulationAbstract implements TableInterface {
 	 * @JsonProperty public Correlation getPayoffCorrelation() { return
 	 * payoffCorrelation; }
 	 */
-	
 	@JsonIgnore
 	public CustomGraph getNetwork() {
 		return this.graph;
@@ -173,7 +163,29 @@ public abstract class SimulationAbstract implements TableInterface {
 		return getPayoffEvaluation().getAverage();
 	}
 
-	///// Setter /////
+	public double getCooperativiaty() {
+		return cooperativiaty;
+	}
+
+	public void setCooperativiaty(double cooperativiaty) {
+		this.cooperativiaty = cooperativiaty;
+	}
+
+	public double getWealth() {
+		return wealth;
+	}
+
+	public void setWealth(double wealth) {
+		this.wealth = wealth;
+	}
+
+	public String getGraphKey() {
+		if (this.graph != null) {
+			return this.graph.getKey();
+		}else{
+			return null;
+		}
+	}
 
 	public void setName(String name) {
 		this.name = name;
@@ -183,36 +195,29 @@ public abstract class SimulationAbstract implements TableInterface {
 		this.userId = userId;
 	}
 
-	@JsonSetter
 	public void setNetwork(CustomGraph graph) {
 		this.graph = graph;
 	}
 
-	@JsonSetter
 	public void setCooperationEvaluation(Evaluation cooperationEvaluation) {
-		//@MaxKissgen SimulationSeriesTest calls this function with null, I added a Handler for this case as the test will otherwise fail through a NullPointerException
-		if(cooperationEvaluation == null)
-			this.cooperationEvaluation = new Evaluation();
-		else
+		if(cooperationEvaluation != null) {
 			this.cooperationEvaluation = cooperationEvaluation;
-		
-		this.cooperativiaty = this.cooperationEvaluation.getAverage();
+			this.cooperativiaty = this.cooperationEvaluation.getAverage();
+		}
 	}
 
-	@JsonSetter
 	public void setPayoffEvaluation(Evaluation payoffEvaluation) {
-		//@MaxKissgen SimulationSeriesTest calls this function with null, I added a Handler for this case as the test will otherwise fail through a NullPointerException
-		if(payoffEvaluation == null)
-			this.payoffEvaluation = new Evaluation();
-		else
+
+		if(payoffEvaluation != null) {  //TODO: this was == instead of !=, probably bug? but how come code worked?
 			this.payoffEvaluation = payoffEvaluation;
-		
-		this.wealth = this.payoffEvaluation.getAverage();
+			this.wealth = this.payoffEvaluation.getAverage();
+		}
 	}
 
-	@JsonSetter
 	public void setGenerationEvaluation(Evaluation generationEvaluation) {
-		this.generationEvaluation = generationEvaluation;
+		if (generationEvaluation != null) {
+			this.generationEvaluation = generationEvaluation;
+		}
 	}
 
 	/*
@@ -240,10 +245,8 @@ public abstract class SimulationAbstract implements TableInterface {
 		return null;
 	}
 
-	@Override
 	public Table toTable() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

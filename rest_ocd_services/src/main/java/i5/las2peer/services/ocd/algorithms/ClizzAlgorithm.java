@@ -21,8 +21,9 @@ import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 import org.la4j.vector.functor.VectorAccumulator;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * The original version of the overlapping community detection algorithm introduced in 2012 by H.J. Li, J. Zhang, Z.P. Liu, L. Chen and X.S. Zhang:
@@ -152,36 +153,32 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 		Matrix updatedMemberships = initMembershipMatrix(graph, leaders);
 		Vector membershipContributionVector;
 		Vector updatedMembershipVector;
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
-		NodeCursor successors;
-		Node successor;
+		Set<Node> successors;
 		int iteration = 0;
 		do {
 			memberships = updatedMemberships;
 			updatedMemberships = new CCSMatrix(memberships.rows(), memberships.columns());
-			while(nodes.ok()) {
+			while(nodesIt.hasNext()) {
 				if(Thread.interrupted()) {
 					throw new InterruptedException();
 				}
-				node = nodes.node();
+				node = nodesIt.next();
 				if(!leaders.keySet().contains(node)) {
-					successors = node.successors();
-					updatedMembershipVector = memberships.getRow(node.index());
-					while(successors.ok()) {
-						successor = successors.node();
-						membershipContributionVector = memberships.getRow(successor.index());
+					successors = graph.getSuccessorNeighbours(node);
+					updatedMembershipVector = memberships.getRow(node.getIndex());
+					for(Node successor : successors) {
+						membershipContributionVector = memberships.getRow(successor.getIndex());
 						updatedMembershipVector = updatedMembershipVector.add(membershipContributionVector);
-						successors.next();
 					}
-					updatedMemberships.setRow(node.index(), updatedMembershipVector.divide(1 + successors.size()));
+					updatedMemberships.setRow(node.getIndex(), updatedMembershipVector.divide(1 + successors.size()));
 				}
 				else {
-					updatedMemberships.set(node.index(), leaders.get(node), 1);
+					updatedMemberships.set(node.getIndex(), leaders.get(node), 1);
 				}
-				nodes.next();
 			}
-			nodes.toFirst();
+			nodesIt = graph.iterator();
 			iteration++;
 		} while (getMaxDifference(updatedMemberships, memberships) > membershipsPrecisionFactor
 				&& iteration < membershipsIterationBound);
@@ -225,23 +222,22 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 */
 	protected Matrix initMembershipMatrix(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
 		int communityCount = Collections.max(leaders.values()) + 1;
-		Matrix memberships = new CCSMatrix(graph.nodeCount(), communityCount);
-		NodeCursor nodes = graph.nodes();
+		Matrix memberships = new CCSMatrix(graph.getNodeCount(), communityCount);
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
-		while(nodes.ok()) {
+		while(nodesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			node = nodes.node();
+			node = nodesIt.next();
 			if(leaders.keySet().contains(node)) {
-				memberships.set(node.index(), leaders.get(node), 1);
+				memberships.set(node.getIndex(), leaders.get(node), 1);
 			}
 			else {
 				for(int i=0; i<memberships.columns(); i++) {
-					memberships.set(node.index(), i, 1d / communityCount);
+					memberships.set(node.getIndex(), i, 1d / communityCount);
 				}
 			}
-			nodes.next();
 		}
 		return memberships;
 	}
@@ -256,7 +252,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Integer> determineCommunityLeaders(CustomGraph graph, Matrix distances, Map<Node, Double> leadershipValues) throws InterruptedException {
-		Node[] nodeArray = graph.getNodeArray();
+		Node[] nodeArray =  graph.nodes().toArray(Node[]::new);
 		Map<Node, Integer> communityLeaders = new HashMap<Node, Integer>();
 		int communityCount = 0;
 		Set<Node> leaders = determineLeaders(graph, distances, leadershipValues);
@@ -270,7 +266,7 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 			leader = leaderIt.next();
 			communityLeaders.put(leader, communityCount);
 			leaders.remove(leader);
-			for(Integer i : getInfluenceNodes(distances.getRow(leader.index()), distances.getColumn(leader.index()))) {
+			for(Integer i : getInfluenceNodes(distances.getRow(leader.getIndex()), distances.getColumn(leader.getIndex()))) {
 				influenceNode = nodeArray[i];
 				if(leaders.contains(influenceNode)) {
 					communityLeaders.put(influenceNode, communityCount);
@@ -296,29 +292,27 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 */
 	protected Set<Node> determineLeaders(CustomGraph graph, Matrix distances, Map<Node, Double> leadershipValues) throws InterruptedException {
 		Set<Node> leaders = new HashSet<Node>();
-		NodeCursor nodes = graph.nodes();
-		Node[] nodeArray = graph.getNodeArray();
+		Iterator<Node> nodesIt = graph.iterator();
+		Node[] nodeArray = graph.nodes().toArray(Node[]::new);
 		Node node;
-		while(nodes.ok()) {
-			leaders.add(nodes.node());
-			nodes.next();
+		while(nodesIt.hasNext()) {
+			leaders.add(nodesIt.next());
 		}
-		nodes.toFirst();
-		while(nodes.ok()) {
+		nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			node = nodes.node();
+			node = nodesIt.next();
 			if(leaders.contains(node)) {
 				double nodeLeadershipValue = leadershipValues.get(node);
-				for(Integer i : getInfluenceNodes(distances.getRow(node.index()), distances.getColumn(node.index()))) {
+				for(Integer i : getInfluenceNodes(distances.getRow(node.getIndex()), distances.getColumn(node.getIndex()))) {
 					if(leadershipValues.get(nodeArray[i]) > nodeLeadershipValue) {
 						leaders.remove(node);
 						break;
 					}
 				}
 			}
-			nodes.next();
 		}
 		return leaders;
 	}
@@ -333,16 +327,15 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Map<Node, Double> calculateLeadershipValues(CustomGraph graph, Matrix distances) throws InterruptedException {
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		Map<Node, Double> leadershipValues = new HashMap<Node, Double>();
-		while(nodes.ok()) {
+		while(nodesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			node = nodes.node();
-			leadershipValues.put(node, getLeadershipValue(distances.getColumn(node.index())));
-			nodes.next();
+			node = nodesIt.next();
+			leadershipValues.put(node, getLeadershipValue(distances.getColumn(node.getIndex())));
 		}
 		return leadershipValues;
 	}
@@ -357,20 +350,20 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Matrix calculateNodeDistances(CustomGraph graph) throws InterruptedException {
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
-		NodeCursor predecessors;
+		Iterator<Node> predecessorsIt;
 		Node predecessor;
 		double edgeWeight;
 		double minEdgeWeight = graph.getMinEdgeWeight();
 		double maxEdgeWeight = graph.getMaxEdgeWeight();
 		Map<Node, Double> influencedNodeDistances = new HashMap<Node, Double>();
 		Map<Node, Double> candidateNodeDistances = new HashMap<Node, Double>();
-		Matrix nodeDistances = new CCSMatrix(graph.nodeCount(), graph.nodeCount());
+		Matrix nodeDistances = new CCSMatrix(graph.getNodeCount(), graph.getNodeCount());
 		Node closestCandidate;
 		double closestCandidateDistance;
 		double updatedDistance;
-		while(nodes.ok()) {
+		while(nodesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
@@ -379,17 +372,16 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 			 */
 			influencedNodeDistances.clear();
 			candidateNodeDistances.clear();
-			node = nodes.node();
+			node = nodesIt.next();
 			influencedNodeDistances.put(node, 0d);
 			/*
 			 * Initializes node predecessors.
 			 */
-			predecessors = node.predecessors();
-			while(predecessors.ok()) {
-				predecessor = predecessors.node();
+			predecessorsIt = graph.getPredecessorNeighbours(node).iterator();
+			while(predecessorsIt.hasNext()) {
+				predecessor = predecessorsIt.next();
 				edgeWeight = graph.getEdgeWeight(node.getEdgeFrom(predecessor));
 				candidateNodeDistances.put(predecessor, getEdgeLength(edgeWeight, minEdgeWeight, maxEdgeWeight));
-				predecessors.next();
 			}
 			/*
 			 * Determines node distances to predecessors.
@@ -413,9 +405,9 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 				if(closestCandidateDistance <= distanceBound) {
 					influencedNodeDistances.put(closestCandidate, closestCandidateDistance);
 					candidateNodeDistances.remove(closestCandidate);
-					predecessors = closestCandidate.predecessors();
-					while(predecessors.ok()) {
-						predecessor = predecessors.node();
+					predecessorsIt = graph.getPredecessorNeighbours(closestCandidate).iterator();
+					while(predecessorsIt.hasNext()) {
+						predecessor = predecessorsIt.next();
 						edgeWeight = graph.getEdgeWeight(closestCandidate.getEdgeFrom(predecessor));
 						updatedDistance = closestCandidateDistance + getEdgeLength(edgeWeight, minEdgeWeight, maxEdgeWeight);
 						if(candidateNodeDistances.containsKey(predecessor)) {
@@ -425,7 +417,6 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 						else if(!influencedNodeDistances.containsKey(predecessor)) {
 							candidateNodeDistances.put(predecessor, updatedDistance);
 						}
-						predecessors.next();
 					}
 				}
 				
@@ -435,9 +426,8 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 			 */
 			influencedNodeDistances.remove(node);
 			for(Map.Entry<Node, Double> entry : influencedNodeDistances.entrySet()) {
-				nodeDistances.set(entry.getKey().index(), node.index(), entry.getValue());
+				nodeDistances.set(entry.getKey().getIndex(), node.getIndex(), entry.getValue());
 			}
-			nodes.next();
 		}
 		return nodeDistances;
 	}

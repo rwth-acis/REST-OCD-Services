@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -12,9 +9,9 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
-import y.algo.ShortestPaths;
+import org.graphstream.algorithm.Dijkstra;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 /**
  * Implementation of Closeness Centrality.
@@ -28,27 +25,48 @@ public class ClosenessCentrality implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.CLOSENESS_CENTRALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
+		Iterator<Node> nc = graph.iterator();
 		// If there is only a single node
-		if(graph.nodeCount() == 1) {
-			res.setNodeValue(nc.node(), 0);
+		if(graph.getNodeCount() == 1) {
+			res.setNodeValue(nc.next(), 0);
 			return res;
 		}
-		
+
+		// Set edge length attribute for the Dijkstra algorithm
+		Iterator<Edge> edges = graph.edges().iterator();
+		Edge edge;
+		HashMap<Edge, Double> edgeweights = new HashMap<Edge, Double>();
+		while (edges.hasNext()) {
+			edge = edges.next();
+
+			edge.setAttribute("edgeLength", graph.getEdgeWeight(edge));
+		}
+
 		double[] edgeWeights = graph.getEdgeWeights();
-		while(nc.ok()) {
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
-			double[] dist = new double[graph.nodeCount()];
-			ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
+			Node node = nc.next();
+			double[] distArray = new double[graph.getNodeCount()];
+
+			// Length is determined by edge weight
+			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "edgeLength");
+			dijkstra.init(graph);
+			dijkstra.setSource(node);
+			dijkstra.compute();
+
+			Iterator<Node> iterator = graph.iterator();
+			int k = 0;
 			double distSum = 0.0;
-			for(double d : dist) {
+			while(iterator.hasNext()) {
+				double d = dijkstra.getPathLength(iterator.next());
+				distArray[k] = d;
 				distSum += d;
+				k++;
 			}
-			res.setNodeValue(node, (graph.nodeCount()-1)/distSum);
-			nc.next();
+
+			res.setNodeValue(node, (graph.getNodeCount()-1)/distSum);
 		}
 		return res;
 	}

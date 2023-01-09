@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -27,8 +28,8 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.preprocessing.TextProcessor;
 import i5.las2peer.services.ocd.utils.DocIndexer;
 //import i5.las2peer.services.ocd.utils.DocIndexer;
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 public class XMLGraphInputAdapter extends AbstractGraphInputAdapter{
 
@@ -119,7 +120,7 @@ public class XMLGraphInputAdapter extends AbstractGraphInputAdapter{
 					String customNodeParent = e.getAttribute("ParentId");
 					// node does not yet exist
 					if(!nodeNames.containsKey(customNodeName)){
-						node = graph.createNode();						//create new node and add attributes
+						node = graph.addNode(customNodeName);						//create new node and add attributes
 						graph.setNodeName(node , customNodeName);
 						nodeIds.put(customNodeId, node);
 						nodeContents.put(customNodeName, customNodeContent);
@@ -171,7 +172,7 @@ public class XMLGraphInputAdapter extends AbstractGraphInputAdapter{
 				HashMap<String,Integer> list = entry.getValue();
 				for(Entry<String,Integer> e : list.entrySet()){
 					if(nodeIds.containsKey(e.getKey())){
-						Edge edge = graph.createEdge(curr, nodeIds.get(e.getKey()));
+						Edge edge = graph.addEdge(UUID.randomUUID().toString(), curr, nodeIds.get(e.getKey()));
 						graph.setEdgeWeight(edge, e.getValue());
 					}
 				}
@@ -185,10 +186,8 @@ public class XMLGraphInputAdapter extends AbstractGraphInputAdapter{
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (DOMException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return graph;

@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CommunityTest {

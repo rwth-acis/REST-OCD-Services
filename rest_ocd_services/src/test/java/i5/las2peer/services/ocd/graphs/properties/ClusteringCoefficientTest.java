@@ -7,9 +7,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import java.util.UUID;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ClusteringCoefficientTest {
@@ -73,31 +74,31 @@ public class ClusteringCoefficientTest {
 	}
 	
 	@Test
-	public void calculateNodeLocalUndirected() {
+	public void calculateNodeLocalUndirected() throws InterruptedException {
 
 		CustomGraph graph = new CustomGraph();
-		Node n1 = graph.createNode();
-		Node n2 = graph.createNode();
-		Node n3 = graph.createNode();
-		Node n4 = graph.createNode();
-		Node n5 = graph.createNode();
-		Node n6 = graph.createNode();
+		Node n1 = graph.addNode(Integer.toString(1));
+		Node n2 = graph.addNode(Integer.toString(2));
+		Node n3 = graph.addNode(Integer.toString(3));
+		Node n4 = graph.addNode(Integer.toString(4));
+		Node n5 = graph.addNode(Integer.toString(5));
+		Node n6 = graph.addNode(Integer.toString(6));
 		
-		graph.createEdge(n1, n2);
-		graph.createEdge(n2, n1);		
-		graph.createEdge(n1, n3);
-		graph.createEdge(n3, n1);		
-		graph.createEdge(n1, n4);
-		graph.createEdge(n4, n1);
-		graph.createEdge(n1, n5);
-		graph.createEdge(n5, n1);
-		graph.createEdge(n1, n6);
-		graph.createEdge(n6, n1);
+		graph.addEdge(UUID.randomUUID().toString(), n1, n2);
+		graph.addEdge(UUID.randomUUID().toString(), n2, n1);
+		graph.addEdge(UUID.randomUUID().toString(), n1, n3);
+		graph.addEdge(UUID.randomUUID().toString(), n3, n1);
+		graph.addEdge(UUID.randomUUID().toString(), n1, n4);
+		graph.addEdge(UUID.randomUUID().toString(), n4, n1);
+		graph.addEdge(UUID.randomUUID().toString(), n1, n5);
+		graph.addEdge(UUID.randomUUID().toString(), n5, n1);
+		graph.addEdge(UUID.randomUUID().toString(), n1, n6);
+		graph.addEdge(UUID.randomUUID().toString(), n6, n1);
 		
-		graph.createEdge(n2, n3);
-		graph.createEdge(n3, n2);		
-		graph.createEdge(n5, n4);
-		graph.createEdge(n4, n5);		
+		graph.addEdge(UUID.randomUUID().toString(), n2, n3);
+		graph.addEdge(UUID.randomUUID().toString(), n3, n2);
+		graph.addEdge(UUID.randomUUID().toString(), n5, n4);
+		graph.addEdge(UUID.randomUUID().toString(), n4, n5);
 		
 		property.calculateLocal(n1, graph);
 		Mockito.verify(property, Mockito.times(1)).localUndirected(2, 5);
@@ -105,27 +106,27 @@ public class ClusteringCoefficientTest {
 	}	
 	
 	@Test
-	public void calculateNodeLocal() {
+	public void calculateNodeLocal() throws InterruptedException {
 
 		CustomGraph graph = new CustomGraph();
-		Node n1 = graph.createNode();
-		Node n2 = graph.createNode();
-		Node n3 = graph.createNode();
-		Node n4 = graph.createNode();
-		graph.createEdge(n1, n2);
-		graph.createEdge(n2, n1);
-		
-		graph.createEdge(n1, n3);
-		graph.createEdge(n3, n1);
-		
-		graph.createEdge(n1, n4);
-		graph.createEdge(n4, n1);
-		
-		graph.createEdge(n2, n3);
-		graph.createEdge(n3, n2);
-		
-		graph.createEdge(n3, n4);
-		graph.createEdge(n4, n3);		
+		Node n1 = graph.addNode(Integer.toString(1));
+		Node n2 = graph.addNode(Integer.toString(2));
+		Node n3 = graph.addNode(Integer.toString(3));
+		Node n4 = graph.addNode(Integer.toString(4));
+		graph.addEdge(UUID.randomUUID().toString(), n1, n2);
+		graph.addEdge(UUID.randomUUID().toString(), n2, n1);
+
+		graph.addEdge(UUID.randomUUID().toString(), n1, n3);
+		graph.addEdge(UUID.randomUUID().toString(), n3, n1);
+
+		graph.addEdge(UUID.randomUUID().toString(), n1, n4);
+		graph.addEdge(UUID.randomUUID().toString(), n4, n1);
+
+		graph.addEdge(UUID.randomUUID().toString(), n2, n3);
+		graph.addEdge(UUID.randomUUID().toString(), n3, n2);
+
+		graph.addEdge(UUID.randomUUID().toString(), n3, n4);
+		graph.addEdge(UUID.randomUUID().toString(), n4, n3);
 		
 		property.calculateLocal(n1, graph);
 		Mockito.verify(property, Mockito.times(1)).localUndirected(2, 3);
@@ -133,25 +134,25 @@ public class ClusteringCoefficientTest {
 	}
 	
 	@Test
-	public void initialize() {
+	public void initialize() throws InterruptedException {
 
 		CustomGraph graph = new CustomGraph();
-		Node n1 = graph.createNode();
-		Node n2 = graph.createNode();
-		Node n3 = graph.createNode();
-		Node n4 = graph.createNode();
-		graph.createEdge(n1, n2);
-		graph.createEdge(n2, n1);
-		
-		graph.createEdge(n1, n3);
-		graph.createEdge(n3, n1);
-		
-		graph.createEdge(n2, n3);
-		graph.createEdge(n3, n2);
-		
-		graph.createEdge(n3, n4);
-		graph.createEdge(n4, n3);
-				
+		Node n1 = graph.addNode(Integer.toString(1));
+		Node n2 = graph.addNode(Integer.toString(2));
+		Node n3 = graph.addNode(Integer.toString(3));
+		Node n4 = graph.addNode(Integer.toString(4));
+		graph.addEdge(UUID.randomUUID().toString(), n1, n2);
+		graph.addEdge(UUID.randomUUID().toString(), n2, n1);
+
+		graph.addEdge(UUID.randomUUID().toString(), n1, n3);
+		graph.addEdge(UUID.randomUUID().toString(), n3, n1);
+
+		graph.addEdge(UUID.randomUUID().toString(), n2, n3);
+		graph.addEdge(UUID.randomUUID().toString(), n3, n2);
+
+		graph.addEdge(UUID.randomUUID().toString(), n3, n4);
+		graph.addEdge(UUID.randomUUID().toString(), n4, n3);
+
 		property.calculate(graph);
 		Mockito.verify(property, Mockito.times(2)).localUndirected(1, 2);
 		Mockito.verify(property, Mockito.times(1)).localUndirected(1, 3);

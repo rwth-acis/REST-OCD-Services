@@ -29,10 +29,7 @@ public class CentralityAlgorithmRunnable implements Runnable {
 	 * The thread handler in charge of the runnable execution.
 	 */
 	private ThreadHandler threadHandler;
-	/**
-	 * The entity handler in charge of accessing persisted data.
-	 */
-	private EntityHandler entityHandler = new EntityHandler();
+
 	
 	/**
 	 * Creates a new instance.
@@ -52,30 +49,36 @@ public class CentralityAlgorithmRunnable implements Runnable {
 		/*
 		 * Set algorithm state to running.
 		 */
-		CustomGraphId graphId = new CustomGraphId(map.getGraph().getId(), map.getGraph().getUserName());
-    	CentralityMapId id = new CentralityMapId(map.getId(), graphId);
+		String mKey = map.getKey();
+		String gKey = map.getGraph().getKey();
+		String user = map.getGraph().getUserName();
+		CustomGraphId graphId = new CustomGraphId(gKey, user);	
+		//System.out.println("Map Key : " + mKey + " gKey: " + gKey);
+    	CentralityMapId id = new CentralityMapId(mKey, graphId);
+    	
     	RequestHandler requestHandler = new RequestHandler();
-    	EntityManager em = entityHandler.getEntityManager();
-    	EntityTransaction tx = em.getTransaction();
+    	
+    	DatabaseConfig.setConfigFile(false);
+    	Database database = new Database();
 		try {
-			tx.begin();
-			CentralityMap map = em.find(CentralityMap.class, id);
-			if(map == null) {
+			CentralityMap m = database.getCentralityMap(user, gKey, mKey);
+			if(m == null) {
 				/*
 				 * Should not happen.
 				 */
+				System.out.println("Centrality map deleted while algorithm running.");
 				requestHandler.log(Level.SEVERE, "Centrality map deleted while algorithm running.");
 				throw new IllegalStateException();
 			}
-			map.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
-			tx.commit();
-		} catch( RuntimeException e ) {
-			if( tx != null && tx.isActive() ) {
-				tx.rollback();
-			}
+			//System.out.println("CAR set status to running");
+			m.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
+			database.updateCentralityCreationLog(m);
+		} catch(RuntimeException e ) {
 			error = true;
+			e.printStackTrace();
+
 		}
-		em.close();
+
 		/*
 		 * Run algorithm.
 		 */

@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -12,8 +9,8 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of LocalRank.
@@ -29,40 +26,35 @@ public class LocalRank implements CentralityAlgorithm {
 		
 		int localrank = 0;
 		Set<Integer> oneOrTwoStepNeighbors = new HashSet<Integer>();
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
+			Node node = nc.next();
 			localrank = 0;	
-			NodeCursor c1 = node.successors();
-			while(c1.ok()) {
-				Node n1 = c1.node();
-				NodeCursor c2 = n1.successors();	
-				while(c2.ok()) {
-					Node n2 = c2.node();
+			Iterator<Node> c1 = graph.getSuccessorNeighbours(node).iterator();
+			while(c1.hasNext()) {
+				Node n1 = c1.next();
+				Iterator<Node> c2 = graph.getSuccessorNeighbours(n1).iterator();
+				while(c2.hasNext()) {
+					Node n2 = c2.next();
 					oneOrTwoStepNeighbors = new HashSet<Integer>();
-					NodeCursor c3 = n2.successors();
-					while(c3.ok()) {
-						Node n3 = c3.node();
-						oneOrTwoStepNeighbors.add(n3.index());
-						NodeCursor c4 = n3.successors();
-						while(c4.ok()) {
-							Node n4 = c4.node();
-							oneOrTwoStepNeighbors.add(n4.index());
-							c4.next();
+					Iterator<Node> c3 =graph.getSuccessorNeighbours(n2).iterator();
+					while(c3.hasNext()) {
+						Node n3 = c3.next();
+						oneOrTwoStepNeighbors.add(n3.getIndex());
+						Iterator<Node> c4 = graph.getSuccessorNeighbours(n3).iterator();
+						while(c4.hasNext()) {
+							Node n4 = c4.next();
+							oneOrTwoStepNeighbors.add(n4.getIndex());
 						}
-						c3.next();
 					}
-					oneOrTwoStepNeighbors.remove(n2.index());
+					oneOrTwoStepNeighbors.remove(n2.getIndex());
 					localrank += oneOrTwoStepNeighbors.size();
-					c2.next();
 				}
-				c1.next();
 			}
 			res.setNodeValue(node, localrank);
-			nc.next();
 		}
 		return res;
 	}

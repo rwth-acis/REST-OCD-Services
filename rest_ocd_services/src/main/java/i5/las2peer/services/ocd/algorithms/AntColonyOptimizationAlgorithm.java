@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 
 import java.lang.Double; 
 import java.lang.Math;
@@ -29,9 +30,9 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.dense.BasicVector;
-import y.base.Edge;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
 * The original version of the overlapping community detection algorithm introduced in 2020 by Ping Ji, Shanxin Zhang, Zhiping Zhou:
@@ -49,7 +50,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * maximal clique encoding. the integer represents the number of the clique and the Hashset stores the 
 	 * clique members
 	 */
-	private HashMap<Integer,HashSet<Node>> maxClq;
+	private HashMap<Integer, HashSet<Node>> maxClq;
 	
 	/**
 	 * number of ants/subproblems to solve. Must be at least 2 (Otherwise it will result in a division by 0). 
@@ -226,7 +227,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		// construct the maximal clique graph and initialize the parameters
 		CustomGraph MCR = representationScheme(graph);
-		int nodeNr = MCR.nodeCount(); 
+		int nodeNr = MCR.getNodeCount();
 		List<Ant> ants = initialization(MCR, nodeNr);
 		
 		for(int i = 0; i < maxIterations; i++) {// constructions of the Pareto Front (Pareto optimal solutions) 
@@ -251,8 +252,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * connected.
 	 * @param graph to make an Maximal Clique Graph from
 	 * @return encoded input graph
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	protected CustomGraph representationScheme(CustomGraph graph) {
+	protected CustomGraph representationScheme(CustomGraph graph) throws InterruptedException {
 		// maximal clique search 
 		MaximalCliqueSearch MCR = new MaximalCliqueSearch();
 		maxClq = MCR.cliques(graph);
@@ -265,16 +267,16 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		int nodes = maxClq.size(); 
 		CustomGraph encoding = new CustomGraph(); 
 		for(int i = 0; i < nodes; i++) {//creating clique nodes
-				encoding.createNode(); 
+				encoding.addNode(Integer.toString(i));
 		}
-		for(Node n1: encoding.getNodeArray()) { // creating clique edges 
-			int i1 = n1.index();
-			for(Node n2: encoding.getNodeArray()) {
-				int i2 = n2.index();
+		for(Node n1:  encoding.nodes().toArray(Node[]::new)) { // creating clique edges
+			int i1 = n1.getIndex();
+			for(Node n2:  encoding.nodes().toArray(Node[]::new)) {
+				int i2 = n2.getIndex();
 				double ls = lkstrgth.get(i1, i2);
 				if(ls>=wtr) { // filter out weak edges
-					Edge e1 = encoding.createEdge(n1, n2);
-					Edge e2 = encoding.createEdge(n2, n1);
+					Edge e1 = encoding.addEdge(UUID.randomUUID().toString(),n1, n2);
+					Edge e2 = encoding.addEdge(UUID.randomUUID().toString(),n2, n1);
 					encoding.setEdgeWeight(e1, ls);
 					encoding.setEdgeWeight(e2, ls);
 				}
@@ -288,8 +290,9 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param graph Original undirected graph
 	 * @param maxClq output of the MaximalCliqueGraphRepresentation
 	 * @return Matrix of link strength of the clique edges
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	protected Matrix linkStrength(CustomGraph graph, HashMap<Integer,HashSet<Node>> maxClq) {
+	protected Matrix linkStrength(CustomGraph graph, HashMap<Integer,HashSet<Node>> maxClq) throws InterruptedException {
 		int clqNr = maxClq.size(); 
 		Matrix lkstrgth = new Basic2DMatrix(clqNr,clqNr);
 		
@@ -336,35 +339,35 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @param v1 node which is in a clique
 	 * @param v2 node which is not in the same clique as v1
 	 * @return Czechkanowski Dice distance
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	protected double CzechkanowskiDice(CustomGraph graph, Node v1, Node v2) {
-		NodeCursor nbors1 = v1.neighbors();
-		NodeCursor nbors2 = v2.neighbors(); 
+	protected double CzechkanowskiDice(CustomGraph graph, Node v1, Node v2) throws InterruptedException {
+		Node[] nbors1 = graph.getNeighbours(v1).toArray(Node[]::new);
+		Node[] nbors2 = graph.getNeighbours(v2).toArray(Node[]::new);
 
-		int nbor1size = nbors1.size()/2; 
-		int nbor2size = nbors2.size()/2; 
+		int nbor1size = nbors1.length/2;
+		int nbor2size = nbors2.length/2;
 		
 		// compute the shared neighbors
-		double olapsize = 0; 
-		for(int i = 0 ; i <nbors1.size(); i++) {
-			Node n1 = nbors1.node();
-			for(int j = 0 ; j <nbors1.size(); j++) {
-				Node n2 = nbors2.node(); 
+		double olapsize = 0;
+		for(int i = 0; i <nbors1.length; i++) {
+			Node n1 = nbors1[i];
+			for(int j = 0, j1=0 ; j <nbors1.length; j++,j1++) {
+				if(j1 >= nbors2.length) {
+					j1=0;
+				}
+				Node n2 = nbors2[j1];
 			
 				if(n2 == n1) {
 					olapsize++;
 					break; 
 				}
-				
-				nbors2.cyclicNext();
 			}
-
-			nbors1.cyclicNext();
 		}
 		
 		// compute the distance
-		double edgeNr = graph.edgeCount()/2;
-		double nodeNr = graph.nodeCount(); 
+		double edgeNr = graph.getEdgeCount()/2;
+		double nodeNr = graph.getNodeCount();
 		double avgDegr = 2*edgeNr/nodeNr;
 		double tmp1 = avgDegr - nbor1size; 
 		double tmp2 = avgDegr - nbor2size; 
@@ -448,7 +451,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		heuristic = new Basic2DMatrix(nodeNr,nodeNr);  //  heuristic information matrix
 		
 		Matrix neighbors = graph.getNeighbourhoodMatrix();
-		Node[] nodes = graph.getNodeArray();		
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		pheromones = new ArrayList<Matrix>(); 
 		double[][] p = new double[nodeNr][nodeNr]; 
 		for(int i = 0; i < nodeNr-1; i++) {
@@ -467,7 +470,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			for(int j = i+1; j < nodeNr; j++) {
 				Node n2 = nodes[j];
 				double h; // heuristic for edge ij
-				if(!graph.containsEdge(n1, n2)) {
+				if(!n1.hasEdgeToward(n2)) {
 					h = 0; 
 				} else {
 				Vector nbor2 = neighbors.getRow(j); 
@@ -491,8 +494,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				h = 1/(1+Math.pow(Math.E, pearson)); // heuristic information value for nodes i, j 
 				
 				// set initial pheromone matrix
-				p[n1.index()][n2.index()] = initialPheromones; 
-				p[n2.index()][n1.index()] = initialPheromones;
+				p[n1.getIndex()][n2.getIndex()] = initialPheromones;
+				p[n2.getIndex()][n1.getIndex()] = initialPheromones;
 				}				
 				
 				// set heuristic information matrix
@@ -691,7 +694,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	protected void constructSolution(CustomGraph graph, Ant ant, int nodeNr) throws InterruptedException {
 		Random rand = new Random();
-		Node[] nodes = graph.getNodeArray(); 
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		
 		ant.setFalseNew_sol();
 		Matrix phi = new Basic2DMatrix(nodeNr,nodeNr);  
@@ -799,7 +802,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 * @return whether edge (k,l) is contained in solution sol
 	 */
 	protected double isEdgeinSol(CustomGraph graph, Vector sol, int k, int l) {
-		if(graph.containsEdge(graph.getNodeArray()[l], graph.getNodeArray()[k])&& sol.get(k) == sol.get(l)) {
+		if(graph.getNode(l).hasEdgeToward(graph.getNode(k)) && sol.get(k) == sol.get(l)) { //TODO: Check if this behaves the same as previous
 			return 1; 
 		}
 		return 0;  
@@ -865,7 +868,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	 */
 	protected double cliqueInterconectivity(CustomGraph graph, Vector com1, Vector com2, int nodeNr) {
 			double L = 0; // counter of edges in between the communities
-			Node[] nodes = graph.getNodeArray(); 
+			Node[] nodes = graph.nodes().toArray(Node[]::new);
 			for(int i = 0; i < nodeNr; i++) { 
 				if(com1.get(i) == 0) { // filters out all nodes within a community from the community vector
 					continue;
@@ -876,8 +879,8 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 						continue;
 					}
 					Node n2 = nodes[j];
-					if (graph.containsEdge(n1, n2)) { // if two nodes from these two communities are connected by an edge
-						L += graph.getEdgeWeight(n1.getEdgeTo(n2)); 
+					if (n1.hasEdgeToward(n2)) { // if two nodes from these two communities are connected by an edge
+						L += graph.getEdgeWeight(n1.getEdgeToward(n2)); //TODO: Check if this behaves the same as before
 					}
 				}
 			}
@@ -909,13 +912,13 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		
 		ModularityMetric MM = new ModularityMetric();
 		HashSet<Node> inCommunity = new HashSet<Node>();
-		Node[] nodes = graph.getNodeArray();
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		for(Vector sol: EP.values()) {
 			// find out how many communities are there
 			List<Vector> membershipMatrixVectors = new ArrayList<Vector>(nodeNr);
 			List<Integer> com = new ArrayList<Integer>();
 			
-			for(int i = 0; i < graph.nodeCount(); i++) {
+			for(int i = 0; i < graph.getNodeCount(); i++) {
 				inCommunity.add(nodes[i]); 
 			}
 			for(int i = 0; i < nodeNr; i++) {
@@ -926,7 +929,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 		
 			for(int i = 0; i < nodeNr; i++) { // create empty membership vectors
-				Vector v = new BasicVector(graph.nodeCount());
+				Vector v = new BasicVector(graph.getNodeCount());
 				membershipMatrixVectors.add(i,v);
 			}
 	
@@ -936,7 +939,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 				for(Node n: entry.getValue()){ 
 					inCommunity.remove(n);  
 					Vector v = membershipMatrixVectors.get(member);
-					v.set(n.index(), 1);
+					v.set(n.getIndex(), 1);
 					membershipMatrixVectors.set(member, v);  // set node in community 
 				}
 			}
@@ -945,11 +948,11 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			for(Node n: inCommunity) {
 				Set<Node> neighbors = graph.getNeighbours(n); 
 				for(Node neighbor: neighbors) {
-					int id = neighbor.index();
+					int id = neighbor.getIndex();
 					for(int i = 0; i < membershipMatrixVectors.size(); i++) {
 						Vector v = membershipMatrixVectors.get(i);
 						if(v.get(id) == 1) {
-							v.set(n.index(), 1); 
+							v.set(n.getIndex(), 1);
 							break; 
 						}
 					}
@@ -958,7 +961,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			}
 			
 			// set membership matrix
-			Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),com.size());
+			Matrix membershipMatrix = new Basic2DMatrix(graph.getNodeCount(),com.size());
 			for(int i = 0; i < com.size(); i++) {
 				membershipMatrix.setColumn(i, membershipMatrixVectors.get(com.get(i)));
 			}

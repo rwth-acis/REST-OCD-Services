@@ -6,16 +6,12 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 /**
  * A cover input adapter for the node community lists format.
@@ -81,17 +77,16 @@ public class NodeCommunityListsCoverInputAdapter extends AbstractCoverInputAdapt
 				e.printStackTrace();
 			}
 		}
-		Matrix memberships = new CCSMatrix(graph.nodeCount(), communityCount);
-		NodeCursor nodes = graph.nodes();
+		Matrix memberships = new CCSMatrix(graph.getNodeCount(), communityCount);
+		Iterator<Node> nodes = graph.iterator();
 		Node node;
-		while(nodes.ok()) {
-			node = nodes.node();
+		while(nodes.hasNext()) {
+			node = nodes.next();
 			nodeName = graph.getNodeName(node);
 			communityIndices = nodeCommunities.get(nodeName);
 			for(int communityIndex : communityIndices) {
-				memberships.set(node.index(), communityIndex, 1d/communityIndices.size());
+				memberships.set(node.getIndex(), communityIndex, 1d/communityIndices.size());
 			}
-			nodes.next();
 		}
 		return new Cover(graph, memberships);
 	}

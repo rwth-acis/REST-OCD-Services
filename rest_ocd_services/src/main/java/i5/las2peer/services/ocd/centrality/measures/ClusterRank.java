@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -12,9 +9,10 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of ClusterRank.
@@ -25,17 +23,17 @@ import y.base.NodeCursor;
 public class ClusterRank implements CentralityAlgorithm {
 	
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {
-		NodeCursor nc = graph.nodes();
+		Iterator<Node> nc = graph.iterator();
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.CLUSTER_RANK, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));	
 		
-		while(nc.ok()) {
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();	
+			Node node = nc.next();	
 			// Calculate clustering coefficient
-			int maxEdges = node.successors().size() * (node.successors().size() - 1);
+			int maxEdges = graph.getSuccessorNeighbours(node).size() * (graph.getSuccessorNeighbours(node).size() - 1);
 			int edgeCount = 0;
 			double clusteringCoefficient = 0;
 			
@@ -44,33 +42,27 @@ public class ClusterRank implements CentralityAlgorithm {
 			}				
 			else {
 				Set<Node> outNeighborSet = new HashSet<Node>();
-				NodeCursor successors = node.successors();			
-				while(successors.ok()) {
-					outNeighborSet.add(successors.node());
-					successors.next();
-				}		
+				Iterator<Node> successors = graph.getSuccessorNeighbours(node).iterator();
+				while(successors.hasNext()) {
+					outNeighborSet.add(successors.next());
+				}
 				for(Node j : outNeighborSet) {
-					EdgeCursor edges = j.outEdges();
-					while(edges.ok()) {
-						Node k = edges.edge().target();
+					Iterator<Edge> edgeIterator = j.leavingEdges().iterator();
+					while(edgeIterator.hasNext()) {
+						Node k = edgeIterator.next().getTargetNode();
 						if(outNeighborSet.contains(k))
 							edgeCount++;
-						edges.next();
 					}
 				}	
 				clusteringCoefficient = (double) edgeCount/maxEdges;
 			}
 			
 			// Calculate sum of neighbors out-degrees (+1)
-			int degreeSum = 0;	
-			NodeCursor neighbors = node.successors();	
-			while(neighbors.ok()) {
-				Node neighbor = neighbors.node();
-				degreeSum += neighbor.outDegree() + 1;
-				neighbors.next();
-			}	
+			int degreeSum = 0;
+			for (Node neighbor : graph.getSuccessorNeighbours(node)) {
+				degreeSum += neighbor.getOutDegree() + 1;
+			}
 			res.setNodeValue(node, f(clusteringCoefficient)*degreeSum);
-			nc.next();
 		}
 		return res;
 	}

@@ -4,15 +4,11 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.matrix.Matrix;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 /** 
  * @author YLi
@@ -48,20 +44,20 @@ public class SignedModularityMetric implements StatisticalMeasure {
 		/*
 		 * calculate the effective number of edges
 		 */
-		EdgeCursor edges = graph.edges();
+		Iterator<Edge> edges = graph.edges().iterator();
 		Edge edge;
-		while (edges.ok()) {
+		while (edges.hasNext()) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			edge = edges.edge();
+			edge = edges.next();
 			double edgeWeight = graph.getEdgeWeight(edge);
 			if (edgeWeight > 0) {
 				positiveWeightSum += edgeWeight;
 			} else if (edgeWeight < 0) {
 				negativeWeightSum += Math.abs(edgeWeight);
 			}
-			int sameCommunity = examCommunityIdentity(cover, edge.source(), edge.target());
+			int sameCommunity = examCommunityIdentity(cover, edge.getSourceNode(), edge.getTargetNode());
 			if (sameCommunity > 1) {
 				if (edgeWeight > 0) {
 					positiveWeightSum = positiveWeightSum + edgeWeight * (sameCommunity - 1);
@@ -69,31 +65,29 @@ public class SignedModularityMetric implements StatisticalMeasure {
 					negativeWeightSum = negativeWeightSum - edgeWeight * (sameCommunity - 1);
 				}
 			}
-			edges.next();
 		}
 		/*
 		 * Another round of iteration must be carried out, as the effective
 		 * number of edges has to be certain for calculation.
 		 */
-		EdgeCursor edgesMod = graph.edges();
+		Iterator<Edge> edgesMod = graph.edges().iterator();
 		Edge edgeMod;
-		while (edgesMod.ok()) {
+		while (edgesMod.hasNext()) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			edgeMod = edgesMod.edge();
+			edgeMod = edgesMod.next();
 			double edgeWeight = graph.getEdgeWeight(edgeMod);
-			int sameCommunity = examCommunityIdentity(cover, edgeMod.source(), edgeMod.target());
+			int sameCommunity = examCommunityIdentity(cover, edgeMod.getSourceNode(), edgeMod.getTargetNode());
 			metricValue += sameCommunity * (edgeWeight
-					- (graph.getPositiveInDegree(edgeMod.source()) + graph.getPositiveOutDegree(edgeMod.source()))
-							* (graph.getPositiveOutDegree(edgeMod.target())
-									+ graph.getPositiveInDegree(edgeMod.target()))
+					- (graph.getPositiveInDegree(edgeMod.getSourceNode()) + graph.getPositiveOutDegree(edgeMod.getSourceNode()))
+							* (graph.getPositiveOutDegree(edgeMod.getTargetNode())
+									+ graph.getPositiveInDegree(edgeMod.getTargetNode()))
 							/ (2 * positiveWeightSum)
-					+ (graph.getNegativeInDegree(edgeMod.source()) + graph.getNegativeOutDegree(edgeMod.source()))
-							* (graph.getNegativeInDegree(edgeMod.target())
-									+ graph.getNegativeOutDegree(edgeMod.target()))
+					+ (graph.getNegativeInDegree(edgeMod.getSourceNode()) + graph.getNegativeOutDegree(edgeMod.getSourceNode()))
+							* (graph.getNegativeInDegree(edgeMod.getTargetNode())
+									+ graph.getNegativeOutDegree(edgeMod.getTargetNode()))
 							/ (2 * negativeWeightSum));
-			edgesMod.next();
 		}
 		return metricValue / (2 * positiveWeightSum + 2 * negativeWeightSum);
 	}
@@ -110,12 +104,12 @@ public class SignedModularityMetric implements StatisticalMeasure {
 	 * @return The number of communities node A and node B both belong to.
 	 * 
 	 */
-	private int examCommunityIdentity(Cover cover, Node nodeA, Node nodeB) throws InterruptedException {
+	private int examCommunityIdentity(Cover cover, Node sourceNode, Node targetNode) throws InterruptedException {
 		int sameCommunity = 0;
 		Matrix membershipMatrix = cover.getMemberships();
 		int communityCount = cover.communityCount();
 		for (int i = 0; i < communityCount; i++) {
-			if (membershipMatrix.get(nodeA.index(), i) > 0 & membershipMatrix.get(nodeB.index(), i) > 0) {
+			if (membershipMatrix.get(sourceNode.getIndex(), i) > 0 & membershipMatrix.get(targetNode.getIndex(), i) > 0) {
 				sameCommunity++;
 			}
 		}

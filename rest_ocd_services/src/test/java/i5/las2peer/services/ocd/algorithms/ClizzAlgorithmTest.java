@@ -17,7 +17,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.la4j.matrix.Matrix;
 
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 public class ClizzAlgorithmTest {
 
@@ -100,7 +100,7 @@ public class ClizzAlgorithmTest {
 		Cover cover = new Cover(graph, memberships);
 		cover.setCreationMethod(new CoverCreationLog(algo.getAlgorithmType(), algo.getParameters(), algo.compatibleGraphTypes()));
 		assertEquals(2, cover.communityCount());
-		for(int i=0; i<graph.nodeCount(); i++) {
+		for(int i=0; i<graph.getNodeCount(); i++) {
 			double belongingFac;
 			switch(i) {
 				case 0:
@@ -140,8 +140,8 @@ public class ClizzAlgorithmTest {
 					belongingFac = -1;
 					break;
 			}
-			assertTrue(Math.abs(belongingFac - cover.getBelongingFactor(graph.getNodeArray()[i], 0)) < 0.003
-					|| Math.abs(belongingFac - cover.getBelongingFactor(graph.getNodeArray()[i], 1)) < 0.003);
+			assertTrue(Math.abs(belongingFac - cover.getBelongingFactor(graph.nodes().toArray(Node[]::new)[i], 0)) < 0.003
+					|| Math.abs(belongingFac - cover.getBelongingFactor(graph.nodes().toArray(Node[]::new)[i], 1)) < 0.003);
 			System.out.println(cover);
 		}
 		

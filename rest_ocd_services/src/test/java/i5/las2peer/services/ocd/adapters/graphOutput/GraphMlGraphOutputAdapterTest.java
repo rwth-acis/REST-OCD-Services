@@ -10,6 +10,7 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.graphstream.graph.Edge;
 import org.junit.Test;
 
 public class GraphMlGraphOutputAdapterTest {
@@ -17,7 +18,7 @@ public class GraphMlGraphOutputAdapterTest {
 	@Test
 	public void test() throws AdapterException, IOException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		graph.setEdgeWeight(graph.getEdgeArray()[0], 2);
+		graph.setEdgeWeight(graph.edges().toArray(Edge[]::new)[0], 2);
 		GraphOutputAdapter adapter = new GraphMlGraphOutputAdapter();
 		adapter.setWriter(new FileWriter(OcdTestConstants.sawmillGraphMlOutputPath));
 		adapter.writeGraph(graph);

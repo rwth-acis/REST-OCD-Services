@@ -17,7 +17,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 public class SignedProbabilisticMixtureAlgorithmTest {	
 	@Test

@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.TreeSet;
 
+import java.util.UUID;
+
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
@@ -25,8 +27,8 @@ import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.util.Combinatorics;
 import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.util.Random;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 /**
  * This class is Java implementation of directed networks which is equivalent to signed LFR algorithm 
@@ -1797,7 +1799,7 @@ public class benchm {
 		 *  create graph nodes
 		 */
 		for (int u = 0; u < Eout.size(); u++) {
-			Node node = graph.createNode();
+			Node node = graph.addNode(Integer.toString(u));
 			graph.setNodeName(node, Integer.toString(u));
 
 		}
@@ -1805,12 +1807,12 @@ public class benchm {
 		/*
 		 *  create weighted edges between the nodes
 		 */
-		Node[] nodes = graph.getNodeArray();
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		for (int u = 0; u < Eout.size(); u++) {
 			for (Iterator<Integer> itb = Eout.get(u).iterator(); itb.hasNext();) {
 
 				Integer itb_current = itb.next();
-				Edge edge = graph.createEdge(nodes[u], nodes[itb_current]);
+				Edge edge = graph.addEdge(UUID.randomUUID().toString(), nodes[u], nodes[itb_current]); //TODO: Check naming here as no weight given but description states weighted method
 				
 			}
 		}

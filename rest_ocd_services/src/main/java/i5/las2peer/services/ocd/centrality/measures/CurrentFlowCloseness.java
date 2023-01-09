@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.inversion.GaussJordanInverter;
 import org.la4j.inversion.MatrixInverter;
@@ -17,10 +14,10 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Edge;
+
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Current-flow Closeness.
@@ -34,43 +31,40 @@ public class CurrentFlowCloseness implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.CURRENT_FLOW_CLOSENESS, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();	
+			Node node = nc.next();	
 			res.setNodeValue(node, 0.0);
-			nc.next();
 		}
 		
 		// If the graph contains no edges
-		if(graph.edgeCount() == 0) {
+		if(graph.getEdgeCount() == 0) {
 			return res;
 		}
 		
-		int n = nc.size();
+		int n = graph.getNodeCount();
 		Matrix L = new CCSMatrix(n, n);
 		
 		// Create laplacian matrix
-		nc.toFirst();
-		while(nc.ok()) {
+		nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
-			int i = node.index();
+			Node node = nc.next();
+			int i = node.getIndex();
 			L.set(i, i, graph.getWeightedInDegree(node));
-			nc.next();
 		}
-		EdgeCursor ec = graph.edges();
-		while(ec.ok()) {
+		Iterator<Edge> ec = graph.edges().iterator();
+		while(ec.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Edge edge = ec.edge();
-			L.set(edge.source().index(), edge.target().index(), -graph.getEdgeWeight(edge));
-			ec.next();
+			Edge edge = ec.next();
+			L.set(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex(), -graph.getEdgeWeight(edge));
 		}
 
 		// Remove the first row and column
@@ -87,35 +81,32 @@ public class CurrentFlowCloseness implements CentralityAlgorithm {
 			}
 		}
 		
-		nc.toFirst();
-		while(nc.ok()) {
+		nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node v = nc.node();
-			NodeCursor nc2 = graph.nodes();
-			while(nc2.ok()) {
+			Node v = nc.next();
+			Iterator<Node> nc2 = graph.iterator();
+			while(nc2.hasNext()) {
 				if(Thread.interrupted()) {
 					throw new InterruptedException();
 				}
-				Node w = nc2.node();
-				double increaseW = C.get(v.index(), v.index());
-				double increaseV = increaseW - 2 * C.get(w.index(), v.index());
+				Node w = nc2.next();
+				double increaseW = C.get(v.getIndex(), v.getIndex());
+				double increaseV = increaseW - 2 * C.get(w.getIndex(), v.getIndex());
 				res.setNodeValue(v, res.getNodeValue(v) + increaseV);
 				res.setNodeValue(w, res.getNodeValue(w) + increaseW);
-				nc2.next();
-			}	
-			nc.next();
+			}
 		}
 		
-		nc.toFirst();
-		while(nc.ok()) {
+		nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
+			Node node = nc.next();
 			res.setNodeValue(node, (double)1/res.getNodeValue(node));
-			nc.next();
 		}
 		return res;
 	}
