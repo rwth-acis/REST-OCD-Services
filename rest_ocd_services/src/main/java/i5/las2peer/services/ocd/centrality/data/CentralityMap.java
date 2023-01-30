@@ -20,6 +20,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.OneToOne;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.graphstream.graph.Node;
 import org.w3c.dom.Element;
 
@@ -330,7 +331,7 @@ public class CentralityMap {
 			cm.key = key;
 			cm.name = bd.getAttribute(nameColumnName).toString();
 			cm.creationMethod = CentralityCreationLog.load(creationMethodKey, db, readOpt);
-			cm.map = om.convertValue(objMap, Map.class);
+			cm.map = om.convertValue(objMap,new TypeReference<HashMap<String,Double>>() { });
 		}	
 		else {
 			System.out.println("empty CentralityMap document");
