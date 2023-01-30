@@ -27,6 +27,7 @@ import com.arangodb.entity.BaseDocument;
 import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentReadOptions;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
@@ -324,8 +325,8 @@ public class Community {
 			String colorString = bd.getAttribute(colorColumnName).toString();
 			Object objProperties = bd.getAttribute(propertiesColumnName);
 			Object objMembershipKeyMap = bd.getAttribute(membershipKeyMapColumnName);
-			Map<String, Double> membershipKeyMap = om.convertValue(objMembershipKeyMap, Map.class);
-				
+			HashMap<String, Double> membershipKeyMap = om.convertValue(objMembershipKeyMap,new TypeReference<HashMap<String,Double>>() { });
+
 			c.key = key;
 			c.cover = cover;
 			c.name = bd.getAttribute(nameColumnName).toString();
