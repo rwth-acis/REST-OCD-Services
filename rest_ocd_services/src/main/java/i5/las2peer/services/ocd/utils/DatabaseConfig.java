@@ -19,36 +19,8 @@ public class DatabaseConfig {
 	private static final File TESTFILE = new File(PATH + TESTFILENAME);
 	private static final File STANDARD_CONFIG_FILE = new File(PATH + STANDARD_CONFIG_FILENAME);
 	private static Properties props = new Properties();
-	
-	public void initStandardConfigFile() {
-		props.setProperty("HOST", "127.0.0.1");
-		props.setProperty("PORT", "8529");
-		props.setProperty("USER", "root");
-		props.setProperty("PASSWORD", "password");
-		props.setProperty("DATABASENAME", "ocd_db");
-		try {
-			FileOutputStream outputStream = new FileOutputStream(STANDARD_CONFIG_FILE);
-			props.store(outputStream, null);
-			outputStream.close();
-		}catch(IOException e) {
-			e.printStackTrace();
-		}
-	}
 
-	public void initTestFile() {
-		props.setProperty("HOST", "127.0.0.1");
-		props.setProperty("PORT", "8529");
-		props.setProperty("USER", "root");
-		props.setProperty("PASSWORD", "password");
-		props.setProperty("DATABASENAME", "test_db");
-		try {
-			FileOutputStream outputStream = new FileOutputStream(TESTFILE);
-			props.store(outputStream, null);
-			outputStream.close();
-		}catch(IOException e) {
-			e.printStackTrace();
-		}
-	}
+
 	public static void setConfigFile(boolean testFile) {
 		FileInputStream inputStream;
 		props.clear();
@@ -71,7 +43,7 @@ public class DatabaseConfig {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public Properties getConfigProperties() {
 		try {
 			FileInputStream inputStream = new FileInputStream(CONFIG_FILE);

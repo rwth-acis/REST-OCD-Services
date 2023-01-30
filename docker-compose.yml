@@ -1,0 +1,23 @@
+version: '3'
+services:
+  arangodb:
+    image: arangodb
+    container_name: webocd-arangodb
+    ports:
+      - "127.0.0.1:8529:8529"
+    environment:
+      - ARANGO_ROOT_PASSWORD=password
+  webocd-service:
+    container_name: webocd-service
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    restart: on-failure
+    depends_on:
+      - arangodb
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    links:
+      - arangodb
+    ports:
+      - "127.0.0.1:8080:8080"
