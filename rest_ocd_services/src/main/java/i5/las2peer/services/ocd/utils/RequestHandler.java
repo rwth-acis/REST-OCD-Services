@@ -79,7 +79,8 @@ public class RequestHandler {
 	/**
 	 * The logger used for request logging.
 	 */
-	private static final Logger log = Logger.getLogger("Service API");
+	//private static final Logger log = Logger.getLogger("Service API");
+	private static final GeneralLogger log = new GeneralLogger();
 
 	/**
 	 * The factory used for creating cover output adapters.
@@ -122,7 +123,7 @@ public class RequestHandler {
 	 *            The exception.
 	 */
 	public synchronized void log(Level level, String message, Exception e) {
-		log.log(level, message, e);
+		log.getLogger().log(level, message, e);
 	}
 
 	/**
@@ -134,7 +135,7 @@ public class RequestHandler {
 	 *            The entry message.
 	 */
 	public synchronized void log(Level level, String message) {
-		log.log(level, message);
+		log.getLogger().log(level, message);
 	}
 
 	/**
