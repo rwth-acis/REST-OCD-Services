@@ -2,6 +2,8 @@ package i5.las2peer.services.ocd.utils;
 
 import i5.las2peer.logging.L2pLogger;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Formatter;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -44,6 +46,7 @@ public class GeneralLogger {
         System.out.println("creating the logger");
         // Create log file
         try{
+            Files.createDirectories(Paths.get("log"));
             fileHandler = new FileHandler(FILE_PATH,LOGGING_FILE_SIZE,MAX_NUMBER_OF_LOGGING_FILES,true);
         }catch(Exception e){
             e.printStackTrace();
