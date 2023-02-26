@@ -6,16 +6,9 @@ import java.util.Properties;
 import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
 public class DatabaseConfigTest {
 	private static DatabaseConfig dc = new DatabaseConfig();
-	
-	@Test
-	public void test() {
-		System.out.println("config before dbconfigtest : " + dc.getConfigProperties().toString());
-		DatabaseConfig.setConfigFile(false);
-		System.out.println("config after the main (non-test) database was set : " + dc.getConfigProperties().toString());
-	}
+
 
 
 	@Test
@@ -34,7 +27,11 @@ public class DatabaseConfigTest {
 		assertEquals("password", props.getProperty("PASSWORD"));
 		
 		System.out.println("DATABASENAME:"+props.getProperty("DATABASENAME"));
-		assertEquals("ocd_db", props.getProperty("DATABASENAME"));
+		String dbName = props.getProperty("DATABASENAME");
+		assertEquals("ocdDB",dbName );
+
+		System.out.println("TESTDATABASENAME:"+props.getProperty("TESTDATABASENAME"));
+		assertEquals("testDB", props.getProperty("TESTDATABASENAME"));
 		
 	}
 

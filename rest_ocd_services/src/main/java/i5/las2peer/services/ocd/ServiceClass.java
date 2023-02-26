@@ -154,8 +154,8 @@ public class ServiceClass extends RESTService {
 	}
 
 	public ServiceClass() {
-		DatabaseConfig.setConfigFile(false);		//TODO angeben ob test datenbank oder hauptdatenbank gewaehlt wird
-		database = new Database();
+
+		database = new Database(false);
 		setFieldValues();
         // instantiate inactivityHandler to regularly remove content of inactive users.
 		inactivityHandler = new InactivityHandler(database, threadHandler, this); //TODO inactivity handler muss sich auf db beziehens
@@ -163,6 +163,7 @@ public class ServiceClass extends RESTService {
 		userLimitsHandler = new UserLimitsHandler(database);
 
 	}
+
 
 	///////////////////////////////////////////////////////////
 	///// ATTRIBUTES
