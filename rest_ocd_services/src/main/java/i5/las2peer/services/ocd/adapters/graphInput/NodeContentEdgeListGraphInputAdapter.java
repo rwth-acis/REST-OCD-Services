@@ -25,6 +25,7 @@ import org.graphstream.graph.Node;
  * @author Sabrina 
  */
 
+//TODO: This whole file needs a rework. It should not be dependant on some psql database on a specific path, throw appropriate errors etc.
 public class NodeContentEdgeListGraphInputAdapter extends AbstractGraphInputAdapter{
 	
 	/////////////////

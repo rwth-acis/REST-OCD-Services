@@ -38,6 +38,7 @@ import com.arangodb.model.DocumentReadOptions;
 import com.arangodb.model.DocumentUpdateOptions;
 import com.arangodb.model.DocumentDeleteOptions;
 import com.arangodb.model.AqlQueryOptions;
+import net.minidev.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -152,7 +153,7 @@ public class CustomGraph extends MultiGraph {
 	@Column(name = edgeCountColumnName)
 	private long graphEdgeCount;
 
-
+	private JSONObject extraInfo = new JSONObject();
 
 
 	// /**
@@ -498,6 +499,24 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public GraphCreationLog getCreationMethod() {
 		return this.creationMethod;
+	}
+
+	/**
+	 * Setter for the graphs extra Information string.
+	 *
+	 * @param extraInfo the String to fill the extra information attribute
+	 */
+	public void setExtraInfo(JSONObject extraInfo) {
+		this.extraInfo = extraInfo;
+	}
+
+	/**
+	 * Getter for the graphs extra Information string.
+	 *
+	 * @return The graphs extra Information string.
+	 */
+	public JSONObject getExtraInfo() {
+		return extraInfo;
 	}
 
 	////////// Graph Types //////////

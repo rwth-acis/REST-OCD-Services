@@ -887,6 +887,35 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Parses a graph input using a specified format.
+	 *
+	 * @param contentStr
+	 *            The graph input.
+	 * @param inputFormat
+	 *            The format.
+	 * @param param
+	 *            Parameters that are passed to the adapters.
+	 * @param list_param
+	 *			  Parameters in list form that are passed to the adapters
+	 * @return The graph.
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 * @throws IllegalArgumentException if arguments were faulty
+	 * @throws ParseException if parsing failed
+	 */
+	public CustomGraph parseGraph(String contentStr, GraphInputFormat inputFormat, Map<String, String> param, Map<String, List<String>> list_param)
+			throws AdapterException, InstantiationException, IllegalAccessException, IllegalArgumentException,
+			ParseException {
+		GraphInputAdapter adapter = graphInputAdapterFactory.getInstance(inputFormat);
+		Reader reader = new StringReader(contentStr);
+		adapter.setReader(reader);
+		adapter.setParameter(param);
+		adapter.setListParameter(list_param);
+		return adapter.readGraph();
+	}
+
+	/**
 	 * Parses a cover input using a specified format.
 	 * 
 	 * @param contentStr

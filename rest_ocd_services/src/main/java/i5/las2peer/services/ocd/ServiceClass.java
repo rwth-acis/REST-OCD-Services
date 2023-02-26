@@ -367,6 +367,14 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
+									@DefaultValue("127.0.0.1:8529") @QueryParam("databaseAddress") String databaseAddressStr,
+									@DefaultValue("graphs") @QueryParam("databaseName") String databaseNameStr,
+									@DefaultValue("root,") @QueryParam("databaseCredentials") String databaseCredentialsStr,
+									@QueryParam("nodeCollectionName") String nodeCollectionNameStr,
+									@DefaultValue("") @QueryParam("nodeFilters") List<String> nodeFilters,
+									@QueryParam("edgeCollectionNames") String edgeCollectionNamesStr,
+									@DefaultValue("") @QueryParam("edgeFilters") List<String> edgeFilters,
+									@DefaultValue("") @QueryParam("dateAttributeName") String dateAttributeNamesStr,
 				String contentStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -413,7 +421,9 @@ public class ServiceClass extends RESTService {
 				}
 				try {
 					Map<String, String> param = new HashMap<String, String>();
-					if (format == GraphInputFormat.NODE_CONTENT_EDGE_LIST || format == GraphInputFormat.XML || format == GraphInputFormat.LMS_TRIPLESTORE) {
+					Map<String, List<String>> listParam = new HashMap<String, List<String>>();
+					if (format == GraphInputFormat.NODE_CONTENT_EDGE_LIST || format == GraphInputFormat.XML
+							|| format == GraphInputFormat.LMS_TRIPLESTORE || format == GraphInputFormat.ARANGODB) {
 						param.put("startDate", startDateStr);
 						param.put("endDate", endDateStr);
 						if (format == GraphInputFormat.XML) {
@@ -422,6 +432,15 @@ public class ServiceClass extends RESTService {
 						} else if(format == GraphInputFormat.LMS_TRIPLESTORE) {
 							param.put("showUserNames", showUserNamesStr);
 							param.put("involvedUserURIs", involvedUserURIsStr);
+						} else if(format == GraphInputFormat.ARANGODB) {
+							param.put("databaseAddress", databaseAddressStr);
+							param.put("databaseName", databaseNameStr);
+							param.put("databaseCredentials", databaseCredentialsStr);
+							param.put("nodeCollectionName", nodeCollectionNameStr);
+							listParam.put("nodeFilters", nodeFilters);
+							param.put("edgeCollectionNames", edgeCollectionNamesStr);
+							listParam.put("edgeFilters", edgeFilters);
+							param.put("dateAttributeName", dateAttributeNamesStr);
 						} else {
 							param.put("path", indexPathStr);
 						}
@@ -432,12 +451,18 @@ public class ServiceClass extends RESTService {
 						//param.put("type2", type2Str);
 						//param.put("type3", type3Str);
 					//}
-					graph = requestHandler.parseGraph(contentStr, format, param);
+					if (format == GraphInputFormat.ARANGODB) {
+						graph = requestHandler.parseGraph(contentStr, format, param, listParam);
+					}
+					else {
+						graph = requestHandler.parseGraph(contentStr, format, param);
+					}
 
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Input graph does not correspond to the specified format.");
+							"Input graph does not correspond to the specified format."
+									+ "\n" + (e.getMessage() != null ? e.getMessage() : ""));
 				}
 				boolean doMakeUndirected;
 				try {
@@ -567,7 +592,17 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("") @QueryParam("involvedUserURIs") String involvedUserURIsStr,
 				@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
-				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr) {
+				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
+										   @DefaultValue("127.0.0.1:8529") @QueryParam("databaseAddress") String databaseAddressStr,
+										   @DefaultValue("graphs") @QueryParam("databaseName") String databaseNameStr,
+										   @DefaultValue("root,") @QueryParam("databaseCredentials") String databaseCredentialsStr,
+										   @DefaultValue("nodes") @QueryParam("nodeCollectionName") String nodeCollectionNameStr,
+										   @DefaultValue("") @QueryParam("nodeFilters") List<String> nodeFilters,
+										   @DefaultValue("edges") @QueryParam("edgeCollectionNames") String edgeCollectionNamesStr,
+										   @DefaultValue("") @QueryParam("edgeFilters") List<String> edgeFilters,
+										   @DefaultValue("dateAttributeName") @QueryParam("dateAttributeName") String dateAttributeNamesStr
+
+		) {
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 			File graphDir = new File("tmp" + File.separator + username);
 			File graphFile = new File(graphDir + File.separator + nameStr + ".txt");
@@ -588,7 +623,9 @@ public class ServiceClass extends RESTService {
 			}
 			graphFile.delete();
 			return createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
-					endDateStr,involvedUserURIsStr, showUserNamesStr, indexPathStr, filePathStr, contentStr.toString());
+					endDateStr,involvedUserURIsStr, showUserNamesStr, indexPathStr, filePathStr,
+					databaseAddressStr, databaseNameStr, databaseCredentialsStr, nodeCollectionNameStr, nodeFilters,
+					edgeCollectionNamesStr, edgeFilters, dateAttributeNamesStr, contentStr.toString());
 		}
 
 		/**

@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.adapters.graphInput;
 
 import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
@@ -24,5 +25,6 @@ public interface GraphInputAdapter extends InputAdapter {
 	public CustomGraph readGraph() throws AdapterException;
 	
 	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException;
-	
+
+	default void setListParameter(Map<String, List<String>> listParam) throws IllegalArgumentException, ParseException {}
 }

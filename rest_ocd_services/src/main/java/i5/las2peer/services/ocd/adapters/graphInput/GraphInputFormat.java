@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 import java.security.InvalidParameterException;
 import java.util.Locale;
 
+import com.arangodb.ArangoCollection;
 import i5.las2peer.services.ocd.utils.EnumDisplayNames;
 
 /**
@@ -56,7 +57,11 @@ public enum GraphInputFormat implements EnumDisplayNames {
 	/**
 	 * Format corresponding to the LmsTripleStoreGraphInputAdapter.
 	 */
-	LMS_TRIPLESTORE ("Fetched from LMS Triplestore", LmsTripleStoreGraphInputAdapter.class, 9);
+	LMS_TRIPLESTORE ("Fetched from LMS Triplestore", LmsTripleStoreGraphInputAdapter.class, 9),
+	/**
+	 * Format corresponding to the ArangoDBGraphInputAdapter.
+	 */
+	ARANGODB ("Fetched from ArangoDB Database", ArangoDBGraphInputAdapter.class, 10);
 	
 	/**
 	 * The adapter class corresponding to the format.
