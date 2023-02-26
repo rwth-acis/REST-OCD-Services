@@ -87,7 +87,10 @@ public class Database {
 			DBNAME_STRING = props.getProperty("TESTDATABASENAME");
 		}
 		DBNAME = DbName.of(DBNAME_STRING);
-		arangoDB = new ArangoDB.Builder().host(HOST, PORT).password(PASSWORD).serializer(new ArangoJack()).build();
+		arangoDB = new ArangoDB.Builder()
+				.host(HOST, PORT)
+				.user(USER)
+				.password(PASSWORD).serializer(new ArangoJack()).build();
 		db = arangoDB.db(DBNAME);
 		init();
 	}

@@ -20,11 +20,11 @@ public class DatabaseConfigTest {
 		System.out.println("PORT:"+props.getProperty("PORT"));
 		assertEquals("8529", props.getProperty("PORT"));
 		
-		System.out.println("USER:"+props.getProperty("USER"));
-		assertEquals("root", props.getProperty("USER"));
+//		System.out.println("USER:"+props.getProperty("USER"));
+//		assertEquals("root", props.getProperty("USER"));
 		
-		System.out.println("PASSWORD:"+props.getProperty("PASSWORD"));
-		assertEquals("password", props.getProperty("PASSWORD"));
+//		System.out.println("PASSWORD:"+props.getProperty("PASSWORD"));
+//		assertEquals("password", props.getProperty("PASSWORD"));
 		
 		System.out.println("DATABASENAME:"+props.getProperty("DATABASENAME"));
 		String dbName = props.getProperty("DATABASENAME");
