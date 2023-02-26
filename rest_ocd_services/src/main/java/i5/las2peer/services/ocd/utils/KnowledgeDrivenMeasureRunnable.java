@@ -66,8 +66,7 @@ public class KnowledgeDrivenMeasureRunnable implements Runnable {
 		 * Set metric state to running.
 		 */
     	RequestHandler requestHandler = new RequestHandler();
-    	DatabaseConfig.setConfigFile(false);
-		Database database = new Database();
+		Database database = new Database(false);
 
 		try {
 			OcdMetricLog persistedLog = database.getOcdMetricLog(logId);

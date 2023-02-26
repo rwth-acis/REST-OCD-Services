@@ -62,9 +62,8 @@ public class AlgorithmRunnable implements Runnable {
 		CoverId coverId = new CoverId(cKey, graphId);
 
     	RequestHandler requestHandler = new RequestHandler();
-    	
-		DatabaseConfig.setConfigFile(false);
-		Database database = new Database();
+
+		Database database = new Database(false);
 		try {
 			Cover c = database.getCover(user, gKey,  cKey);
 			if(c == null) {

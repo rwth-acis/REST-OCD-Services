@@ -56,11 +56,8 @@ public class ServiceTest {
 
 	private static final String testServiceClass = "i5.las2peer.services.ocd.ServiceClass";
 	private static final String mainPath = "ocd/";
-	private static long SawmillGraphId;
 	private static String SawmillGraphKey;
-	private static long DolphinsGraphId;
 	private static String DolphinsGraphKey;
-	private static long AperiodicTwoCommunitiesGraphId;
 	private static String AperiodicTwoCommunitiesGraphKey;
 	
 	private static Database database;
@@ -127,8 +124,7 @@ public class ServiceTest {
 		/*
 		 * Set db content
 		 */
-		DatabaseConfig.setConfigFile(false);
-		database = new Database();
+		database = new Database(false);
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		createGraph(graph);
 		AperiodicTwoCommunitiesGraphKey = graph.getKey();
@@ -319,7 +315,7 @@ public class ServiceTest {
 		s1.setName("name");
 		String id1 = "0";
 		SimulationSeries s2 = new SimulationSeries();
-		s1.setName("name2");
+		s2.setName("name2");
 		String id2 = "0";
 
 		try {
@@ -332,8 +328,9 @@ public class ServiceTest {
 
 		try {
 			c.setLogin(testAgent.getIdentifier(), testPass);
+			ClientResponse result;
 
-			ClientResponse result = c.sendRequest("GET",
+			result = c.sendRequest("GET",
 					mainPath + "simulation/" + 124, "");
 			System.out.println("Result of 'getSimulation' " + result.getResponse().trim());
 			String resultString = result.getResponse().trim(); // trimmed response string
