@@ -4,12 +4,14 @@ title: Integration
 ---
 
 # Introduction
-This tutorial will give you a brief explanation about how to handle the OCD Service. It explains a few basic requests for e.g. uploading a graph, retrieving the saved graphs, creating a cover from a graph, ...
+This tutorial will give you a brief explanation about how to handle the OCD Service. It explains a few basic requests for e.g. uploading a graph, retrieving the saved graphs, creating a cover from a graph etc.
 
-However this is only a fraction of what the service actually allows. Other functionalities include for instance the execution of metrics to determine the quality of the calculated covers or the computation of benchmark graphs and covers for the generation of standardized testing data. 
+However, this is only a fraction of what the service actually allows. Other functionalities include for instance the execution of metrics to determine the quality of the calculated covers or the computation of benchmark graphs and covers for the generation of standardized testing data.
 At the bottom, an overview of all possible requests is given. For a more detailed description of the requests you should refer to the OCD Service's source code.
 
 All responses other than actual graph and cover data (which has the specified output format), as well as JSON visualization data are sent in XML format.
+
+For more detailed information about using WebOCD Service, refer to the [tutorials](/REST-OCD-Services/pages/tutorials/login), which explains usage of WebOCD Service with the [WebClient](https://github.com/rwth-acis/OCD-Web-Client)
 
 # Graphs
 
@@ -115,7 +117,7 @@ After that, make a post request to run the algorithm with the following paramete
 + _name_: Email_Cover
 + _algorithm_: _SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM_
 + _body_: `<?xml version="1.0" encoding="UTF-16"?>`
-`<Parameters><Parameter><Name>memorySize</Name><Value>100</Value></Parameter><Parameter><Name>probabilityThreshold</Name><Value>0.15</Value></Parameter></Parameters>`
+  `<Parameters><Parameter><Name>memorySize</Name><Value>100</Value></Parameter><Parameter><Name>probabilityThreshold</Name><Value>0.15</Value></Parameter></Parameters>`
 + _contentWeighting_: false
 + _componentNodeCountFilter_: 0
 

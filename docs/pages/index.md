@@ -28,10 +28,10 @@ The OCD Service is publicly accessible via this [link](http://webocd.dbis.rwth-a
 Along with the service we provide a web client which also has its own [project](https://github.com/rwth-acis/OCD-Web-Client). The client can only be used with a valid Learning Layers account. We recommend to use the service along with the web client.
 
 
-We additionally provide a brief [Integration Tutorial](/integration/) that shows you the usage of the most important requests so that you can get started with the OCD Service more quickly.
+We additionally provide a brief [Integration Tutorial](/REST-OCD-Services/pages/wiki/integration/) that shows you the usage of the most important requests so that you can get started with the OCD Service more quickly.  A more detailed usage examples of WebOCD Service, using the WebOCD webclient can be found here [link](/REST-OCD-Services/pages/tutorials/login).
 
 ## The OCD Service
-The service is developed using the Eclipse IDE, so we recommend you to stick to that tool for any work on this project.
+The service is developed using the IntelliJ IDEA, so we recommend you to stick to that tool for any work on this project.
 
 Please refer to the following pages in order to obtain more information about the OCD Service.
 
@@ -41,9 +41,10 @@ Please refer to the following pages in order to obtain more information about th
 + [User Management and Authentication](/REST-OCD-Services/pages/wiki/user-management-and-authentication)
 + [Deploying the OCD Service](/REST-OCD-Services/pages/wiki/service-deployment)
 + [Database Configuration](/REST-OCD-Services/pages/wiki/database-configuration)
++ [Tutorials using WebOCD Service and Webclient](/REST-OCD-Services/pages/tutorials/login)
 
 ### Important
-The OCD Service is largely based on the commercial **yFiles** library. You will only be able to run it yourself if you have access to the archive _y.jar_. The Chair i5 of RWTH Aachen University has a license for that library. If you are affiliated with that institute, please contact somebody to obtain the library. Also, keep in mind that the archive mentioned above must under no circumstances be publicly deployed or otherwise made publicly available. Please refer to [Deploying the OCD Service](/REST-OCD-Services/pages/wiki/service-deployment) for more information.
+The WebOCD Service uses **ArangoDB** database, which has to be separately installed on the machine where the service runs. Alternatively, docker can be used to build the WebOCD Service together with the database. To build and run WebOCD Service with Docker, refer to [link](/REST-OCD-Services/pages/wiki/running#docker).
 
-The service also currently requires **Java JDK 14** to be built and most likely also to run it. However, there also exists an older version for JDK 8 (tag [1.0.0](https://github.com/rwth-acis/REST-OCD-Services/tree/1.0.0)) which is still functional in case you need it.
+The service also currently requires **Java JDK 17** to be built and most likely also to run it. However, there also exists an older version for JDK 8 (tag [1.0.0](https://github.com/rwth-acis/REST-OCD-Services/tree/1.0.0)) which is still functional in case you need it.
 

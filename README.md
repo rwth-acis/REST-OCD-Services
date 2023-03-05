@@ -25,4 +25,4 @@ docker compose up
 ```
 This will build and run containers for WebOCD service and arangodb, which is required for the service to run properly.
 
-You can adjust the database container default password by modifying docker-compose.yml. Keep in mind to also change the config files [config_test.properties](ocd/arangoDB/config_test.properties) and [standard_config.properties](ocd/arangoDB/standard_config.properties) so that WebOCD tests as well as the service can use the database.
+You can adjust the database container default password by modifying docker-compose.yml. Keep in mind to also change the config file [config.properties](ocd/arangoDB/config.properties), so that WebOCD tests as well as the service can use the database.
