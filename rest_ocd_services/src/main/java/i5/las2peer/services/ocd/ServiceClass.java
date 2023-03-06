@@ -1166,7 +1166,7 @@ public class ServiceClass extends RESTService {
 				Map<String, String> parameters;
 				try {
 					parameters = requestHandler.parseParameters(content);
-					algorithm = algorithmFactory.getInstance(algorithmType, parameters);
+					algorithm = algorithmFactory.getInstance(algorithmType, new HashMap<String, String>(parameters));
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
