@@ -2,13 +2,9 @@ package i5.las2peer.services.ocd.metrics;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 public class OmegaIndex implements KnowledgeDrivenMeasure {
 	
@@ -28,20 +24,20 @@ public class OmegaIndex implements KnowledgeDrivenMeasure {
 		int pairsInAgreementCount = 0;
 		Map<Integer, Integer> sharedCommunityCountsAlgo = new HashMap<Integer, Integer>();
 		Map<Integer, Integer> sharedCommunityCountsTruth = new HashMap<Integer, Integer>();
-		NodeCursor nodesA = cover.getGraph().nodes();
-		NodeCursor nodesB = cover.getGraph().nodes();
+		Iterator<Node> nodesA = cover.getGraph().iterator();
+		Iterator<Node> nodesB = cover.getGraph().iterator();
 		/*
 		 * Calculates the number of nodes in agreement and of pairs sharing a given number of communities.
 		 */
-		while(nodesA.ok()) {
-			Node nodeA = nodesA.node();
-			nodesB.toFirst();
-			while(nodesB.ok()) {
+		while(nodesA.hasNext()) {
+			Node nodeA = nodesA.next();
+			nodesB = cover.getGraph().iterator();
+			while(nodesB.hasNext()) {
 				if(Thread.interrupted()) {
 					throw new InterruptedException();
 				}
-				Node nodeB = nodesB.node();
-				if(nodeB.index() < nodeA.index()) {
+				Node nodeB = nodesB.next();
+				if(nodeB.getIndex() < nodeA.getIndex()) {
 					Set<Node> pair = new HashSet<Node>();
 					pair.add(nodeA);
 					pair.add(nodeB);
@@ -76,14 +72,12 @@ public class OmegaIndex implements KnowledgeDrivenMeasure {
 				else {
 					break;
 				}
-				nodesB.next();
 			}
-			nodesA.next();
 		}
 		/*
 		 * Calculates the actual omega index.
 		 */
-		int n = cover.getGraph().nodeCount();
+		int n = cover.getGraph().getNodeCount();
 		int pairsCount = ( n * (n - 1) ) / 2;
 		double unadjustedIndex = 1d / pairsCount * pairsInAgreementCount;
 		double expectedIndex = calculateExpectedIndex(sharedCommunityCountsAlgo, sharedCommunityCountsTruth, pairsCount);
@@ -101,21 +95,21 @@ public class OmegaIndex implements KnowledgeDrivenMeasure {
 		Integer count;
 		Node nodeA;
 		Node nodeB;
-		NodeCursor nodesA = cover.getGraph().nodes();
-		NodeCursor nodesB = cover.getGraph().nodes();
+		Iterator<Node> nodesA = cover.getGraph().iterator();
+		Iterator<Node> nodesB = cover.getGraph().iterator();
 		for(int i = 0; i<cover.communityCount(); i++) {
-			while(nodesA.ok()) {
-				nodeA = nodesA.node();
+			while(nodesA.hasNext()) {
+				nodeA = nodesA.next();
 				if(cover.getBelongingFactor(nodeA, i) > 0) {
-					while(nodesB.ok()) {
+					while(nodesB.hasNext()) {
 						if(Thread.interrupted()) {
 							throw new InterruptedException();
 						}
-						nodeB = nodesB.node();
+						nodeB = nodesB.next();
 						/*
 						 * Pairs are regarded only once.
 						 */
-						if(nodeA.index() <= nodeB.index()) {
+						if(nodeA.getIndex() <= nodeB.getIndex()) {
 							break;
 						}
 						if(cover.getBelongingFactor(nodeB, i) > 0) {
@@ -131,13 +125,11 @@ public class OmegaIndex implements KnowledgeDrivenMeasure {
 							}
 							sharedCommunityCounts.put(pair, count);
 						}
-						nodesB.next();
 					}
 				}
-				nodesB.toFirst();
-				nodesA.next();
+				nodesB = cover.getGraph().iterator();
 			}
-			nodesA.toFirst();
+			nodesA = cover.getGraph().iterator();
 		}
 		return sharedCommunityCounts;
 	}

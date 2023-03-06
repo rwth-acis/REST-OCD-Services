@@ -55,31 +55,31 @@ public class AlgorithmRunnable implements Runnable {
 		/*
 		 * Set algorithm state to running.
 		 */
-		CustomGraphId graphId = new CustomGraphId(cover.getGraph().getId(), cover.getGraph().getUserName());
-    	CoverId id = new CoverId(cover.getId(), graphId);
+		String cKey = cover.getKey();
+		String gKey = cover.getGraph().getKey();
+		String user = cover.getGraph().getUserName();
+		CustomGraphId graphId = new CustomGraphId(gKey, user);
+		CoverId coverId = new CoverId(cKey, graphId);
+
     	RequestHandler requestHandler = new RequestHandler();
-    	EntityHandler entityHandler = new EntityHandler();
-    	EntityManager em = entityHandler.getEntityManager();
-    	EntityTransaction tx = em.getTransaction();
+
+		Database database = new Database(false);
 		try {
-			tx.begin();
-			Cover cover = em.find(Cover.class, id);
-			if(cover == null) {
+			Cover c = database.getCover(user, gKey,  cKey);
+			if(c == null) {
+				//System.out.println("Cover in AR run was null " + user + gKey + cKey);
 				/*
 				 * Should not happen.
 				 */
 				requestHandler.log(Level.SEVERE, "Cover deleted while algorithm running.");
 				throw new IllegalStateException();
 			}
-			cover.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
-			tx.commit();
-		} catch( RuntimeException e ) {
-			if( tx != null && tx.isActive() ) {
-				tx.rollback();
-			}
+			c.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
+			database.updateCoverCreationLog(c);
+		} catch( Exception e ) {
 			error = true;
 		}
-		em.close();
+
 		/*
 		 * Run algorithm.
 		 */
@@ -100,7 +100,8 @@ public class AlgorithmRunnable implements Runnable {
 				error = true;
 			}
 		}
-    	threadHandler.createCover(resultCover, id, error);
+    	threadHandler.createCover(resultCover, coverId, error);
+
 	}
 
 }

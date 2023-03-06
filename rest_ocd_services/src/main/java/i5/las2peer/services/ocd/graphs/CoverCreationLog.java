@@ -14,6 +14,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * A log representation for a cover creation method, i.e. typically an OcdAlgorithm or OcdBenchmark execution.
  * @author Sebastian
@@ -26,9 +34,12 @@ public class CoverCreationLog {
 	 * Database column name definitions.
 	 */
 	private static final String idColumnName = "ID";
-	private static final String typeColumnName = "TYPE";
-	private static final String statusIdColumnName = "STATUS";
+	public static final String typeColumnName = "TYPE";
+	public static final String statusIdColumnName = "STATUS";
 	
+	private static final String parameterColumnName = "PARAMETER";
+	private static final String compatibleGraphTypesColumnName = "COMPATIBLEGRAPHTYPES";
+	public static final String collectionName = "covercreationlog";
 	/*
 	 * Field names.
 	 */
@@ -41,6 +52,10 @@ public class CoverCreationLog {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
 	private long id;
+	/**
+	 * System generated persistence key.
+	 */
+	private String key;
 	/**
 	 * Parameters used by the creation method.
 	 */
@@ -118,7 +133,13 @@ public class CoverCreationLog {
 	public long getId() {
 		return id;
 	}
-
+	/**
+	 * Returns the log key.
+	 * @return The key.
+	 */
+	public String getKey() {
+		return key;
+	}
 	/**
 	 * Returns the graph types the corresponding creation method is compatible with.
 	 * @return The graph types.
@@ -147,4 +168,70 @@ public class CoverCreationLog {
 		this.statusId = status.getId();
 	}
 	
+	//persistence functions
+	public void persist(ArangoDatabase db, String transId) {
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		ArangoCollection collection = db.collection(collectionName);
+		
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(typeColumnName, this.typeId);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(parameterColumnName, this.parameters); //TODO
+		bd.addAttribute(compatibleGraphTypesColumnName, this.compatibleGraphTypes);
+		
+		collection.insertDocument(bd, createOptions);
+		this.key = bd.getKey();
+	}
+	
+	public void updateDB(ArangoDatabase db, String transId) {
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(typeColumnName, this.typeId);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(parameterColumnName, this.parameters);
+		bd.addAttribute(compatibleGraphTypesColumnName, this.compatibleGraphTypes);
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
+	
+	public static CoverCreationLog load(String key, ArangoDatabase db, DocumentReadOptions opt) {
+		CoverCreationLog ccl = new CoverCreationLog();
+		ArangoCollection collection = db.collection(collectionName);
+		
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
+		if (bd != null) {
+			ObjectMapper om = new ObjectMapper();
+			String typeIdString = bd.getAttribute(typeColumnName).toString();
+			String statusIdString = bd.getAttribute(statusIdColumnName).toString();
+			Object objCompatibleGraphTypes = bd.getAttribute(compatibleGraphTypesColumnName);
+			Object objParam = bd.getAttribute(parameterColumnName);
+			
+			ccl.key = key;	
+			if(objParam != null) {
+				ccl.parameters = om.convertValue(objParam, Map.class);	
+			}
+			ccl.typeId = Integer.parseInt(typeIdString);
+			ccl.statusId = Integer.parseInt(statusIdString);
+			if(objCompatibleGraphTypes != null) {
+				ccl.compatibleGraphTypes = om.convertValue(objCompatibleGraphTypes, Set.class);
+			}
+		}	
+		else {
+			System.out.println("empty CoverCreationLog document");
+		}
+		return ccl;
+	}
+	
+
+	public String String() {
+		String n = System.getProperty("line.separator");
+		String ret = "CoverCreationLog: " + n;
+		ret += "Key :         " + this.key +n ;
+		ret += "typeId :      " + this.typeId + n ; 
+		ret += "statusId :    " + this.statusId + n;
+		ret += "parameters :  " + this.parameters.toString() + n;
+		ret += "GraphTypes :  " + this.compatibleGraphTypes.toString() + n;
+		return ret;
+	}
 }

@@ -1,13 +1,14 @@
 package i5.las2peer.services.ocd.adapters.centralityInput;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.Adapters;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 public class NodeValueListInputAdapter extends AbstractCentralityInputAdapter {
 
@@ -19,10 +20,9 @@ public class NodeValueListInputAdapter extends AbstractCentralityInputAdapter {
 		
 		// Get all node names from the graph
 		List<String> nodeNames = new ArrayList<String>();
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			nodeNames.add(graph.getNodeName(nc.node()));
-			nc.next();
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
+			nodeNames.add(graph.getNodeName(nc.next()));
 		}
 		
 		try {

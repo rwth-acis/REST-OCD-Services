@@ -7,6 +7,7 @@ import i5.las2peer.services.ocd.utils.NonZeroEntriesVectorProcedure;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,8 +32,18 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoCursor;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.AqlQueryOptions;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentDeleteOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.graphstream.graph.Node;
 
 /**
  * Represents a cover, i.e. the result of an overlapping community detection
@@ -52,33 +63,45 @@ public class Cover {
 	 */
 	public static final String graphIdColumnName = "GRAPH_ID";
 	public static final String graphUserColumnName = "USER_NAME";
-	private static final String nameColumnName = "NAME";
+	public static final String nameColumnName = "NAME";
 	public static final String idColumnName = "ID";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
 	public static final String simCostsColumnName = "SIMILARITYCOSTS";
+	public static final String numberOfCommunitiesColumnName = "NUMBER_OF_COMMUNITIES";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
-
+	
+	//ArangoDB name definitions
+	public static final String collectionName = "cover";
+	public static final String graphKeyColumnName = "GRAPH_KEY";
+	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
+	public static final String communityKeysColumnName = "COMMUNITY_KEYS";
 	/*
 	 * Field name definitions for JPQL queries.
 	 */
 	public static final String GRAPH_FIELD_NAME = "graph";
 	public static final String CREATION_METHOD_FIELD_NAME = "creationMethod";
 	public static final String METRICS_FIELD_NAME = "metrics";
-	public static final String ID_FIELD_NAME = "id";
+	public static final String ID_FIELD_NAME = "key";
+	public static final String NAME_FIELD_NAME = "name";
+	public static final String COMMUNITY_COUNT_FIELD_NAME = "numberOfCommunities";
 
 	////////////////////////////// ATTRIBUTES //////////////////////////////
 	/**
 	 * System generated persistence id.
 	 */
+	private long id;
+	/**
+	 * System generated persistence key.
+	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = idColumnName)
-	private long id;
-
+	private String key = "";
 	/**
 	 * The graph that the cover is based on.
 	 */
+	//TODO: GRaph should not be ID in javax persistence, we should change this as long as we dont use any other database library
 	@Id
 	// @ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumns({ @JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
@@ -90,6 +113,13 @@ public class Cover {
 	 */
 	@Column(name = nameColumnName)
 	private String name = "";
+
+	/**
+	 * The number of communities in the cover
+	 */
+	@Column(name = numberOfCommunitiesColumnName)
+	private Integer numberOfCommunities;
+
 
 	// /**
 	// * A description of the cover.
@@ -166,6 +196,7 @@ public class Cover {
 	public Cover(CustomGraph graph, Matrix memberships) {
 		this.graph = graph;
 		setMemberships(memberships, true);
+		this.numberOfCommunities = communityCount();
 	}
 
 	//////////////////////////// GETTER & SETTER ////////////////////////////
@@ -178,7 +209,16 @@ public class Cover {
 	public long getId() {
 		return id;
 	}
-
+	
+	/**
+	 * Getter for the key.
+	 * 
+	 * @return The key.
+	 */
+	public String getKey() {
+		return key;
+	}
+	
 	/**
 	 * Getter for the graph that the cover is based on.
 	 * 
@@ -295,18 +335,18 @@ public class Cover {
 	 *         according to the 1-norm.
 	 */
 	public Matrix getMemberships() {
-		Matrix memberships = new CCSMatrix(graph.nodeCount(), communities.size());
+		Matrix memberships = new CCSMatrix(graph.getNodeCount(), communities.size());
 		Map<CustomNode, Node> reverseNodeMap = new HashMap<CustomNode, Node>();
-		NodeCursor nodes = graph.nodes();
-		while (nodes.ok()) {
-			Node node = nodes.node();
+		Iterator<Node> nodes = graph.iterator();
+		while (nodes.hasNext()) {
+			Node node = nodes.next();
 			reverseNodeMap.put(graph.getCustomNode(node), node);
-			nodes.next();
+
 		}
 		for (int i = 0; i < communities.size(); i++) {
 			Community community = communities.get(i);
 			for (Map.Entry<Node, Double> membership : community.getMemberships().entrySet()) {
-				memberships.set(membership.getKey().index(), i, membership.getValue());
+				memberships.set(membership.getKey().getIndex(), i, membership.getValue());
 			}
 		}
 		return memberships;
@@ -328,7 +368,7 @@ public class Cover {
 	 *            Decides whether the (first) execution time metric log is kept.
 	 */
 	protected void setMemberships(Matrix memberships, boolean keepExecutionTime) {
-		if (memberships.rows() != graph.nodeCount()) {
+		if (memberships.rows() != graph.getNodeCount()) {
 			throw new IllegalArgumentException(
 					"The row number of the membership matrix must correspond to the graph node count.");
 		}
@@ -339,7 +379,7 @@ public class Cover {
 			metrics.add(executionTime);
 		}
 		memberships = this.normalizeMembershipMatrix(memberships);
-		Node[] nodes = graph.getNodeArray();
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		for (int j = 0; j < memberships.columns(); j++) {
 			Community community = new Community(this);
 			communities.add(community);
@@ -354,6 +394,7 @@ public class Cover {
 			}
 
 		}
+		this.updateNumberOfCommunities(this.communityCount());
 	}
 
 	/**
@@ -371,6 +412,7 @@ public class Cover {
 	 */
 	public void setMemberships(Matrix memberships) {
 		setMemberships(memberships, false);
+		this.updateNumberOfCommunities(this.communityCount());
 	}
 
 	//////////////////////////// METRICS ////////////////////////////
@@ -488,6 +530,16 @@ public class Cover {
 	 */
 	public void setCommunityName(int communityIndex, String name) {
 		communities.get(communityIndex).setName(name);
+	}
+
+	/**
+	 * Setter for the number of communities in the cover.
+	 *
+	 * @param numberOfCommunities
+	 *            The community count.
+	 */
+	public void updateNumberOfCommunities(Integer numberOfCommunities) {
+		this.numberOfCommunities = numberOfCommunities;
 	}
 
 	/**
@@ -617,7 +669,7 @@ public class Cover {
 	/**
 	 * Initializes the properties of all communities of this cover.
 	 */
-	public void initCommunityProperties() {
+	public void initCommunityProperties() throws InterruptedException {
 		for(Community community: getCommunities()) {
 			CustomGraph subGraph = getGraph().getSubGraph(community.getMemberIndices());
 			community.setProperties(GraphProperty.getPropertyList(subGraph));
@@ -650,7 +702,7 @@ public class Cover {
 		/*
 		 * Resizing also rows is required in case there are zero columns.
 		 */
-		matrix = matrix.resize(graph.nodeCount(), matrix.columns() + zeroRowIndices.size());
+		matrix = matrix.resize(graph.getNodeCount(), matrix.columns() + zeroRowIndices.size());
 		for (int i = 0; i < zeroRowIndices.size(); i++) {
 			matrix.set(zeroRowIndices.get(i), matrix.columns() - zeroRowIndices.size() + i, 1d);
 		}
@@ -698,6 +750,139 @@ public class Cover {
 		}
 		matrix.setRow(rowIndex, row);
 	}
+	
+	//persistence functions
+	public void persist(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		if(this.graph == null) {
+			throw new IllegalArgumentException("graph attribute of the cover to be persisted does not exist");
+		}
+		else if(this.graph.getKey().equals("")) {
+			throw new IllegalArgumentException("the graph of the cover is not persisted yet");
+		}
+		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
+		bd.addAttribute(nameColumnName, this.name);
+		bd.addAttribute(simCostsColumnName, this.simCosts);
+		bd.addAttribute(numberOfCommunitiesColumnName, this.numberOfCommunities);
+		
+		this.creationMethod.persist(db, transId);
+		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
+		collection.insertDocument(bd, createOptions);
+		this.key = bd.getKey();
+		
+		bd = new BaseDocument();
+		List<String> communityKeyList = new ArrayList<String>();
+		for(Community c : this.communities) {
+			c.persist(db, createOptions);
+			communityKeyList.add(c.getKey());
+		}
+		
+		bd.addAttribute(communityKeysColumnName, communityKeyList);
+		for(OcdMetricLog oml : this.metrics) {
+			oml.persist(db, createOptions);
+		}
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
+	
+	public void updateDB(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		ArangoCollection communityCollection = db.collection(Community.collectionName);
+		ObjectMapper om = new ObjectMapper();
+		
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		DocumentReadOptions readOptions = new DocumentReadOptions().streamTransactionId(transId);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		
+		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOptions);
+		
+		if(this.graph == null) {
+			throw new IllegalArgumentException("graph attribute of the cover to be updated does not exist");
+		}
+		else if(this.graph.getKey().equals("")) {
+			throw new IllegalArgumentException("the graph of the cover is not persisted yet");
+		}
+		bd.updateAttribute(nameColumnName, this.name);
+		bd.updateAttribute(simCostsColumnName, this.simCosts);
+		this.creationMethod.updateDB(db, transId);
+		
+		Object objCommunityKeys = bd.getAttribute(communityKeysColumnName);
+		List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
+		for(String communityKey : communityKeys) {			//delete all communitys
+			communityCollection.deleteDocument(communityKey, null, deleteOpt);
+		}		
+		
+		List<String> communityKeyList = new ArrayList<String>();
+		for(Community c : this.communities) {		//add new communities
+			c.persist(db, createOptions);
+			communityKeyList.add(c.getKey());
+		}	
+		bd.updateAttribute(communityKeysColumnName, communityKeyList);
+		bd.addAttribute(numberOfCommunitiesColumnName, this.numberOfCommunities);
+			
+		for(OcdMetricLog oml : this.metrics) {		//updates or persists a metric depending on its current existence
+			if(oml.getKey().equals("")) {
+				oml.persist(db, createOptions);
+			}
+			else {
+				oml.updateDB(db, transId);
+			}
+		}
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
+	
+	public static Cover load(String key, CustomGraph g, ArangoDatabase db, String transId) {
+		
+		Cover cover = null;
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
+		
+		if (bd != null) {
+			cover = new Cover(g);
+			ObjectMapper om = new ObjectMapper();	//prepair attributes
+			String graphKey = bd.getAttribute(graphKeyColumnName).toString();
+			if(!graphKey.equals(g.getKey())) {
+				System.out.println("graph with key: " + g.getKey() + " does not fit to cover with GraphKey: " + graphKey);
+				return null;
+			}
+			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+			Object objCommunityKeys = bd.getAttribute(communityKeysColumnName);
+			List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
+			Object objSimCost = bd.getAttribute(simCostsColumnName);
+			
+			//restore all attributes
+			cover.key = key;
+			cover.name = bd.getAttribute(nameColumnName).toString();
+			cover.creationMethod = CoverCreationLog.load(creationMethodKey, db, readOpt);
+			for(String communityKey : communityKeys) {
+				Community community = Community.load(communityKey,  cover, db, readOpt);
+				cover.communities.add(community);
+			}
+			cover.numberOfCommunities = (Integer) bd.getAttribute(numberOfCommunitiesColumnName);
+			
+			String queryStr = "FOR m IN " + OcdMetricLog.collectionName + " FILTER m." + OcdMetricLog.coverKeyColumnName +
+					" == @cKey RETURN m._key";
+			Map<String, Object> bindVars = Collections.singletonMap("cKey", key);
+			ArangoCursor<String> metricKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			
+			for(String metricKey : metricKeys) {
+				OcdMetricLog oml = OcdMetricLog.load(metricKey, cover, db, readOpt);
+				cover.metrics.add(oml);
+			}
+			if(objSimCost != null) {
+				cover.simCosts = Double.parseDouble(objSimCost.toString());
+			}
+		}	
+		else {
+			System.out.println("empty Cover document");
+		}
+		return cover;
+	}	
 
 	@Override
 	public String toString() {

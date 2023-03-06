@@ -8,9 +8,9 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
  */
 public abstract class AbstractProperty {
 
-	public abstract double calculate(CustomGraph graph);
+	public abstract double calculate(CustomGraph graph) throws InterruptedException;
 	
-	public double calculate(Community community) {
+	public double calculate(Community community) throws InterruptedException {
 		
 		if(community == null) 
 			throw new IllegalArgumentException("no community");

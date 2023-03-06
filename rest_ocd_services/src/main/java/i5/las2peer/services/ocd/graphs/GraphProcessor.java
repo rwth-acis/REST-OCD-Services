@@ -2,22 +2,17 @@ package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.utils.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
+
+import org.apache.jena.atlas.iterator.Iter;//TODO: why this iterator? i think iterator is already in java.util
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
-import y.algo.GraphConnectivity;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
-import y.base.NodeList;
+import org.graphstream.algorithm.ConnectedComponents;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
+
+import java.util.*;
 
 /**
  * Pre-processes graphs to facilitate community detection.
@@ -35,32 +30,32 @@ public class GraphProcessor {
 	 */
 	public void determineGraphTypes(CustomGraph graph) {
 		graph.clearTypes();
-		EdgeCursor edges = graph.edges();
+		Iterator<Edge> edgesIt = graph.edges().iterator();
 		Edge edge;
 		Edge reverseEdge;
-		while (edges.ok()) {
-			edge = edges.edge();
+		while (edgesIt.hasNext()) {
+			edge = edgesIt.next();
 			double edgeWeight = graph.getEdgeWeight(edge);
-			if (edgeWeight != 1) {
+			if (edgeWeight != 1 && !graph.getTypes().contains(GraphType.WEIGHTED)) {
 				graph.addType(GraphType.WEIGHTED);
 			}
-			if (edgeWeight == 0) {
-				graph.addType(GraphType.ZERO_WEIGHTS);
+			if (edgeWeight == 0 && !graph.getTypes().contains(GraphType.ZERO_WEIGHTS)) {
+				graph.addType(GraphType.ZERO_WEIGHTS );
 			}
-			if (edgeWeight < 0) {
+			if (edgeWeight < 0 && !graph.getTypes().contains(GraphType.NEGATIVE_WEIGHTS)) {
 				graph.addType(GraphType.NEGATIVE_WEIGHTS);
 			}
-			if (edge.source().equals(edge.target())) {
+			if (edge.getSourceNode().equals(edge.getTargetNode()) && !graph.getTypes().contains(GraphType.SELF_LOOPS)) {
 				graph.addType(GraphType.SELF_LOOPS);
 			}
-			reverseEdge = edge.target().getEdgeTo(edge.source());
-			if (reverseEdge == null || graph.getEdgeWeight(reverseEdge) != edgeWeight) {
+			reverseEdge = edge.getTargetNode().getEdgeToward(edge.getSourceNode());
+			if ((reverseEdge == null || graph.getEdgeWeight(reverseEdge) != edgeWeight) && !graph.getTypes().contains(GraphType.DIRECTED)) {
 				graph.addType(GraphType.DIRECTED);
 			}			
-			edges.next();
+
 		}
 		if (graph.getPath() != "" && graph.getPath() != null) {
-			if (graph.edgeCount() == 0) {
+			if (graph.getEdgeCount() == 0) {
 				graph.addType(GraphType.CONTENT_UNLINKED);
 			}
 			else 
@@ -80,25 +75,29 @@ public class GraphProcessor {
 	 *            The graph to be transformed.
 	 */
 	public void makeUndirected(CustomGraph graph) {
-		EdgeCursor edges = graph.edges();
-		while (edges.ok()) {
-			Edge edge = edges.edge();
-			double edgeWeight = graph.getEdgeWeight(edge);
+
+		// copy of the input graph to be used for iteration
+		CustomGraph graphCopy = new CustomGraph(graph);
+
+		Iterator<Edge> edges = graphCopy.edges().iterator();
+		while (edges.hasNext()) {
+			Edge edge = edges.next();
+			double edgeWeight = graphCopy.getEdgeWeight(edge);
 			Edge reverseEdge;
-			Node target = edge.target();
-			Node source = edge.source();
-			reverseEdge = target.getEdgeTo(source);
-			if (reverseEdge != null && reverseEdge.index() > edge.index() && !target.equals(source)) {
-				edgeWeight += graph.getEdgeWeight(reverseEdge);
-				graph.setEdgeWeight(edge, edgeWeight);
-				graph.setEdgeWeight(reverseEdge, edgeWeight);
+			Node target = edge.getTargetNode();
+			Node source = edge.getSourceNode();
+			reverseEdge = target.getEdgeToward(source);
+			if (reverseEdge != null && reverseEdge.getIndex() > edge.getIndex() && !target.equals(source)) {
+				graph.combineEdgeWeights(target.getId(), source.getId());
+
 			} else if (reverseEdge == null) {
-				reverseEdge = graph.createEdge(target, source);
+				reverseEdge = graph.addEdge(UUID.randomUUID().toString(), target.getId(), source.getId());
 				graph.setEdgeWeight(reverseEdge, edgeWeight);
 			}
-			edges.next();
+
 		}
 		graph.removeType(GraphType.DIRECTED);
+		graph.setNodeEdgeCountColumnFields(); //update graph edge count info
 	}
 
 	/**
@@ -110,11 +109,11 @@ public class GraphProcessor {
 	 *            The graph to be transformed.
 	 */
 	protected void removeMultiEdges(CustomGraph graph) {
-		EdgeCursor edges = graph.edges();
+		Iterator<Edge> edgesIt = graph.edges().iterator();
 		Map<Pair<Integer, Integer>, Double> nodePairWeights = new HashMap<Pair<Integer, Integer>, Double>();
-		while (edges.ok()) {
-			Edge edge = edges.edge();
-			Pair<Integer, Integer> nodePair = new Pair<Integer, Integer>(edge.source().index(), edge.target().index());
+		while (edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
+			Pair<Integer, Integer> nodePair = new Pair<Integer, Integer>(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex());
 			Double edgeWeight = nodePairWeights.get(nodePair);
 			if (edgeWeight == null) {
 				nodePairWeights.put(nodePair, graph.getEdgeWeight(edge));
@@ -123,15 +122,15 @@ public class GraphProcessor {
 				nodePairWeights.put(nodePair, edgeWeight);
 				graph.removeEdge(edge);
 			}
-			edges.next();
+
 		}
-		edges.toFirst();
-		while (edges.ok()) {
-			Edge edge = edges.edge();
+		edgesIt = graph.edges().iterator();
+		while (edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
 			double edgeWeight = nodePairWeights
-					.get(new Pair<Integer, Integer>(edge.source().index(), edge.target().index()));
+					.get(new Pair<Integer, Integer>(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex()));
 			graph.setEdgeWeight(edge, edgeWeight);
-			edges.next();
+
 		}
 	}
 
@@ -151,20 +150,30 @@ public class GraphProcessor {
 	 */
 	protected void redefineEdges(CustomGraph graph, boolean noNegativeWeights, boolean noZeroWeights,
 			boolean noSelfLoops, boolean setToOne) {
-		EdgeCursor edges = graph.edges();
-		while (edges.ok()) {
-			Edge edge = edges.edge();
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+
+		/*
+		 this list will hold edges to be removed. This is needed to avoid edge removal
+		 while iterating over edges to avoid unintended side effects.
+		 */
+		ArrayList<Edge> edgesToRemove = new ArrayList<Edge>();
+
+		while (edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
 			double edgeWeight = graph.getEdgeWeight(edge);
 			if (noNegativeWeights && edgeWeight < 0) {
-				graph.removeEdge(edge);
+				//graph.removeEdge(edge);
+				edgesToRemove.add(edge);
 			} else if (noZeroWeights && edgeWeight == 0) {
-				graph.removeEdge(edge);
-			} else if (noSelfLoops && edge.source().equals(edge.target())) {
-				graph.removeEdge(edge);
+				//graph.removeEdge(edge);
+				edgesToRemove.add(edge);
+			} else if (noSelfLoops && edge.getSourceNode().equals(edge.getTargetNode())) {
+				//graph.removeEdge(edge);
+				edgesToRemove.add(edge);
 			} else if (setToOne) {
 				graph.setEdgeWeight(edge, 1);
 			}
-			edges.next();
+
 		}
 		if (noSelfLoops) {
 			graph.removeType(GraphType.SELF_LOOPS);
@@ -177,6 +186,13 @@ public class GraphProcessor {
 		}
 		if (noZeroWeights) {
 			graph.removeType(GraphType.ZERO_WEIGHTS);
+		}
+
+		/*
+		 remove edges that were identified for removal
+		 */
+		for (Edge edgeToRemove : edgesToRemove){
+			graph.removeEdge(edgeToRemove);
 		}
 	}
 
@@ -193,42 +209,46 @@ public class GraphProcessor {
 		 * Iterates over all connected components of the graph creating a copy
 		 * for each of them.
 		 */
-		NodeList[] componentsArray = GraphConnectivity.connectedComponents(graph);
+		//TODO: Check usage of connected component algorithm here
+		//NodeList[] componentsArray = GraphConnectivity.connectedComponents(graph);
+		ConnectedComponents ccAlgo = new ConnectedComponents(graph);
+		ccAlgo.compute();
+		Iterator<ConnectedComponents.ConnectedComponent> componentsIterator = ccAlgo.iterator();
 		List<Pair<CustomGraph, Map<Node, Node>>> componentsList = new ArrayList<Pair<CustomGraph, Map<Node, Node>>>();
-		for (int i = 0; i < componentsArray.length; i++) {
-			CustomGraph component = new CustomGraph();
+		while (componentsIterator.hasNext()) {
+			ConnectedComponents.ConnectedComponent component = componentsIterator.next();
+			CustomGraph componentGraph = new CustomGraph();
 			Map<Node, Node> nodeMap = new HashMap<Node, Node>();
 			Map<Node, Node> tmpNodeMap = new HashMap<Node, Node>();
 			/*
 			 * Sets component nodes
 			 */
-			NodeCursor nodes = componentsArray[i].nodes();
-			while (nodes.ok()) {
-				Node originalNode = nodes.node();
-				Node newNode = component.createNode();
-				component.setNodeName(newNode, graph.getNodeName(originalNode));
+			Iterator<Node> nodesIt = component.nodes().iterator();
+			while (nodesIt.hasNext()) {
+				Node originalNode = nodesIt.next();
+				Node newNode = componentGraph.addNode(component.id + originalNode.getId());
+				componentGraph.setNodeName(newNode, graph.getNodeName(originalNode));
 				nodeMap.put(newNode, originalNode);
 				tmpNodeMap.put(originalNode, newNode);
-				nodes.next();
+
 			}
 			/*
 			 * Sets component edges
 			 */
-			nodes.toFirst();
-			while (nodes.ok()) {
-				Node node = nodes.node();
-				EdgeCursor outEdges = node.outEdges();
-				while (outEdges.ok()) {
-					Edge outEdge = outEdges.edge();
-					Node target = outEdge.target();
-					Edge newEdge = component.createEdge(tmpNodeMap.get(node), tmpNodeMap.get(target));
+			nodesIt = component.nodes().iterator();
+			while (nodesIt.hasNext()) {
+				Node node = nodesIt.next();
+				Iterator<Edge> outEdgesIt = node.leavingEdges().iterator();
+				while (outEdgesIt.hasNext()) {
+					Edge outEdge = outEdgesIt.next();
+					Node target = outEdge.getTargetNode();
 					double edgeWeight = graph.getEdgeWeight(outEdge);
-					component.setEdgeWeight(newEdge, edgeWeight);
-					outEdges.next();
+					Edge newEdge = componentGraph.addEdge(UUID.randomUUID().toString(),tmpNodeMap.get(node), tmpNodeMap.get(target));
+					componentGraph.setEdgeWeight(newEdge, edgeWeight);
 				}
-				nodes.next();
+
 			}
-			componentsList.add(new Pair<CustomGraph, Map<Node, Node>>(component, nodeMap));
+			componentsList.add(new Pair<CustomGraph, Map<Node, Node>>(componentGraph, nodeMap));
 		}
 		return componentsList;
 	}
@@ -250,28 +270,28 @@ public class GraphProcessor {
 		for (Pair<Cover, Map<Node, Node>> componentCover : componentCovers) {
 			totalCommunityCount += componentCover.getFirst().communityCount();
 		}
-		Matrix memberships = new CCSMatrix(graph.nodeCount(), totalCommunityCount);
+		Matrix memberships = new CCSMatrix(graph.getNodeCount(), totalCommunityCount);
 		Cover currentCover = null;
 		CoverCreationLog algo = new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(),
 				new HashSet<GraphType>());
 		if (!componentCovers.isEmpty()) {
 			algo = componentCovers.get(0).getFirst().getCreationMethod();
 		}
-		NodeCursor currentNodes;
+		Iterator<Node> currentNodesIt;
 		Node node;
 		int currentCoverFirstCommunityIndex = 0;
 		double belongingFactor;
 		for (Pair<Cover, Map<Node, Node>> componentCover : componentCovers) {
 			currentCover = componentCover.getFirst();
-			currentNodes = currentCover.getGraph().nodes();
-			while (currentNodes.ok()) {
-				node = currentNodes.node();
+			currentNodesIt = currentCover.getGraph().nodes().iterator();
+			while (currentNodesIt.hasNext()) {
+				node = currentNodesIt.next();
 				for (int i = 0; i < currentCover.communityCount(); i++) {
 					belongingFactor = currentCover.getBelongingFactor(node, i);
-					memberships.set(componentCover.getSecond().get(node).index(), currentCoverFirstCommunityIndex + i,
+					memberships.set(componentCover.getSecond().get(node).getIndex(), currentCoverFirstCommunityIndex + i,
 							belongingFactor);
 				}
-				currentNodes.next();
+
 			}
 			currentCoverFirstCommunityIndex += currentCover.communityCount();
 			if (!currentCover.getCreationMethod().equals(algo)) {
@@ -345,18 +365,18 @@ public class GraphProcessor {
 	 * @author YLi
 	 */
 	public void makeDirected(CustomGraph graph) {
-		EdgeCursor edges = graph.edges();
-		while (edges.ok()) {
-			Edge edge = edges.edge();
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+		while (edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
 			double edgeWeight = graph.getEdgeWeight(edge);
 			Edge reverseEdge;
-			Node target = edge.target();
-			Node source = edge.source();
-			if (target.index() > source.index()) {
-				reverseEdge = graph.createEdge(target, source);
+			Node target = edge.getTargetNode();
+			Node source = edge.getSourceNode();
+			if (target.getIndex() > source.getIndex()) {
+				reverseEdge = graph.addEdge(UUID.randomUUID().toString(), target, source);
 				graph.setEdgeWeight(reverseEdge, edgeWeight);
 			}
-			edges.next();
+
 		}
 		graph.addType(GraphType.DIRECTED);
 	}
@@ -372,20 +392,20 @@ public class GraphProcessor {
 	 */
 	public CustomGraph copyGraph(CustomGraph graph) {
 		CustomGraph graphCopy = new CustomGraph();
-		int nodeCount = graph.nodeCount();
+		int nodeCount = graph.getNodeCount();
 		Node t[] = new Node[nodeCount];
 		for (int i = 0; i < nodeCount; i++) {
-			t[i] = graphCopy.createNode();
+			t[i] = graphCopy.addNode(Integer.toString(i));
 		}
-		EdgeCursor edges = graph.edges();
+		Iterator<Edge> edges = graph.edges().iterator();
 		Edge edge;
-		while (edges.ok()) {
-			edge = edges.edge();
-			int source = edge.source().index();
-			int target = edge.target().index();
-			Edge newEdge = graphCopy.createEdge(t[source], t[target]);
+		while (edges.hasNext()) {
+			edge = edges.next();
+			int source = edge.getSourceNode().getIndex();
+			int target = edge.getTargetNode().getIndex();
+			Edge newEdge = graphCopy.addEdge(UUID.randomUUID().toString(),t[source], t[target]);
 			graphCopy.setEdgeWeight(newEdge, graph.getEdgeWeight(edge));
-			edges.next();
+
 		}
 		return graphCopy;
 	}
@@ -398,13 +418,12 @@ public class GraphProcessor {
 	 * @author Tobias
 	 */
 	public void invertEdgeWeights(CustomGraph graph) {
-		EdgeCursor edges = graph.edges();
+		Iterator<Edge> edges = graph.edges().iterator();
 		
-		while(edges.ok()) {
-			Edge edge = edges.edge();
+		while(edges.hasNext()) {
+			Edge edge = edges.next();
 			graph.setEdgeWeight(edge, 1/graph.getEdgeWeight(edge));
-			
-			edges.next();
+
 		}
 	}
 	
@@ -416,12 +435,15 @@ public class GraphProcessor {
 	 * @author Tobias
 	 */
 	public void reverseEdgeDirections(CustomGraph graph) {
-		EdgeCursor edges = graph.edges();
-		
-		while(edges.ok()) {
-			Edge edge = edges.edge();
-			graph.reverseEdge(edge);
-			edges.next();
+		Iterator<Edge> edges = graph.edges().iterator();
+
+		if (graph.isDirected()) {
+			while(edges.hasNext()) {
+				//TODO: Finish edge reversal
+				Edge edge = edges.next();
+				graph.addEdge(UUID.randomUUID().toString(), edge.getTargetNode(), edge.getSourceNode());
+				graph.removeEdge(edge);
+			}
 		}
 	}
 }

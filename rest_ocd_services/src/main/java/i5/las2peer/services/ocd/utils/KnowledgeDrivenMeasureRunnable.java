@@ -1,6 +1,8 @@
 package i5.las2peer.services.ocd.utils;
 
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CoverId;
+import i5.las2peer.services.ocd.graphs.CustomGraphId;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
 import i5.las2peer.services.ocd.metrics.OcdMetricExecutor;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
@@ -58,18 +60,18 @@ public class KnowledgeDrivenMeasureRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+
 		boolean error = false;
 		/*
 		 * Set metric state to running.
 		 */
     	RequestHandler requestHandler = new RequestHandler();
-    	EntityHandler entityHandler = new EntityHandler();
-    	EntityManager em = entityHandler.getEntityManager();
-    	EntityTransaction tx = em.getTransaction();
+		Database database = new Database(false);
+
 		try {
-			tx.begin();
-			OcdMetricLog persistedLog = em.find(OcdMetricLog.class, logId);
+			OcdMetricLog persistedLog = database.getOcdMetricLog(logId);
 			if(persistedLog == null) {
+				System.out.println("metric log deleted while metric running");
 				/*
 				 * Should not happen.
 				 */
@@ -77,14 +79,10 @@ public class KnowledgeDrivenMeasureRunnable implements Runnable {
 				throw new IllegalStateException();
 			}
 			persistedLog.setStatus(ExecutionStatus.RUNNING);
-			tx.commit();
+			database.updateOcdMetricLog(persistedLog);
 		} catch( RuntimeException e ) {
-			if( tx != null && tx.isActive() ) {
-				tx.rollback();
-			}
 			error = true;
 		}
-		em.close();
 		/*
 		 * Run metric.
 		 */

@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -12,10 +9,11 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Edge;
+
+import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiNode;
+
 
 /**
  * Implementation of PageRank.
@@ -34,49 +32,45 @@ public class PageRank implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.PAGERANK, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
+		Iterator<Node> nc = graph.iterator();
 		// Set initial PageRank of all nodes to 1
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), 1.0);
-			nc.next();
+		while(nc.hasNext()) {
+			res.setNodeValue(nc.next(), 1.0);
 		}
-		nc.toFirst();
+		nc = graph.iterator();
 		
-		int n = nc.size();
+		int n = graph.getNodeCount();
 		for(int k = 0; k < 50; k++) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			while(nc.ok()) {
-				Node i = nc.node();
+			while(nc.hasNext()) {
+				Node i = nc.next();
 				double weightedRankSum = 0.0;		
-				EdgeCursor inLinks = i.inEdges();
-				while(inLinks.ok()) {
-					Edge eji = inLinks.edge();
-					Node j = eji.source();
-					weightedRankSum += graph.getEdgeWeight(eji) * res.getNodeValue(j) / graph.getWeightedOutDegree(j);
-					inLinks.next();
-				}	
+				Iterator<Edge> inLinks = i.enteringEdges().iterator();
+				while(inLinks.hasNext()) {
+					Edge eji = inLinks.next();
+					Node j = eji.getSourceNode();
+					weightedRankSum += graph.getEdgeWeight(eji) * res.getNodeValue(j) / graph.getWeightedOutDegree((MultiNode) j);
+				}
 				double newValue = d * weightedRankSum + (1-d) * 1/n;
 				res.setNodeValue(i, newValue);	
-				nc.next();
 			}
-			nc.toFirst();
+			nc = graph.iterator();
 		}
 		
 		// Scale the values, so they sum to 1
 		double sum = 0.0;
-		while(nc.ok()) {
-			sum += res.getNodeValue(nc.node());
-			nc.next();
+		while(nc.hasNext()) {
+			sum += res.getNodeValue(nc.next());
 		}
-		nc.toFirst();
+		nc = graph.iterator();
 		double factor = 1/sum;
 		
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), factor * res.getNodeValue(nc.node()));
-			nc.next();
-		}	
+		while(nc.hasNext()) {
+			Node node = nc.next();
+			res.setNodeValue(node, factor * res.getNodeValue(node));
+		}
 		return res;
 	}
 

@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 import org.junit.Test;
 
+//TODO: Refactor Triplestore tests
 public class LmsTripleStoreGraphInputAdapterTest {
 		
 
@@ -17,8 +18,8 @@ public class LmsTripleStoreGraphInputAdapterTest {
 	public void wholeGraphtest() throws AdapterException {
 		LmsTripleStoreGraphInputAdapter inputAdapter = new LmsTripleStoreGraphInputAdapter();
 		CustomGraph graph = inputAdapter.readGraph();
-		System.out.println(graph.nodeCount() + " " +  graph.edgeCount());
-		System.out.println(graph.getNodeName(graph.firstNode()));
+		System.out.println(graph.getNodeCount() + " " +  graph.getEdgeCount());
+		System.out.println(graph.getNodeName(graph.getNode(0)));
 	}
 	
 	@Test
@@ -31,9 +32,9 @@ public class LmsTripleStoreGraphInputAdapterTest {
 		inputAdapter.setParameter(params);
 		
 		CustomGraph graph = inputAdapter.readGraph();
-		System.out.println(graph.nodeCount() + " " +  graph.edgeCount());
-		if(graph.nodeCount() != 0) {
-			System.out.println(graph.getNodeName(graph.firstNode()));
+		System.out.println(graph.getNodeCount() + " " +  graph.getEdgeCount());
+		if(graph.getNodeCount() != 0) {
+			System.out.println(graph.getNodeName(graph.getNode(0)));
 		}
 	}
 			

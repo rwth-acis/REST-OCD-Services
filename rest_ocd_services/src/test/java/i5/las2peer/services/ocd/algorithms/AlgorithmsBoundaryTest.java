@@ -17,11 +17,12 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.Test;
 
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 public class AlgorithmsBoundaryTest {
 
@@ -40,12 +41,12 @@ public class AlgorithmsBoundaryTest {
 		CustomGraph graph = new CustomGraph();
 		graphs.add(graph);
 		graph = new CustomGraph();
-		graph.createNode();
+		graph.addNode("firstNode");
 		graphs.add(graph);
 		graph = new CustomGraph();
-		Node node0 = graph.createNode();
-		Node node1 = graph.createNode();
-		Edge edge = graph.createEdge(node0, node1);
+		Node node0 = graph.addNode("0");
+		Node node1 = graph.addNode("1");
+		Edge edge = graph.addEdge(UUID.randomUUID().toString(), node0, node1);
 		graph.setEdgeWeight(edge, 2);
 		graph.addType(GraphType.DIRECTED);
 		graphs.add(graph);
@@ -54,7 +55,7 @@ public class AlgorithmsBoundaryTest {
 			for(CustomGraph currentGraph : graphs) {
 				Cover cover = executor.execute(currentGraph, currentAlgo, 0);
 				System.out.println("Algo: " + currentAlgo.getAlgorithmType().name() 
-						+ ", Node Count: " + currentGraph.nodeCount());
+						+ ", Node Count: " + currentGraph.getNodeCount());
 				System.out.println(cover + "\n");
 			}
 		}

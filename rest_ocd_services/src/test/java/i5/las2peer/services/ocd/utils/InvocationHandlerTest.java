@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -14,12 +15,12 @@ import org.la4j.matrix.dense.Basic2DMatrix;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 public class InvocationHandlerTest {
 
-	private static final String PERSISTENCE_UNIT_NAME = "ocd";
-	private static final EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+	//private static final String PERSISTENCE_UNIT_NAME = "ocd";
+	//private static final EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
 
 	String username;
 	String graphName;
@@ -45,14 +46,14 @@ public class InvocationHandlerTest {
 
 		nodes = new ArrayList<>(4);
 		for (int i = 0; i < 4; i++) {
-			nodes.add(i, graph.createNode());
+			nodes.add(i, graph.addNode(Integer.toString(i)));
 			graph.setNodeName(nodes.get(i), String.valueOf(i + 1));
 		}
 
-		graph.createEdge(nodes.get(0), nodes.get(1));
-		graph.createEdge(nodes.get(1), nodes.get(2));
-		graph.createEdge(nodes.get(1), nodes.get(3));
-		graph.createEdge(nodes.get(3), nodes.get(2));
+		graph.addEdge(UUID.randomUUID().toString(), nodes.get(0), nodes.get(1));
+		graph.addEdge(UUID.randomUUID().toString(), nodes.get(1), nodes.get(2));
+		graph.addEdge(UUID.randomUUID().toString(), nodes.get(1), nodes.get(3));
+		graph.addEdge(UUID.randomUUID().toString(), nodes.get(3), nodes.get(2));
 
 		cover = new Cover(graph);
 
@@ -91,7 +92,7 @@ public class InvocationHandlerTest {
 	@Test
 	public void getMemberListTest() {
 
-		Matrix memberships = new Basic2DMatrix(graph.nodeCount(), 3);
+		Matrix memberships = new Basic2DMatrix(graph.getNodeCount(), 3);
 		memberships.set(0, 0, 0.7);
 		memberships.set(0, 1, 0.0);
 		memberships.set(0, 2, 0.0);

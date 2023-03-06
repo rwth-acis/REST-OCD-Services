@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -12,8 +9,9 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiNode;
+
 
 /**
  * Implementation of the Bridging Coefficient.
@@ -27,36 +25,29 @@ public class BridgingCoefficient implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.UNDEFINED, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();	
+			Node node = nc.next();	
 			// Calculate the probability of leaving the direct neighborhood subgraph in two steps
 			double leavingProbability = 0.0;
-			double nodeWeightedOutDegree = graph.getWeightedOutDegree(node);
-			NodeCursor neighbors = node.successors();
-			while(neighbors.ok()) {
-				Node neighbor = neighbors.node();
-				double nodeEdgeWeight = graph.getEdgeWeight(node.getEdgeTo(neighbor));
-				if(nodeEdgeWeight > 0) {
-					double neighborWeightedOutDegree = graph.getWeightedOutDegree(neighbor);
-					NodeCursor twoStepNeighbors = neighbor.successors();
-					while(twoStepNeighbors.ok()) {
-						Node twoStepNeighbor = twoStepNeighbors.node();
-						double neighborEdgeWeight = graph.getEdgeWeight(neighbor.getEdgeTo(twoStepNeighbor));
-						if(twoStepNeighbor != node && node.getEdgeTo(twoStepNeighbor) == null) {
+			double nodeWeightedOutDegree = graph.getWeightedOutDegree((MultiNode) node);
+			for (Node neighbor : graph.getSuccessorNeighbours(node)) {
+				double nodeEdgeWeight = graph.getEdgeWeight(node.getEdgeToward(neighbor));
+				if (nodeEdgeWeight > 0) {
+					double neighborWeightedOutDegree = graph.getWeightedOutDegree((MultiNode) neighbor);
+					for (Node twoStepNeighbor : graph.getSuccessorNeighbours(neighbor)) {
+						double neighborEdgeWeight = graph.getEdgeWeight(neighbor.getEdgeToward(twoStepNeighbor));
+						if (twoStepNeighbor != node && node.getEdgeToward(twoStepNeighbor) == null) {
 							// If twoStepNeighbor is not in the direct neighborhood graph
-							leavingProbability += nodeEdgeWeight/nodeWeightedOutDegree * neighborEdgeWeight/neighborWeightedOutDegree;
+							leavingProbability += nodeEdgeWeight / nodeWeightedOutDegree * neighborEdgeWeight / neighborWeightedOutDegree;
 						}
-						twoStepNeighbors.next();
 					}
 				}
-				neighbors.next();
-			}	
+			}
 			res.setNodeValue(node, leavingProbability);
-			nc.next();
 		}
 		return res;
 	}

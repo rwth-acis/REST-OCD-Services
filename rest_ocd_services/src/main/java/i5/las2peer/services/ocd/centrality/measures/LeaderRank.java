@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -12,10 +9,11 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Edge;
+
+import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiNode;
+
 
 /**
  * Implementation of LeaderRank.
@@ -29,60 +27,57 @@ public class LeaderRank implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.LEADERRANK, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		int n = graph.nodeCount();
+		Iterator<Node> nc = graph.iterator();
+		int n = graph.getNodeCount();
 		// Set initial LeaderRank of all nodes to 1
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), 1.0);
-			nc.next();
+		while(nc.hasNext()) {
+			res.setNodeValue(nc.next(), 1.0);
 		}
-		nc.toFirst();
 		
 		// Add ground node
-		Node groundNode = graph.createNode();
-		while(nc.ok()) {
-			Node node = nc.node();
+		Node groundNode = graph.addNode("groundNode");
+
+		nc = graph.iterator();
+
+		while(nc.hasNext()) {
+			Node node = nc.next();
 			if(node != groundNode) {
 				// Add bidirectional edges
-				Edge e1 = graph.createEdge(groundNode, node);
-				Edge e2 = graph.createEdge(node, groundNode);		
+				Edge e1 = graph.addEdge(UUID.randomUUID().toString(), groundNode, node);
+				Edge e2 = graph.addEdge(UUID.randomUUID().toString(), node, groundNode);
 				graph.setEdgeWeight(e1, 1.0);
 				graph.setEdgeWeight(e2, 1.0);
 			}
-			nc.next();
 		}
-		nc.toFirst();
+		nc = graph.iterator();
 		res.setNodeValue(groundNode, 0.0);
-		
 		for(int k = 0; k < 50; k++) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			while(nc.ok()) {
-				Node i = nc.node();
+			while(nc.hasNext()) {
+				Node i = nc.next();
 				double weightedRankSum = 0.0;
 				
-				EdgeCursor inLinks = i.inEdges();
-				while(inLinks.ok()) {
-					Edge eji = inLinks.edge();
-					Node j = eji.source();
-					weightedRankSum += graph.getEdgeWeight(eji) * res.getNodeValue(j) / graph.getWeightedOutDegree(j);					
-					inLinks.next();
-				}		
+				Iterator<Edge> inLinks = i.enteringEdges().iterator();
+				while(inLinks.hasNext()) {
+					Edge eji = inLinks.next();
+					Node j = eji.getSourceNode();
+					weightedRankSum += graph.getEdgeWeight(eji) * res.getNodeValue(j) / graph.getWeightedOutDegree((MultiNode) j);
+				}
 				double newValue = weightedRankSum;
 				res.setNodeValue(i, newValue);		
-				nc.next();
 			}
-			nc.toFirst();
+			nc = graph.iterator();
 		}
 		
 		// Distribute score of ground node evenly
 		double share = res.getNodeValue(groundNode) / n;
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), res.getNodeValue(nc.node()) + share);
-			nc.next();
+		while(nc.hasNext()) {
+			Node node = nc.next();
+			res.setNodeValue(node, res.getNodeValue(node) + share);
 		}
-		
+		res.getMap().remove(null); // this is needed to avoid storing groundNode (used for calculations) in the database
 		return res;
 	}
 

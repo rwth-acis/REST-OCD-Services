@@ -10,6 +10,9 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
+
 import org.junit.Test;
 
 public class GraphMlGraphInputAdapterTest {
@@ -19,10 +22,10 @@ public class GraphMlGraphInputAdapterTest {
 		GraphInputAdapter inputAdapter = new GraphMlGraphInputAdapter();
 		inputAdapter.setReader(new FileReader(OcdTestConstants.sawmillGraphMlInputPath));
 		CustomGraph graph = inputAdapter.readGraph();
-		assertEquals(36, graph.nodeCount());
-		assertEquals(124, graph.edgeCount());
-		assertEquals(2, graph.getEdgeWeight(graph.getEdgeArray()[0]), 0);
-		assertEquals("1", graph.getNodeName(graph.getNodeArray()[0]));
+		assertEquals(36, graph.getNodeCount());
+		assertEquals(124, graph.getEdgeCount());
+		assertEquals(2, graph.getEdgeWeight(graph.edges().toArray(Edge[]::new)[0]), 0);
+		assertEquals("n0", graph.getNodeName(graph.nodes().toArray(Node[]::new)[0]));
 	}
 	
 	@Test

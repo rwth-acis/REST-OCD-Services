@@ -13,27 +13,22 @@ import i5.las2peer.services.ocd.viewer.painters.CoverPaintingType;
 import i5.las2peer.services.ocd.viewer.utils.CentralityVisualizationType;
 
 import java.awt.Color;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
-import y.view.Arrow;
-import y.view.DefaultGraph2DRenderer;
-import y.view.EdgeLabel;
-import y.view.EdgeRealizer;
-import y.view.Graph2DView;
-import y.view.NodeLabel;
-import y.view.NodeRealizer;
-import y.view.ShapeNodeRealizer;
-import y.view.SmartNodeLabelModel;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
+
+import org.graphstream.ui.layout.Layout;
+import org.graphstream.ui.layout.springbox.implementations.SpringBox;
 
 /**
  * Manages the integration of all layouting phases.
  * @author Sebastian
  *
  */
+//TODO: Currently we need to work solely with the ui.style attribute of elements since the SVG visualization of graphstream refuses to look at other attributes, we should change to use single attributes when it it is possible
 public class LayoutHandler {
 	private static final Color CENTRALITY_COLOR = Color.BLUE;
 	private static final Color CENTRALITY_GRADIENT_MIN = Color.GREEN;
@@ -61,22 +56,23 @@ public class LayoutHandler {
 	 * @param maxNodeSize Defines the maximum size of a node. Must be at least as high as the defined minimum size.
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public void doLayout(CustomGraph graph, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges, 
-			double minNodeSize, double maxNodeSize) throws InstantiationException, IllegalAccessException {
+			double minNodeSize, double maxNodeSize) throws InstantiationException, IllegalAccessException, InterruptedException {
 		setLayoutDefaults(graph, minNodeSize, maxNodeSize);
 		labelGraph(graph, doLabelNodes, doLabelEdges);
 		GraphLayouter layouter = graphLayouterFactory.getInstance(layoutType);
 		layouter.doLayout(graph);
-		setViewDefaults(new Graph2DView(graph));
+		setViewDefaults(graph);
 	}
 	
 	/**
 	 * Sets the default layout attributes for a graph, such as node and edge shapes and node sizes.
 	 * @param graph the graph
 	 */
-	private void setLayoutDefaults(CustomGraph graph, double minNodeSize, double maxNodeSize) {
-		NodeCursor nodes = graph.nodes();
+	private void setLayoutDefaults(CustomGraph graph, double minNodeSize, double maxNodeSize) throws InterruptedException {
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		/*
 		 * Node size scaling factor
@@ -85,48 +81,25 @@ public class LayoutHandler {
 		double maxDegree = graph.getMaxWeightedInDegree();
 		double degreeDifference = (maxDegree == minDegree) ? 1.0 : (maxDegree - minDegree);
 		double scalingFactor = (maxNodeSize - minNodeSize) / degreeDifference;
-		while(nodes.ok()) {
-			node = nodes.node();
-			ShapeNodeRealizer nRealizer = new ShapeNodeRealizer(graph.getRealizer(node));
-			graph.setRealizer(node, nRealizer);
-			nRealizer.setShapeType(ShapeNodeRealizer.ELLIPSE);
+		while(nodesIt.hasNext()) {
+			node = nodesIt.next();
+
 			double curNodeSize = minNodeSize + (graph.getWeightedInDegree(node) - minDegree) * scalingFactor;
-			nRealizer.setSize(curNodeSize, curNodeSize);
-			nodes.next();
+			//"Declare" nodestyles
+			node.setAttribute("ui.style", "fill-color: rgba(" + 200 + "," + 200 + "," + 240 + "," + 255 + ");"
+					+ "shape: circle; size: "+ curNodeSize +";");
+			node.setAttribute("ui.size", curNodeSize);  // needed for JsonVisualOutputAdapter
 		}
-		EdgeCursor edges = graph.edges();
-		Edge edge;
-		while(edges.ok()) {
-			edge = edges.edge();
-			EdgeRealizer eRealizer = graph.getRealizer(edge);
-			if(graph.isOfType(GraphType.DIRECTED)) {
-				eRealizer.setArrow(Arrow.STANDARD);
-			}
-			edges.next();
-		}
-	}
-	
-	/**
-	 * Sets the layout attributes of a graph for visualizing a CentralityMap.
-	 * @param graph The graph of the CentralityMap that is visualized
-	 */
-	private void setCentralityLayoutDefaults(CustomGraph graph) {
-		NodeCursor nodes = graph.nodes();
-		while(nodes.ok()) {
-			Node node = nodes.node();
-			ShapeNodeRealizer nRealizer = new ShapeNodeRealizer(graph.getRealizer(node));
-			graph.setRealizer(node, nRealizer);
-			nRealizer.setShapeType(ShapeNodeRealizer.ELLIPSE);
-			nodes.next();
-		}
+
+		String arrowShape = "none";
 		if(graph.isOfType(GraphType.DIRECTED)) {
-			EdgeCursor edges = graph.edges();
-			while(edges.ok()) {
-				Edge edge = edges.edge();
-				EdgeRealizer eRealizer = graph.getRealizer(edge);
-				eRealizer.setArrow(Arrow.STANDARD);
-				edges.next();
-			}
+			arrowShape = "arrow";
+		}
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+
+		while(edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
+			edge.setAttribute("ui.style", "arrow-shape: "+ arrowShape + ";"); //TODO: Doesnt currently have any effect since we have to use graphstream directed type edges and SVG does not style them based on the style attribute
 		}
 	}
 	
@@ -141,18 +114,55 @@ public class LayoutHandler {
 	 * @param paintingType The painting type defining which cover painter to use.
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public void doLayout(Cover cover, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges, 
-			double minNodeSize, double maxNodeSize, CoverPaintingType paintingType) throws InstantiationException, IllegalAccessException {
+			double minNodeSize, double maxNodeSize, CoverPaintingType paintingType) throws InstantiationException, IllegalAccessException, InterruptedException {
 		CustomGraph graph = cover.getGraph();
-		setLayoutDefaults(graph, minNodeSize, maxNodeSize);
+		setCoverLayoutDefaults(graph, minNodeSize, maxNodeSize);
 		labelGraph(graph, doLabelNodes, doLabelEdges);
 		GraphLayouter layouter = graphLayouterFactory.getInstance(layoutType);
 		layouter.doLayout(graph);
 		CoverPainter painter = coverPainterFactory.getInstance(paintingType);
 		painter.doPaint(cover);
 		paintNodes(cover);
-		setViewDefaults(new Graph2DView(graph));
+		setViewDefaults(graph);
+
+	}
+
+	/**
+	 * Sets the default layout attributes for a graph visualizing a cover, such as node and edge shapes and node sizes.
+	 * @param graph the graph
+	 */
+	private void setCoverLayoutDefaults(CustomGraph graph, double minNodeSize, double maxNodeSize) throws InterruptedException {
+		Iterator<Node> nodesIt = graph.iterator();
+		Node node;
+		/*
+		 * Node size scaling factor
+		 */
+		double minDegree = graph.getMinWeightedInDegree();
+		double maxDegree = graph.getMaxWeightedInDegree();
+		double degreeDifference = (maxDegree == minDegree) ? 1.0 : (maxDegree - minDegree);
+		double scalingFactor = (maxNodeSize - minNodeSize) / degreeDifference;
+		while(nodesIt.hasNext()) {
+			node = nodesIt.next();
+			double curNodeSize = minNodeSize + (graph.getWeightedInDegree(node) - minDegree) * scalingFactor;
+			//"Declare" nodestyles
+			node.setAttribute("ui.style", "shape: circle; size: "+ curNodeSize +";");
+			//TODO: Ideally we shouldn't need a separate ui.size attribute and should be able to use the size from ui.style
+			node.setAttribute("ui.size", curNodeSize); // set directly accessible attribute for node size
+		}
+
+		String arrowShape = "none";
+		if(graph.isOfType(GraphType.DIRECTED)) {
+			arrowShape = "arrow";
+		}
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+
+		while(edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
+			edge.setAttribute("ui.style", "arrow-shape: "+ arrowShape + ";");
+		}
 	}
 	
 	/**
@@ -183,18 +193,49 @@ public class LayoutHandler {
 			setProportionalNodeSizes(map);
 			break;
 		}
-		setViewDefaults(new Graph2DView(graph));
+		setViewDefaults(graph);
+	}
+
+	/**
+	 * Sets the layout attributes of a graph for visualizing a CentralityMap.
+	 * @param graph The graph of the CentralityMap that is visualized
+	 */
+	private void setCentralityLayoutDefaults(CustomGraph graph) {
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
+			Node node = nodesIt.next();
+			node.setAttribute("ui.shape", "circle;");
+
+			int defaultCentralityNodeSize = 30;
+			node.setAttribute("ui.style","size: "+ defaultCentralityNodeSize +";"+ "fill-color: rgba(" + 200 + "," + 200 + "," + 240 + "," + 255 + ");");  // default color
+
+
+		}
+
+		String arrowShape = "none";
+		if(graph.isOfType(GraphType.DIRECTED)) {
+			arrowShape = "arrow";
+		}
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+		while(edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
+			edge.setAttribute("ui.style", "arrow-shape: "+ arrowShape + ";");
+		}
 	}
 	
 	/**
 	 * Sets the view default attributes, such as the rendering order.
-	 * @param view the graph view
+	 * @param graph the graph view
 	 */
-	private void setViewDefaults(Graph2DView view) {
-		DefaultGraph2DRenderer renderer = new DefaultGraph2DRenderer();
-		view.setGraph2DRenderer(renderer);
-		renderer.setDrawEdgesFirst(true);
-		view.fitContent();
+	private void setViewDefaults(CustomGraph graph) {
+		graph.setAttribute("ui.stylesheet",
+				"node {" +
+				"	z-index: 2;" +
+				"}" +
+				"edge {" +
+				"	z-index: 1;" +
+				"}");
+
 	}
 	
 	/**
@@ -205,31 +246,33 @@ public class LayoutHandler {
 	 */
 	private void labelGraph(CustomGraph graph, boolean doLabelNodes, boolean doLabelEdges) {
 		if(doLabelNodes) {
-			NodeCursor nodes = graph.nodes();
-			while (nodes.ok()) {
-				Node node = nodes.node();
-				// gets node realizer
-				NodeRealizer nRealizer = graph.getRealizer(node);
+			Iterator<Node> nodes = graph.iterator();
+			while (nodes.hasNext()) {
+				Node node = nodes.next();
 				// adds name label
-				NodeLabel nameLabel = nRealizer.createNodeLabel();
-				nameLabel.setText(graph.getNodeName(node));
-				SmartNodeLabelModel nameModel = new SmartNodeLabelModel();
-				nameLabel.setLabelModel(nameModel, nameModel.createDiscreteModelParameter(SmartNodeLabelModel.POSITION_CENTER));
-				nRealizer.addLabel(nameLabel);
-				nodes.next();
+				node.setAttribute("label", graph.getNodeName(node)); //For SVG Viz label needs to not have "ui." in front, for graphstream desktop UIs it does
+				String initial_string = "";
+				if(node.getAttribute("ui.style") != null){
+					initial_string += node.getAttribute("ui.style");
+				}
+				node.setAttribute("ui.style",initial_string + "text-alignment: center;"
+						+ "text-size: 12;"
+						+ "text-style: bold;"
+						+ "text-font: Arial;");
 			}
 		}
-		if(doLabelEdges) {
-			EdgeCursor edges = graph.edges();
-			while (edges.ok()) {
-				Edge edge = edges.edge();
-				// gets edge realizer
-				EdgeRealizer eRealizer = graph.getRealizer(edge);
-				// adds weight label
-				EdgeLabel weightLabel = eRealizer.createEdgeLabel();
-				weightLabel.setText(Double.toString(graph.getEdgeWeight(edge)));
-				eRealizer.addLabel(weightLabel);
-				edges.next();
+
+		Iterator<Edge> edgesIt = graph.edges().iterator();
+		while (edgesIt.hasNext()) {
+			Edge edge = edgesIt.next();
+			// adds weight label
+
+			if(doLabelEdges) {
+				edge.setAttribute("label", graph.getEdgeWeight(edge)); //For SVG Viz label needs to not have "ui." in front, for graphstream desktop UIs it does
+				edge.setAttribute("ui.style",edge.getAttribute("ui.style") + "text-alignment: along;"
+						+ "text-size: 12;"
+						+ "text-style: bold;"
+						+ "text-font: Arial;");
 			}
 		}
 	}
@@ -243,13 +286,13 @@ public class LayoutHandler {
 	 */
 	private void paintNodes(Cover cover) {
 		CustomGraph graph = cover.getGraph();
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodesIt = graph.iterator();
 		float[] curColorCompArray = new float[4];
 		float[] colorCompArray;
 		Node node;
-		while(nodes.ok()) {
+		while(nodesIt.hasNext()) {
 			colorCompArray = new float[4];
-			node = nodes.node();
+			node = nodesIt.next();
 			List<Integer> communityIndices = cover.getCommunityIndices(node);
 			for(int index : communityIndices) {
 				Color comColor = cover.getCommunityColor(index);
@@ -258,9 +301,11 @@ public class LayoutHandler {
 					colorCompArray[i] += curColorCompArray[i] * cover.getBelongingFactor(node, index);
 				}
 			}
-			NodeRealizer nRealizer = graph.getRealizer(node);
-			nRealizer.setFillColor(new Color(colorCompArray[0], colorCompArray[1], colorCompArray[2], colorCompArray[3]));
-			nodes.next();
+			//TODO: Make nicer so that java color is not needed
+			Color color = new Color(colorCompArray[0], colorCompArray[1], colorCompArray[2], colorCompArray[3]);
+			node.setAttribute("ui.style",node.getAttribute("ui.style") + "fill-color: rgba(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "," + color.getAlpha() + ");");
+			//TODO: Ideally we shouldn't need a separate ui.fill-color attribute and should be able to use the value from ui.style
+			node.setAttribute("ui.fill-color", new float[]{color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()/255}); // set directly accessible color attribute for node
 		}
 	}
 	
@@ -277,14 +322,13 @@ public class LayoutHandler {
 		double min = map.getMinValue();
 		double max = map.getMaxValue();
 		CustomGraph graph = map.getGraph();
-		NodeCursor nodes = graph.nodes();
-		while(nodes.ok()) {
-			Node node = nodes.node();
-			NodeRealizer nRealizer = graph.getRealizer(node);	
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
+			Node node = nodesIt.next();
 			float nodeSaturation = (float) ((map.getNodeValue(node) - min) / (max - min));
-			Color nodeColor = Color.getHSBColor(hsbValues[0], nodeSaturation, hsbValues[2]);
-			nRealizer.setFillColor(nodeColor);
-			nodes.next();
+			Color color = Color.getHSBColor(hsbValues[0], nodeSaturation, hsbValues[2]); // Use HSB for saturation here
+			node.setAttribute("ui.style",node.getAttribute("ui.style") + "fill-color: rgba(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "," + color.getAlpha() + ");");
+			node.setAttribute("ui.fill-color", new float[]{color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()/255}); // TODO: new. set directly accessible color attribute for node, used for JSON visiualization adapter
 		}
 	}
 	
@@ -306,15 +350,15 @@ public class LayoutHandler {
 		double min = map.getMinValue();
 		double max = map.getMaxValue();
 		CustomGraph graph = map.getGraph();
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			Node node = nc.node();
-			NodeRealizer nRealizer = graph.getRealizer(node);
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
+			Node node = nodesIt.next();
 			double centralityValue = map.getNodeValue(node);
 			float hue = (float) (hsbValuesMin[0] + (hsbValuesMax[0] - hsbValuesMin[0]) * (centralityValue - min) / (max - min));
-			Color nodeColor = Color.getHSBColor(hue, 1.0f, 1.0f);
-			nRealizer.setFillColor(nodeColor);
-			nc.next();
+			Color color = Color.getHSBColor(hue, 1.0f, 1.0f);
+			node.setAttribute("ui.style",node.getAttribute("ui.style") + "fill-color: rgba(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "," + color.getAlpha() + ");");
+			node.setAttribute("ui.fill-color", new float[]{color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()/255}); // set directly accessible color attribute for node
+
 		}
 	}
 	
@@ -326,15 +370,18 @@ public class LayoutHandler {
 	private void setProportionalNodeSizes(CentralityMap map) {
 		double min = map.getMinValue();
 		double max = map.getMaxValue();
+		if (max == min){
+			// avoid division by 0
+			max++;
+		}
 		CustomGraph graph = map.getGraph();
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			Node node = nc.node();
-			NodeRealizer nRealizer = graph.getRealizer(node);
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
+			Node node = nodesIt.next();
 			double centralityValue = map.getNodeValue(node);
-			double nodeSize = MIN_NODE_SIZE + (MAX_NODE_SIZE - MIN_NODE_SIZE) * (centralityValue - min) / (max - min); 
-			nRealizer.setSize(nodeSize, nodeSize);
-			nc.next();
+			double nodeSize = MIN_NODE_SIZE + (MAX_NODE_SIZE - MIN_NODE_SIZE) * (centralityValue - min) / (max - min);
+			node.setAttribute("ui.style",node.getAttribute("ui.style") + "size:" + nodeSize +";");
+			node.setAttribute("ui.size", nodeSize);  // needed for JsonVisualOutputAdapter
 		}
 	}
 

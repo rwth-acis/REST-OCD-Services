@@ -66,8 +66,8 @@ public class SimulationList extends ArrayList<SimulationSeriesGroup> implements 
 		for (SimulationSeriesGroup s : this) {
 			int netId = getRow(s.getNetwork().getName());
 			int gId = -1;
-			if (s.getSimulationSeries().get(0).getParameters().getGame().equals(GameType.PRISONERS_DILEMMA)) {
-				switch (s.getSimulationSeries().get(0).getParameters().getDynamic()) {
+			if (s.getSeriesList().get(0).getSimulationSeriesParameters().getGame().equals(GameType.PRISONERS_DILEMMA)) {
+				switch (s.getSeriesList().get(0).getSimulationSeriesParameters().getDynamic()) {
 				case REPLICATOR:
 					gId = 0;
 					break;
@@ -85,8 +85,8 @@ public class SimulationList extends ArrayList<SimulationSeriesGroup> implements 
 					break;
 				}
 			}
-			if (s.getSimulationSeries().get(0).getParameters().getGame().equals(GameType.PRISONERS_DILEMMA_COST)) {
-				switch (s.getSimulationSeries().get(0).getParameters().getDynamic()) {
+			if (s.getSeriesList().get(0).getSimulationSeriesParameters().getGame().equals(GameType.PRISONERS_DILEMMA_COST)) {
+				switch (s.getSeriesList().get(0).getSimulationSeriesParameters().getDynamic()) {
 				case REPLICATOR:
 					gId = 3;
 					break;

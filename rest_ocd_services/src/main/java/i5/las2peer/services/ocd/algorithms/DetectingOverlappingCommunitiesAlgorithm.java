@@ -5,8 +5,6 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Edge;
-import y.base.Node;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +14,10 @@ import java.util.Set;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
+
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * This class is an implementation of the algorithm by Nam P. Nguyen, Thang N. Dinh, Dung T. Nguyen, My T. Thai:
@@ -120,7 +122,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	
 	public Matrix getMembershipMatrix(CustomGraph graph) {
 //DEBUG		System.out.println(communities);
-		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(), communities.size());
+		Matrix membershipMatrix = new Basic2DMatrix(graph.getNodeCount(), communities.size());
 		
 		int j=0;
 		for(Map.Entry<Integer, HashMap<Integer,Integer>> communityPair : communities.entrySet()) {
@@ -149,17 +151,17 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 */
 	public void findOverlappingCommunityStructures(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		communityIntersections = new ArrayList<Integer>(); // initialize communityIntersections
-		nodeDegrees = new HashMap<Integer, Integer>(graph.nodeCount());
-		adjacencyList = new  HashMap<Integer, ArrayList<Integer>>(graph.nodeCount());
-		for(Node node : graph.getNodeArray()) {// Initialize nodeDegree, maxDegree, AdjacencyList
+		nodeDegrees = new HashMap<Integer, Integer>(graph.getNodeCount());
+		adjacencyList = new  HashMap<Integer, ArrayList<Integer>>(graph.getNodeCount());
+		for(Node node : graph.nodes().toArray(Node[]::new)) {// Initialize nodeDegree, maxDegree, AdjacencyList
 			Set<Node> neighbours = graph.getNeighbours(node);
-			nodeDegrees.put(node.index(), neighbours.size());
+			nodeDegrees.put(node.getIndex(), neighbours.size());
 			
-			maxDegree = Math.max(maxDegree, nodeDegrees.get(node.index()));
+			maxDegree = Math.max(maxDegree, nodeDegrees.get(node.getIndex()));
 			
-			adjacencyList.put(node.index(), new ArrayList<Integer>(neighbours.size()));
+			adjacencyList.put(node.getIndex(), new ArrayList<Integer>(neighbours.size()));
 			for(Node neighbour : neighbours) {
-				adjacencyList.get(node.index()).add(neighbour.index());
+				adjacencyList.get(node.getIndex()).add(neighbour.getIndex());
 			}
 		}
 		
@@ -177,10 +179,10 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 */
 	public void findDenseCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		// initialize nodeCommunities, communityNumbers, intersectionCounters
-		communityNumbers = new ArrayList<Integer>(graph.nodeCount());
+		communityNumbers = new ArrayList<Integer>(graph.getNodeCount());
 		intersectionCounters = new HashMap<Integer,Integer>();
-		nodeCommunities = new HashMap<Integer, HashMap<Integer, Integer>>(graph.nodeCount());
-		for(int i=0; i<=graph.nodeCount(); i++) { // initially, each node has one community ID, TODO: i was 1 first, check if this breaks anything
+		nodeCommunities = new HashMap<Integer, HashMap<Integer, Integer>>(graph.getNodeCount());
+		for(int i=0; i<=graph.getNodeCount(); i++) { // initially, each node has one community ID, TODO: i was 1 first, check if this breaks anything
 			nodeCommunities.put(i, new HashMap<Integer, Integer>());
 			communityNumbers.add(0);
 		}
@@ -191,10 +193,10 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		communityEdgeSizes = new HashMap<Integer, Integer>();
 		
 		int numEdge=0;
-		for(Edge edge : graph.getEdgeArray()) { // reading from the beginning of file
-			if (!sameCommunity(edge.source().index(), edge.target().index())) 
+		for(Edge edge : graph.edges().toArray(Edge[]::new)) { // reading from the beginning of file
+			if (!sameCommunity(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex())) 
 			{ // if a and b are not in a community together
-				tryFormingNewCommunity(edge.source().index(), edge.target().index(), graph); // try to form a dense local community from (a,b)
+				tryFormingNewCommunity(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex(), graph); // try to form a dense local community from (a,b)
 			}
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
@@ -372,7 +374,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		updateCounter(); // update the counter
 		for(i=0; i<communityNodeSizes.get(comA); i++) { // find the number of adjacent communities
 			x = communities.get(comA).get(i);	// x is the current element in the list
-			if (x > graph.nodeCount() || x <0) { //TODO: was <= 0, see if this changes anything
+			if (x > graph.getNodeCount() || x <0) { //TODO: was <= 0, see if this changes anything
 				throw new OcdAlgorithmException("Error: x > N || x <0 in findComAdjList: " + x + " " + communities.get(comA));
 			}
 			if (communityNumbers.get(x) < 2) { // skip x if it is in just one community
@@ -625,14 +627,14 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	 */
 	public void findTinyCommunities(CustomGraph graph) throws OcdAlgorithmException {
 		realCommunityCount = communityCount;
-		for(Edge edge : graph.getEdgeArray()) { // Read the adjacent list to find N and M
-			if ( communityNumbers.get(edge.source().index())>0 || communityNumbers.get(edge.target().index())>0 ) {
+		for(Edge edge : graph.edges().toArray(Edge[]::new)) { // Read the adjacent list to find N and M
+			if ( communityNumbers.get(edge.getSourceNode().getIndex())>0 || communityNumbers.get(edge.getTargetNode().getIndex())>0 ) {
 				continue;
 			}
-			findNodeIntersection(edge.source().index(), edge.target().index(), graph); // Find the intersection of the two adjacencyLists
+			findNodeIntersection(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex(), graph); // Find the intersection of the two adjacencyLists
 			if (nodeIntersectionCounter == 3) { // If we find a triangle
-				if (communityCount >= graph.nodeCount()) { // If communityCount exceeds the upper bound, return error
-					throw new OcdAlgorithmException("Error : numCOM >= MULTI_N in findTinyCommunities()" + " " + communities.size() + " " + graph.nodeCount() + "\n" + communities);
+				if (communityCount >= graph.getNodeCount()) { // If communityCount exceeds the upper bound, return error
+					throw new OcdAlgorithmException("Error : numCOM >= MULTI_N in findTinyCommunities()" + " " + communities.size() + " " + graph.getNodeCount() + "\n" + communities);
 				}
 				markNodes(communityCount + 1); // Mark all the nodes in the intersection
 				communityCount++;
@@ -663,7 +665,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		maxOutliers = 0; // The number of outliers	
 		findNumDegList(numDegList); // Find the numDegList;
 		oldCommunityNodeSizes = new HashMap<Integer, Integer>(communityNodeSizes);
-		for(i=0; i<graph.nodeCount(); i++) { // Begin to find
+		for(i=0; i<graph.getNodeCount(); i++) { // Begin to find
 			if (communityNumbers.get(i) > 0) {
 				continue;
 			}
@@ -701,7 +703,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 			}		
 		}
 		//finalRefinement(oldCommunityNodeSizes, graph); // Final refinement TODO: Remove
-		for(i=1;i<=graph.nodeCount();i++) {
+		for(i=1;i<=graph.getNodeCount();i++) {
 			maxCommunityNumber = Math.max( maxCommunityNumber, communityNumbers.get(i) );
 		}
 		for(i=1;i<=communityCount;i++) {
@@ -745,7 +747,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 		if (n <= 3) { // if we dont have enough nodes
 			return 0;
 		}
-		if (n > graph.nodeCount()) { // if the number of nodes gets too large
+		if (n > graph.getNodeCount()) { // if the number of nodes gets too large
 			throw new OcdAlgorithmException("Error: Counter too large for findTau");
 		}
 		int pn = n*(n-1)/2; // since we have a safety check above, this step should not be a problem

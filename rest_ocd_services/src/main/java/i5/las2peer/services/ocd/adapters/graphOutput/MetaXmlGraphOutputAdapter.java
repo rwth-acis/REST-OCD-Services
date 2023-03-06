@@ -35,7 +35,7 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 			 * Basic Attributes
 			 */
 			Element graphIdElt = doc.createElement("Id");
-			graphIdElt.appendChild(doc.createTextNode(Long.toString(graph.getId())));
+			graphIdElt.appendChild(doc.createTextNode(graph.getKey()));
 			graphElt.appendChild(graphIdElt);
 			Element graphNameElt = doc.createElement("Name");
 			graphNameElt.appendChild(doc.createTextNode(graph.getName()));
@@ -44,10 +44,10 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 //			graphDescrElt.appendChild(doc.createTextNode(graph.getDescription()));
 //			graphElt.appendChild(graphDescrElt);
 			Element graphNodeCountElt = doc.createElement("NodeCount");
-			graphNodeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.nodeCount())));
+			graphNodeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.getNodeCount())));
 			graphElt.appendChild(graphNodeCountElt);
 			Element graphEdgeCountElt = doc.createElement("EdgeCount");
-			graphEdgeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.edgeCount())));
+			graphEdgeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.getEdgeCount())));
 			graphElt.appendChild(graphEdgeCountElt);
 //			Element lastUpdateElt = doc.createElement("LastUpdate");
 //			if(graph.getLastUpdate() != null) {

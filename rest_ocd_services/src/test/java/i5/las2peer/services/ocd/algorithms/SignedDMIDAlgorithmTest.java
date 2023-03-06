@@ -19,13 +19,16 @@ import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import y.base.Node;
+
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 public class SignedDMIDAlgorithmTest {
 	@Test
 	public void testGetLeadershipVector() throws FileNotFoundException, AdapterException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrSixNodesGraph();
-		int nodeCount = graph.nodeCount();
+		int nodeCount = graph.getNodeCount();
 		SignedDMIDAlgorithm algo = new SignedDMIDAlgorithm();
 		Vector leadershipVector = algo.getLeadershipVector(graph);
 		Vector expectedVector = new BasicVector(nodeCount);
@@ -50,7 +53,7 @@ public class SignedDMIDAlgorithmTest {
 	@Test
 	public void testGetLocalLeader() throws FileNotFoundException, AdapterException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();
-		int nodeCount = graph.nodeCount();
+		int nodeCount = graph.getNodeCount();
 		SignedDMIDAlgorithm algo = new SignedDMIDAlgorithm();
 		Vector leadershipVector = new BasicVector(nodeCount);
 		leadershipVector.set(0, 0.465116279);
@@ -73,10 +76,10 @@ public class SignedDMIDAlgorithmTest {
 		System.out.println("Result: " + followerMap.toString());
 
 		assertEquals(expectedMap.entrySet().size(), followerMap.entrySet().size());
-		assertTrue(followerMap.keySet().contains(graph.getNodeArray()[3]));
-		assertTrue(followerMap.keySet().contains(graph.getNodeArray()[11]));
-		assertEquals(5, (int) followerMap.get(graph.getNodeArray()[3]));
-		assertEquals(3, (int) followerMap.get(graph.getNodeArray()[11]));
+		assertTrue(followerMap.keySet().contains(graph.nodes().toArray(Node[]::new)[3]));
+		assertTrue(followerMap.keySet().contains(graph.nodes().toArray(Node[]::new)[11]));
+		assertEquals(5, (int) followerMap.get(graph.nodes().toArray(Node[]::new)[3]));
+		assertEquals(3, (int) followerMap.get(graph.nodes().toArray(Node[]::new)[11]));
 	}
 
 	@Test
@@ -85,7 +88,7 @@ public class SignedDMIDAlgorithmTest {
 		Map<Node, Integer> LeadershipMap = new HashMap<Node, Integer>();
 		Node n[] = new Node[5];
 		for (int i = 0; i < 5; i++) {
-			n[i] = graph.createNode();
+			n[i] = graph.addNode(Integer.toString(i));
 			LeadershipMap.put(n[i], i + 1);
 		}
 		SignedDMIDAlgorithm algo = new SignedDMIDAlgorithm();
@@ -95,9 +98,9 @@ public class SignedDMIDAlgorithmTest {
 		 * number of global leaders=3
 		 */
 		assertEquals(3, leaderCount);
-		assertTrue(globalLeader.contains(graph.getNodeArray()[2]));
-		assertTrue(globalLeader.contains(graph.getNodeArray()[3]));
-		assertTrue(globalLeader.contains(graph.getNodeArray()[4]));
+		assertTrue(globalLeader.contains(graph.nodes().toArray(Node[]::new)[2]));
+		assertTrue(globalLeader.contains(graph.nodes().toArray(Node[]::new)[3]));
+		assertTrue(globalLeader.contains(graph.nodes().toArray(Node[]::new)[4]));
 		// assertEquals(expectedLeader,globalLeader);
 	}
 
@@ -105,7 +108,7 @@ public class SignedDMIDAlgorithmTest {
 	public void testExecuteLabelPropagation() throws FileNotFoundException, AdapterException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();
 		SignedDMIDAlgorithm algo = new SignedDMIDAlgorithm();
-		Vector leadershipVector = new BasicVector(graph.nodeCount());
+		Vector leadershipVector = new BasicVector(graph.getNodeCount());
 		leadershipVector.set(0, 0.465116279);
 		leadershipVector.set(1, 0.480769231);
 		leadershipVector.set(2, 0.166666667);
@@ -118,30 +121,30 @@ public class SignedDMIDAlgorithmTest {
 		leadershipVector.set(9, 0.441176471);
 		leadershipVector.set(10, 0.471698113);
 		leadershipVector.set(11, 0.486486486);
-		Map<Node, Integer> map = algo.executeLabelPropagation(graph, graph.getNodeArray()[3], leadershipVector);
+		Map<Node, Integer> map = algo.executeLabelPropagation(graph, graph.nodes().toArray(Node[]::new)[3], leadershipVector);
 		Map<Node, Integer> expectedMap = new HashMap<Node, Integer>();
-		// expectedMap.put(graph.getNodeArray()[3], 0);
-		// expectedMap.put(graph.getNodeArray()[0], 1);
-		// expectedMap.put(graph.getNodeArray()[1], 1);
-		// expectedMap.put(graph.getNodeArray()[2], 1);
-		// expectedMap.put(graph.getNodeArray()[9], 1);
-		// expectedMap.put(graph.getNodeArray()[10], 1);
-		// expectedMap.put(graph.getNodeArray()[4], 2);
-		// expectedMap.put(graph.getNodeArray()[5], 2);
-		// expectedMap.put(graph.getNodeArray()[8], 2);
-		// expectedMap.put(graph.getNodeArray()[7], 2);
-		// expectedMap.put(graph.getNodeArray()[11], 3);
-		expectedMap.put(graph.getNodeArray()[3], 1);
-		expectedMap.put(graph.getNodeArray()[0], 2);
-		expectedMap.put(graph.getNodeArray()[1], 2);
-		expectedMap.put(graph.getNodeArray()[2], 2);
-		expectedMap.put(graph.getNodeArray()[9], 2);
-		expectedMap.put(graph.getNodeArray()[10], 2);
-		expectedMap.put(graph.getNodeArray()[4], 3);
-		expectedMap.put(graph.getNodeArray()[5], 3);
-		expectedMap.put(graph.getNodeArray()[8], 3);
-		expectedMap.put(graph.getNodeArray()[7], 3);
-		expectedMap.put(graph.getNodeArray()[11], 4);
+		// expectedMap.put(graph.nodes().toArray(Node[]::new)[3], 0);
+		// expectedMap.put(graph.nodes().toArray(Node[]::new)[0], 1);
+		// expectedMap.put(graph.nodes().toArray(Node[]::new)[1], 1);
+		// expectedMap.put(graph.nodes().toArray(Node[]::new)[2], 1);
+		// expectedMap.put(graph.nodes().toArray(Node[]::new)[9], 1);
+		// expectedMap.put(graph.nodes().toArray(Node[]::new)[10], 1);
+		// expectedMap.put(graph.nodes().toArray(Node[]::new)[4], 2);
+		// expectedMap.put(graph.nodes().toArray(Node[]::new)[5], 2);
+		// expectedMap.put(graph.nodes().toArray(Node[]::new)[8], 2);
+		// expectedMap.put(graph.nodes().toArray(Node[]::new)[7], 2);
+		// expectedMap.put(graph.nodes().toArray(Node[]::new)[11], 3);
+		expectedMap.put(graph.nodes().toArray(Node[]::new)[3], 1);
+		expectedMap.put(graph.nodes().toArray(Node[]::new)[0], 2);
+		expectedMap.put(graph.nodes().toArray(Node[]::new)[1], 2);
+		expectedMap.put(graph.nodes().toArray(Node[]::new)[2], 2);
+		expectedMap.put(graph.nodes().toArray(Node[]::new)[9], 2);
+		expectedMap.put(graph.nodes().toArray(Node[]::new)[10], 2);
+		expectedMap.put(graph.nodes().toArray(Node[]::new)[4], 3);
+		expectedMap.put(graph.nodes().toArray(Node[]::new)[5], 3);
+		expectedMap.put(graph.nodes().toArray(Node[]::new)[8], 3);
+		expectedMap.put(graph.nodes().toArray(Node[]::new)[7], 3);
+		expectedMap.put(graph.nodes().toArray(Node[]::new)[11], 4);
 		System.out.println(map.toString());
 		assertEquals(expectedMap, map);
 	}
@@ -149,31 +152,31 @@ public class SignedDMIDAlgorithmTest {
 	@Test
 	public void testGetMembershipDegrees() throws FileNotFoundException, AdapterException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();
-		int nodeCount = graph.nodeCount();
+		int nodeCount = graph.getNodeCount();
 		SignedDMIDAlgorithm algo = new SignedDMIDAlgorithm();
 		Map<Node, Map<Node, Integer>> communities = new HashMap<Node, Map<Node, Integer>>();
 		Map<Node, Integer> community = new HashMap<Node, Integer>();
-		community.put(graph.getNodeArray()[0], 2);
-		community.put(graph.getNodeArray()[1], 2);
-		community.put(graph.getNodeArray()[2], 2);
-		community.put(graph.getNodeArray()[9], 2);
-		community.put(graph.getNodeArray()[10], 2);
-		community.put(graph.getNodeArray()[4], 3);
-		community.put(graph.getNodeArray()[5], 3);
-		community.put(graph.getNodeArray()[8], 3);
-		community.put(graph.getNodeArray()[7], 3);
-		community.put(graph.getNodeArray()[11], 4);
-		communities.put(graph.getNodeArray()[3], community);
+		community.put(graph.nodes().toArray(Node[]::new)[0], 2);
+		community.put(graph.nodes().toArray(Node[]::new)[1], 2);
+		community.put(graph.nodes().toArray(Node[]::new)[2], 2);
+		community.put(graph.nodes().toArray(Node[]::new)[9], 2);
+		community.put(graph.nodes().toArray(Node[]::new)[10], 2);
+		community.put(graph.nodes().toArray(Node[]::new)[4], 3);
+		community.put(graph.nodes().toArray(Node[]::new)[5], 3);
+		community.put(graph.nodes().toArray(Node[]::new)[8], 3);
+		community.put(graph.nodes().toArray(Node[]::new)[7], 3);
+		community.put(graph.nodes().toArray(Node[]::new)[11], 4);
+		communities.put(graph.nodes().toArray(Node[]::new)[3], community);
 		Map<Node, Integer> communityTwo = new HashMap<Node, Integer>();
-		communityTwo.put(graph.getNodeArray()[5], 2);
-		communityTwo.put(graph.getNodeArray()[6], 2);
-		communityTwo.put(graph.getNodeArray()[8], 2);
-		communityTwo.put(graph.getNodeArray()[9], 3);
-		communityTwo.put(graph.getNodeArray()[7], 3);
-		communityTwo.put(graph.getNodeArray()[1], 3);
-		communityTwo.put(graph.getNodeArray()[0], 4);
-		communityTwo.put(graph.getNodeArray()[3], 4);
-		communities.put(graph.getNodeArray()[11], communityTwo);
+		communityTwo.put(graph.nodes().toArray(Node[]::new)[5], 2);
+		communityTwo.put(graph.nodes().toArray(Node[]::new)[6], 2);
+		communityTwo.put(graph.nodes().toArray(Node[]::new)[8], 2);
+		communityTwo.put(graph.nodes().toArray(Node[]::new)[9], 3);
+		communityTwo.put(graph.nodes().toArray(Node[]::new)[7], 3);
+		communityTwo.put(graph.nodes().toArray(Node[]::new)[1], 3);
+		communityTwo.put(graph.nodes().toArray(Node[]::new)[0], 4);
+		communityTwo.put(graph.nodes().toArray(Node[]::new)[3], 4);
+		communities.put(graph.nodes().toArray(Node[]::new)[11], communityTwo);
 		Cover cover = algo.getMembershipDegrees(graph, communities);
 		Matrix matrix = cover.getMemberships();
 		System.out.println(matrix.toString());
@@ -213,7 +216,7 @@ public class SignedDMIDAlgorithmTest {
 	public void testDetectOverlappingCommunities()
 			throws FileNotFoundException, AdapterException, OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();
-		int nodeCount = graph.nodeCount();
+		int nodeCount = graph.getNodeCount();
 		SignedDMIDAlgorithm algo = new SignedDMIDAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		Matrix matrix = cover.getMemberships();
@@ -255,11 +258,11 @@ public class SignedDMIDAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();
 		SignedDMIDAlgorithm algo = new SignedDMIDAlgorithm();
 		Set<Node> nodesWithNewBehavior = new HashSet<Node>();
-		nodesWithNewBehavior.add(graph.getNodeArray()[5]);
-		nodesWithNewBehavior.add(graph.getNodeArray()[6]);
-		nodesWithNewBehavior.add(graph.getNodeArray()[8]);
-		nodesWithNewBehavior.add(graph.getNodeArray()[11]);
-		int posNeihboursWithNewBehavior = algo.getPosNodesWithNewLabel(graph, graph.getNodeArray()[7],
+		nodesWithNewBehavior.add(graph.nodes().toArray(Node[]::new)[5]);
+		nodesWithNewBehavior.add(graph.nodes().toArray(Node[]::new)[6]);
+		nodesWithNewBehavior.add(graph.nodes().toArray(Node[]::new)[8]);
+		nodesWithNewBehavior.add(graph.nodes().toArray(Node[]::new)[11]);
+		int posNeihboursWithNewBehavior = algo.getPosNodesWithNewLabel(graph, graph.nodes().toArray(Node[]::new)[7],
 				nodesWithNewBehavior);
 		assertEquals(3, posNeihboursWithNewBehavior);
 	}
@@ -269,11 +272,11 @@ public class SignedDMIDAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();
 		SignedDMIDAlgorithm algo = new SignedDMIDAlgorithm();
 		Set<Node> nodesWithNewBehavior = new HashSet<Node>();
-		nodesWithNewBehavior.add(graph.getNodeArray()[5]);
-		nodesWithNewBehavior.add(graph.getNodeArray()[6]);
-		nodesWithNewBehavior.add(graph.getNodeArray()[8]);
-		nodesWithNewBehavior.add(graph.getNodeArray()[11]);
-		int negNeihboursWithNewBehavior = algo.getNegNodesWithNewLabel(graph, graph.getNodeArray()[4],
+		nodesWithNewBehavior.add(graph.nodes().toArray(Node[]::new)[5]);
+		nodesWithNewBehavior.add(graph.nodes().toArray(Node[]::new)[6]);
+		nodesWithNewBehavior.add(graph.nodes().toArray(Node[]::new)[8]);
+		nodesWithNewBehavior.add(graph.nodes().toArray(Node[]::new)[11]);
+		int negNeihboursWithNewBehavior = algo.getNegNodesWithNewLabel(graph, graph.nodes().toArray(Node[]::new)[4],
 				nodesWithNewBehavior);
 		assertEquals(2, negNeihboursWithNewBehavior);
 	}

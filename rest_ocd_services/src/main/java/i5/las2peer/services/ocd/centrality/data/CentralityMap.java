@@ -20,12 +20,27 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.OneToOne;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.graphstream.graph.Node;
 import org.w3c.dom.Element;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.entity.StreamTransactionEntity;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentDeleteOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import i5.las2peer.services.ocd.graphs.Community;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+
 
 @Entity
 @IdClass(CentralityMapId.class)
@@ -38,21 +53,29 @@ public class CentralityMap {
 	public static final String graphUserColumnName = "USER_NAME";
 	public static final String idColumnName = "ID";
 	private static final String creationMethodColumnName = "CREATION_METHOD";
-	
+	//ArangoDB
+	public static final String collectionName = "centralitymap";
+	private static final String mapColumnName = "MAP";
+	public static final String creationMethodKeyColumnName = "CREATION_METHOD";
+	public static final String graphKeyColumnName = "GRAPH_KEY";
 	/*
 	 * Field name definitions for JPQL queries.
 	 */
 	public static final String GRAPH_FIELD_NAME = "graph";
 	public static final String CREATION_METHOD_FIELD_NAME  = "creationMethod";
-	public static final String ID_FIELD_NAME = "id";
+	public static final String ID_FIELD_NAME = "key";
 	
 	/**
 	 * System generated persistence id.
 	 */
+	private long id;
+	/**
+	 * System generated persistence key.
+	 */
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
-	private long id;
+	private String key = "";
 	/**
 	 * The name of the CentralityMap.
 	 */
@@ -95,6 +118,14 @@ public class CentralityMap {
 	 */
 	public long getId() {
 		return id;
+	}
+	
+	/**
+	 * Getter for the key.
+	 * @return The key.
+	 */
+	public String getKey() {
+		return key;
 	}
 	
 	/**
@@ -146,8 +177,8 @@ public class CentralityMap {
 	 * @param node The node whose value is set.
 	 * @param value The centrality value that is assigned to the node.
 	 */
-	public void setNodeValue(Node node, double value) {
-		if(graph.contains(node)) {
+	public void setNodeValue(Node node, double value) { //TODO: Check If original functionality maintained
+		if(graph.getNode(node.getId()) != null) { // TODO: should be key not id?
 			map.put(graph.getNodeName(node), value);
 		}
 	}
@@ -237,6 +268,77 @@ public class CentralityMap {
 		}
 	}
 
+	//persistence functions
+	public void persist(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+	
+		if(this.graph == null) {
+			throw new IllegalArgumentException("graph attribute of the centralityMap to be persisted does not exist");
+		}
+		else if(this.graph.getKey().equals("")) {
+			throw new IllegalArgumentException("the graph of the centralityMap is not persisted yet");
+		}
+		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
+		bd.addAttribute(nameColumnName, this.name);
+		this.creationMethod.persist(db, createOptions);
+		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
+		bd.addAttribute(mapColumnName, this.map);
+		collection.insertDocument(bd, createOptions);
+		this.key = bd.getKey();
+		
+	}
+	
+	public void updateDB(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);		
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		
+		BaseDocument bd = new BaseDocument();		
+		if(this.graph == null) {
+			throw new IllegalArgumentException("graph attribute of the map to be updated does not exist");
+		}
+		else if(this.graph.getKey().equals("")) {
+			throw new IllegalArgumentException("the graph of the map is not persisted yet");
+		}
+		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
+		bd.addAttribute(nameColumnName, this.name);
+		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
+		bd.addAttribute(mapColumnName, this.map);
+		
+		this.creationMethod.updateDB(db, transId);
+		
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
+	
+	public static CentralityMap load(String key, CustomGraph g, ArangoDatabase db, String transId) {	
+		CentralityMap cm = null;
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
+		if (bd != null) {
+			cm = new CentralityMap(g);
+			ObjectMapper om = new ObjectMapper();	//prepair attributes
+			String graphKey = bd.getAttribute(graphKeyColumnName).toString();
+			if(!graphKey.equals(g.getKey())) {
+				System.out.println("graph with key: " + g.getKey() + " does not fit to centralityMap with GraphKey: " + graphKey);
+				return null;
+			}
+			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+			Object objMap = bd.getAttribute(mapColumnName);
+			
+			//restore all attributes
+			cm.key = key;
+			cm.name = bd.getAttribute(nameColumnName).toString();
+			cm.creationMethod = CentralityCreationLog.load(creationMethodKey, db, readOpt);
+			cm.map = om.convertValue(objMap,new TypeReference<HashMap<String,Double>>() { });
+		}	
+		else {
+			System.out.println("empty CentralityMap document");
+		}
+		return cm;
+	}
+	
 	@Override
 	public String toString() {
 		String centralityMapString = "Centrality Map: " + getName() + "\n";

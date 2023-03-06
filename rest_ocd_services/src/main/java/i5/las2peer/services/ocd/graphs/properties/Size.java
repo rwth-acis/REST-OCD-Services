@@ -19,6 +19,6 @@ public class Size extends AbstractProperty {
 		if (graph == null)
 			throw new IllegalArgumentException();
 		
-		return graph.nodeCount();
+		return graph.getNodeCount();
 	}
 }

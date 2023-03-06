@@ -19,7 +19,7 @@ public class AverageDegree extends AbstractProperty {
 		if (graph == null)
 			throw new IllegalArgumentException();
 
-		double degree = calculate(graph.nodeCount(), graph.edgeCount());
+		double degree = calculate(graph.getNodeCount(), graph.getEdgeCount());
 		if (!graph.isDirected())
 			return degree / 2;
 

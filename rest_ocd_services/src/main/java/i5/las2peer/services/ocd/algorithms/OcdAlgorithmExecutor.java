@@ -18,7 +18,7 @@ import java.util.Map;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 /**
  * Manages the execution of an OcdAlgorithm.
@@ -85,7 +85,7 @@ public class OcdAlgorithmExecutor {
 		Cover componentCover;
 		for(Pair<CustomGraph, Map<Node, Node>> pair : components) {
 			component = pair.getFirst();
-			if(component.nodeCount() < componentNodeCountFilter) {
+			if(component.getNodeCount() < componentNodeCountFilter) {
 				componentCover = computeSingleCommunityCover(component, algorithm);
 			}
 			else {
@@ -107,7 +107,7 @@ public class OcdAlgorithmExecutor {
 	 * @return The cover.
 	 */
 	private Cover computeSingleCommunityCover(CustomGraph graph, OcdAlgorithm algorithm) {
-		Matrix memberships = new CCSMatrix(graph.nodeCount(), 1);
+		Matrix memberships = new CCSMatrix(graph.getNodeCount(), 1);
 		memberships.assign(1);
 		Cover cover = new Cover (graph, memberships);
 		cover.setCreationMethod(new CoverCreationLog(algorithm.getAlgorithmType(), algorithm.getParameters(), algorithm.compatibleGraphTypes()));

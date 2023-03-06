@@ -18,20 +18,11 @@ import org.la4j.vector.dense.BasicVector;
 import org.la4j.decomposition.SingularValueDecompositor;
 import org.la4j.decomposition.EigenDecompositor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.TreeMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 import org.apache.commons.math3.optim.PointValuePair;
 import org.apache.commons.math3.optim.linear.LinearConstraint;
@@ -244,7 +235,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
 		
 		ArrayList<Integer> commaSeparatedSeedIndexSet = new ArrayList<Integer>(commaSeparatedSeedSet.size());
-		Node[] graphNodes = graph.getNodeArray();
+		Node[] graphNodes = graph.nodes().toArray(Node[]::new);
 		for(String seed : commaSeparatedSeedSet)
 		{
 			boolean found = false;
@@ -252,7 +243,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			{
 				if(graph.getNodeName(node).equals(seed))
 				{
-					commaSeparatedSeedIndexSet.add(node.index());
+					commaSeparatedSeedIndexSet.add(node.getIndex());
 					found = true;
 					break;
 				}
@@ -318,20 +309,20 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 */
 	public Matrix getAdjacencyMatrixWithIdentity(CustomGraph graph) throws InterruptedException {
 
-		int size = graph.nodeCount();
+		int size = graph.getNodeCount();
 		Matrix adjacencyMatrix = new CCSMatrix(size, size); //TOD: Maybe CCS is the problem?
 		adjacencyMatrix = adjacencyMatrix.blank();
-
-		for (EdgeCursor ec = graph.edges(); ec.ok(); ec.next()) {
+		Iterator<Edge> ecIt = graph.edges().iterator();
+		while (ecIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Edge edge = ec.edge();
-			Node source = edge.source();
-			Node target = edge.target();
+			Edge edge = ecIt.next();
+			Node source = edge.getSourceNode();
+			Node target = edge.getTargetNode();
 
-			if (source.index() != target.index()) {
-				adjacencyMatrix.set(source.index(), target.index(), 1);
+			if (source.getIndex() != target.getIndex()) {
+				adjacencyMatrix.set(source.getIndex(), target.getIndex(), 1);
 			}
 		}
 

@@ -28,7 +28,7 @@ public class PropertiesXmlGraphOutputAdapter extends AbstractGraphOutputAdapter 
 			doc.appendChild(graphElt);
 
 			Element graphIdElt = doc.createElement("Id");
-			graphIdElt.appendChild(doc.createTextNode(Long.toString(graph.getId())));
+			graphIdElt.appendChild(doc.createTextNode(graph.getKey()));	//done
 			graphElt.appendChild(graphIdElt);
 
 			Element graphNameElt = doc.createElement("Name");			
@@ -36,14 +36,14 @@ public class PropertiesXmlGraphOutputAdapter extends AbstractGraphOutputAdapter 
 			graphElt.appendChild(graphNameElt);
 
 			Element graphNodeCountElt = doc.createElement("Size");
-			graphNodeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.nodeCount())));
+			graphNodeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.getNodeCount())));
 			graphElt.appendChild(graphNodeCountElt);
 
 			Element graphEdgeCountElt = doc.createElement("Links");
 			if (graph.isDirected()) {
-				graphEdgeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.edgeCount())));
+				graphEdgeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.getEdgeCount())));
 			} else {
-				graphEdgeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.edgeCount() / 2)));
+				graphEdgeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.getEdgeCount() / 2)));
 			}
 			graphElt.appendChild(graphEdgeCountElt);
 

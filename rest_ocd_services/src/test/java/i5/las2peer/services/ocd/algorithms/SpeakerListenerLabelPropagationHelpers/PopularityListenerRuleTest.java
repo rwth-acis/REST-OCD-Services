@@ -11,25 +11,21 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 public class PopularityListenerRuleTest {
 
 	@Test
-	public void test() {
+	public void test() throws InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
-		Node listener = graph.getNodeArray()[0];
-		NodeCursor successors = listener.successors();
+		Node listener = graph.nodes().toArray(Node[]::new)[0];
+		Node[] successors = graph.getSuccessorNeighbours(listener).toArray(new Node[0]);
 		Map<Node, Integer> receivedLabels = new HashMap<Node, Integer>();
-		while(successors.ok()) {
-			receivedLabels.put(successors.node(), 0);
-			successors.next();
+		for (Node successor : successors) {
+			receivedLabels.put(successor, 0);
 		}
-		successors.toFirst();
-		receivedLabels.put(successors.node(), 1);
-		successors.toLast();
-		receivedLabels.put(successors.node(), 1);
+		receivedLabels.put(successors[0], 1);
+		receivedLabels.put(successors[successors.length == 0 ? 0 : successors.length-1], 1);
 		System.out.println("Labels:");
 		System.out.println(receivedLabels);
 		SlpaListenerRuleCommand listenerRule = new SlpaPopularityListenerRule();

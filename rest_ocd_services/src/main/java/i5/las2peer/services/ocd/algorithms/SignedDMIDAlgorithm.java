@@ -6,20 +6,17 @@ import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import org.graphstream.graph.implementations.MultiNode;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.dense.BasicVector;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * Implements SignedDMID algorithm by M. Shahriari, S. Krott, and R. Klamma:
@@ -170,23 +167,23 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	protected Map<Node, Integer> getLocalLeader(CustomGraph graph, Vector leadershipVector)
 			throws InterruptedException {
 		Map<Node, Integer> followerMap = new HashMap<Node, Integer>();
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		/*
 		 * Iterates over all nodes to detect their local leader
 		 */
 
-		while (nodes.ok()) {
+		while (nodesIt.hasNext()) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			node = nodes.node();
-			double leadershipValue = leadershipVector.get(node.index());
+			node = nodesIt.next();
+			double leadershipValue = leadershipVector.get(node.getIndex());
 			boolean beingLeader = true;
 			int followerDegree = 0;
 			Set<Node> neighbours = graph.getNeighbours(node);
 			for (Node neighbour : neighbours) {
-				if (leadershipValue < leadershipVector.get(neighbour.index())) {
+				if (leadershipValue < leadershipVector.get(neighbour.getIndex())) {
 					beingLeader = false;
 					break;
 				}
@@ -204,8 +201,8 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 					}
 				}
 				if (ignoreReverse == false) {
-					if (node.getEdgeTo(neighbour) != null) {
-						if (graph.getEdgeWeight(node.getEdgeTo(neighbour)) > 0) {
+					if (node.getEdgeToward(neighbour) != null) {
+						if (graph.getEdgeWeight(node.getEdgeToward(neighbour)) > 0) {
 							followerDegree++;
 							ignoreReverse = true;
 						}
@@ -216,7 +213,6 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 
 				followerMap.put(node, followerDegree);
 			}
-			nodes.next();
 		}
 
 		return followerMap;
@@ -231,17 +227,17 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * @throws InterruptedException if the thread was interrupted
 	 */
 	protected Vector getLeadershipVector(CustomGraph graph) throws InterruptedException {
-		int nodeCount = graph.nodeCount();
+		int nodeCount = graph.getNodeCount();
 		Matrix nodeEDandDASS = new CCSMatrix(nodeCount, 3);
 		Vector leadershipVector = new BasicVector(nodeCount);
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		double effectiveDegreeValue;
-		while (nodes.ok()) {
+		while (nodesIt.hasNext()) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			node = nodes.node();
+			node = nodesIt.next();
 			if (graph.getPositiveInDegree(node) + Math.abs(graph.getNegativeInDegree(node)) != 0) {
 				if (graph.getPositiveInDegree(node) - Math.abs(graph.getNegativeInDegree(node)) < 0) {
 					effectiveDegreeValue = 0;
@@ -253,17 +249,16 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 			} else {
 				effectiveDegreeValue = 0;
 			}
-			nodeEDandDASS.set(node.index(), 0, effectiveDegreeValue);
+			nodeEDandDASS.set(node.getIndex(), 0, effectiveDegreeValue);
 			// Disassortativity, put denominator and nominator in different matrix columns.
 			Set<Node> neighbours = graph.getNeighbours(node);
-			double nodeDegree = graph.getAbsoluteNodeDegree(node);
+			double nodeDegree = graph.getAbsoluteNodeDegree((MultiNode) node);
 			double neighbourDegree = 0;
 			for (Node neighbour : neighbours) {
-				neighbourDegree = graph.getAbsoluteNodeDegree(neighbour);
-				nodeEDandDASS.set(node.index(), 1, nodeEDandDASS.get(node.index(), 1) + nodeDegree + neighbourDegree);
-				nodeEDandDASS.set(node.index(), 2, nodeEDandDASS.get(node.index(), 2) + nodeDegree - neighbourDegree);
+				neighbourDegree = graph.getAbsoluteNodeDegree((MultiNode) neighbour);
+				nodeEDandDASS.set(node.getIndex(), 1, nodeEDandDASS.get(node.getIndex(), 1) + nodeDegree + neighbourDegree);
+				nodeEDandDASS.set(node.getIndex(), 2, nodeEDandDASS.get(node.getIndex(), 2) + nodeDegree - neighbourDegree);
 			}
-			nodes.next();
 		}
 		for (int i = 0; i < nodeCount; i++) {
 			leadershipVector.set(i,
@@ -357,7 +352,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 					} else {
 						profitability = 0;
 					}
-					if (profitability >= profitabilityThreshold.get(neighbour.index())) {
+					if (profitability >= profitabilityThreshold.get(neighbour.getIndex())) {
 						NodesAssumingNewLabel.add(neighbour);
 						membershipsToAdd.put(neighbour, iterationCount);
 					}
@@ -388,7 +383,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	protected int getPosNodesWithNewLabel(CustomGraph graph, Node node, Set<Node> nodesNewLabel)
 			throws InterruptedException {
 		Set<Node> positiveNeighboursWithNewLabel = new HashSet<Node>();
-		Set<Node> positiveNeighbours = graph.getPositiveNeighbours(node);
+		Set<Node> positiveNeighbours = graph.getPositiveNeighbours((MultiNode) node);
 		for (Node positiveNeighbour : positiveNeighbours) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
@@ -418,7 +413,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	protected int getNegNodesWithNewLabel(CustomGraph graph, Node node, Set<Node> nodesNewLabel)
 			throws InterruptedException {
 		Set<Node> negativeNeighboursWithNewLabel = new HashSet<Node>();
-		Set<Node> negativeNeighbours = graph.getNegativeNeighbours(node);
+		Set<Node> negativeNeighbours = graph.getNegativeNeighbours((MultiNode) node);
 		for (Node negativeNeighbour : negativeNeighbours) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
@@ -443,17 +438,17 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 */
 	protected Cover getMembershipDegrees(CustomGraph graph, Map<Node, Map<Node, Integer>> communities)
 			throws InterruptedException {
-		Matrix membershipMatrix = new CCSMatrix(graph.nodeCount(), communities.size());
+		Matrix membershipMatrix = new CCSMatrix(graph.getNodeCount(), communities.size());
 		int communityIndex = 0;
 		double membershipDegree;
 		for (Node leader : communities.keySet()) {
-			membershipMatrix.set(leader.index(), communityIndex, 1.0);
+			membershipMatrix.set(leader.getIndex(), communityIndex, 1.0);
 			for (Map.Entry<Node, Integer> entry : communities.get(leader).entrySet()) {
 				if (Thread.interrupted()) {
 					throw new InterruptedException();
 				}
 				membershipDegree = 1.0 / Math.pow(entry.getValue(), 2);
-				membershipMatrix.set(entry.getKey().index(), communityIndex, membershipDegree);
+				membershipMatrix.set(entry.getKey().getIndex(), communityIndex, membershipDegree);
 			}
 			communityIndex++;
 		}

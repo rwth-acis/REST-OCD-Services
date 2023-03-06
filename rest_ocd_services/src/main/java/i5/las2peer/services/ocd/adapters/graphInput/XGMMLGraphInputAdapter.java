@@ -27,14 +27,13 @@ import org.xml.sax.SAXException;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 //import i5.las2peer.services.ocd.utils.DocIndexer;
-import y.base.Edge;
-import y.base.Node;
-import y.view.EdgeLabel;
-import y.view.EdgeRealizer;
-import y.view.LineType;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
+
 
 import java.io.Reader;
 import java.io.FileReader;
+import java.util.UUID;
 
 //TODO: Currently only for the youtube graph, make more general
 //TODO: Be able to have more Attributes for nodes(at least string id's) and maybe edges(at least type) in general
@@ -82,8 +81,6 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 	// Ignore for now as LineTypes are not stored in persistence for some reason
 	public void setLineType(Element edgeElement, Edge edge, CustomGraph graph) {
 		if (type1 != "" || type2 != "" || type3 != "") {
-			EdgeRealizer eRealizer = graph.getRealizer(edge);
-
 			NodeList atts = edgeElement.getChildNodes();
 			if (atts.getLength() != 0) {	
 				if (key.contentEquals("")) {
@@ -93,14 +90,17 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 							System.out.println(e.getAttribute(type2));
 							System.out.println(e.getAttribute("name"));
 							if (type1 != "" && e.hasAttribute(type1)) {
-								eRealizer.setLineType(LineType.LINE_1);
+								edge.setAttribute("ui.fill-mode", "plain");
 								break;
 							} else if (type2 != "" && e.hasAttribute(type2)) {
-								eRealizer.setLineType(LineType.DASHED_1);
-								System.out.println(eRealizer.getLineType().equals(LineType.DASHED_1));
+								edge.setAttribute("ui.fill-mode", "none");
+								edge.setAttribute("ui.size", "0px");
+								edge.setAttribute("ui.stroke-mode", "dashes");
 								break;
 							} else if (type3 != "" && e.hasAttribute(type3)) {
-								eRealizer.setLineType(LineType.DOTTED_1);
+								edge.setAttribute("ui.fill-mode", "none");
+								edge.setAttribute("ui.size", "0px");
+								edge.setAttribute("ui.stroke-mode", "dots");
 								break;
 							}
 						}
@@ -111,13 +111,17 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 							Element e = (Element) atts.item(u);
 							
 							if (type1 != "" && e.getAttribute(key).contentEquals(type1)) {
-								eRealizer.setLineType(LineType.LINE_1);
+								edge.setAttribute("ui.fill-mode", "plain");
 								break;
 							} else if (type2 != "" && e.getAttribute(key).contentEquals(type2)) {
-								eRealizer.setLineType(LineType.DASHED_1);								
+								edge.setAttribute("ui.fill-mode", "none");
+								edge.setAttribute("ui.size", "0px");
+								edge.setAttribute("ui.stroke-mode", "dashes");
 								break;
 							} else if (type3 != "" && e.getAttribute(key).contentEquals(type3)) {
-								eRealizer.setLineType(LineType.DOTTED_1);
+								edge.setAttribute("ui.fill-mode", "none");
+								edge.setAttribute("ui.size", "0px");
+								edge.setAttribute("ui.stroke-mode", "dots");
 								break;
 							}
 						}
@@ -187,7 +191,7 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 				}
 				// node does not yet exist
 				if (!nodeIds.containsKey(customNodeId)) {
-					node = graph.createNode(); // create new node and add attributes
+					node = graph.addNode(customNodeId); // create new node and add attributes
 					graph.setNodeName(node, customNodeId);
 					nodeIds.put(customNodeId, node);
 					// nodeContents.put(customNodeName, customNodeContent);
@@ -206,11 +210,11 @@ public class XGMMLGraphInputAdapter extends AbstractGraphInputAdapter {
 				
 				if (nodeIds.containsKey(e.getAttribute("source")) && nodeIds.containsKey(e.getAttribute("target"))) {
 					if (!edgeMap.containsKey(e.getAttribute("label"))) {
-						Edge edge = graph.createEdge(nodeIds.get(e.getAttribute("source")), nodeIds.get(e.getAttribute("target")));
+						Edge edge = graph.addEdge(UUID.randomUUID().toString(), nodeIds.get(e.getAttribute("source")), nodeIds.get(e.getAttribute("target")));
 						//setLineType(e, edge, graph);
 						
 						if (undirected) {
-							Edge reverseEdge = graph.createEdge(nodeIds.get(e.getAttribute("target")), nodeIds.get(e.getAttribute("source")));
+							Edge reverseEdge = graph.addEdge(UUID.randomUUID().toString(), nodeIds.get(e.getAttribute("target")), nodeIds.get(e.getAttribute("source")));
 							//graph.getRealizer(reverseEdge).setLineType(graph.getRealizer(edge).getLineType());
 						}
 						edgeMap.put(e.getAttribute("source") + e.getAttribute("target"), edge);

@@ -1,7 +1,18 @@
 package i5.las2peer.services.ocd.utils;
 
 import javax.persistence.*;
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import java.time.LocalDate;
+import java.util.Map;
 
 /**
  * Represents user inactivity information. Instance of this class will store when the user logged in and when is the
@@ -19,7 +30,11 @@ public class InactivityData {
     public static final String USER_COLUMN_NAME = "USER_NAME";
     public static final String LAST_LOGIN_DATE_COLUMN_NAME = "LAST_LOGIN_DATE";
     public static final String DELETION_DATE_COLUMN_NAME = "DELETION_DATE";
-
+    //ArangoDB
+    public static final String collectionName = "inactivitydata";
+    public static final String userColumnName = "USER_NAME";
+    private static final String lastLoginDateColumnName = "LAST_LOGIN_DATE";
+    private static final String deletetionDateColumnName = "DELETION_DATE";
 
     /*
      * Field name definitions for JPQL queries.
@@ -36,7 +51,11 @@ public class InactivityData {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
+    
+    /**
+     * System generated persistence id.
+     */
+    private String key;
     /**
      * Username for which the info is stored.
      */
@@ -71,6 +90,14 @@ public class InactivityData {
 
         return id;
 
+    }
+    /**
+     * Getter for system-generated user  inactivity entry key.
+     *
+     * @return       return auto-generated unique key of InactivityData entry.
+     */
+    public String getKey() {
+        return key;
     }
 
     /**
@@ -165,7 +192,7 @@ public class InactivityData {
      * @return LocalDate representing content deletion date of the user.
      */
     public LocalDate getDeletionDate() {
-
+    	
         return deletionDate;
 
     }
@@ -180,4 +207,49 @@ public class InactivityData {
         this.deletionDate = deletionDate;
 
     }
+    
+    //persistence functions
+	public void persist( ArangoDatabase db, DocumentCreateOptions opt) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(userColumnName, this.username);
+		bd.addAttribute(lastLoginDateColumnName, this.lastLoginDate.toString());
+		bd.addAttribute(deletetionDateColumnName, this.deletionDate.toString());
+		
+		collection.insertDocument(bd, opt);
+		this.key = bd.getKey();
+	}
+	
+	public static InactivityData load(String key, ArangoDatabase db, DocumentReadOptions opt) {
+		InactivityData inData = new InactivityData();
+		ArangoCollection collection = db.collection(collectionName);
+		
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
+		if (bd != null) {
+			inData.username = bd.getAttribute(userColumnName).toString();
+			String lastLogin = bd.getAttribute(lastLoginDateColumnName).toString();
+			String deletion = bd.getAttribute(deletetionDateColumnName).toString();
+			inData.lastLoginDate = LocalDate.parse(lastLogin);
+			inData.deletionDate = LocalDate.parse(deletion);
+			inData.key = key;
+		}	
+		else {
+			System.out.println("empty InactivityData document");
+		}
+		return inData;
+	}
+	
+	public void updateDB(ArangoDatabase db, String transId) {
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentUpdateOptions updateOpt = new DocumentUpdateOptions().streamTransactionId(transId);
+		
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(userColumnName, this.username);
+		bd.addAttribute(lastLoginDateColumnName, this.lastLoginDate.toString());
+		bd.addAttribute(deletetionDateColumnName, this.deletionDate.toString());
+		
+		collection.updateDocument(this.key, bd, updateOpt);
+	}
+    
+    
 }

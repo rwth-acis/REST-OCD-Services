@@ -16,7 +16,7 @@ import org.junit.Test;
 public class SvgVisualGraphOutputAdapterTest {
 	
 	@Test
-	public void testOnTinyCircleGraph() throws IOException, AdapterException, InstantiationException, IllegalAccessException {
+	public void testOnTinyCircleGraph() throws IOException, AdapterException, InstantiationException, IllegalAccessException, InterruptedException {
 		CustomGraph graph = ViewerTestGraphFactory.getTinyCircleGraph();
 		LayoutHandler handler = new LayoutHandler();
 		handler.doLayout(graph, GraphLayoutType.ORGANIC, true, false, 20, 45);
@@ -26,7 +26,7 @@ public class SvgVisualGraphOutputAdapterTest {
 	}
 	
 	@Test
-	public void testOnTwoCommunitiesGraph() throws AdapterException, IOException, InstantiationException, IllegalAccessException {
+	public void testOnTwoCommunitiesGraph() throws AdapterException, IOException, InstantiationException, IllegalAccessException, InterruptedException {
 		CustomGraph graph = ViewerTestGraphFactory.getTwoCommunitiesGraph();
 		LayoutHandler handler = new LayoutHandler();
 		handler.doLayout(graph, GraphLayoutType.ORGANIC, true, false, 20, 45);
@@ -36,7 +36,7 @@ public class SvgVisualGraphOutputAdapterTest {
 	}
 	
 	@Test
-	public void testSvgOnSawmillGraph() throws AdapterException, IOException, InstantiationException, IllegalAccessException {
+	public void testSvgOnSawmillGraph() throws AdapterException, IOException, InstantiationException, IllegalAccessException, InterruptedException {
 		CustomGraph graph = ViewerTestGraphFactory.getSawmillGraph();
 		SvgVisualOutputAdapter adapter = new SvgVisualOutputAdapter();
 		LayoutHandler handler = new LayoutHandler();

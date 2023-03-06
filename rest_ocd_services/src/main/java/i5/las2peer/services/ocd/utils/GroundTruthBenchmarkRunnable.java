@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkExecutor;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverId;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomGraphId;
 
 import java.util.logging.Level;
 
@@ -50,13 +51,17 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 		 * Set algorithm and benchmark status to running.
 		 */
 		RequestHandler requestHandler = new RequestHandler();
-		EntityHandler entityHandler = new EntityHandler();
-		EntityManager em = entityHandler.getEntityManager();
-		EntityTransaction tx = em.getTransaction();
+
+		Database database = new Database(false);
+		
+		String cKey = coverId.getKey();
+		CustomGraphId gId = coverId.getGraphId();
+		String user = gId.getUser();
+		String gKey = gId.getKey();
 		try {
-			tx.begin();
-			Cover cover = em.find(Cover.class, coverId);
+			Cover cover = database.getCover(user, gKey, cKey);
 			if(cover == null) {
+				System.out.println("Cover in GroundTruthBenchmarkRunnable runnable was null " + user + gKey + cKey);
 				/*
 				 * Should not happen.
 				 */
@@ -66,14 +71,11 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 			CustomGraph graph = cover.getGraph();
 			cover.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
 			graph.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
-			tx.commit();
+			database.updateGraphCreationLog(graph);	//TODO both in one transaction?
+			database.updateCoverCreationLog(cover);
 		}  catch( RuntimeException e ) {
-			if( tx != null && tx.isActive() ) {
-				tx.rollback();
-			}
 			error = true;
 		}
-		em.close();
 		Cover groundTruthCover = null;
 		if(!error) {
 			try {

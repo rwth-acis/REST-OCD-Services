@@ -1,10 +1,8 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import org.graphstream.algorithm.Dijkstra;
 import org.la4j.matrix.Matrix;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
@@ -14,11 +12,10 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.algo.ShortestPaths;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Edge;
+
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Residual Centrality.
@@ -32,79 +29,114 @@ public class ResidualCloseness implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.RESIDUAL_ClOSENESS, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();	
+		Iterator<Node> nc = graph.iterator();
 		// If there are less than 3 nodes
-		if(graph.nodeCount() < 3) {
-			while(nc.ok()) {
-				res.setNodeValue(nc.node(), 0);
-				nc.next();
+		if(graph.getNodeCount() < 3) {
+			while(nc.hasNext()) {
+				res.setNodeValue(nc.next(), 0);
 			}
 			return res;
 		}
+
+		// Set edge length attribute for the Dijkstra algorithm
+		Iterator<Edge> edges = graph.edges().iterator();
+		Edge edge;
+		while (edges.hasNext()) {
+			edge = edges.next();
+			edge.setAttribute("edgeLength", graph.getEdgeWeight(edge));
+		}
 		
 		// Calculate the network closeness (for normalization)
-		double[] edgeWeights = graph.getEdgeWeights();
-		double networkCloseness = 0.0;	
-		while(nc.ok()) {
+		double networkCloseness = 0.0;
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
-			double[] dist = new double[graph.nodeCount()];
-			ShortestPaths.dijkstra(graph, node, true, edgeWeights, dist);
-			for(double d : dist) {
+			Node node = nc.next();
+
+			// Length is determined by edge weight
+			Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "edgeLength");
+			dijkstra.init(graph);
+			dijkstra.setSource(node);
+			dijkstra.compute();
+
+			Iterator<Node> nc2 = graph.iterator();
+			while(nc2.hasNext()){
+				double d = dijkstra.getPathLength(nc2.next());
 				if(d != 0) {
 					networkCloseness += 1.0/Math.pow(2, d);
 				}
 			}
-			nc.next();
 		}
 		
 		Matrix A = graph.getNeighbourhoodMatrix();
-		int n = graph.nodeCount();
-		Node[] nodes = graph.getNodeArray();	
+		int n = graph.getNodeCount();
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
+
 		// Remove and re-add each node (by removing its edges)
 		for(int k = 0; k < n; k++) {
 			Node currentNode = nodes[k];
-			// Remove edges
-			EdgeCursor currentNodeEdges = currentNode.edges();
-			while(currentNodeEdges.ok()) {
-				graph.removeEdge(currentNodeEdges.edge());
-				currentNodeEdges.next();
+			ArrayList<Edge> edgesToRemove = new ArrayList<>();
+
+			// Select edges to remove
+			Iterator<Edge> currentNodeEdges = currentNode.edges().iterator();
+			while(currentNodeEdges.hasNext()) {
+				Edge currEdge = currentNodeEdges.next();
+				edgesToRemove.add(currEdge);
+			}
+
+			// Remove the edges selected for removal
+			for (Edge edgeToRemove : edgesToRemove){
+				graph.removeEdge(edgeToRemove);
+			}
+
+			// set edge length attribute for the Dijkstra algorithm
+			edges = graph.edges().iterator();
+			while (edges.hasNext()) {
+				edge = edges.next();
+				edge.setAttribute("edgeLength", graph.getEdgeWeight(edge));
 			}
 			
-			nc.toFirst();
+			nc = graph.iterator();
 			double[] newEdgeWeights = graph.getEdgeWeights();
 			double distSum = 0.0;		
 			// Calculate the sum of distances in the graph without the current node
-			while(nc.ok()) {
+			while(nc.hasNext()) {
 				if(Thread.interrupted()) {
 					throw new InterruptedException();
 				}
-				Node node = nc.node();
-				double[] dist = new double[graph.nodeCount()];
-				ShortestPaths.dijkstra(graph, node, true, newEdgeWeights, dist);
-				for(double d : dist) {
+				Node node = nc.next();
+				double[] dist = new double[graph.getNodeCount()];
+
+				// Length is determined by edge weight
+				Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "edgeLength");
+				dijkstra.init(graph);
+				dijkstra.setSource(node);
+				dijkstra.compute();
+
+				Iterator<Node> nc2 = graph.iterator();
+				while(nc2.hasNext()){
+					double d = dijkstra.getPathLength(nc2.next());
 					if(d != 0) {
 						distSum += 1.0/Math.pow(2, d);
 					}
 				}
-				nc.next();
+
 			}
 			res.setNodeValue(currentNode, networkCloseness/distSum);
 			
 			// Recreate edges
 			for(int i = 0; i < n; i++) {
-				double weight = A.get(currentNode.index(), i);
+				double weight = A.get(currentNode.getIndex(), i);
 				if(weight != 0) {
-					Edge newEdge = graph.createEdge(currentNode, nodes[i]);
+					Edge newEdge = graph.addEdge(UUID.randomUUID().toString(), currentNode, nodes[i]);
 					graph.setEdgeWeight(newEdge, weight);
 				}
 			}
 			for(int i = 0; i < n; i++) {
-				double weight = A.get(i, currentNode.index());
+				double weight = A.get(i, currentNode.getIndex());
 				if(weight != 0) {
-					Edge newEdge = graph.createEdge(nodes[i], currentNode);
+					Edge newEdge = graph.addEdge(UUID.randomUUID().toString(), nodes[i], currentNode);
 					graph.setEdgeWeight(newEdge, weight);
 				}
 			}

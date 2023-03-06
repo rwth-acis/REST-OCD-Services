@@ -8,8 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * Implements a concrete Listener Rule for the Speaker Listener
@@ -28,7 +29,7 @@ public class SlpaPopularityListenerRule implements SlpaListenerRuleCommand {
 		Map<Integer, Double> histogram = new HashMap<Integer, Double>();
 		for (Map.Entry<Node, Integer> entry : receivedLabels.entrySet()) {
 			int label = entry.getValue();
-			Edge edge = listener.getEdgeTo(entry.getKey());
+			Edge edge = listener.getEdgeToward(entry.getKey());
 			double influence = graph.getEdgeWeight(edge);
 			if(histogram.containsKey(label)) {
 				double popularity = histogram.get(label);

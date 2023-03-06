@@ -16,7 +16,7 @@ import org.junit.Test;
 public class RandomColorPainterTest {
 
 	@Test
-	public void testOnSawmill() throws AdapterException, IOException, InstantiationException, IllegalAccessException {
+	public void testOnSawmill() throws AdapterException, IOException, InstantiationException, IllegalAccessException, InterruptedException {
 		Cover cover = ViewerTestGraphFactory.getSlpaSawmillCover();
 		LayoutHandler handler = new LayoutHandler();
 		handler.doLayout(cover, GraphLayoutType.ORGANIC, true, false, 20, 45, CoverPaintingType.RANDOM_COLORS);
@@ -26,7 +26,7 @@ public class RandomColorPainterTest {
 	}
 	
 	@Test
-	public void testOnDolphins() throws AdapterException, IOException, InstantiationException, IllegalAccessException {
+	public void testOnDolphins() throws AdapterException, IOException, InstantiationException, IllegalAccessException, InterruptedException {
 		Cover cover = ViewerTestGraphFactory.getSlpaDolphinsCover();
 		LayoutHandler handler = new LayoutHandler();
 		handler.doLayout(cover, GraphLayoutType.ORGANIC, true, false, 20, 45, CoverPaintingType.RANDOM_COLORS);

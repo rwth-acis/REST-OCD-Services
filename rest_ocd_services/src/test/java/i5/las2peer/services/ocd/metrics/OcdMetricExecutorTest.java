@@ -19,7 +19,7 @@ public class OcdMetricExecutorTest {
 	@Test
 	public void testExtendedModularityOnDirectedAperiodicTwoCommunities() throws OcdAlgorithmException, OcdMetricException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
-		Matrix memberships = new CCSMatrix(graph.nodeCount(), 3);
+		Matrix memberships = new CCSMatrix(graph.getNodeCount(), 3);
 		memberships.set(0, 0, 1);
 		memberships.set(1, 0, 0.7);
 		memberships.set(1, 1, 0.3);

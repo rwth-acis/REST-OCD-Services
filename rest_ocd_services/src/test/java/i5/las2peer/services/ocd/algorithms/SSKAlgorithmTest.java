@@ -21,7 +21,7 @@ import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 public class SSKAlgorithmTest {
 	
@@ -89,7 +89,7 @@ public class SSKAlgorithmTest {
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
 		Vector totalInfluences = algo.executeRandomWalk(transitionMatrix);
 		Map<Node, Integer> globalLeaders = algo.determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
-		Node[] nodes = graph.getNodeArray();
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		assertEquals(1, globalLeaders.size());
 		assertTrue(globalLeaders.keySet().contains(nodes[0]));
 		System.out.println("Global Leaders:");
@@ -108,7 +108,7 @@ public class SSKAlgorithmTest {
 		Map<Node, Integer> globalLeaders = algo.determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
 		assertEquals(3, globalLeaders.size());
 		assertEquals(3, globalLeaders.values().size());
-		Node[] nodes = graph.getNodeArray();
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		assertTrue(globalLeaders.keySet().contains(nodes[11]));
 		assertTrue(globalLeaders.keySet().contains(nodes[26]));
 		assertTrue(globalLeaders.keySet().contains(nodes[30]));
@@ -128,7 +128,7 @@ public class SSKAlgorithmTest {
 		Vector totalInfluences = algo.executeRandomWalk(transitionMatrix);
 		Map<Node, Integer> globalLeaders = algo.determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
 		assertEquals(7, globalLeaders.size());
-		Node[] nodes = graph.getNodeArray();
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		assertTrue(globalLeaders.keySet().contains(nodes[0]));
 		assertTrue(globalLeaders.keySet().contains(nodes[5]));
 		assertTrue(globalLeaders.keySet().contains(nodes[6]));

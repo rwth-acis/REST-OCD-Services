@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
@@ -17,8 +14,8 @@ import i5.las2peer.services.ocd.centrality.utils.MatrixOperations;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of the HITS authority score.
@@ -32,14 +29,13 @@ public class HitsAuthorityScore implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.HITS_AUTHORITY_SCORE, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));	
 		
-		NodeCursor nc = graph.nodes();
-		int n = graph.nodeCount();
+		Iterator<Node> nc = graph.iterator();
+		int n = graph.getNodeCount();
 		// If the graph contains no edges
-		if(graph.edgeCount() == 0) {
-			while(nc.ok()) {
-				Node node = nc.node();
+		if(graph.getEdgeCount() == 0) {
+			while(nc.hasNext()) {
+				Node node = nc.next();
 				res.setNodeValue(node, 0);
-				nc.next();
 			}
 			return res;
 		}	
@@ -90,9 +86,9 @@ public class HitsAuthorityScore implements CentralityAlgorithm {
 		}
 		
 		// Set centrality values to the authority weights
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), authorityWeights.get(nc.node().index()));
-			nc.next();
+		while(nc.hasNext()) {
+			Node node = nc.next();
+			res.setNodeValue(node, authorityWeights.get(node.getIndex()));
 		}
 		return res;
 	}

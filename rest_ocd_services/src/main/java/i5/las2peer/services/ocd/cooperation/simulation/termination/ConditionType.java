@@ -1,5 +1,7 @@
 package i5.las2peer.services.ocd.cooperation.simulation.termination;
 
+import i5.las2peer.services.ocd.metrics.OcdMetricType;
+
 import java.security.InvalidParameterException;
 
 
@@ -100,6 +102,20 @@ public enum ConditionType {
 	public static ConditionType getType(Class<? extends Condition> enumClass) {
 		for (ConditionType type : ConditionType.values()) {
 			if (enumClass == type.getEnumClass()) {
+				return type;
+			}
+		}
+		throw new InvalidParameterException();
+	}
+
+	/**
+	 * Returns the type corresponding to an id.
+	 * @param id The id.
+	 * @return The corresponding type.
+	 */
+	public static ConditionType lookupType(int id) {
+		for (ConditionType type : ConditionType.values()) {
+			if (id == type.getId()) {
 				return type;
 			}
 		}

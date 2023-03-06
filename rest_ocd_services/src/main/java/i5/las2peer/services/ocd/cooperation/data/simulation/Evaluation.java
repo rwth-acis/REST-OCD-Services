@@ -3,12 +3,16 @@ package i5.las2peer.services.ocd.cooperation.data.simulation;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.persistence.Basic;
 import javax.persistence.Embeddable;
+
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 import org.apache.commons.math3.stat.StatUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 
@@ -20,23 +24,22 @@ import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 @Embeddable
 public class Evaluation implements Serializable {
 
+
 	private static final long serialVersionUID = 1L;
 
-	///////// Entity Fields ///////////
-
-	@Basic
+	@JsonProperty
 	private double average;
 
-	@Basic
+	@JsonProperty
 	private double variance;
 
-	@Basic
+	@JsonProperty
 	private double deviation;
 
-	@Basic
+	@JsonProperty
 	private double maximum;
 
-	@Basic
+	@JsonProperty
 	private double minimum;
 
 	/////////// Constructor ///////////
@@ -124,59 +127,44 @@ public class Evaluation implements Serializable {
 
 	//////////// Getter /////////////
 
-	@JsonProperty
-	public double getAverage() {
-		return average;
-	}
+	public double getAverage() {return average; }
 
-	@JsonProperty
 	public double getVariance() {
 		return this.variance;
 	}
 
-	@JsonProperty
 	public double getDeviation() {
 		return this.deviation;
 	}
 
-	@JsonProperty
-	public double getMax() {
+	public double getMaximum() {
 		return maximum;
 	}
 
-	@JsonProperty
-	public double getMin() {
+	public double getMinimum() {
 		return minimum;
 	}
 
-	////// Setter //////
-
-	@JsonSetter
 	public void setAverage(double average) {
 		this.average = average;
 	}
 
-	@JsonSetter
 	public void setVariance(double variance) {
 		this.variance = variance;
 	}
 
-	@JsonSetter
 	public void setDeviation(double deviation) {
 		this.deviation = deviation;
 	}
 
-	@JsonSetter
-	public void setMax(double max) {
+	public void setMaximum(double max) {
 		this.maximum = max;
 	}
 
-	@JsonSetter
-	public void setMin(double min) {
+	public void setMinimum(double min) {
 		this.minimum = min;
 	}
 
-	/////////// Table ///////////
 
 	public TableRow toTableLine() {
 
@@ -192,4 +180,14 @@ public class Evaluation implements Serializable {
 		return line;
 	}
 
+	@Override
+	public String toString() {
+		return "Evaluation{" +
+				"average=" + average +
+				", variance=" + variance +
+				", deviation=" + deviation +
+				", maximum=" + maximum +
+				", minimum=" + minimum +
+				'}';
+	}
 }

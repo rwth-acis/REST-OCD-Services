@@ -6,7 +6,7 @@ import java.util.LinkedList;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 public class Cluster {
 	

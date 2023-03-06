@@ -31,8 +31,8 @@ public class CommunityMemberListsInputAdapterTest {
 	@Test
 	public void testOnFacebook() throws AdapterException, FileNotFoundException {
 		CustomGraph graph = OcdTestGraphFactory.getFacebookGraph();
-		System.out.println("Nodes: " + graph.nodeCount());
-		System.out.println("Edges: " + graph.edgeCount());
+		System.out.println("Nodes: " + graph.getNodeCount());
+		System.out.println("Edges: " + graph.getEdgeCount());
 		Cover cover;
 		CoverInputAdapter adapter = new CommunityMemberListsCoverInputAdapter(new FileReader(OcdTestConstants.facebookGroundTruthCommunityMemberListxInputPath));
 		cover = adapter.readCover(graph);

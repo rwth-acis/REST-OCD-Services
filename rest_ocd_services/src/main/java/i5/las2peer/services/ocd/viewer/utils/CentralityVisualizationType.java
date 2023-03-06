@@ -25,7 +25,6 @@ public enum CentralityVisualizationType implements EnumDisplayNames {
 	
 	/**
 	 * Creates a new instance.
-	 * @param adapterClass Defines the adapterClass attribute.
 	 * @param id Defines the id attribute.
 	 */
 	private CentralityVisualizationType(String displayName, int id) {

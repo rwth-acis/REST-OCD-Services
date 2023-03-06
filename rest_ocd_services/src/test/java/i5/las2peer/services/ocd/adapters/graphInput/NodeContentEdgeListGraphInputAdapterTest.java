@@ -26,7 +26,7 @@ public class NodeContentEdgeListGraphInputAdapterTest {
 				new NodeContentEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.urchPostsEdgeListInputPath));
 		inputAdapter.setParameter(adapterParam);
 		CustomGraph graph = inputAdapter.readGraph();
-		System.out.println(graph.nodeCount());
+		System.out.println(graph.getNodeCount());
 	}
 	
 	@Ignore
@@ -40,6 +40,6 @@ public class NodeContentEdgeListGraphInputAdapterTest {
 				new NodeContentEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.jmolEdgeListInputPath));
 		inputAdapter.setParameter(adapterParam);
 		CustomGraph graph = inputAdapter.readGraph();
-		System.out.println(graph.nodeCount());
+		System.out.println(graph.getNodeCount());
 	}
 }

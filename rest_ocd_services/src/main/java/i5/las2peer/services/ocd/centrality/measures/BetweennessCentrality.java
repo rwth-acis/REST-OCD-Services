@@ -1,12 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-import java.util.Queue;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -15,9 +9,9 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * Implementation of Betweenness Centrality.
@@ -35,18 +29,17 @@ public class BetweennessCentrality implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.BETWEENNESS_CENTRALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), 0);
-			nc.next();
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
+			res.setNodeValue(nc.next(), 0);
 		}
-		nc.toFirst();
+		nc = graph.iterator();
 		
-		while(nc.ok()) {
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node s = nc.node();	
+			Node s = nc.next();
 			
 			// Variable declaration
 			Queue<Node> Q = new LinkedList<Node>();
@@ -57,15 +50,14 @@ public class BetweennessCentrality implements CentralityAlgorithm {
 			Map<Node, Double> delta = new HashMap<Node, Double>();
 			
 			// Initialization
-			NodeCursor iterator = graph.nodes();
-			while(iterator.ok()) {
-				Node w = iterator.node();
+			Iterator<Node> iterator = graph.iterator();
+			while(iterator.hasNext()) {
+				Node w = iterator.next();
 
 				Pred.put(w, new LinkedList<Node>());
 				dist.put(w, Double.POSITIVE_INFINITY);
 				sigma.put(w, 0);
 				
-				iterator.next();
 			}
 			dist.put(s, 0.0);
 			sigma.put(s, 1);
@@ -75,9 +67,9 @@ public class BetweennessCentrality implements CentralityAlgorithm {
 			while(!Q.isEmpty()) {
 				Node v = Q.poll();
 				S.push(v);	
-				NodeCursor outNeighbors = v.successors();
-				while(outNeighbors.ok()) {
-					Node w = outNeighbors.node();
+				Iterator<Node> outNeighbors = graph.getSuccessorNeighbours(v).iterator();
+				while(outNeighbors.hasNext()) {
+					Node w = outNeighbors.next();
 					
 					// Path discovery
 					if(dist.get(w) == Double.POSITIVE_INFINITY) {
@@ -91,16 +83,14 @@ public class BetweennessCentrality implements CentralityAlgorithm {
 						Pred.get(w).add(v);
 					}
 					
-					outNeighbors.next();
 				}
 			}
 			
 			// Accumulation
-			iterator.toFirst();
-			while(iterator.ok()) {
-				Node v = iterator.node();	
+			iterator = graph.iterator();
+			while(iterator.hasNext()) {
+				Node v = iterator.next();
 				delta.put(v, 0.0);
-				iterator.next();
 			}
 			
 			while(!S.isEmpty()) {
@@ -112,15 +102,14 @@ public class BetweennessCentrality implements CentralityAlgorithm {
 					res.setNodeValue(w, res.getNodeValue(w) + delta.get(w));
 				}
 			}
-			nc.next();
 		}
 		
 		// If graph is undirected, divide centrality values by 2
 		if(!graph.getTypes().contains(GraphType.DIRECTED)) {
-			nc.toFirst();
-			while(nc.ok()) {
-				res.setNodeValue(nc.node(), res.getNodeValue(nc.node())/2);
-				nc.next();
+			nc = graph.iterator();
+			while(nc.hasNext()) {
+				Node node = nc.next();
+				res.setNodeValue(node, res.getNodeValue(node)/2);
 			}
 		}
 		return res;
@@ -130,18 +119,17 @@ public class BetweennessCentrality implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.BETWEENNESS_CENTRALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			res.setNodeValue(nc.node(), 0);
-			nc.next();
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
+			res.setNodeValue(nc.next(), 0);
 		}
-		nc.toFirst();
+		nc = graph.iterator();
 		
-		while(nc.ok()) {
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node s = nc.node();	
+			Node s = nc.next();
 			
 			// Variable declaration
 			Queue<Node> Q = new LinkedList<Node>();
@@ -152,15 +140,13 @@ public class BetweennessCentrality implements CentralityAlgorithm {
 			Map<Node, Double> delta = new HashMap<Node, Double>();
 			
 			// Initialization
-			NodeCursor iterator = graph.nodes();
-			while(iterator.ok()) {
-				Node w = iterator.node();
+			Iterator<Node> iterator = graph.iterator();
+			while(iterator.hasNext()) {
+				Node w = iterator.next();
 
 				Pred.put(w, new LinkedList<Node>());
 				dist.put(w, Double.POSITIVE_INFINITY);
 				sigma.put(w, 0);
-				
-				iterator.next();
 			}
 			dist.put(s, 0.0);
 			sigma.put(s, 1);
@@ -177,13 +163,14 @@ public class BetweennessCentrality implements CentralityAlgorithm {
 				S.push(v);
 				Q.remove(v);
 				
-				EdgeCursor outEdges = v.outEdges();
-				while(outEdges.ok()) {
-					Node w = outEdges.edge().target();
+				Iterator<Edge> outEdges = v.leavingEdges().iterator();
+				while(outEdges.hasNext()) {
+					Edge edge = outEdges.next();
+					Node w = edge.getTargetNode();
 					
 					// Path discovery
-					if(dist.get(w) > dist.get(v) + graph.getEdgeWeight(outEdges.edge())) {
-						dist.put(w, dist.get(v) + graph.getEdgeWeight(outEdges.edge()));
+					if(dist.get(w) > dist.get(v) + graph.getEdgeWeight(edge)) {
+						dist.put(w, dist.get(v) + graph.getEdgeWeight(edge));
 						if(!Q.contains(w))
 							Q.add(w);
 						sigma.put(w, 0);
@@ -191,20 +178,18 @@ public class BetweennessCentrality implements CentralityAlgorithm {
 					}
 					
 					// Path counting
-					if(dist.get(w) == dist.get(v) + graph.getEdgeWeight(outEdges.edge())) {
+					if(dist.get(w) == dist.get(v) + graph.getEdgeWeight(edge)) {
 						sigma.put(w, sigma.get(w) + sigma.get(v));
 						Pred.get(w).add(v);
-					}				
-					outEdges.next();
+					}
 				}
 			}
 			
 			// Accumulation
-			iterator.toFirst();
-			while(iterator.ok()) {
-				Node v = iterator.node();	
+			iterator = graph.iterator();
+			while(iterator.hasNext()) {
+				Node v = iterator.next();
 				delta.put(v, 0.0);
-				iterator.next();
 			}
 			
 			while(!S.isEmpty()) {
@@ -216,15 +201,14 @@ public class BetweennessCentrality implements CentralityAlgorithm {
 					res.setNodeValue(w, res.getNodeValue(w) + delta.get(w));
 				}
 			}
-			nc.next();
 		}
 		
 		// If graph is undirected, divide centrality values by 2
 		if(!graph.getTypes().contains(GraphType.DIRECTED)) {
-			nc.toFirst();
-			while(nc.ok()) {
-				res.setNodeValue(nc.node(), res.getNodeValue(nc.node())/2);
-				nc.next();
+			nc = graph.iterator();
+			while(nc.hasNext()) {
+				Node node = nc.next();
+				res.setNodeValue(node, res.getNodeValue(node)/2);
 			}
 		}	
 		return res;

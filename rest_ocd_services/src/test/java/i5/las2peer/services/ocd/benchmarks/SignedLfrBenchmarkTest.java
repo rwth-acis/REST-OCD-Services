@@ -9,8 +9,10 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestCoverFactory;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
+
+import java.util.Iterator;
 
 /* 
  * @author YLi
@@ -21,9 +23,9 @@ public class SignedLfrBenchmarkTest {
 		SignedLfrBenchmark model = new SignedLfrBenchmark(100, 3, 6, 0.1, -2.0, -1.0, 10, 40, 5, 2, 0.1, 0.1);
 		Cover cover = model.createGroundTruthCover();
 		CustomGraph graph = cover.getGraph();
-		assertEquals(100, graph.nodeCount());
+		assertEquals(100, graph.getNodeCount());
 		System.out.println(cover.toString());
-		int nodeCount = graph.nodeCount();
+		int nodeCount = graph.getNodeCount();
 		int overlappingNodeCount = 0;
 		int communityCount = cover.communityCount();
 		Matrix membership = cover.getMemberships();
@@ -51,19 +53,19 @@ public class SignedLfrBenchmarkTest {
 		System.out.println(cover.toString());
 		System.out.println(signedCover.toString());
 		int communityCount = membership.columns();
-		EdgeCursor edges = graph.edges();
+		Iterator<Edge> edges = graph.edges().iterator();
 		Edge edge;
 		int negIntraEdgeCount = 0;
 		int posInterEdgeCount = 0;
-		while (edges.ok()) {
+		while (edges.hasNext()) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			edge = edges.edge();
+			edge = edges.next();
 			double weight = graph.getEdgeWeight(edge);
 			if (weight < 0) {
 				for (int i = 0; i < communityCount; i++) {
-					if (membership.get(edge.source().index(), i) * membership.get(edge.target().index(), i) != 0) {
+					if (membership.get(edge.getSourceNode().getIndex(), i) * membership.get(edge.getTargetNode().getIndex(), i) != 0) {
 						negIntraEdgeCount++;
 						break;
 					}
@@ -71,14 +73,13 @@ public class SignedLfrBenchmarkTest {
 			} else if (weight > 0) {
 				double sum = 0;
 				for (int i = 0; i < communityCount; i++) {
-					sum = sum + membership.get(edge.source().index(), i) * membership.get(edge.target().index(), i);
+					sum = sum + membership.get(edge.getSourceNode().getIndex(), i) * membership.get(edge.getTargetNode().getIndex(), i);
 				}
 				if (sum == 0) {
 					posInterEdgeCount++;
 				}
 
 			}
-			edges.next();
 		}
 		System.out.println("neg. intra-edges count: " + negIntraEdgeCount);
 		System.out.println("pos. inter-edges count: " + posInterEdgeCount);

@@ -4,9 +4,9 @@ import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import java.io.Writer;
+import java.util.Iterator;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
+import org.graphstream.graph.Edge;
 
 /**
  * A graph output adapter for weighted edge list format.
@@ -44,17 +44,16 @@ public class WeightedEdgeListGraphOutputAdapter extends AbstractGraphOutputAdapt
 	@Override
 	public void writeGraph(CustomGraph graph) throws AdapterException {
 		try {
-			EdgeCursor edges = graph.edges();
+			Iterator<Edge> edges = graph.edges().iterator();
 			Edge edge;
-			while(edges.ok()) {
-				edge = edges.edge();
-				writer.write(graph.getNodeName(edge.source()) + " ");
-				writer.write(graph.getNodeName(edge.target()));
+			while(edges.hasNext()) {
+				edge = edges.next();
+				writer.write(graph.getNodeName(edge.getSourceNode()) + " ");
+				writer.write(graph.getNodeName(edge.getTargetNode()));
 				if(weighted) {
 					writer.write(" " + String.format("%.2f", graph.getEdgeWeight(edge)));
 				}
-				edges.next();
-				if(edges.ok()) {
+				if(edges.hasNext()) {
 					writer.write("\n");
 				}
 			}

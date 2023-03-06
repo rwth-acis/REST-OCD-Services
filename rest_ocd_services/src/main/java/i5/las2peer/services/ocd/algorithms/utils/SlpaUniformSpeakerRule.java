@@ -5,7 +5,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import java.util.List;
 import java.util.Random;
 
-import y.base.Node;
+import org.graphstream.graph.Node;
 
 /**
  * Implements a concrete Speaker Rule for the Speaker Listener

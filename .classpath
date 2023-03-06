@@ -4,7 +4,8 @@
 	<classpathentry kind="lib" path="lib/commons-dbcp2-2.0.jar"/>
 	<classpathentry kind="lib" path="lib/commons-pool2-2.2.jar"/>
 	<classpathentry kind="lib" path="lib/bcprov-jdk15on-1.50.jar"/>
-	<classpathentry kind="lib" path="lib/y.jar"/>
+	<classpathentry kind="lib" path="lib/gs-algo-2.0.jar"/>
+    <classpathentry kind="lib" path="lib/gs-core-2.0.jar"/>
 	<classpathentry kind="lib" path="lib/json-simple-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commonj.sdo-2.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/la4j-0.4.9.jar"/>
@@ -20,7 +21,6 @@
 	<classpathentry kind="lib" path="lib/geronimo-jpa_2.0_spec-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/stax-api-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/mockito-all-1.9.5.jar"/>
-	<classpathentry kind="lib" path="lib/ysvg.jar"/>
 	<classpathentry kind="lib" path="lib/mason-19.jar"/>
 	<classpathentry kind="lib" path="lib/ojalgo-48.3.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-jxpath-1.3.jar"/>
@@ -71,10 +71,9 @@
 	<classpathentry kind="lib" path="lib/junit-4.13.1.jar"/>
 	<classpathentry kind="lib" path="lib/guava-18.0.jar"/>
 	<classpathentry kind="lib" path="lib/json-smart-1.3.1.jar"/>
-	<classpathentry kind="lib" path="lib/las2peer-bundle-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/las2peer-bundle-1.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/sbbi-upnplib-1.0.4.jar"/>
 	<classpathentry kind="lib" path="lib/xml-apis-ext-1.3.04.jar"/>
-	<classpathentry kind="lib" path="lib/yguard-3.0.0.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk-14.0.2">
 		<attributes>
 			<attribute name="module" value="true"/>

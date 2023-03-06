@@ -10,8 +10,9 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import org.junit.Test;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
+import org.graphstream.graph.Edge;
+
+import java.util.Iterator;
 
 public class WeightedLinkCommunitiesAlgorithmTest {
 
@@ -30,15 +31,14 @@ public class WeightedLinkCommunitiesAlgorithmTest {
 	@Test
 	public void testOnLinkCommunitiesTestGraph() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getLinkCommunitiesTestGraph();
-		EdgeCursor edges = graph.edges();
-		while (edges.ok()) {
-			Edge edge = edges.edge();
-			Edge reverseEdge = edge.target().getEdgeTo(edge.source());
-			if (reverseEdge == null || edge.index() < reverseEdge.index()) {
-				System.out.println("Edge " + edge.index() + ": "
-						+ edge.source() + " -> " + edge.target());
+		Iterator<Edge> edges = graph.edges().iterator();
+		while (edges.hasNext()) {
+			Edge edge = edges.next();
+			Edge reverseEdge = edge.getTargetNode().getEdgeToward(edge.getSourceNode());
+			if (reverseEdge == null || edge.getIndex() < reverseEdge.getIndex()) {
+				System.out.println("Edge " + edge.getIndex() + ": "
+						+ edge.getSourceNode() + " -> " + edge.getTargetNode());
 			}
-			edges.next();
 		}
 		OcdAlgorithm algo = new WeightedLinkCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);

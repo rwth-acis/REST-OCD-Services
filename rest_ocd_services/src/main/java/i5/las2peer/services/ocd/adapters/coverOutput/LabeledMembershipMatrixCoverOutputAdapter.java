@@ -5,9 +5,9 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import java.io.Writer;
+import java.util.Iterator;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 /**
  * A cover output adapter for the labeled membership matrix format.
@@ -33,19 +33,18 @@ public class LabeledMembershipMatrixCoverOutputAdapter extends AbstractCoverOutp
 	public void writeCover(Cover cover) throws AdapterException {
 		try {
 			CustomGraph graph = cover.getGraph();
-			NodeCursor nodes = graph.nodes();
-			while(nodes.ok()) {
-				Node node = nodes.node();
+			Iterator<Node> nodes = graph.iterator();
+			while(nodes.hasNext()) {
+				Node node = nodes.next();
 				String nodeName = graph.getNodeName(node);
 				if(nodeName.isEmpty()) {
-					nodeName = Integer.toString(node.index());
+					nodeName = Integer.toString(node.getIndex());
 				}
 				writer.write(nodeName + " ");
 				for(int i=0; i<cover.communityCount(); i++) {
 					writer.write(String.format("%.4f ", cover.getBelongingFactor(node, i)).replace(",", "."));
 				}
-				nodes.next();
-				if(nodes.ok()) {
+				if(nodes.hasNext()) {
 					writer.write("\n");
 				}
 			}

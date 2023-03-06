@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -12,8 +9,8 @@ import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Laplacian Centrality.
@@ -27,43 +24,42 @@ public class LaplacianCentrality implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.LAPLACIAN_CENTRALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
+			Node node = nc.next();
 			// Count closed 2-walks that contain the node
 			double nwc = 0;
 			Set<Node> neighbors = graph.getNeighbours(node);
 			for(Node neighbor : neighbors) {
-				double edgeWeight = graph.getEdgeWeight(node.getEdgeTo(neighbor));
+				double edgeWeight = graph.getEdgeWeight(node.getEdgeToward(neighbor));
 				nwc += edgeWeight * edgeWeight;
 			}
 			// Count 2-walks with node as an end point
 			double nwe = 0;
 			for(Node neighbor : neighbors) {
-				double edgeWeight1 = graph.getEdgeWeight(node.getEdgeTo(neighbor));
+				double edgeWeight1 = graph.getEdgeWeight(node.getEdgeToward(neighbor));
 				Set<Node> twoStepNeighbors = graph.getNeighbours(neighbor);
 				twoStepNeighbors.remove(node);
 				for(Node twoStepNeighbor : twoStepNeighbors) {
-					double edgeWeight2 = graph.getEdgeWeight(neighbor.getEdgeTo(twoStepNeighbor));
+					double edgeWeight2 = graph.getEdgeWeight(neighbor.getEdgeToward(twoStepNeighbor));
 					nwe += edgeWeight1 * edgeWeight2;
 				}
 			}
 			// Count 2-walks with node in the middle
 			double nwm = 0;
 			for(Node neighbor : neighbors) {
-				double edgeWeight1 = graph.getEdgeWeight(neighbor.getEdgeTo(node));
+				double edgeWeight1 = graph.getEdgeWeight(neighbor.getEdgeToward(node));
 				for(Node neighbor2 : neighbors) {
 					if(neighbor != neighbor2) {
-						double edgeWeight2 = graph.getEdgeWeight(node.getEdgeTo(neighbor2));
+						double edgeWeight2 = graph.getEdgeWeight(node.getEdgeToward(neighbor2));
 						nwm += edgeWeight1 * edgeWeight2;
 					}
 				}
 			}
 			res.setNodeValue(node, 4 * nwc + 2 * nwe + 2 * nwm);			
-			nc.next();
 		}
 		return res;
 	}

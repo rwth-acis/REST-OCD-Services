@@ -12,13 +12,12 @@ import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import y.base.Edge;
-import y.base.EdgeCursor;
+
+import java.util.*;
+
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * This class holds weak clique percolation algorithm, implementation of which
@@ -91,7 +90,7 @@ public class WeakCliquePercolationMethodAlgorithm implements OcdAlgorithm {
 		
 		Cover resulting_cover = new Cover(graph, community_matrix);
 		
-		System.out.println("****** Number of found communities: " + identified_communities.size() + " ******");
+		//System.out.println("****** Number of found communities: " + identified_communities.size() + " ******");
 		return resulting_cover;
 		
 	}
@@ -594,19 +593,17 @@ public class WeakCliquePercolationMethodAlgorithm implements OcdAlgorithm {
 	 */
 	public Matrix createAdjacencyMatrix(CustomGraph graph) {
 
-		Matrix A = new Basic2DMatrix(graph.nodeCount(), graph.nodeCount());
+		Matrix A = new Basic2DMatrix(graph.getNodeCount(), graph.getNodeCount());
 
 		A = A.blank(); // create an empty matrix of size n
 
-		EdgeCursor edge_list = graph.edges(); // added
+		Iterator<Edge> edge_list = graph.edges().iterator(); // added
 
-		while (edge_list.ok()) {
+		while (edge_list.hasNext()) {
 
-			Edge edge = edge_list.edge();
+			Edge edge = edge_list.next();
 
-			A.set(edge.source().index(), edge.target().index(), graph.getEdgeWeight(edge));
-
-			edge_list.next();
+			A.set(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex(), graph.getEdgeWeight(edge));
 		}
 
 		return A;

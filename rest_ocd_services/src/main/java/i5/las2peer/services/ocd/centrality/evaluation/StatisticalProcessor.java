@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.centrality.evaluation;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.math3.linear.RealMatrix;
@@ -11,8 +12,7 @@ import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 /**
  * Calculates statistical measures on centrality maps.
@@ -31,15 +31,14 @@ public class StatisticalProcessor {
 		CentralityMap resultMap = new CentralityMap(graph);
 		int mapListSize = maps.size();
 		
-		NodeCursor nc = graph.nodes();
-		while(nc.ok()) {
-			Node currentNode = nc.node();
+		Iterator<Node> nc = graph.iterator();
+		while(nc.hasNext()) {
+			Node currentNode = nc.next();
 			double currentNodeAverage = 0.0;
 			for(CentralityMap currentMap : maps) {
 				currentNodeAverage += currentMap.getNodeValue(graph.getNodeName(currentNode));
 			}
 			resultMap.setNodeValue(currentNode, currentNodeAverage/mapListSize);
-			nc.next();
 		}
 		return resultMap;
 	}
@@ -107,20 +106,19 @@ public class StatisticalProcessor {
 	}
 	
 	private static double[][] getCentralityValuesMatrix(CustomGraph graph, List<CentralityMap> maps) {
-		int n = graph.nodeCount();
+		int n = graph.getNodeCount();
 		int m = maps.size();
 		double[][] mapsValues = new double[n][m];
-		NodeCursor nc = graph.nodes();
+		Iterator<Node> nc = graph.iterator();
 		int i = 0;
-		while(nc.ok()) {
-			Node currentNode = nc.node();
+		while(nc.hasNext()) {
+			Node currentNode = nc.next();
 			for(int j = 0; j < m; j++) {
 				// Round to 8 decimal places so nodes with marginally different values are not put into different "classes"
 				Double complete = maps.get(j).getNodeValue(graph.getNodeName(currentNode));
 				Double rounded = BigDecimal.valueOf(complete).setScale(8, RoundingMode.HALF_UP).doubleValue();
 				mapsValues[i][j] = rounded;
 			}
-			nc.next();
 			i++;
 		}
 		return mapsValues;

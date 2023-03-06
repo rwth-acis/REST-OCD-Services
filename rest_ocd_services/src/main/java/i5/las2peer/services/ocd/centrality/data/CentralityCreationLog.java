@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.centrality.data;
 
+import i5.las2peer.services.ocd.graphs.GraphCreationLog;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
@@ -15,6 +16,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * A log representation for a CentralityCreationMethod.
  *
@@ -27,10 +36,13 @@ public class CentralityCreationLog {
 	 */
 	private static final String idColumnName = "ID";
 	private static final String centralityTypeColumnName = "CENTRALITY_TYPE";
-	private static final String creationTypeColumnName = "CREATION_TYPE";
-	private static final String statusIdColumnName = "STATUS";
-	private static final String executionTimeColumnName = "EXECUTION_TIME";
-	
+	public static final String creationTypeColumnName = "CREATION_TYPE";
+	public static final String statusIdColumnName = "STATUS";
+	public static final String executionTimeColumnName = "EXECUTION_TIME";
+	//ArangoDB
+	public static final String collectionName = "centralitycreationlog";
+	private static final String parameterColumnName = "PARAMETER";
+	private static final String compatibleGraphTypesColumnName = "COMPATIBLE_GRAPH_TYPES";
 	/*
 	 * Field names.
 	 */
@@ -43,6 +55,10 @@ public class CentralityCreationLog {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = idColumnName)
 	private long id;
+	/**
+	 * System generated persistence key.
+	 */
+	private String key;
 	/**
 	 * Parameters used by the creation method.
 	 */
@@ -161,7 +177,15 @@ public class CentralityCreationLog {
 	public long getId() {
 		return id;
 	}
-
+	
+	/**
+	 * Returns the log key.
+	 * @return The key.
+	 */
+	public String getKey() {
+		return key;
+	}
+	
 	/**
 	 * Returns the graph types the corresponding creation method is compatible with.
 	 * @return The graph types.
@@ -196,5 +220,83 @@ public class CentralityCreationLog {
 	
 	public void setExecutionTime(long time) {
 		executionTime = time;
+	}
+	
+	//persistence functions
+	public void persist(ArangoDatabase db, DocumentCreateOptions opt) {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(centralityTypeColumnName, this.centralityTypeId);
+		bd.addAttribute(creationTypeColumnName, this.creationTypeId);
+		bd.addAttribute(parameterColumnName, this.parameters);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(executionTimeColumnName, this.executionTime);
+		bd.addAttribute(compatibleGraphTypesColumnName, this.compatibleGraphTypes);
+		collection.insertDocument(bd, opt);
+		this.key = bd.getKey();
+	}
+	
+	public void updateDB(ArangoDatabase db, String transId) {
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		bd.addAttribute(centralityTypeColumnName, this.centralityTypeId);
+		bd.addAttribute(creationTypeColumnName, this.creationTypeId);
+		bd.addAttribute(parameterColumnName, this.parameters);
+		bd.addAttribute(statusIdColumnName, this.statusId);
+		bd.addAttribute(executionTimeColumnName, this.executionTime);
+		bd.addAttribute(compatibleGraphTypesColumnName, this.compatibleGraphTypes);
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
+	
+	public static CentralityCreationLog load(String key, ArangoDatabase db, DocumentReadOptions opt) {	
+		CentralityCreationLog ccl = new CentralityCreationLog();
+		ArangoCollection collection = db.collection(collectionName);
+		
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
+		if (bd != null) {
+			ObjectMapper om = new ObjectMapper();
+			String centralityTypeString = bd.getAttribute(centralityTypeColumnName).toString();
+			String creationTypeString = bd.getAttribute(creationTypeColumnName).toString();
+			String statusIdString = bd.getAttribute(statusIdColumnName).toString();
+			String executionTimeString = bd.getAttribute(executionTimeColumnName).toString();
+			Object objParam = bd.getAttribute(parameterColumnName);
+			Object objCompGraph = bd.getAttribute(compatibleGraphTypesColumnName);
+			
+			ccl.key = key;
+			if(objParam != null) {
+				ccl.parameters = om.convertValue(objParam, Map.class);
+			}		
+			if(centralityTypeString != null) {
+				ccl.centralityTypeId = Integer.parseInt(centralityTypeString);
+			}			
+			if(creationTypeString != null) {
+				ccl.creationTypeId = Integer.parseInt(creationTypeString);
+			}				
+			if(statusIdString != null) {
+				ccl.statusId = Integer.parseInt(statusIdString);
+			}				
+			if(executionTimeString != null) {
+				ccl.executionTime= Long.parseLong(executionTimeString);
+			}
+			ccl.compatibleGraphTypes = om.convertValue(objCompGraph, Set.class);		
+		}
+		else {
+			System.out.println("empty CentralityCreationLog document");
+		}
+		return ccl;
+	}
+	public String String() {
+		String n = System.getProperty("line.separator");
+		String ret = "CentralityCreationLog: " + n;
+		ret += "Key :             " + this.key +n ;
+		ret += "parameters :  " 	+ this.parameters.toString() + n;
+		ret += "centralityTypeId :" + this.centralityTypeId + n ; 
+		ret += "creationTypeId :  " + this.creationTypeId +n;
+		ret += "statusId :        " + this.statusId + n;
+		ret += "executionTime :   " + this.executionTime +n;
+		ret += "GraphTypes :      " + this.compatibleGraphTypes.toString() + n;
+		return ret;
 	}
 }

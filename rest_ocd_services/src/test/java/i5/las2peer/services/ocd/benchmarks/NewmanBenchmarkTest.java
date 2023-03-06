@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.benchmarks;
 
 import static org.junit.Assert.*;
 
+import java.util.Iterator;
 import java.util.List;
 
 import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
@@ -10,8 +11,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import org.junit.Test;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 public class NewmanBenchmarkTest {
 
@@ -23,11 +23,11 @@ public class NewmanBenchmarkTest {
 			assertNotNull(cover);
 			CustomGraph graph = cover.getGraph();
 			assertNotNull(graph);
-			assertEquals(128, graph.nodeCount());
+			assertEquals(128, graph.getNodeCount());
 			assertEquals(4, cover.communityCount());
-			NodeCursor nodes = graph.nodes();
-			while(nodes.ok()) {
-				Node node = nodes.node();
+			Iterator<Node> nodes = graph.iterator();
+			while(nodes.hasNext()) {
+				Node node = nodes.next();
 				List<Integer> communityIndices = cover.getCommunityIndices(node);
 				assertNotNull(communityIndices);
 				assertEquals(1, communityIndices.size());
@@ -35,10 +35,10 @@ public class NewmanBenchmarkTest {
 				assertEquals(1, cover.getBelongingFactor(node, communityIndex), 0);
 				int internalEdges = 0;
 				int externalEdges = 0;
-				NodeCursor successors = node.successors();
-				while(successors.ok()) {
-					Node successor = successors.node();
-					assertTrue(graph.containsEdge(successor, node));
+				Iterator<Node> successors = graph.getSuccessorNeighbours(node).iterator();
+				while(successors.hasNext()) {
+					Node successor = successors.next();
+					assertTrue(successor.hasEdgeToward(node));
 					double successorCommunityMembership = cover.getBelongingFactor(successor, communityIndex);
 					if(successorCommunityMembership == 1) {
 						internalEdges++;
@@ -49,11 +49,9 @@ public class NewmanBenchmarkTest {
 					else {
 						fail("Invalid membership degree (neither 0 nor 1)");
 					}
-					successors.next();
 				}
 				assertEquals(i, externalEdges);
 				assertEquals(16 - i, internalEdges);
-				nodes.next();
 			}
 		}
 	}

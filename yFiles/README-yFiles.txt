@@ -1,1 +1,0 @@
-Add your yfiles.jar and your ysvg.jar into this folder so that they can be considered for the build

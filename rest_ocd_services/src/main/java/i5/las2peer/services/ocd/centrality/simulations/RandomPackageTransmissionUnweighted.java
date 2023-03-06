@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.simulations;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
@@ -12,9 +9,8 @@ import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * In this simulation each node sends a package to each node in the graph (including itself). 
@@ -30,8 +26,8 @@ public class RandomPackageTransmissionUnweighted implements CentralitySimulation
 		CentralityMap map = new CentralityMap(graph);
 		map.setCreationMethod(new CentralityCreationLog(CentralitySimulationType.RANDOM_PACKAGE_TRANSMISSION_UNWEIGHTED, CentralityCreationType.SIMULATION, this.getParameters(), this.compatibleGraphTypes()));
 		
-		Node[] nodes = graph.getNodeArray();
-		double[] passageCounter = new double[graph.nodeCount()];
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
+		double[] passageCounter = new double[graph.getNodeCount()];
 		int sPos = 0;
 		int tPos = 0;
 		
@@ -46,15 +42,14 @@ public class RandomPackageTransmissionUnweighted implements CentralitySimulation
 					}
 					Node currentNode = nodes[packagePosition];
 					// Determine incident edges
-					Edge[] incidentEdges = new Edge[currentNode.outDegree()];
-					double currentDegree = currentNode.outDegree();
-					EdgeCursor ec = currentNode.outEdges();
+					Edge[] incidentEdges = new Edge[currentNode.getOutDegree()];
+					double currentDegree = currentNode.getOutDegree();
+					Iterator<Edge> ec = currentNode.leavingEdges().iterator();
 					int i = 0;
-					while(ec.ok()) {
-						Edge edge = ec.edge();
+					while(ec.hasNext()) {
+						Edge edge = ec.next();
 						incidentEdges[i] = edge;
 						i++;
-						ec.next();
 					}
 					// Choose one of the edges at random
 					int randomEdgeIndex = -1;
@@ -67,8 +62,8 @@ public class RandomPackageTransmissionUnweighted implements CentralitySimulation
 						}
 					}
 					Edge nextEdge = incidentEdges[randomEdgeIndex];
-					packagePosition = nextEdge.target().index();
-					passageCounter[nextEdge.target().index()]++;
+					packagePosition = nextEdge.getTargetNode().getIndex();
+					passageCounter[nextEdge.getTargetNode().getIndex()]++;
 				}	
 				// Change the position of t
 				tPos++;
@@ -77,7 +72,7 @@ public class RandomPackageTransmissionUnweighted implements CentralitySimulation
 			sPos++;
 		}
 		// Set centrality value equal to the number of times a package passed the node
-		for(int i = 0; i < graph.nodeCount(); i++) {
+		for(int i = 0; i < graph.getNodeCount(); i++) {
 			map.setNodeValue(nodes[i], passageCounter[i]);
 		}
 		return map;

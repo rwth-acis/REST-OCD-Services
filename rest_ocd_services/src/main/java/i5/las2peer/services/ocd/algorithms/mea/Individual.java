@@ -61,7 +61,7 @@ public class Individual {
      * as the genotype here is the label
      * the genotype array will NOT be copied
      * @param gene      Gene array
-     * @return The newly created individual
+     * @return          Newly created individual instance
      */
     public static Individual new_individual(int[] gene){
 

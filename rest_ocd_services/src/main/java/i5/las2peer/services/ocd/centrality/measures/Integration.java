@@ -24,7 +24,7 @@ public class Integration implements CentralityAlgorithm {
 	public CentralityMap getValues(CustomGraph graph) throws InterruptedException {
 		// The edge directions were reversed in the CentralityAlgorithmExecutor
 		Radiality radialityAlgorithm = new Radiality();
-		CentralityMap res = radialityAlgorithm.getValues(graph);	
+		CentralityMap res = radialityAlgorithm.getValues(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.INTEGRATION, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));	
 		return res;
 	}

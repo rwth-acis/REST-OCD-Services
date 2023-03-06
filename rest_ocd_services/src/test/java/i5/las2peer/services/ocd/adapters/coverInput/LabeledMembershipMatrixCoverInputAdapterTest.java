@@ -11,11 +11,11 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.Iterator;
 
 import org.junit.Test;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 public class LabeledMembershipMatrixCoverInputAdapterTest {
 
@@ -30,14 +30,13 @@ public class LabeledMembershipMatrixCoverInputAdapterTest {
 		cover = adapter.readCover(graph);
 		assertEquals(4, cover.communityCount());
 		assertEquals(graph, cover.getGraph());
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodes = graph.iterator();
 		Node node14 = null;
-		while(nodes.ok()) {
-			Node node = nodes.node();
+		while(nodes.hasNext()) {
+			Node node = nodes.next();
 			if(graph.getNodeName(node).equals("14")) {
 				node14 = node;
 			}
-			nodes.next();
 		}
 		assertNotNull(node14);
 		assertEquals(0.629, cover.getBelongingFactor(node14, 0), 0.001);

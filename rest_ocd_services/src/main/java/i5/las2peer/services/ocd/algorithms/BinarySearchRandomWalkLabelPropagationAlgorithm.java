@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.graphstream.graph.implementations.MultiNode;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -21,10 +22,9 @@ import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 import org.la4j.vector.dense.BasicVector;
 
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * Implements a custom extended version of the Random Walk Label Propagation Algorithm, also called DMID, by M. Shahriari, S. Krott and R. Klamma:
@@ -148,22 +148,18 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		 * Calculates transposed disassortativity matrix in a special sparse
 		 * matrix format.
 		 */
-		Matrix disassortativities = new CCSMatrix(graph.nodeCount(),
-				graph.nodeCount());
-		EdgeCursor edges = graph.edges();
+		Matrix disassortativities = new CCSMatrix(graph.getNodeCount(),
+				graph.getNodeCount());
 		double disassortativity;
-		Edge edge;
-		while (edges.ok()) {
+		for (Edge edge : graph.edges().toArray(Edge[]::new)) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			edge = edges.edge();
 			disassortativity = Math
-					.abs(graph.getWeightedInDegree(edge.target())
-							- graph.getWeightedInDegree(edge.source()));
-			disassortativities.set(edge.target().index(),
-					edge.source().index(), disassortativity);
-			edges.next();
+					.abs(graph.getWeightedInDegree(edge.getTargetNode())
+							- graph.getWeightedInDegree(edge.getSourceNode()));
+			disassortativities.set(edge.getTargetNode().getIndex(),
+					edge.getSourceNode().getIndex(), disassortativity);
 		}
 
 		/*
@@ -234,23 +230,20 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 */
 	protected Vector getLeadershipValues(CustomGraph graph,
 			Vector disassortativityVector) throws InterruptedException {
-		Vector leadershipVector = new BasicVector(graph.nodeCount());
-		NodeCursor nodes = graph.nodes();
-		Node node;
+		Vector leadershipVector = new BasicVector(graph.getNodeCount());
+
 		double leadershipValue;
-		while (nodes.ok()) {
+		for (Node node : graph.nodes().toArray(Node[]::new)) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			node = nodes.node();
 			/*
 			 * Note: degree normalization is left out since it
 			 * does not influence the outcome.
 			 */
 			leadershipValue = graph.getWeightedInDegree(node)
-					* disassortativityVector.get(node.index());
-			leadershipVector.set(node.index(), leadershipValue);
-			nodes.next();
+					* disassortativityVector.get(node.getIndex());
+			leadershipVector.set(node.getIndex(), leadershipValue);
 		}
 		return leadershipVector;
 	}
@@ -269,12 +262,12 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	protected Map<Node, Double> getFollowerDegrees(CustomGraph graph,
 			Vector leadershipVector) throws InterruptedException {
 		Map<Node, Double> followerMap = new HashMap<Node, Double>();
-		NodeCursor nodes = graph.nodes();
+		Iterator<Node> nodes = graph.iterator();
 		/*
 		 * Iterates over all nodes to detect their local leader
 		 */
 		Node node;
-		NodeCursor successors;
+		Iterator<Node> successorsIt;
 		double maxInfluence;
 		List<Node> leaders = new ArrayList<Node>();
 		Node successor;
@@ -282,21 +275,21 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		double successorInfluence;
 		Edge nodeEdge;
 		double followerDegree;
-		while (nodes.ok()) {
+		while (nodes.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			node = nodes.node();
-			successors = node.successors();
+			node = nodes.next();
+			successorsIt = graph.getSuccessorNeighbours(node).iterator();
 			maxInfluence = Double.NEGATIVE_INFINITY;
 			leaders.clear();
 			/*
 			 * Checks all successors for possible leader
 			 */
-			while (successors.ok()) {
-				successor = successors.node();
-				successorEdge = node.getEdgeTo(successor);
-				successorInfluence = leadershipVector.get(successor.index())
+			while (successorsIt.hasNext()) {
+				successor = successorsIt.next();
+				successorEdge = node.getEdgeToward(successor);
+				successorInfluence = leadershipVector.get(successor.getIndex())
 						* graph.getEdgeWeight(successorEdge);
 				if (successorInfluence >= maxInfluence) {
 					nodeEdge = node.getEdgeFrom(successor);
@@ -305,7 +298,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 					 */
 					if (nodeEdge == null
 							|| successorInfluence > leadershipVector.get(node
-									.index()) * graph.getEdgeWeight(nodeEdge)) {
+									.getIndex()) * graph.getEdgeWeight(nodeEdge)) {
 						if (successorInfluence > maxInfluence) {
 							/*
 							 * Other nodes have lower influence
@@ -316,7 +309,6 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 						maxInfluence = successorInfluence;
 					}
 				}
-				successors.next();
 			}
 			if (!leaders.isEmpty()) {
 				for (Node leader : leaders) {
@@ -328,7 +320,6 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 							followerDegree += 1d / leaders.size());
 				}
 			}
-			nodes.next();
 		}
 		return followerMap;
 	}
@@ -439,7 +430,8 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 		Iterator<Node> nodeIt;
 		Node node;
 		double profitability;
-		NodeCursor nodeSuccessors;
+		Set<Node> nodesuccessors;
+		Iterator<Node> nodesuccessorsIt;
 		Node nodeSuccessor;
 		do {
 			if(Thread.interrupted()) {
@@ -456,17 +448,17 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 			while (nodeIt.hasNext()) {
 				node = nodeIt.next();
 				profitability = 0;
-				nodeSuccessors = node.successors();
-				while (nodeSuccessors.ok()) {
-					nodeSuccessor = nodeSuccessors.node();
+				nodesuccessors = graph.getSuccessorNeighbours(node);
+				nodesuccessorsIt = nodesuccessors.iterator();
+				while (nodesuccessorsIt.hasNext()) {
+					nodeSuccessor = nodesuccessorsIt.next();
 					Integer joinIteration = memberships.get(nodeSuccessor);
 					if (nodeSuccessor.equals(leader) || 
 							( joinIteration != null && joinIteration < iterationCount)) {
 						profitability++;
 					}
-					nodeSuccessors.next();
 				}
-				if (profitability / nodeSuccessors.size() > profitabilityThreshold) {
+				if (profitability / nodesuccessors.size() > profitabilityThreshold) {
 					memberships.put(node, iterationCount);
 				}
 			}
@@ -494,32 +486,30 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	protected Set<Node> getBehaviorPredecessors(CustomGraph graph,
 			Map<Node, Integer> memberships, Node leader) throws InterruptedException {
 		Set<Node> neighbors = new HashSet<Node>();
-		NodeCursor leaderPredecessors = leader.predecessors();
+		Iterator<Node> leaderpredecessorsIt = graph.getPredecessorNeighbours(leader).iterator();
 		Node leaderPredecessor;
-		while (leaderPredecessors.ok()) {
+		while (leaderpredecessorsIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			leaderPredecessor = leaderPredecessors.node();
+			leaderPredecessor = leaderpredecessorsIt.next();
 			if (!memberships.containsKey(leaderPredecessor)) {
 				neighbors.add(leaderPredecessor);
 			}
-			leaderPredecessors.next();
 		}
-		NodeCursor memberPredecessors;
+		Iterator<Node> memberpredecessorsIt;
 		Node memberPredecessor;
 		for (Node member : memberships.keySet()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			memberPredecessors = member.predecessors();
-			while (memberPredecessors.ok()) {
-				memberPredecessor = memberPredecessors.node();
+			memberpredecessorsIt = graph.getPredecessorNeighbours(member).iterator();
+			while (memberpredecessorsIt.hasNext()) {
+				memberPredecessor = memberpredecessorsIt.next();
 				if (!memberPredecessor.equals(leader)
 						&& !memberships.containsKey(memberPredecessor)) {
 					neighbors.add(memberPredecessor);
 				}
-				memberPredecessors.next();
 			}
 		}
 		return neighbors;
@@ -541,15 +531,12 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	protected boolean areAllNodesAssigned(CustomGraph graph,
 			Map<Node, Map<Node, Integer>> communities) throws InterruptedException {
 		boolean allNodesAreAssigned = true;
-		NodeCursor nodes = graph.nodes();
 		boolean nodeIsAssigned;
-		Node node;
-		while (nodes.ok()) {
+		for (Node node : graph.nodes().toArray(Node[]::new)) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
 			nodeIsAssigned = false;
-			node = nodes.node();
 			for (Map.Entry<Node, Map<Node, Integer>> entry : communities
 					.entrySet()) {
 				if (entry.getValue().containsKey(node)) {
@@ -561,7 +548,6 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 				allNodesAreAssigned = false;
 				break;
 			}
-			nodes.next();
 		}
 		return allNodesAreAssigned;
 	}
@@ -580,7 +566,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 */
 	protected Cover getMembershipDegrees(CustomGraph graph,
 			Map<Node, Map<Node, Integer>> communities) throws InterruptedException {
-		Matrix membershipMatrix = new Basic2DMatrix(graph.nodeCount(),
+		Matrix membershipMatrix = new Basic2DMatrix(graph.getNodeCount(),
 				communities.size());
 		int communityIndex = 0;
 		double membershipDegree;
@@ -588,11 +574,11 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			membershipMatrix.set(leader.index(), communityIndex, 1.0);
+			membershipMatrix.set(leader.getIndex(), communityIndex, 1.0);
 			for (Map.Entry<Node, Integer> entry : communities.get(leader)
 					.entrySet()) {
 				membershipDegree = 1.0 / Math.pow(entry.getValue(), 2);
-				membershipMatrix.set(entry.getKey().index(), communityIndex,
+				membershipMatrix.set(entry.getKey().getIndex(), communityIndex,
 						membershipDegree);
 			}
 			communityIndex++;

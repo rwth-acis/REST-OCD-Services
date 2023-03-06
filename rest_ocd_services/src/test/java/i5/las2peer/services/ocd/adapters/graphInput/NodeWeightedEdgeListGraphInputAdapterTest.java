@@ -9,11 +9,11 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.Iterator;
 
 import org.junit.Test;
 
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 public class NodeWeightedEdgeListGraphInputAdapterTest {
 
@@ -22,13 +22,12 @@ public class NodeWeightedEdgeListGraphInputAdapterTest {
 		GraphInputAdapter inputAdapter =
 				new NodeWeightedEdgeListGraphInputAdapter(new FileReader(OcdTestConstants.sawmillNodeWeightedEdgeListInputPath));
 		CustomGraph graph = inputAdapter.readGraph();
-		assertEquals(graph.nodeCount(), 36);
-		assertEquals(graph.edgeCount(), 62);
-		NodeCursor nodes = graph.nodes();
-		while(nodes.ok()) {
-			Node node = nodes.node();
-			assertEquals(graph.getNodeName(node), Integer.toString(node.index()+1));
-			nodes.next();
+		assertEquals(graph.getNodeCount(), 36);
+		assertEquals(graph.getEdgeCount(), 62);
+		Iterator<Node> nodesIt = graph.iterator();
+		while(nodesIt.hasNext()) {
+			Node node = nodesIt.next();
+			assertEquals(graph.getNodeName(node), Integer.toString(node.getIndex()+1));
 		}
 	}
 

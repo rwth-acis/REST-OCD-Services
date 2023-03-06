@@ -9,9 +9,10 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
-import y.base.Edge;
-import y.base.Node;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 /**
  * A graph input adapter for weighted edge list format.
@@ -54,7 +55,7 @@ public class WeightedEdgeListGraphInputAdapter extends AbstractGraphInputAdapter
 				String sourceNodeName = line.get(0);
 				Node sourceNode;
 				if (!reverseNodeNames.containsKey(sourceNodeName)) {
-					sourceNode = graph.createNode();
+					sourceNode = graph.addNode(sourceNodeName);
 					reverseNodeNames.put(sourceNodeName, sourceNode);
 					graph.setNodeName(sourceNode, sourceNodeName);
 				}
@@ -64,7 +65,7 @@ public class WeightedEdgeListGraphInputAdapter extends AbstractGraphInputAdapter
 				String targetNodeName = line.get(1);
 				Node targetNode;
 				if (!reverseNodeNames.containsKey(targetNodeName)) {
-					targetNode = graph.createNode();
+					targetNode = graph.addNode(targetNodeName);
 					reverseNodeNames.put(targetNodeName, targetNode);
 					graph.setNodeName(targetNode, targetNodeName);
 				}
@@ -73,7 +74,7 @@ public class WeightedEdgeListGraphInputAdapter extends AbstractGraphInputAdapter
 				}
 				String edgeWeightString = line.get(2);
 				double edgeWeight = Double.parseDouble(edgeWeightString);
-				Edge edge = graph.createEdge(sourceNode, targetNode);
+				Edge edge = graph.addEdge(UUID.randomUUID().toString(), sourceNode, targetNode);
 				graph.setEdgeWeight(edge, edgeWeight);
 				line = Adapters.readLine(reader);
 			}

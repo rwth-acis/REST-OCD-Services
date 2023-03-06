@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
@@ -16,8 +13,8 @@ import i5.las2peer.services.ocd.centrality.utils.MatrixOperations;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
+
 
 /**
  * Implementation of Eigenvector Centrality.
@@ -31,13 +28,12 @@ public class EigenvectorCentrality implements CentralityAlgorithm {
 		CentralityMap res = new CentralityMap(graph);
 		res.setCreationMethod(new CentralityCreationLog(CentralityMeasureType.EIGENVECTOR_CENTRALITY, CentralityCreationType.CENTRALITY_MEASURE, this.getParameters(), this.compatibleGraphTypes()));
 		
-		NodeCursor nc = graph.nodes();
+		Iterator<Node> nc = graph.iterator();
 		// If the graph contains no edges
-		if(graph.edgeCount() == 0) {
-			while(nc.ok()) {
-				Node node = nc.node();
+		if(graph.getEdgeCount() == 0) {
+			while(nc.hasNext()) {
+				Node node = nc.next();
 				res.setNodeValue(node, 0);
-				nc.next();
 			}
 			return res;
 		}
@@ -45,13 +41,12 @@ public class EigenvectorCentrality implements CentralityAlgorithm {
 		Matrix A = graph.getNeighbourhoodMatrix();
 		Vector eigenvector = MatrixOperations.calculatePrincipalEigenvector(A);
 		
-		while(nc.ok()) {
+		while(nc.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			Node node = nc.node();
-			res.setNodeValue(node, eigenvector.get(node.index()));
-			nc.next();
+			Node node = nc.next();
+			res.setNodeValue(node, eigenvector.get(node.getIndex()));
 		}
 		return res;
 	}

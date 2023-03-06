@@ -20,7 +20,6 @@ import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import y.base.Node;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
 public class ModularityMetricTest {
@@ -51,7 +50,7 @@ public class ModularityMetricTest {
 		CustomGraph graph2 = OcdTestGraphFactory.getModularityTestGraph();
 		
 		
-		System.out.println(graph2.nodeCount());
+		System.out.println(graph2.getNodeCount());
 		Cover cover2 = new Cover(graph2);
 		Matrix memberships2 = new Basic2DMatrix(4,2); 
 		memberships2.set(0,0,1); 

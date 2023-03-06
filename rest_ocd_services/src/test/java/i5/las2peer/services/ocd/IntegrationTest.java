@@ -106,7 +106,7 @@
 //	    	if(graph == null) {
 //	    		throw new IllegalArgumentException();
 //	    	}
-//	    	cover = new Cover(graph, new CCSMatrix(graph.nodeCount(), 0));
+//	    	cover = new Cover(graph, new CCSMatrix(graph.getNodeCount(), 0));
 //	    	log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
 //	    	cover.setCreationMethod(log);
 //	    	em.persist(cover);

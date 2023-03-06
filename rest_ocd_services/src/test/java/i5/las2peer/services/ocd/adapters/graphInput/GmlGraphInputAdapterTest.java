@@ -9,6 +9,8 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import java.io.FileReader;
 import java.io.IOException;
 
+import org.graphstream.graph.Node;
+
 import org.junit.Test;
 
 public class GmlGraphInputAdapterTest {
@@ -18,11 +20,11 @@ public class GmlGraphInputAdapterTest {
 		GraphInputAdapter inputAdapter = new GmlGraphInputAdapter();
 		inputAdapter.setReader(new FileReader(OcdTestConstants.dolphinsGmlInputPath));
 		CustomGraph graph = inputAdapter.readGraph();
-		System.out.println("Nodes: " + graph.nodeCount());
-		System.out.println("Edges: " + graph.edgeCount());
-		assertEquals(62, graph.nodeCount());
-		assertEquals(159, graph.edgeCount());
-		assertEquals("Beak", graph.getNodeName(graph.getNodeArray()[0]));
+		System.out.println("Nodes: " + graph.getNodeCount());
+		System.out.println("Edges: " + graph.getEdgeCount());
+		assertEquals(62, graph.getNodeCount());
+		assertEquals(159, graph.getEdgeCount());
+		assertEquals("Beak", graph.getNodeName(graph.nodes().toArray(Node[]::new)[0]));
 	}
 	
 	@Test
@@ -30,11 +32,11 @@ public class GmlGraphInputAdapterTest {
 		GraphInputAdapter inputAdapter = new GmlGraphInputAdapter();
 		inputAdapter.setReader(new FileReader(OcdTestConstants.zacharyGmlInputPath));
 		CustomGraph graph = inputAdapter.readGraph();
-		System.out.println("Nodes: " + graph.nodeCount());
-		System.out.println("Edges: " + graph.edgeCount());
-		assertEquals(34, graph.nodeCount());
-		assertEquals(78, graph.edgeCount());
-		assertEquals("0", graph.getNodeName(graph.getNodeArray()[0]));
+		System.out.println("Nodes: " + graph.getNodeCount());
+		System.out.println("Edges: " + graph.getEdgeCount());
+		assertEquals(34, graph.getNodeCount());
+		assertEquals(78, graph.getEdgeCount());
+		assertEquals("1", graph.getNodeName(graph.nodes().toArray(Node[]::new)[0]));
 	}
 
 }

@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 
@@ -13,9 +10,10 @@ import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
+
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 /**
  * Implements one of the algorithms by Sabrina Haefele conceived in the thesis:
@@ -65,40 +63,37 @@ public class ContentBasedWeightingAlgorithm{
 		//et.stop();
 		Similarities sim = new Similarities();
 		//normalize weights
-		EdgeCursor edges = graph.edges();
-		EdgeCursor comp = graph.edges();
+		Iterator<Edge> edgeIterator = graph.edges().iterator();
+		Iterator<Edge> comp = graph.edges().iterator();
 		Edge edge;
 		Edge compEdge;
 		double max = 0;
-		while(edges.ok()){
-			edge = edges.edge();
-			while(comp.ok()){
-				compEdge = comp.edge();
-				if(edge.source().equals(compEdge.source()) || edge.target().equals(compEdge.source())){ 
+		while(edgeIterator.hasNext()){
+			edge = edgeIterator.next();
+			while(comp.hasNext()){
+				compEdge = comp.next();
+				if(edge.getSourceNode().equals(compEdge.getSourceNode()) || edge.getTargetNode().equals(compEdge.getSourceNode())){
 					double temp = graph.getEdgeWeight(compEdge);
 					if(max < temp){
 						max = temp;
 					}
 				}
-				comp.next();
 			}
-			comp.toFirst();
+			comp = graph.edges().iterator();
 			graph.setEdgeWeight(edge, graph.getEdgeWeight(edge)/max);
-			edges.next();
 		}
-		edges.toFirst();
+		edgeIterator = graph.edges().iterator();
 		
 		//compute and combine content-based weight
-		while(edges.ok()){
-			edge = edges.edge();
-			Node source = edge.source();
-			Node target = edge.target();
+		while(edgeIterator.hasNext()){
+			edge = edgeIterator.next();
+			Node source = edge.getSourceNode();
+			Node target = edge.getTargetNode();
 			ArrayRealVector v = (ArrayRealVector) tm.getMatrix().getRowVector(tm.getNodeIdList().indexOf(source));
 			ArrayRealVector u = (ArrayRealVector) tm.getMatrix().getRowVector(tm.getNodeIdList().indexOf(target));
 			double s = sim.cosineSim(v, u);
 			s = (s + graph.getEdgeWeight(edge))/2;
 			graph.setEdgeWeight(edge, s);
-			edges.next();
 		}
 		
 		return graph;

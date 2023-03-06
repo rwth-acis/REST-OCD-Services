@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.adapters.centralityOutput;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -18,8 +19,7 @@ import org.w3c.dom.Element;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
-import y.base.Node;
-import y.base.NodeCursor;
+import org.graphstream.graph.Node;
 
 public class DefaultXmlCentralityOutputAdapter extends AbstractCentralityOutputAdapter {
 
@@ -37,10 +37,10 @@ public class DefaultXmlCentralityOutputAdapter extends AbstractCentralityOutputA
 			 */
 			Element centralityValuesElt = doc.createElement("CentralityValues");
 			if(map.getCreationMethod().getStatus() == ExecutionStatus.COMPLETED) {
-				NodeCursor nodes = map.getGraph().nodes();
+				Iterator<Node> nodes = map.getGraph().iterator();
 				Node node;
-				while(nodes.ok()) {
-					node = nodes.node();
+				while(nodes.hasNext()) {
+					node = nodes.next();
 					Element nodeElt = doc.createElement("Node");
 					Element nodeIdElt = doc.createElement("Name");
 					nodeIdElt.appendChild(doc.createTextNode(map.getGraph().getNodeName(node)) );
@@ -49,7 +49,6 @@ public class DefaultXmlCentralityOutputAdapter extends AbstractCentralityOutputA
 					nodeValueElt.appendChild(doc.createTextNode( ((Double)map.getNodeValue(node)).toString()) );
 					nodeElt.appendChild(nodeValueElt);
 					centralityValuesElt.appendChild(nodeElt);
-					nodes.next();
 				}
 			}
 			mapElt.appendChild(centralityValuesElt);
@@ -105,7 +104,7 @@ public class DefaultXmlCentralityOutputAdapter extends AbstractCentralityOutputA
 		mapIdElt.appendChild(doc.createTextNode(Long.toString(map.getId())));
 		idElt.appendChild(mapIdElt);
 		Element graphIdElt = doc.createElement("GraphId");
-		graphIdElt.appendChild(doc.createTextNode(Long.toString(map.getGraph().getId())));
+		graphIdElt.appendChild(doc.createTextNode(map.getGraph().getKey()));
 		idElt.appendChild(graphIdElt);
 		mapElt.appendChild(idElt);
 		Element graphElt = doc.createElement("Graph");
@@ -113,7 +112,7 @@ public class DefaultXmlCentralityOutputAdapter extends AbstractCentralityOutputA
 		graphNameElt.appendChild(doc.createTextNode(map.getGraph().getName()));
 		graphElt.appendChild(graphNameElt);
 		Element graphSizeElt = doc.createElement("GraphSize");
-		graphSizeElt.appendChild(doc.createTextNode(Integer.toString(map.getGraph().nodeCount())));
+		graphSizeElt.appendChild(doc.createTextNode(Integer.toString(map.getGraph().getNodeCount())));
 		graphElt.appendChild(graphSizeElt);
 		mapElt.appendChild(graphElt);
 		/*

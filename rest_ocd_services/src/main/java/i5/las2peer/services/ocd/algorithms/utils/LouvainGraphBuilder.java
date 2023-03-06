@@ -23,9 +23,9 @@ import i5.las2peer.services.ocd.algorithms.utils.LouvainGraph;
 import i5.las2peer.services.ocd.algorithms.utils.LouvainSparseIntMatrix;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import y.base.Edge;
-import y.base.EdgeCursor;
-import y.base.Node;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.Edge;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -56,20 +56,20 @@ public class LouvainGraphBuilder {
    */
   public LouvainGraph fromGraph(CustomGraph graph) 
 		  throws InterruptedException, OcdAlgorithmException{
-	order = graph.nodeCount();
+	order = graph.getNodeCount();
 	initialise();
-	
-	for (EdgeCursor ec = graph.edges(); ec.ok(); ec.next()) {		
+    Iterator<Edge> ec = graph.edges().iterator();
+	while (ec.hasNext()) {
 		if(Thread.interrupted()) {
 			throw new InterruptedException();
 		}
 		
-		Edge edge = ec.edge();
-		Node source = edge.source();
-		Node target = edge.target();
+		Edge edge = ec.next();
+		Node source = edge.getSourceNode();
+		Node target = edge.getTargetNode();
 		
-		if (matrix.get(source.index(), target.index()) == 0) {
-			insertEdgeSym(source.index(), target.index(), (int) graph.getEdgeWeight(edge));
+		if (matrix.get(source.getIndex(), target.getIndex()) == 0) {
+			insertEdgeSym(source.getIndex(), target.getIndex(), (int) graph.getEdgeWeight(edge));
 		}
 	}
 	
@@ -139,7 +139,7 @@ public class LouvainGraphBuilder {
    * @return This LouvaingraphBuilder
    * @throws OcdAlgorithmException if the execution failed
    */
-  public LouvainGraphBuilder addEdge(int n1, int n2, int weight) 
+  public LouvainGraphBuilder addEdge(int n1, int n2, int weight)
 		  throws OcdAlgorithmException {
     if (n1 >= order) {
       throw new OcdAlgorithmException("" + n1 + " >= " + order);
@@ -172,6 +172,7 @@ public class LouvainGraphBuilder {
     this.layer = g.layer() + 1;
     initialise();
     int sum = 0;
+    int negatives = 0;
 
     for (final Iterator<HashMap.Entry<Long,Integer>> it = g.partitioning().commWeightIterator(); it.hasNext(); ) {
       if(Thread.interrupted()) {
@@ -181,15 +182,21 @@ public class LouvainGraphBuilder {
       Entry<Long, Integer> entry = it.next();
       final int weight = entry.getValue();
       long cmMatrixSize = g.partitioning().cMatrix().size();
-      if (weight != 0) {
+      if (weight > 0) {
         final int n1 = map.get(g.partitioning().cMatrix().sparseX(entry, cmMatrixSize));
         final int n2 = map.get(g.partitioning().cMatrix().sparseY(entry, cmMatrixSize));
         insertEdge(n1, n2, (int)weight);
         sum += weight;
       }
+      else{
+        // TODO: is this is correct? This part is necessary to avoid crash
+        if ( weight < 0){
+          negatives += weight;
+        }
+      }
     }
 
-    if (sum != g.size() * 2) {
+    if ((sum + negatives) != g.size() * 2) {
       throw new OcdAlgorithmException("Louvain graph builder recieved wrong weights: " + sum + " " + (g.size() * 2));
     }
     if (sum != sizeDbl) {
