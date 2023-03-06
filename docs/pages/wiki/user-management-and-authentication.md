@@ -9,7 +9,7 @@ This part deals with manually adding users which should not be necessary if you 
 
 # User Management
 
-You can preinstall up to three users via the Ant build target _generate_configs_. For that purpose the users must be defined in the Ant property file _etc/ant_configuration/user.properties_ and the corresponding password in _etc/startup/passphrases.txt_. For preinstalling more users you will have to adapt the _build.xml_ in the root directory accordingly.
+You can preinstall up to three users via the gradle task _generateAgents_. For that purpose the users must be defined in the *gradle.properties* file.
 
 It is also possible to manually add LAS2peer user agents to an existing network. Please refer to the LAS2peer Template Project and LAS2peer for more information.
 
