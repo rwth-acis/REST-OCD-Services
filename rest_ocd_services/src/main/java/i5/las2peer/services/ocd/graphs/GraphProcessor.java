@@ -111,6 +111,7 @@ public class GraphProcessor {
 	protected void removeMultiEdges(CustomGraph graph) {
 		Iterator<Edge> edgesIt = graph.edges().iterator();
 		Map<Pair<Integer, Integer>, Double> nodePairWeights = new HashMap<Pair<Integer, Integer>, Double>();
+		ArrayList<Edge> edgesToBeRemoved = new ArrayList<>();
 		while (edgesIt.hasNext()) {
 			Edge edge = edgesIt.next();
 			Pair<Integer, Integer> nodePair = new Pair<Integer, Integer>(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex());
@@ -120,10 +121,14 @@ public class GraphProcessor {
 			} else {
 				edgeWeight += graph.getEdgeWeight(edge);
 				nodePairWeights.put(nodePair, edgeWeight);
-				graph.removeEdge(edge);
+				edgesToBeRemoved.add(edge);
 			}
-
 		}
+
+		for (Edge edge : edgesToBeRemoved) {
+			graph.removeEdge(edge);
+		}
+		
 		edgesIt = graph.edges().iterator();
 		while (edgesIt.hasNext()) {
 			Edge edge = edgesIt.next();
