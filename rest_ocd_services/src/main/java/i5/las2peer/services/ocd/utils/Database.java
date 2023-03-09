@@ -73,17 +73,23 @@ public class Database {
 
 	private List<String> collectionNames =new ArrayList<String>(13);
 
-
-	public Database() {
+	public Database(boolean testDB) {
 		Properties props = DBC.getConfigProperties();
 		HOST = props.getProperty("HOST");
 		String port = props.getProperty("PORT");
 		PORT = Integer.parseInt(props.getProperty("PORT"));
 		USER = props.getProperty("USER");
 		PASSWORD = props.getProperty("PASSWORD");
-		DBNAME_STRING = props.getProperty("DATABASENAME");
+		if(!testDB) {
+			DBNAME_STRING = props.getProperty("DATABASENAME");
+		}else{
+			DBNAME_STRING = props.getProperty("TESTDATABASENAME");
+		}
 		DBNAME = DbName.of(DBNAME_STRING);
-		arangoDB = new ArangoDB.Builder().host(HOST, PORT).password(PASSWORD).serializer(new ArangoJack()).build();
+		arangoDB = new ArangoDB.Builder()
+				.host(HOST, PORT)
+				.user(USER)
+				.password(PASSWORD).serializer(new ArangoJack()).build();
 		db = arangoDB.db(DBNAME);
 		init();
 	}

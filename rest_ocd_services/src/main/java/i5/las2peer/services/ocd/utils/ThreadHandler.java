@@ -73,8 +73,7 @@ public class ThreadHandler {
 	private static Database database;
 	
 	public ThreadHandler() {
-		DatabaseConfig.setConfigFile(false);
-		database = new Database();
+		database = new Database(false);
 	}
 	/**
 	 * Runs an algorithm.

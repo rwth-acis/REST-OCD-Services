@@ -154,8 +154,8 @@ public class ServiceClass extends RESTService {
 	}
 
 	public ServiceClass() {
-		DatabaseConfig.setConfigFile(false);		//TODO angeben ob test datenbank oder hauptdatenbank gewaehlt wird
-		database = new Database();
+
+		database = new Database(false);
 		setFieldValues();
         // instantiate inactivityHandler to regularly remove content of inactive users.
 		inactivityHandler = new InactivityHandler(database, threadHandler, this); //TODO inactivity handler muss sich auf db beziehens
@@ -163,6 +163,7 @@ public class ServiceClass extends RESTService {
 		userLimitsHandler = new UserLimitsHandler(database);
 
 	}
+
 
 	///////////////////////////////////////////////////////////
 	///// ATTRIBUTES
@@ -1214,7 +1215,7 @@ public class ServiceClass extends RESTService {
 				Map<String, String> parameters;
 				try {
 					parameters = requestHandler.parseParameters(content);
-					algorithm = algorithmFactory.getInstance(algorithmType, parameters);
+					algorithm = algorithmFactory.getInstance(algorithmType, new HashMap<String, String>(parameters));
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");

@@ -33,8 +33,7 @@ public class DatabaseMethodTest {
 
 	@BeforeClass
 	public static void setupTestDatabase() {
-		DatabaseConfig.setConfigFile(true);
-		database = new Database();
+		database = new Database(true);
 
 	}
 	@Before

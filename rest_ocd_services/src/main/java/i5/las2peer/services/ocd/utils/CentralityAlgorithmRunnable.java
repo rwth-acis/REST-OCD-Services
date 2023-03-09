@@ -58,9 +58,8 @@ public class CentralityAlgorithmRunnable implements Runnable {
     	CentralityMapId id = new CentralityMapId(mKey, graphId);
     	
     	RequestHandler requestHandler = new RequestHandler();
-    	
-    	DatabaseConfig.setConfigFile(false);
-    	Database database = new Database();
+
+    	Database database = new Database(false);
 		try {
 			CentralityMap m = database.getCentralityMap(user, gKey, mKey);
 			if(m == null) {

@@ -190,6 +190,7 @@ public class Community {
 		return this.cover;
 	}
 
+	//TODO: Why save memberships in CustomNode form but return them in Node form? This should be fixed
 	/**
 	 * Getter for memberships.
 	 * 
@@ -269,6 +270,7 @@ public class Community {
 		this.properties = properties;
 	}
 
+	//TODO: This method seems to assume that all node names are some numbered index but this is not true. We should change it
 	/**
 	 * Returns the indices of all nodes that have a belonging to this community
 	 * 
@@ -310,7 +312,7 @@ public class Community {
 		for (Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {	
 			membershipKeyMap.put(entry.getKey().getKey(), entry.getValue());	//CustomNode Keys muessen bekannt sein
 		}
-		bd.addAttribute(membershipKeyMapColumnName,  membershipKeyMap);
+		bd.addAttribute(membershipKeyMapColumnName, membershipKeyMap);
 		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
 	}

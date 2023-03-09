@@ -26,8 +26,7 @@ public class SimulationPersistenceTest {
 
     @BeforeClass
     public static void clearDatabase() {
-        DatabaseConfig.setConfigFile(true);
-        database = new Database();
+        database = new Database(true);
     }
 
     @AfterClass

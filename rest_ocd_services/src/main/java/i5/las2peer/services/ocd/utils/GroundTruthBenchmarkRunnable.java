@@ -48,9 +48,8 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 		 * Set algorithm and benchmark status to running.
 		 */
 		RequestHandler requestHandler = new RequestHandler();
-		
-		DatabaseConfig.setConfigFile(false);
-		Database database = new Database();
+
+		Database database = new Database(false);
 		
 		String cKey = coverId.getKey();
 		CustomGraphId gId = coverId.getGraphId();

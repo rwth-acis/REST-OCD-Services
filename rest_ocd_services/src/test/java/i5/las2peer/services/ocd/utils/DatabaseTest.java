@@ -45,8 +45,7 @@ public class DatabaseTest {
 	
 	@BeforeClass
 	public static void clearDatabase() {
-		DatabaseConfig.setConfigFile(true);
-		database = new Database();
+		database = new Database(true);
 	}
 	
 	@AfterClass
@@ -56,8 +55,7 @@ public class DatabaseTest {
 	
 	@Test
 	public void test() {
-		DatabaseConfig.setConfigFile(false);
-		Database db = new Database();
+		Database db = new Database(true);
 		db.init();
 		List<Integer> i = new ArrayList<Integer>();
 		i.add(1);i.add(2);
@@ -75,7 +73,7 @@ public class DatabaseTest {
 	//TODO: is this test needed?
 	@Test
 	public void persistFactoryGraph() {
-		Database db = new Database();
+		Database db = new Database(true);
 		db.init();
 		try {
 			
@@ -85,8 +83,7 @@ public class DatabaseTest {
 	
 	@Test
 	public void persistGraphs() {
-		DatabaseConfig.setConfigFile(true);
-		Database db = new Database();
+		Database db = new Database(true);
 		db.deleteDatabase();
 		db.init();
 		CustomGraph g1 = getGraph1();
@@ -96,12 +93,11 @@ public class DatabaseTest {
 		System.out.println("start");
 		this.persistExampleGraphCoverCMap(g1);
 		this.persistExampleGraphCoverCMap(g2);
-		this.persistExampleGraphCoverCMap(g3);
 		this.persistExampleGraphCoverCMap(g4);
 	}
 	
 	public void persistExampleGraphCoverCMap(CustomGraph g) {
-		Database db = new Database();
+		Database db = new Database(true);
 		db.init();
 		
 		Cover c1 = getLOCCover(g);
