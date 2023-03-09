@@ -16,11 +16,10 @@ import java.net.Socket;
 import java.text.ParseException;
 import java.util.*;
 
-//TODO: Also provide an "easy mode" import with just date settable etc.?
 public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
 
     /////////////////
-    //// Variables////
+    //// Variables///
     /////////////////
     /**
      * Boolean for showing usernames or URIs as node names
@@ -31,6 +30,7 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
     private String databasePassword;
     private DbName databaseName;
 
+    private ArrayList<String> involvedUserKeys = null;
     /**
      * A common(!) attribute name over all edge collections that signifies a posts date
      */
@@ -123,6 +123,12 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
         }
         else {
             throw new IllegalArgumentException("Did not get a node collection name");
+        }
+        if (param.containsKey("involvedUsers")) {
+            if(!param.get("involvedUsers").equals("")) {
+                involvedUserKeys = new ArrayList<String>(Arrays.asList(param.get("involvedUsers").split(",")));
+            }
+            param.remove("involvedUsers");
         }
 
         if (param.containsKey("edgeCollectionNames")) {
@@ -260,6 +266,13 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
     private HashMap<String,Node> queryNodes(CustomGraph graph) throws AdapterException {
         //Build node query
         StringBuilder queryStringBuilder = new StringBuilder("FOR node IN " + nodeCollectionName + "\n");
+        if (involvedUserKeys != null) {
+            queryStringBuilder.append("FILTER (node._key IN ")
+                    .append(involvedUserKeys.toString()
+                            .replace(", ", "\",\"")
+                            .replace("[", "[\"").replace("]", "\"]"))
+                    .append(") ");
+        }
         if (nodeFilters.size() != 0) {
             queryStringBuilder.append("FILTER ");
         }
@@ -398,11 +411,15 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
 		}
 
         JSONObject graphExtraInfo = graph.getExtraInfo();
-        graphExtraInfo.put("arangoDatabase",databaseName);
-        graphExtraInfo.put("arangoNodeCollection",nodeCollectionName);
-        graphExtraInfo.put("arangoEdgeCollections",new JSONArray().addAll(edgeCollectionNames));
-        graphExtraInfo.put("startDate", startDate);
-        graphExtraInfo.put("endDate", endDate);
+        JSONObject graphExtraInfoIdentifiers = new JSONObject();
+        graphExtraInfoIdentifiers.put("arangoDatabase",databaseName.toString());
+        graphExtraInfoIdentifiers.put("arangoNodeCollection",nodeCollectionName);
+        JSONArray edgeCollections = new JSONArray();
+        edgeCollections.addAll(edgeCollectionNames);
+        graphExtraInfoIdentifiers.put("arangoEdgeCollections", edgeCollections);
+        graphExtraInfo.put("identifiers",graphExtraInfoIdentifiers);
+        graphExtraInfo.put("startDate", (startDate != null ? startDate.toInstant().toString() : new Date(Long.MIN_VALUE).toInstant().toString()));
+        graphExtraInfo.put("endDate", (endDate != null ? endDate.toInstant().toString() : new Date(Long.MAX_VALUE).toInstant().toString()));
 
         HashMap<String,Node> keyNodeMap = queryNodes(graph);
         queryEdges(graph, keyNodeMap);
