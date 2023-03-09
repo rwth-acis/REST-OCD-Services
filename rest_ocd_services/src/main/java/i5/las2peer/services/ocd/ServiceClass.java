@@ -490,6 +490,19 @@ public class ServiceClass extends RESTService {
 				try {
 					database.storeGraph(graph);
 
+					//Also add Graph to sequences or create an own one
+					List<GraphSequence> sequenceList = database.getFittingGraphSequences(graph);
+					if (sequenceList.isEmpty()) {
+						database.storeSequence(new GraphSequence(graph.getKey()));
+					}
+					else {
+						for (GraphSequence sequence : sequenceList) {
+							if (sequence.tryAddGraph(database.db, graph)) {
+								database.storeSequence(sequence);
+							}
+						}
+					}
+
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + graph.getKey() + " in format " + graphInputFormatStr);
 				} catch (Exception e) {
 					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
