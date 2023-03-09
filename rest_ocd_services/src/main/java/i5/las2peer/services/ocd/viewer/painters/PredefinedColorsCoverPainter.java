@@ -1,9 +1,12 @@
 package i5.las2peer.services.ocd.viewer.painters;
 
+import i5.las2peer.services.ocd.graphs.Community;
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.GraphSequence;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -19,6 +22,23 @@ public class PredefinedColorsCoverPainter implements CoverPainter {
 		List<Color> colors = getColorCollection(cover.communityCount());
 		for(int i=0; i<cover.communityCount(); i++) {
 			cover.setCommunityColor(i, colors.get(i));
+		}
+	}
+
+	@Override
+	public void doPaintSequence(Cover cover, GraphSequence graphSequence) {
+		HashMap<String,Integer> sequenceCommColorMap = graphSequence.getSequenceCommunityColorMap();
+		if (sequenceCommColorMap.containsValue(null)) { //I.e. if the sequence cover is not fully painted
+			List<Color> colors = getColorCollection(sequenceCommColorMap.size());
+			String[] sequenceCommColorMapKeys = sequenceCommColorMap.keySet().toArray(String[]::new);
+			for(int i=0; i<sequenceCommColorMap.size(); i++) {
+				sequenceCommColorMap.put(sequenceCommColorMapKeys[i], colors.get(i).getRGB());
+			}
+		}
+		HashMap<String,String> communitySequenceCommunityMap = graphSequence.getCommunitySequenceCommunityMap();
+		for (int i=0; i<cover.communityCount(); i++) {
+			Community comm = cover.getCommunities().get(i);
+			cover.setCommunityColor(i, new Color(sequenceCommColorMap.get(communitySequenceCommunityMap.get(comm.getKey()))));
 		}
 	}
 

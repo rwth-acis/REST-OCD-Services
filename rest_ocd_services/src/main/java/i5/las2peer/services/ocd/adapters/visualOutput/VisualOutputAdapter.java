@@ -16,6 +16,6 @@ public interface VisualOutputAdapter extends OutputAdapter {
 	 * @param graph The graph to write.
 	 * @throws AdapterException if the adapter failed
 	 */
-	public void writeGraph(CustomGraph graph) throws AdapterException;
+	void writeGraph(CustomGraph graph) throws AdapterException;
 	
 }

@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.viewer.painters;
 
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.GraphSequence;
 
 /**
  * The common interface for all cover painters
@@ -14,5 +15,7 @@ public interface CoverPainter {
 	 * Sets the community colors of a cover;
 	 * @param cover The cover.
 	 */
-	public abstract void doPaint(Cover cover);
+	void doPaint(Cover cover);
+
+	void doPaintSequence(Cover cover, GraphSequence graphSequence);
 }
