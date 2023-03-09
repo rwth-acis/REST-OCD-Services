@@ -337,7 +337,7 @@ public class ServiceClass extends RESTService {
 		 * @param endDateStr
 		 *            Optional query parameter. For big graphs end date is the
 		 *            date till which the file will parse.
-		 * @param involvedUserURIsStr
+		 * @param involvedUsersStr
 		 * 			  Optional query parameter. Users to consider for LMS Triplestore import
 		 * @param showUserNamesStr
 		 * 			  Optional query parameter. Whether to show usernames as node names for LMS Triplestore import
@@ -363,7 +363,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
 				@DefaultValue("2004-01-01") @QueryParam("startDate") String startDateStr,
 				@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
-				@DefaultValue("") @QueryParam("involvedUserURIs") String involvedUserURIsStr,
+				@DefaultValue("") @QueryParam("involvedUsers") String involvedUsersStr,
 				@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
@@ -431,8 +431,9 @@ public class ServiceClass extends RESTService {
 							param.put("filePath", filePathStr);
 						} else if(format == GraphInputFormat.LMS_TRIPLESTORE) {
 							param.put("showUserNames", showUserNamesStr);
-							param.put("involvedUserURIs", involvedUserURIsStr);
+							param.put("involvedUsers", involvedUsersStr);
 						} else if(format == GraphInputFormat.ARANGODB) {
+							param.put("involvedUsers", involvedUsersStr);
 							param.put("databaseAddress", databaseAddressStr);
 							param.put("databaseName", databaseNameStr);
 							param.put("databaseCredentials", databaseCredentialsStr);
@@ -488,6 +489,7 @@ public class ServiceClass extends RESTService {
 				}
 				try {
 					database.storeGraph(graph);
+
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + graph.getKey() + " in format " + graphInputFormatStr);
 				} catch (Exception e) {
 					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
@@ -565,7 +567,7 @@ public class ServiceClass extends RESTService {
 		 * @param endDateStr
 		 *            Optional query parameter. For big graphs end date is the
 		 *            date till which the file will parse.
-		 * @param involvedUserURIsStr
+		 * @param involvedUsersStr
 		 * 			  Optional query parameter. Users to consider for LMS Triplestore import
 		 * @param showUserNamesStr
 		 * 			  Optional query parameter. Whether to show usernames as node names for LMS Triplestore import
@@ -589,7 +591,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
 				@DefaultValue("2004-01-01") @QueryParam("startDate") String startDateStr,
 				@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
-				@DefaultValue("") @QueryParam("involvedUserURIs") String involvedUserURIsStr,
+				@DefaultValue("") @QueryParam("involvedUsers") String involvedUsersStr,
 				@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
@@ -623,7 +625,7 @@ public class ServiceClass extends RESTService {
 			}
 			graphFile.delete();
 			return createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
-					endDateStr,involvedUserURIsStr, showUserNamesStr, indexPathStr, filePathStr,
+					endDateStr,involvedUsersStr, showUserNamesStr, indexPathStr, filePathStr,
 					databaseAddressStr, databaseNameStr, databaseCredentialsStr, nodeCollectionNameStr, nodeFilters,
 					edgeCollectionNamesStr, edgeFilters, dateAttributeNamesStr, contentStr.toString());
 		}
@@ -742,25 +744,22 @@ public class ServiceClass extends RESTService {
 		public Response getGraph(@DefaultValue("GRAPH_ML") @QueryParam("outputFormat") String graphOutputFormatStr,
 				@PathParam("graphId") String graphIdStr) {
 			try {
-
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				GraphOutputFormat format;
 				try {
-
 					format = GraphOutputFormat.valueOf(graphOutputFormatStr);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Specified graph output format does not exist.");
 				}
-				
 				CustomGraph graph = database.getGraph(username, graphIdStr); //done
-				
+
 				if (graph == null)
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Graph does not exist: graph key " + graphIdStr);	//done
 
-				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get cover " + graphIdStr + " in format " + graphOutputFormatStr );
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get graph " + graphIdStr + " in format " + graphOutputFormatStr );
 				return Response.ok(requestHandler.writeGraph(graph, format)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -3839,7 +3838,14 @@ public class ServiceClass extends RESTService {
 		public Response postSimulation(SimulationSeriesParameters parameters) {
 	
 			String username = getUserName();
-			CustomGraph network = database.getGraph(getUserName(), parameters.getGraphKey());
+			CustomGraph network;
+			try {
+				network = database.getGraph(getUserName(), parameters.getGraphKey());
+			}
+			catch (OcdPersistenceLoadException e) {
+				e.printStackTrace();
+				return Response.serverError().entity("Could not load graph for simulation:" +e.getMessage()).build();
+			}
 			if (network == null)
 				return Response.status(Status.BAD_REQUEST).entity("graph not found").build();
 	
@@ -4303,7 +4309,7 @@ public class ServiceClass extends RESTService {
 	 * @return List
 	 * @throws AgentNotRegisteredException if the agent was not registered
 	 */
-	public List<String> getGraphIds() throws AgentNotRegisteredException {
+	public List<String> getGraphIds() throws AgentNotRegisteredException, OcdPersistenceLoadException {
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 		List<String> graphIdList = new ArrayList<String>();
 
@@ -4372,7 +4378,7 @@ public class ServiceClass extends RESTService {
 	 * @return list containing cover indices.
 	 * 
 	 */
-	public List<String> getCoverIdsByGraphId(String graphIdStr) {
+	public List<String> getCoverIdsByGraphId(String graphIdStr) throws OcdPersistenceLoadException {
 		String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 
 		List<Cover> covers = database.getCovers(username, graphIdStr);
