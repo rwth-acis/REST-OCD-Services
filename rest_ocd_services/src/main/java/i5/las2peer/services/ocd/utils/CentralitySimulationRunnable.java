@@ -10,6 +10,7 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulationExecutor;
 import i5.las2peer.services.ocd.graphs.CustomGraphId;
+import i5.las2peer.services.ocd.graphs.OcdPersistenceLoadException;
 
 public class CentralitySimulationRunnable implements Runnable {
 	
@@ -70,7 +71,7 @@ public class CentralitySimulationRunnable implements Runnable {
 			}
 			m.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
 			database.updateCentralityCreationLog(m);
-		} catch( RuntimeException e ) {
+		} catch(RuntimeException | OcdPersistenceLoadException e ) {
 
 			e.printStackTrace();
 			error = true;

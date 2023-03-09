@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.List;
 import java.util.ArrayList;
 
+import i5.las2peer.services.ocd.graphs.OcdPersistenceLoadException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -33,7 +34,7 @@ public class ServiceDatabaseTest {
 	}
 	
 	@Test
-	public void test() {
+	public void test() throws OcdPersistenceLoadException {
 		List<Integer> l = new ArrayList<Integer>();
 		l.add(1);l.add(2);
 		List<Cover> covers = database.getCovers("cralem", "", l, null, 5, 5);

@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.List;
 
+import i5.las2peer.services.ocd.graphs.OcdPersistenceLoadException;
 import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
@@ -74,7 +75,7 @@ public class DatabaseMethodTest {
 	}
 
 	@Test
-	public void getGraphNotFound() {
+	public void getGraphNotFound() throws OcdPersistenceLoadException {
 		CustomGraph graph = database.getGraph("eve", "0");
 		if(graph == null) {
 			System.out.println("graph is null in getGraphNotFound");
@@ -84,7 +85,7 @@ public class DatabaseMethodTest {
 	}
 
 	@Test
-	public void storeGraph() {
+	public void storeGraph() throws OcdPersistenceLoadException {
 
 		CustomGraph graph = getTestGraph();
 		graph.setUserName("testUser231");
@@ -100,7 +101,7 @@ public class DatabaseMethodTest {
 	}
 
 	@Test
-	public void deleteGraph() {
+	public void deleteGraph() throws OcdPersistenceLoadException {
 		CustomGraph graph1 = null;
 		CustomGraph graph2 = null;
 		Cover cover = null;
@@ -161,7 +162,7 @@ public class DatabaseMethodTest {
 	}
 	
 	@Test
-	public void getCoverNotFound() {
+	public void getCoverNotFound() throws OcdPersistenceLoadException {
 		Cover cover = database.getCover("eve", "2", "2");
 		assertNull(cover);
 		System.out.println("getcovernotfound success");

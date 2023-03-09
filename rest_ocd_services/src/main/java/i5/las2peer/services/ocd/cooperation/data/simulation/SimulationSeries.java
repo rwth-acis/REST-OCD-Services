@@ -23,6 +23,8 @@ import i5.las2peer.services.ocd.cooperation.data.table.Table;
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 import i5.las2peer.services.ocd.graphs.Community;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.OcdPersistenceLoadException;
+import net.minidev.json.parser.ParseException;
 
 /**
  * A SimulationSeries serves as a container for multiple SimulationDatasets.
@@ -480,7 +482,7 @@ public class SimulationSeries extends SimulationAbstract {
 		return simulationDatasetsList;
 	}
 
-	public static SimulationSeries load(String key, ArangoDatabase db, String transId) {
+	public static SimulationSeries load(String key, ArangoDatabase db, String transId) throws OcdPersistenceLoadException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		SimulationSeries simulationSeries = new SimulationSeries();
 		ArangoCollection collection = db.collection(collectionName);

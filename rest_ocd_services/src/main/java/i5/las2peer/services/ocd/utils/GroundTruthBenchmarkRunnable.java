@@ -2,10 +2,7 @@ package i5.las2peer.services.ocd.utils;
 
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkExecutor;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverId;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
+import i5.las2peer.services.ocd.graphs.*;
 
 import java.util.logging.Level;
 
@@ -74,7 +71,7 @@ public class GroundTruthBenchmarkRunnable implements Runnable {
 			graph.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
 			database.updateGraphCreationLog(graph);	//TODO both in one transaction?
 			database.updateCoverCreationLog(cover);
-		}  catch( RuntimeException e ) {
+		}  catch(RuntimeException | OcdPersistenceLoadException e ) {
 			error = true;
 		}
 		Cover groundTruthCover = null;

@@ -179,7 +179,6 @@ public class Database {
 		if(!collection.exists()) {
 			collection.create();
 		}
-
 	}
 	
 
@@ -243,7 +242,7 @@ public class Database {
 		}
 	}	
 	
-	private CustomGraph getGraph(String key) {
+	private CustomGraph getGraph(String key) throws OcdPersistenceLoadException {
 		String transId = getTransactionId(CustomGraph.class, false);
 		CustomGraph graph;
 		try {	
@@ -265,7 +264,7 @@ public class Database {
 	 *            key of the graph
 	 * @return the found CustomGraph instance or null if the CustomGraph does not exists or the username is wrong
 	 */
-	public CustomGraph getGraph(String username, String key) {
+	public CustomGraph getGraph(String username, String key) throws OcdPersistenceLoadException {
 		CustomGraph g = getGraph(key);
 		
 		if (g == null) {
@@ -286,7 +285,7 @@ public class Database {
 	 *            graphs owner
 	 * @return graph list
 	 */
-	public List<CustomGraph> getGraphs(String username) {
+	public List<CustomGraph> getGraphs(String username) throws OcdPersistenceLoadException {
 		String transId = getTransactionId(CustomGraph.class, false);
 		List<CustomGraph> queryResults = new ArrayList<CustomGraph>();
 		try {
@@ -372,7 +371,7 @@ public class Database {
 	 * 			  the execution status ids of the graphs
 	 * @return the list of graphs
 	 */	
-	public List<CustomGraph> getGraphs(String username, int firstIndex, int length, List<Integer> executionStatusIds) {
+	public List<CustomGraph> getGraphs(String username, int firstIndex, int length, List<Integer> executionStatusIds) throws OcdPersistenceLoadException {
 		String transId = getTransactionId(CustomGraph.class, false);
 		List<CustomGraph> queryResults = new ArrayList<CustomGraph>();
 		try {
@@ -404,7 +403,7 @@ public class Database {
 	 *            graphs name
 	 * @return graph list
 	 */
-	public List<CustomGraph> getGraphsbyName(String name) {
+	public List<CustomGraph> getGraphsbyName(String name) throws OcdPersistenceLoadException {
 		String transId = getTransactionId(CustomGraph.class, false);
 		List<CustomGraph> queryResults = new ArrayList<CustomGraph>();
 		try {
@@ -422,9 +421,8 @@ public class Database {
 		}
 
 		return queryResults;
-	}	
+	}
 
-	
 	private void deleteGraph(String key) {
 		String transId = this.getTransactionId(null, true);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
@@ -434,7 +432,7 @@ public class Database {
 			ArangoCollection graphCollection = db.collection(CustomGraph.collectionName);		
 			BaseDocument bd = graphCollection.getDocument(key, BaseDocument.class, readOpt);
 			String gclKey = bd.getAttribute(CustomGraph.creationMethodKeyColumnName).toString();
-			
+
 			ArangoCollection gclCollection = db.collection(GraphCreationLog.collectionName);
 			gclCollection.deleteDocument(gclKey, null, deleteOpt);		//delete the GraphCreationLog
 			String query = "FOR n IN " + CustomNode.collectionName + " FILTER n." +CustomNode.graphKeyColumnName 
@@ -444,7 +442,8 @@ public class Database {
 			query = "FOR e IN " + CustomEdge.collectionName + " FILTER e." + CustomEdge.graphKeyColumnName 
 					+ " == \"" + key +"\" REMOVE e IN " + CustomEdge.collectionName;
 			db.query(query, queryOpt, BaseDocument.class);				//delete all edges
-			
+
+
 			/////////////THIS PART SHOULD NOT BE NEEDED BUT ASSURES NO COVER OR CENTRALITY MAP IS MISSED/////////////
 			query = "FOR c IN " + Cover.collectionName + " FILTER c." + Cover.graphKeyColumnName 
 					+ " == \"" + key +"\" RETURN c._key";
@@ -529,8 +528,7 @@ public class Database {
 		}
 
 	}
-	
-	
+
 	//////////////////////////////////////////////////////////////// COVERS ///////////////////////////////////////////////////////
 	public String storeCover(Cover cover) {
 		String transId = this.getTransactionId(Cover.class, true);
@@ -568,7 +566,7 @@ public class Database {
 	 *            key of the cover
 	 * @return the found Cover instance or null if the Cover does not exist
 	 */
-	public Cover getCover(String username, String graphKey, String coverKey) {
+	public Cover getCover(String username, String graphKey, String coverKey) throws OcdPersistenceLoadException {
 		CustomGraph graph = getGraph(username, graphKey);
 		Cover cover = null;
 		if(!(graph == null)) {
@@ -610,7 +608,7 @@ public class Database {
 	 *            key of the graph
 	 * @return cover list
 	 */
-	public List<Cover> getCovers(String username, String graphKey) {	//TODO testen
+	public List<Cover> getCovers(String username, String graphKey) throws OcdPersistenceLoadException {	//TODO testen
 		CustomGraph g = getGraph(username, graphKey);
 		String transId = getTransactionId(Cover.class, false);
 		List<Cover> covers = new ArrayList<Cover>();
@@ -652,7 +650,7 @@ public class Database {
 	 * @return a cover list
 	 */
 	public List<Cover> getCovers(String username, String graphKey, List<Integer> executionStatusIds,
-			List<Integer> metricExecutionStatusIds, int firstIndex, int length) {
+			List<Integer> metricExecutionStatusIds, int firstIndex, int length) throws OcdPersistenceLoadException {
 		String transId = getTransactionId(null, false);
 		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
@@ -720,6 +718,7 @@ public class Database {
 		return covers;
 	}
 
+	//TODO: This method doesn't use one of its parameters. The parameter should either be discarded completely or used again
 	/**
 	 * Returns metadata of covers efficiently, without loading full cover.
 	 *
@@ -991,7 +990,7 @@ public class Database {
 	 *            key of the centrality map
 	 * @return the found Cover instance or null if the Cover does not exist
 	 */
-	public CentralityMap getCentralityMap(String username, String graphKey, String mapKey) {
+	public CentralityMap getCentralityMap(String username, String graphKey, String mapKey) throws OcdPersistenceLoadException {
 		CustomGraph graph = getGraph(username, graphKey);
 		CentralityMap map = null;
 		if(!(graph == null)) {
@@ -1013,7 +1012,7 @@ public class Database {
 	 *            key of the graph
 	 * @return A list of the corresponding centrality maps
 	 */
-	public List<CentralityMap> getCentralityMaps(String username, String graphKey) {
+	public List<CentralityMap> getCentralityMaps(String username, String graphKey) throws OcdPersistenceLoadException {
 		CustomGraph g = getGraph(username, graphKey);
 		String transId = getTransactionId(CentralityMap.class, false);
 		List<CentralityMap> maps = new ArrayList<CentralityMap>();
@@ -1050,7 +1049,7 @@ public class Database {
 	 * 		  the length of the result set
 	 * @return a centralityMap list
 	 */
-	public List<CentralityMap> getCentralityMaps(String username, String graphKey, List<Integer> executionStatusIds, int firstIndex, int length) {	//TODO testen
+	public List<CentralityMap> getCentralityMaps(String username, String graphKey, List<Integer> executionStatusIds, int firstIndex, int length) throws OcdPersistenceLoadException {	//TODO testen
 		String transId = getTransactionId(null, false);
 		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
@@ -1284,7 +1283,7 @@ public class Database {
 	 * 			  key of the OcdMetricLog
 	 * @return the found OcdMetricLog instance or null if the Cover or Graph does not exist
 	 */
-	public OcdMetricLog getOcdMetricLog(String username, String graphKey, String coverKey, String metricKey) {
+	public OcdMetricLog getOcdMetricLog(String username, String graphKey, String coverKey, String metricKey) throws OcdPersistenceLoadException {
 		Cover cover = getCover(username, graphKey, coverKey);
 		
 		OcdMetricLog metric = null;
@@ -1304,7 +1303,7 @@ public class Database {
 	 * 			the Id of the log
 	 * @return the found OcdMetricLog instance or null if the Cover or Graph does not exist
 	 */
-	public OcdMetricLog getOcdMetricLog(OcdMetricLogId logId) {
+	public OcdMetricLog getOcdMetricLog(OcdMetricLogId logId) throws OcdPersistenceLoadException {
     	CoverId cId = logId.getCoverId();
     	CustomGraphId gId = cId.getGraphId();
     	String user = gId.getUser();
@@ -1370,7 +1369,7 @@ public class Database {
 		}
 	}
 
-	public SimulationSeries getSimulationSeries(String key) {
+	public SimulationSeries getSimulationSeries(String key) throws OcdPersistenceLoadException {
 		String transId = getTransactionId(SimulationDataset.class, false);
 		SimulationSeries simulationSeries;
 		try {
@@ -1392,7 +1391,7 @@ public class Database {
 	 * @param graphKey     The graph's key
 	 * @return			   List of SimulationSeries of a specific user
 	 */
-	public List<SimulationSeries> getSimulationSeriesByUser(String userId, Boolean returnSubset, int firstIndex, int length, String graphKey){
+	public List<SimulationSeries> getSimulationSeriesByUser(String userId, Boolean returnSubset, int firstIndex, int length, String graphKey) throws OcdPersistenceLoadException {
 
 		String transId = getTransactionId(SimulationSeries.class, false);
 		List<SimulationSeries> seriesList = new ArrayList<SimulationSeries>();
@@ -1429,7 +1428,7 @@ public class Database {
 	 * @param userId the users id
 	 * @return all SimulationSeries of a specific user
 	 */
-	public List<SimulationSeries> getSimulationSeriesByUser(String userId) {
+	public List<SimulationSeries> getSimulationSeriesByUser(String userId) throws OcdPersistenceLoadException {
 		// get all simulations of a user (not limited to a subset)
 		return getSimulationSeriesByUser(userId, false,0,0, "");
 	}
@@ -1440,7 +1439,7 @@ public class Database {
 	 * @param length Number of simulations
 	 * @return List of SimulationSeries of a specific user
 	 */
-	public List<SimulationSeries> getSimulationSeriesByUser(String userId, int firstIndex, int length){
+	public List<SimulationSeries> getSimulationSeriesByUser(String userId, int firstIndex, int length) throws OcdPersistenceLoadException {
 		return getSimulationSeriesByUser(userId,true, firstIndex, length, "");
 	}
 
@@ -1482,7 +1481,7 @@ public class Database {
 	 * @param graphKey the graphs key
 	 * @return simulation series list
 	 */
-	public List<SimulationSeries> getSimulationSeriesByUser(String userId, String graphKey, int firstIndex, int length){
+	public List<SimulationSeries> getSimulationSeriesByUser(String userId, String graphKey, int firstIndex, int length) throws OcdPersistenceLoadException {
 		return getSimulationSeriesByUser(userId,true,firstIndex,length,graphKey);
 	}
 
@@ -1752,15 +1751,16 @@ public class Database {
 		else if(c == InactivityData.class) {
 			collections = collectionNames.subList(10, 11).toArray(new String[1]);
 		}
-		else if(c == SimulationSeries.class){
+		else if(c == SimulationSeries.class) {
 			collections = collectionNames.subList(11,13).toArray(new String[1]);
 		}
-		else if(c == SimulationSeriesGroup.class){
+		else if(c == SimulationSeriesGroup.class) {
 			collections = collectionNames.subList(11,13).toArray(new String[1]);
 		}
 		else {
 			collections = collectionNames.subList(0, 13).toArray(new String[10]);
 		}
+
 		StreamTransactionEntity tx;
 		if(write) {
 			tx = db.beginStreamTransaction(new StreamTransactionOptions().writeCollections(collections));

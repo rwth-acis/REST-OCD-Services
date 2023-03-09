@@ -7,12 +7,7 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationLog;
-import i5.las2peer.services.ocd.graphs.CoverId;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
-import i5.las2peer.services.ocd.graphs.GraphCreationLog;
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
@@ -34,6 +29,7 @@ import javax.persistence.EntityTransaction;
  * @author Sebastian
  *
  */
+//TODO: Empty Catch statements need to be filled, we cant just simply fail quietly
 public class ThreadHandler {
 
 	/**
@@ -207,7 +203,7 @@ public class ThreadHandler {
 					persistedLog.setValue(log.getValue());
 					persistedLog.setStatus(ExecutionStatus.COMPLETED);
 					database.updateOcdMetricLog(persistedLog);
-		    	} catch( RuntimeException e ) {
+		    	} catch(RuntimeException | OcdPersistenceLoadException e ) {
 
 					error = true;
 				}
@@ -226,7 +222,7 @@ public class ThreadHandler {
 					}
 					persistedLog.setStatus(ExecutionStatus.ERROR);
 					database.updateOcdMetricLog(persistedLog);
-    			} catch( RuntimeException e ) {
+    			} catch(RuntimeException | OcdPersistenceLoadException e ) {
     				e.printStackTrace();
     			}
 
@@ -269,7 +265,7 @@ public class ThreadHandler {
     				graph.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
 					graph.setNodeEdgeCountColumnFields(); // before persisting to db, update node/edge count information
     				database.updateGraph(graph);
-    			} catch( RuntimeException ex ) {
+    			} catch(RuntimeException | OcdPersistenceLoadException ex ) {
 
     				error = true;
     			}
@@ -286,7 +282,7 @@ public class ThreadHandler {
     				cover.setMemberships(calculatedCover.getMemberships());
     				cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
     				database.updateCover(cover);
-    			} catch( RuntimeException ex ) {
+    			} catch(RuntimeException | OcdPersistenceLoadException ex ) {
 
     				error = true;
     			}
@@ -308,7 +304,7 @@ public class ThreadHandler {
 					database.updateCoverCreationLog(cover);	//TODO optimieren
 					graph.getCreationMethod().setStatus(ExecutionStatus.ERROR);
 					database.updateGraphCreationLog(graph);	//TODO muss beides in transaktion?
-				}  catch( RuntimeException e ) {
+				}  catch(RuntimeException | OcdPersistenceLoadException e ) {
 
     			}
 
@@ -413,7 +409,7 @@ public class ThreadHandler {
 					map.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
 					map.getCreationMethod().setExecutionTime(calculatedMap.getCreationMethod().getExecutionTime());
 					database.updateCentralityMap(map);
-		    	} catch(RuntimeException e ) {
+		    	} catch(RuntimeException | OcdPersistenceLoadException e ) {
 					error = true;
 				}
 
@@ -431,7 +427,7 @@ public class ThreadHandler {
 					}
 					map.getCreationMethod().setStatus(ExecutionStatus.ERROR);
 					database.updateCentralityCreationLog(map);
-    			} catch( RuntimeException e ) {
+    			} catch(RuntimeException | OcdPersistenceLoadException e ) {
 
     			}
 

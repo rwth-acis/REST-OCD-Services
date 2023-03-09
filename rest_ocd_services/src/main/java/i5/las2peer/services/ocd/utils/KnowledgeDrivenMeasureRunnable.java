@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.utils;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverId;
 import i5.las2peer.services.ocd.graphs.CustomGraphId;
+import i5.las2peer.services.ocd.graphs.OcdPersistenceLoadException;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
 import i5.las2peer.services.ocd.metrics.OcdMetricExecutor;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
@@ -81,7 +82,7 @@ public class KnowledgeDrivenMeasureRunnable implements Runnable {
 			}
 			persistedLog.setStatus(ExecutionStatus.RUNNING);
 			database.updateOcdMetricLog(persistedLog);
-		} catch( RuntimeException e ) {
+		} catch(RuntimeException | OcdPersistenceLoadException e ) {
 			error = true;
 		}
 		/*

@@ -1,14 +1,6 @@
 package i5.las2peer.services.ocd.graphs;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoEdgeCollection;
@@ -20,7 +12,13 @@ import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentUpdateOptions;
 import com.arangodb.model.EdgeCreateOptions;
 
+import java.util.Map;
 import java.util.UUID;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 import org.graphstream.graph.implementations.AbstractEdge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
@@ -44,7 +42,8 @@ public class CustomEdge {
 	private static final String targetIndexColumnName = "TARGET_INDEX";
 	protected static final String graphIdColumnName = "GRAPH_ID";
 	protected static final String graphUserColumnName = "USER_NAME";
-	private static final String weightColumnName = "WEIGHT";	
+	private static final String weightColumnName = "WEIGHT";
+	protected static final String extraInfoColumnName = "EXTRA_INFO";
 	//ArangoDB
 	public static final String graphKeyColumnName = "GRAPH_KEY";
 	public static final String collectionName = "customedge";
@@ -77,6 +76,9 @@ public class CustomEdge {
 	 */
 	@Column(name = weightColumnName)
 	private double weight = 1;
+
+	@ElementCollection
+	private JSONObject extraInfo = new JSONObject();
 	
 	/////////////////////////////////////////////////////////////////////////////////////////
 	/////////// The following attributes are only of internal use for persistence purposes.
@@ -271,29 +273,43 @@ public class CustomEdge {
 		bed.addAttribute(graphKeyColumnName, this.graph.getKey());
 		bed.setFrom(CustomNode.collectionName + "/" + this.source.getKey());
 		bed.setTo(CustomNode.collectionName + "/" + this.target.getKey());
+		bed.addAttribute(extraInfoColumnName, this.extraInfo);
 		
 		collection.insertDocument(bed, opt);
 		this.key = bed.getKey();
 	}
 	
 	public void updateDB(ArangoDatabase db, DocumentUpdateOptions opt) {
-		
 		ArangoCollection collection = db.collection(collectionName);
 		BaseEdgeDocument bed = new BaseEdgeDocument();
 		bed.addAttribute(weightColumnName, this.weight);
 		bed.addAttribute(graphKeyColumnName, this.graph.getKey());
 		bed.setFrom(CustomNode.collectionName + "/" + this.source.getKey());
 		bed.setTo(CustomNode.collectionName + "/" + this.target.getKey());
+		bed.addAttribute(extraInfoColumnName, this.extraInfo);
+
 		collection.updateDocument(this.key, bed, opt);
 	}
 	
-	public static CustomEdge load(BaseEdgeDocument bed, CustomNode source, CustomNode target, CustomGraph graph, ArangoDatabase db) {
+	public static CustomEdge load(BaseEdgeDocument bed, CustomNode source, CustomNode target, CustomGraph graph, ArangoDatabase db) throws OcdPersistenceLoadException {
 		CustomEdge ce = new CustomEdge();
 		if (bed != null) {
 			ce.key = bed.getKey();
 			ce.graph = graph;
 			if(bed.getAttribute(weightColumnName)!=null) {
 				ce.weight = Double.parseDouble(bed.getAttribute(weightColumnName).toString());
+			}
+			if(bed.getAttribute(extraInfoColumnName) != null){
+				try {
+					ObjectMapper om = new ObjectMapper();
+					ce.extraInfo = new JSONObject(om.convertValue(bed.getAttribute(extraInfoColumnName), Map.class));
+				}
+				catch (Exception e) {
+					throw new OcdPersistenceLoadException("Could not parse extraInfo of Edge. " + e.getMessage());
+				}
+			}
+			else {
+				ce.extraInfo = new JSONObject();
 			}
 			ce.source = source;
 			ce.target = target;

@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.utils;
 
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.OcdPersistenceLoadException;
 import i5.las2peer.services.ocd.metrics.OcdMetricExecutor;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
@@ -69,7 +70,7 @@ public class StatisticalMeasureRunnable implements Runnable {
 			}
 			persistedLog.setStatus(ExecutionStatus.RUNNING);
 			database.updateOcdMetricLog(persistedLog);
-		} catch( RuntimeException e ) {
+		} catch(RuntimeException | OcdPersistenceLoadException e ) {
 			error = true;
 		}
 		/*

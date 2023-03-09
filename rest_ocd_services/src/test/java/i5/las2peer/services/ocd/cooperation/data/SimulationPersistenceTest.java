@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.cooperation.data;
 
 import i5.las2peer.services.ocd.cooperation.data.simulation.*;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.OcdPersistenceLoadException;
 import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import org.graphstream.graph.Node;
@@ -38,7 +39,7 @@ public class SimulationPersistenceTest {
     /////////////////////// Simulation Series //////////////////////////
 
     @Test
-    public void storeSimulationSeries() {
+    public void storeSimulationSeries() throws OcdPersistenceLoadException {
         System.out.println("store sim series");
         SimulationSeries series = new SimulationSeries();
         series.setCooperationEvaluation(new Evaluation(new double[]{1.0,2.0,3.0}));
@@ -63,7 +64,7 @@ public class SimulationPersistenceTest {
 
 
     @Test
-    public void storeSimulationSeriesWithDatasets() {
+    public void storeSimulationSeriesWithDatasets() throws OcdPersistenceLoadException {
 
         SimulationSeries series = new SimulationSeries();
         SimulationDataset d1 = new SimulationDataset();
@@ -97,7 +98,7 @@ public class SimulationPersistenceTest {
     }
 
     @Test
-    public void getSimulationSeries() {
+    public void getSimulationSeries() throws OcdPersistenceLoadException {
 
         SimulationSeries series = new SimulationSeries();
         long userId = 7;
@@ -113,7 +114,7 @@ public class SimulationPersistenceTest {
     }
 
     @Test
-    public void getSimulationSeriesWithDatasets() {
+    public void getSimulationSeriesWithDatasets() throws OcdPersistenceLoadException {
 
         SimulationSeries series = new SimulationSeries();
         long userId = 7;
@@ -142,7 +143,7 @@ public class SimulationPersistenceTest {
     }
 
     @Test
-    public void getSimulationSeriesByGraphId() {
+    public void getSimulationSeriesByGraphId() throws OcdPersistenceLoadException {
 
         SimulationSeries series = new SimulationSeries();
         long userId = 7;
@@ -166,7 +167,7 @@ public class SimulationPersistenceTest {
     }
 
     @Test
-    public void getSimulationSeriesWithGraph() {
+    public void getSimulationSeriesWithGraph() throws OcdPersistenceLoadException {
 
         SimulationSeries series = new SimulationSeries();
         CustomGraph graph = new CustomGraph();
@@ -192,7 +193,7 @@ public class SimulationPersistenceTest {
     }
 
     @Test
-    public void deleteSimulationSeries() {
+    public void deleteSimulationSeries() throws OcdPersistenceLoadException {
 
         SimulationSeries series = new SimulationSeries();
         String seriesKey = database.storeSimulationSeries(series);
@@ -206,7 +207,7 @@ public class SimulationPersistenceTest {
     }
 
     @Test
-    public void getSimulationSeriesByUser() {
+    public void getSimulationSeriesByUser() throws OcdPersistenceLoadException {
 
         long userId = 23;
 

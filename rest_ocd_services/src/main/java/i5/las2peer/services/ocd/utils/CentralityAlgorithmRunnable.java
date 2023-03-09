@@ -10,6 +10,7 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmExecutor;
 import i5.las2peer.services.ocd.graphs.CustomGraphId;
+import i5.las2peer.services.ocd.graphs.OcdPersistenceLoadException;
 
 /**
  * Runnable for the execution of centrality algorithms.
@@ -73,7 +74,7 @@ public class CentralityAlgorithmRunnable implements Runnable {
 			//System.out.println("CAR set status to running");
 			m.getCreationMethod().setStatus(ExecutionStatus.RUNNING);
 			database.updateCentralityCreationLog(m);
-		} catch(RuntimeException e ) {
+		} catch(RuntimeException | OcdPersistenceLoadException e ) {
 			error = true;
 			e.printStackTrace();
 

@@ -29,8 +29,7 @@ public class CustomGraphId {
  
     @Override
     public boolean equals(Object object) {
-        if (object instanceof CustomGraphId) {
-        	CustomGraphId pk = (CustomGraphId)object;
+        if (object instanceof CustomGraphId pk) {
             return userName.equals(pk.userName) && key.equals(pk.key);
         } else {
             return false;

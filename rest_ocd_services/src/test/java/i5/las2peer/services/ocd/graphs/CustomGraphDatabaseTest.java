@@ -46,7 +46,7 @@ public class CustomGraphDatabaseTest {
 	}
 	
 	@Test
-	public void testPersist() {
+	public void testPersist() throws OcdPersistenceLoadException {
 		CustomGraph graph = new CustomGraph();
 		graph.setUserName(userName1);
 		graph.setName(graphName1);

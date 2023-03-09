@@ -3,24 +3,11 @@ package i5.las2peer.services.ocd.graphs;
 import java.util.*;
 import java.util.stream.Stream;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.PostLoad;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
+import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 import org.graphstream.graph.implementations.AbstractGraph;
 import org.graphstream.graph.implementations.AbstractNode;
 import org.graphstream.graph.implementations.MultiNode;
@@ -81,6 +68,7 @@ public class CustomGraph extends MultiGraph {
 	public static final String nameColumnName = "NAME";
 	public static final String nodeCountColumnName = "NODE_COUNT";
 	public static final String edgeCountColumnName = "EDGE_COUNT";
+	public static final String extraInfoColumnName = "EXTRA_INFO";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
 	private static final String idEdgeMapKeyColumnName = "RUNTIME_ID";
@@ -153,6 +141,7 @@ public class CustomGraph extends MultiGraph {
 	@Column(name = edgeCountColumnName)
 	private long graphEdgeCount;
 
+	@ElementCollection
 	private JSONObject extraInfo = new JSONObject();
 
 
@@ -325,10 +314,11 @@ public class CustomGraph extends MultiGraph {
 		this.creationMethod.setStatus(graph.creationMethod.getStatus());
 		this.customNodes = new HashMap<Integer, CustomNode>();
 		copyMappings(graph.customNodes, graph.customEdges, graph.nodeIds, graph.edgeIds);
-		this.userName = new String(graph.userName);
-		this.name = new String(graph.name);
+		this.userName = graph.userName;
+		this.name = graph.name;
 		this.key = graph.key;
 		this.path = graph.path;
+		this.extraInfo = new JSONObject(graph.getExtraInfo());
 		// this.description = new String(graph.description);
 		// if(graph.lastUpdate != null) {
 		// this.lastUpdate = new Timestamp(graph.lastUpdate.getTime());
@@ -350,6 +340,7 @@ public class CustomGraph extends MultiGraph {
 	 * @param graph
 	 *            The graph to obtain data from.
 	 */
+	//TODO: Add extraInfo as well here?
 	//TODO: Possibly add graphstream attributes as well here (provided we start saving them as well)
 	public void setStructureFrom(CustomGraph graph) {
 		Node[] nodes = this.nodes().toArray(Node[]::new);
@@ -685,6 +676,29 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public void setNodeName(Node node, String name) {
 		getCustomNode(node).setName(name);
+	}
+
+	/**
+	 * Getter for the node extra info of a certain node.
+	 *
+	 * @param node
+	 *            The node.
+	 * @return The extra info.
+	 */
+	public JSONObject getNodeExtraInfo(Node node) {
+		return getCustomNode(node).getExtraInfo();
+	}
+
+	/**
+	 * Setter for the extra info of a certain node.
+	 *
+	 * @param node
+	 *            The node.
+	 * @param extraInfo
+	 *            The extra info.
+	 */
+	public void setNodeName(Node node, JSONObject extraInfo) {
+		getCustomNode(node).setExtraInfo(extraInfo);
 	}
 
 	/**
@@ -1662,7 +1676,7 @@ public class CustomGraph extends MultiGraph {
 		return ret;
 	}
 	
-	public void persist( ArangoDatabase db, String transId) throws InterruptedException {
+	public void persist(ArangoDatabase db, String transId) throws InterruptedException {
 		this.setNodeEdgeCountColumnFields(); // update node/edge counts before persisting
 		this.prePersist();
 		ArangoCollection collection = db.collection(collectionName);
@@ -1709,13 +1723,14 @@ public class CustomGraph extends MultiGraph {
 //			edge.
 //		}
 
-		bd.addAttribute(propertiesColumnName, this.properties);	
+		bd.addAttribute(propertiesColumnName, this.properties);
+		bd.addAttribute(extraInfoColumnName,this.extraInfo);
 		//TODO covers variable speichern?
 		
 		collection.updateDocument(this.key, bd, updateOptions);
 	}
 
-	public static CustomGraph load(String key, ArangoDatabase db, String transId) {
+	public static CustomGraph load(String key, ArangoDatabase db, String transId) throws OcdPersistenceLoadException {
 		CustomGraph graph = null;
 		ArangoCollection collection = db.collection(collectionName);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
@@ -1737,6 +1752,17 @@ public class CustomGraph extends MultiGraph {
 			graph.types = om.convertValue(objTypes, Set.class);
 			Object objProperties = bd.getAttribute(propertiesColumnName);
 			graph.properties = om.convertValue(objProperties, List.class);
+			if(bd.getAttribute(extraInfoColumnName) != null){
+				try {
+					graph.extraInfo = new JSONObject(om.convertValue(bd.getAttribute(extraInfoColumnName), Map.class));
+				}
+				catch (Exception e) {
+					throw new OcdPersistenceLoadException("Could not parse extraInfo of Graph. " + e.getMessage());
+				}
+			}
+			else {
+				graph.extraInfo = new JSONObject();
+			}
 			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
 			graph.graphNodeCount = om.convertValue(bd.getAttribute(nodeCountColumnName), Long.class);
 			graph.graphEdgeCount = om.convertValue(bd.getAttribute(edgeCountColumnName), Long.class);
@@ -1773,14 +1799,14 @@ public class CustomGraph extends MultiGraph {
 			}
 			graph.postLoad();
 		}	
-		else {
+		else { //TODO: Replace print statements with something more useful. Maybe throw an error and catch it
 			System.out.println("Empty Graph document");
 			System.out.println(" DB name: " + db.dbName().get());
 		}
 		return graph;
 	}
 	
-	public void updateDB(ArangoDatabase db, String transId) throws InterruptedException {		//only updates the nodes/edges/GraphCreationLog and graph Attributes
+	public void updateDB(ArangoDatabase db, String transId) throws InterruptedException, ParseException {		//only updates the nodes/edges/GraphCreationLog and graph Attributes
 		this.prePersist();
 		ArangoCollection collection = db.collection(collectionName);
 		
@@ -1824,6 +1850,12 @@ public class CustomGraph extends MultiGraph {
 		bd.updateAttribute(nameColumnName, this.name);
 		bd.updateAttribute(typesColumnName, this.types);
 		bd.updateAttribute(propertiesColumnName, this.properties);
+		if(bd.getAttribute(extraInfoColumnName) != null){
+			bd.updateAttribute(extraInfoColumnName,this.extraInfo.toJSONString());
+		}
+		else {
+			bd.addAttribute(extraInfoColumnName,this.extraInfo.toJSONString());
+		}
 		bd.updateAttribute(nodeCountColumnName, this.graphNodeCount);
 		bd.updateAttribute(edgeCountColumnName, this.graphEdgeCount);
 		
@@ -1851,6 +1883,8 @@ public class CustomGraph extends MultiGraph {
 		else { ret += "no types" +n;}
 		if(this.properties != null) { ret += "properties :  " + this.properties + n;}
 		else { ret += "no properties" +n;}
+		if(this.extraInfo != null) { ret += "extraInfo :  " + this.extraInfo.toJSONString() +n;}
+		else { ret += "no extraInfo" +n;}
 		if(this.creationMethod != null) { ret += "creationMethod :  " + this.creationMethod.String() + n;}
 		else { ret += "no creationMethod" +n;}
 		ret += "Es gibt : " + this.covers.size() + " cover"+n;

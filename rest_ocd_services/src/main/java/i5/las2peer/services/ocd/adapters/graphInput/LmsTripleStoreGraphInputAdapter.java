@@ -59,8 +59,8 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 			showUserNames = Boolean.parseBoolean(param.get("showUserNames"));
 			param.remove("showUserNames");
 		}
-		if (param.containsKey("involvedUserURIs")) {
-			involvedUserURIs = param.get("involvedUserURIs");
+		if (param.containsKey("involvedUsers")) {
+			involvedUserURIs = param.get("involvedUsers");
 		
 			if(!involvedUserURIs.equals("")) {
 				involvedUsers = new ArrayList<String>();
@@ -70,7 +70,7 @@ public class LmsTripleStoreGraphInputAdapter extends AbstractGraphInputAdapter {
 					involvedUsers.add(str);
 				}			
 			}
-			param.remove("involvedUserURIs");
+			param.remove("involvedUsers");
 		}
 		SimpleDateFormat df = new SimpleDateFormat ("yyyy-MM-dd");		
 		if(param.containsKey("startDate")){

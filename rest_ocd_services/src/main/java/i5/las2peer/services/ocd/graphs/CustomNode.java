@@ -1,18 +1,12 @@
 package i5.las2peer.services.ocd.graphs;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
+
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.CustomNodeId;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiNode;
 import com.arangodb.ArangoCollection;
@@ -27,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 
+import java.util.Map;
 
 
 /**
@@ -50,6 +45,7 @@ public class CustomNode {
 	protected static final String graphIdColumnName = "GRAPH_ID";
 	protected static final String graphUserColumnName = "USER_NAME";
 	protected static final String nameColumnName = "NAME";
+	protected static final String extraInfoColumnName = "EXTRA_INFO";
 	
 	public static final String graphKeyColumnName = "GRAPH_KEY";
 	public static final String collectionName = "customnode";
@@ -87,6 +83,9 @@ public class CustomNode {
 	 */
 	@Column(name = nameColumnName)
 	private String name;
+
+	@ElementCollection
+	private JSONObject extraInfo = new JSONObject();
 	
 			
 	/////////////////////////////////////////////////////////////////////////////////////////
@@ -175,6 +174,24 @@ public class CustomNode {
 	 */
 	protected void setName(String name) {
 		this.name = name;
+	}
+
+	/**
+	 * Setter for the nodes extra Information string.
+	 *
+	 * @param extraInfo the String to fill the extra information attribute
+	 */
+	public void setExtraInfo(JSONObject extraInfo) {
+		this.extraInfo = extraInfo;
+	}
+
+	/**
+	 * Getter for the nodes extra Information string.
+	 *
+	 * @return The nodes extra Information string.
+	 */
+	public JSONObject getExtraInfo() {
+		return extraInfo;
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////
@@ -269,19 +286,32 @@ public class CustomNode {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
 		bd.addAttribute(nameColumnName, this.name);
+		bd.addAttribute(extraInfoColumnName, this.extraInfo);
 		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
 		
 		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
 	}
 	
-	public static CustomNode load(BaseDocument bd, CustomGraph graph) {
+	public static CustomNode load(BaseDocument bd, CustomGraph graph) throws OcdPersistenceLoadException {
 		CustomNode cn = new CustomNode();
 		if (bd != null) {
 			cn.key = bd.getKey();
 			cn.graph = graph;
 			if(bd.getAttribute(nameColumnName)!= null) {
 				cn.name = bd.getAttribute(nameColumnName).toString();
+			}
+			if(bd.getAttribute(extraInfoColumnName) != null){
+				try {
+					ObjectMapper om = new ObjectMapper();
+					cn.extraInfo = new JSONObject(om.convertValue(bd.getAttribute(extraInfoColumnName), Map.class));
+				}
+				catch (Exception e) {
+					throw new OcdPersistenceLoadException("Could not parse extraInfo of Node. " + e.getMessage());
+				}
+			}
+			else {
+				cn.extraInfo = new JSONObject();
 			}
 
 		}	
@@ -291,16 +321,18 @@ public class CustomNode {
 		return cn;
 	}
 	
-	public void updateDB(ArangoDatabase db, DocumentUpdateOptions opt) {
+	public void updateDB(ArangoDatabase db, DocumentUpdateOptions opt) throws ParseException {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
 		bd.addAttribute(nameColumnName,  this.name);
 		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
+		bd.addAttribute(extraInfoColumnName, this.extraInfo);
+
 		collection.updateDocument(this.key, bd, opt);
 	}
 	
 	//TODO wird die funktion gebraucht?
-	public static CustomNode load(String key, CustomGraph graph, ArangoDatabase db, DocumentReadOptions opt) {
+	public static CustomNode load(String key, CustomGraph graph, ArangoDatabase db, DocumentReadOptions opt) throws ParseException {
 		CustomNode cn = new CustomNode();
 		ArangoCollection collection = db.collection(collectionName);
 		
@@ -312,6 +344,13 @@ public class CustomNode {
 			cn.graph = graph;
 			if(bd.getAttribute(nameColumnName)!= null) {
 				cn.name = bd.getAttribute(nameColumnName).toString();
+			}
+			if(bd.getAttribute(extraInfoColumnName) != null){
+				JSONParser parser = new JSONParser(JSONParser.MODE_PERMISSIVE);
+				cn.extraInfo = (JSONObject)parser.parse(bd.getAttribute(extraInfoColumnName).toString());
+			}
+			else {
+				cn.extraInfo = new JSONObject();
 			}
 		}	
 		else {
