@@ -21,6 +21,9 @@ import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapter;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
 import i5.las2peer.services.ocd.adapters.metaOutput.*;
+import i5.las2peer.services.ocd.adapters.utilOutput.ClusterOutputAdapter;
+import i5.las2peer.services.ocd.adapters.utilOutput.ClusterOutputAdapterFactory;
+import i5.las2peer.services.ocd.adapters.utilOutput.ClusterOutputFormat;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
@@ -36,11 +39,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.text.ParseException;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -82,6 +81,10 @@ public class RequestHandler {
 	//private static final Logger log = Logger.getLogger("Service API");
 	private static final GeneralLogger log = new GeneralLogger();
 
+	/**
+	 * The factory used for creating cluster output adapters.
+	 */
+	private static ClusterOutputAdapterFactory clusterOutputAdapterFactory = new ClusterOutputAdapterFactory();
 	/**
 	 * The factory used for creating cover output adapters.
 	 */
@@ -957,6 +960,20 @@ public class RequestHandler {
 		Reader reader = new StringReader(contentStr);
 		adapter.setReader(reader);
 		return adapter.readCentrality(graph);
+	}
+
+	/**
+	 * Divides a graph into clusters based on a given node attribute from an ArangoDB Database
+	 * @param graph The graph to get clusters from
+	 * @param param A set of to discern clusters by
+	 * @return Both the number of clusters and the node/cluster mapping written in JSON format
+	 */
+	public String writeClusters(CustomGraph graph, ClusterOutputFormat outputFormat, Map<String, String> param) throws InstantiationException, IllegalAccessException, AdapterException {
+		ClusterOutputAdapter adapter = clusterOutputAdapterFactory.getInstance(outputFormat);
+		Writer writer = new StringWriter();
+		adapter.setWriter(writer);
+		adapter.writeCluster();
+		return writer.toString();
 	}
 
 	/**
