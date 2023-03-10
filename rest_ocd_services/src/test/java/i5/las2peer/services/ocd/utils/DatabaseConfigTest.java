@@ -1,6 +1,10 @@
 package i5.las2peer.services.ocd.utils;
 
 import static org.junit.Assert.*;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Properties;
 
 import org.junit.Ignore;
@@ -12,13 +16,17 @@ public class DatabaseConfigTest {
 
 
 	@Test
-	public void getPropertiesTest() {
+	public void getPropertiesTest() throws IOException {
+		Properties testProps = new Properties();
+		FileInputStream inputStream = new FileInputStream("ocd/arangoDB/config.properties");
+		testProps.load(inputStream);
+
 		Properties props = dc.getConfigProperties();
 		System.out.println("HOST:"+props.getProperty("HOST"));
-		assertEquals("127.0.0.1", props.getProperty("HOST"));
+		assertEquals(testProps.getProperty("HOST"), props.getProperty("HOST"));
 		
 		System.out.println("PORT:"+props.getProperty("PORT"));
-		assertEquals("8529", props.getProperty("PORT"));
+		assertEquals(testProps.getProperty("PORT"), props.getProperty("PORT"));
 		
 //		System.out.println("USER:"+props.getProperty("USER"));
 //		assertEquals("root", props.getProperty("USER"));
