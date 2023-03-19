@@ -7,6 +7,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.text.ParseException;
 import java.util.*;
 import java.awt.Color;
 
@@ -94,6 +95,49 @@ public class DatabaseTest {
 		this.persistExampleGraphCoverCMap(g1);
 		this.persistExampleGraphCoverCMap(g2);
 		this.persistExampleGraphCoverCMap(g4);
+	}
+
+	@Test
+	public void storeAndLoadGraphAndGetNodeMeta() throws OcdPersistenceLoadException, ParseException {
+		Database db = new Database(true);
+
+		CustomGraph graph1 = getGraph1();
+		graph1.setUserName("testuser");
+		graph1.setNodeName(graph1.getNode(0), "testNodeName");
+		String graphKey = db.storeGraph(graph1);
+		graph1 = db.getGraph("testuser",graphKey);
+
+
+		CustomNodeMeta nodeMeta = db.getNodeOfGraphMeta("testuser",graph1.getNodeKey(graph1.getNode(0)), graphKey);
+		assertEquals(nodeMeta.getName(), "testNodeName");
+	}
+
+	@Test
+	public void storeGraphAndGraphSequence() throws OcdPersistenceLoadException, ParseException {
+		Database db = new Database(true);
+
+		CustomGraph graph1 = getGraph1();
+		graph1.setUserName("testuser");
+		graph1.setExtraInfo(graph1.getExtraInfo().appendField("startDate","2022-02-02").appendField("endDate","2022-02-03"));
+		CustomGraph graph2 = getGraph2();
+		graph2.setUserName("testuser");
+		graph2.setExtraInfo(graph2.getExtraInfo().appendField("startDate","2022-02-04").appendField("endDate","2022-02-05"));
+
+		db.storeGraph(graph1);
+		String sequenceKey = db.storeGraphSequence(new GraphSequence(graph1));
+
+
+		db.storeGraph(graph2);
+		List<GraphSequence> sequenceList = db.getFittingGraphSequences("testuser", graph2);
+		assert(!sequenceList.isEmpty());
+
+		for (GraphSequence sequence : sequenceList) {
+			if (sequence.tryAddGraph(db.db, graph2)) {
+				db.storeGraphSequence(sequence);
+			}
+		}
+		GraphSequence sequenceGraph1 = db.getGraphSequence("testuser", sequenceKey);
+		assert(sequenceGraph1.getCustomGraphKeys().size() == 2);
 	}
 	
 	public void persistExampleGraphCoverCMap(CustomGraph g) {

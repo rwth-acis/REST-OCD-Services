@@ -20,10 +20,13 @@ import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapter;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
+import i5.las2peer.services.ocd.adapters.graphSequenceOutput.GraphSequenceOutputAdapter;
+import i5.las2peer.services.ocd.adapters.graphSequenceOutput.GraphSequenceOutputAdapterFactory;
+import i5.las2peer.services.ocd.adapters.graphSequenceOutput.GraphSequenceOutputFormat;
 import i5.las2peer.services.ocd.adapters.metaOutput.*;
+import i5.las2peer.services.ocd.adapters.utilOutput.ClusterCreationType;
 import i5.las2peer.services.ocd.adapters.utilOutput.ClusterOutputAdapter;
 import i5.las2peer.services.ocd.adapters.utilOutput.ClusterOutputAdapterFactory;
-import i5.las2peer.services.ocd.adapters.utilOutput.ClusterOutputFormat;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
@@ -41,7 +44,6 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -50,7 +52,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.math3.linear.RealMatrix;
-import org.mockito.cglib.core.Local;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -94,7 +95,12 @@ public class RequestHandler {
 	 * The factory used for creating centrality output adapters.
 	 */
 	private static CentralityOutputAdapterFactory centralityOutputAdapterFactory = new CentralityOutputAdapterFactory();
-	
+
+	/**
+	 * The factory used for creating graph sequence output adapters.
+	 */
+	private static GraphSequenceOutputAdapterFactory graphSequenceOutputAdapterFactory = new GraphSequenceOutputAdapterFactory();
+
 	/**
 	 * The factory used for creating graph output adapters.
 	 */
@@ -210,6 +216,7 @@ public class RequestHandler {
 	 */
 	public Map<String, String> parseParameters(String content)
 			throws SAXException, IOException, ParserConfigurationException {
+		System.out.println(content);
 		Map<String, String> parameters = new HashMap<String, String>();
 		Document doc = this.parseDocument(content);
 		NodeList parameterElts = doc.getElementsByTagName("Parameter");
@@ -412,6 +419,15 @@ public class RequestHandler {
 		}
 		doc.appendChild(graphsElt);
 		return writeDoc(doc);
+	}
+
+	public Object writeNodeMeta(CustomNodeMeta nodeMeta, NodeMetaOutputFormat outputFormat) throws AdapterException, InstantiationException, IllegalAccessException {
+		NodeMetaOutputAdapterFactory nodeMetaOutputAdapterFactory = new NodeMetaOutputAdapterFactory();
+		NodeMetaOutputAdapter adapter = nodeMetaOutputAdapterFactory.getInstance(outputFormat);
+		Writer writer = new StringWriter();
+		adapter.setWriter(writer);
+		adapter.writeNodeMeta(nodeMeta);
+		return writer.toString();
 	}
 
 	/**
@@ -639,6 +655,45 @@ public class RequestHandler {
 		adapter.setWriter(writer);
 		adapter.writeGraph(graphMeta);
 		return writer.toString();
+	}
+
+	/**
+	 * Creates a graph sequence output in a specified format.
+	 *
+	 * @param graphSequence
+	 *            The graph sequence.
+	 * @param outputFormat
+	 *            The format.
+	 * @return The graph sequence output.
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeGraphSequence(Database db, GraphSequence graphSequence, GraphSequenceOutputFormat outputFormat)
+			throws AdapterException, InstantiationException, IllegalAccessException {
+		GraphSequenceOutputAdapter adapter = graphSequenceOutputAdapterFactory.getInstance(outputFormat);
+		Writer writer = new StringWriter();
+		adapter.setWriter(writer);
+		adapter.writeGraphSequence(db, graphSequence);
+		return writer.toString();
+	}
+
+	/**
+	 * Creates an XML document containing multiple graph ids.
+	 *
+	 * @param graphSequences
+	 *            The graph sequences.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parser config failed
+	 */
+	public String writeGraphSequenceIds(List<GraphSequence> graphSequences) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element graphsElt = doc.createElement("GraphSequences");
+		for (int i = 0; i < graphSequences.size(); i++) {
+			graphsElt.appendChild(getIdElt(graphSequences.get(i), doc));
+		}
+		doc.appendChild(graphsElt);
+		return writeDoc(doc);
 	}
 
 	/**
@@ -968,9 +1023,10 @@ public class RequestHandler {
 	 * @param param A set of to discern clusters by
 	 * @return Both the number of clusters and the node/cluster mapping written in JSON format
 	 */
-	public String writeClusters(CustomGraph graph, ClusterOutputFormat outputFormat, Map<String, String> param) throws InstantiationException, IllegalAccessException, AdapterException {
+	public String writeClusters(CustomGraph graph, ClusterCreationType outputFormat, Map<String, String> param) throws ParseException, IllegalArgumentException, InstantiationException, IllegalAccessException, AdapterException {
 		ClusterOutputAdapter adapter = clusterOutputAdapterFactory.getInstance(outputFormat);
 		Writer writer = new StringWriter();
+		adapter.setParameter(graph, param);
 		adapter.setWriter(writer);
 		adapter.writeCluster();
 		return writer.toString();
@@ -989,6 +1045,23 @@ public class RequestHandler {
 		Element graphElt = doc.createElement("Graph");
 		Element graphIdElt = doc.createElement("Id");
 		graphIdElt.appendChild(doc.createTextNode(graph.getKey()));	//done
+		graphElt.appendChild(graphIdElt);
+		return graphElt;
+	}
+
+	/**
+	 * Returns an XML element node representing the id (key) of a graph.
+	 *
+	 * @param graphSequence
+	 *            The graph sequence.
+	 * @param doc
+	 *            The document to create the element node for.
+	 * @return The element node.
+	 */
+	protected Node getIdElt(GraphSequence graphSequence, Document doc) {
+		Element graphElt = doc.createElement("GraphSequence");
+		Element graphIdElt = doc.createElement("Id");
+		graphIdElt.appendChild(doc.createTextNode(graphSequence.getKey()));	//done
 		graphElt.appendChild(graphIdElt);
 		return graphElt;
 	}

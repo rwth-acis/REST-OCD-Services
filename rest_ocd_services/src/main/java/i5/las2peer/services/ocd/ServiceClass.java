@@ -14,9 +14,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Query;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -31,6 +28,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.adapters.graphSequenceOutput.GraphSequenceOutputFormat;
+import i5.las2peer.services.ocd.adapters.metaOutput.NodeMetaOutputFormat;
+import i5.las2peer.services.ocd.adapters.utilOutput.ClusterCreationType;
+import i5.las2peer.services.ocd.adapters.utilOutput.ClusterOutputAdapterFactory;
 import i5.las2peer.services.ocd.centrality.data.*;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.*;
@@ -44,13 +45,10 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.ManualDeployment;
 import i5.las2peer.api.security.UserAgent;
-import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
 import i5.las2peer.api.logging.MonitoringEvent;
-import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.execution.ExecutionContext;
 import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -107,7 +105,6 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.InvocationHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
@@ -215,6 +212,11 @@ public class ServiceClass extends RESTService {
 	private final static OcdMetricFactory metricFactory = new OcdMetricFactory();
 
 	/**
+	 * The factory used for creating clusters.
+	 */
+	private final static ClusterOutputAdapterFactory clusterOutputAdapterFactory = new ClusterOutputAdapterFactory();
+
+	/**
 	 * The layout handler used for layouting graphs and covers.
 	 */
 	private final static LayoutHandler layoutHandler = new LayoutHandler();
@@ -243,8 +245,6 @@ public class ServiceClass extends RESTService {
 	public static String getUserId() {
 		return Context.getCurrent().getMainAgent().getIdentifier();
 	}
-
-
 
 
 	//////////////////////////////////////////////////////////////////
@@ -492,15 +492,20 @@ public class ServiceClass extends RESTService {
 					database.storeGraph(graph);
 
 					//Also add Graph to sequences or create an own one
-					List<GraphSequence> sequenceList = database.getFittingGraphSequences(graph);
+					List<GraphSequence> sequenceList = database.getFittingGraphSequences(username, graph);
 					if (sequenceList.isEmpty()) {
-						database.storeSequence(new GraphSequence(graph.getKey()));
+						database.storeGraphSequence(new GraphSequence(graph));
 					}
 					else {
+						boolean addedToAtLeastOneSequence = false;
 						for (GraphSequence sequence : sequenceList) {
 							if (sequence.tryAddGraph(database.db, graph)) {
-								database.storeSequence(sequence);
+								database.storeGraphSequence(sequence);
+								addedToAtLeastOneSequence = true;
 							}
+						}
+						if(!addedToAtLeastOneSequence) {
+							database.storeGraphSequence(new GraphSequence(graph));
 						}
 					}
 
@@ -783,7 +788,54 @@ public class ServiceClass extends RESTService {
 		}
 
 		/**
+		 * Returns a nodes meta info in a specified output format.
+		 *
+		 * @param nodeIdStr
+		 *            The nodes id
+		 * @param graphIdStr
+		 * 			  The containing graphs id
+		 * @param nodeOutputFormatStr
+		 *            The name of the node meta info output format.
+		 * @return The graph output. Or an error xml.
+		 */
+		@GET
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@Path("nodes/{nodeId}/graphs/{graphId}")
+		@ApiOperation(tags = {"export"}, value = "Export a Node Meta of a Graph", notes = "Returns a node meta in a specified output format.")
+		public Response getNodeOfGraphMeta(@DefaultValue("META_JSON") @QueryParam("outputFormat") String nodeOutputFormatStr,
+									   @PathParam("nodeId") String nodeIdStr,
+									   @PathParam("graphId") String graphIdStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				NodeMetaOutputFormat format;
+				try {
+					format = NodeMetaOutputFormat.valueOf(nodeOutputFormatStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified node meta output format does not exist.");
+				}
+				CustomNodeMeta nodeMeta = database.getNodeOfGraphMeta(username, nodeIdStr, graphIdStr); // Avoid querying the whole graph and just get the node
+
+				if (nodeMeta == null)
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Node does not exist: graph key " + graphIdStr);	//done
+
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get node meta " + nodeIdStr + " of graph " + graphIdStr +  " in format " + nodeOutputFormatStr );
+				return Response.ok(requestHandler.writeNodeMeta(nodeMeta, format)).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+
+		}
+
+		/**
 		 * Deletes a graph. All covers based on the graph are removed as well.
+		 * The graph is also removed from all contianing sequences, and should they be empty,
+		 * they will be removed as well.
 		 * If a benchmark is currently calculating the graph the execution is
 		 * terminated. If an algorithm is currently calculating a cover based on
 		 * the graph it is terminated. If a metric is currently running on a
@@ -819,6 +871,223 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
+
+		/**
+		 * Gets a clustering for the specified graph
+		 *
+		 * @param graphIdStr The graphs ids in the database
+		 * @param content a String signifying the parameters of the clustering algorithm
+		 * @param clusterCreationTypeStr a String signifying the type of the clustering algorithm used
+		 * @return A response in JSON format containing the number of clusters and a mapping of the node ids to the cluster ids
+		 */
+		@POST
+		@Path("clusterings/graphs/{graphId}")
+		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"util"}, value = "Cluster Graph", notes = "Get a clustering for a graph.")
+		public Response getGraphClustering(@PathParam("graphId") String graphIdStr,
+										   @DefaultValue("BY_ATTRIBUTE") @QueryParam("clusterOutputFormat") String clusterCreationTypeStr,
+										   String content) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				ClusterCreationType clusterCreationType;
+
+				try {
+					clusterCreationType = ClusterCreationType.valueOf(clusterCreationTypeStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified clustering algorithm does not exist.");
+				}
+
+				Map<String, String> parameters;
+				try {
+					parameters = requestHandler.parseParameters(content);
+
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
+				}
+
+				CustomGraph graph;
+				graph = database.getGraph(username, graphIdStr);
+				if (graph == null) {
+					requestHandler.log(Level.WARNING,
+							"user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Graph does not exist: graph id " + graphIdStr);
+				}
+				if (graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+					requestHandler.log(Level.WARNING,
+							"user: " + username + ", "
+									+ "Invalid graph creation method status for clustering execution: "
+									+ graph.getCreationMethod().getStatus().name());
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Invalid graph creation method status for clustering execution: "
+									+ graph.getCreationMethod().getStatus().name());
+				}
+
+				/*
+				 * Returns the written clustering
+				 */
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get clustering" + clusterCreationType.getClass().getSimpleName() + " on graph " + graph.getKey());
+				return Response.ok(requestHandler.writeClusters(graph,clusterCreationType,parameters)).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		//////////////////////////////////////////////////////////////////////////
+		//////////// GRAPH SEQUENCES
+		//////////////////////////////////////////////////////////////////////////
+
+		/**
+		 * Returns a graph sequence in a specified output format.
+		 *
+		 * @param graphSequenceIdStr
+		 *            The graph id.
+		 * @param graphSequenceOutputFormatStr
+		 *            The name of the graph sequence output format.
+		 * @return The graph sequence output. Or an error xml.
+		 */
+		@GET
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@Path("sequences/{sequenceId}")
+		@ApiOperation(tags = {"export"}, value = "Export Graph Sequence", notes = "Returns a graph sequence in a specified output format.")
+		public Response getGraphSequence(@DefaultValue("DEFAULT_XML") @QueryParam("outputFormat") String graphSequenceOutputFormatStr,
+								 @PathParam("sequenceId") String graphSequenceIdStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				GraphSequenceOutputFormat format;
+				try {
+					format = GraphSequenceOutputFormat.valueOf(graphSequenceOutputFormatStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified graph sequence output format does not exist.");
+				}
+				GraphSequence graphSequence = database.getGraphSequence(username, graphSequenceIdStr); //done
+
+				if (graphSequence == null)
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Graph sequence does not exist: graph sequence key " + graphSequenceIdStr);	//done
+
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get graph sequence " + graphSequenceIdStr + " in format " + graphSequenceOutputFormatStr );
+				return Response.ok(requestHandler.writeGraphSequence(database, graphSequence, format)).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+
+		}
+
+		/**
+		 * Deletes a graph sequence.
+		 *
+		 * @param graphSequenceIdStr
+		 *            The graph sequence key.
+		 * @return A confirmation xml. Or an error xml.
+		 */
+		@DELETE
+		@Path("sequences/{sequenceId}")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"delete"}, value = "Delete Graph Sequence", notes = "Deletes a graph sequence.")
+		public Response deleteGraphSequence(@PathParam("sequenceId") String graphSequenceIdStr) {
+			try {
+
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				try {
+					database.deleteGraphSequence(username, graphSequenceIdStr, threadHandler);	//done
+
+				} catch (Exception e) {
+					if(e.getMessage() != null) {
+						requestHandler.writeError(Error.INTERNAL, "Graph sequence could not be deleted: " + e.getMessage());
+					}
+					requestHandler.writeError(Error.INTERNAL, "Graph sequence not found");
+				}
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete graph sequence " + graphSequenceIdStr);
+				return Response.ok(requestHandler.writeConfirmationXml()).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
+		 * Returns the ids of multiple graph sequences.
+		 *
+		 * @param firstIndexStr
+		 *            Optional query parameter. The result list index of the
+		 *            first id to return. Defaults to 0.
+		 * @param lengthStr
+		 *            Optional query parameter. The number of ids to return.
+		 *            Defaults to Long.MAX_VALUE.
+		 * @param graphIdStr
+		 *            Optional query parameter. If given, fetches only the sequences for a specific graph
+		 * @return The sequences. Or an error xml.
+		 */
+
+		@GET
+		@Path("sequences")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"show"}, value = "Get Sequences Info", notes = "Returns the ids of multiple sequences.")
+		public Response getGraphSequences(@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
+								  @DefaultValue("") @QueryParam("length") String lengthStr,
+								  @DefaultValue("") @QueryParam("graphId") String graphIdStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				List<GraphSequence> queryResults;
+
+				int firstIndex = 0;
+				try {
+					firstIndex = Integer.parseInt(firstIndexStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "First index is not valid.");
+				}
+
+				int length = 0;
+				try {
+					if (!lengthStr.equals("")) {
+						length = Integer.parseInt(lengthStr);
+					}
+					else {
+						length = Integer.MAX_VALUE;
+					}
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
+				}
+
+				if(graphIdStr == "") {
+					queryResults = database.getGraphSequences(username, firstIndex, length);
+				}
+				else if(database.getGraph(username, graphIdStr) != null) {
+					queryResults = database.getGraphSequences(username, graphIdStr, firstIndex, length);
+				}
+				else {
+					requestHandler.log(Level.WARNING, "user: " + username, new OcdPersistenceLoadException("Graph for GraphSequences not found"));
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "user: " + username + " Could not find graph " + graphIdStr + " for getting sequences");
+				}
+
+				String responseStr;
+				responseStr = requestHandler.writeGraphSequenceIds(queryResults);
+				return Response.ok(responseStr).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+
 
 		//////////////////////////////////////////////////////////////////////////
 		//////////// COVERS
@@ -1853,7 +2122,7 @@ public class ServiceClass extends RESTService {
 	    @GET
 	    @Path("evaluation/average/graph/{graphId}/maps")
 	    @Produces(MediaType.TEXT_XML)
-	    @Consumes(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.TEXT_PLAIN)
 	    @ApiResponses(value = {
 	    		@ApiResponse(code = 200, message = "Success"),
 	    		@ApiResponse(code = 401, message = "Unauthorized")
@@ -2630,7 +2899,7 @@ public class ServiceClass extends RESTService {
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID,
 	    					"Cover does not exist: cover id " + coverIdStr + ", graph id " + graphIdStr);
 	    		}
-	    		
+
 	    		layoutHandler.doLayout(cover, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize, painting);
 	    		database.updateCover(cover);
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get visualization of cover " + coverIdStr + " in " +visualOutputFormatStr + " format." );
@@ -2640,6 +2909,140 @@ public class ServiceClass extends RESTService {
 	    		return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 	    	}
 	    }
+
+		/**
+		 * Returns a visual representation of a cover sticking to the colors of a specified graph sequence.
+		 *
+		 * @param graphIdStr
+		 *            The id of the graph that the cover is based on.
+		 * @param coverIdStr
+		 *            The id of the cover.
+		 * @param graphLayoutTypeStr
+		 *            The name of the layout type defining which graph layouter
+		 *            to use.
+		 * @param coverPaintingTypeStr
+		 *            The name of the cover painting type defining which cover
+		 *            painter to use.
+		 * @param visualOutputFormatStr
+		 *            The name of the required output format.
+		 * @param doLabelNodesStr
+		 *            Optional query parameter. Defines whether nodes will
+		 *            receive labels with their names (TRUE) or not (FALSE).
+		 * @param doLabelEdgesStr
+		 *            Optional query parameter. Defines whether edges will
+		 *            receive labels with their weights (TRUE) or not (FALSE).
+		 * @param minNodeSizeStr
+		 *            Optional query parameter. Defines the minimum size of a
+		 *            node. Must be greater than 0.
+		 * @param maxNodeSizeStr
+		 *            Optional query parameter. Defines the maximum size of a
+		 *            node. Must be at least as high as the defined minimum
+		 *            size.
+		 * @return The visualization. Or an error xml.
+		 */
+		@GET
+		@Path("visualization/cover/{coverId}/sequence/{sequenceId}/graph/{graphId}/outputFormat/{VisualOutputFormat}/layout/{GraphLayoutType}/paint/{CoverPaintingType}")
+		@ApiOperation(tags = {"visualizations"}, value = "Get Cover Sequence Visualization", notes = "Retreives a cover visualization for a sequence, either in SVG or JSON for Force-Graphs")
+		public Response getCoverVisualization(@PathParam("graphId") String graphIdStr,
+											  @PathParam("coverId") String coverIdStr, @PathParam("GraphLayoutType") String graphLayoutTypeStr,
+											  @PathParam("sequenceId") String graphSequenceIdStr,
+											  @PathParam("CoverPaintingType") String coverPaintingTypeStr,
+											  @PathParam("VisualOutputFormat") String visualOutputFormatStr,
+											  @DefaultValue("TRUE") @QueryParam("doLabelNodes") String doLabelNodesStr,
+											  @DefaultValue("FALSE") @QueryParam("doLabelEdges") String doLabelEdgesStr,
+											  @DefaultValue("20") @QueryParam("minNodeSize") String minNodeSizeStr,
+											  @DefaultValue("45") @QueryParam("maxNodeSize") String maxNodeSizeStr) {
+			try {
+
+				String username = getUserName();
+
+				double minNodeSize;
+				try {
+					minNodeSize = Double.parseDouble(minNodeSizeStr);
+					if (minNodeSize < 0) {
+						throw new IllegalArgumentException();
+					}
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Min node size is not valid.");
+				}
+				double maxNodeSize;
+				try {
+					maxNodeSize = Double.parseDouble(maxNodeSizeStr);
+					if (maxNodeSize < minNodeSize) {
+						throw new IllegalArgumentException();
+					}
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Max node size is not valid.");
+				}
+				VisualOutputFormat format;
+				GraphLayoutType layout;
+				boolean doLabelNodes;
+				boolean doLabelEdges;
+				try {
+					layout = GraphLayoutType.valueOf(graphLayoutTypeStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified layout does not exist.");
+				}
+				CoverPaintingType painting;
+				try {
+					painting = CoverPaintingType.valueOf(coverPaintingTypeStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified layout does not exist.");
+				}
+				try {
+					format = VisualOutputFormat.valueOf(visualOutputFormatStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified visual graph output format does not exist.");
+				}
+				try {
+					doLabelNodes = requestHandler.parseBoolean(doLabelNodesStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Label nodes is not a boolean value.");
+				}
+				try {
+					doLabelEdges = requestHandler.parseBoolean(doLabelEdgesStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Label edges is not a boolean value.");
+				}
+
+				Cover cover = database.getCover(username, graphIdStr, coverIdStr);	//done
+				if (cover == null) {
+					requestHandler.log(Level.WARNING, "user: " + username + ", " + "Cover does not exist: cover id "
+							+ coverIdStr + ", graph id " + graphIdStr);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Cover does not exist: cover id " + coverIdStr + ", graph id " + graphIdStr);
+				}
+				GraphSequence sequence = database.getGraphSequence(username, graphSequenceIdStr);	//done
+				if (sequence == null) {
+					requestHandler.log(Level.WARNING, "user: " + username + ", " + "GraphSequence does not exist: sequence id "
+							+ graphSequenceIdStr);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"GraphSequence does not exist: sequence id " + graphSequenceIdStr);
+				}
+				if(sequence.getSequenceCommunityColorMap().isEmpty()) { // Generate sequence Communities if not already done
+					requestHandler.log(Level.INFO, "user: " + username + ", " + "generating sequence communities for sequence id "
+							+ graphSequenceIdStr);
+					sequence.generateSequenceCommunities(username, database, 0.3); //TODO: Test similarity threshold, make it settable
+					database.storeGraphSequence(sequence);
+				}
+
+				layoutHandler.doLayoutSequence(cover, sequence, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize, painting);
+				database.updateCover(cover);
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get visualization of cover " + coverIdStr + " in " +visualOutputFormatStr + " format for sequence " + graphSequenceIdStr + "." );
+				return requestHandler.writeCover(cover, format);
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
 
 	    /**
 	     * Returns a visual representation of a graph.

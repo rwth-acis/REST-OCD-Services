@@ -679,6 +679,18 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	/**
+	 * Getter for the node persistence key of a certain node.
+	 *
+	 * @param node
+	 *            The node.
+	 * @return The node key.
+	 */
+	public String getNodeKey(Node node) {
+		return getCustomNode(node).getKey();
+	}
+
+
+	/**
 	 * Getter for the node extra info of a certain node.
 	 *
 	 * @param node
@@ -690,14 +702,14 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	/**
-	 * Setter for the extra info of a certain node.
+	 * Setter for the node extra info of a certain node.
 	 *
-	 * @param node
-	 *            The node.
 	 * @param extraInfo
-	 *            The extra info.
+	 *            The node extra Info to be set.
+	 * @param node
+	 * 			  The node for which the extraInfo is set
 	 */
-	public void setNodeName(Node node, JSONObject extraInfo) {
+	public void setNodeExtraInfo(Node node, JSONObject extraInfo) {
 		getCustomNode(node).setExtraInfo(extraInfo);
 	}
 

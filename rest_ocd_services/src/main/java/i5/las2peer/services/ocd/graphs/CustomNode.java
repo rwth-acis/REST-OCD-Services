@@ -41,11 +41,11 @@ public class CustomNode {
 	/*
 	 * Database column name definitions.
 	 */
-	protected static final String idColumnName = "INDEX";
-	protected static final String graphIdColumnName = "GRAPH_ID";
-	protected static final String graphUserColumnName = "USER_NAME";
-	protected static final String nameColumnName = "NAME";
-	protected static final String extraInfoColumnName = "EXTRA_INFO";
+	public static final String idColumnName = "INDEX";
+	public static final String graphIdColumnName = "GRAPH_ID";
+	public static final String graphUserColumnName = "USER_NAME";
+	public static final String nameColumnName = "NAME";
+	public static final String extraInfoColumnName = "EXTRA_INFO";
 	
 	public static final String graphKeyColumnName = "GRAPH_KEY";
 	public static final String collectionName = "customnode";
@@ -271,7 +271,7 @@ public class CustomNode {
 	 */
 	protected Node createNode(CustomGraph graph) {
 		//TODO: Check whether it made sense to replace this here but the previous createNode definitely also didnt seem right as this doesnt even add a custom node
-		Node node = graph.addNode(this.name);
+		Node node = graph.addNode(this.name != null ? this.name : this.getKey());
 //		NodeRealizer nRealizer = graph.getRealizer(node);
 //		nRealizer.setX(this.x);
 //		nRealizer.setY(this.y);

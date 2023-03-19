@@ -6,15 +6,10 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.TypedQuery;
-
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Collections;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
 import i5.las2peer.services.ocd.cooperation.data.simulation.*;
@@ -23,7 +18,6 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
-import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.graphs.*;
 
 
@@ -51,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 
 
+import net.minidev.json.JSONObject;
 import org.apache.commons.io.FileUtils;
 
 
@@ -190,6 +185,11 @@ public class Database {
 		if(!collection.exists()) {
 			collection.create();
 		}
+		collectionNames.add(CustomNode.collectionName);		//14
+		collection = db.collection(CustomNode.collectionName);
+		if(!collection.exists()) {
+			collection.create();
+		}
 
 	}
 
@@ -290,6 +290,53 @@ public class Database {
 		return g;
 	}
 
+
+
+	public CustomNodeMeta getNodeOfGraphMeta(String username, String nodeIdStr, String graphIdStr) {
+		String transId = getTransactionId(CustomNode.class, false);
+
+		CustomNodeMeta customNodeMeta = null;
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			BaseDocument graph_bd = db.collection(CustomGraph.collectionName).getDocument(graphIdStr, BaseDocument.class);
+			if (graph_bd == null || !(graph_bd.getAttribute(CustomGraph.userColumnName).toString().equals(username))) {
+				throw new OcdPersistenceLoadException("Could not retrieve graph for node");
+			}
+			String queryStr = "FOR n IN " + CustomNode.collectionName +
+					" FILTER n." + CustomNode.graphKeyColumnName + " == \"" + graphIdStr + "\" " +
+					" AND n._key == \"" + nodeIdStr + "\" LIMIT 1 RETURN" +
+					" n";
+
+			ArangoCursor<BaseDocument> customNodeMetaJson = db.query(queryStr, queryOpt, BaseDocument.class);
+
+            /* Instantiate CustomNodeMeta from the json string acquired from a query. */
+ 			if(customNodeMetaJson.hasNext()) {
+				BaseDocument bd = customNodeMetaJson.next();
+				String name = "";
+				JSONObject extraInfo = new JSONObject();
+				if (bd.getAttribute(CustomNode.nameColumnName) != null) {
+					name = bd.getAttribute(CustomNode.nameColumnName).toString();
+				}
+				if (bd.getAttribute(CustomNode.extraInfoColumnName) != null) {
+					try {
+						ObjectMapper om = new ObjectMapper();
+						extraInfo = new JSONObject(om.convertValue(bd.getAttribute(CustomNode.extraInfoColumnName), Map.class));
+					} catch (Exception e) {
+						throw new OcdPersistenceLoadException("Could not parse extraInfo of Node. " + e.getMessage());
+					}
+				}
+
+				customNodeMeta = new CustomNodeMeta(bd.getKey(),name,bd.getAttribute(CustomNode.graphKeyColumnName).toString(),extraInfo);
+			}
+
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			e.printStackTrace();
+		}
+		return customNodeMeta;
+	}
+
 	/**
 	 * Return all graphs of a user
 	 *
@@ -318,7 +365,7 @@ public class Database {
 	}
 
 	/**
-	 * Return specified graphs' meta information of a user using an efficient approach. This approach only necessary
+	 * Return a specified users graphs' meta information using an efficient approach. This approach only necessary
 	 * metadata about graphs. E.g. no information about nodes/edges (other than their count) is loaded.
 	 *
 	 * @param username
@@ -369,6 +416,55 @@ public class Database {
 		return customGraphMetas;
 	}
 
+	/**
+	 * Return a specific set of graph meta informations by a key list and a user name using an efficient approach. This approach only necessary
+	 * metadata about graphs. E.g. no information about nodes/edges (other than their count) is loaded.
+	 *
+	 * @param username
+	 * 			  the users username
+	 * @param graphIds
+	 * 			  the graph ids of the graphs to be fetched
+	 * @param executionStatusIds
+	 * 			  the execution status ids of the graphs
+	 * @return the list of graphs
+	 */
+	public ArrayList<CustomGraphMeta> getGraphMetaDataEfficiently(String username, List<String> graphIds,
+																  List<Integer> executionStatusIds){
+		String transId = getTransactionId(CustomGraph.class, false);
+		ObjectMapper objectMapper = new ObjectMapper(); // needed to instantiate CustomGraphMeta from JSON
+		ArrayList<CustomGraphMeta> customGraphMetas = new ArrayList<CustomGraphMeta>();
+
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR g IN " + CustomGraph.collectionName + " FOR gcl IN " + GraphCreationLog.collectionName +
+					" FILTER g." + CustomGraph.userColumnName + " == @username AND gcl._key == g." + CustomGraph.creationMethodKeyColumnName +
+					" AND gcl." + GraphCreationLog.statusIdColumnName +" IN " +
+					executionStatusIds + " RETURN "+
+					"{\"key\" : g._key," +
+					"\"userName\" : g." + CustomGraph.userColumnName + "," +
+					"\"name\" : g." + CustomGraph.nameColumnName + "," +
+					"\"nodeCount\" : g." + CustomGraph.nodeCountColumnName + "," +
+					"\"edgeCount\" : g." + CustomGraph.edgeCountColumnName + "," +
+					"\"types\" : g." + CustomGraph.typesColumnName  +  "," +
+					"\"creationTypeId\" : gcl." + GraphCreationLog.typeColumnName + "," +
+					"\"creationStatusId\" : gcl." + GraphCreationLog.statusIdColumnName + "}";
+
+			Map<String, Object> bindVars = Collections.singletonMap("username",username);
+			ArangoCursor<String> customGraphMetaJson = db.query(queryStr, bindVars, queryOpt, String.class);
+
+			/* Create CustomGraphMeta instances based on the queried results and add them to the list to return */
+			while(customGraphMetaJson.hasNext()) {
+                /* Instantiate CustomGraphMeta from the json string acquired from a query.
+                Then add it to the list that will be returned*/
+				customGraphMetas.add(objectMapper.readValue(customGraphMetaJson.next(), CustomGraphMeta.class));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			e.printStackTrace();
+		}
+		return customGraphMetas;
+	}
 
 	/**
 	 * Return a list of specific graphs of a user
@@ -517,8 +613,11 @@ public class Database {
 			List<GraphSequence> sequenceList = getGraphSequences(username, graphKey);
 			for (GraphSequence sequence : sequenceList) {
 				try {
-					sequence.deleteGraphFromSequence(graphKey,coverList);
-					storeSequence(sequence);
+					sequence.deleteGraphFromSequence(this, graphKey,coverList);
+					storeGraphSequence(sequence);
+					if(sequence.getCustomGraphKeys().isEmpty()) { //TODO: Actually sensible to always delete this?
+						deleteGraphSequence(sequence.getKey());
+					}
 				} catch (Exception e) {
 					throw e;
 				}
@@ -577,13 +676,17 @@ public class Database {
 	 * @return the found GraphSequence instance or null if the GraphSequence does not exist
 	 */
 	public GraphSequence getGraphSequence(String username, String key) throws OcdPersistenceLoadException {
-		GraphSequence g = getGraphSequence(key);
+		GraphSequence gs = getGraphSequence(key);
 
-		if (g == null) {
+		if (gs == null) {
 			logger.log(Level.WARNING, "user: " + username + " Sequence does not exist: sequence key " + key);
 		}
+		else if(!username.equals(gs.getUserName())) {
+			logger.log(Level.WARNING, "user: " + username + " is not allowed to use Graph: " + key + " with user: " + gs.getUserName());
+			gs = null;
+		}
 
-		return g;
+		return gs;
 	}
 
 	//TODO: Make the query more intelligent
@@ -594,7 +697,7 @@ public class Database {
 	 *            The graph
 	 * @return sequences GraphSequence list
 	 */
-	public List<GraphSequence> getFittingGraphSequences(CustomGraph graph) throws OcdPersistenceLoadException {
+	public List<GraphSequence> getFittingGraphSequences(String username, CustomGraph graph) throws OcdPersistenceLoadException {
 		String transId = getTransactionId(GraphSequence.class, false);
 		List<GraphSequence> sequences = new ArrayList<>();
 		if(!graph.getExtraInfo().containsKey("startDate") || !graph.getExtraInfo().containsKey("endDate")) {
@@ -604,8 +707,9 @@ public class Database {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 			String queryStr = "FOR s IN " + GraphSequence.collectionName
 					+ " FILTER (s." + GraphSequence.timeOrderedColumnName + " == true) && "
-					+ "(\"" + graph.getExtraInfo().get("startDate") + "\" >= s." + GraphSequence.startDateColumnName + ") || "
-					+ "(\"" + graph.getExtraInfo().get("endDate") + "\" <= s." + GraphSequence.endDateColumnName + ") "
+					+ " (s." + GraphSequence.userColumnName + " == \"" + username + "\") "// && "
+					//+ "(\"" + graph.getExtraInfo().get("startDate") + "\" >= s." + GraphSequence.startDateColumnName + ") || "
+					//+ "(\"" + graph.getExtraInfo().get("endDate") + "\" <= s." + GraphSequence.endDateColumnName + ") "
 					+ " RETURN s._key";
 			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
 			for(String key : sequenceKeys) {
@@ -621,6 +725,67 @@ public class Database {
 		}
 		return sequences;
 	}
+
+	/**
+	 * Returns all Sequences for a user
+	 *
+	 * @param username
+	 *            owner of the sequences
+	 * @return sequences GraphSequence list
+	 */
+	public List<GraphSequence> getGraphSequences(String username) throws OcdPersistenceLoadException {
+		String transId = getTransactionId(GraphSequence.class, false);
+		List<GraphSequence> sequences = new ArrayList<>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR s IN " + GraphSequence.collectionName
+					+ " FILTER (s." + GraphSequence.userColumnName + " == " + username + ")"
+					+ " RETURN s._key";
+			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
+			for(String key : sequenceKeys) {
+				GraphSequence sequence = GraphSequence.load(key, db, transId);
+				if(sequence != null) {
+					sequences.add(sequence);
+				}
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return sequences;
+	}
+
+	/**
+	 * Returns all Sequences for a user from and until a certain index
+	 *
+	 * @param username
+	 *            owner of the sequences
+	 * @return sequences GraphSequence list
+	 */
+	public List<GraphSequence> getGraphSequences(String username, int firstIndex, int length) throws OcdPersistenceLoadException {
+		String transId = getTransactionId(GraphSequence.class, false);
+		List<GraphSequence> sequences = new ArrayList<>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR s IN " + GraphSequence.collectionName
+					+ " FILTER (s." + GraphSequence.userColumnName + " == " + username + ")"
+					+ " LIMIT " + firstIndex + "," + length + " RETURN s._key";
+			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
+			for(String key : sequenceKeys) {
+				GraphSequence sequence = GraphSequence.load(key, db, transId);
+				if(sequence != null) {
+					sequences.add(sequence);
+				}
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return sequences;
+	}
+
 
 	/**
 	 * Returns all Sequences corresponding to a CustomGraph
@@ -656,6 +821,30 @@ public class Database {
 		return sequences;
 	}
 
+	public List<GraphSequence> getGraphSequences(String username, String graphKey, int firstIndex, int length) throws OcdPersistenceLoadException {
+		String transId = getTransactionId(GraphSequence.class, false);
+		List<GraphSequence> sequences = new ArrayList<>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR s IN " + GraphSequence.collectionName
+					+ " FILTER (s." + GraphSequence.userColumnName + " == " + username + ") &&"
+					+ " (" + graphKey + "\" IN s." + GraphSequence.customGraphKeysColumnName + ") "
+					+ " LIMIT " + firstIndex + "," + length + " RETURN s._key";
+			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
+			for(String key : sequenceKeys) {
+				GraphSequence sequence = GraphSequence.load(key, db, transId);
+				if(sequence != null) {
+					sequences.add(sequence);
+				}
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return sequences;
+	}
+
 	/**
 	 * Persists a GraphSequence
 	 *
@@ -663,7 +852,7 @@ public class Database {
 	 *            GraphSequence
 	 * @return persistence key of the stored graph
 	 */
-	public String storeSequence(GraphSequence sequence) {
+	public String storeGraphSequence(GraphSequence sequence) {
 		String transId = getTransactionId(GraphSequence.class, true);
 		try {
 			sequence.persist(db, transId);
@@ -675,7 +864,7 @@ public class Database {
 		return sequence.getKey();
 	}
 
-	private void deleteSequence(String key) {
+	private void deleteGraphSequence(String key) {
 		ArangoCollection sequenceCollection = db.collection(GraphSequence.collectionName);
 
 		BaseDocument sequenceDoc = sequenceCollection.getDocument(key, BaseDocument.class);
@@ -694,7 +883,7 @@ public class Database {
 	 * 			  the threadhandler
 	 * @throws Exception if sequence deletion failed
 	 */
-	public void deleteSequence(String username, String sequenceKey, ThreadHandler threadHandler) throws Exception {
+	public void deleteGraphSequence(String username, String sequenceKey, ThreadHandler threadHandler) throws Exception {
 		CustomGraphId id = new CustomGraphId(sequenceKey, username);
 
 		synchronized (threadHandler) {
@@ -703,7 +892,7 @@ public class Database {
 			try {
 				CustomGraph graph = getGraph(username, sequenceKey);
 
-				deleteSequence(sequenceKey);
+				deleteGraphSequence(sequenceKey);
 			} catch(Exception e) {
 				throw e;
 			}
@@ -1941,8 +2130,11 @@ public class Database {
 		else if(c == GraphSequence.class) {
 			collections = collectionNames.subList(13, 14).toArray(new String[4]);
 		}
+		else if(c == CustomNode.class) {
+			collections = collectionNames.subList(14, 15).toArray(new String[4]);
+		}
 		else {
-			collections = collectionNames.subList(0, 14).toArray(new String[10]);
+			collections = collectionNames.subList(0, 15).toArray(new String[10]);
 		}
 
 		StreamTransactionEntity tx;
