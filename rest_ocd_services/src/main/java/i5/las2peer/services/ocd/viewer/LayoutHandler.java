@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.viewer;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphSequence;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayouter;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayouterFactory;
@@ -125,6 +126,33 @@ public class LayoutHandler {
 		layouter.doLayout(graph);
 		CoverPainter painter = coverPainterFactory.getInstance(paintingType);
 		painter.doPaint(cover);
+		paintNodes(cover);
+		setViewDefaults(graph);
+
+	}
+
+	/**
+	 * Applies a layout to the graph of a cover and paints the nodes according to the covers sequence community mappings.
+	 * @param cover The cover.
+	 * @param layoutType The layout type defining which graph layouter to use.
+	 * @param doLabelNodes Defines whether nodes will receive labels with their names (TRUE) or not (FALSE).
+	 * @param doLabelEdges Defines whether edges will receive labels with their weights (TRUE) or not (FALSE).
+	 * @param minNodeSize Defines the minimum size of a node. Must be greater than 0.
+	 * @param maxNodeSize Defines the maximum size of a node. Must be at least as high as the defined minimum size.
+	 * @param paintingType The painting type defining which cover painter to use.
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 * @throws InterruptedException If the executing thread was interrupted.
+	 */
+	public void doLayoutSequence(Cover cover, GraphSequence sequence, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges,
+						 double minNodeSize, double maxNodeSize, CoverPaintingType paintingType) throws InstantiationException, IllegalAccessException, InterruptedException {
+		CustomGraph graph = cover.getGraph();
+		setCoverLayoutDefaults(graph, minNodeSize, maxNodeSize);
+		labelGraph(graph, doLabelNodes, doLabelEdges);
+		GraphLayouter layouter = graphLayouterFactory.getInstance(layoutType);
+		layouter.doLayout(graph);
+		CoverPainter painter = coverPainterFactory.getInstance(paintingType);
+		painter.doPaintSequence(cover, sequence);
 		paintNodes(cover);
 		setViewDefaults(graph);
 

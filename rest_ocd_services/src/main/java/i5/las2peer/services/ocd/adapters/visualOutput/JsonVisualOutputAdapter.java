@@ -48,6 +48,7 @@ public class JsonVisualOutputAdapter extends AbstractVisualOutputAdapter {
 			tmp.put("id", n.getIndex());
 			if(graph instanceof CustomGraph)
 			{
+				tmp.put("key", graph.getNodeKey(n));
 				tmp.put("name", graph.getNodeName(n));
 			}
 			

@@ -23,7 +23,7 @@ public enum VisualOutputFormat implements EnumDisplayNames {
 	SVG ("SVG", SvgVisualOutputAdapter.class, 0),
 	
 	/**
-	 * Format corresponding to the SvgVisualOutputAdapter.
+	 * Format corresponding to the JsonVisualOutputAdapter.
 	 */
 	JSON ("Json", JsonVisualOutputAdapter.class, 1);
 	
