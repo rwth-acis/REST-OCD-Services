@@ -1,18 +1,9 @@
 package i5.las2peer.services.ocd.adapters.utilOutput;
 
-import i5.las2peer.services.ocd.adapters.visualOutput.JsonVisualOutputAdapter;
-import i5.las2peer.services.ocd.adapters.visualOutput.SvgVisualOutputAdapter;
-import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputAdapter;
-import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputFormat;
 import i5.las2peer.services.ocd.utils.EnumDisplayNames;
 
 import java.security.InvalidParameterException;
 import java.util.Locale;
-
-import java.security.InvalidParameterException;
-import java.util.Locale;
-
-import i5.las2peer.services.ocd.utils.EnumDisplayNames;
 
 /**
  * ClusterOutputAdapter registry.
@@ -20,7 +11,7 @@ import i5.las2peer.services.ocd.utils.EnumDisplayNames;
  *
  * @author Max
  */
-public enum ClusterOutputFormat implements EnumDisplayNames {
+public enum ClusterCreationType implements EnumDisplayNames {
     /*
      * Each enum constant is instantiated with a corresponding VisualOutputAdapter class object and a UNIQUE id.
      * Once the framework is in use ids must not be changed to avoid corrupting the persisted data.
@@ -52,7 +43,7 @@ public enum ClusterOutputFormat implements EnumDisplayNames {
      * @param adapterClass Defines the adapterClass attribute.
      * @param id           Defines the id attribute.
      */
-    private ClusterOutputFormat(String displayName, Class<? extends ClusterOutputAdapter> adapterClass, int id) {
+    private ClusterCreationType(String displayName, Class<? extends ClusterOutputAdapter> adapterClass, int id) {
         this.displayName = displayName;
         this.adapterClass = adapterClass;
         this.id = id;
@@ -91,8 +82,8 @@ public enum ClusterOutputFormat implements EnumDisplayNames {
      * @param id The id.
      * @return The corresponding format.
      */
-    public static i5.las2peer.services.ocd.adapters.utilOutput.ClusterOutputFormat lookupFormat(int id) {
-        for (i5.las2peer.services.ocd.adapters.utilOutput.ClusterOutputFormat format : i5.las2peer.services.ocd.adapters.utilOutput.ClusterOutputFormat.values()) {
+    public static ClusterCreationType lookupFormat(int id) {
+        for (ClusterCreationType format : ClusterCreationType.values()) {
             if (id == format.getId()) {
                 return format;
             }

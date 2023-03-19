@@ -160,13 +160,12 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
                 param.remove("dateAttributeName");
         }
 
-        //TODO: Use date formats somewhere else
         if (param.containsKey("startDate")) {
-            if(!(dateAttributeName == null) && !param.get("startDate").equals("")) {
-                if (dateAttributeName == null) {
-                    throw new IllegalArgumentException("Start date given but no date attribute name to apply it to");
-                }
-                startDate = DateUtils.parseDate(param.get("startDate"), "YYYY-MM-DD'T'HH:MM:SS.SSS'Z'", "YYYY-MM-DD'T'HH:MM:SS'Z'", "YYYY-MM-DD'Z'", "YYYY-MM-DD'T'HH:MM:SS.SSS", "YYYY-MM-DD'T'HH:MM:SS", "YYYY-MM-DD");
+            if (dateAttributeName == null && !param.get("startDate").equals("")) {
+                throw new IllegalArgumentException("Start date given but no date attribute name to apply it to");
+            }
+            else if(!param.get("startDate").equals("")) {
+                startDate = DateUtils.parseDate(param.get("startDate"), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
                 try {
                     for (String edgeCollectionName : edgeCollectionNames) {
                         edgeFilters.get(edgeCollectionName).add(new ImmutableTriple<>(dateAttributeName, ">=", '"' + param.get("startDate") + '"'));
@@ -178,13 +177,12 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
             param.remove("startDate");
         }
 
-        //TODO: Use date formats somewhere else
         if (param.containsKey("endDate")) {
-            if(!(dateAttributeName == null) && !param.get("endDate").equals("")) {
-                if (dateAttributeName == null) {
-                    throw new IllegalArgumentException("End date given but no date attribute name to apply it to");
-                }
-                endDate = DateUtils.parseDate(param.get("endDate"), "YYYY-MM-DD'T'HH:MM:SS.SSS'Z'", "YYYY-MM-DD'T'HH:MM:SS'Z'", "YYYY-MM-DD'Z'", "YYYY-MM-DD'T'HH:MM:SS.SSS", "YYYY-MM-DD'T'HH:MM:SS", "YYYY-MM-DD");
+            if (dateAttributeName == null && !param.get("endDate").equals("")) {
+                throw new IllegalArgumentException("End date given but no date attribute name to apply it to");
+            }
+            else if(!param.get("endDate").equals("")) {
+                endDate = DateUtils.parseDate(param.get("endDate"), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
                 try {
                     for (String edgeCollectionName : edgeCollectionNames) {
                         edgeFilters.get(edgeCollectionName).add(new ImmutableTriple<>(dateAttributeName, "<=", '"' + param.get("endDate") + '"'));
@@ -317,6 +315,7 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
             for (String key : (Set<String>) nodeJson.keySet()) {
                 if (!key.equals("_key") && !key.equals("_rev") && !key.equals("_id")) { //If we actually have some of the objects data and not just the key
                     //System.out.println(key + ": \n" + ((JSONObject)nodeJson.get(key)).toJSONString()); //TODO
+                    graph.setNodeExtraInfo(node, graph.getNodeExtraInfo(node).appendField(key,nodeJson.get(key)));
                 }
             }
         }
@@ -381,7 +380,7 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
                             ((String)edgeJson.get("_to")).replace(nodeCollectionName + "/",""));
                     for (String key : edgeJson.keySet()) {
                         if (!key.equals("_key") && !key.equals("_rev") && !key.equals("_id") && !key.equals("_from") && !key.equals("_to")) { //If we actually have some of the objects data and not just a key
-                            //System.out.println(key + ": \n" + ((JSONObject) edgeJson.get(key)).toJSONString());
+                            //System.out.println(key + ": \n" + ((JSONObject) edgeJson.get(key)).toJSONString()); //TODO
                         }
                     }
                 }
@@ -418,8 +417,11 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
         edgeCollections.addAll(edgeCollectionNames);
         graphExtraInfoIdentifiers.put("arangoEdgeCollections", edgeCollections);
         graphExtraInfo.put("identifiers",graphExtraInfoIdentifiers);
-        graphExtraInfo.put("startDate", (startDate != null ? startDate.toInstant().toString() : new Date(Long.MIN_VALUE).toInstant().toString()));
-        graphExtraInfo.put("endDate", (endDate != null ? endDate.toInstant().toString() : new Date(Long.MAX_VALUE).toInstant().toString()));
+        if(dateAttributeName != null) {
+            System.out.println(startDate.toInstant().toString() + " " + endDate.toInstant().toString());
+            graphExtraInfo.put("startDate", (startDate != null ? startDate.toInstant().toString() : new Date(Long.MIN_VALUE).toInstant().toString()));
+            graphExtraInfo.put("endDate", (endDate != null ? endDate.toInstant().toString() : new Date(Long.MAX_VALUE).toInstant().toString()));
+        }
 
         HashMap<String,Node> keyNodeMap = queryNodes(graph);
         queryEdges(graph, keyNodeMap);
