@@ -1,15 +1,5 @@
 package i5.las2peer.services.ocd.graphs;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
-
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoEdgeCollection;
 import com.arangodb.ArangoDatabase;
@@ -32,8 +22,6 @@ import org.graphstream.graph.Edge;
  * @author Sebastian
  *
  */
-@Entity
-@IdClass(CustomEdgeId.class)
 public class CustomEdge {
 	
 	/*
@@ -48,12 +36,10 @@ public class CustomEdge {
 	//ArangoDB
 	public static final String graphKeyColumnName = "GRAPH_KEY";
 	public static final String collectionName = "customedge";
+
 	/**
 	 * System generated persistence id.
 	 */
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name = idColumnName)
 	private int id;
 	
 	/**
@@ -64,18 +50,12 @@ public class CustomEdge {
 	/**
 	 * The graph that the edge belongs to.
 	 */
-	@Id
-	@ManyToOne//(fetch=FetchType.LAZY)
-	@JoinColumns({
-		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
-		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
-	})
 	private CustomGraph graph;
 	
 	/**
 	 * The edge weight.
 	 */
-	@Column(name = weightColumnName)
+
 	private double weight = 1;
 	
 	/////////////////////////////////////////////////////////////////////////////////////////
@@ -86,31 +66,19 @@ public class CustomEdge {
 	 * The source custom node.
 	 * Only for persistence purposes.
 	 */
-	@ManyToOne//(cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
-	@JoinColumns( {
-		@JoinColumn(name = sourceIndexColumnName, referencedColumnName = CustomNode.idColumnName),
-		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomNode.graphIdColumnName, insertable=false, updatable=false),
-		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomNode.graphUserColumnName, insertable=false, updatable=false)
-	} )
 	private CustomNode source;
 	
 	/*
 	 * The target custom node.
 	 * Only for persistence purposes.
 	 */
-	@ManyToOne//(cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
-	@JoinColumns( {
-		@JoinColumn(name = targetIndexColumnName, referencedColumnName = CustomNode.idColumnName),
-		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomNode.graphIdColumnName, insertable=false, updatable=false),
-		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomNode.graphUserColumnName, insertable=false, updatable=false)
-	} )
 	private CustomNode target;
 	
 //	/*
 //	 * The points of the visual edge layout.
 //	 * Only for persistence purposes.
 //	 */
-//	@ElementCollection
+//
 //	private List<PointEntity> points;
 	
 	

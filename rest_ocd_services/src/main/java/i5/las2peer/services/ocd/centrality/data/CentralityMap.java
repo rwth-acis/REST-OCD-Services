@@ -9,16 +9,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.OneToOne;
+
+
+
+
+
+
+
+
+
+
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.graphstream.graph.Node;
@@ -42,8 +42,8 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
 
 
-@Entity
-@IdClass(CentralityMapId.class)
+
+
 public class CentralityMap {
 	/*
 	 * Database column name definitions.
@@ -72,30 +72,23 @@ public class CentralityMap {
 	/**
 	 * System generated persistence key.
 	 */
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-    @Column(name = idColumnName)
+
+
 	private String key = "";
 	/**
 	 * The name of the CentralityMap.
 	 */
-	@Column(name = nameColumnName)
+
 	private String name = "";
 	/**
 	 * The graph that the CentralityMap is based on.
 	 */
-	@Id
-	@JoinColumns( {
-		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
-		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
-	})
 	private CustomGraph graph;
 	
 	/**
 	 * Logged data about the algorithm that created the CentralityMap.
 	 */
-	@OneToOne(orphanRemoval = true, cascade={CascadeType.ALL})
-	@JoinColumn(name = creationMethodColumnName)
+
 	private CentralityCreationLog creationMethod = new CentralityCreationLog(CentralityMeasureType.UNDEFINED, CentralityCreationType.UNDEFINED, new HashMap<String, String>(), new HashSet<GraphType>());
 
 	private Map<String, Double> map = new HashMap<String, Double>();

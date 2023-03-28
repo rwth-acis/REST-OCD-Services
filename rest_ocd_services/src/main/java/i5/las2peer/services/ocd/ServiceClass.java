@@ -14,9 +14,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Query;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;

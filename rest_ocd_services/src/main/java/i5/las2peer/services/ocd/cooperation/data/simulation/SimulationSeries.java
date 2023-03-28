@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.persistence.*;
-
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
@@ -33,7 +31,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
  *
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Entity
+
 public class SimulationSeries extends SimulationAbstract {
 
 	//ArangoDB

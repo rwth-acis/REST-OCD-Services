@@ -1,16 +1,4 @@
 package i5.las2peer.services.ocd.graphs;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.CustomNodeId;
 import org.graphstream.graph.Node;
@@ -22,9 +10,7 @@ import com.arangodb.entity.StreamTransactionEntity;
 import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentReadOptions;
 import com.arangodb.model.DocumentUpdateOptions;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 
 
@@ -35,12 +21,6 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
  * @author Sebastian
  *
  */
-@Entity
-@IdClass(CustomNodeId.class)
-@Table(
-		uniqueConstraints=
-            @UniqueConstraint(columnNames={CustomNode.idColumnName, CustomNode.graphIdColumnName, CustomNode.nameColumnName})
-)
 public class CustomNode {
 
 	/*
@@ -62,9 +42,6 @@ public class CustomNode {
 	/**
 	 * System generated persistence id.
 	 */
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name = idColumnName)
 	private int id;
 	/**
 	 * System generated persistence key.
@@ -74,18 +51,11 @@ public class CustomNode {
 	/**
 	 * The graph that the node is part of.
 	 */
-	@Id
-	@ManyToOne
-	@JoinColumns({
-		@JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
-		@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName)
-	})
 	private CustomGraph graph;
 	
 	/**
 	 * The name of then node.
 	 */
-	@Column(name = nameColumnName)
 	private String name;
 	
 			

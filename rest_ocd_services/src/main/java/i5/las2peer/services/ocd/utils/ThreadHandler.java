@@ -25,9 +25,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-
 /**
  * Handles the execution and synchronization of threads for running OCD algorithms, centrality algorithms, simulations, 
  * benchmarks and metrics.

@@ -3,8 +3,6 @@ package i5.las2peer.services.ocd.cooperation.data.simulation;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.persistence.Embeddable;
-
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
@@ -21,7 +19,6 @@ import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
  * Can be added to every entity as embeddable.
  *
  */
-@Embeddable
 public class Evaluation implements Serializable {
 
 

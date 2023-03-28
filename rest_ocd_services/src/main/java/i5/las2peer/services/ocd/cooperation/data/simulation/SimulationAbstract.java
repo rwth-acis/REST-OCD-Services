@@ -1,19 +1,5 @@
 package i5.las2peer.services.ocd.cooperation.data.simulation;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,7 +15,6 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
  * from simulations.
  *
  */
-@MappedSuperclass
 public abstract class SimulationAbstract implements TableInterface {
 
 	//ArangoDB
