@@ -5,9 +5,6 @@ package i5.las2peer.services.ocd.utils;
 import i5.las2peer.services.ocd.ServiceClass;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;

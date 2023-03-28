@@ -10,9 +10,6 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-
 /**
  * Runnable for the execution of knowledge-driven measures.
  * @author Sebastian

@@ -6,10 +6,6 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.TypedQuery;
-
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;

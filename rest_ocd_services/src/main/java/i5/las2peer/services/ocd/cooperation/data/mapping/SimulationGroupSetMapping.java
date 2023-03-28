@@ -2,9 +2,6 @@ package i5.las2peer.services.ocd.cooperation.data.mapping;
 
 import java.util.List;
 
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,7 +17,6 @@ public class SimulationGroupSetMapping extends MappingAbstract {
 
 	///// Entity Fields /////
 
-	@ManyToOne(fetch = FetchType.LAZY)
 	private List<SimulationSeriesGroup> simulation;
 
 	private String username;

@@ -14,19 +14,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
@@ -48,12 +35,10 @@ import org.graphstream.graph.Node;
 /**
  * Represents a cover, i.e. the result of an overlapping community detection
  * algorithm holding the community structure and additional meta data.
- * 
+ *
  * @author Sebastian
  *
  */
-@Entity
-@IdClass(CoverId.class)
 public class Cover {
 
 	//////////////////////// DATABASE COLUMN NAMES ////////////////////////
@@ -70,7 +55,7 @@ public class Cover {
 	public static final String numberOfCommunitiesColumnName = "NUMBER_OF_COMMUNITIES";
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
-	
+
 	//ArangoDB name definitions
 	public static final String collectionName = "cover";
 	public static final String graphKeyColumnName = "GRAPH_KEY";
@@ -94,71 +79,41 @@ public class Cover {
 	/**
 	 * System generated persistence key.
 	 */
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = idColumnName)
 	private String key = "";
 	/**
 	 * The graph that the cover is based on.
 	 */
-	//TODO: GRaph should not be ID in javax persistence, we should change this as long as we dont use any other database library
-	@Id
-	// @ManyToOne(fetch=FetchType.LAZY)
-	@JoinColumns({ @JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
-			@JoinColumn(name = graphUserColumnName, referencedColumnName = CustomGraph.userColumnName) })
 	private CustomGraph graph = new CustomGraph();
 
 	/**
 	 * The name of the cover.
 	 */
-	@Column(name = nameColumnName)
 	private String name = "";
 
 	/**
 	 * The number of communities in the cover
 	 */
-	@Column(name = numberOfCommunitiesColumnName)
 	private Integer numberOfCommunities;
-
-
-	// /**
-	// * A description of the cover.
-	// */
-	// @Column(name = descriptionColumnName)
-	// private String description = "";
-
-	// /**
-	// * Last time of modification.
-	// */
-	// @Version
-	// @Column(name = lastUpdateColumnName)
-	// private Timestamp lastUpdate;
 
 	/**
 	 * Logged data about the algorithm that created the cover.
 	 */
-	@OneToOne(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinColumn(name = creationMethodColumnName)
 	private CoverCreationLog creationMethod = new CoverCreationLog(CoverCreationType.UNDEFINED,
 			new HashMap<String, String>(), new HashSet<GraphType>());
 
 	/**
 	 * The communities forming the cover.
 	 */
-	@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade = {
-			CascadeType.ALL } /* , fetch=FetchType.LAZY */)
 	private List<Community> communities = new ArrayList<Community>();
 
 	/**
 	 * The metric logs calculated for the cover.
 	 */
-	@OneToMany(mappedBy = "cover", orphanRemoval = true, cascade = { CascadeType.ALL })
 	private List<OcdMetricLog> metrics = new ArrayList<OcdMetricLog>();
 
 	/**
 	 * The similarity costs calculated for the cover.
 	 */
-	@Column(name = simCostsColumnName)
 	private double simCosts;
 
 	///////////////////////////// CONSTRUCTORS /////////////////////////////

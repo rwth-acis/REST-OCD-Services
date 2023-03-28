@@ -1,13 +1,5 @@
 package i5.las2peer.services.ocd.cooperation.data.simulation;
 
-import javax.persistence.Basic;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
@@ -21,7 +13,7 @@ import i5.las2peer.services.ocd.cooperation.data.table.TableLineInterface;
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 
-@Entity
+
 public class GroupParameters implements TableLineInterface {
 
 	@JsonProperty

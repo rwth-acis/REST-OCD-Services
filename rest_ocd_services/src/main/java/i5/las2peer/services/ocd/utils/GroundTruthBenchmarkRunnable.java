@@ -9,9 +9,6 @@ import i5.las2peer.services.ocd.graphs.CustomGraphId;
 
 import java.util.logging.Level;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-
 /**
  * Runnable for the execution of ground truth benchmarks.
  * @author Sebastian

@@ -6,21 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapKeyJoinColumn;
-import javax.persistence.MapKeyJoinColumns;
-import javax.persistence.PreRemove;
-
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
@@ -40,8 +25,8 @@ import org.graphstream.graph.Node;
  * @author Sebastian
  *
  */
-@Entity
-@IdClass(CommunityId.class)
+
+
 public class Community {
 
 	/*
@@ -64,9 +49,8 @@ public class Community {
 	/**
 	 * System generated persistence id.
 	 */
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = idColumnName)
+
+
 	private long id;
 	/**
 	 * System generated persistence key.
@@ -75,41 +59,33 @@ public class Community {
 	/**
 	 * The cover that the community is part of.
 	 */
-	@Id
-	@ManyToOne
-	@JoinColumns({ @JoinColumn(name = graphIdColumnName, referencedColumnName = Cover.graphIdColumnName),
-			@JoinColumn(name = graphUserColumnName, referencedColumnName = Cover.graphUserColumnName),
-			@JoinColumn(name = coverIdColumnName, referencedColumnName = Cover.idColumnName) })
+
+
 	private Cover cover;
 
 	/**
 	 * The community name.
 	 */
-	@Column(name = nameColumnName)
+
 	private String name = "";
 
 	/**
 	 * The default color of community nodes, defined by the sRGB color model.
 	 */
-	@Column(name = colorColumnName)
+
 	private int color = Color.WHITE.getRGB();
 
 	/**
 	 * The communities properties.
 	 */
-	@Column(name = propertiesColumnName)
-	@ElementCollection
+
+
 	private List<Double> properties;
 
 	/**
 	 * A mapping from the community member (custom) nodes to their belonging
 	 * factors. Belonging factors must be non-negative.
 	 */
-	@ElementCollection(fetch = FetchType.LAZY)
-	@MapKeyJoinColumns({
-			@MapKeyJoinColumn(name = membershipMapNodeIdKeyColumnName, referencedColumnName = CustomNode.idColumnName),
-			@MapKeyJoinColumn(name = membershipMapGraphIdKeyColumnName, referencedColumnName = CustomNode.graphIdColumnName),
-			@MapKeyJoinColumn(name = membershipMapGraphUserKeyColumnName, referencedColumnName = CustomNode.graphUserColumnName) })
 	private Map<CustomNode, Double> memberships = new HashMap<CustomNode, Double>();
 
 	/**
@@ -289,7 +265,6 @@ public class Community {
 	/*
 	 * PreRemove Method. Removes all membership mappings.
 	 */
-	@PreRemove
 	public void preRemove() {
 		this.memberships.clear();
 	}

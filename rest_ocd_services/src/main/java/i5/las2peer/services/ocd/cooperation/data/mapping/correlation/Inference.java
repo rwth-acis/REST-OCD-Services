@@ -2,9 +2,6 @@ package i5.las2peer.services.ocd.cooperation.data.mapping.correlation;
 
 import java.util.List;
 
-import javax.persistence.Basic;
-import javax.persistence.Embeddable;
-
 import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 import org.apache.commons.math3.stat.inference.WilcoxonSignedRankTest;
 
@@ -13,15 +10,12 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 
-@Embeddable
+
 public class Inference {
 
 		///////// Entity Fields ///////////
-				
-		@Basic
 		private double wilcoxon;
-		
-		@Basic
+
 		private double mannWhitney;
 	
 

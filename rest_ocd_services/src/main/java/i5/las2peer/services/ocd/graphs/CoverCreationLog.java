@@ -7,13 +7,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
@@ -27,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Sebastian
  *
  */
-@Entity
+
 public class CoverCreationLog {
 	
 	/*
@@ -48,9 +41,8 @@ public class CoverCreationLog {
 	/**
 	 * System generated persistence id.
 	 */
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-    @Column(name = idColumnName)
+
+
 	private long id;
 	/**
 	 * System generated persistence key.
@@ -59,22 +51,22 @@ public class CoverCreationLog {
 	/**
 	 * Parameters used by the creation method.
 	 */
-	@ElementCollection
+
 	private Map<String, String> parameters;
 	/**
 	 * Id of the creation methods corresponding cover creation type.
 	 */
-	@Column(name = typeColumnName)
+
 	private int typeId;
 	/**
 	 * The status of the corresponding execution.
 	 */
-	@Column(name = statusIdColumnName)
+
 	private int statusId = ExecutionStatus.WAITING.getId();
 	/**
 	 * The graph types the creation method is compatible with.
 	 */
-	@ElementCollection
+
 	private Set<Integer> compatibleGraphTypes = new HashSet<Integer>();
 	
 	/**
