@@ -585,7 +585,7 @@ public class RequestHandler {
 	 * @return The document.
 	 * @throws ParserConfigurationException if parsing failed
 	 */
-	public String writeId(GraphSequence sequence) throws ParserConfigurationException {
+	public String writeId(CustomGraphSequence sequence) throws ParserConfigurationException {
 		Document doc = getDocument();
 		doc.appendChild(getIdElt(sequence, doc));
 		return writeDoc(doc);
@@ -674,7 +674,7 @@ public class RequestHandler {
 	/**
 	 * Creates a graph sequence output in a specified format.
 	 *
-	 * @param graphSequence
+	 * @param customGraphSequence
 	 *            The graph sequence.
 	 * @param outputFormat
 	 *            The format.
@@ -683,28 +683,28 @@ public class RequestHandler {
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
-	public String writeGraphSequence(Database db, GraphSequence graphSequence, GraphSequenceOutputFormat outputFormat)
+	public String writeGraphSequence(Database db, CustomGraphSequence customGraphSequence, GraphSequenceOutputFormat outputFormat)
 			throws AdapterException, InstantiationException, IllegalAccessException {
 		GraphSequenceOutputAdapter adapter = graphSequenceOutputAdapterFactory.getInstance(outputFormat);
 		Writer writer = new StringWriter();
 		adapter.setWriter(writer);
-		adapter.writeGraphSequence(db, graphSequence);
+		adapter.writeGraphSequence(db, customGraphSequence);
 		return writer.toString();
 	}
 
 	/**
 	 * Creates an XML document containing multiple graph ids.
 	 *
-	 * @param graphSequences
+	 * @param customGraphSequences
 	 *            The graph sequences.
 	 * @return The document.
 	 * @throws ParserConfigurationException if parser config failed
 	 */
-	public String writeGraphSequenceIds(List<GraphSequence> graphSequences) throws ParserConfigurationException {
+	public String writeGraphSequenceIds(List<CustomGraphSequence> customGraphSequences) throws ParserConfigurationException {
 		Document doc = getDocument();
 		Element graphsElt = doc.createElement("GraphSequences");
-		for (int i = 0; i < graphSequences.size(); i++) {
-			graphsElt.appendChild(getIdElt(graphSequences.get(i), doc));
+		for (int i = 0; i < customGraphSequences.size(); i++) {
+			graphsElt.appendChild(getIdElt(customGraphSequences.get(i), doc));
 		}
 		doc.appendChild(graphsElt);
 		return writeDoc(doc);
@@ -714,7 +714,7 @@ public class RequestHandler {
 	 * Creates an XML document containing meta information about multiple
 	 * graphs.
 	 *
-	 * @param graphSequences The graphs.
+	 * @param customGraphSequences The graphs.
 	 * @return The document.
 	 * @throws AdapterException if adapter failed
 	 * @throws ParserConfigurationException if parser config failed
@@ -723,12 +723,12 @@ public class RequestHandler {
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 */
-	public String writeGraphSequenceMetas(Database db, List<GraphSequence> graphSequences) throws AdapterException, ParserConfigurationException,
+	public String writeGraphSequenceMetas(Database db, List<CustomGraphSequence> customGraphSequences) throws AdapterException, ParserConfigurationException,
 			IOException, SAXException, InstantiationException, IllegalAccessException {
 		Document doc = getDocument();
 		Element graphSequencesElt = doc.createElement("GraphSequences");
-		for (GraphSequence graphSequence : graphSequences) {
-			String metaDocStr = writeGraphSequence(db, graphSequence, GraphSequenceOutputFormat.META_XML);
+		for (CustomGraphSequence customGraphSequence : customGraphSequences) {
+			String metaDocStr = writeGraphSequence(db, customGraphSequence, GraphSequenceOutputFormat.META_XML);
 			Node metaDocNode = parseDocumentToNode(metaDocStr);
 			Node importNode = doc.importNode(metaDocNode, true);
 			graphSequencesElt.appendChild(importNode);
@@ -1093,16 +1093,16 @@ public class RequestHandler {
 	/**
 	 * Returns an XML element node representing the id (key) of a graph.
 	 *
-	 * @param graphSequence
+	 * @param customGraphSequence
 	 *            The graph sequence.
 	 * @param doc
 	 *            The document to create the element node for.
 	 * @return The element node.
 	 */
-	protected Node getIdElt(GraphSequence graphSequence, Document doc) {
+	protected Node getIdElt(CustomGraphSequence customGraphSequence, Document doc) {
 		Element graphElt = doc.createElement("GraphSequence");
 		Element graphIdElt = doc.createElement("Id");
-		graphIdElt.appendChild(doc.createTextNode(graphSequence.getKey()));	//done
+		graphIdElt.appendChild(doc.createTextNode(customGraphSequence.getKey()));	//done
 		graphElt.appendChild(graphIdElt);
 		return graphElt;
 	}

@@ -1,7 +1,7 @@
 package i5.las2peer.services.ocd.viewer.painters;
 
 import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.GraphSequence;
+import i5.las2peer.services.ocd.graphs.CustomGraphSequence;
 
 /**
  * The common interface for all cover painters
@@ -17,5 +17,5 @@ public interface CoverPainter {
 	 */
 	void doPaint(Cover cover);
 
-	void doPaintSequence(Cover cover, GraphSequence graphSequence);
+	void doPaintSequence(Cover cover, CustomGraphSequence customGraphSequence);
 }

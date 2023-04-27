@@ -180,8 +180,8 @@ public class Database {
 		if(!collection.exists()) {
 			collection.create();
 		}
-		collectionNames.add(GraphSequence.collectionName);		//13
-		collection = db.collection(GraphSequence.collectionName);
+		collectionNames.add(CustomGraphSequence.collectionName);		//13
+		collection = db.collection(CustomGraphSequence.collectionName);
 		if(!collection.exists()) {
 			collection.create();
 		}
@@ -623,8 +623,8 @@ public class Database {
 				}
 			}
 
-			List<GraphSequence> sequenceList = getGraphSequences(username, graphKey);
-			for (GraphSequence sequence : sequenceList) {
+			List<CustomGraphSequence> sequenceList = getGraphSequences(username, graphKey);
+			for (CustomGraphSequence sequence : sequenceList) {
 				try {
 					sequence.deleteGraphFromSequence(this, graphKey,coverList);
 					storeGraphSequence(sequence);
@@ -666,11 +666,11 @@ public class Database {
 
 	///////////////////////////////////////////////////////////// SEQUENCES ///////////////////////////////////////////////////////
 
-	private GraphSequence getGraphSequence(String key) throws OcdPersistenceLoadException {
-		String transId = getTransactionId(GraphSequence.class, false);
-		GraphSequence sequence;
+	private CustomGraphSequence getGraphSequence(String key) throws OcdPersistenceLoadException {
+		String transId = getTransactionId(CustomGraphSequence.class, false);
+		CustomGraphSequence sequence;
 		try {
-			sequence = GraphSequence.load(key, db, transId);
+			sequence = CustomGraphSequence.load(key, db, transId);
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
 			db.abortStreamTransaction(transId);
@@ -688,8 +688,8 @@ public class Database {
 	 *            key of the sequence
 	 * @return the found GraphSequence instance or null if the GraphSequence does not exist
 	 */
-	public GraphSequence getGraphSequence(String username, String key) throws OcdPersistenceLoadException {
-		GraphSequence gs = getGraphSequence(key);
+	public CustomGraphSequence getGraphSequence(String username, String key) throws OcdPersistenceLoadException {
+		CustomGraphSequence gs = getGraphSequence(key);
 
 		if (gs == null) {
 			logger.log(Level.WARNING, "user: " + username + " Sequence does not exist: sequence key " + key);
@@ -710,23 +710,23 @@ public class Database {
 	 *            The graph
 	 * @return sequences GraphSequence list
 	 */
-	public List<GraphSequence> getFittingGraphSequences(String username, CustomGraph graph) throws OcdPersistenceLoadException {
-		String transId = getTransactionId(GraphSequence.class, false);
-		List<GraphSequence> sequences = new ArrayList<>();
+	public List<CustomGraphSequence> getFittingGraphSequences(String username, CustomGraph graph) throws OcdPersistenceLoadException {
+		String transId = getTransactionId(CustomGraphSequence.class, false);
+		List<CustomGraphSequence> sequences = new ArrayList<>();
 		if(!graph.getExtraInfo().containsKey("startDate") || !graph.getExtraInfo().containsKey("endDate")) {
 			return sequences;
 		}
 		try {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
-			String queryStr = "FOR s IN " + GraphSequence.collectionName
-					+ " FILTER (s." + GraphSequence.timeOrderedColumnName + " == true) && "
-					+ " (s." + GraphSequence.userColumnName + " == \"" + username + "\") "// && "
+			String queryStr = "FOR s IN " + CustomGraphSequence.collectionName
+					+ " FILTER (s." + CustomGraphSequence.timeOrderedColumnName + " == true) && "
+					+ " (s." + CustomGraphSequence.userColumnName + " == \"" + username + "\") "// && "
 					//+ "(\"" + graph.getExtraInfo().get("startDate") + "\" >= s." + GraphSequence.startDateColumnName + ") || "
 					//+ "(\"" + graph.getExtraInfo().get("endDate") + "\" <= s." + GraphSequence.endDateColumnName + ") "
 					+ " RETURN s._key";
 			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
 			for(String key : sequenceKeys) {
-				GraphSequence sequence = GraphSequence.load(key, db, transId);
+				CustomGraphSequence sequence = CustomGraphSequence.load(key, db, transId);
 				if(sequence != null) {
 					sequences.add(sequence);
 				}
@@ -746,17 +746,17 @@ public class Database {
 	 *            owner of the sequences
 	 * @return sequences GraphSequence list
 	 */
-	public List<GraphSequence> getGraphSequences(String username) throws OcdPersistenceLoadException {
-		String transId = getTransactionId(GraphSequence.class, false);
-		List<GraphSequence> sequences = new ArrayList<>();
+	public List<CustomGraphSequence> getGraphSequences(String username) throws OcdPersistenceLoadException {
+		String transId = getTransactionId(CustomGraphSequence.class, false);
+		List<CustomGraphSequence> sequences = new ArrayList<>();
 		try {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
-			String queryStr = "FOR s IN " + GraphSequence.collectionName
-					+ " FILTER (s." + GraphSequence.userColumnName + " == \"" + username + "\")"
+			String queryStr = "FOR s IN " + CustomGraphSequence.collectionName
+					+ " FILTER (s." + CustomGraphSequence.userColumnName + " == \"" + username + "\")"
 					+ " RETURN s._key";
 			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
 			for(String key : sequenceKeys) {
-				GraphSequence sequence = GraphSequence.load(key, db, transId);
+				CustomGraphSequence sequence = CustomGraphSequence.load(key, db, transId);
 				if(sequence != null) {
 					sequences.add(sequence);
 				}
@@ -776,17 +776,17 @@ public class Database {
 	 *            owner of the sequences
 	 * @return sequences GraphSequence list
 	 */
-	public List<GraphSequence> getGraphSequences(String username, int firstIndex, int length) throws OcdPersistenceLoadException {
-		String transId = getTransactionId(GraphSequence.class, false);
-		List<GraphSequence> sequences = new ArrayList<>();
+	public List<CustomGraphSequence> getGraphSequences(String username, int firstIndex, int length) throws OcdPersistenceLoadException {
+		String transId = getTransactionId(CustomGraphSequence.class, false);
+		List<CustomGraphSequence> sequences = new ArrayList<>();
 		try {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
-			String queryStr = "FOR s IN " + GraphSequence.collectionName
-					+ " FILTER (s." + GraphSequence.userColumnName + " == \"" + username + "\")"
+			String queryStr = "FOR s IN " + CustomGraphSequence.collectionName
+					+ " FILTER (s." + CustomGraphSequence.userColumnName + " == \"" + username + "\")"
 					+ " LIMIT " + firstIndex + "," + length + " RETURN s._key";
 			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
 			for(String key : sequenceKeys) {
-				GraphSequence sequence = GraphSequence.load(key, db, transId);
+				CustomGraphSequence sequence = CustomGraphSequence.load(key, db, transId);
 				if(sequence != null) {
 					sequences.add(sequence);
 				}
@@ -809,19 +809,19 @@ public class Database {
 	 *            key of the graph
 	 * @return sequences GraphSequence list
 	 */
-	public List<GraphSequence> getGraphSequences(String username, String graphKey) throws OcdPersistenceLoadException {
+	public List<CustomGraphSequence> getGraphSequences(String username, String graphKey) throws OcdPersistenceLoadException {
 		CustomGraph g = getGraph(username, graphKey);
-		String transId = getTransactionId(GraphSequence.class, false);
-		List<GraphSequence> sequences = new ArrayList<>();
+		String transId = getTransactionId(CustomGraphSequence.class, false);
+		List<CustomGraphSequence> sequences = new ArrayList<>();
 		if(g == null) {
 			return sequences;
 		}
 		try {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
-			String queryStr = "FOR s IN " + GraphSequence.collectionName + " FILTER \"" + graphKey + "\" IN s." + GraphSequence.customGraphKeysColumnName + " RETURN s._key";
+			String queryStr = "FOR s IN " + CustomGraphSequence.collectionName + " FILTER \"" + graphKey + "\" IN s." + CustomGraphSequence.customGraphKeysColumnName + " RETURN s._key";
 			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
 			for(String key : sequenceKeys) {
-				GraphSequence sequence = GraphSequence.load(key, db, transId);
+				CustomGraphSequence sequence = CustomGraphSequence.load(key, db, transId);
 				if(sequence!= null) {
 					sequences.add(sequence);
 				}
@@ -834,18 +834,18 @@ public class Database {
 		return sequences;
 	}
 
-	public List<GraphSequence> getGraphSequences(String username, String graphKey, int firstIndex, int length) throws OcdPersistenceLoadException {
-		String transId = getTransactionId(GraphSequence.class, false);
-		List<GraphSequence> sequences = new ArrayList<>();
+	public List<CustomGraphSequence> getGraphSequences(String username, String graphKey, int firstIndex, int length) throws OcdPersistenceLoadException {
+		String transId = getTransactionId(CustomGraphSequence.class, false);
+		List<CustomGraphSequence> sequences = new ArrayList<>();
 		try {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
-			String queryStr = "FOR s IN " + GraphSequence.collectionName
-					+ " FILTER (s." + GraphSequence.userColumnName + " == \"" + username + "\") &&"
-					+ " (\"" + graphKey + "\" IN s." + GraphSequence.customGraphKeysColumnName + ") "
+			String queryStr = "FOR s IN " + CustomGraphSequence.collectionName
+					+ " FILTER (s." + CustomGraphSequence.userColumnName + " == \"" + username + "\") &&"
+					+ " (\"" + graphKey + "\" IN s." + CustomGraphSequence.customGraphKeysColumnName + ") "
 					+ " LIMIT " + firstIndex + "," + length + " RETURN s._key";
 			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
 			for(String key : sequenceKeys) {
-				GraphSequence sequence = GraphSequence.load(key, db, transId);
+				CustomGraphSequence sequence = CustomGraphSequence.load(key, db, transId);
 				if(sequence != null) {
 					sequences.add(sequence);
 				}
@@ -865,8 +865,8 @@ public class Database {
 	 *            GraphSequence
 	 * @return persistence key of the stored graph
 	 */
-	public String storeGraphSequence(GraphSequence sequence) {
-		String transId = getTransactionId(GraphSequence.class, true);
+	public String storeGraphSequence(CustomGraphSequence sequence) {
+		String transId = getTransactionId(CustomGraphSequence.class, true);
 		try {
 			sequence.persist(db, transId);
 			db.commitStreamTransaction(transId);
@@ -878,7 +878,7 @@ public class Database {
 	}
 
 	private void deleteGraphSequence(String key) {
-		ArangoCollection sequenceCollection = db.collection(GraphSequence.collectionName);
+		ArangoCollection sequenceCollection = db.collection(CustomGraphSequence.collectionName);
 
 		BaseDocument sequenceDoc = sequenceCollection.getDocument(key, BaseDocument.class);
 
@@ -911,9 +911,9 @@ public class Database {
 		String transId = this.getTransactionId(Cover.class, true);
 		try {
 			cover.persist(db, transId);
-			List<GraphSequence> sequencesOfGraph = getGraphSequences(cover.getGraph().getUserName(), cover.getGraph().getKey());
-			String transIdSequences = this.getTransactionId(GraphSequence.class, true);
-			for (GraphSequence sequence : sequencesOfGraph) {
+			List<CustomGraphSequence> sequencesOfGraph = getGraphSequences(cover.getGraph().getUserName(), cover.getGraph().getKey());
+			String transIdSequences = this.getTransactionId(CustomGraphSequence.class, true);
+			for (CustomGraphSequence sequence : sequencesOfGraph) {
 				sequence.setSequenceCommunityColorMap(new HashMap<>());
 				sequence.setCommunitySequenceCommunityMap(new HashMap<>());
 				sequence.persist(db, transIdSequences);
@@ -1216,9 +1216,9 @@ public class Database {
 		String transId = this.getTransactionId(Cover.class, true);
 		try {
 			cover.updateDB(db, transId);
-			List<GraphSequence> sequencesOfGraph = getGraphSequences(cover.getGraph().getUserName(), cover.getGraph().getKey());
-			String transIdSequences = this.getTransactionId(GraphSequence.class, true);
-			for (GraphSequence sequence : sequencesOfGraph) {
+			List<CustomGraphSequence> sequencesOfGraph = getGraphSequences(cover.getGraph().getUserName(), cover.getGraph().getKey());
+			String transIdSequences = this.getTransactionId(CustomGraphSequence.class, true);
+			for (CustomGraphSequence sequence : sequencesOfGraph) {
 				if (!sequence.getCommunitySequenceCommunityMap().containsKey(cover.getCommunities().get(0).getKey())){ //I.e. if the sequence does not contain the communities of the already finished cover
 					sequence.setSequenceCommunityColorMap(new HashMap<>());
 					sequence.setCommunitySequenceCommunityMap(new HashMap<>());
@@ -1329,9 +1329,9 @@ public class Database {
 		if (cover == null)
 			throw new IllegalArgumentException("Cover not found");
 
-		List<GraphSequence> sequencesOfGraph = getGraphSequences(username, graphKey);
-		String transIdSequences = this.getTransactionId(GraphSequence.class, true);
-		for (GraphSequence sequence : sequencesOfGraph) {
+		List<CustomGraphSequence> sequencesOfGraph = getGraphSequences(username, graphKey);
+		String transIdSequences = this.getTransactionId(CustomGraphSequence.class, true);
+		for (CustomGraphSequence sequence : sequencesOfGraph) {
 			sequence.deleteCoverFromSequence(cover);
 			sequence.persist(db, transIdSequences);
 		}
@@ -2160,7 +2160,7 @@ public class Database {
 		else if(c == SimulationSeriesGroup.class) {
 			collections = collectionNames.subList(11,13).toArray(new String[1]);
 		}
-		else if(c == GraphSequence.class) {
+		else if(c == CustomGraphSequence.class) {
 			collections = collectionNames.subList(13, 14).toArray(new String[4]);
 		}
 		else if(c == CustomNode.class) {

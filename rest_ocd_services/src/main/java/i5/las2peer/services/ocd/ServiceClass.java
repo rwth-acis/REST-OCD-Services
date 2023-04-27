@@ -497,13 +497,13 @@ public class ServiceClass extends RESTService {
 					database.storeGraph(graph);
 
 					//Also add Graph to sequences or create an own one
-					List<GraphSequence> sequenceList = database.getFittingGraphSequences(username, graph);
+					List<CustomGraphSequence> sequenceList = database.getFittingGraphSequences(username, graph);
 					if (sequenceList.isEmpty()) {
-						database.storeGraphSequence(new GraphSequence(graph, true));
+						database.storeGraphSequence(new CustomGraphSequence(graph, true));
 					}
 					else {
 						boolean addedToAtLeastOneSequence = false;
-						for (GraphSequence sequence : sequenceList) {
+						for (CustomGraphSequence sequence : sequenceList) {
 							if (sequence.tryAddGraph(database.db, graph)) {
 								sequence.setSequenceCommunityColorMap(new HashMap<>());
 								sequence.setCommunitySequenceCommunityMap(new HashMap<>());
@@ -512,7 +512,7 @@ public class ServiceClass extends RESTService {
 							}
 						}
 						if(!addedToAtLeastOneSequence) {
-							database.storeGraphSequence(new GraphSequence(graph, true));
+							database.storeGraphSequence(new CustomGraphSequence(graph, true));
 						}
 					}
 
@@ -988,14 +988,14 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Specified graph sequence output format does not exist.");
 				}
-				GraphSequence graphSequence = database.getGraphSequence(username, graphSequenceIdStr); //done
+				CustomGraphSequence customGraphSequence = database.getGraphSequence(username, graphSequenceIdStr); //done
 
-				if (graphSequence == null)
+				if (customGraphSequence == null)
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Graph sequence does not exist: graph sequence key " + graphSequenceIdStr);	//done
 
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get graph sequence " + graphSequenceIdStr + " in format " + graphSequenceOutputFormatStr );
-				return Response.ok(requestHandler.writeGraphSequence(database, graphSequence, format)).build();
+				return Response.ok(requestHandler.writeGraphSequence(database, customGraphSequence, format)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
@@ -1041,7 +1041,7 @@ public class ServiceClass extends RESTService {
 				}
 
 				CustomGraph firstGraph = database.getGraph(username, Arrays.asList(graphIds).get(0));
-				GraphSequence sequence = new GraphSequence(firstGraph, true);
+				CustomGraphSequence sequence = new CustomGraphSequence(firstGraph, true);
 				boolean timeOrdered = true;
 				for (int i=1; i<graphIds.length; i++) {
 					if(!timeOrdered || !sequence.tryAddGraph(database.db, database.getGraph(username, graphIds[i]))) {
@@ -1121,7 +1121,7 @@ public class ServiceClass extends RESTService {
 								  @DefaultValue("") @QueryParam("graphId") String graphIdStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				List<GraphSequence> queryResults;
+				List<CustomGraphSequence> queryResults;
 
 				int firstIndex = 0;
 				try {
@@ -3110,7 +3110,7 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Cover does not exist: cover id " + coverIdStr + ", graph id " + graphIdStr);
 				}
-				GraphSequence sequence = database.getGraphSequence(username, graphSequenceIdStr);	//done
+				CustomGraphSequence sequence = database.getGraphSequence(username, graphSequenceIdStr);	//done
 				if (sequence == null) {
 					requestHandler.log(Level.WARNING, "user: " + username + ", " + "GraphSequence does not exist: sequence id "
 							+ graphSequenceIdStr);

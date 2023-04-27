@@ -8,20 +8,14 @@ import com.arangodb.model.DocumentReadOptions;
 import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.time.DateUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.graphstream.graph.Node;
-import org.la4j.matrix.Matrix;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
 import java.text.ParseException;
-import java.time.Instant;
 import java.util.Map.Entry;
 import java.util.*;
 
@@ -33,7 +27,7 @@ import java.util.*;
  */
 //TODO: Check how/if graphs can be part of multiple sequences
 //TODO: Check if date attributes are even needed here anymore
-public class GraphSequence {
+public class CustomGraphSequence {
 
     public static final String collectionName = "customgraphsequence";
     public static final String customGraphKeysColumnName = "CUSTOM_GRAPH_KEYS";
@@ -74,9 +68,9 @@ public class GraphSequence {
     private Date startDate = new Date(Long.MIN_VALUE);
     private Date endDate = new Date(Long.MAX_VALUE);
 
-    private GraphSequence() {};
+    private CustomGraphSequence() {};
 
-    public GraphSequence(CustomGraph firstGraph, boolean checkTimeOrdered) throws ParseException {
+    public CustomGraphSequence(CustomGraph firstGraph, boolean checkTimeOrdered) throws ParseException {
         customGraphKeys.add(firstGraph.getKey());
         this.userName = firstGraph.getUserName();
         if(checkTimeOrdered && firstGraph.getExtraInfo().get("startDate") != null && firstGraph.getExtraInfo().get("endDate") != null) {
@@ -372,8 +366,8 @@ public class GraphSequence {
         }
     }
 
-    public static GraphSequence load(String key, ArangoDatabase db, String transId) throws OcdPersistenceLoadException {
-        GraphSequence sq = new GraphSequence();
+    public static CustomGraphSequence load(String key, ArangoDatabase db, String transId) throws OcdPersistenceLoadException {
+        CustomGraphSequence sq = new CustomGraphSequence();
         ArangoCollection collection = db.collection(collectionName);
 
         DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);

@@ -11,12 +11,8 @@ import java.text.ParseException;
 import java.util.*;
 import java.awt.Color;
 
-import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;//graphen schnell erstellen
-import i5.las2peer.services.ocd.testsUtils.OcdTestCoverFactory;//cover schnell erstellen
-
 import i5.las2peer.services.ocd.algorithms.LOCAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
 
 import i5.las2peer.services.ocd.metrics.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
@@ -26,7 +22,6 @@ import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
 import i5.las2peer.services.ocd.graphs.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
-import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.measures.OutDegree;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmExecutor;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
@@ -121,19 +116,19 @@ public class DatabaseTest {
 		graph2.setExtraInfo(graph2.getExtraInfo().appendField("startDate","2022-02-04").appendField("endDate","2022-02-05"));
 
 		db.storeGraph(graph1);
-		String sequenceKey = db.storeGraphSequence(new GraphSequence(graph1, true));
+		String sequenceKey = db.storeGraphSequence(new CustomGraphSequence(graph1, true));
 
 
 		db.storeGraph(graph2);
-		List<GraphSequence> sequenceList = db.getFittingGraphSequences("testuser", graph2);
+		List<CustomGraphSequence> sequenceList = db.getFittingGraphSequences("testuser", graph2);
 		assert(!sequenceList.isEmpty());
 
-		for (GraphSequence sequence : sequenceList) {
+		for (CustomGraphSequence sequence : sequenceList) {
 			if (sequence.tryAddGraph(db.db, graph2)) {
 				db.storeGraphSequence(sequence);
 			}
 		}
-		GraphSequence sequenceGraph1 = db.getGraphSequence("testuser", sequenceKey);
+		CustomGraphSequence sequenceGraph1 = db.getGraphSequence("testuser", sequenceKey);
 		assert(sequenceGraph1.getCustomGraphKeys().size() == 2);
 	}
 	

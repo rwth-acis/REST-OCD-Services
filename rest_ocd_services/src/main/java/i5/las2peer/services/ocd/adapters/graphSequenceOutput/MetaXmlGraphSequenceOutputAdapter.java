@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.adapters.graphSequenceOutput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraphMeta;
-import i5.las2peer.services.ocd.graphs.GraphSequence;
+import i5.las2peer.services.ocd.graphs.CustomGraphSequence;
 import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import org.w3c.dom.Document;
@@ -20,7 +20,7 @@ import java.util.List;
 public class MetaXmlGraphSequenceOutputAdapter extends AbstractGraphSequenceOutputAdapter {
 
     @Override
-    public void writeGraphSequence(Database db, GraphSequence sequence) throws AdapterException {
+    public void writeGraphSequence(Database db, CustomGraphSequence sequence) throws AdapterException {
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         try {
             DocumentBuilder builder = builderFactory.newDocumentBuilder();

@@ -3,7 +3,7 @@ package i5.las2peer.services.ocd.viewer;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.GraphSequence;
+import i5.las2peer.services.ocd.graphs.CustomGraphSequence;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayouter;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayouterFactory;
@@ -16,13 +16,9 @@ import i5.las2peer.services.ocd.viewer.utils.CentralityVisualizationType;
 import java.awt.Color;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
-
-import org.graphstream.ui.layout.Layout;
-import org.graphstream.ui.layout.springbox.implementations.SpringBox;
 
 /**
  * Manages the integration of all layouting phases.
@@ -144,8 +140,8 @@ public class LayoutHandler {
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	public void doLayoutSequence(Cover cover, GraphSequence sequence, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges,
-						 double minNodeSize, double maxNodeSize, CoverPaintingType paintingType) throws InstantiationException, IllegalAccessException, InterruptedException {
+	public void doLayoutSequence(Cover cover, CustomGraphSequence sequence, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges,
+                                 double minNodeSize, double maxNodeSize, CoverPaintingType paintingType) throws InstantiationException, IllegalAccessException, InterruptedException {
 		CustomGraph graph = cover.getGraph();
 		setCoverLayoutDefaults(graph, minNodeSize, maxNodeSize);
 		labelGraph(graph, doLabelNodes, doLabelEdges);
