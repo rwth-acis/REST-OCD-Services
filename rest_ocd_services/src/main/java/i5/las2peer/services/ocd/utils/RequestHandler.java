@@ -578,6 +578,20 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates an XML document containing the id of a single graph sequence.
+	 *
+	 * @param sequence
+	 *            The graph sequence.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parsing failed
+	 */
+	public String writeId(GraphSequence sequence) throws ParserConfigurationException {
+		Document doc = getDocument();
+		doc.appendChild(getIdElt(sequence, doc));
+		return writeDoc(doc);
+	}
+
+	/**
 	 * Creates an XML document containing the id of a single cover.
 	 * 
 	 * @param cover
@@ -693,6 +707,33 @@ public class RequestHandler {
 			graphsElt.appendChild(getIdElt(graphSequences.get(i), doc));
 		}
 		doc.appendChild(graphsElt);
+		return writeDoc(doc);
+	}
+
+	/**
+	 * Creates an XML document containing meta information about multiple
+	 * graphs.
+	 *
+	 * @param graphSequences The graphs.
+	 * @return The document.
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeGraphSequenceMetas(Database db, List<GraphSequence> graphSequences) throws AdapterException, ParserConfigurationException,
+			IOException, SAXException, InstantiationException, IllegalAccessException {
+		Document doc = getDocument();
+		Element graphSequencesElt = doc.createElement("GraphSequences");
+		for (GraphSequence graphSequence : graphSequences) {
+			String metaDocStr = writeGraphSequence(db, graphSequence, GraphSequenceOutputFormat.META_XML);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
+			Node importNode = doc.importNode(metaDocNode, true);
+			graphSequencesElt.appendChild(importNode);
+		}
+		doc.appendChild(graphSequencesElt);
 		return writeDoc(doc);
 	}
 
