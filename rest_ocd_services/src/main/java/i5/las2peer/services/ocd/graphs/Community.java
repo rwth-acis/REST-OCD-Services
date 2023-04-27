@@ -27,6 +27,7 @@ import com.arangodb.entity.BaseDocument;
 import com.arangodb.model.DocumentCreateOptions;
 import com.arangodb.model.DocumentReadOptions;
 
+import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -297,8 +298,10 @@ public class Community {
 	}
 	
 	//persistence functions
-	public void persist( ArangoDatabase db, DocumentCreateOptions opt) {
+	public void persist( ArangoDatabase db, DocumentCreateOptions opt, DocumentUpdateOptions updateOptions) {
 		ArangoCollection collection = db.collection(collectionName);
+
+		updateOptions.mergeObjects(false);
 		BaseDocument bd = new BaseDocument();
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(colorColumnName, this.color);
@@ -313,8 +316,14 @@ public class Community {
 			membershipKeyMap.put(entry.getKey().getKey(), entry.getValue());	//CustomNode Keys muessen bekannt sein
 		}
 		bd.addAttribute(membershipKeyMapColumnName, membershipKeyMap);
-		collection.insertDocument(bd, opt);
-		this.key = bd.getKey();
+
+		if(this.key == null) {
+			this.key = collection.insertDocument(bd, opt).getKey();
+		}
+		else {
+			bd.setKey(this.key);
+			collection.updateDocument(this.key, bd, updateOptions);
+		}
 	}
 	
 	public static Community load(String key, Cover cover, ArangoDatabase db, DocumentReadOptions opt) {

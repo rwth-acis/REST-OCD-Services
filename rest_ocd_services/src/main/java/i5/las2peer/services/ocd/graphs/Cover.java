@@ -775,8 +775,10 @@ public class Cover {
 		
 		bd = new BaseDocument();
 		List<String> communityKeyList = new ArrayList<String>();
+		DocumentUpdateOptions updateOptionsCommunity = new DocumentUpdateOptions().streamTransactionId(transId);
+		updateOptionsCommunity.mergeObjects(false);
 		for(Community c : this.communities) {
-			c.persist(db, createOptions);
+			c.persist(db, createOptions, updateOptionsCommunity);
 			communityKeyList.add(c.getKey());
 		}
 		
@@ -808,16 +810,21 @@ public class Cover {
 		bd.updateAttribute(nameColumnName, this.name);
 		bd.updateAttribute(simCostsColumnName, this.simCosts);
 		this.creationMethod.updateDB(db, transId);
-		
-		Object objCommunityKeys = bd.getAttribute(communityKeysColumnName);
-		List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
-		for(String communityKey : communityKeys) {			//delete all communitys
-			communityCollection.deleteDocument(communityKey, null, deleteOpt);
-		}		
+
+		//TODO: Commented this out because this generated new keys for communities every time.
+		// As of yet, a cover either has zero communities on creation or all communities at algorithm finish and there will not be new/different ones after that
+		// Therefore use this again only if this changes, but be aware that other classes need to be changed too for that
+		//Object objCommunityKeys = bd.getAttribute(communityKeysColumnName);
+		//List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
+		//for(String communityKey : communityKeys) {			//delete all communities
+		//	communityCollection.deleteDocument(communityKey, null, deleteOpt);
+		//}
 		
 		List<String> communityKeyList = new ArrayList<String>();
+		DocumentUpdateOptions updateOptionsCommunity = new DocumentUpdateOptions().streamTransactionId(transId);
+		updateOptionsCommunity.mergeObjects(false);
 		for(Community c : this.communities) {		//add new communities
-			c.persist(db, createOptions);
+			c.persist(db, createOptions, updateOptionsCommunity);
 			communityKeyList.add(c.getKey());
 		}	
 		bd.updateAttribute(communityKeysColumnName, communityKeyList);
