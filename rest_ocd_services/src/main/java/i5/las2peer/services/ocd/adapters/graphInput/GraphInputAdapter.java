@@ -23,8 +23,20 @@ public interface GraphInputAdapter extends InputAdapter {
 	 * @throws AdapterException If the input provided by the reader has invalid format.
 	 */
 	public CustomGraph readGraph() throws AdapterException;
-	
+
+	/**
+	 * From a map of parameter names and their values in String format, set the parameters of the input algorithm
+	 * @param param The parameter/value map
+	 * @throws IllegalArgumentException if a parameter could not be set
+	 * @throws ParseException if a parameter could not be parsed from a value string
+	 */
 	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException;
 
+	/**
+	 * From a map of parameter names and a list of their values in String format, set the parameters of the input algorithm
+	 * @param listParam The parameter/list map
+	 * @throws IllegalArgumentException if a parameter could not be set
+	 * @throws ParseException if a parameter could not be parsed from a value string
+	 */
 	default void setListParameter(Map<String, List<String>> listParam) throws IllegalArgumentException, ParseException {}
 }
