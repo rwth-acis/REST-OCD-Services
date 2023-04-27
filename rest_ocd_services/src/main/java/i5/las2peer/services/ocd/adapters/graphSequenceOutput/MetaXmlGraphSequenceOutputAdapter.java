@@ -26,6 +26,7 @@ public class MetaXmlGraphSequenceOutputAdapter extends AbstractGraphSequenceOutp
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
             Document doc = builder.newDocument();
             Element graphSequenceElt = doc.createElement("GraphSequence");
+            graphSequenceElt.setAttribute("Id", sequence.getKey());
             doc.appendChild(graphSequenceElt);
             /*
              * Basic Attributes
@@ -40,14 +41,21 @@ public class MetaXmlGraphSequenceOutputAdapter extends AbstractGraphSequenceOutp
 
             if(sequence.getTimeOrdered()) {
                 Element graphSequenceStartDateElt = doc.createElement("StartDate");
-                graphSequenceStartDateElt.appendChild(doc.createTextNode(sequence.getStartDate().toString()));
+                graphSequenceStartDateElt.appendChild(doc.createTextNode(sequence.getStartDate().toInstant().toString()));
                 graphSequenceElt.appendChild(graphSequenceStartDateElt);
 
                 Element graphSequenceEndDateElt = doc.createElement("EndDate");
-                graphSequenceEndDateElt.appendChild(doc.createTextNode(sequence.getEndDate().toString()));
+                graphSequenceEndDateElt.appendChild(doc.createTextNode(sequence.getEndDate().toInstant().toString()));
                 graphSequenceElt.appendChild(graphSequenceEndDateElt);
             }
 
+            Element graphSequenceExtraInfoElt = doc.createElement("ExtraInfo");
+            String xmlConformExtraInfo = sequence.getExtraInfo().toJSONString()
+                    .replaceAll("\"", "&quot;").replaceAll("'", "&apos;")
+                    .replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+                    .replaceAll("&", "&amp;");
+            graphSequenceExtraInfoElt.appendChild(doc.createTextNode(xmlConformExtraInfo));
+            graphSequenceElt.appendChild(graphSequenceExtraInfoElt);
             /*
              * Contained Graphs
              */
@@ -56,7 +64,7 @@ public class MetaXmlGraphSequenceOutputAdapter extends AbstractGraphSequenceOutp
             for (CustomGraphMeta graphMeta : graphMetas) {
                 Element graphElt = doc.createElement("Graph");
                 graphElt.setAttribute("Id", graphMeta.getKey());
-                Element graphNameElt = doc.createElement("Name");
+                Element graphNameElt = doc.createElement("GraphName");
                 graphNameElt.appendChild(doc.createTextNode(graphMeta.getName()));
                 graphElt.appendChild(graphNameElt);
                 graphsElt.appendChild(graphElt);

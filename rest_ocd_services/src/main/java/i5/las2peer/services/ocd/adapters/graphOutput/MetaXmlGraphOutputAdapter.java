@@ -19,7 +19,6 @@ import org.w3c.dom.Element;
  * A graph output adapter for the meta XML format.
  * The output contains meta information about the graph in XML format, but not the actual graph structure or other node or edge related meta data.
  * @author Sebastian
- *
  */
 public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 
@@ -49,12 +48,15 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 			Element graphEdgeCountElt = doc.createElement("EdgeCount");
 			graphEdgeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.getEdgeCount())));
 			graphElt.appendChild(graphEdgeCountElt);
-//			Element lastUpdateElt = doc.createElement("LastUpdate");
-//			if(graph.getLastUpdate() != null) {
-//				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd hh:mm:ss");
-//				lastUpdateElt.appendChild(doc.createTextNode(dateFormat.format(graph.getLastUpdate())));
-//				graphElt.appendChild(lastUpdateElt);
-//			}
+
+			Element graphExtraInfoElt = doc.createElement("ExtraInfo");
+			String xmlConformExtraInfo = graph.getExtraInfo().toJSONString()
+					.replaceAll("\"", "&quot;").replaceAll("'", "&apos;")
+					.replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+					.replaceAll("&", "&amp;");
+			graphExtraInfoElt.appendChild(doc.createTextNode(xmlConformExtraInfo));
+			graphElt.appendChild(graphExtraInfoElt);
+
 			/*
 			 * Graph Types
 			 */
@@ -66,6 +68,7 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 				typesElt.appendChild(typeElt);
 			}
 			graphElt.appendChild(typesElt);
+
 			/*
 			 * Creation Method
 			 */
