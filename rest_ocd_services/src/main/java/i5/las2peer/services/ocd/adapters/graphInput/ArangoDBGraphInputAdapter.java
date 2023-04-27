@@ -9,6 +9,7 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 
 import java.net.InetSocketAddress;
@@ -45,10 +46,14 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
      */
     private Date endDate = null;
 
+    private boolean weighEdges = false;
+
+    private String nameAttributeName = "";
+
     private String nodeCollectionName;
     private ArrayList<String> edgeCollectionNames;
-    private ArrayList<ImmutableTriple<String,String,String>> nodeFilters = new ArrayList<ImmutableTriple<String,String,String>>();
-    private HashMap<String,ArrayList<ImmutableTriple<String,String,String>>> edgeFilters = new HashMap<String,ArrayList<ImmutableTriple<String,String,String>>>();
+    private ArrayList<ImmutableTriple<String,String,String>> nodeFilters = new ArrayList<>();
+    private HashMap<String,ArrayList<ImmutableTriple<String,String,String>>> edgeFilters = new HashMap<>();
 
     private ArangoDatabase database;
 
@@ -71,7 +76,7 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
             throw new IllegalArgumentException("Did not get a database address");
         }
         try {
-            new Socket().connect(new InetSocketAddress(host, port), 5);
+            new Socket().connect(new InetSocketAddress(host, port), 8);
         }
         catch(Exception e) {
             throw new IllegalArgumentException("There is nothing running on this address: '" + host + ":" + port +"'");
@@ -151,7 +156,6 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
 
         if (param.containsKey("dateAttributeName")) {
             if (param.get("dateAttributeName").equals("")) {
-                System.out.println("No date attribute");
                 dateAttributeName = null;
             }
             else {
@@ -194,8 +198,26 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
             param.remove("endDate");
         }
 
+        if (param.containsKey("weighEdges")) {
+            if (param.get("weighEdges").equalsIgnoreCase("true") || param.get("weighEdges").equalsIgnoreCase("false")) {
+                weighEdges = true;
+            }
+            param.remove("weighEdges");
+        }
+
+		if (param.containsKey("showUserNames")) {
+			if (param.containsKey("nameAttributeName")) {
+				nameAttributeName = param.get("nameAttributeName");
+				param.remove("nameAttributeName");
+			}
+			//else {
+			//	throw new IllegalArgumentException("Can not use names as node labels since no name attribute was given.");
+			//}
+			param.remove("showUserNames");
+		}
+
         if(!param.isEmpty()) {
-			System.out.println("PARAM: " + param.toString()); //TODO: Remove
+			//.println("PARAM: " + param.toString()); //TODO: Remove
             throw new IllegalArgumentException();
         }
     }
@@ -229,8 +251,8 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
     }
 
     /**
-     * Tries to parse an ArangoDB rule for filtering a query. The Result should essentially be a 3-tuple of
-     * @param ruleString The string conveying the database rule, the elements of the rule should be separated by ':::', the filter list part at the end separated by comma
+     * Tries to parse an ArangoDB rule for filtering a query. The Result is essentially be a triple of value, an operator and another value
+     * @param ruleString The string conveying the database rule, the elements of the rule should be separated by ':::', if the last part of the string is a list, it is comma separated
      * @return An ImmutableTriple of the attribute (String) affected by the rule, the rule parameter (a logic operator such as ==) and a List (String[]) of filters for the rule
      */
     public ImmutableTriple<String,String,String> parseDatabaseRule(String ruleString) {
@@ -239,7 +261,7 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
             throw new IllegalArgumentException();
         }
 
-        ArrayList<String> AllowedOperators = new ArrayList<String>(List.of("==", "!=", "<", ">", ">=", "<=", "LIKE", "IN", "NOT IN", "REGEX"));
+        ArrayList<String> AllowedOperators = new ArrayList<>(List.of("==", "!=", "<", ">", ">=", "<=", "LIKE", "IN", "NOT IN", "REGEX"));
         if (!AllowedOperators.contains(ruleStringArray[1])) {
             throw new IllegalArgumentException();
         }
@@ -250,17 +272,16 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
             ruleStringArray[2] = "\"" + ruleStringArray[2] + "\"";
         }
 
-
-        //String[] filterArray = ruleStringArray[2].split(",");
-        //if (Arrays.binarySearch(filterArray, "") < 0) {
-        //    throw new IllegalArgumentException();
-        //}
-
-        //TODO: Check first node in database if that attribute even exists? Sometimes the attribute could not exist so it wouldn't be great. Downside is that the user than gets to know if the filtering succeeded much later, if at all
         //TODO: Maybe check query syntax, too?
-        return new ImmutableTriple<String,String,String>(ruleStringArray[0],ruleStringArray[1],ruleStringArray[2]);
+        return new ImmutableTriple<>(ruleStringArray[0],ruleStringArray[1],ruleStringArray[2]);
     }
 
+    /**
+     * Queries the nodes from the ArangoDB database and creates them in WebOCD, i.e. documents from non-edge collections
+     * @param graph The graph the nodes are added to
+     * @return A map of of node keys from the database to their newly created graph nodes
+     * @throws AdapterException if no nodes could be found or queries/node json documents are malformed
+     */
     private HashMap<String,Node> queryNodes(CustomGraph graph) throws AdapterException {
         //Build node query
         StringBuilder queryStringBuilder = new StringBuilder("FOR node IN " + nodeCollectionName + "\n");
@@ -298,23 +319,24 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
         while (cursor.hasNext()) {
             JSONParser jsonParser = new JSONParser(JSONParser.MODE_PERMISSIVE);
             String nodeString = cursor.next();
-            //System.out.println("NODE: " + nodeString + "\n\n");
-            //database.collection(nodeCollectionName).getDocument("sass", String.class);
             JSONObject nodeJson;
             try {
                 nodeJson = (JSONObject) jsonParser.parse(nodeString);
-                //System.out.println("NODEJSON: " + nodeJson + "\n\n");
             }
             catch(net.minidev.json.parser.ParseException exception) {
                 throw new AdapterException("Could not parse node JSON");
             }
 
             Node node = graph.addNode((String) nodeJson.get("_key"));
-            graph.setNodeName(node,(String) nodeJson.get("_key"));
+            if (!nameAttributeName.equals("") && nodeJson.containsKey(nameAttributeName)) {
+                graph.setNodeName(node,(String) nodeJson.get(nameAttributeName));
+            }
+            else {
+                graph.setNodeName(node,(String) nodeJson.get("_key"));
+            }
             keyNodeMap.put((String) nodeJson.get("_key"), node);
-            for (String key : (Set<String>) nodeJson.keySet()) {
+            for (String key : nodeJson.keySet()) {
                 if (!key.equals("_key") && !key.equals("_rev") && !key.equals("_id")) { //If we actually have some of the objects data and not just the key
-                    //System.out.println(key + ": \n" + ((JSONObject)nodeJson.get(key)).toJSONString()); //TODO
                     graph.setNodeExtraInfo(node, graph.getNodeExtraInfo(node).appendField(key,nodeJson.get(key)));
                 }
             }
@@ -324,8 +346,15 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
     }
 
     //TODO: Check whats most efficient regarding querying edges. At the moment it just queries all edges for which the filters work and then picks the ones between the nodes
+
+    /**
+     * Queries the edges from the ArangoDB database and creates them in WebOCD, i.e. documents from edge collections
+     * @param graph The graph the edges are added to
+     * @param keyNodeMap A map of of node keys from the database to their newly created graph nodes
+     * @throws AdapterException if no nodes could be found or queries/node json documents are malformed
+     */
     private void queryEdges(CustomGraph graph, HashMap<String,Node> keyNodeMap) throws AdapterException {
-        //Build node query
+        //Build edge query
         for (String edgeCollectionName : edgeCollectionNames) {
             StringBuilder queryStringBuilder = new StringBuilder("FOR edge IN " + edgeCollectionName + "\n");
             if (edgeFilters.get(edgeCollectionName).size() != 0) {
@@ -345,24 +374,17 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
             queryStringBuilder.append("edge._to IN ").append(arangoEdgeNodes).append(") ");
             queryStringBuilder.append("return edge");
 
-            System.out.println(queryStringBuilder.toString());
             //Get edges
             final ArangoCursor<String> cursor;
             try {
                 cursor = database.query(queryStringBuilder.toString(), String.class);
             } catch(ArangoDBException e) {
-                System.out.println(e.getErrorMessage());
                 throw new AdapterException("Arango Edge Query malformed");
             }
-            //if (cursor == null || !cursor.hasNext()) {
-            //    throw new AdapterException("Arango Query produces empty graph!");
-            //}
 
             while (cursor.hasNext()) {
                 JSONParser jsonParser = new JSONParser(JSONParser.MODE_PERMISSIVE);
                 String edgeString = cursor.next();
-                System.out.println(edgeString);
-                //database.collection(nodeCollectionName).getDocument("sass", String.class);
                 JSONObject edgeJson;
                 try {
                     edgeJson = (JSONObject) jsonParser.parse(edgeString);
@@ -372,15 +394,15 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
                 }
 
                 if (graph.getNode(((String)edgeJson.get("_from")).replace(nodeCollectionName + "/","")) != null && graph.getNode(((String)edgeJson.get("_to")).replace(nodeCollectionName + "/","")) != null) { //If the graph contain both related nodes of the edge
-                    System.out.println((String) edgeJson.get("_key") + " " +
-                            ((String)edgeJson.get("_from")).replace(nodeCollectionName + "/","") + " " +
-                            ((String)edgeJson.get("_to")).replace(nodeCollectionName + "/",""));
-                    graph.addEdge((String) edgeJson.get("_key"),
+                    Edge edge = graph.addEdge((String) edgeJson.get("_key"),
                             ((String)edgeJson.get("_from")).replace(nodeCollectionName + "/",""),
                             ((String)edgeJson.get("_to")).replace(nodeCollectionName + "/",""));
                     for (String key : edgeJson.keySet()) {
-                        if (!key.equals("_key") && !key.equals("_rev") && !key.equals("_id") && !key.equals("_from") && !key.equals("_to")) { //If we actually have some of the objects data and not just a key
-                            //System.out.println(key + ": \n" + ((JSONObject) edgeJson.get(key)).toJSONString()); //TODO
+                        if (weighEdges && key.equals("weight")) {
+                            graph.setEdgeWeight(edge, Double.parseDouble(edgeJson.get("weight").toString()));
+                        }
+                        else if(!key.equals("_key") && !key.equals("_rev") && !key.equals("_id") && !key.equals("_from") && !key.equals("_to")) { //If we actually have some of the objects data and not just a key
+                            graph.setEdgeExtraInfo(edge, graph.getEdgeExtraInfo(edge).appendField(key,edgeJson.get(key)));
                         }
                     }
                 }
@@ -388,26 +410,10 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
         }
     }
 
-    //TODO: Maybe put dates as strings?
     //TODO: Account for list vs list comparisons
     @Override
     public CustomGraph readGraph() throws AdapterException {
         CustomGraph graph = new CustomGraph();
-
-		System.out.println("Adress: " + host + ", " + port);
-		System.out.println("Credentials and DB: " + databaseUser + ", " + databasePassword + ", " + databaseName);
-		System.out.println("Datestuff: " + dateAttributeName + ", " + startDate + ", " + endDate);
-		
-		System.out.println("Node Collection: " + nodeCollectionName);
-		for (ImmutableTriple<String,String,String> nodeFilter : nodeFilters) {
-			System.out.println("    " + nodeFilter);
-		}
-		for (String edgeFiltersForCollection : edgeFilters.keySet()) {
-			System.out.println("Edge Collection: " + edgeFiltersForCollection);
-			for (ImmutableTriple<String,String,String> edgeFilter : edgeFilters.get(edgeFiltersForCollection)) {
-				System.out.println("    " + edgeFilter);
-			}
-		}
 
         JSONObject graphExtraInfo = graph.getExtraInfo();
         JSONObject graphExtraInfoIdentifiers = new JSONObject();
@@ -418,7 +424,6 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
         graphExtraInfoIdentifiers.put("arangoEdgeCollections", edgeCollections);
         graphExtraInfo.put("identifiers",graphExtraInfoIdentifiers);
         if(dateAttributeName != null) {
-            System.out.println(startDate.toInstant().toString() + " " + endDate.toInstant().toString());
             graphExtraInfo.put("startDate", (startDate != null ? startDate.toInstant().toString() : new Date(Long.MIN_VALUE).toInstant().toString()));
             graphExtraInfo.put("endDate", (endDate != null ? endDate.toInstant().toString() : new Date(Long.MAX_VALUE).toInstant().toString()));
         }
