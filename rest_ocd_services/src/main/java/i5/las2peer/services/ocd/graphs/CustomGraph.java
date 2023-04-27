@@ -623,6 +623,29 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	/**
+	 * Getter for the extra info of a certain edge.
+	 *
+	 * @param edge
+	 *            The edge.
+	 * @return The edge weight.
+	 */
+	public JSONObject getEdgeExtraInfo(Edge edge) {
+		return getCustomEdge(edge).getExtraInfo();
+	}
+
+	/**
+	 * Setter for the extra info of a certain edge.
+	 *
+	 * @param edge
+	 *            The edge.
+	 * @param extraInfo
+	 *            The edge extra info .
+	 */
+	public void setEdgeExtraInfo(Edge edge, JSONObject extraInfo) {
+		getCustomEdge(edge).setExtraInfo(extraInfo);
+	}
+
+	/**
 	 * Finds two nodes based on their identifiers and combines edge weights
 	 * between the found nodes. This is equivalent to having
 	 * a single undirected, weighted edge between two nodes.
@@ -742,7 +765,6 @@ public class CustomGraph extends MultiGraph {
 		double inDegree = 0;
 		for (Edge edge : inEdges) {
 			inDegree += getCustomEdge(edge).getWeight();
-
 		}
 		return inDegree;
 	}
@@ -881,7 +903,6 @@ public class CustomGraph extends MultiGraph {
 		double degree = 0;
 		for (Edge edge : edges) {
 			degree += Math.abs(getCustomEdge(edge).getWeight());
-
 		}
 		return degree;
 	}
@@ -1696,6 +1717,7 @@ public class CustomGraph extends MultiGraph {
 		//options for the transaction
 		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
 		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		updateOptions.mergeObjects(false);
 		//EdgeCreateOptions edgeCreateOptions = new EdgeCreateOptions().streamTransactionId(transId);
 		bd.addAttribute(userColumnName, this.userName);
 		bd.addAttribute(pathColumnName, this.path);		//TODO muss gespeichert werden?

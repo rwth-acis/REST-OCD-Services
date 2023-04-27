@@ -333,4 +333,12 @@ public class CustomEdge {
 		
 		return ret;
 	}
+
+	public JSONObject getExtraInfo() {
+		return this.extraInfo;
+	}
+
+	public void setExtraInfo(JSONObject extraInfo) {
+		this.extraInfo = extraInfo;
+	}
 }
