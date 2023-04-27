@@ -157,7 +157,7 @@ public class AttributeClusterOutputAdapter extends AbstractClusterOutputAdapter 
                 }
                 try {
                     Double keyNestingValueNumber = Double.parseDouble(keyNestingValue);
-                    return compareAndReturnTextResult(attributeValueNumber, keyNestingValueNumber);
+                    return compareAndReturnTextResult(keyNestingValueNumber, attributeValueNumber);
                 } catch (NumberFormatException e) {
                     return "not comparable";
                 }
@@ -168,7 +168,7 @@ public class AttributeClusterOutputAdapter extends AbstractClusterOutputAdapter 
                 }
                 if (keyNestingValue.equalsIgnoreCase("true") || keyNestingValue.equalsIgnoreCase("false")) {
                     Boolean keyNestingValueBoolean = Boolean.parseBoolean(keyNestingValue);
-                    return compareAndReturnTextResult(attributeValueBoolean, keyNestingValueBoolean);
+                    return compareAndReturnTextResult(keyNestingValueBoolean, attributeValueBoolean);
                 }
                 return "not comparable";
             } else if (attributeValueDate != null) {
@@ -178,7 +178,7 @@ public class AttributeClusterOutputAdapter extends AbstractClusterOutputAdapter 
                 }
                 try {
                     Date keyNestingValueDate = DateUtils.parseDate(keyNestingValue, "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
-                    return compareAndReturnTextResult(attributeValueDate, keyNestingValueDate);
+                    return compareAndReturnTextResult(keyNestingValueDate, attributeValueDate);
                 } catch (ParseException e) {
                     return "not comparable";
                 }
