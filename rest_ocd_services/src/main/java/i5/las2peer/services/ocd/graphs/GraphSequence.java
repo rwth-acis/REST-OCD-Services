@@ -56,7 +56,7 @@ public class GraphSequence {
     /**
      * System generated persistence key.
      */
-    private String name = "unnamed sequence";
+    private String name = "generated sequence";
 
     /**
      * The name of the user owning the graph.
@@ -76,10 +76,10 @@ public class GraphSequence {
 
     private GraphSequence() {};
 
-    public GraphSequence(CustomGraph firstGraph) throws ParseException {
+    public GraphSequence(CustomGraph firstGraph, boolean checkTimeOrdered) throws ParseException {
         customGraphKeys.add(firstGraph.getKey());
         this.userName = firstGraph.getUserName();
-        if(firstGraph.getExtraInfo().get("startDate") != null && firstGraph.getExtraInfo().get("endDate") != null) {
+        if(checkTimeOrdered && firstGraph.getExtraInfo().get("startDate") != null && firstGraph.getExtraInfo().get("endDate") != null) {
             timeOrdered = true;
             this.startDate = DateUtils.parseDate(firstGraph.getExtraInfo().get("startDate").toString(),"yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
             this.endDate = DateUtils.parseDate(firstGraph.getExtraInfo().get("endDate").toString(),"yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
@@ -111,7 +111,7 @@ public class GraphSequence {
     }
 
     //TODO: Remove Sequence Community if graph added?
-    private void addGraphToSequence(int index, String graphKey) {
+    public void addGraphToSequence(int index, String graphKey) {
         customGraphKeys.add(index, graphKey);
         //Delete visualization since the new graph isnt mapped yet.
         communitySequenceCommunityMap = new HashMap<>();
@@ -149,7 +149,7 @@ public class GraphSequence {
         }
 
         ArangoCollection graphCollection = db.collection(CustomGraph.collectionName);
-
+        ObjectMapper om = new ObjectMapper();
         // We are not checking whether the needed extraInfo attributes exist here since if they didn't the sequence would not be time ordered
         for (int i=0; i<customGraphKeys.size(); i++) {
             String seqGraphKey = customGraphKeys.get(i);
@@ -157,13 +157,12 @@ public class GraphSequence {
             Date seqGraphStartDate = new Date(Long.MIN_VALUE);
             Date seqGraphEndDate = new Date(Long.MAX_VALUE);
             try {
-                ObjectMapper om = new ObjectMapper();
                 JSONObject seqGraphextraInfo = new JSONObject(om.convertValue(seqGraphDoc.getAttribute(extraInfoColumnName), Map.class));
                 seqGraphStartDate = DateUtils.parseDate(seqGraphextraInfo.get("startDate").toString(), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
                 seqGraphEndDate = DateUtils.parseDate(seqGraphextraInfo.get("endDate").toString(), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
             }
             catch (ParseException dateEx) {
-                //TODO:
+                throw new OcdPersistenceLoadException("Could not retrieve/parse dates for graph in time-ordered sequence");
             } // Just means that it will stay the initial value
 
             if (newGraphEndDate.getTime() <= seqGraphStartDate.getTime()) {
@@ -176,10 +175,10 @@ public class GraphSequence {
                     ObjectNode nextGraphInListDoc = graphCollection.getDocument(customGraphKeys.get(i-1), ObjectNode.class);
                     Date seqPrevGraphEndDate;
                     try {
-                        seqPrevGraphEndDate = DateUtils.parseDate(nextGraphInListDoc.get(CustomGraph.extraInfoColumnName).get("endDate").toString(), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                        seqPrevGraphEndDate = DateUtils.parseDate(om.convertValue(nextGraphInListDoc.get(CustomGraph.extraInfoColumnName).get("endDate"), String.class), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
                     }
                     catch (ParseException e) {
-                        throw new OcdPersistenceLoadException("Could not retrieve start date for non-first graph in sequence");
+                        throw new OcdPersistenceLoadException("Could not retrieve/parse end date for non-first graph in sequence");
                     }
                     if (newGraphStartDate.getTime() >= seqPrevGraphEndDate.getTime()) { // Check if we actually fit in between
                         addGraphToSequence(i,graph.getKey());
@@ -200,38 +199,58 @@ public class GraphSequence {
 
     //TODO: Check performance of this
     private double getCommunitySimilarity(Community commA, Community commB) {
-        double similarity = 0.0;
+        double similarityBtoA = 0.0;
         CustomGraph commAGraph = commA.getCover().getGraph();
         for (Entry<Node,Double> entryB : commB.getMemberships().entrySet()) {
             if(commAGraph.getCustomNode(entryB.getKey()) != null) { // If the graph even has a similar node
                 Node nodeA = commAGraph.getNode(commAGraph.getCustomNode(entryB.getKey()));
                 //Belonging factor is 0 if node is not in the community
-                similarity += 1 - Math.abs(commA.getBelongingFactor(nodeA) - entryB.getValue()); //TODO: Test if this similarity seems reasonable
+                similarityBtoA += 1 - Math.abs(commA.getBelongingFactor(nodeA) - entryB.getValue()); //TODO: Test if this similarity seems reasonable
             }
             else {
-                similarity += 0.0; // If a node from the second graph doesn't exist in the first then it has no similarity
+                similarityBtoA += 0.0; // If a node from the second graph doesn't exist in the first then it has no similarity
             }
         }
-        return similarity/commB.getSize();
+		double similarityAtoB = 0.0;
+		CustomGraph commBGraph = commB.getCover().getGraph();
+		for (Entry<Node,Double> entryA : commA.getMemberships().entrySet()) {
+            if(commBGraph.getCustomNode(entryA.getKey()) != null) { // If the graph even has a similar node
+                Node nodeB = commBGraph.getNode(commBGraph.getCustomNode(entryA.getKey()));
+                //Belonging factor is 0 if node is not in the community
+                similarityAtoB += 1 - Math.abs(commB.getBelongingFactor(nodeB) - entryA.getValue()); //TODO: Test if this similarity seems reasonable
+            }
+            else {
+                similarityAtoB += 0.0; // If a node from the second graph doesn't exist in the first then it has no similarity
+            }
+        }
+		
+        return (similarityBtoA/commB.getSize() + similarityAtoB/commA.getSize()) / 2;
     }
 
     private <T> int getInsertionIndex(double similarityValue, ArrayList<ImmutableTriple<Double,T,T>> communitySimilarities) {
-        if (communitySimilarities.size() == 0) {
-            return 0;
+        int index = 0;
+        if(communitySimilarities.size() == 0) {//TODO: Delete
+            return index;
         }
-        else {
-            int lowerBound = 0, upperBound = communitySimilarities.size()-1;
-            while (lowerBound <= upperBound) {
-                int listIndex = lowerBound  + ((upperBound - lowerBound) / 2);
-                if(communitySimilarities.get(listIndex).getLeft() > similarityValue) {
-                    upperBound = listIndex-1;
-                }
-                else if (communitySimilarities.get(listIndex).getLeft() < similarityValue) {
-                    lowerBound = listIndex+1;
-                }
-                if (lowerBound == upperBound) {
-                    return lowerBound;
-                }
+        int lowerBound = 0, upperBound = communitySimilarities.size()-1;
+        while (lowerBound <= upperBound) {
+            int middle = lowerBound  + ((upperBound - lowerBound) / 2);
+            if(similarityValue > communitySimilarities.get(middle).getLeft()) {
+                upperBound = middle-1;
+            }
+            else if (similarityValue < communitySimilarities.get(middle).getLeft()) {
+                lowerBound = middle+1;
+            }
+
+            if (similarityValue >= communitySimilarities.get(middle).getLeft()
+                    && (middle-1 < 0 || similarityValue <= communitySimilarities.get(middle-1).getLeft())) {
+                index = middle;
+                return index;
+            }
+            else if (similarityValue < communitySimilarities.get(middle).getLeft()
+                    && (middle+1 == communitySimilarities.size() || similarityValue >= communitySimilarities.get(middle+1).getLeft())) {
+                index = middle+1;
+                return index;
             }
         }
         return -1; //Should not happen
@@ -273,7 +292,7 @@ public class GraphSequence {
             }
             else {
                 ArrayList<ImmutableTriple<Double,String,String>> communitySimilarities = new ArrayList<>(); //Maps current communities to lists of the similarity values of the previous ones (ordered by similarity value)
-                Cover prevCover = db.getCover(username, coverMetas.get(i-1).getGraphKey(), coverMetas.get(i).getKey());
+                Cover prevCover = db.getCover(username, coverMetas.get(i-1).getGraphKey(), coverMetas.get(i-1).getKey());
                 Cover currCover = db.getCover(username, coverMetas.get(i).getGraphKey(), coverMetas.get(i).getKey());
 
                 //Compute Similarities for Communities of the two covers and insert them into an ordered list
@@ -329,6 +348,7 @@ public class GraphSequence {
         //options for the transaction
         DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
         DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+        updateOptions.mergeObjects(false);
 
         bd.addAttribute(nameColumnName, this.name);
         bd.addAttribute(userColumnName, this.userName);
@@ -429,11 +449,11 @@ public class GraphSequence {
     }
 
     public String getName() {
-        return key;
+        return name;
     }
 
-    public void setName(String key) {
-        this.key = key;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getUserName() {
