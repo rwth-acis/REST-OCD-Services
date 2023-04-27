@@ -19,6 +19,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class JsonVisualOutputAdapter extends AbstractVisualOutputAdapter {
 	/**
@@ -89,6 +91,7 @@ public class JsonVisualOutputAdapter extends AbstractVisualOutputAdapter {
 			HashMap<String, Object> tmp = new HashMap<String, Object>();
 			tmp.put("source", e.getSourceNode().getIndex());
 			tmp.put("target", e.getTargetNode().getIndex());
+			tmp.put("weight", new BigDecimal(graph.getEdgeWeight(e)).setScale(3, RoundingMode.HALF_UP).doubleValue());
 			
 			// LINE_STYLE = 0; DASHED_STYLE = 1; DOTTED_STYLE = 2; DASHED_DOTTED_STYLE = 3;
 			if(e.getAttribute("ui.stroke-mode") != null) {
