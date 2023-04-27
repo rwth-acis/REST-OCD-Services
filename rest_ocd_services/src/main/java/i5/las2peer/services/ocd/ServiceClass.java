@@ -368,14 +368,16 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
 				@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
 				@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
-									@DefaultValue("127.0.0.1:8529") @QueryParam("databaseAddress") String databaseAddressStr,
-									@DefaultValue("graphs") @QueryParam("databaseName") String databaseNameStr,
-									@DefaultValue("root,") @QueryParam("databaseCredentials") String databaseCredentialsStr,
-									@QueryParam("nodeCollectionName") String nodeCollectionNameStr,
-									@DefaultValue("") @QueryParam("nodeFilters") List<String> nodeFilters,
-									@QueryParam("edgeCollectionNames") String edgeCollectionNamesStr,
-									@DefaultValue("") @QueryParam("edgeFilters") List<String> edgeFilters,
-									@DefaultValue("") @QueryParam("dateAttributeName") String dateAttributeNamesStr,
+				@DefaultValue("127.0.0.1:8529") @QueryParam("databaseAddress") String databaseAddressStr,
+				@DefaultValue("graphs") @QueryParam("databaseName") String databaseNameStr,
+				@DefaultValue("root,") @QueryParam("databaseCredentials") String databaseCredentialsStr,
+				@QueryParam("nodeCollectionName") String nodeCollectionNameStr,
+				@DefaultValue("") @QueryParam("nodeFilters") List<String> nodeFilters,
+				@QueryParam("edgeCollectionNames") String edgeCollectionNamesStr,
+				@DefaultValue("") @QueryParam("edgeFilters") List<String> edgeFilters,
+				@DefaultValue("") @QueryParam("dateAttributeName") String dateAttributeNamesStr,
+				@DefaultValue("") @QueryParam("nameAttributeName") String nameAttributeNamesStr,
+				@DefaultValue("FALSE") @QueryParam("weighEdges") String weighEdgesStr,
 				String contentStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -434,6 +436,7 @@ public class ServiceClass extends RESTService {
 							param.put("showUserNames", showUserNamesStr);
 							param.put("involvedUsers", involvedUsersStr);
 						} else if(format == GraphInputFormat.ARANGODB) {
+							param.put("showUserNames", showUserNamesStr);
 							param.put("involvedUsers", involvedUsersStr);
 							param.put("databaseAddress", databaseAddressStr);
 							param.put("databaseName", databaseNameStr);
@@ -443,6 +446,8 @@ public class ServiceClass extends RESTService {
 							param.put("edgeCollectionNames", edgeCollectionNamesStr);
 							listParam.put("edgeFilters", edgeFilters);
 							param.put("dateAttributeName", dateAttributeNamesStr);
+							param.put("nameAttributeName", nameAttributeNamesStr);
+							param.put("weighEdges", weighEdgesStr);
 						} else {
 							param.put("path", indexPathStr);
 						}
@@ -494,23 +499,26 @@ public class ServiceClass extends RESTService {
 					//Also add Graph to sequences or create an own one
 					List<GraphSequence> sequenceList = database.getFittingGraphSequences(username, graph);
 					if (sequenceList.isEmpty()) {
-						database.storeGraphSequence(new GraphSequence(graph));
+						database.storeGraphSequence(new GraphSequence(graph, true));
 					}
 					else {
 						boolean addedToAtLeastOneSequence = false;
 						for (GraphSequence sequence : sequenceList) {
 							if (sequence.tryAddGraph(database.db, graph)) {
+								sequence.setSequenceCommunityColorMap(new HashMap<>());
+								sequence.setCommunitySequenceCommunityMap(new HashMap<>());
 								database.storeGraphSequence(sequence);
 								addedToAtLeastOneSequence = true;
 							}
 						}
 						if(!addedToAtLeastOneSequence) {
-							database.storeGraphSequence(new GraphSequence(graph));
+							database.storeGraphSequence(new GraphSequence(graph, true));
 						}
 					}
 
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + graph.getKey() + " in format " + graphInputFormatStr);
 				} catch (Exception e) {
+					requestHandler.log(Level.SEVERE, "", e);
 					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
 				}
 				return Response.ok(requestHandler.writeId(graph)).build();
@@ -621,7 +629,9 @@ public class ServiceClass extends RESTService {
 										   @DefaultValue("") @QueryParam("nodeFilters") List<String> nodeFilters,
 										   @DefaultValue("edges") @QueryParam("edgeCollectionNames") String edgeCollectionNamesStr,
 										   @DefaultValue("") @QueryParam("edgeFilters") List<String> edgeFilters,
-										   @DefaultValue("dateAttributeName") @QueryParam("dateAttributeName") String dateAttributeNamesStr
+										   @DefaultValue("") @QueryParam("dateAttributeName") String dateAttributeNamesStr,
+										   @DefaultValue("") @QueryParam("nameAttributeName") String nameAttributeNamesStr,
+										   @DefaultValue("FALSE") @QueryParam("weighEdges") String weighEdgesStr
 
 		) {
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -646,7 +656,7 @@ public class ServiceClass extends RESTService {
 			return createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
 					endDateStr,involvedUsersStr, showUserNamesStr, indexPathStr, filePathStr,
 					databaseAddressStr, databaseNameStr, databaseCredentialsStr, nodeCollectionNameStr, nodeFilters,
-					edgeCollectionNamesStr, edgeFilters, dateAttributeNamesStr, contentStr.toString());
+					edgeCollectionNamesStr, edgeFilters, dateAttributeNamesStr, nameAttributeNamesStr, contentStr.toString(), weighEdgesStr.toString());
 		}
 
 		/**
@@ -678,7 +688,8 @@ public class ServiceClass extends RESTService {
 		public Response getGraphs(@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
 				@DefaultValue("") @QueryParam("length") String lengthStr,
 				@DefaultValue("FALSE") @QueryParam("includeMeta") String includeMetaStr,
-				@DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr) {
+				@DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr,
+				@DefaultValue("") @QueryParam("graphIds") String graphIdsStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				List<CustomGraphMeta> queryResults;
@@ -730,7 +741,14 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
 				}
-				queryResults = database.getGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
+
+				String[] graphIdsArray = graphIdsStr.split(",");
+				if(graphIdsArray.length == 0 || (graphIdsArray.length == 1 && graphIdsArray[0].equals(""))) {
+					queryResults = database.getGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
+				}
+				else {
+					queryResults = database.getGraphMetaDataEfficiently(username, Arrays.asList(graphIdsArray), executionStatusIds);
+				}
 
 				String responseStr;
 				if (includeMeta) {
@@ -986,6 +1004,65 @@ public class ServiceClass extends RESTService {
 		}
 
 		/**
+		 * Creates a graph sequence with a specified ordered list of graphs.
+		 *
+		 * @param graphIdsStr
+		 *            The graph id.
+		 * @return The graph sequence output. Or an error xml.
+		 */
+		@POST
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@Path("sequences/")
+		@ApiOperation(tags = {"export"}, value = "Export Graph Sequence", notes = "Returns a graph sequence in a specified output format.")
+		public Response createGraphSequence(@QueryParam("sequenceName") String sequenceNameStr, 
+											@QueryParam("graphIds") String graphIdsStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+
+				if (graphIdsStr == null) {
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"no graphs given to create sequence");    //done
+				}
+
+				String[] graphIds = graphIdsStr.split(",");
+				if (graphIds.length == 0 || (graphIds.length == 1 && graphIds[0].equals(""))) {
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"no graphs given to create sequence");    //done
+				}
+
+				List<Integer> executionStatuses = List.of(ExecutionStatus.COMPLETED.getId());
+				List<CustomGraphMeta> graphMetas = database.getGraphMetaDataEfficiently(username, Arrays.asList(graphIds), executionStatuses);
+
+				if(graphMetas.size() != graphIds.length) {
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"One or more of the graphs for a sequence dont exist in the database");    //done
+				}
+
+				CustomGraph firstGraph = database.getGraph(username, Arrays.asList(graphIds).get(0));
+				GraphSequence sequence = new GraphSequence(firstGraph, true);
+				boolean timeOrdered = true;
+				for (int i=1; i<graphIds.length; i++) {
+					if(!timeOrdered || !sequence.tryAddGraph(database.db, database.getGraph(username, graphIds[i]))) {
+						sequence.addGraphToSequence(i,graphIds[i]);
+						timeOrdered = false;
+					}
+				}
+
+				sequence.setName(sequenceNameStr == null || sequenceNameStr.equals("") ? "Own Sequence" : sequenceNameStr);
+				sequence.setUserName(username);
+				database.storeGraphSequence(sequence);
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": creating new graph sequence" );
+				return Response.ok(requestHandler.writeId(sequence)).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error while creating sequence.");
+			}
+
+		}
+
+		/**
 		 * Deletes a graph sequence.
 		 *
 		 * @param graphSequenceIdStr
@@ -1032,7 +1109,6 @@ public class ServiceClass extends RESTService {
 		 *            Optional query parameter. If given, fetches only the sequences for a specific graph
 		 * @return The sequences. Or an error xml.
 		 */
-
 		@GET
 		@Path("sequences")
 		@Produces(MediaType.TEXT_XML)
@@ -1041,6 +1117,7 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"show"}, value = "Get Sequences Info", notes = "Returns the ids of multiple sequences.")
 		public Response getGraphSequences(@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
 								  @DefaultValue("") @QueryParam("length") String lengthStr,
+								  @DefaultValue("FALSE") @QueryParam("includeMeta") String includeMetaStr,
 								  @DefaultValue("") @QueryParam("graphId") String graphIdStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -1067,7 +1144,16 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
 				}
 
-				if(graphIdStr == "") {
+				boolean includeMetaInfo = false;
+				if(includeMetaStr.equals("TRUE")) {
+					includeMetaInfo = true;
+				}
+				else if (!includeMetaStr.equals("FALSE")) {
+					requestHandler.log(Level.WARNING, "user: " + username, new Exception("graph sequence metaInfo instruction " + includeMetaStr + " is not valid."));
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "graph sequence metaInfo instruction is not valid.");
+				}
+
+				if(graphIdStr.equals("")) {
 					queryResults = database.getGraphSequences(username, firstIndex, length);
 				}
 				else if(database.getGraph(username, graphIdStr) != null) {
@@ -1079,14 +1165,18 @@ public class ServiceClass extends RESTService {
 				}
 
 				String responseStr;
-				responseStr = requestHandler.writeGraphSequenceIds(queryResults);
+				if(includeMetaInfo) {
+					responseStr = requestHandler.writeGraphSequenceMetas(database, queryResults);
+				}
+				else {
+					responseStr = requestHandler.writeGraphSequenceIds(queryResults);
+				}
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
-
 
 
 		//////////////////////////////////////////////////////////////////////////
@@ -2943,7 +3033,7 @@ public class ServiceClass extends RESTService {
 		@GET
 		@Path("visualization/cover/{coverId}/sequence/{sequenceId}/graph/{graphId}/outputFormat/{VisualOutputFormat}/layout/{GraphLayoutType}/paint/{CoverPaintingType}")
 		@ApiOperation(tags = {"visualizations"}, value = "Get Cover Sequence Visualization", notes = "Retreives a cover visualization for a sequence, either in SVG or JSON for Force-Graphs")
-		public Response getCoverVisualization(@PathParam("graphId") String graphIdStr,
+		public Response getCoverVisualizationGivenSequence(@PathParam("graphId") String graphIdStr,
 											  @PathParam("coverId") String coverIdStr, @PathParam("GraphLayoutType") String graphLayoutTypeStr,
 											  @PathParam("sequenceId") String graphSequenceIdStr,
 											  @PathParam("CoverPaintingType") String coverPaintingTypeStr,
@@ -3027,14 +3117,19 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"GraphSequence does not exist: sequence id " + graphSequenceIdStr);
 				}
+
 				if(sequence.getSequenceCommunityColorMap().isEmpty()) { // Generate sequence Communities if not already done
 					requestHandler.log(Level.INFO, "user: " + username + ", " + "generating sequence communities for sequence id "
 							+ graphSequenceIdStr);
 					sequence.generateSequenceCommunities(username, database, 0.3); //TODO: Test similarity threshold, make it settable
 					database.storeGraphSequence(sequence);
 				}
-
+				boolean sequenceNotYetPainted = sequence.getSequenceCommunityColorMap().containsValue(null);
 				layoutHandler.doLayoutSequence(cover, sequence, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize, painting);
+				if(sequenceNotYetPainted) {
+					database.storeGraphSequence(sequence); // update sequence with colors generated by the layouter
+				}
+
 				database.updateCover(cover);
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get visualization of cover " + coverIdStr + " in " +visualOutputFormatStr + " format for sequence " + graphSequenceIdStr + "." );
 				return requestHandler.writeCover(cover, format);
