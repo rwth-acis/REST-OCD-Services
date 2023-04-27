@@ -168,7 +168,7 @@ public class DatabaseMethodTest {
 	}
 	
 	@Test
-	public void deleteCover() {
+	public void deleteCover() throws OcdPersistenceLoadException {
 
 		Cover cover1 = null;
 		Cover cover2 = null;

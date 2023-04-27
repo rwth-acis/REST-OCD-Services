@@ -66,9 +66,6 @@ public class DatabaseTest {
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-		
-		
-
 	}
 
 	//TODO: is this test needed?
@@ -83,7 +80,7 @@ public class DatabaseTest {
 	}
 	
 	@Test
-	public void persistGraphs() {
+	public void persistGraphs() throws OcdPersistenceLoadException {
 		Database db = new Database(true);
 		db.deleteDatabase();
 		db.init();
@@ -124,7 +121,7 @@ public class DatabaseTest {
 		graph2.setExtraInfo(graph2.getExtraInfo().appendField("startDate","2022-02-04").appendField("endDate","2022-02-05"));
 
 		db.storeGraph(graph1);
-		String sequenceKey = db.storeGraphSequence(new GraphSequence(graph1));
+		String sequenceKey = db.storeGraphSequence(new GraphSequence(graph1, true));
 
 
 		db.storeGraph(graph2);
@@ -140,7 +137,7 @@ public class DatabaseTest {
 		assert(sequenceGraph1.getCustomGraphKeys().size() == 2);
 	}
 	
-	public void persistExampleGraphCoverCMap(CustomGraph g) {
+	public void persistExampleGraphCoverCMap(CustomGraph g) throws OcdPersistenceLoadException {
 		Database db = new Database(true);
 		db.init();
 		

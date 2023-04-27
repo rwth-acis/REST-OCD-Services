@@ -45,7 +45,7 @@ public class CoverDatabaseTest {
 	}
 	
 	@Test
-	public void testPersist() {
+	public void testPersist() throws OcdPersistenceLoadException {
 		CustomGraph graph = new CustomGraph();
 		graph.setUserName(userName);
 		graph.setName(graphName);
