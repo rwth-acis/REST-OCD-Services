@@ -48,7 +48,7 @@ import java.io.IOException;
 import net.minidev.json.JSONObject;
 import org.apache.commons.io.FileUtils;
 
-
+//TODO: Replace println statements with logging
 public class Database {
 
 	/**
@@ -277,7 +277,13 @@ public class Database {
 	 * @return the found CustomGraph instance or null if the CustomGraph does not exists or the username is wrong
 	 */
 	public CustomGraph getGraph(String username, String key) throws OcdPersistenceLoadException {
-		CustomGraph g = getGraph(key);
+		CustomGraph g = null;
+		try {
+			g = getGraph(key);
+		}
+		catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
 
 		if (g == null) {
 			logger.log(Level.WARNING, "user: " + username + " Graph does not exist: graph key " + key);
@@ -434,10 +440,17 @@ public class Database {
 		ObjectMapper objectMapper = new ObjectMapper(); // needed to instantiate CustomGraphMeta from JSON
 		ArrayList<CustomGraphMeta> customGraphMetas = new ArrayList<CustomGraphMeta>();
 
+		//adjust graphId list so that toString() delivers something arangoDB conform
+		ArrayList<String> graphIdsForQuery = new ArrayList<>(graphIds);
+		for (int i=0; i<graphIdsForQuery.size(); i++) {
+			graphIdsForQuery.set(i,"\"" + graphIdsForQuery.get(i) + "\"");
+		}
+
 		try {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 			String queryStr = "FOR g IN " + CustomGraph.collectionName + " FOR gcl IN " + GraphCreationLog.collectionName +
-					" FILTER g." + CustomGraph.userColumnName + " == @username AND gcl._key == g." + CustomGraph.creationMethodKeyColumnName +
+					" FILTER g." + CustomGraph.userColumnName + " == @username AND gcl._key == g." + CustomGraph.creationMethodKeyColumnName + " &&" +
+					"g._key IN " + graphIdsForQuery +
 					" AND gcl." + GraphCreationLog.statusIdColumnName +" IN " +
 					executionStatusIds + " RETURN "+
 					"{\"key\" : g._key," +
@@ -739,7 +752,7 @@ public class Database {
 		try {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 			String queryStr = "FOR s IN " + GraphSequence.collectionName
-					+ " FILTER (s." + GraphSequence.userColumnName + " == " + username + ")"
+					+ " FILTER (s." + GraphSequence.userColumnName + " == \"" + username + "\")"
 					+ " RETURN s._key";
 			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
 			for(String key : sequenceKeys) {
@@ -769,7 +782,7 @@ public class Database {
 		try {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 			String queryStr = "FOR s IN " + GraphSequence.collectionName
-					+ " FILTER (s." + GraphSequence.userColumnName + " == " + username + ")"
+					+ " FILTER (s." + GraphSequence.userColumnName + " == \"" + username + "\")"
 					+ " LIMIT " + firstIndex + "," + length + " RETURN s._key";
 			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
 			for(String key : sequenceKeys) {
@@ -827,8 +840,8 @@ public class Database {
 		try {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 			String queryStr = "FOR s IN " + GraphSequence.collectionName
-					+ " FILTER (s." + GraphSequence.userColumnName + " == " + username + ") &&"
-					+ " (" + graphKey + "\" IN s." + GraphSequence.customGraphKeysColumnName + ") "
+					+ " FILTER (s." + GraphSequence.userColumnName + " == \"" + username + "\") &&"
+					+ " (\"" + graphKey + "\" IN s." + GraphSequence.customGraphKeysColumnName + ") "
 					+ " LIMIT " + firstIndex + "," + length + " RETURN s._key";
 			ArangoCursor<String> sequenceKeys = db.query(queryStr, queryOpt, String.class);
 			for(String key : sequenceKeys) {
@@ -884,14 +897,8 @@ public class Database {
 	 * @throws Exception if sequence deletion failed
 	 */
 	public void deleteGraphSequence(String username, String sequenceKey, ThreadHandler threadHandler) throws Exception {
-		CustomGraphId id = new CustomGraphId(sequenceKey, username);
-
 		synchronized (threadHandler) {
-			//threadHandler.interruptSequenceCover(id); //TODO: Make SequenceCover Class
-
 			try {
-				CustomGraph graph = getGraph(username, sequenceKey);
-
 				deleteGraphSequence(sequenceKey);
 			} catch(Exception e) {
 				throw e;
@@ -900,10 +907,18 @@ public class Database {
 	}
 
 	//////////////////////////////////////////////////////////////// COVERS ///////////////////////////////////////////////////////
-	public String storeCover(Cover cover) {
+	public String storeCover(Cover cover) throws OcdPersistenceLoadException {
 		String transId = this.getTransactionId(Cover.class, true);
 		try {
 			cover.persist(db, transId);
+			List<GraphSequence> sequencesOfGraph = getGraphSequences(cover.getGraph().getUserName(), cover.getGraph().getKey());
+			String transIdSequences = this.getTransactionId(GraphSequence.class, true);
+			for (GraphSequence sequence : sequencesOfGraph) {
+				sequence.setSequenceCommunityColorMap(new HashMap<>());
+				sequence.setCommunitySequenceCommunityMap(new HashMap<>());
+				sequence.persist(db, transIdSequences);
+			}
+			db.commitStreamTransaction(transIdSequences);
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
 			db.abortStreamTransaction(transId);
@@ -1197,10 +1212,20 @@ public class Database {
 	 * @param cover
 	 *            the cover
 	 */
-	public void updateCover(Cover cover) {
+	public void updateCover(Cover cover) throws OcdPersistenceLoadException {
 		String transId = this.getTransactionId(Cover.class, true);
 		try {
 			cover.updateDB(db, transId);
+			List<GraphSequence> sequencesOfGraph = getGraphSequences(cover.getGraph().getUserName(), cover.getGraph().getKey());
+			String transIdSequences = this.getTransactionId(GraphSequence.class, true);
+			for (GraphSequence sequence : sequencesOfGraph) {
+				if (!sequence.getCommunitySequenceCommunityMap().containsKey(cover.getCommunities().get(0).getKey())){ //I.e. if the sequence does not contain the communities of the already finished cover
+					sequence.setSequenceCommunityColorMap(new HashMap<>());
+					sequence.setCommunitySequenceCommunityMap(new HashMap<>());
+					sequence.persist(db, transIdSequences);
+				}
+			}
+			db.commitStreamTransaction(transIdSequences);
 			db.commitStreamTransaction(transId);
 		} catch(Exception e) {
 			db.abortStreamTransaction(transId);
@@ -1303,6 +1328,14 @@ public class Database {
 		Cover cover = getCover(username, graphKey, coverKey);
 		if (cover == null)
 			throw new IllegalArgumentException("Cover not found");
+
+		List<GraphSequence> sequencesOfGraph = getGraphSequences(username, graphKey);
+		String transIdSequences = this.getTransactionId(GraphSequence.class, true);
+		for (GraphSequence sequence : sequencesOfGraph) {
+			sequence.deleteCoverFromSequence(cover);
+			sequence.persist(db, transIdSequences);
+		}
+		db.commitStreamTransaction(transIdSequences);
 
 		if (cover.getCreationMethod().getType().correspondsGroundTruthBenchmark()
 				&& cover.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
