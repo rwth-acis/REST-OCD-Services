@@ -10,6 +10,8 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.util.*;
 
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 import org.graphstream.stream.file.FileSourceGraphML;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
@@ -28,7 +30,7 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException{
 		
 	}
-	
+
 	@Override
 	public CustomGraph readGraph() throws AdapterException {
 		CustomGraph graph = new CustomGraph();
@@ -52,14 +54,15 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 			throw new AdapterException("ERROR Could not read file: " + e.getMessage());
 		}
 			/*
-			 * Checks whether node names are unique.
+			 * Checks whether node names are unique
 			 */
 			Iterator<Node> nodes = graph.iterator();
 			CharSequence name;
 			HashMap<Integer, String> names = new HashMap<Integer, String>();
+			JSONParser jsonParser = new JSONParser(JSONParser.MODE_PERMISSIVE);
 			while(nodes.hasNext()) {
 				Node node = nodes.next();
-				name = node.getLabel("ui.label");
+				name = node.getLabel("label");
 				if(name == null || name.toString().isEmpty()) {
 					break;
 				}
@@ -84,12 +87,44 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 					graph.setNodeName(node, node.getId()); //TODO: Changed from Index to Id here, check if that makes sense with how graphstream reads it
 				}
 			}
+
+			/*
+			 * Add potential extraInfo attributes
+			 */
+			nodes = graph.nodes().iterator();
+			while(nodes.hasNext()) {
+				Node node = nodes.next();
+				try {
+					if (node.getLabel("nodeData") != null) {
+						String convertedText = convertSpecialXMLCharacters(node.getLabel("nodeData").toString());
+						graph.setNodeExtraInfo(node, (JSONObject) jsonParser.parse(convertedText));
+					} else if (node.getLabel("extraInfo")  != null) {
+						String convertedText = convertSpecialXMLCharacters(node.getLabel("extraInfo").toString());
+						graph.setNodeExtraInfo(node, (JSONObject) jsonParser.parse(convertedText));
+					}
+				} catch (Exception e) {
+					throw new AdapterException("Could not parse extra info for node " + node.getId() + ": " + e.getMessage());
+				}
+			}
+
 			Iterator<Edge> edges = graph.edges().iterator();
 			Edge edge;
 			while(edges.hasNext()) {
 				edge = edges.next();
-				Double weight = edge.getNumber("weight");
-				if(!weight.isNaN()) {
+				try {
+					if (edge.getLabel("edgeData") != null) {
+						String convertedText = convertSpecialXMLCharacters(edge.getLabel("edgeData").toString());
+						graph.setEdgeExtraInfo(edge, (JSONObject) jsonParser.parse(convertedText));
+					} else if (edge.getLabel("extraInfo")  != null) {
+						String convertedText = convertSpecialXMLCharacters(edge.getLabel("extraInfo").toString());
+						graph.setEdgeExtraInfo(edge, (JSONObject) jsonParser.parse(convertedText));
+					}
+				} catch (Exception e) {
+					throw new AdapterException("Could not parse extra info for edge " + edge.getId() + ": " + e.getMessage());
+				}
+
+				double weight = edge.getNumber("weight");
+				if(!Double.isNaN(weight)) {
 					graph.setEdgeWeight(edge, weight);
 				}
 				else {
@@ -99,4 +134,13 @@ public class GraphMlGraphInputAdapter extends AbstractGraphInputAdapter {
 		return graph;
 	}
 
+	/**
+	 * Method that does the job of converting character sequences that signify special characters in XML. Essentially does the job that the importer of graphstream should be doing.
+	 * @param text some string with special char sequences
+	 * @return the adjusted text
+	 */
+	private String convertSpecialXMLCharacters(String text) {
+		text = text.replaceAll("&lt;","<").replaceAll("&gt;",">").replaceAll("&apos;","'").replaceAll("&quot;","\"").replaceAll("&","&amp;");
+		return text;
+	}
 }
