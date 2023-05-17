@@ -498,21 +498,22 @@ public class ServiceClass extends RESTService {
 
 					//Also add Graph to sequences or create an own one
 					List<CustomGraphSequence> sequenceList = database.getFittingGraphSequences(username, graph);
-					if (sequenceList.isEmpty()) {
-						database.storeGraphSequence(new CustomGraphSequence(graph, true));
-					}
-					else {
-						boolean addedToAtLeastOneSequence = false;
-						for (CustomGraphSequence sequence : sequenceList) {
-							if (sequence.tryAddGraph(database.db, graph)) {
-								sequence.setSequenceCommunityColorMap(new HashMap<>());
-								sequence.setCommunitySequenceCommunityMap(new HashMap<>());
-								database.storeGraphSequence(sequence);
-								addedToAtLeastOneSequence = true;
+					if(graph instanceof CustomGraphTimed graphTimed) {
+						if (sequenceList.isEmpty()) {
+							database.storeGraphSequence(new CustomGraphSequence(graphTimed, true));
+						} else {
+							boolean addedToAtLeastOneSequence = false;
+							for (CustomGraphSequence sequence : sequenceList) {
+								if (sequence.tryAddTimedGraphToSequence(database.db, graphTimed)) {
+									sequence.setSequenceCommunityColorMap(new HashMap<>());
+									sequence.setCommunitySequenceCommunityMap(new HashMap<>());
+									database.storeGraphSequence(sequence);
+									addedToAtLeastOneSequence = true;
+								}
 							}
-						}
-						if(!addedToAtLeastOneSequence) {
-							database.storeGraphSequence(new CustomGraphSequence(graph, true));
+							if (!addedToAtLeastOneSequence) {
+								database.storeGraphSequence(new CustomGraphSequence(graphTimed, true));
+							}
 						}
 					}
 
@@ -1042,11 +1043,19 @@ public class ServiceClass extends RESTService {
 
 				CustomGraph firstGraph = database.getGraph(username, Arrays.asList(graphIds).get(0));
 				CustomGraphSequence sequence = new CustomGraphSequence(firstGraph, true);
-				boolean timeOrdered = true;
 				for (int i=1; i<graphIds.length; i++) {
-					if(!timeOrdered || !sequence.tryAddGraph(database.db, database.getGraph(username, graphIds[i]))) {
-						sequence.addGraphToSequence(i,graphIds[i]);
-						timeOrdered = false;
+					sequence.addGraphToSequence(i,graphIds[i]);
+
+					// Check if we preserve time ordering by adding the graph //TODO: USe just graph metas, not whole graphs
+					if (sequence.getTimeOrdered()) {
+						CustomGraphTimed seqGraphPrev = (CustomGraphTimed) database.getGraph(username, graphIds[i-1]); // Must be a timed graph if the sequence was time ordered until now
+						CustomGraph seqGraph = database.getGraph(username, graphIds[i]);
+						if (seqGraph instanceof CustomGraphTimed seqGraphTimed && seqGraphPrev.getEndDate().getTime() <= seqGraphTimed.getStartDate().getTime()) {
+							sequence.setEndDate(seqGraphTimed.getEndDate()); // Adjust sequence end date to current graphs end date
+						}
+						else {
+							sequence.setTimeOrdered(false);
+						}
 					}
 				}
 
@@ -3121,7 +3130,7 @@ public class ServiceClass extends RESTService {
 				if(sequence.getSequenceCommunityColorMap().isEmpty()) { // Generate sequence Communities if not already done
 					requestHandler.log(Level.INFO, "user: " + username + ", " + "generating sequence communities for sequence id "
 							+ graphSequenceIdStr);
-					sequence.generateSequenceCommunities(username, database, 0.3); //TODO: Test similarity threshold, make it settable
+					sequence.generateSequenceCommunities(database, username, 0.3); //TODO: Test similarity threshold, make it settable
 					database.storeGraphSequence(sequence);
 				}
 				boolean sequenceNotYetPainted = sequence.getSequenceCommunityColorMap().containsValue(null);
