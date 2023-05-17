@@ -4,6 +4,7 @@ import com.arangodb.*;
 import com.arangodb.mapping.ArangoJack;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomGraphTimed;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import net.minidev.json.JSONArray;
@@ -413,7 +414,13 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
     //TODO: Account for list vs list comparisons
     @Override
     public CustomGraph readGraph() throws AdapterException {
-        CustomGraph graph = new CustomGraph();
+        CustomGraph graph;
+        if(dateAttributeName != null) {
+            graph = new CustomGraphTimed();
+        }
+        else {
+            graph = new CustomGraph();
+        }
 
         JSONObject graphExtraInfo = graph.getExtraInfo();
         JSONObject graphExtraInfoIdentifiers = new JSONObject();
@@ -423,9 +430,10 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
         edgeCollections.addAll(edgeCollectionNames);
         graphExtraInfoIdentifiers.put("arangoEdgeCollections", edgeCollections);
         graphExtraInfo.put("identifiers",graphExtraInfoIdentifiers);
-        if(dateAttributeName != null) {
-            graphExtraInfo.put("startDate", (startDate != null ? startDate.toInstant().toString() : new Date(Long.MIN_VALUE).toInstant().toString()));
-            graphExtraInfo.put("endDate", (endDate != null ? endDate.toInstant().toString() : new Date(Long.MAX_VALUE).toInstant().toString()));
+
+        if(graph instanceof CustomGraphTimed timedGraph) {
+            timedGraph.setStartDate((startDate != null ? startDate : new Date(Long.MIN_VALUE)));
+            timedGraph.setEndDate((endDate != null ? endDate : new Date(Long.MAX_VALUE)));
         }
 
         HashMap<String,Node> keyNodeMap = queryNodes(graph);

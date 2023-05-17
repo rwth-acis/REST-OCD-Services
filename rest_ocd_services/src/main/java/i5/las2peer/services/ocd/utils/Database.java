@@ -256,9 +256,19 @@ public class Database {
 
 	private CustomGraph getGraph(String key) throws OcdPersistenceLoadException {
 		String transId = getTransactionId(CustomGraph.class, false);
-		CustomGraph graph;
+		CustomGraph graph = null;
+
 		try {
-			graph = CustomGraph.load(key, db, transId);
+			DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+			BaseDocument bd = db.collection(CustomGraph.collectionName).getDocument(key, BaseDocument.class, readOpt);
+
+			if (bd.getAttribute("CUSTOMGRAPH_TYPE") == null || bd.getAttribute("CUSTOMGRAPH_TYPE").equals("NORMAL")) {
+				graph = CustomGraph.load(key, db, transId);
+			}
+			else if(bd.getAttribute("CUSTOMGRAPH_TYPE").equals("TIMED")) {
+				graph = CustomGraphTimed.load(key, db, transId);
+			}
+
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
 			db.abortStreamTransaction(transId);
@@ -713,7 +723,7 @@ public class Database {
 	public List<CustomGraphSequence> getFittingGraphSequences(String username, CustomGraph graph) throws OcdPersistenceLoadException {
 		String transId = getTransactionId(CustomGraphSequence.class, false);
 		List<CustomGraphSequence> sequences = new ArrayList<>();
-		if(!graph.getExtraInfo().containsKey("startDate") || !graph.getExtraInfo().containsKey("endDate")) {
+		if(!(graph instanceof CustomGraphTimed)) {
 			return sequences;
 		}
 		try {

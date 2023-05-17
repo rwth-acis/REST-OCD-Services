@@ -35,4 +35,10 @@ public class GraphMlGraphInputAdapterTest {
 		CustomGraph graph = inputAdapter.readGraph();
 	}
 
+	@Test
+	public void testOnExtraInfoFile() throws AdapterException, FileNotFoundException {
+		GraphInputAdapter inputAdapter = new GraphMlGraphInputAdapter();
+		inputAdapter.setReader(new FileReader("ocd/test/input/Twitter Graph(7).xml"));
+		CustomGraph graph = inputAdapter.readGraph();
+	}
 }

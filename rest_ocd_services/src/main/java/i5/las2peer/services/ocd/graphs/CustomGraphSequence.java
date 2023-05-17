@@ -73,27 +73,22 @@ public class CustomGraphSequence {
     public CustomGraphSequence(CustomGraph firstGraph, boolean checkTimeOrdered) throws ParseException {
         customGraphKeys.add(firstGraph.getKey());
         this.userName = firstGraph.getUserName();
-        if(checkTimeOrdered && firstGraph.getExtraInfo().get("startDate") != null && firstGraph.getExtraInfo().get("endDate") != null) {
+        if(checkTimeOrdered && firstGraph instanceof CustomGraphTimed timedGraph) {
             timeOrdered = true;
-            this.startDate = DateUtils.parseDate(firstGraph.getExtraInfo().get("startDate").toString(),"yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
-            this.endDate = DateUtils.parseDate(firstGraph.getExtraInfo().get("endDate").toString(),"yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+            this.startDate = timedGraph.getStartDate();
+            this.endDate = timedGraph.getEndDate();
         }
     }
 
     //TODO: Remove Sequence Community if empty?
     public void deleteGraphFromSequence(Database db, String graphKey, List<Cover> coverList) throws OcdPersistenceLoadException {
         if(this.timeOrdered) {
-            try {
-                if (customGraphKeys.indexOf(graphKey) == 0 && 1 < customGraphKeys.size()) {
-                    CustomGraph nextGraph = db.getGraph(this.userName, customGraphKeys.get(1));
-                    this.startDate = DateUtils.parseDate(nextGraph.getExtraInfo().get("startDate").toString(), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
-                } else if (customGraphKeys.indexOf(graphKey) == customGraphKeys.size() - 1 && 1 < customGraphKeys.size()) {
-                    CustomGraph prevGraph = db.getGraph(this.userName, customGraphKeys.get(customGraphKeys.size() - 2));
-                    this.endDate = DateUtils.parseDate(prevGraph.getExtraInfo().get("endDate").toString(), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
-                }
-            }
-            catch (ParseException ex) {
-                throw new OcdPersistenceLoadException(ex.getMessage());
+            if (customGraphKeys.indexOf(graphKey) == 0 && 1 < customGraphKeys.size()) {
+                CustomGraphTimed nextGraph = (CustomGraphTimed) db.getGraph(this.userName, customGraphKeys.get(1));
+                this.startDate = nextGraph.getStartDate();
+            } else if (customGraphKeys.indexOf(graphKey) == customGraphKeys.size() - 1 && 1 < customGraphKeys.size()) {
+                CustomGraphTimed prevGraph = (CustomGraphTimed) db.getGraph(this.userName, customGraphKeys.get(customGraphKeys.size() - 2));
+                this.endDate = prevGraph.getEndDate();
             }
         }
         customGraphKeys.remove(graphKey);
@@ -125,20 +120,8 @@ public class CustomGraphSequence {
     }
 
     //TODO: Make this a binary Search. Should for the moment not impact performance too much though, fetched docs are small and likely not many
-    public boolean tryAddGraph (ArangoDatabase db, CustomGraph graph) throws OcdPersistenceLoadException {//, String newGraphKey, Date newGraphStartDate, Date newGraphEndDate) throws OcdPersistenceLoadException {
+    public boolean tryAddTimedGraphToSequence(ArangoDatabase db, CustomGraphTimed graph) throws OcdPersistenceLoadException {//, String newGraphKey, Date newGraphStartDate, Date newGraphEndDate) throws OcdPersistenceLoadException {
         if (!this.timeOrdered) { //Can't add a graph to a sequence that (potentially) doesn't operate by our timeframe rules
-            return false;
-        }
-
-        Date newGraphStartDate, newGraphEndDate;
-        if(!graph.getExtraInfo().containsKey("startDate") || !graph.getExtraInfo().containsKey("endDate")) {//When dates dont exist then we cant put the graph into an ordered series
-            return false;
-        }
-        try {
-            newGraphStartDate = DateUtils.parseDate(graph.getExtraInfo().get("startDate").toString(),"yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
-            newGraphEndDate = DateUtils.parseDate(graph.getExtraInfo().get("endDate").toString(),"yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
-        }
-        catch (ParseException e) { //TODO: Maybe throw an actual error here since that would mean a malformed date?
             return false;
         }
 
@@ -151,39 +134,41 @@ public class CustomGraphSequence {
             Date seqGraphStartDate = new Date(Long.MIN_VALUE);
             Date seqGraphEndDate = new Date(Long.MAX_VALUE);
             try {
-                JSONObject seqGraphextraInfo = new JSONObject(om.convertValue(seqGraphDoc.getAttribute(extraInfoColumnName), Map.class));
-                seqGraphStartDate = DateUtils.parseDate(seqGraphextraInfo.get("startDate").toString(), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
-                seqGraphEndDate = DateUtils.parseDate(seqGraphextraInfo.get("endDate").toString(), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                //JSONObject seqGraphextraInfo = new JSONObject(om.convertValue(seqGraphDoc.getAttribute(extraInfoColumnName), Map.class));
+                seqGraphStartDate = DateUtils.parseDate(seqGraphDoc.getAttribute(CustomGraphTimed.startDateColumnName).toString(),
+                        "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                seqGraphEndDate = DateUtils.parseDate(seqGraphDoc.getAttribute(CustomGraphTimed.endDateColumnName).toString(),
+                        "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
             }
             catch (ParseException dateEx) {
                 throw new OcdPersistenceLoadException("Could not retrieve/parse dates for graph in time-ordered sequence");
-            } // Just means that it will stay the initial value
+            }
 
-            if (newGraphEndDate.getTime() <= seqGraphStartDate.getTime()) {
+            if (graph.getEndDate().getTime() <= seqGraphStartDate.getTime()) {
                 if (i == 0) {
                     addGraphToSequence(0,graph.getKey());
-                    this.startDate = newGraphStartDate;
+                    this.startDate = graph.getStartDate();
                     return true;
                 }
                 else {
                     ObjectNode nextGraphInListDoc = graphCollection.getDocument(customGraphKeys.get(i-1), ObjectNode.class);
                     Date seqPrevGraphEndDate;
                     try {
-                        seqPrevGraphEndDate = DateUtils.parseDate(om.convertValue(nextGraphInListDoc.get(CustomGraph.extraInfoColumnName).get("endDate"), String.class), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                        seqPrevGraphEndDate = DateUtils.parseDate(om.convertValue(nextGraphInListDoc.get(CustomGraphTimed.endDateColumnName), String.class), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
                     }
                     catch (ParseException e) {
                         throw new OcdPersistenceLoadException("Could not retrieve/parse end date for non-first graph in sequence");
                     }
-                    if (newGraphStartDate.getTime() >= seqPrevGraphEndDate.getTime()) { // Check if we actually fit in between
+                    if (graph.getStartDate().getTime() >= seqPrevGraphEndDate.getTime()) { // Check if we actually fit in between
                         addGraphToSequence(i,graph.getKey());
                         return true;
                     }
                     break; // graph doesn't fit in sequence so we can abort
                 }
             }
-            else if (i == customGraphKeys.size()-1 && seqGraphEndDate != null && newGraphStartDate.getTime() >= seqGraphEndDate.getTime()) {
+            else if (i == customGraphKeys.size()-1 && seqGraphEndDate != null && graph.getStartDate().getTime() >= seqGraphEndDate.getTime()) {
                 addGraphToSequence(customGraphKeys.size(), graph.getKey());
-                this.endDate = newGraphEndDate;
+                this.endDate = graph.getEndDate();
                 return true;
             }
         }
@@ -260,7 +245,7 @@ public class CustomGraphSequence {
      * @param similarityThreshold a threshold of similarity between communities. If the similarity is below that, a new sequence community will be created
      * @throws OcdPersistenceLoadException if (one of) the graphs/communities can't be loaded
      */
-    public void generateSequenceCommunities(String username, Database db, double similarityThreshold) throws OcdPersistenceLoadException {
+    public void generateSequenceCommunities(Database db, String username, double similarityThreshold) throws OcdPersistenceLoadException {
         List<CoverMeta> coverMetas = new ArrayList<>();
         List<Integer> executionStatusIds = List.of(ExecutionStatus.COMPLETED.getId());
         List<Integer> metricExecutionStatusIds = List.of(ExecutionStatus.COMPLETED.getId(),ExecutionStatus.ERROR.getId(),ExecutionStatus.RUNNING.getId(),ExecutionStatus.WAITING.getId());

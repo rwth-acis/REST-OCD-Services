@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.utils;
 
 import static org.junit.Assert.*;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.graphstream.graph.Node;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -108,23 +109,26 @@ public class DatabaseTest {
 	public void storeGraphAndGraphSequence() throws OcdPersistenceLoadException, ParseException {
 		Database db = new Database(true);
 
-		CustomGraph graph1 = getGraph1();
+		CustomGraphTimed graph1 = new CustomGraphTimed(getGraph1());
 		graph1.setUserName("testuser");
-		graph1.setExtraInfo(graph1.getExtraInfo().appendField("startDate","2022-02-02").appendField("endDate","2022-02-03"));
-		CustomGraph graph2 = getGraph2();
+		graph1.setStartDate(DateUtils.parseDate("2022-02-02", "yyyy-MM-dd"));
+		graph1.setEndDate(DateUtils.parseDate("2022-02-03", "yyyy-MM-dd"));
+		CustomGraphTimed graph2 = new CustomGraphTimed(getGraph2());
+		graph2.setStartDate(DateUtils.parseDate("2022-02-04", "yyyy-MM-dd"));
+		graph2.setEndDate(DateUtils.parseDate("2022-02-05", "yyyy-MM-dd"));
 		graph2.setUserName("testuser");
-		graph2.setExtraInfo(graph2.getExtraInfo().appendField("startDate","2022-02-04").appendField("endDate","2022-02-05"));
 
 		db.storeGraph(graph1);
 		String sequenceKey = db.storeGraphSequence(new CustomGraphSequence(graph1, true));
 
 
-		db.storeGraph(graph2);
+		String graph2Key = db.storeGraph(graph2);
+		graph2 = (CustomGraphTimed) db.getGraph("testuser", graph2Key);
 		List<CustomGraphSequence> sequenceList = db.getFittingGraphSequences("testuser", graph2);
 		assert(!sequenceList.isEmpty());
 
 		for (CustomGraphSequence sequence : sequenceList) {
-			if (sequence.tryAddGraph(db.db, graph2)) {
+			if (sequence.tryAddTimedGraphToSequence(db.db, graph2)) {
 				db.storeGraphSequence(sequence);
 			}
 		}

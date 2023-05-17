@@ -80,6 +80,7 @@ public class CustomGraph extends MultiGraph {
 	private static final String coverKeysColumnName = "COVER_KEYS";
 	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
 	public static final String typesColumnName = "TYPES";
+	public static final String customGraphTypeColumnName = "CUSTOMGRAPH_TYPE";
 	public static final String collectionName = "customgraph";		//do not choose the name "graph" here because it is reserved for querys
 	
 	/*
@@ -623,29 +624,6 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	/**
-	 * Getter for the extra info of a certain edge.
-	 *
-	 * @param edge
-	 *            The edge.
-	 * @return The edge weight.
-	 */
-	public JSONObject getEdgeExtraInfo(Edge edge) {
-		return getCustomEdge(edge).getExtraInfo();
-	}
-
-	/**
-	 * Setter for the extra info of a certain edge.
-	 *
-	 * @param edge
-	 *            The edge.
-	 * @param extraInfo
-	 *            The edge extra info .
-	 */
-	public void setEdgeExtraInfo(Edge edge, JSONObject extraInfo) {
-		getCustomEdge(edge).setExtraInfo(extraInfo);
-	}
-
-	/**
 	 * Finds two nodes based on their identifiers and combines edge weights
 	 * between the found nodes. This is equivalent to having
 	 * a single undirected, weighted edge between two nodes.
@@ -672,6 +650,29 @@ public class CustomGraph extends MultiGraph {
 		this.setEdgeWeight(forward, edgeWeight);
 		this.setEdgeWeight(backward, edgeWeight);
 
+	}
+
+	/**
+	 * Getter for the extra info of a certain edge.
+	 *
+	 * @param edge
+	 *            The edge.
+	 * @return The edge weight.
+	 */
+	public JSONObject getEdgeExtraInfo(Edge edge) {
+		return getCustomEdge(edge).getExtraInfo();
+	}
+
+	/**
+	 * Setter for the extra info of a certain edge.
+	 *
+	 * @param edge
+	 *            The edge.
+	 * @param extraInfo
+	 *            The edge extra info .
+	 */
+	public void setEdgeExtraInfo(Edge edge, JSONObject extraInfo) {
+		getCustomEdge(edge).setExtraInfo(extraInfo);
 	}
 
 	// public long getEdgeId(Edge edge) {
@@ -1709,7 +1710,7 @@ public class CustomGraph extends MultiGraph {
 		return ret;
 	}
 	
-	public void persist(ArangoDatabase db, String transId) throws InterruptedException {
+	public BaseDocument persist(ArangoDatabase db, String transId) throws InterruptedException {
 		this.setNodeEdgeCountColumnFields(); // update node/edge counts before persisting
 		this.prePersist();
 		ArangoCollection collection = db.collection(collectionName);
@@ -1723,6 +1724,7 @@ public class CustomGraph extends MultiGraph {
 		bd.addAttribute(pathColumnName, this.path);		//TODO muss gespeichert werden?
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(typesColumnName, this.types);
+		bd.addAttribute(customGraphTypeColumnName, "TIMED");
 		bd.addAttribute(nodeCountColumnName, this.graphNodeCount);
 		bd.addAttribute(edgeCountColumnName, this.graphEdgeCount);
 		this.creationMethod.persist(db, createOptions);
@@ -1762,6 +1764,8 @@ public class CustomGraph extends MultiGraph {
 		//TODO covers variable speichern?
 		
 		collection.updateDocument(this.key, bd, updateOptions);
+
+		return bd;
 	}
 
 	public static CustomGraph load(String key, ArangoDatabase db, String transId) throws OcdPersistenceLoadException {
