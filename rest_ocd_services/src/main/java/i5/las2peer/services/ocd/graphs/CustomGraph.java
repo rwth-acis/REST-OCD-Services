@@ -1724,7 +1724,7 @@ public class CustomGraph extends MultiGraph {
 		bd.addAttribute(pathColumnName, this.path);		//TODO muss gespeichert werden?
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(typesColumnName, this.types);
-		bd.addAttribute(customGraphTypeColumnName, "TIMED");
+		bd.addAttribute(customGraphTypeColumnName, "NORMAL");
 		bd.addAttribute(nodeCountColumnName, this.graphNodeCount);
 		bd.addAttribute(edgeCountColumnName, this.graphEdgeCount);
 		this.creationMethod.persist(db, createOptions);
