@@ -236,6 +236,18 @@ public class CustomGraph extends MultiGraph {
 		this.addSink(layout); //Layout listener
 		layout.addAttributeSink(this);
     }
+	
+	/**
+	 * Creates a new instance with given persistence key. The name attribute will be a random UUID
+	 */
+    protected CustomGraph(String key) {
+		super(UUID.randomUUID().toString());
+        this.addSink(new CustomGraphListener(this));
+		layout = new SpringBox(false);
+		this.addSink(layout); //Layout listener
+		layout.addAttributeSink(this);
+		this.key = key;
+    }
 
 	/**
 	 * Copy constructor.
