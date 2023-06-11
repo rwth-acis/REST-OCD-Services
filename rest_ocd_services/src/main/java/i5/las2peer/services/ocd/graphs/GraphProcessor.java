@@ -222,7 +222,7 @@ public class GraphProcessor {
 		List<Pair<CustomGraph, Map<Node, Node>>> componentsList = new ArrayList<Pair<CustomGraph, Map<Node, Node>>>();
 		while (componentsIterator.hasNext()) {
 			ConnectedComponents.ConnectedComponent component = componentsIterator.next();
-			CustomGraph componentGraph = new CustomGraph();
+			CustomGraph componentGraph = new CustomGraph(graph.getKey()); //Give component graph the same key as the main graph so that algorithms know to which graph they belong
 			Map<Node, Node> nodeMap = new HashMap<Node, Node>();
 			Map<Node, Node> tmpNodeMap = new HashMap<Node, Node>();
 			/*
