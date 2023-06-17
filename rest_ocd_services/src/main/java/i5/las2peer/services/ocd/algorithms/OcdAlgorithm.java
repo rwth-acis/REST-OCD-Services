@@ -10,6 +10,7 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.utils.Parameterizable;
 
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -32,7 +33,7 @@ public interface OcdAlgorithm extends Parameterizable, CoverCreationMethod {
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 * @throws OcdMetricException If the metric execution failed.
 	 */
-	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException;
+	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException, IOException;
 	
 	/**
 	 * Returns a log representing the concrete algorithm execution.

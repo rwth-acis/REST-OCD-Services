@@ -8,6 +8,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ import org.junit.Test;
 public class NISEAlgorithmTest {
 
 	@Test
-	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
+	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException, OcdMetricException, IOException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		OcdAlgorithm algorithm = new NISEAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
@@ -29,7 +30,7 @@ public class NISEAlgorithmTest {
 
 	
 	@Test
-	public void testOnSignedLfrMadeUndirectedGraph() throws OcdAlgorithmException, InterruptedException, OcdMetricException, FileNotFoundException, AdapterException {
+	public void testOnSignedLfrMadeUndirectedGraph() throws OcdAlgorithmException, InterruptedException, OcdMetricException, IOException, AdapterException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrMadeUndirectedGraph();
 		OcdAlgorithm algorithm = new NISEAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();

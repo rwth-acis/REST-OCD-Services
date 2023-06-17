@@ -1125,7 +1125,7 @@ public class ServiceClass extends RESTService {
 		public Response runAlgorithm(@PathParam("graphId") String graphIdStr,
 				@DefaultValue("unnamed") @QueryParam("name") String nameStr,
 				@DefaultValue("SPEAKER_LISTENER_LABEL_PROPAGATION_ALGORITHM") @QueryParam("algorithm") String creationTypeStr,
-				String content, @DefaultValue("false") @QueryParam("contentWeighting") String contentWeighting,
+				String content, @DefaultValue("false") @QueryParam("contentWeighting") String contentWeighting, @DefaultValue("false") @QueryParam("descriptiveVisualization") String descriptiveVisualization,
 				@DefaultValue("0") @QueryParam("componentNodeCountFilter") String componentNodeCountFilterStr) {
 			try {
 				int componentNodeCountFilter;
@@ -1194,6 +1194,7 @@ public class ServiceClass extends RESTService {
 										+ graph.getCreationMethod().getStatus().name());
 					}
 					boolean weight = Boolean.parseBoolean(contentWeighting);
+					boolean visualize = Boolean.parseBoolean(descriptiveVisualization);
 					if(!graph.isOfType(GraphType.CONTENT_LINKED) && !graph.isOfType(GraphType.CONTENT_UNLINKED) && (weight || (algorithm
 							.getAlgorithmType() == CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM
 							|| algorithm.getAlgorithmType() == CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM))) {
@@ -1228,6 +1229,11 @@ public class ServiceClass extends RESTService {
 					 * Registers and starts algorithm
 					 */
 					threadHandler.runAlgorithm(cover, algorithm, componentNodeCountFilter);
+					if (visualize) {
+						String _key = cover.getKey();
+						DescriptiveVisualization.setJsonKey(_key);
+						DescriptiveVisualization.setVisualize(visualize);
+					}
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + algorithm.getClass().getSimpleName() + " on graph " + graph.getKey() + ". Created cover " + cover.getKey());
 				}
 				return Response.ok(requestHandler.writeId(cover)).build();
@@ -1317,6 +1323,15 @@ public class ServiceClass extends RESTService {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
+		}
+		@GET
+		@Path("getAlgorithmsForDescriptiveVisualization")
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(value = "", notes = "Returns the OCD algorithms that provides descriptive visualization.")
+		public Response getAlgorithmsForDescriptiveVisualization() {
+			return Response.ok("NEIGHBORING_LOCAL_CLUSTERING_ALGORITHM,SSK_ALGORITHM,LOC_ALGORITHM").build();
 		}
 	    
 	    /**

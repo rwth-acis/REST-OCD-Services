@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.metrics;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.ParseException;
 
 import org.junit.Ignore;
@@ -18,7 +19,7 @@ public class ExtendedModularityMetricCoMembershipTest {
 	
 	@Ignore
 	@Test
-	public void testExtendedModularityOnSawmillSLPA() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, IllegalArgumentException, ParseException, OcdMetricException {
+	public void testExtendedModularityOnSawmillSLPA() throws OcdAlgorithmException, AdapterException, IOException, InterruptedException, IllegalArgumentException, ParseException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();
 		OcdAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);

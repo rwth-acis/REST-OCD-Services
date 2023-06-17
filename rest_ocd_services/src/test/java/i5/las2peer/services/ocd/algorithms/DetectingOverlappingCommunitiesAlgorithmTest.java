@@ -8,6 +8,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Test;
@@ -15,7 +16,7 @@ import org.junit.Test;
 public class DetectingOverlappingCommunitiesAlgorithmTest {
 
 	@Test
-	public void test() throws OcdAlgorithmException, InterruptedException, FileNotFoundException, AdapterException, OcdMetricException {
+	public void test() throws OcdAlgorithmException, InterruptedException, IOException, AdapterException, OcdMetricException {
 		OcdAlgorithm algo = new DetectingOverlappingCommunitiesAlgorithm();
 		CustomGraph graph = OcdTestGraphFactory.getDocaTestGraph();
 		System.out.println("Nodes " + graph.getNodeCount() + " Edges " + graph.getEdgeCount());

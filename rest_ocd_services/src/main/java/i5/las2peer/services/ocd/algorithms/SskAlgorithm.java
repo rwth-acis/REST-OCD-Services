@@ -7,6 +7,7 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 
 import java.util.*;
 
+import org.apache.jena.base.Sys;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 import org.la4j.vector.Vector;
@@ -18,6 +19,8 @@ import org.la4j.vector.sparse.CompressedVector;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
+
+import i5.las2peer.services.ocd.graphs.DescriptiveVisualization;
 
 /**
  * Implement the algorithm by A. Stanoev, D. Smilkov, and L. Kocarev:
@@ -131,13 +134,51 @@ public class SskAlgorithm implements OcdAlgorithm {
 		return types;
 	}
 
+	/* DV */
+	public int component = 0;
+	public boolean visualize = false;
+	public DescriptiveVisualization dv = new DescriptiveVisualization();
+	public HashMap<Integer, Double> nodeNumericalValues = new HashMap<>();
+	public HashMap<Integer, String> nodeStringValues = new HashMap<>();
+	public HashMap<ArrayList<Integer>, Double> edgeNumericalValues = new HashMap<>();
+	/* DV */
+
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException {
+		/* DV */
+		visualize = DescriptiveVisualization.getVisualize();
+		if(visualize) {
+			if(component == 0) {
+				String path = "rest_ocd_services/src/main/java/i5/las2peer/services/ocd/graphs/descriptions/SSK.txt";
+				dv.setDescriptions(path, ";");
+			}
+			dv.addComponent(graph);
+			HashMap<Integer, String> labels = new HashMap<>();
+			for (int i = 0; i < graph.getNodeCount(); i++) {
+				ArrayList<Integer> neighbors_i = new ArrayList<>();
+				for (Node neighbor : graph.getNeighbours(graph.getNode(i))){
+					neighbors_i.add(dv.getRealNode(neighbor.getIndex()));
+				}
+				labels.put(dv.getRealNode(i), "neighbors: " + neighbors_i);
+			}
+			dv.setNodeLabels(labels);
+			component += 1;
+		}
+		/* DV */
+
 		Matrix transitionMatrix = calculateTransitionMatrix(graph);
 		Vector totalInfluences = executeRandomWalk(transitionMatrix);
 		Map<Node, Integer> leaders = determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
 		Matrix memberships = calculateMemberships(graph, leaders);
-		return new Cover(graph, memberships);
+		Cover cover = new Cover(graph, memberships);
+
+		/* DV */
+		if(visualize){
+			dv.setCover(10, cover);
+		}
+		/* DV */
+
+		return cover;
 	}
 	
 	/**
@@ -186,6 +227,77 @@ public class SskAlgorithm implements OcdAlgorithm {
 			iteration++;
 		} while (getMaxDifference(updatedMemberships, memberships) > membershipsPrecisionFactor
 				&& iteration < membershipsIterationBound);
+
+		/* DV */
+		if(visualize) {
+			HashMap<Node, Integer> nodeToCommunity = new HashMap<>();
+			HashMap<Node, Double> nodeMaxMembership = new HashMap<>();
+			for(int c : leaders.values()) {
+				for (Node l : leaders.keySet()) {
+					if(c == leaders.get(l)){
+						nodeStringValues.put(l.getIndex(), "community " + leaders.get(l));
+					}
+				}
+				dv.setNodeStringValues(8, nodeStringValues);
+				nodeStringValues.clear();
+			}
+			for (int i = 0; i < graph.getNodeCount(); i++){
+				Node n = graph.getNode(i);
+				if (!leaders.keySet().contains(n)){
+					String communities = "[";
+					Vector vec = memberships.getRow(n.getIndex());
+					double maxValue = 0.0;
+					int maxIndex = 0;
+					if(vec.length() == 1){
+						communities += 0;
+						maxValue = 1.0;
+						maxIndex = 0;
+					}
+					else {
+						for (int k = 0; k < vec.length(); k++) {
+							if ((double) 1 / vec.length() < vec.get(k)) {
+								if (communities.length() == 1) {
+									communities += k;
+								} else {
+									communities += ", " + k;
+								}
+								if (maxValue < vec.get(k)) {
+									maxValue = vec.get(k);
+									maxIndex = k;
+								}
+							}
+						}
+					}
+					communities += "]";
+					nodeStringValues.put(n.getIndex(), "involved in: " + communities);
+					nodeToCommunity.put(n, maxIndex);
+					nodeMaxMembership.put(n, maxValue);
+				}
+			}
+			dv.setNodeStringValues(8, nodeStringValues);
+			nodeStringValues.clear();
+
+			for(int c : leaders.values()) {
+				for (Node l : leaders.keySet()) {
+					if(c == leaders.get(l)){
+						nodeStringValues.put(l.getIndex(), "community " + leaders.get(l));
+					}
+				}
+				dv.setNodeStringValues(9, nodeStringValues);
+				nodeStringValues.clear();
+			}
+			for (int c : nodeToCommunity.values()){
+				for (Node n : nodeToCommunity.keySet()){
+					if (c == nodeToCommunity.get(n)){
+						nodeStringValues.put(n.getIndex(), "maximum membership: " + c + " (" + nodeMaxMembership.get(n) + ")");
+					}
+				}
+				dv.setNodeStringValues(9, nodeStringValues);
+				nodeStringValues.clear();
+			}
+		}
+		/* DV */
+
 		return memberships;
 	}
 	
@@ -291,7 +403,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * community.
 	 * @throws InterruptedException if the thread was interrupted
 	 */
-	protected Map<Node, Integer> determineGlobalLeaders(CustomGraph graph, Matrix transitionMatrix, Vector totalInfluences) throws InterruptedException{
+	protected Map<Node, Integer> determineGlobalLeaders(CustomGraph graph, Matrix transitionMatrix, Vector totalInfluences) throws InterruptedException {
 		Iterator<Node> nodesIt = graph.iterator();
 		Node node;
 		Iterator<Node> successorsIt;
@@ -304,6 +416,9 @@ public class SskAlgorithm implements OcdAlgorithm {
 		double nodeInfluenceOnNeighbor;
 		double neighborInfluenceOnNode;
 		int communityCount = 0;
+		/* DV */
+		HashMap<Integer, String> nodeStringValues2 = new HashMap<>();
+		/* DV */
 		while(nodesIt.hasNext()) {
 			if(Thread.interrupted()) {
 				throw new InterruptedException();
@@ -323,6 +438,18 @@ public class SskAlgorithm implements OcdAlgorithm {
 					maxRelativeInfluenceNeighbors.add(successor);
 				}
 			}
+			/* DV */
+			if(visualize) {
+				if(maxRelativeInfluenceNeighbors.size() > 0) {
+					String maxNeighbors = "[";
+					for (int i = 0; i < maxRelativeInfluenceNeighbors.size() - 1; i++) {
+						maxNeighbors += dv.getRealNode(maxRelativeInfluenceNeighbors.get(i).getIndex()) + ", ";
+					}
+					maxNeighbors += dv.getRealNode(maxRelativeInfluenceNeighbors.get(maxRelativeInfluenceNeighbors.size() - 1).getIndex()) + "]";
+					nodeStringValues.put(node.getIndex(), maxNeighbors);
+				}
+			}
+			/* DV */
 			currentCommunityLeaders = new ArrayList<Node>();
 			currentCommunityLeaders.add(node);
 			for(int i=0; i<maxRelativeInfluenceNeighbors.size(); i++) {
@@ -331,6 +458,14 @@ public class SskAlgorithm implements OcdAlgorithm {
 						* transitionMatrix.get(node.getIndex(), maxRelativeInfluenceNeighbor.getIndex());
 				neighborInfluenceOnNode = totalInfluences.get(maxRelativeInfluenceNeighbor.getIndex())
 						* maxRelativeInfluence;
+				/* DV */
+				if(visualize) {
+					ArrayList<Integer> edge = new ArrayList<>();
+					edge.addAll(Arrays.asList(node.getIndex(), maxRelativeInfluenceNeighbor.getIndex()));
+					edgeNumericalValues.put(edge, nodeInfluenceOnNeighbor);
+					nodeNumericalValues.put(maxRelativeInfluenceNeighbor.getIndex(), neighborInfluenceOnNode);
+				}
+				/* DV */
 				if(neighborInfluenceOnNode > nodeInfluenceOnNeighbor) {
 					/*
 					 * Not a leader
@@ -361,11 +496,39 @@ public class SskAlgorithm implements OcdAlgorithm {
 			}
 			for(int i=0; i<currentCommunityLeaders.size(); i++) {
 				communityLeaders.put(currentCommunityLeaders.get(i), communityCount);
+				/* DV */
+				if(visualize) {
+					nodeStringValues2.put(currentCommunityLeaders.get(i).getIndex(), "current leader");
+				}
+				/* DV */
 			}
 			if(currentCommunityLeaders.size() > 0) {
 				communityCount++;
 			}
 		}
+
+		/* DV */
+		if(visualize) {
+			dv.setNodeStringValues(4, nodeStringValues);
+			nodeStringValues.clear();
+			dv.setEdgeNumericalValues(5, edgeNumericalValues);
+			edgeNumericalValues.clear();
+			dv.setNodeNumericalValues(5, nodeNumericalValues);
+			nodeNumericalValues.clear();
+			dv.setNodeStringValues(6, nodeStringValues2);
+			nodeStringValues2.clear();
+			for (int c : communityLeaders.values()) {
+				for(Node n : communityLeaders.keySet()) {
+					if(c == communityLeaders.get(n)) {
+						nodeStringValues.put(n.getIndex(), "leader of community " + c);
+					}
+				}
+				dv.setNodeStringValues(7, nodeStringValues);
+				nodeStringValues.clear();
+			}
+		}
+		/* DV */
+
 		return communityLeaders;
 	}
 	
@@ -389,6 +552,15 @@ public class SskAlgorithm implements OcdAlgorithm {
 			vec2 = new BasicVector(vec1);
 			vec1 = transitionMatrix.multiply(vec1);
 		}
+		/* DV */
+		if(visualize) {
+			for(int i = 0; i < vec1.length(); i++) {
+				nodeNumericalValues.put(i, vec1.get(i));
+			}
+			dv.setNodeNumericalValues(3, nodeNumericalValues);
+			nodeNumericalValues.clear();
+		}
+		/* DV */
 		return vec1;
 	}
 	
@@ -413,8 +585,21 @@ public class SskAlgorithm implements OcdAlgorithm {
 			while(predecessorsIt.hasNext()) {
 				predecessor = predecessorsIt.next();
 				transitionMatrix.set(node.getIndex(), predecessor.getIndex(), calculateTransitiveLinkWeight(graph, node, predecessor));
+				/* DV */
+				if(visualize) {
+					ArrayList<Integer> edge = new ArrayList<>();
+					edge.addAll(Arrays.asList(node.getIndex(), predecessor.getIndex()));
+					edgeNumericalValues.put(edge, transitionMatrix.get(node.getIndex(), predecessor.getIndex()));
+				}
+				/* DV */
 			}
 		}
+		/* DV */
+		if(visualize){
+			dv.setEdgeNumericalValues(1, edgeNumericalValues);
+			edgeNumericalValues.clear();
+		}
+		/* DV */
 		Vector column;
 		double norm;
 		for(int i=0; i<transitionMatrix.columns(); i++) {
@@ -427,6 +612,19 @@ public class SskAlgorithm implements OcdAlgorithm {
 				transitionMatrix.setColumn(i, column.divide(norm));
 			}
 		}
+		/* DV */
+		if(visualize) {
+			for(int i = 0; i < transitionMatrix.columns(); i++) {
+				for(int j = 0; j < transitionMatrix.columns(); j++) {
+					ArrayList<Integer> edge = new ArrayList<>();
+					edge.addAll(Arrays.asList(i, j));
+					edgeNumericalValues.put(edge, transitionMatrix.get(i, j));
+				}
+			}
+			dv.setEdgeNumericalValues(2, edgeNumericalValues);
+			edgeNumericalValues.clear();
+		}
+		/* DV */
 		return transitionMatrix;
 	}
 	

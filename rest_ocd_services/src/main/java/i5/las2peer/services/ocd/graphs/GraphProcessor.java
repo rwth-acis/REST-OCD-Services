@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.utils.Pair;
 
 
 import org.apache.jena.atlas.iterator.Iter;//TODO: why this iterator? i think iterator is already in java.util
+import org.apache.jena.base.Sys;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
@@ -21,7 +22,6 @@ import java.util.*;
  *
  */
 public class GraphProcessor {
-
 	/**
 	 * Sets the graph types of a given graph.
 	 * 

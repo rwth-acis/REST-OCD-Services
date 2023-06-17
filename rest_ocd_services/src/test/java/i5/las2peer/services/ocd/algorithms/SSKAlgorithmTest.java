@@ -13,6 +13,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 
 import org.junit.Ignore;
@@ -229,7 +230,7 @@ public class SSKAlgorithmTest {
 	
 	@Ignore
 	@Test
-	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
+	public void testOnSiam() throws OcdAlgorithmException, AdapterException, IOException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
 		OcdAlgorithm algo = new SskAlgorithm();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();

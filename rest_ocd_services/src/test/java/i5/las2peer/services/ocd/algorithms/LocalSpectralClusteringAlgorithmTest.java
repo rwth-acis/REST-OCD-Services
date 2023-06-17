@@ -10,6 +10,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ public class LocalSpectralClusteringAlgorithmTest {
 	 */
 	@Test
 	//@Ignore
-	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
+	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, IOException, InterruptedException, OcdMetricException {
 		
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new LocalSpectralClusteringAlgorithm();

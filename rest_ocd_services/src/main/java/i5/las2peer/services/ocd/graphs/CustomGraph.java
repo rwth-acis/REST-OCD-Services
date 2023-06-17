@@ -1837,5 +1837,4 @@ public class CustomGraph extends MultiGraph {
 		ret += "Es gibt : " + this.covers.size() + " cover"+n;
 		return ret;
 	}
-
 }

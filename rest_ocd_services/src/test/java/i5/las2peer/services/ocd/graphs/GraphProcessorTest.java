@@ -16,6 +16,7 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.Pair;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 import org.junit.Test;
@@ -98,7 +99,7 @@ public class GraphProcessorTest {
 	 * Tests the component division and cover remerge on simple two components.
 	 */
 	@Test
-	public void testDivideAndMergeConnectedComponents() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
+	public void testDivideAndMergeConnectedComponents() throws OcdAlgorithmException, InterruptedException, OcdMetricException, IOException {
 		CustomGraph graph = OcdTestGraphFactory.getSimpleTwoComponentsGraph();
 		GraphProcessor processor = new GraphProcessor();
 		List<Pair<CustomGraph, Map<Node, Node>>> components = processor.divideIntoConnectedComponents(graph);

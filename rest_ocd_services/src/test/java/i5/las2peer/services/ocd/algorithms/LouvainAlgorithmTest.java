@@ -10,6 +10,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -20,7 +21,7 @@ public class LouvainAlgorithmTest {
 	 * Tests the algorithm on the sawmill graph
 	 */
 	@Test
-	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
+	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, IOException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new LouvainAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
@@ -31,7 +32,7 @@ public class LouvainAlgorithmTest {
 	 * Tests the algorithm on the sawmill graph with maximum layers
 	 */
 	@Test
-	public void testOnSawmillMaxLayers() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
+	public void testOnSawmillMaxLayers() throws OcdAlgorithmException, AdapterException, IOException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new LouvainAlgorithm(Integer.MAX_VALUE);
 		Cover cover = algo.detectOverlappingCommunities(graph);

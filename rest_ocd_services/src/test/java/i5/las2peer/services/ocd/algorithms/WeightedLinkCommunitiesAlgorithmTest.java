@@ -12,12 +12,13 @@ import org.junit.Test;
 
 import org.graphstream.graph.Edge;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 public class WeightedLinkCommunitiesAlgorithmTest {
 
 	@Test
-	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
+	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException, OcdMetricException, IOException {
 		CustomGraph graph = OcdTestGraphFactory
 				.getAperiodicTwoCommunitiesGraph();
 		OcdAlgorithm algo = new WeightedLinkCommunitiesAlgorithm();
@@ -29,7 +30,7 @@ public class WeightedLinkCommunitiesAlgorithmTest {
 	 * Tests link communities on the test graph given in the original paper.
 	 */
 	@Test
-	public void testOnLinkCommunitiesTestGraph() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
+	public void testOnLinkCommunitiesTestGraph() throws OcdAlgorithmException, InterruptedException, OcdMetricException, IOException {
 		CustomGraph graph = OcdTestGraphFactory.getLinkCommunitiesTestGraph();
 		Iterator<Edge> edges = graph.edges().iterator();
 		while (edges.hasNext()) {

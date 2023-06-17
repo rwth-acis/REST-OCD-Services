@@ -872,7 +872,7 @@ public class Database {
 		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
 		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		BaseDocument coverDoc = coverCollection.getDocument(key, BaseDocument.class, readOpt);
-			
+
 		ObjectMapper om = new ObjectMapper();
 		Object objCommunityKeys = coverDoc.getAttribute(Cover.communityKeysColumnName);
 		List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
@@ -888,6 +888,10 @@ public class Database {
 		String creationMethodKey = coverDoc.getAttribute(Cover.creationMethodKeyColumnName).toString();
 		cclCollection.deleteDocument(creationMethodKey, null, deleteOpt);	//delete CoverCreationLog
 		coverCollection.deleteDocument(key, null, deleteOpt);				//delete Cover
+		if(DescriptiveVisualization.deleteEnabled) {
+			ArangoCollection dvCollection = db.collection("descriptiveVisualization");
+			dvCollection.deleteDocument(key); 									//delete DV
+		}
 	}
 	
 	private void deleteCover(String key) {

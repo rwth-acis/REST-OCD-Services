@@ -128,4 +128,5 @@ public class OcdTestConstants {
 	public static final String meaResultFilePath = outputFolderPath + "meaSignedLfrGraphCommunityResult.pop";
 
 
+	public static final String paperGraphEdgeListInputPath = inputFolderPath + "paperEdgeList.txt";
 }

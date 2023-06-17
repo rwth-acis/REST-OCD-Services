@@ -13,6 +13,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.UUID;
 
@@ -24,7 +25,7 @@ import org.graphstream.graph.Node;
 public class MergingOfOverlappingCommunitiesTest {
 
 	@Test
-	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
+	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException, OcdMetricException, IOException {
 		CustomGraph graph = OcdTestGraphFactory
 				.getAperiodicTwoCommunitiesGraph();
 		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
@@ -33,7 +34,7 @@ public class MergingOfOverlappingCommunitiesTest {
 	}
 	
 	@Test
-	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
+	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, IOException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
@@ -41,7 +42,7 @@ public class MergingOfOverlappingCommunitiesTest {
 	}
 
 	@Test
-	public void testOnKnowResultGraph() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
+	public void testOnKnowResultGraph() throws OcdAlgorithmException, InterruptedException, OcdMetricException, IOException {
 		CustomGraph graph = new CustomGraph();
 		Node node0 = graph.addNode("0");
 		Node node1 = graph.addNode("1");
@@ -65,7 +66,7 @@ public class MergingOfOverlappingCommunitiesTest {
 	
 	@Ignore
 	@Test
-	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
+	public void testOnSiam() throws OcdAlgorithmException, AdapterException, IOException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
 		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();

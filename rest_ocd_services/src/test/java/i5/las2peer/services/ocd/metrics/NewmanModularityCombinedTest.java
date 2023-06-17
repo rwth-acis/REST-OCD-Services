@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.metrics;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +20,7 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 public class NewmanModularityCombinedTest {
 	@Ignore
 	@Test
-	public void testOnJmol() throws AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdAlgorithmException, InterruptedException, OcdMetricException{
+	public void testOnJmol() throws AdapterException, IOException, IllegalArgumentException, ParseException, OcdAlgorithmException, InterruptedException, OcdMetricException{
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();
 		OcdAlgorithm algo = new CostFunctionOptimizationClusteringAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();

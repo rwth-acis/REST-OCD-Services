@@ -28,6 +28,52 @@ import org.graphstream.graph.Node;
  *
  */
 public class OcdTestGraphFactory {
+
+	public static CustomGraph getPaperGraph() {
+		// Creates new graph
+		CustomGraph graph = new CustomGraph();
+		graph.setName(OcdTestConstants.paperGraphEdgeListInputPath);
+		// Creates nodes
+		Node n[] = new Node[14];
+		for (int i = 0; i < 14; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+		}
+
+		int[][] temp_matrix = {
+				{0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0},
+				{1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0},
+				{0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0},
+				{1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0},
+				{1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0},
+				{1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0},
+				{0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0},
+				{0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0},
+				{1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0},
+				{0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1},
+				{0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0},
+				{0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0},
+				{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+				{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0}
+		};
+
+		for (int i = 0; i < 14; i++){
+			for (int j = 0; j < 14; j++){
+				if (temp_matrix[i][j] == 1){
+					graph.addEdge(UUID.randomUUID().toString(), n[i], n[j]);
+				}
+			}
+		}
+
+		Iterator<Edge> edges = graph.edges().iterator();
+		while(edges.hasNext()) {
+			Edge edge = edges.next();
+			graph.setEdgeWeight(edge, 1);
+		}
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
 	
 	public static CustomGraph getTwoCommunitiesGraph() {
 		// Creates new graph
