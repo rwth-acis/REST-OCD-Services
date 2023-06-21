@@ -378,6 +378,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("") @QueryParam("dateAttributeName") String dateAttributeNamesStr,
 				@DefaultValue("") @QueryParam("nameAttributeName") String nameAttributeNamesStr,
 				@DefaultValue("FALSE") @QueryParam("weighEdges") String weighEdgesStr,
+				@DefaultValue("FALSE") @QueryParam("addToFittingSequence") String addToFittingSequence,
 				String contentStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -496,22 +497,23 @@ public class ServiceClass extends RESTService {
 				try {
 					database.storeGraph(graph);
 
-					//Also add Graph to sequences or create an own one
+					//Also add Graph to sequence or create an own one
 					List<CustomGraphSequence> sequenceList = database.getFittingGraphSequences(username, graph);
-					if(graph instanceof CustomGraphTimed graphTimed) {
+					if(graph instanceof CustomGraphTimed graphTimed && Boolean.parseBoolean(addToFittingSequence)) {
 						if (sequenceList.isEmpty()) {
 							database.storeGraphSequence(new CustomGraphSequence(graphTimed, true));
 						} else {
-							boolean addedToAtLeastOneSequence = false;
+							boolean addedToSequence = false;
 							for (CustomGraphSequence sequence : sequenceList) {
 								if (sequence.tryAddTimedGraphToSequence(database.db, graphTimed)) {
 									sequence.setSequenceCommunityColorMap(new HashMap<>());
 									sequence.setCommunitySequenceCommunityMap(new HashMap<>());
 									database.storeGraphSequence(sequence);
-									addedToAtLeastOneSequence = true;
+									addedToSequence = true;
+									break;
 								}
 							}
-							if (!addedToAtLeastOneSequence) {
+							if (!addedToSequence) {
 								database.storeGraphSequence(new CustomGraphSequence(graphTimed, true));
 							}
 						}
@@ -632,7 +634,8 @@ public class ServiceClass extends RESTService {
 										   @DefaultValue("") @QueryParam("edgeFilters") List<String> edgeFilters,
 										   @DefaultValue("") @QueryParam("dateAttributeName") String dateAttributeNamesStr,
 										   @DefaultValue("") @QueryParam("nameAttributeName") String nameAttributeNamesStr,
-										   @DefaultValue("FALSE") @QueryParam("weighEdges") String weighEdgesStr
+										   @DefaultValue("FALSE") @QueryParam("weighEdges") String weighEdgesStr,
+										   @DefaultValue("FALSE") @QueryParam("addToFittingSequence") String addToFittingSequence
 
 		) {
 			String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
@@ -657,7 +660,7 @@ public class ServiceClass extends RESTService {
 			return createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
 					endDateStr,involvedUsersStr, showUserNamesStr, indexPathStr, filePathStr,
 					databaseAddressStr, databaseNameStr, databaseCredentialsStr, nodeCollectionNameStr, nodeFilters,
-					edgeCollectionNamesStr, edgeFilters, dateAttributeNamesStr, nameAttributeNamesStr, contentStr.toString(), weighEdgesStr.toString());
+					edgeCollectionNamesStr, edgeFilters, dateAttributeNamesStr, nameAttributeNamesStr, contentStr.toString(), weighEdgesStr.toString(), addToFittingSequence.toString());
 		}
 
 		/**
@@ -2542,8 +2545,6 @@ public class ServiceClass extends RESTService {
 	    		coverLog.setStatus(ExecutionStatus.WAITING);
 	    		cover.setCreationMethod(coverLog);
 	    		synchronized (threadHandler) {
-	    			System.out.println("GraphKey : " + database.storeGraph(graph));	//TODO beides in einer transaktion
-	    			System.out.println("CoverKey : " + database.storeCover(cover));
 	    			/*
 	    			 * Registers and starts benchmark creation.
 	    			 */
@@ -2648,7 +2649,7 @@ public class ServiceClass extends RESTService {
     				}
     				
     				boolean compatibleType = false;
-    				if(cover.getGraph().getTypes().isEmpty()) 
+    				if(cover.getGraph().getTypes().isEmpty())
     				{
     					compatibleType = true;
     				}
@@ -3130,7 +3131,7 @@ public class ServiceClass extends RESTService {
 				if(sequence.getSequenceCommunityColorMap().isEmpty()) { // Generate sequence Communities if not already done
 					requestHandler.log(Level.INFO, "user: " + username + ", " + "generating sequence communities for sequence id "
 							+ graphSequenceIdStr);
-					sequence.generateSequenceCommunities(database, username, 0.3); //TODO: Test similarity threshold, make it settable
+					sequence.generateSequenceCommunities(database, username, 0.2); //TODO: Test similarity threshold, make it settable
 					database.storeGraphSequence(sequence);
 				}
 				boolean sequenceNotYetPainted = sequence.getSequenceCommunityColorMap().containsValue(null);
