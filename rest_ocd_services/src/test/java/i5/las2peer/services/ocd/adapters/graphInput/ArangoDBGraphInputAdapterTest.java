@@ -118,6 +118,6 @@ public class ArangoDBGraphInputAdapterTest {
         ObjectMapper om = new ObjectMapper();
         ObjectNode nextGraphInListDoc = graphCollection.getDocument("734136", ObjectNode.class);
         String testDateString = "2022-04-30T22:00:00Z";
-        System.out.println(DateUtils.parseDate(om.convertValue(nextGraphInListDoc.get(CustomGraph.extraInfoColumnName).get("endDate"),String.class), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd").toString());
+        System.out.println(DateUtils.parseDate(om.convertValue(nextGraphInListDoc.get(CustomGraph.extraInfoColumnName).get("endDate"),String.class), "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd").toString());
     }
 }

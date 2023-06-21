@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.utils;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +12,9 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
 import i5.las2peer.services.ocd.cooperation.data.simulation.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
@@ -46,6 +50,7 @@ import java.io.IOException;
 
 
 import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 import org.apache.commons.io.FileUtils;
 
 //TODO: Replace println statements with logging
@@ -398,6 +403,8 @@ public class Database {
 																  List<Integer> executionStatusIds){
 		String transId = getTransactionId(CustomGraph.class, false);
 		ObjectMapper objectMapper = new ObjectMapper(); // needed to instantiate CustomGraphMeta from JSON
+		objectMapper.setDateFormat(new StdDateFormat());
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		ArrayList<CustomGraphMeta> customGraphMetas = new ArrayList<CustomGraphMeta>();
 
 		try {
@@ -412,6 +419,8 @@ public class Database {
 					"\"nodeCount\" : g." + CustomGraph.nodeCountColumnName + "," +
 					"\"edgeCount\" : g." + CustomGraph.edgeCountColumnName + "," +
 					"\"types\" : g." + CustomGraph.typesColumnName  +  "," +
+					"\"startDate\" : g." + CustomGraphTimed.startDateColumnName  +  "," +
+					"\"endDate\" : g." + CustomGraphTimed.endDateColumnName  +  "," +
 					"\"creationTypeId\" : gcl." + GraphCreationLog.typeColumnName + "," +
 					"\"creationStatusId\" : gcl." + GraphCreationLog.statusIdColumnName + "}";
 
@@ -422,7 +431,14 @@ public class Database {
 			while(customGraphMetaJson.hasNext()) {
                 /* Instantiate CustomGraphMeta from the json string acquired from a query.
                 Then add it to the list that will be returned*/
-				customGraphMetas.add(objectMapper.readValue(customGraphMetaJson.next(), CustomGraphMeta.class));
+				String currentJsonString = customGraphMetaJson.next();
+				JSONParser jsonParser = new JSONParser(JSONParser.MODE_PERMISSIVE);
+				if (((JSONObject)jsonParser.parse(currentJsonString)).get("startDate") != null) {
+					customGraphMetas.add(objectMapper.readValue(currentJsonString, CustomGraphTimedMeta.class));
+				}
+				else {
+					customGraphMetas.add(objectMapper.readValue(currentJsonString, CustomGraphMeta.class));
+				}
 			}
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
@@ -448,6 +464,8 @@ public class Database {
 																  List<Integer> executionStatusIds){
 		String transId = getTransactionId(CustomGraph.class, false);
 		ObjectMapper objectMapper = new ObjectMapper(); // needed to instantiate CustomGraphMeta from JSON
+		objectMapper.setDateFormat(new StdDateFormat());
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		ArrayList<CustomGraphMeta> customGraphMetas = new ArrayList<CustomGraphMeta>();
 
 		//adjust graphId list so that toString() delivers something arangoDB conform
@@ -469,6 +487,8 @@ public class Database {
 					"\"nodeCount\" : g." + CustomGraph.nodeCountColumnName + "," +
 					"\"edgeCount\" : g." + CustomGraph.edgeCountColumnName + "," +
 					"\"types\" : g." + CustomGraph.typesColumnName  +  "," +
+					"\"startDate\" : g." + CustomGraphTimed.startDateColumnName  +  "," +
+					"\"endDate\" : g." + CustomGraphTimed.endDateColumnName  +  "," +
 					"\"creationTypeId\" : gcl." + GraphCreationLog.typeColumnName + "," +
 					"\"creationStatusId\" : gcl." + GraphCreationLog.statusIdColumnName + "}";
 
@@ -479,7 +499,15 @@ public class Database {
 			while(customGraphMetaJson.hasNext()) {
                 /* Instantiate CustomGraphMeta from the json string acquired from a query.
                 Then add it to the list that will be returned*/
-				customGraphMetas.add(objectMapper.readValue(customGraphMetaJson.next(), CustomGraphMeta.class));
+
+				String currentJsonString = customGraphMetaJson.next();
+				JSONParser jsonParser = new JSONParser(JSONParser.MODE_PERMISSIVE);
+				if (((JSONObject)jsonParser.parse(currentJsonString)).get("startDate") != null) {
+					customGraphMetas.add(objectMapper.readValue(currentJsonString, CustomGraphTimedMeta.class));
+				}
+				else {
+					customGraphMetas.add(objectMapper.readValue(currentJsonString, CustomGraphMeta.class));
+				}
 			}
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
