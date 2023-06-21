@@ -17,6 +17,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
 
@@ -77,7 +78,7 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
             throw new IllegalArgumentException("Did not get a database address");
         }
         try {
-            new Socket().connect(new InetSocketAddress(host, port), 8);
+            new Socket().connect(new InetSocketAddress(host, port), 60);
         }
         catch(Exception e) {
             throw new IllegalArgumentException("There is nothing running on this address: '" + host + ":" + port +"'");
@@ -170,7 +171,7 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
                 throw new IllegalArgumentException("Start date given but no date attribute name to apply it to");
             }
             else if(!param.get("startDate").equals("")) {
-                startDate = DateUtils.parseDate(param.get("startDate"), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                startDate = DateUtils.parseDate(param.get("startDate"), "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
                 try {
                     for (String edgeCollectionName : edgeCollectionNames) {
                         edgeFilters.get(edgeCollectionName).add(new ImmutableTriple<>(dateAttributeName, ">=", '"' + param.get("startDate") + '"'));
@@ -187,7 +188,7 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
                 throw new IllegalArgumentException("End date given but no date attribute name to apply it to");
             }
             else if(!param.get("endDate").equals("")) {
-                endDate = DateUtils.parseDate(param.get("endDate"), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                endDate = DateUtils.parseDate(param.get("endDate"), "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
                 try {
                     for (String edgeCollectionName : edgeCollectionNames) {
                         edgeFilters.get(edgeCollectionName).add(new ImmutableTriple<>(dateAttributeName, "<=", '"' + param.get("endDate") + '"'));
@@ -200,25 +201,36 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
         }
 
         if (param.containsKey("weighEdges")) {
-            if (param.get("weighEdges").equalsIgnoreCase("true") || param.get("weighEdges").equalsIgnoreCase("false")) {
+            if (param.get("weighEdges").equalsIgnoreCase("true")) {
                 weighEdges = true;
+            }
+            else if (param.get("weighEdges").equalsIgnoreCase("false")) {
+                weighEdges = false;
+            }
+            else {
+                throw new IllegalArgumentException("weighEdges parameter was not of boolean value");
             }
             param.remove("weighEdges");
         }
 
 		if (param.containsKey("showUserNames")) {
-			if (param.containsKey("nameAttributeName")) {
-				nameAttributeName = param.get("nameAttributeName");
-				param.remove("nameAttributeName");
-			}
-			//else {
-			//	throw new IllegalArgumentException("Can not use names as node labels since no name attribute was given.");
-			//}
+            if (Boolean.parseBoolean(param.get("showUserNames"))) {
+                if (param.containsKey("nameAttributeName")) {
+                    nameAttributeName = param.get("nameAttributeName");
+                    param.remove("nameAttributeName");
+                }
+                //else {
+                //	throw new IllegalArgumentException("Can not use names as node labels since no name attribute was given.");
+                //}
+            }
+            else if (param.containsKey("nameAttributeName")) {
+                //throw new IllegalArgumentException("Name attribute was given but showUserNames was not enabled");
+                param.remove("nameAttributeName");
+            }
 			param.remove("showUserNames");
 		}
 
         if(!param.isEmpty()) {
-			//.println("PARAM: " + param.toString()); //TODO: Remove
             throw new IllegalArgumentException();
         }
     }
@@ -329,8 +341,18 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
             }
 
             Node node = graph.addNode((String) nodeJson.get("_key"));
-            if (!nameAttributeName.equals("") && nodeJson.containsKey(nameAttributeName)) {
-                graph.setNodeName(node,(String) nodeJson.get(nameAttributeName));
+            if (!nameAttributeName.equals("") && nodeJson.containsKey(nameAttributeName) && nodeJson.get(nameAttributeName) != null) {
+                if (nodeJson.get(nameAttributeName) instanceof JSONArray multipleNames) {
+                    if (multipleNames.get(0) instanceof JSONObject firstNameObj) {
+                        graph.setNodeName(node, (String) firstNameObj.get("value"));
+                    }
+                }
+                else if (nodeJson.get(nameAttributeName) instanceof JSONObject firstNameObj) {
+                    graph.setNodeName(node, (String) firstNameObj.get("value"));
+                }
+                else {
+                    graph.setNodeName(node,(String) nodeJson.get(nameAttributeName));
+                }
             }
             else {
                 graph.setNodeName(node,(String) nodeJson.get("_key"));
@@ -398,13 +420,18 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
                     Edge edge = graph.addEdge((String) edgeJson.get("_key"),
                             ((String)edgeJson.get("_from")).replace(nodeCollectionName + "/",""),
                             ((String)edgeJson.get("_to")).replace(nodeCollectionName + "/",""));
+                    boolean edgeWeighted = false;
                     for (String key : edgeJson.keySet()) {
                         if (weighEdges && key.equals("weight")) {
                             graph.setEdgeWeight(edge, Double.parseDouble(edgeJson.get("weight").toString()));
+                            edgeWeighted = true;
                         }
                         else if(!key.equals("_key") && !key.equals("_rev") && !key.equals("_id") && !key.equals("_from") && !key.equals("_to")) { //If we actually have some of the objects data and not just a key
                             graph.setEdgeExtraInfo(edge, graph.getEdgeExtraInfo(edge).appendField(key,edgeJson.get(key)));
                         }
+                    }
+                    if(weighEdges && !edgeWeighted) { //I.e. if we didnt find an edge attribute
+                        graph.setEdgeWeight(edge, 0); // Then give edge a zero weight
                     }
                 }
             }
@@ -432,7 +459,15 @@ public class ArangoDBGraphInputAdapter extends AbstractGraphInputAdapter {
         graphExtraInfo.put("identifiers",graphExtraInfoIdentifiers);
 
         if(graph instanceof CustomGraphTimed timedGraph) {
-            timedGraph.setStartDate((startDate != null ? startDate : new Date(Long.MIN_VALUE)));
+            if (startDate != null) {
+                // Advance start time a little since due to floating point shenanigans,
+                // start and end time can sometimes not be considered to be on the same date when they are on exactly the same time
+                startDate.setTime(startDate.getTime() + TimeUnit.MILLISECONDS.toMillis(1));
+            }
+            else {
+                startDate = new Date(Long.MIN_VALUE);
+            }
+            timedGraph.setStartDate(startDate);
             timedGraph.setEndDate((endDate != null ? endDate : new Date(Long.MAX_VALUE)));
         }
 

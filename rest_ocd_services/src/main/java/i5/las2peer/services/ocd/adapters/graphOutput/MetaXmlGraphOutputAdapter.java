@@ -2,6 +2,8 @@ package i5.las2peer.services.ocd.adapters.graphOutput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomGraphTimed;
+import i5.las2peer.services.ocd.graphs.CustomGraphTimedMeta;
 import i5.las2peer.services.ocd.graphs.GraphType;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -14,6 +16,10 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 
 /**
  * A graph output adapter for the meta XML format.
@@ -48,6 +54,16 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 			Element graphEdgeCountElt = doc.createElement("EdgeCount");
 			graphEdgeCountElt.appendChild(doc.createTextNode(Integer.toString(graph.getEdgeCount())));
 			graphElt.appendChild(graphEdgeCountElt);
+
+			if (graph instanceof CustomGraphTimed) {
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+				Element graphStartDateElt = doc.createElement("StartDate");
+				graphStartDateElt.appendChild(doc.createTextNode(dateFormat.format(((CustomGraphTimed) graph).getStartDate())));
+				graphElt.appendChild(graphStartDateElt);
+				Element graphEndDateElt = doc.createElement("EndDate");
+				graphEndDateElt.appendChild(doc.createTextNode(dateFormat.format(((CustomGraphTimed) graph).getEndDate())));
+				graphElt.appendChild(graphEndDateElt);
+			}
 
 			Element graphExtraInfoElt = doc.createElement("ExtraInfo");
 			String xmlConformExtraInfo = graph.getExtraInfo().toJSONString()

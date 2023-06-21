@@ -12,7 +12,9 @@ import org.apache.commons.lang3.time.DateUtils;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.IdClass;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Entity
@@ -49,8 +51,9 @@ public class CustomGraphTimed extends CustomGraph {
         DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
 
         bd.addAttribute(customGraphTypeColumnName, "TIMED");
-        bd.addAttribute(startDateColumnName, this.startDate.toInstant().toString());
-        bd.addAttribute(endDateColumnName, this.endDate.toInstant().toString());
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        bd.addAttribute(startDateColumnName, dateFormat.format(this.startDate));
+        bd.addAttribute(endDateColumnName, dateFormat.format(this.endDate));
 
         collection.updateDocument(this.getKey(), bd, updateOptions);
 
@@ -58,8 +61,8 @@ public class CustomGraphTimed extends CustomGraph {
     }
 
     public static CustomGraphTimed load(String key, ArangoDatabase db, String transId) throws OcdPersistenceLoadException {
-        CustomGraph customGraph = CustomGraph.load(key, db, transId);
-        CustomGraphTimed customGraphTimed = new CustomGraphTimed(customGraph);
+        CustomGraphTimed customGraphTimed = (CustomGraphTimed) CustomGraph.load(key, db, transId);
+        //CustomGraphTimed customGraphTimed = new CustomGraphTimed(customGraph);
 
         ArangoCollection collection = db.collection(collectionName);
         DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
@@ -70,13 +73,13 @@ public class CustomGraphTimed extends CustomGraph {
         }
 
         try {
-            customGraphTimed.startDate = DateUtils.parseDate(bd.getAttribute(startDateColumnName).toString(), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+            customGraphTimed.startDate = DateUtils.parseDate(bd.getAttribute(startDateColumnName).toString(), "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
         }
         catch (ParseException e) {
             customGraphTimed.startDate = new Date(Long.MIN_VALUE);
         }
         try {
-            customGraphTimed.endDate = DateUtils.parseDate(bd.getAttribute(endDateColumnName).toString(), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+            customGraphTimed.endDate = DateUtils.parseDate(bd.getAttribute(endDateColumnName).toString(), "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
         }
         catch (ParseException e) {
             customGraphTimed.endDate = new Date(Long.MAX_VALUE);

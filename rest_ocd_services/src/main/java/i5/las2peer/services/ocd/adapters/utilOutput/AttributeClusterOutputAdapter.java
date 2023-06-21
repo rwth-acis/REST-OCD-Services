@@ -57,7 +57,7 @@ public class AttributeClusterOutputAdapter extends AbstractClusterOutputAdapter 
                     }
                     else {
                         try {
-                            attributeValueDate = DateUtils.parseDate(param.get("attributeValue"), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                            attributeValueDate = DateUtils.parseDate(param.get("attributeValue"), "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
                         }
                         catch (ParseException dateExc) {
                             throw new IllegalArgumentException("Attribute Value is not comparable via operator");
@@ -136,55 +136,64 @@ public class AttributeClusterOutputAdapter extends AbstractClusterOutputAdapter 
     }
 
     //TODO: Cope with multiple possible values
-    private String clusterByAttributeValues(HashSet<String> keyNestingValues) {
+    private HashSet<String> clusterByAttributeValues(HashSet<String> keyNestingValues) {
         if(keyNestingValues.isEmpty()) {
-            return "no value";
+            return new HashSet<String>(List.of("no value"));
         }
 
         if (operator.equals("==")) {
-            if (keyNestingValues.contains(attributeValueString)) {
-                return attributeValueString;
-            }
-            else {
-                return keyNestingValues.iterator().next();
-            }
+//            if (keyNestingValues.contains(attributeValueString)) {
+//                return attributeValueString;
+//            }
+//            else {
+//                return keyNestingValues.iterator().next();
+//            }
+            return keyNestingValues;
         }
         else {
+            HashSet<String> comparedValues = new HashSet<String>();
+            Iterator<String> nestingIt = keyNestingValues.iterator();
             if (attributeValueNumber != null) {
-                String keyNestingValue = keyNestingValues.iterator().next();
-                if (keyNestingValues.contains(Double.toString(attributeValueNumber))) {
-                    keyNestingValue = Double.toString(attributeValueNumber);
-                }
-                try {
-                    Double keyNestingValueNumber = Double.parseDouble(keyNestingValue);
-                    return compareAndReturnTextResult(keyNestingValueNumber, attributeValueNumber);
-                } catch (NumberFormatException e) {
-                    return "not comparable";
+                while (nestingIt.hasNext()) {
+                    String keyNestingValue = nestingIt.next();
+                    if (keyNestingValues.contains(Double.toString(attributeValueNumber))) {
+                        keyNestingValue = Double.toString(attributeValueNumber);
+                    }
+                    try {
+                        Double keyNestingValueNumber = Double.parseDouble(keyNestingValue);
+                        comparedValues.add(compareAndReturnTextResult(keyNestingValueNumber, attributeValueNumber));
+                    } catch (NumberFormatException e) {
+                        comparedValues.add("not comparable");
+                    }
                 }
             } else if (attributeValueBoolean != null) {
-                String keyNestingValue = keyNestingValues.iterator().next();
-                if (keyNestingValues.contains(Boolean.toString(attributeValueBoolean))) {
-                    keyNestingValue = Boolean.toString(attributeValueBoolean);
+                while (nestingIt.hasNext()) {
+                    String keyNestingValue = nestingIt.next();
+                    if (keyNestingValues.contains(Boolean.toString(attributeValueBoolean))) {
+                        keyNestingValue = Boolean.toString(attributeValueBoolean);
+                    }
+                    if (keyNestingValue.equalsIgnoreCase("true") || keyNestingValue.equalsIgnoreCase("false")) {
+                        Boolean keyNestingValueBoolean = Boolean.parseBoolean(keyNestingValue);
+                        comparedValues.add(compareAndReturnTextResult(keyNestingValueBoolean, attributeValueBoolean));
+                    }
+                    comparedValues.add("not comparable");
                 }
-                if (keyNestingValue.equalsIgnoreCase("true") || keyNestingValue.equalsIgnoreCase("false")) {
-                    Boolean keyNestingValueBoolean = Boolean.parseBoolean(keyNestingValue);
-                    return compareAndReturnTextResult(keyNestingValueBoolean, attributeValueBoolean);
-                }
-                return "not comparable";
             } else if (attributeValueDate != null) {
-                String keyNestingValue = keyNestingValues.iterator().next();
-                if (keyNestingValues.contains(attributeValueDate.toInstant().toString())) {
-                    keyNestingValue = attributeValueDate.toInstant().toString();
-                }
-                try {
-                    Date keyNestingValueDate = DateUtils.parseDate(keyNestingValue, "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
-                    return compareAndReturnTextResult(keyNestingValueDate, attributeValueDate);
-                } catch (ParseException e) {
-                    return "not comparable";
+                while (nestingIt.hasNext()) {
+                    String keyNestingValue = nestingIt.next();
+                    if (keyNestingValues.contains(attributeValueDate.toInstant().toString())) {
+                        keyNestingValue = attributeValueDate.toInstant().toString();
+                    }
+                    try {
+                        Date keyNestingValueDate = DateUtils.parseDate(keyNestingValue, "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                        comparedValues.add(compareAndReturnTextResult(keyNestingValueDate, attributeValueDate));
+                    } catch (ParseException e) {
+                        comparedValues.add("not comparable");
+                    }
                 }
             }
+            return comparedValues;
         }
-        return null;
     }
 
     //TODO: Check if it is really save to use use stringified values as key.
@@ -251,16 +260,16 @@ public class AttributeClusterOutputAdapter extends AbstractClusterOutputAdapter 
     @Override
     public void writeCluster() throws AdapterException {
         HashSet<String> attributeClusters = new HashSet<>();
-        HashMap<String,String> nodeClusterMap = new HashMap<>();
+        HashMap<String,List<String>> nodeClusterMap = new HashMap<>();
 
         //int i = 0;
         for (Iterator<Node> it = graph.nodes().iterator(); it.hasNext(); ) {
             Node node = it.next();
 
             HashSet<String> keyNestingValues = findJSONNestingValues(node);
-            String clusterName = clusterByAttributeValues(keyNestingValues);
-            attributeClusters.add(clusterName);
-            nodeClusterMap.put(graph.getNodeKey(node), clusterName);
+            HashSet<String> clusterNames = clusterByAttributeValues(keyNestingValues);
+            attributeClusters.addAll(clusterNames);
+            nodeClusterMap.put(graph.getNodeKey(node), new ArrayList<>(clusterNames));
             //i++;
         }
         JSONObject clusterObject = new JSONObject();
