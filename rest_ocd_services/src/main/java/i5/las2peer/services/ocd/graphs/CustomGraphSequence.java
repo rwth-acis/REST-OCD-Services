@@ -12,11 +12,13 @@ import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.graphstream.graph.Node;
 
+import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.Map.Entry;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -75,8 +77,8 @@ public class CustomGraphSequence {
         this.userName = firstGraph.getUserName();
         if(checkTimeOrdered && firstGraph instanceof CustomGraphTimed timedGraph) {
             timeOrdered = true;
-            this.startDate = timedGraph.getStartDate();
-            this.endDate = timedGraph.getEndDate();
+            this.startDate = new Date(timedGraph.getStartDate().getTime());
+            this.endDate = new Date(timedGraph.getEndDate().getTime());
         }
     }
 
@@ -85,10 +87,10 @@ public class CustomGraphSequence {
         if(this.timeOrdered) {
             if (customGraphKeys.indexOf(graphKey) == 0 && 1 < customGraphKeys.size()) {
                 CustomGraphTimed nextGraph = (CustomGraphTimed) db.getGraph(this.userName, customGraphKeys.get(1));
-                this.startDate = nextGraph.getStartDate();
+                this.startDate = new Date(nextGraph.getStartDate().getTime());
             } else if (customGraphKeys.indexOf(graphKey) == customGraphKeys.size() - 1 && 1 < customGraphKeys.size()) {
                 CustomGraphTimed prevGraph = (CustomGraphTimed) db.getGraph(this.userName, customGraphKeys.get(customGraphKeys.size() - 2));
-                this.endDate = prevGraph.getEndDate();
+                this.endDate = new Date(prevGraph.getEndDate().getTime());
             }
         }
         customGraphKeys.remove(graphKey);
@@ -136,9 +138,9 @@ public class CustomGraphSequence {
             try {
                 //JSONObject seqGraphextraInfo = new JSONObject(om.convertValue(seqGraphDoc.getAttribute(extraInfoColumnName), Map.class));
                 seqGraphStartDate = DateUtils.parseDate(seqGraphDoc.getAttribute(CustomGraphTimed.startDateColumnName).toString(),
-                        "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                        "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
                 seqGraphEndDate = DateUtils.parseDate(seqGraphDoc.getAttribute(CustomGraphTimed.endDateColumnName).toString(),
-                        "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                        "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
             }
             catch (ParseException dateEx) {
                 throw new OcdPersistenceLoadException("Could not retrieve/parse dates for graph in time-ordered sequence");
@@ -147,14 +149,14 @@ public class CustomGraphSequence {
             if (graph.getEndDate().getTime() <= seqGraphStartDate.getTime()) {
                 if (i == 0) {
                     addGraphToSequence(0,graph.getKey());
-                    this.startDate = graph.getStartDate();
+                    this.startDate = new Date(graph.getStartDate().getTime());
                     return true;
                 }
                 else {
                     ObjectNode nextGraphInListDoc = graphCollection.getDocument(customGraphKeys.get(i-1), ObjectNode.class);
                     Date seqPrevGraphEndDate;
                     try {
-                        seqPrevGraphEndDate = DateUtils.parseDate(om.convertValue(nextGraphInListDoc.get(CustomGraphTimed.endDateColumnName), String.class), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                        seqPrevGraphEndDate = DateUtils.parseDate(om.convertValue(nextGraphInListDoc.get(CustomGraphTimed.endDateColumnName), String.class), "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
                     }
                     catch (ParseException e) {
                         throw new OcdPersistenceLoadException("Could not retrieve/parse end date for non-first graph in sequence");
@@ -168,7 +170,7 @@ public class CustomGraphSequence {
             }
             else if (i == customGraphKeys.size()-1 && seqGraphEndDate != null && graph.getStartDate().getTime() >= seqGraphEndDate.getTime()) {
                 addGraphToSequence(customGraphKeys.size(), graph.getKey());
-                this.endDate = graph.getEndDate();
+                this.endDate = new Date(graph.getEndDate().getTime());
                 return true;
             }
         }
@@ -176,34 +178,82 @@ public class CustomGraphSequence {
         return false;
     }
 
+    //TODO: Check if going over node indices will always work db wise
+    private HashMap<String,ImmutablePair<Integer,Integer>> makeCombinedNodesMap(Cover aCover, Cover bCover) {
+        CustomGraph aGraph = aCover.getGraph();
+        CustomGraph bGraph = bCover.getGraph();
+
+        HashMap<String,ImmutablePair<Integer,Integer>> nodesABcombined = new HashMap<>();
+
+        for(Node nodeA : aGraph.nodes().toList()) {
+            CustomNode cNodeA = aGraph.getCustomNode(nodeA);
+            CustomNode cNodeB = bGraph.getCustomNode(cNodeA.getName());
+
+            nodesABcombined.put(cNodeA.getName(), new ImmutablePair<>(nodeA.getIndex(), cNodeB != null ? bGraph.getNode(cNodeB).getIndex() : -1));
+        }
+
+        //Add remaining nodes from graph b
+        for(Node nodeB : bGraph.nodes().toList()) {
+            CustomNode cNodeB = bGraph.getCustomNode(nodeB);
+            CustomNode cNodeA = aGraph.getCustomNode(cNodeB.getName());
+            if(!nodesABcombined.containsKey(cNodeB.getName())) {
+                nodesABcombined.put(cNodeB.getName(), new ImmutablePair<>(cNodeA != null ? bGraph.getNode(cNodeA).getIndex() : -1, nodeB.getIndex()));
+            }
+        }
+
+        return nodesABcombined;
+    }
+
     //TODO: Check performance of this
-    private double getCommunitySimilarity(Community commA, Community commB) {
-        double similarityBtoA = 0.0;
-        CustomGraph commAGraph = commA.getCover().getGraph();
-        for (Entry<Node,Double> entryB : commB.getMemberships().entrySet()) {
-            if(commAGraph.getCustomNode(entryB.getKey()) != null) { // If the graph even has a similar node
-                Node nodeA = commAGraph.getNode(commAGraph.getCustomNode(entryB.getKey()));
-                //Belonging factor is 0 if node is not in the community
-                similarityBtoA += 1 - Math.abs(commA.getBelongingFactor(nodeA) - entryB.getValue()); //TODO: Test if this similarity seems reasonable
+    //Do a pearson correlation of node belongings for both communities with a pretend "complete" graph of all of both graphs nodes (no duplicates for shared nodes)
+    private double getCommunitySimilarity(Community commA, Community commB, HashMap<String,ImmutablePair<Integer,Integer>> nodesABcombined) {
+        Map<Integer,Double> commAMemberships = commA.getMembershipsByIndices();
+        Map<Integer,Double> commBMemberships = commB.getMembershipsByIndices();
+
+        double commAAvg = commAMemberships.values().stream().reduce(0.0, Double::sum);
+        double commBAvg = commBMemberships.values().stream().reduce(0.0, Double::sum);
+
+//        for(String nodeName : nodesABcombined.keySet()) {
+//            commAAvg += nodesABcombined.get(nodeName).getLeft() >= 0 ? commAMemberships.getOrDefault(nodesABcombined.get(nodeName).getLeft(),0.0) : 0.0;
+//            commBAvg += nodesABcombined.get(nodeName).getRight() >= 0 ? commBMemberships.getOrDefault(nodesABcombined.get(nodeName).getRight(),0.0) : 0.0;
+//        }
+        commAAvg /= nodesABcombined.size();
+        commBAvg /= nodesABcombined.size();
+
+        double SP_a_b = 0.0, SQ_a_b = 0.0, SQ_b_a = 0.0;
+
+        //TODO: Check whether we really need to iterate through all of this or can just sum up over comA/comB
+        for(int index : commAMemberships.keySet()) {
+            double nodeAValue = commAMemberships.get(index);
+            String nodeName = commA.getCover().getGraph().getCustomNode(index).getName();
+            double nodeBValue = 0.0;
+            if (nodesABcombined.get(nodeName).getRight() >= 0) {
+                if (commBMemberships.containsKey(nodesABcombined.get(nodeName).getRight())) {
+                    nodeBValue = commBMemberships.get(nodesABcombined.get(nodeName).getRight());
+                    commBMemberships.remove(nodesABcombined.get(nodeName).getRight()); // remove key as entry as been processed
+                }
             }
-            else {
-                similarityBtoA += 0.0; // If a node from the second graph doesn't exist in the first then it has no similarity
-            }
+
+            SP_a_b += (nodeAValue - commAAvg) * (nodeBValue - commBAvg);
+            SQ_a_b += Math.pow(nodeAValue - commAAvg,2);
+            SQ_b_a += Math.pow(nodeBValue - commBAvg,2);
         }
-		double similarityAtoB = 0.0;
-		CustomGraph commBGraph = commB.getCover().getGraph();
-		for (Entry<Node,Double> entryA : commA.getMemberships().entrySet()) {
-            if(commBGraph.getCustomNode(entryA.getKey()) != null) { // If the graph even has a similar node
-                Node nodeB = commBGraph.getNode(commBGraph.getCustomNode(entryA.getKey()));
-                //Belonging factor is 0 if node is not in the community
-                similarityAtoB += 1 - Math.abs(commB.getBelongingFactor(nodeB) - entryA.getValue()); //TODO: Test if this similarity seems reasonable
-            }
-            else {
-                similarityAtoB += 0.0; // If a node from the second graph doesn't exist in the first then it has no similarity
-            }
+        for(int index : commBMemberships.keySet()) { // Cycle through remaining nodes of b community
+            double nodeBValue = commBMemberships.get(index);
+            String nodeName = commB.getCover().getGraph().getCustomNode(index).getName();
+            double nodeAValue = nodesABcombined.get(nodeName).getLeft() >= 0 ? commAMemberships.getOrDefault(nodesABcombined.get(nodeName).getLeft(),0.0) : 0.0;
+
+            SP_a_b += (nodeAValue - commAAvg) * (nodeBValue - commBAvg);
+            SQ_a_b += Math.pow(nodeAValue - commAAvg,2);
+            SQ_b_a += Math.pow(nodeBValue - commBAvg,2);
         }
-		
-        return (similarityBtoA/commB.getSize() + similarityAtoB/commA.getSize()) / 2;
+        //Rest of the nodes both have zero values and therefore the same SP/SQ results, add them in bulk
+        int remainingSize = nodesABcombined.size() - commAMemberships.size() + commBMemberships.size();
+        SP_a_b += remainingSize*(0.0 - commAAvg) * (0.0 - commBAvg);
+        SQ_a_b += remainingSize*Math.pow(0.0 - commAAvg,2);
+        SQ_b_a += remainingSize*Math.pow(0.0 - commBAvg,2);
+
+        return SP_a_b / Math.sqrt(SQ_a_b * SQ_b_a);
     }
 
     private <T> int getInsertionIndex(double similarityValue, ArrayList<ImmutableTriple<Double,T,T>> communitySimilarities) {
@@ -273,13 +323,46 @@ public class CustomGraphSequence {
                 ArrayList<ImmutableTriple<Double,String,String>> communitySimilarities = new ArrayList<>(); //Maps current communities to lists of the similarity values of the previous ones (ordered by similarity value)
                 Cover prevCover = db.getCover(username, coverMetas.get(i-1).getGraphKey(), coverMetas.get(i-1).getKey());
                 Cover currCover = db.getCover(username, coverMetas.get(i).getGraphKey(), coverMetas.get(i).getKey());
+                HashMap<String,ImmutablePair<Integer,Integer>> nodesABcombined = makeCombinedNodesMap(prevCover, currCover);
+                HashSet<Community> matchedCommunities = new HashSet<>();
 
+                int u = 0;
+                int numComms = currCover.getCommunities().size();
                 //Compute Similarities for Communities of the two covers and insert them into an ordered list
                 for(Community currComm : currCover.getCommunities()) {
                     for(Community prevComm : prevCover.getCommunities()) {
-                        double commSimilarity = getCommunitySimilarity(prevComm,currComm);
+                        if(matchedCommunities.contains(prevComm)) {
+                            continue;
+                        }
+                        //Filter out loose node communities for faster processing
+                        if(currComm.getSize() == 1) {
+                            if (prevComm.getSize() == 1) {
+                                Node nodeA = currComm.getMemberships().keySet().iterator().next();
+                                Node nodeB = prevComm.getMemberships().keySet().iterator().next();
+                                if (currCover.getGraph().getCustomNode(nodeA).getName().equals(prevCover.getGraph().getCustomNode(nodeB).getName())
+                                        && Math.abs(currComm.getBelongingFactor(nodeA.getIndex()) - currComm.getBelongingFactor(nodeB.getIndex())) <= 0.1) {
+                                    communitySimilarities.add(0, new ImmutableTriple<>(100.0, currComm.getKey(), prevComm.getKey()));
+                                    matchedCommunities.add(currComm);
+                                    matchedCommunities.add(prevComm);
+                                    break;
+                                }
+                            }
+                            else if (prevComm.getBelongingFactor(currComm.getMembershipsByIndices().keySet().iterator().next()) <= 0.1) {
+                                continue;
+                            }
+                        }
+                        else if (prevComm.getSize() == 1 && currComm.getBelongingFactor(prevComm.getMembershipsByIndices().keySet().iterator().next()) <= 0.1) {
+                            continue;
+                        }
+
+                        double commSimilarity = getCommunitySimilarity(prevComm,currComm,nodesABcombined);
                         int insertionIndex = getInsertionIndex(commSimilarity, communitySimilarities);
                         communitySimilarities.add(insertionIndex, new ImmutableTriple<>(commSimilarity, currComm.getKey(), prevComm.getKey()));
+//                        if(commSimilarity >= 0.7) { //Skip the rest of the comparisons when we found a near perfect match
+//                            matchedCommunities.add(currComm);
+//                            matchedCommunities.add(prevComm);
+//                            break;
+//                        }
                     }
                 }
 
@@ -336,17 +419,16 @@ public class CustomGraphSequence {
 
         bd.addAttribute(sequenceCommunityColorMapColumnName, this.sequenceCommunityColorMap);
         bd.addAttribute(communitySequenceCommunityMapColumnName, this.communitySequenceCommunityMap);
-        bd.addAttribute(startDateColumnName, this.startDate != null ? this.startDate.toInstant().toString() : null);
-        bd.addAttribute(endDateColumnName, this.endDate != null ? this.endDate.toInstant().toString() : null);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        bd.addAttribute(startDateColumnName, this.startDate != null ? dateFormat.format(this.startDate) : null);
+        bd.addAttribute(endDateColumnName, this.endDate != null ? dateFormat.format(this.endDate) : null);
         bd.addAttribute(extraInfoColumnName,this.extraInfo);
 
         if(this.key == null) {
-            //System.out.println("STORING SEQUENCE " + bd.getKey() + ": " + bd.getAttribute(customGraphKeysColumnName));
             this.key = collection.insertDocument(bd, createOptions).getKey();
         }
         else {
             bd.setKey(this.key);
-            //System.out.println("STORING SEQUENCE " + bd.getKey() + ": " + bd.getAttribute(customGraphKeysColumnName));
             collection.updateDocument(this.key, bd, updateOptions);
         }
     }
@@ -364,7 +446,6 @@ public class CustomGraphSequence {
             sq.name = bd.getAttribute(nameColumnName).toString();
             sq.userName = bd.getAttribute(userColumnName).toString();
             sq.timeOrdered = om.convertValue(bd.getAttribute(timeOrderedColumnName), Boolean.class);
-            //System.out.println("LOADED SEQUENCE " + bd.getKey() + ": " + bd.getAttribute(customGraphKeysColumnName));
             sq.customGraphKeys = om.convertValue(bd.getAttribute(customGraphKeysColumnName), ArrayList.class);
             try {
                 sq.sequenceCommunityColorMap = om.convertValue(bd.getAttribute(sequenceCommunityColorMapColumnName), HashMap.class);
@@ -374,13 +455,13 @@ public class CustomGraphSequence {
                 throw new OcdPersistenceLoadException("Could not load sequence community maps: " + e.getMessage());
             }
             try {
-                sq.startDate = DateUtils.parseDate(bd.getAttribute(startDateColumnName).toString(), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                sq.startDate = DateUtils.parseDate(bd.getAttribute(startDateColumnName).toString(), "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
             }
             catch (ParseException e) {
                 sq.startDate = new Date(Long.MIN_VALUE);
             }
             try {
-                sq.endDate = DateUtils.parseDate(bd.getAttribute(endDateColumnName).toString(), "yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
+                sq.endDate = DateUtils.parseDate(bd.getAttribute(endDateColumnName).toString(), "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd");
             }
             catch (ParseException e) {
                 sq.endDate = new Date(Long.MAX_VALUE);
@@ -404,11 +485,11 @@ public class CustomGraphSequence {
     }
 
     public void setStartDate(Date startDate) {
-        this.startDate = startDate;
+        this.startDate = new Date(startDate.getTime());
     }
 
     public void setEndDate(Date endDate) {
-        this.endDate = endDate;
+        this.endDate = new Date(endDate.getTime());
     }
 
     public Date getStartDate() {

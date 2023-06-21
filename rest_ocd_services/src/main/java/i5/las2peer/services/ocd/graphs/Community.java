@@ -224,6 +224,24 @@ public class Community {
 	}
 
 	/**
+	 * Getter for the belonging factor of a certain node.
+	 *
+	 * @param index
+	 *            The member node index.
+	 * @return The belonging factor, i.e. the corresponding value from the
+	 *         memberships map or 0 if the node does not belong to the
+	 *         community.
+	 */
+	public double getBelongingFactor(int index) {
+		CustomNode customNode = this.cover.getGraph().getCustomNode(index);
+		Double belongingFactor = this.memberships.get(customNode);
+		if (belongingFactor == null) {
+			belongingFactor = 0d;
+		}
+		return belongingFactor;
+	}
+
+	/**
 	 * Setter for a membership entry. If the belonging factor is 0 the node is
 	 * removed from the community.
 	 * 
@@ -284,6 +302,20 @@ public class Community {
 			memberIndices.add(Integer.valueOf(getCover().getGraph().getNodeName(node)));
 		}
 		return memberIndices;
+	}
+
+	//TODO: This method seems to assume that all node names are some numbered index but this is not true. We should change it
+	/**
+	 * Returns the indices of all nodes that have a belonging to this community
+	 *
+	 * @return member indices list
+	 */
+	public Map<Integer, Double> getMembershipsByIndices() {
+		Map<Integer, Double> memberships = new HashMap<Integer, Double>();
+		for (Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {
+			memberships.put(this.cover.getGraph().getNode(entry.getKey()).getIndex(), entry.getValue());
+		}
+		return memberships;
 	}
 
 	/////////////////////////// PERSISTENCE CALLBACK METHODS

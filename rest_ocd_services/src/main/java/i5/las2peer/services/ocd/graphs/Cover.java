@@ -6,6 +6,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.utils.NonZeroEntriesVectorProcedure;
 
 import java.awt.Color;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -870,7 +871,12 @@ public class Cover {
 				Community community = Community.load(communityKey,  cover, db, readOpt);
 				cover.communities.add(community);
 			}
-			cover.numberOfCommunities = (Integer) bd.getAttribute(numberOfCommunitiesColumnName);
+			if (bd.getAttribute(numberOfCommunitiesColumnName) instanceof BigInteger bigIntComms) {
+				cover.numberOfCommunities = bigIntComms.intValue();
+			} else {
+				cover.numberOfCommunities = (Integer) bd.getAttribute(numberOfCommunitiesColumnName);
+			}
+
 			
 			String queryStr = "FOR m IN " + OcdMetricLog.collectionName + " FILTER m." + OcdMetricLog.coverKeyColumnName +
 					" == @cKey RETURN m._key";

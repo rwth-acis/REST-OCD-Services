@@ -256,6 +256,18 @@ public class CustomGraph extends MultiGraph {
     }
 
 	/**
+	 * Creates a new instance. The name attribute will be a random UUID
+	 */
+	public CustomGraph(String key) {
+		super(UUID.randomUUID().toString());
+		this.addSink(new CustomGraphListener(this));
+		layout = new SpringBox(false);
+		this.addSink(layout); //Layout listener
+		layout.addAttributeSink(this);
+		this.key = key;
+	}
+
+	/**
 	 * Copy constructor.
 	 *
 	 * @param graph
@@ -314,6 +326,7 @@ public class CustomGraph extends MultiGraph {
 				graph.creationMethod.getParameters());
 		this.creationMethod.setStatus(graph.creationMethod.getStatus());
 		this.customNodes = new HashMap<Integer, CustomNode>();
+		this.customEdges = new HashMap<Integer, CustomEdge>();
 		copyMappings(graph.customNodes, graph.customEdges, graph.nodeIds, graph.edgeIds);
 		this.userName = graph.userName;
 		this.name = graph.name;
@@ -1549,14 +1562,12 @@ public class CustomGraph extends MultiGraph {
 	 *            A node which must belong to this graph.
 	 * @return The corresponding custom node object.
 	 */
-
 	protected CustomNode getCustomNode(Node node) {
 
-		if ( nodeIds.get(node) != null) {
+		if (nodeIds.get(node) != null) {
 			int index = nodeIds.get(node);
 			return customNodes.get(index);
 		}
-
 
 		//TODO: is this addition to avoid nullpointer exception correct?
 		for (CustomNode customNode : customNodes.values()){
@@ -1565,8 +1576,33 @@ public class CustomGraph extends MultiGraph {
 			}
 		}
 		return null;
+	}
 
+	/**
+	 * Returns the custom node object corresponding to a node.
+	 *
+	 * @param name
+	 *            A node name which must belong to this graph.
+	 * @return The corresponding custom node object.
+	 */
+	protected CustomNode getCustomNode(String name) {
+		for (CustomNode customNode : customNodes.values()){
+			if (customNode.getName().equals(name)){
+				return customNode;
+			}
+		}
+		return null;
+	}
 
+	/**
+	 * Returns the custom node object corresponding to a node.
+	 *
+	 * @param index
+	 *            A node index of a node which must belong to this graph.
+	 * @return The corresponding custom node object.
+	 */
+	protected CustomNode getCustomNode(int index) {
+		return this.customNodes.get(index);
 	}
 
 	/**
@@ -1776,7 +1812,13 @@ public class CustomGraph extends MultiGraph {
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
 		
 		if (bd != null) {
-			graph = new CustomGraph();
+			if (bd.getAttribute(customGraphTypeColumnName).toString().equals("TIMED")) {
+				graph = new CustomGraphTimed();
+			}
+			else {
+				graph = new CustomGraph();
+			}
+
 			ObjectMapper om = new ObjectMapper();	
 			Object objId = bd.getAttribute(idColumnName);
 			if(objId!= null) {
