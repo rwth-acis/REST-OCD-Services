@@ -2,9 +2,6 @@ package i5.las2peer.services.ocd.algorithms;
 
 import java.util.*;
 
-import com.microsoft.schemas.office.visio.x2012.main.SectionType;
-import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
-import jnr.ffi.annotations.In;
 import org.graphstream.graph.Node;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
@@ -15,9 +12,9 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+import org.la4j.vector.Vector;
 
 import i5.las2peer.services.ocd.graphs.DescriptiveVisualization;
-import org.la4j.vector.Vector;
 
 /**
  * Implementation of the Local Optimization Algorithm based on Cliques by Jian Ma and Jianping:
@@ -110,29 +107,23 @@ public class LOCAlgorithm implements OcdAlgorithm {
 		}
 	}
 
-	/* DV */
-	public int component = 0;
+	/* DV: variables */
 	public boolean visualize = false;
 	public DescriptiveVisualization dv = new DescriptiveVisualization();
 	public HashMap<Integer, Double> nodeNumericalValues = new HashMap<>();
 	public HashMap<Integer, String> nodeStringValues = new HashMap<>();
-	public HashSet<HashMap<Integer, String>> nodeStringValuesTemp = new HashSet<>();
-	public HashSet<HashMap<Integer, String>> nodeStringValuesTemp2 = new HashSet<>();
-	public HashSet<HashMap<Integer, String>> nodeStringValuesTemp3 = new HashSet<>();
-	public HashSet<HashMap<Integer, String>> nodeStringValuesTemp4 = new HashSet<>();
-	public HashSet<HashMap<Integer, Double>> nodeNumericalValuesTemp = new HashSet<>();
-	public HashSet<HashMap<Integer, Double>> nodeNumericalValuesTemp2 = new HashSet<>();
-	/* DV */
+	public HashSet<HashMap<Integer, String>> nodeStringValuesList = new HashSet<>();
+	public HashSet<HashMap<Integer, String>> nodeStringValuesList2 = new HashSet<>();
+	public HashSet<HashMap<Integer, String>> nodeStringValuesList3 = new HashSet<>();
+	public HashSet<HashMap<Integer, Double>> nodeNumericalValuesList = new HashSet<>();
+	public HashSet<HashMap<Integer, Double>> nodeNumericalValuesList2 = new HashSet<>();
 
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
-		/* DV */
 		visualize = DescriptiveVisualization.getVisualize();
 		if(visualize) {
-			if(component == 0) {
-				String path = "rest_ocd_services/src/main/java/i5/las2peer/services/ocd/graphs/descriptions/LOC.txt";
-				dv.setDescriptions(path, ";");
-			}
+			/* DV: set description file and delimiter */
+			dv.setDescriptions("LOC.txt", ";");
 			dv.addComponent(graph);
 			HashMap<Integer, String> labels = new HashMap<>();
 			for (int i = 0; i < graph.getNodeCount(); i++) {
@@ -142,22 +133,20 @@ public class LOCAlgorithm implements OcdAlgorithm {
 				}
 				labels.put(dv.getRealNode(i), "neighbors: " + neighbors_i);
 			}
+			/* DV: set node labels to the neighboring nodes */
 			dv.setNodeLabels(labels);
-			component += 1;
 		}
-		/* DV */
 
 		//gives every node its local density value
 		HashMap<Node, Integer> localDensityMap = getLocalDensityMap(graph);
-		/* DV */
 		if(visualize) {
 			for (Node node : localDensityMap.keySet()){
 				nodeNumericalValues.put(node.getIndex(), Double.valueOf(localDensityMap.get(node)));
 			}
+			/* DV: set node local density values */
 			dv.setNodeNumericalValues(1, nodeNumericalValues);
 			nodeNumericalValues.clear();
 		}
-		/* DV */
 
 		//calculates the cliques of size at least k
 		HashMap<Integer, HashSet<Node>> cliques = getCliques(graph);
@@ -185,18 +174,15 @@ public class LOCAlgorithm implements OcdAlgorithm {
 			cluster.clear();
 
 			maxLocalDensityNode = getMaxValueNode(localDensityMap);
-			/* DV */
 			if(visualize) {
 				nodeStringValues.put(maxLocalDensityNode.getIndex(), "maximal local density");
 			}
-			/* DV */
 
 			cluster.add(maxLocalDensityNode);
 			terminierungNeighbors = graph.getNodeCount() + 1;
 			while(terminierungNeighbors > 0) {		// while(true) should also work
 				terminierungNeighbors--;			// termination variable (not important)
 				neighbors = getClusterNeighbors(cluster, localDensityMap, graph);
-				/* DV */
 				if(visualize) {
 					HashMap<Integer, String> nodeStringValues2 = new HashMap<>();
 					int maxNode = dv.getRealNode(maxLocalDensityNode.getIndex());
@@ -204,9 +190,8 @@ public class LOCAlgorithm implements OcdAlgorithm {
 						nodeStringValues2.put(node.getIndex(), "neighbor of cluster " + maxNode);
 					}
 					nodeStringValues2.put(maxLocalDensityNode.getIndex(), "cluster " + maxNode);
-					nodeStringValuesTemp.add(nodeStringValues2);
+					nodeStringValuesList.add(nodeStringValues2);
 				}
-				/* DV */
 
 				if(neighbors.isEmpty()) {
 					//remove nodes in clique from localDensityMap
@@ -228,46 +213,25 @@ public class LOCAlgorithm implements OcdAlgorithm {
 					HashMap<Integer, Double> nodeNumericalValues3 = new HashMap<>();
 					HashMap<Integer, String> nodeStringValues3 = new HashMap<>();
 					HashMap<Integer, String> nodeStringValues4 = new HashMap<>();
-					HashMap<Integer, String> nodeStringValues5 = new HashMap<>();
 					for(Node neighbor : neighbors) {
 						currentNodeFitness = getNodeFitness(neighbor, cluster, graph);
-						/* DV */
 						if(visualize) {
 							nodeNumericalValues2.put(neighbor.getIndex(), currentNodeFitness);
 						}
-						/* DV */
 
 						if(currentNodeFitness > maxNodeFitness) {
 							fittestNode = neighbor;
 							maxNodeFitness = currentNodeFitness;
 						}
 					}
-					/* DV */
 					if(visualize) {
-						nodeNumericalValuesTemp.add(nodeNumericalValues2);
-						nodeStringValues3.put(fittestNode.getIndex(), "maximal fitness of cluster " +  dv.getRealNode(maxLocalDensityNode.getIndex()));
-						nodeStringValuesTemp2.add(nodeStringValues3);
+						nodeNumericalValuesList.add(nodeNumericalValues2);
+						nodeStringValues3.put(fittestNode.getIndex(), "" + dv.getRealNode(maxLocalDensityNode.getIndex()));
+						nodeStringValuesList2.add(nodeStringValues3);
 					}
-					/* DV */
 
 					if(maxNodeFitness >= 0) {	//chosen node and the cliques it belongs to are added to the cluster
 						cluster.add(fittestNode);
-						/* DV */
-						if(visualize) {
-							for (Node node : cluster){
-								nodeStringValues4.put(node.getIndex(), "cluster " + dv.getRealNode(fittestNode.getIndex()));
-							}
-							for (int i : cliques.keySet()){
-								HashSet<Node> clique_i = cliques.get(i);
-								if(clique_i.contains(fittestNode)) {
-									for(Node node : clique_i) {
-										nodeStringValues4.put(node.getIndex(), "clique added to cluster " + dv.getRealNode(fittestNode.getIndex()));
-									}
-								}
-							}
-							nodeStringValuesTemp3.add(nodeStringValues4);
-						}
-						/* DV */
 
 						addCliqueNodesToCluster(fittestNode, cluster, cliques);
 
@@ -281,23 +245,21 @@ public class LOCAlgorithm implements OcdAlgorithm {
 							for(Node node : cluster) {
 								double nodeFitness = getNodeFitness(node, cluster, graph);
 								if(nodeFitness < 0) {
-									if(visualize) {
-										nodeStringValues5.put(node.getIndex(), "remove from cluster of node " + dv.getRealNode(fittestNode.getIndex()));
-										nodeNumericalValues3.put(node.getIndex(), nodeFitness);
-									}
 									//Step 7
 									cluster.remove(node);
+									if(visualize) {
+										nodeStringValues4.put(node.getIndex(), "remove from cluster of node " + cluster.toArray()[0]);
+										nodeNumericalValues3.put(node.getIndex(), nodeFitness);
+									}
 									negativeNodeExist = true;
 									break;
 								}
 							}
 							if(visualize){
-								nodeNumericalValuesTemp2.add(nodeNumericalValues3);
-								nodeStringValuesTemp4.add(nodeStringValues5);
+								nodeNumericalValuesList2.add(nodeNumericalValues3);
+								nodeStringValuesList3.add(nodeStringValues4);
 							}
-
 						}
-
 					}
 					else {
 						//remove nodes in clique from localDensityMap
@@ -316,27 +278,84 @@ public class LOCAlgorithm implements OcdAlgorithm {
 		Matrix membershipMatrix = getMemberships(communitys, graph);
 		Cover cover = new Cover(graph, membershipMatrix);
 
-		/* DV */
+		/* DV: set values that should be visualized */
 		if(visualize){
+			/* DV: set nodes with maximal local density */
 			dv.setNodeStringValues(2, nodeStringValues);
 			nodeStringValues.clear();
 
-			for (HashMap<Integer, String> values : nodeStringValuesTemp){
-				dv.setNodeStringValues(3, values);
+			HashMap<String, List<HashMap<Integer, String>>> groupedValues = new HashMap<>();
+			for (HashMap<Integer, String> values : nodeStringValuesList) {
+				String selectedValue = null;
+				for (String value : values.values()) {
+					if (!value.startsWith("cluster")) {
+						selectedValue = value;
+						break;
+					}
+				}
+				if (selectedValue != null) {
+					List<HashMap<Integer, String>> group = groupedValues.getOrDefault(selectedValue, new ArrayList<>());
+					group.add(values);
+					groupedValues.put(selectedValue, group);
+				}
 			}
-			for (HashMap<Integer, Double> values : nodeNumericalValuesTemp){
-				dv.setNodeNumericalValues(4, values);
-			}
-			for (HashMap<Integer, String> values : nodeStringValuesTemp2){
-				dv.setNodeStringValues(5, values);
+			HashMap<Integer, ArrayList<Integer>> groupNodes = new HashMap<>();
+			int index = 0;
+			for (List<HashMap<Integer, String>> group : groupedValues.values()) {
+				HashMap<Integer, String> maxNeighbors = new HashMap<>();
+				ArrayList<Integer> nodes = new ArrayList<>();
+				for (HashMap<Integer, String> values : group) {
+					maxNeighbors.putAll(values);
+					nodes.addAll(values.keySet());
+				}
+				groupNodes.put(index, nodes);
+				index++;
+				/* DV: set neighbors of nodes with maximal local density */
+				dv.setNodeStringValues(3, maxNeighbors);
 			}
 
-			HashMap<Node, HashSet<Integer>> nodeCliqueInvolvements = new HashMap<>();
+			List<HashMap<Integer, Double>> allGroupValues = new ArrayList<>();
+			for (ArrayList<Integer> nodes : groupNodes.values()) {
+				HashMap<Integer, Double> groupValues = new HashMap<>();
+				for (HashMap<Integer, Double> values : nodeNumericalValuesList) {
+					for (int node : values.keySet()){
+						if(nodes.contains(node)){
+							groupValues.put(node, values.get(node));
+						}
+					}
+				}
+				allGroupValues.add(groupValues);
+				/* DV: set node fitness value */
+				dv.setNodeNumericalValues(4, groupValues);
+			}
+
+			HashMap<Integer, HashMap<Integer, String>> maxCliques = new HashMap<>();
+			for (HashMap<Integer, Double> vals : allGroupValues) {
+				double max = Double.MIN_VALUE;
+				int node = 0;
+				for (int i : vals.keySet()){
+					if(max < vals.get(i)){
+						max = vals.get(i);
+						node = i;
+					}
+				}
+				HashMap<Integer, String> res = new HashMap<>();
+				for (HashMap<Integer, String> values : nodeStringValuesList2) {
+					if(values.keySet().contains(node)){
+						res.put(node, "cluster " + values.get(node));
+						maxCliques.put(node, res);
+						/* DV: mark nodes with maximal fitness value */
+						dv.setNodeStringValues(5, res);
+					}
+				}
+			}
+
+			HashMap<Node, ArrayList<Integer>> nodeCliqueInvolvements = new HashMap<>();
 			for (int i : cliques.keySet()){
 				HashSet<Node> clique_i = cliques.get(i);
 				for (Node node : clique_i) {
 					if (!nodeCliqueInvolvements.keySet().contains(node)){
-						HashSet<Integer> temp = new HashSet<>();
+						ArrayList<Integer> temp = new ArrayList<>();
 						temp.add(i);
 						nodeCliqueInvolvements.put(node, temp);
 					}
@@ -347,17 +366,39 @@ public class LOCAlgorithm implements OcdAlgorithm {
 					}
 					nodeStringValues.put(node.getIndex(), "cliques: " + nodeCliqueInvolvements.get(node));
 				}
+				/* DV: set all cliques of size at least k, where a node belongs to */
 				dv.setNodeStringValues(6, nodeStringValues);
 				nodeStringValues.clear();
 			}
 
-			for (HashMap<Integer, String> values : nodeStringValuesTemp3){
+			for (int key : maxCliques.keySet()){
+				HashMap<Integer, String> values = new HashMap<>();
+				ArrayList<Integer> involvements = nodeCliqueInvolvements.get(graph.getNode(key));
+				for (int i = 0; i < graph.getNodeCount(); i++){
+					Node node = graph.getNode(i);
+					if(nodeCliqueInvolvements.get(node) != null && involvements != null) {
+						for(int el : involvements) {
+							if (nodeCliqueInvolvements.get(node).contains(el)) {
+								int maxKey = 0;
+								for (int m : maxCliques.get(key).keySet()){
+									maxKey = m;
+									break;
+								}
+								values.put(node.getIndex(), "clique added to " + maxCliques.get(key).get(maxKey));
+								break;
+							}
+						}
+					}
+				}
+				/* DV: add all cliques of the node with maximal fitness value to current cluster */
 				dv.setNodeStringValues(7, values);
 			}
-			for (HashMap<Integer, String> values : nodeStringValuesTemp4){
+
+			/* DV: remove node from cluster, if its fitness value is negative */
+			for (HashMap<Integer, String> values : nodeStringValuesList3){
 				dv.setNodeStringValues(8, values);
 			}
-			for (HashMap<Integer, Double> values : nodeNumericalValuesTemp2){
+			for (HashMap<Integer, Double> values : nodeNumericalValuesList2){
 				dv.setNodeNumericalValues(8, values);
 			}
 
@@ -390,10 +431,11 @@ public class LOCAlgorithm implements OcdAlgorithm {
 					}
 				}
 				communities += "]";
-				nodeStringValues.put(n.getIndex(), "involved in: " + communities);
+				nodeStringValues.put(n.getIndex(), "communities: " + communities);
 				nodeToCommunity.put(n, maxIndex);
 				nodeMaxMembership.put(n, maxValue);
 			}
+			/* DV: set node-memberships */
 			dv.setNodeStringValues(9, nodeStringValues);
 			nodeStringValues.clear();
 
@@ -403,13 +445,14 @@ public class LOCAlgorithm implements OcdAlgorithm {
 						nodeStringValues.put(n.getIndex(), "maximum membership: " + c + " (" + nodeMaxMembership.get(n) + ")");
 					}
 				}
+				/* DV: set maximal node-membership value */
 				dv.setNodeStringValues(10, nodeStringValues);
 				nodeStringValues.clear();
 			}
 
+			/* DV: set final cover */
 			dv.setCover(11, cover);
 		}
-		/* DV */
 
 		return cover;
 	}
@@ -491,7 +534,6 @@ public class LOCAlgorithm implements OcdAlgorithm {
 	 * @return                 	A Map with an ID and a Set of nodes
 	 */
 	public HashMap<Integer,HashSet<Node>> getCliques(CustomGraph graph) throws InterruptedException {
-
 		MaximalCliqueSearch maxCliqueSearch = new MaximalCliqueSearch();
 		HashMap<Integer,HashSet<Node>> cliques = maxCliqueSearch.cliques(graph);
 		Iterator<Integer> iterator = cliques.keySet().iterator();

@@ -218,16 +218,14 @@ public class DescriptiveVisualization {
         int green = random.nextInt(256);
         int blue = random.nextInt(256);
         int[] newRgb = {red, green, blue};
-        int rgbSum = newRgb[0] + newRgb[1] + newRgb[2];
         int attempts = 0;
 
         // Generate new color until it meets the criteria
-        while ((checkColors(newRgb, this.usedRgbs) || newRgb == this.gray ||  rgbSum < 100 || rgbSum > 650) && (attempts < 5)) {
+        while ((checkColors(newRgb, this.usedRgbs) || newRgb == this.gray) && (attempts < 5)) {
             red = random.nextInt(256);
             green = random.nextInt(256);
             blue = random.nextInt(256);
             newRgb = new int[] {red, green, blue};
-            rgbSum = newRgb[0] + newRgb[1] + newRgb[2];
             attempts++;
         }
 
@@ -342,6 +340,7 @@ public class DescriptiveVisualization {
     private static void reset(){
         DescriptiveVisualization.data = new JsonData("", new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         DescriptiveVisualization.visualize = false;
+        DescriptiveVisualization.deleteEnabled = false;
     }
 
     /**
@@ -478,28 +477,31 @@ public class DescriptiveVisualization {
      * @param delimiter The delimiter used to separate the columns in the file.
      */
     public void setDescriptions(String descriptionPath, String delimiter) {
-        List<String> shortDescription = new ArrayList<>();
-        shortDescription.add("Initial Network");
-        List<String> detailedDescription = new ArrayList<>();
-        detailedDescription.add("This is the unprocessed initial network.");
+        descriptionPath = "rest_ocd_services/src/main/java/i5/las2peer/services/ocd/graphs/descriptions/" + descriptionPath;
+        if(component == 0) {
+            List<String> shortDescription = new ArrayList<>();
+            shortDescription.add("Initial Network");
+            List<String> detailedDescription = new ArrayList<>();
+            detailedDescription.add("This is the unprocessed initial network.");
 
-        try (BufferedReader br = new BufferedReader(new FileReader(descriptionPath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] columns = line.split(delimiter);
-                if (columns.length > 0) {
-                    String firstElement = columns[0].replaceAll("^\"|\"$", ""); // remove double quotes from first column
-                    shortDescription.add(firstElement);
-                    String secondElement = columns[1].replaceAll("^\"|\"$", ""); // remove double quotes from second column
-                    detailedDescription.add(secondElement);
+            try (BufferedReader br = new BufferedReader(new FileReader(descriptionPath))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] columns = line.split(delimiter);
+                    if (columns.length > 0) {
+                        String firstElement = columns[0].replaceAll("^\"|\"$", ""); // remove double quotes from first column
+                        shortDescription.add(firstElement);
+                        String secondElement = columns[1].replaceAll("^\"|\"$", ""); // remove double quotes from second column
+                        detailedDescription.add(secondElement);
+                    }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        data.setShortDescription(shortDescription);
-        data.setDetailedDescription(detailedDescription);
+            data.setShortDescription(shortDescription);
+            data.setDetailedDescription(detailedDescription);
+        }
     }
 
     /**

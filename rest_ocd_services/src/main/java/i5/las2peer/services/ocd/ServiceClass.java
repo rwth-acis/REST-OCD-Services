@@ -230,7 +230,14 @@ public class ServiceClass extends RESTService {
 	 */
 	private static UserLimitsHandler userLimitsHandler;
 
-
+	/**
+	 * All OCD algorithms that provide descriptive visualization for their computation.
+	 */
+	private static List<String> descriptiveVisualizationAlgorithms = List.of(
+			"NEIGHBORING_LOCAL_CLUSTERING_ALGORITHM",
+			"SSK_ALGORITHM",
+			"LOC_ALGORITHM"
+	);
 
 	//////////////////////////////////////////////////////////////////
 	///////// Utility Methods
@@ -1331,7 +1338,12 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(value = "", notes = "Returns the OCD algorithms that provides descriptive visualization.")
 		public Response getAlgorithmsForDescriptiveVisualization() {
-			return Response.ok("NEIGHBORING_LOCAL_CLUSTERING_ALGORITHM,SSK_ALGORITHM,LOC_ALGORITHM").build();
+			String dvAlgorithms = "";
+			for (int i = 0; i < descriptiveVisualizationAlgorithms.size()-1; i++){
+				dvAlgorithms += descriptiveVisualizationAlgorithms.get(i) + ",";
+			}
+			dvAlgorithms += descriptiveVisualizationAlgorithms.get(descriptiveVisualizationAlgorithms.size()-1);
+			return Response.ok(dvAlgorithms).build();
 		}
 	    
 	    /**
