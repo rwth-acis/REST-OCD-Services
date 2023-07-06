@@ -18,7 +18,7 @@ import java.util.*;
 
 /**
  * The DescriptiveVisualization class is used for descriptive visualization of the calculations that the underlying OCD algorithm performs on the input graph until the final cover.
- * It provides methods for setting and retrieving visualization options and for saving and manipulating graph data.
+ * It provides methods for setting and retrieving visualization option and for saving and manipulating graph data.
  */
 public class DescriptiveVisualization {
     CustomGraph graphComponent;
@@ -27,7 +27,6 @@ public class DescriptiveVisualization {
     private int[] previousRgb = {0, 0, 0};
     List<int[]> usedRgbs = new ArrayList<>();
     public static boolean visualize = false;
-    public static boolean deleteEnabled = false;
     public static String key = "";
     public static JsonData data = new JsonData("", new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
@@ -37,7 +36,6 @@ public class DescriptiveVisualization {
      */
     public static void setVisualize(boolean visualize){
         DescriptiveVisualization.visualize = visualize;
-        DescriptiveVisualization.deleteEnabled = visualize;
     }
 
     /**
@@ -335,12 +333,11 @@ public class DescriptiveVisualization {
     }
 
     /**
-     * Resets the graph data and visualization options.
+     * Resets the graph data and visualization option.
      */
     private static void reset(){
         DescriptiveVisualization.data = new JsonData("", new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         DescriptiveVisualization.visualize = false;
-        DescriptiveVisualization.deleteEnabled = false;
     }
 
     /**

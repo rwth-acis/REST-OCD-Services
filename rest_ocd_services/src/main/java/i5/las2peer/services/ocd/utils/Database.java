@@ -888,9 +888,10 @@ public class Database {
 		String creationMethodKey = coverDoc.getAttribute(Cover.creationMethodKeyColumnName).toString();
 		cclCollection.deleteDocument(creationMethodKey, null, deleteOpt);	//delete CoverCreationLog
 		coverCollection.deleteDocument(key, null, deleteOpt);				//delete Cover
-		if(DescriptiveVisualization.deleteEnabled) {
-			ArangoCollection dvCollection = db.collection("descriptiveVisualization");
-			dvCollection.deleteDocument(key); 									//delete DV
+
+		ArangoCollection dvCollection = db.collection("descriptiveVisualization");
+		if (dvCollection.documentExists(key)) {
+			dvCollection.deleteDocument(key); 	//delete DV
 		}
 	}
 	
