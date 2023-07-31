@@ -103,7 +103,6 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
     }
 
     /* DV: variables */
-    public boolean visualize = false;
     public DescriptiveVisualization dv = new DescriptiveVisualization();
     public HashMap<Integer, Double> nodeNumericalValues = new HashMap<>();
     public HashMap<Integer, String> nodeStringValues = new HashMap<>();
@@ -117,11 +116,12 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
         // The adjacency list of the input graph
         HashMap<Integer, ArrayList<Integer>> adjacencyList = createAdjacencyList(A);
 
-        visualize = DescriptiveVisualization.getVisualize();
-        if(visualize) {
+        if(DescriptiveVisualization.getVisualize()) {
             /* DV: set description file and delimiter */
             dv.setDescriptions("NLC.txt", ";");
             dv.addComponent(graph);
+        }
+        if(DescriptiveVisualization.getVisualize()) {
             HashMap<Integer, String> labels = new HashMap<>();
             for (int i = 0; i < graph.getNodeCount(); i++) {
                 ArrayList<Integer> neighbors_i = new ArrayList<>();
@@ -155,7 +155,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
         // Build the cover using the input graph and the membership matrix built above
         Cover cover = new Cover(graph, membershipMatrix);
 
-        if(visualize){
+        if(DescriptiveVisualization.getVisualize()){
             /* DV: set final cover */
             dv.setCover(12, cover);
         }
@@ -370,7 +370,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
             }
             influence_F.put(i, influence_F_i);
         }
-        if(visualize) {
+        if(DescriptiveVisualization.getVisualize()) {
             for (int i : influence_F.keySet()) {
                 nodeNumericalValues.put(i, influence_F.get(i));
             }
@@ -390,7 +390,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                     break;
                 }
             }
-            if(visualize) {
+            if(DescriptiveVisualization.getVisualize()) {
                 if (centralNode_i) {
                     nodeNumericalValues.put(i, influence_F.get(i));
                 }
@@ -401,7 +401,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                     break;
                 }
             }
-            if(visualize) {
+            if(DescriptiveVisualization.getVisualize()) {
                 if (centralNode_i) {
                     double maxSim = 0.0;
                     for (int v : centralNodes) {
@@ -421,7 +421,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                 influence_F.put(i, communityMagneticInterferenceCoefficientGF * newInfluence_i);
             }
         }
-        if(visualize) {
+        if(DescriptiveVisualization.getVisualize()) {
             /* DV: mark nodes with maximal influence values in neighborhood */
             dv.setNodeNumericalValues(2, nodeNumericalValues);
             nodeNumericalValues.clear();
@@ -459,7 +459,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
             }
             aveSimilarity_u /= neighbours_u.size();
             aveSimilarity.put(u, aveSimilarity_u);
-            if(visualize) {
+            if(DescriptiveVisualization.getVisualize()) {
                 nodeNumericalValues.put(u, aveSimilarity_u);
             }
             ArrayList<ArrayList<Integer>> centralEdges_u = new ArrayList<>();
@@ -477,14 +477,14 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                     centralEdges_u.add(edge);
                 }
             }
-            if(visualize) {
+            if(DescriptiveVisualization.getVisualize()) {
                 /* DV: set average similarity values of the central nodes */
                 dv.setNodeNumericalValues(5, nodeNumericalValues);
                 nodeNumericalValues.clear();
             }
             centralEdgeSets.put(u, centralEdges_u);
         }
-        if(visualize) {
+        if(DescriptiveVisualization.getVisualize()) {
             for (int u : centralNodeSet) {
                 for (ArrayList<Integer> edge : centralEdgeSets.get(u)) {
                     edgeStringValues.put(edge, "sim(" + dv.getRealNode(edge.get(0)) + ", " + dv.getRealNode(edge.get(1)) + ") = " + similarityMatrix.get(edge.get(0)).get(edge.get(1)) + " > " + aveSimilarity.get(u));
@@ -530,7 +530,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
             }
         }
         centralEdgeSets.put(maxKey + 1, nonCentralEdges);
-        if(visualize) {
+        if(DescriptiveVisualization.getVisualize()) {
             for (ArrayList<Integer> nce : nonCentralEdges) {
                 edgeStringValues.put(nce, "NCE");
             }
@@ -668,7 +668,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
             }
             nonCentralEdgeIndex += 1;
         }
-        if(visualize) {
+        if(DescriptiveVisualization.getVisualize()) {
             HashMap<ArrayList<Integer>, ArrayList<Integer>> assignments = new HashMap<>();
             for (ArrayList<Integer> nce : nonCentralEdges) {
                 ArrayList<Integer> assigned = new ArrayList<>();
@@ -748,7 +748,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
             community.clear();
         }
 
-        if(visualize) {
+        if(DescriptiveVisualization.getVisualize()) {
             HashMap<Integer, ArrayList<Integer>> comIndices = new HashMap<>();
             for (int i = 0; i < adjacencyList.size(); i++) {
                 ArrayList<Integer> com_i = new ArrayList<>();
@@ -847,7 +847,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                     }
                 }
             }
-            if(visualize) {
+            if(DescriptiveVisualization.getVisualize()) {
                 if (removeFromCommunities.size() > 0) {
                     ArrayList<Integer> removed = new ArrayList<>();
                     for (int r : removeFromCommunities){
@@ -857,7 +857,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                 }
             }
         }
-        if(visualize) {
+        if(DescriptiveVisualization.getVisualize()) {
             /* DV: remove the node from the communities, where the community-ratio is smaller than the pruning threshold */
             dv.setNodeStringValues(11, nodeStringValues);
             nodeStringValues.clear();

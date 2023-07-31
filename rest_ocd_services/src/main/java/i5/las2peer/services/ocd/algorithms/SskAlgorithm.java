@@ -135,7 +135,6 @@ public class SskAlgorithm implements OcdAlgorithm {
 	}
 
 	/* DV: variables */
-	public boolean visualize = false;
 	public DescriptiveVisualization dv = new DescriptiveVisualization();
 	public HashMap<Integer, Double> nodeNumericalValues = new HashMap<>();
 	public HashMap<Integer, String> nodeStringValues = new HashMap<>();
@@ -143,11 +142,12 @@ public class SskAlgorithm implements OcdAlgorithm {
 
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException {
-		visualize = DescriptiveVisualization.getVisualize();
-		if(visualize) {
+		if(DescriptiveVisualization.getVisualize()) {
 			/* DV: set description file and delimiter */
 			dv.setDescriptions("SSK.txt", ";");
 			dv.addComponent(graph);
+		}
+		if(DescriptiveVisualization.getVisualize()) {
 			HashMap<Integer, String> labels = new HashMap<>();
 			for (int i = 0; i < graph.getNodeCount(); i++) {
 				ArrayList<Integer> neighbors_i = new ArrayList<>();
@@ -165,7 +165,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		Map<Node, Integer> leaders = determineGlobalLeaders(graph, transitionMatrix, totalInfluences);
 		Matrix memberships = calculateMemberships(graph, leaders);
 		Cover cover = new Cover(graph, memberships);
-		if(visualize){
+		if(DescriptiveVisualization.getVisualize()){
 			/* DV: set final cover */
 			dv.setCover(10, cover);
 		}
@@ -219,7 +219,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 		} while (getMaxDifference(updatedMemberships, memberships) > membershipsPrecisionFactor
 				&& iteration < membershipsIterationBound);
 
-		if(visualize) {
+		if(DescriptiveVisualization.getVisualize()) {
 			HashMap<Node, Integer> nodeToCommunity = new HashMap<>();
 			HashMap<Node, Double> nodeMaxMembership = new HashMap<>();
 			for(int c : leaders.values()) {
@@ -430,7 +430,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 					maxRelativeInfluenceNeighbors.add(successor);
 				}
 			}
-			if(visualize) {
+			if(DescriptiveVisualization.getVisualize()) {
 				if(maxRelativeInfluenceNeighbors.size() > 0) {
 					String maxNeighbors = "[";
 					for (int i = 0; i < maxRelativeInfluenceNeighbors.size() - 1; i++) {
@@ -448,7 +448,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 						* transitionMatrix.get(node.getIndex(), maxRelativeInfluenceNeighbor.getIndex());
 				neighborInfluenceOnNode = totalInfluences.get(maxRelativeInfluenceNeighbor.getIndex())
 						* maxRelativeInfluence;
-				if(visualize) {
+				if(DescriptiveVisualization.getVisualize()) {
 					ArrayList<Integer> edge = new ArrayList<>();
 					edge.addAll(Arrays.asList(node.getIndex(), maxRelativeInfluenceNeighbor.getIndex()));
 					edgeNumericalValues.put(edge, nodeInfluenceOnNeighbor);
@@ -484,7 +484,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 			}
 			for(int i=0; i<currentCommunityLeaders.size(); i++) {
 				communityLeaders.put(currentCommunityLeaders.get(i), communityCount);
-				if(visualize) {
+				if(DescriptiveVisualization.getVisualize()) {
 					nodeStringValues2.put(currentCommunityLeaders.get(i).getIndex(), "current leader");
 				}
 			}
@@ -493,7 +493,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 			}
 		}
 
-		if(visualize) {
+		if(DescriptiveVisualization.getVisualize()) {
 			/* DV: set neighbors with maximal relative influence on node */
 			dv.setNodeStringValues(4, nodeStringValues);
 			nodeStringValues.clear();
@@ -540,7 +540,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 			vec2 = new BasicVector(vec1);
 			vec1 = transitionMatrix.multiply(vec1);
 		}
-		if(visualize) {
+		if(DescriptiveVisualization.getVisualize()) {
 			for(int i = 0; i < vec1.length(); i++) {
 				nodeNumericalValues.put(i, vec1.get(i));
 			}
@@ -572,14 +572,14 @@ public class SskAlgorithm implements OcdAlgorithm {
 			while(predecessorsIt.hasNext()) {
 				predecessor = predecessorsIt.next();
 				transitionMatrix.set(node.getIndex(), predecessor.getIndex(), calculateTransitiveLinkWeight(graph, node, predecessor));
-				if(visualize) {
+				if(DescriptiveVisualization.getVisualize()) {
 					ArrayList<Integer> edge = new ArrayList<>();
 					edge.addAll(Arrays.asList(node.getIndex(), predecessor.getIndex()));
 					edgeNumericalValues.put(edge, transitionMatrix.get(node.getIndex(), predecessor.getIndex()));
 				}
 			}
 		}
-		if(visualize){
+		if(DescriptiveVisualization.getVisualize()){
 			/* DV: set influence values */
 			dv.setEdgeNumericalValues(1, edgeNumericalValues);
 			edgeNumericalValues.clear();
@@ -596,7 +596,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 				transitionMatrix.setColumn(i, column.divide(norm));
 			}
 		}
-		if(visualize) {
+		if(DescriptiveVisualization.getVisualize()) {
 			for(int i = 0; i < transitionMatrix.columns(); i++) {
 				for(int j = 0; j < transitionMatrix.columns(); j++) {
 					ArrayList<Integer> edge = new ArrayList<>();

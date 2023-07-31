@@ -108,7 +108,6 @@ public class LOCAlgorithm implements OcdAlgorithm {
 	}
 
 	/* DV: variables */
-	public boolean visualize = false;
 	public DescriptiveVisualization dv = new DescriptiveVisualization();
 	public HashMap<Integer, Double> nodeNumericalValues = new HashMap<>();
 	public HashMap<Integer, String> nodeStringValues = new HashMap<>();
@@ -120,11 +119,12 @@ public class LOCAlgorithm implements OcdAlgorithm {
 
 	@Override
 	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException {
-		visualize = DescriptiveVisualization.getVisualize();
-		if(visualize) {
+		if(DescriptiveVisualization.getVisualize()) {
 			/* DV: set description file and delimiter */
 			dv.setDescriptions("LOC.txt", ";");
 			dv.addComponent(graph);
+		}
+		if(DescriptiveVisualization.getVisualize()) {
 			HashMap<Integer, String> labels = new HashMap<>();
 			for (int i = 0; i < graph.getNodeCount(); i++) {
 				ArrayList<Integer> neighbors_i = new ArrayList<>();
@@ -139,7 +139,7 @@ public class LOCAlgorithm implements OcdAlgorithm {
 
 		//gives every node its local density value
 		HashMap<Node, Integer> localDensityMap = getLocalDensityMap(graph);
-		if(visualize) {
+		if(DescriptiveVisualization.getVisualize()) {
 			for (Node node : localDensityMap.keySet()){
 				nodeNumericalValues.put(node.getIndex(), Double.valueOf(localDensityMap.get(node)));
 			}
@@ -174,7 +174,7 @@ public class LOCAlgorithm implements OcdAlgorithm {
 			cluster.clear();
 
 			maxLocalDensityNode = getMaxValueNode(localDensityMap);
-			if(visualize) {
+			if(DescriptiveVisualization.getVisualize()) {
 				nodeStringValues.put(maxLocalDensityNode.getIndex(), "maximal local density");
 			}
 
@@ -183,7 +183,7 @@ public class LOCAlgorithm implements OcdAlgorithm {
 			while(terminierungNeighbors > 0) {		// while(true) should also work
 				terminierungNeighbors--;			// termination variable (not important)
 				neighbors = getClusterNeighbors(cluster, localDensityMap, graph);
-				if(visualize) {
+				if(DescriptiveVisualization.getVisualize()) {
 					HashMap<Integer, String> nodeStringValues2 = new HashMap<>();
 					int maxNode = dv.getRealNode(maxLocalDensityNode.getIndex());
 					for(Node node : neighbors){
@@ -215,7 +215,7 @@ public class LOCAlgorithm implements OcdAlgorithm {
 					HashMap<Integer, String> nodeStringValues4 = new HashMap<>();
 					for(Node neighbor : neighbors) {
 						currentNodeFitness = getNodeFitness(neighbor, cluster, graph);
-						if(visualize) {
+						if(DescriptiveVisualization.getVisualize()) {
 							nodeNumericalValues2.put(neighbor.getIndex(), currentNodeFitness);
 						}
 
@@ -224,7 +224,7 @@ public class LOCAlgorithm implements OcdAlgorithm {
 							maxNodeFitness = currentNodeFitness;
 						}
 					}
-					if(visualize) {
+					if(DescriptiveVisualization.getVisualize()) {
 						nodeNumericalValuesList.add(nodeNumericalValues2);
 						nodeStringValues3.put(fittestNode.getIndex(), "" + dv.getRealNode(maxLocalDensityNode.getIndex()));
 						nodeStringValuesList2.add(nodeStringValues3);
@@ -247,7 +247,7 @@ public class LOCAlgorithm implements OcdAlgorithm {
 								if(nodeFitness < 0) {
 									//Step 7
 									cluster.remove(node);
-									if(visualize) {
+									if(DescriptiveVisualization.getVisualize()) {
 										nodeStringValues4.put(node.getIndex(), "remove from cluster of node " + cluster.toArray()[0]);
 										nodeNumericalValues3.put(node.getIndex(), nodeFitness);
 									}
@@ -255,7 +255,7 @@ public class LOCAlgorithm implements OcdAlgorithm {
 									break;
 								}
 							}
-							if(visualize){
+							if(DescriptiveVisualization.getVisualize()){
 								nodeNumericalValuesList2.add(nodeNumericalValues3);
 								nodeStringValuesList3.add(nodeStringValues4);
 							}
@@ -279,7 +279,7 @@ public class LOCAlgorithm implements OcdAlgorithm {
 		Cover cover = new Cover(graph, membershipMatrix);
 
 		/* DV: set values that should be visualized */
-		if(visualize){
+		if(DescriptiveVisualization.getVisualize()){
 			/* DV: set nodes with maximal local density */
 			dv.setNodeStringValues(2, nodeStringValues);
 			nodeStringValues.clear();
@@ -366,10 +366,10 @@ public class LOCAlgorithm implements OcdAlgorithm {
 					}
 					nodeStringValues.put(node.getIndex(), "cliques: " + nodeCliqueInvolvements.get(node));
 				}
-				/* DV: set all cliques of size at least k, where a node belongs to */
-				dv.setNodeStringValues(6, nodeStringValues);
-				nodeStringValues.clear();
 			}
+			/* DV: set all cliques of size at least k, where a node belongs to */
+			dv.setNodeStringValues(6, nodeStringValues);
+			nodeStringValues.clear();
 
 			for (int key : maxCliques.keySet()){
 				HashMap<Integer, String> values = new HashMap<>();
