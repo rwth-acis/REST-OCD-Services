@@ -33,7 +33,7 @@ public class DescriptiveVisualization {
      * Sets the visualization option.
      * @param visualize true to enable visualization, false otherwise.
      */
-    public static void setVisualize(boolean visualize){
+    public static void setVisualize(boolean visualize) {
         DescriptiveVisualization.visualize = visualize;
     }
 
@@ -41,7 +41,7 @@ public class DescriptiveVisualization {
      * Returns the current visualization option.
      * @return true if visualization is enabled, false otherwise.
      */
-    public static boolean getVisualize(){
+    public static boolean getVisualize() {
         return DescriptiveVisualization.visualize;
     }
 
@@ -49,7 +49,7 @@ public class DescriptiveVisualization {
      * Sets the JSON key for the graph data.
      * @param key the JSON key to set.
      */
-    public static void setJsonKey(String key){
+    public static void setJsonKey(String key) {
         DescriptiveVisualization.key = key;
     }
 
@@ -94,13 +94,13 @@ public class DescriptiveVisualization {
         private void setRgbValue(int[] rgbValue) {
             this.rgbValue.add(rgbValue);
         }
-        private int[] getRgbValue(int i){
+        private int[] getRgbValue(int i) {
             return this.rgbValue.get(i);
         }
-        private void setLabel(String label){
+        private void setLabel(String label) {
             this.label = label;
         }
-        private void setDegree(int degree){
+        private void setDegree(int degree) {
             this.degree = degree;
         }
     }
@@ -138,7 +138,7 @@ public class DescriptiveVisualization {
         private void setRgbValue(int[] rgbValue) {
             this.rgbValue.add(rgbValue);
         }
-        private int[] getRgbValue(int i){
+        private int[] getRgbValue(int i) {
             return this.rgbValue.get(i);
         }
     }
@@ -201,10 +201,10 @@ public class DescriptiveVisualization {
 
     /**
      * Generates a new color for the communities of the final cover.
-     * @return The RGB value of the new color.
+     * @return the RGB value of the new color.
      */
     private int[] finalColor() {
-        if(iteration > tempIteration){
+        if (iteration > tempIteration) {
             usedRgbs.clear();
             tempIteration++;
         }
@@ -229,13 +229,13 @@ public class DescriptiveVisualization {
 
     /**
      * Checks if a color is too similar to any of the previously used colors.
-     * @param color The RGB color to check.
-     * @param usedRgbs A list of used RGB colors to compare against.
+     * @param color the RGB color to check.
+     * @param usedRgbs a list of used RGB colors to compare against.
      * @return true if the color is too similar, false otherwise.
      */
     private boolean checkColors(int[] color, List<int[]> usedRgbs) {
-        for (int[] rgb : usedRgbs){
-            if(tooSimilar(color, rgb)){
+        for (int[] rgb : usedRgbs) {
+            if (tooSimilar(color, rgb)) {
                 return true;
             }
         }
@@ -244,13 +244,13 @@ public class DescriptiveVisualization {
 
     /**
      * Checks if a given color is already used in the list of used RGB colors.
-     * @param color The RGB color to check.
-     * @param usedRgbs A list of used RGB colors to compare against.
+     * @param color the RGB color to check.
+     * @param usedRgbs a list of used RGB colors to compare against.
      * @return true if the given color is already in the list of used RGB colors, false otherwise.
      */
     private boolean colorIsUsed(int[] color, List<int[]> usedRgbs) {
-        for (int[] rgb : usedRgbs){
-            if(rgb[0] == color[0] && rgb[1] == color[1] && rgb[2] == color[2]) {
+        for (int[] rgb : usedRgbs) {
+            if (rgb[0] == color[0] && rgb[1] == color[1] && rgb[2] == color[2]) {
                 return true;
             }
         }
@@ -274,8 +274,8 @@ public class DescriptiveVisualization {
 
     /**
      * Retrieves the distinct RGB colors associated with neighboring nodes in the graph.
-     * @param neighbors A List of Integers containing the IDs of neighboring nodes.
-     * @return A List of the RGB color values of the neighboring nodes.
+     * @param neighbors a list of Integers containing the IDs of neighboring nodes.
+     * @return a list of the RGB colors of the neighboring nodes.
      */
     private List<int[]> getNodeNeighborColors(List<Integer> neighbors) {
         List<int[]> neighborColors = new ArrayList<>();
@@ -292,8 +292,8 @@ public class DescriptiveVisualization {
 
     /**
      * Retrieves the distinct RGB colors associated with neighboring edges in the graph.
-     * @param neighbors A List of Edges containing the neighboring edges.
-     * @return A List of the RGB color values of the neighboring edges.
+     * @param neighbors a list of Edges containing the neighboring edges.
+     * @return a list of the RGB colors of the neighboring edges.
      */
     private List<int[]> getEdgeNeighborColors(List<Edge> neighbors) {
         List<int[]> neighborColors = new ArrayList<>();
@@ -310,11 +310,11 @@ public class DescriptiveVisualization {
 
     /**
      * Generates a new RGB color for a node-group based on its neighboring nodes' colors.
-     * @param nodes A Set of Nodes representing the neighboring nodes.
-     * @return The new RGB color for the underlying node-group.
+     * @param nodes a Set of Nodes representing the neighboring nodes.
+     * @return the new RGB color for the underlying node-group.
      */
     private int[] newNodeColor(int iteration, Set<Node> nodes) {
-        if(iteration > tempIteration){
+        if (iteration > tempIteration) {
             usedRgbs.clear();
             tempIteration++;
         }
@@ -340,11 +340,11 @@ public class DescriptiveVisualization {
 
     /**
      * Generates a new RGB color for an edge-group based on its neighboring edges' colors.
-     * @param edges A Set of Edges representing the neighboring edges.
-     * @return The new RGB color for the underlying edge-group.
+     * @param edges a Set of Edges representing the neighboring edges.
+     * @return the new RGB color for the underlying edge-group.
      */
     private int[] newEdgeColor(int iteration, Set<Edge> edges) {
-        if(iteration > tempIteration){
+        if (iteration > tempIteration) {
             usedRgbs.clear();
             tempIteration++;
         }
@@ -369,9 +369,9 @@ public class DescriptiveVisualization {
     }
 
     /**
-     * Generates a new RGB color with maximum average Euclidean distance to the list of neighboring colors.
-     * @param neighborColors A List of RGB color values of neighboring nodes or edges.
-     * @return The new RGB color for the underlying node-group or edge-group.
+     * Generates a new RGB color with the largest possible average Euclidean distance to the list of neighboring colors.
+     * @param neighborColors a list of RGB colors of neighboring nodes or edges.
+     * @return the new RGB color for the underlying node-group or edge-group.
      */
     private int[] getNewColor(List<int[]> neighborColors) {
         int[] newRgb;
@@ -461,7 +461,7 @@ public class DescriptiveVisualization {
      * Updates the labels of nodes in the graph.
      * @param labels a map containing the updated labels for each node.
      */
-    private void updateLabels(HashMap<Node, String> labels){
+    private void updateLabels(HashMap<Node, String> labels) {
         for (Node node : labels.keySet()) {
             node.setLabel(labels.get(node));
         }
@@ -471,7 +471,7 @@ public class DescriptiveVisualization {
      * Updates the numerical values and colors of nodes in the graph.
      * @param newNumValues a map containing the updated numerical values for each node.
      */
-    private void updateNodeNumValues(int iteration, HashMap<Node, Double> newNumValues){
+    private void updateNodeNumValues(int iteration, HashMap<Node, Double> newNumValues) {
         int[] color = newNodeColor(iteration, newNumValues.keySet());
         for (Node node : newNumValues.keySet()) {
             node.numValue.set(iteration, newNumValues.get(node));
@@ -483,7 +483,7 @@ public class DescriptiveVisualization {
      * Updates the string values and colors of nodes in the graph.
      * @param newStringValues a map containing the updated string values for each node.
      */
-    private void updateNodeStringValues(int iteration, HashMap<Node, String> newStringValues){
+    private void updateNodeStringValues(int iteration, HashMap<Node, String> newStringValues) {
         int[] color = newNodeColor(iteration, newStringValues.keySet());
         for (Node node : newStringValues.keySet()) {
             node.stringValue.set(iteration, newStringValues.get(node));
@@ -495,7 +495,7 @@ public class DescriptiveVisualization {
      * Updates the numerical values and colors of edges in the graph.
      * @param newNumValues a map containing the updated numerical values for each edge.
      */
-    private void updateEdgeNumValues(int iteration, HashMap<Edge, Double> newNumValues){
+    private void updateEdgeNumValues(int iteration, HashMap<Edge, Double> newNumValues) {
         int[] color = newEdgeColor(iteration, newNumValues.keySet());
         for (Edge edge : newNumValues.keySet()) {
             edge.numValue.set(iteration, newNumValues.get(edge));
@@ -507,7 +507,7 @@ public class DescriptiveVisualization {
      * Updates the string values and colors of edges in the graph.
      * @param newStringValues a map containing the updated string values for each edge.
      */
-    private void updateEdgeStringValues(int iteration, HashMap<Edge, String> newStringValues){
+    private void updateEdgeStringValues(int iteration, HashMap<Edge, String> newStringValues) {
         int[] color = newEdgeColor(iteration, newStringValues.keySet());
         for (Edge edge : newStringValues.keySet()) {
             edge.stringValue.set(iteration, newStringValues.get(edge));
@@ -530,7 +530,7 @@ public class DescriptiveVisualization {
     /**
      * Resets the graph data and visualization option.
      */
-    private static void reset(){
+    private static void reset() {
         DescriptiveVisualization.data = new JsonData("", new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         DescriptiveVisualization.visualize = false;
     }
@@ -542,8 +542,8 @@ public class DescriptiveVisualization {
      * After setting the default values, the iteration counter is incremented.
      */
     private void setDefaultValues() {
-        for(Node node : data.getNodes()){
-            if(node.numValue.size() < data.shortDescription.size()) {
+        for (Node node : data.getNodes()) {
+            if (node.numValue.size() < data.shortDescription.size()) {
                 if (node.getRgbValue(iteration)[0] + node.getRgbValue(iteration)[1] + node.getRgbValue(iteration)[2] != 765 && node.getRgbValue(iteration)[0] + node.getRgbValue(iteration)[1] + node.getRgbValue(iteration)[2] != 660) {
                     node.setNumValue(node.numValue.get(iteration));
                     node.setStringValue(node.stringValue.get(iteration));
@@ -555,8 +555,8 @@ public class DescriptiveVisualization {
                 }
             }
         }
-        for(Edge edge : data.getEdges()){
-            if(edge.numValue.size() < data.shortDescription.size()) {
+        for (Edge edge : data.getEdges()) {
+            if (edge.numValue.size() < data.shortDescription.size()) {
                 if (edge.getRgbValue(iteration)[0] + edge.getRgbValue(iteration)[1] + edge.getRgbValue(iteration)[2] != 0 && edge.getRgbValue(iteration)[0] + edge.getRgbValue(iteration)[1] + edge.getRgbValue(iteration)[2] != 660) {
                     edge.setNumValue(edge.numValue.get(iteration));
                     edge.setStringValue(edge.stringValue.get(iteration));
@@ -576,7 +576,7 @@ public class DescriptiveVisualization {
     /**
      * Adds the graph component from the OCD algorithm input graph to the visualization data.
      * This method takes a CustomGraph object representing a graph component and adds its nodes and edges to the visualization data.
-     * @param graph The CustomGraph object representing the graph component to be added.
+     * @param graph the CustomGraph object representing the graph component to be added.
      */
     public void addComponent(CustomGraph graph) {
         try {
@@ -628,10 +628,10 @@ public class DescriptiveVisualization {
 
     /**
      * Retrieves the real node ID based on the provided index.
-     * @param index The index of the node.
-     * @return The real node ID.
+     * @param index the index of the node.
+     * @return the real node ID.
      */
-    public int getRealNode(int index){
+    public int getRealNode(int index) {
         int id = index;
         try {
             if (graphComponent.getNode(index).getId().charAt(0) == '0') {
@@ -639,7 +639,7 @@ public class DescriptiveVisualization {
             } else {
                 id = Integer.valueOf(graphComponent.getNode(index).getId().substring(1 + component / 10));
             }
-        }catch (Exception e){
+        }catch (Exception e) {
             System.out.println(e);
         }
         return id;
@@ -647,15 +647,15 @@ public class DescriptiveVisualization {
 
     /**
      * Retrieves the real edge based on the provided edge representation.
-     * @param s The source node ID of the underlying edge.
-     * @param t The target node ID of the underlying edge.
-     * @return The real edge representation as an ArrayList of Integers.
+     * @param s the source node ID of the underlying edge.
+     * @param t the target node ID of the underlying edge.
+     * @return the real edge representation as an ArrayList of Integers.
      */
-    public ArrayList<Integer> getRealEdge(int s, int t){
+    public ArrayList<Integer> getRealEdge(int s, int t) {
         ArrayList<Integer> realEdge = new ArrayList<>();
         int source = getRealNode(s);
         int target = getRealNode(t);
-        if(source < target){
+        if (source < target) {
             realEdge.add(source);
             realEdge.add(target);
         }
@@ -668,12 +668,12 @@ public class DescriptiveVisualization {
 
     /**
      * Sets the descriptions for the graph data.
-     * @param descriptionPath The path to the file containing the descriptions.
-     * @param delimiter The delimiter used to separate the columns in the file.
+     * @param descriptionPath the path to the file containing the descriptions.
+     * @param delimiter the delimiter used to separate the columns in the file.
      */
     public void setDescriptions(String descriptionPath, String delimiter) {
         descriptionPath = "rest_ocd_services/src/main/java/i5/las2peer/services/ocd/graphs/descriptions/" + descriptionPath;
-        if(component == 0) {
+        if (component == 0) {
             List<String> shortDescription = new ArrayList<>();
             shortDescription.add("Initial Network");
             List<String> detailedDescription = new ArrayList<>();
@@ -701,14 +701,14 @@ public class DescriptiveVisualization {
 
     /**
      * Sets the labels for the nodes in the graph data.
-     * @param labels A HashMap containing node IDs and their corresponding labels.
+     * @param labels a HashMap containing node IDs and their corresponding labels.
      */
     public void setNodeLabels(HashMap<Integer, String> labels) {
         HashMap<Node, String> nodeLabels = new HashMap<>();
         try {
             for (int id : labels.keySet()) {
-                for(Node node : data.getNodes()){
-                    if(id == node.id){
+                for (Node node : data.getNodes()) {
+                    if (id == node.id) {
                         nodeLabels.put(node, labels.get(id));
                     }
                 }
@@ -721,23 +721,23 @@ public class DescriptiveVisualization {
 
     /**
      * Sets the numerical values for the nodes in the graph data for a specific iteration.
-     * @param iteration The iteration for which to set the values.
-     * @param values A HashMap containing node IDs and their corresponding numerical values.
+     * @param iteration the iteration for which to set the values.
+     * @param values a HashMap containing node IDs and their corresponding numerical values.
      */
     public void setNodeNumericalValues(int iteration, HashMap<Integer, Double> values) {
-        if(iteration < this.iteration){
+        if (iteration < this.iteration) {
             component++;
             this.iteration = 0;
         }
-        if(iteration > this.iteration) {
+        if (iteration > this.iteration) {
             setDefaultValues();
         }
         HashMap<Node, Double> nodeNumValues = new HashMap<>();
         try {
-            for(int id : values.keySet()) {
+            for (int id : values.keySet()) {
                 int realNode = getRealNode(id);
-                for(Node node : data.getNodes()){
-                    if(realNode == node.id){
+                for (Node node : data.getNodes()) {
+                    if (realNode == node.id) {
                         nodeNumValues.put(node, values.get(id));
                     }
                 }
@@ -750,11 +750,11 @@ public class DescriptiveVisualization {
 
     /**
      * Sets the string values for the nodes in the graph data for a specific iteration.
-     * @param iteration The iteration for which to set the values.
-     * @param values A HashMap containing node IDs and their corresponding string values.
+     * @param iteration the iteration for which to set the values.
+     * @param values a HashMap containing node IDs and their corresponding string values.
      */
     public void setNodeStringValues(int iteration, HashMap<Integer, String> values) {
-        if(iteration < this.iteration){
+        if (iteration < this.iteration) {
             component++;
             this.iteration = 0;
         }
@@ -763,13 +763,14 @@ public class DescriptiveVisualization {
         }
         HashMap<Node, String> nodeStringValues = new HashMap<>();
         try {
-            for(int id : values.keySet()) {
+            for (int id : values.keySet()) {
                 int realNode = getRealNode(id);
-                for(Node node : data.getNodes()){
-                    if(realNode == node.id){
+                for (Node node : data.getNodes()) {
+                    if (realNode == node.id) {
                         nodeStringValues.put(node, values.get(id));
                     }
-                }            }
+                }
+            }
             updateNodeStringValues(iteration, nodeStringValues);
         } catch (IndexOutOfBoundsException e) {
             System.out.println(e);
@@ -778,25 +779,25 @@ public class DescriptiveVisualization {
 
     /**
      * Sets numerical values for edges in the graph based on the given iteration and a HashMap of edge-value pairs.
-     * @param iteration The iteration for which to set the values.
-     * @param values A HashMap containing edge information as keys and their corresponding numerical values.
+     * @param iteration the iteration for which to set the values.
+     * @param values a HashMap containing edge information as keys and their corresponding numerical values.
      *               The key is an ArrayList of two integers representing the source and target nodes of the edge,
      *               and the value is a Double representing the numerical value associated with the edge.
      */
     public void setEdgeNumericalValues(int iteration, HashMap<ArrayList<Integer>, Double> values) {
-        if(iteration < this.iteration){
+        if (iteration < this.iteration) {
             component++;
             this.iteration = 0;
         }
-        if(iteration > this.iteration) {
+        if (iteration > this.iteration) {
             setDefaultValues();
         }
         HashMap<Edge, Double> edgeNumValues = new HashMap<>();
         try {
-            for(ArrayList<Integer> edge : values.keySet()) {
+            for (ArrayList<Integer> edge : values.keySet()) {
                 ArrayList<Integer> realEdge = getRealEdge(edge.get(0), edge.get(1));
-                for(Edge e : data.getEdges()) {
-                    if((e.source == realEdge.get(0) || e.source == realEdge.get(1)) && (e.target == realEdge.get(0) || e.target == realEdge.get(1))) {
+                for (Edge e : data.getEdges()) {
+                    if ((e.source == realEdge.get(0) || e.source == realEdge.get(1)) && (e.target == realEdge.get(0) || e.target == realEdge.get(1))) {
                         edgeNumValues.put(e, values.get(edge));
                         break;
                     }
@@ -810,25 +811,25 @@ public class DescriptiveVisualization {
 
     /**
      * Sets string values for edges in the graph based on the given iteration and a HashMap of edge-value pairs.
-     * @param iteration The iteration for which to set the values.
-     * @param values A HashMap containing edge information as keys and their corresponding string values.
+     * @param iteration the iteration for which to set the values.
+     * @param values a HashMap containing edge information as keys and their corresponding string values.
      *               The key is an ArrayList of two integers representing the source and target nodes of the edge,
      *               and the value is a String representing the value associated with the edge.
      */
     public void setEdgeStringValues(int iteration, HashMap<ArrayList<Integer>, String> values) {
-        if(iteration < this.iteration){
+        if (iteration < this.iteration) {
             component++;
             this.iteration = 0;
         }
-        if(iteration > this.iteration) {
+        if (iteration > this.iteration) {
             setDefaultValues();
         }
         HashMap<Edge, String> edgeStringValues = new HashMap<>();
         try {
-            for(ArrayList<Integer> edge : values.keySet()) {
+            for (ArrayList<Integer> edge : values.keySet()) {
                 ArrayList<Integer> realEdge = getRealEdge(edge.get(0), edge.get(1));
-                for(Edge e : data.getEdges()) {
-                    if((e.source == realEdge.get(0) || e.source == realEdge.get(1)) && (e.target == realEdge.get(0) || e.target == realEdge.get(1))) {
+                for (Edge e : data.getEdges()) {
+                    if ((e.source == realEdge.get(0) || e.source == realEdge.get(1)) && (e.target == realEdge.get(0) || e.target == realEdge.get(1))) {
                         edgeStringValues.put(e, values.get(edge));
                         break;
                     }
@@ -842,25 +843,25 @@ public class DescriptiveVisualization {
 
     /**
      * Sets the final cover for the last iteration.
-     * @param iteration The final iteration for which the cover is set.
-     * @param cover The Cover object containing membership information.
+     * @param iteration the final iteration for which the cover is set.
+     * @param cover the Cover object containing membership information.
      */
     public void setCover(int iteration, Cover cover) {
         Matrix membershipMatrix = cover.getMemberships();
         try {
             List<int[]> communityColors = new ArrayList<>();
-            for (int c = 0; c < membershipMatrix.columns(); c++){
+            for (int c = 0; c < membershipMatrix.columns(); c++) {
                 communityColors.add(finalColor());
             }
             List<int[]> nodeColors = new ArrayList<>();
             HashMap<Integer, String> initNodes = new HashMap<>();
-            for (int i = 0; i < membershipMatrix.rows(); i++){
+            for (int i = 0; i < membershipMatrix.rows(); i++) {
                 initNodes.put(i, "");
                 int[] color = new int[]{0, 0, 0};
                 double red = 0.0;
                 double green = 0.0;
                 double blue = 0.0;
-                for (int j = 0; j < membershipMatrix.columns(); j++){
+                for (int j = 0; j < membershipMatrix.columns(); j++) {
                     int[] communityColor = communityColors.get(j);
                     red += membershipMatrix.get(i, j) * communityColor[0];
                     green += membershipMatrix.get(i, j) * communityColor[1];
@@ -872,21 +873,21 @@ public class DescriptiveVisualization {
                 nodeColors.add(color);
             }
             setNodeStringValues(iteration, initNodes);
-            for (int i = 0; i < membershipMatrix.rows(); i++){
+            for (int i = 0; i < membershipMatrix.rows(); i++) {
                 Node node = data.getNodes().get(0);
-                for (Node n : data.getNodes()){
-                    if (n.id == getRealNode(i)){
+                for (Node n : data.getNodes()) {
+                    if (n.id == getRealNode(i)) {
                         node = n;
                         break;
                     }
                 }
                 node.rgbValue.set(iteration, nodeColors.get(i));
             }
-            for (Node node : data.getNodes()){
+            for (Node node : data.getNodes()) {
                 node.numValue.set(iteration, Double.MIN_VALUE);
                 node.stringValue.set(iteration, "");
             }
-            for (Edge edge : data.getEdges()){
+            for (Edge edge : data.getEdges()) {
                 edge.numValue.set(iteration, Double.MIN_VALUE);
                 edge.stringValue.set(iteration, "");
                 edge.stringValue.set(iteration, "");
@@ -898,7 +899,7 @@ public class DescriptiveVisualization {
 
     /**
      * Saves the JSON data to ArangoDB.
-     * @throws IOException If an I/O error occurs while converting the data to JSON.
+     * @throws IOException if an I/O error occurs while converting the data to JSON.
      */
     public static void saveJson() throws IOException {
         data.setKey(key);

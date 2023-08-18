@@ -1339,7 +1339,7 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(value = "", notes = "Returns the OCD algorithms that provides descriptive visualization.")
 		public Response getAlgorithmsForDescriptiveVisualization() {
 			String dvAlgorithms = "";
-			for (int i = 0; i < descriptiveVisualizationAlgorithms.size()-1; i++){
+			for (int i = 0; i < descriptiveVisualizationAlgorithms.size()-1; i++) {
 				dvAlgorithms += descriptiveVisualizationAlgorithms.get(i) + ",";
 			}
 			dvAlgorithms += descriptiveVisualizationAlgorithms.get(descriptiveVisualizationAlgorithms.size()-1);

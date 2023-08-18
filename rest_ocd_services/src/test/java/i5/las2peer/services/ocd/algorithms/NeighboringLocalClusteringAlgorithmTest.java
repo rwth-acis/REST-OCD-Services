@@ -102,7 +102,7 @@ public class NeighboringLocalClusteringAlgorithmTest {
     }
 
     @Test
-    public void testGetCommunitiesOfNodeN() throws FileNotFoundException, AdapterException, InterruptedException {
+    public void testGetCommunities() throws FileNotFoundException, AdapterException, InterruptedException {
         NeighboringLocalClusteringAlgorithm algo = new NeighboringLocalClusteringAlgorithm();
         HashMap<Integer, ArrayList<Integer>> communities = new HashMap<>();
         ArrayList<Integer> community_0 = new ArrayList<>();
@@ -118,7 +118,7 @@ public class NeighboringLocalClusteringAlgorithmTest {
         communities.put(2, community_2);
         communities.put(3, community_3);
 
-        ArrayList<Integer> createdCommunities_n = algo.getCommunitiesOfNodeN(communities, 3);
+        ArrayList<Integer> createdCommunities_n = algo.getCommunities(communities, 3);
         ArrayList<Integer> expectedCommunities_n = new ArrayList<>();
         expectedCommunities_n.addAll(Arrays.asList(0, 1, 3));
 
@@ -135,7 +135,7 @@ public class NeighboringLocalClusteringAlgorithmTest {
         ArrayList<Integer> overlappingNodes = new ArrayList<>();
         overlappingNodes.addAll(Arrays.asList(0, 1));
 
-        int createdConnections = algo.getConnection(createdAdjacencyMatrix, overlappingNodes, 3, community);
+        int createdConnections = algo.getConnections(createdAdjacencyMatrix, overlappingNodes, 3, community);
         int expectedConnections = 3;
 
         assertEquals(expectedConnections, createdConnections);
@@ -169,7 +169,7 @@ public class NeighboringLocalClusteringAlgorithmTest {
     }
 
     @Test
-    public void testGetMembershipMatrixFromCommunities() throws FileNotFoundException, AdapterException, InterruptedException {
+    public void testGetMembershipMatrix() throws FileNotFoundException, AdapterException, InterruptedException {
         CustomGraph graph = OcdTestGraphFactory.getPaperGraph();
         int nodeCount = graph.getNodeCount();
         NeighboringLocalClusteringAlgorithm algo = new NeighboringLocalClusteringAlgorithm();
@@ -182,7 +182,7 @@ public class NeighboringLocalClusteringAlgorithmTest {
         communities.put(0, community_0);
         communities.put(1, community_1);
 
-        Matrix createdMembershipMatrix = algo.getMembershipMatrixFromCommunities(createdAdjacencyMatrix, communities);
+        Matrix createdMembershipMatrix = algo.getMembershipMatrix(createdAdjacencyMatrix, communities);
         Matrix expectedMembershipMatrix = new Basic2DMatrix(nodeCount, communities.size());
         expectedMembershipMatrix.blank();
         expectedMembershipMatrix.set(0, 1, 1.0);

@@ -40,7 +40,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
      */
     private double communityMagneticInterferenceCoefficientGF = 1.0;
 
-    //PARAMETER NAMES
+    // PARAMETER NAMES
     protected static final String SIMILARITY_THRESHOLD_ALPHA = "similarity threshold alpha";
 
     protected static final String PRUNING_THRESHOLD = "pruning threshold";
@@ -116,19 +116,19 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
         // The adjacency list of the input graph
         HashMap<Integer, ArrayList<Integer>> adjacencyList = createAdjacencyList(A);
 
-        if(DescriptiveVisualization.getVisualize()) {
+        if (DescriptiveVisualization.getVisualize()) {
             /* DV: set description file and delimiter */
             dv.setDescriptions("NLC.txt", ";");
             dv.addComponent(graph);
         }
-        if(DescriptiveVisualization.getVisualize()) {
+        if (DescriptiveVisualization.getVisualize()) {
             HashMap<Integer, String> labels = new HashMap<>();
             for (int i = 0; i < graph.getNodeCount(); i++) {
-                ArrayList<Integer> neighbors_i = new ArrayList<>();
-                for (Node neighbor : graph.getNeighbours(graph.getNode(i))){
-                    neighbors_i.add(dv.getRealNode(neighbor.getIndex()));
+                ArrayList<Integer> neighbours_i = new ArrayList<>();
+                for (Node neighbor : graph.getNeighbours(graph.getNode(i))) {
+                    neighbours_i.add(dv.getRealNode(neighbor.getIndex()));
                 }
-                labels.put(dv.getRealNode(i), "neighbors: " + neighbors_i);
+                labels.put(dv.getRealNode(i), "neighbours: " + neighbours_i);
             }
             /* DV: set node labels to the neighboring nodes */
             dv.setNodeLabels(labels);
@@ -150,12 +150,12 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
         ConcurrentHashMap<Integer, ArrayList<Integer>> optimizedCommunities = getOptimizedCommunities(A, communitiesAndOverlappingNodes);
 
         // The membership matrix, where membershipMatrix[n][c] == 1, iff node n is part of community c
-        Matrix membershipMatrix = getMembershipMatrixFromCommunities(A, optimizedCommunities);
+        Matrix membershipMatrix = getMembershipMatrix(A, optimizedCommunities);
 
         // Build the cover using the input graph and the membership matrix built above
         Cover cover = new Cover(graph, membershipMatrix);
 
-        if(DescriptiveVisualization.getVisualize()){
+        if (DescriptiveVisualization.getVisualize()) {
             /* DV: set final cover */
             dv.setCover(12, cover);
         }
@@ -171,10 +171,10 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
      */
     public HashMap<Integer, ArrayList<Integer>> createAdjacencyList(Matrix adjacencyMatrix) {
         HashMap<Integer, ArrayList<Integer>> adjacencyList = new HashMap<>();
-        for(int i = 0; i < adjacencyMatrix.columns(); i++){
+        for (int i = 0; i < adjacencyMatrix.columns(); i++) {
             ArrayList<Integer> neighbors = new ArrayList<>();
-            for(int j = 0; j < adjacencyMatrix.columns(); j++){
-                if(adjacencyMatrix.get(i, j) == 1){
+            for (int j = 0; j < adjacencyMatrix.columns(); j++) {
+                if (adjacencyMatrix.get(i, j) == 1) {
                     neighbors.add(j);
                 }
             }
@@ -184,7 +184,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * This method creates the similarity matrix for the nodes in the input graph
+     * This method determines the similarity matrix for the nodes in the input graph
      * Entry similarityMatrix.get(i).get(j) represents sim(v_i, v_j)
      * @param adjacencyList is the adjacency list for which the similarity matrix should be built
      * @return the similarity matrix
@@ -198,8 +198,8 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                 List<Integer> neighbours_j = adjacencyList.get(j);
                 Set<Integer> union = new HashSet<>(neighbours_i);
                 Set<Integer> intersection = new HashSet<>(neighbours_i);
-                for (int el : neighbours_j){
-                    if(!neighbours_i.contains(el)){
+                for (int el : neighbours_j) {
+                    if (!neighbours_i.contains(el)) {
                         union.add(el);
                     }
                 }
@@ -213,7 +213,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * This method uses the dijkstra algorithm to create the shortest path matrix for the nodes
+     * This method uses Dijkstra's algorithm to create the shortest path matrix for the nodes
      * Entry shortestPathMatrix[i][j] represents the shortest path from node v_i to node v_j
      * @param A is the adjacency matrix of the input graph
      * @return the shortest path matrix
@@ -254,19 +254,19 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * This method creates the membership matrix of the input graph
+     * This method determines the membership matrix of the input graph
      * Entry membershipMatrix.get(n).get(c) == 1, iff node n is in community c
      * @param A is the adjacency matrix of the input graph
      * @param communities are the determined communities of the input graph
      * @return the membership matrix
      */
-    public Matrix getMembershipMatrixFromCommunities(Matrix A, ConcurrentHashMap<Integer, ArrayList<Integer>> communities) {
+    public Matrix getMembershipMatrix(Matrix A, ConcurrentHashMap<Integer, ArrayList<Integer>> communities) {
         Matrix membershipMatrix = new Basic2DMatrix(A.columns(), communities.size());
         for (int i = 0; i < A.columns(); i++) {
             int comIndex = 0;
-            for (int key : communities.keySet()){
+            for (int key : communities.keySet()) {
                 ArrayList<Integer> community = communities.get(key);
-                if(community.contains(i)){
+                if (community.contains(i)) {
                     membershipMatrix.set(i, comIndex, 1);
                 }
                 comIndex += 1;
@@ -276,15 +276,15 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * This method determines the number of connections of overlapping node n and the non-overelapping nodes in community j
+     * This method determines the number of connections of overlapping node n and the non-overlapping nodes in community j
      * @param A is the adjacency matrix of the input graph
      * @param overlappingNodes are the determined overlapping nodes of the input graph
      * @param n is the node for which the number of connections will be calculated
-     * @param community_j is the community j
-     * @return connections of the node with the non-overlapping nodes in community j
+     * @param communityJ is the community j
+     * @return connections of the node n with the non-overlapping nodes in community j
      */
-    public int getConnection(Matrix A, ArrayList<Integer> overlappingNodes, Integer n, ArrayList<Integer> community_j) {
-        HashSet<Integer> nonOverlappingNodes_j = new HashSet<>(community_j);
+    public int getConnections(Matrix A, ArrayList<Integer> overlappingNodes, int n, ArrayList<Integer> communityJ) {
+        HashSet<Integer> nonOverlappingNodes_j = new HashSet<>(communityJ);
         nonOverlappingNodes_j.removeAll(overlappingNodes);
         int connections = 0;
         for (int j : nonOverlappingNodes_j) {
@@ -296,15 +296,15 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * This method determines the communities to which an overlapping node belongs to
+     * This method determines the communities to which an overlapping node belongs
      * @param communities are the determined communities of the input graph
-     * @param n is the node to which the belonging communities will be calculated
-     * @return the communities to which the overlapping node belongs to
+     * @param n is the node for which the belonging communities will be calculated
+     * @return the communities to which the overlapping node belongs
      */
-    public ArrayList<Integer> getCommunitiesOfNodeN(HashMap<Integer, ArrayList<Integer>> communities, Integer n) {
+    public ArrayList<Integer> getCommunities(HashMap<Integer, ArrayList<Integer>> communities, int n) {
         ArrayList<Integer> com_n = new ArrayList<>();
-        for (int key : communities.keySet()){
-            if (communities.get(key).contains(n)){
+        for (int key : communities.keySet()) {
+            if (communities.get(key).contains(n)) {
                 com_n.add(key);
             }
         }
@@ -312,9 +312,9 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * This method determine the central node set
+     * This method determines the central node set
      * @param adjacencyList is the adjacency list of the input graph
-     * @param similarityMatrix is the similarity matrix of the nodes of the input graph
+     * @param similarityMatrix is the similarity matrix of the nodes
      * @return the central node set
      * @throws InterruptedException if the thread was interrupted
      */
@@ -355,7 +355,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                 if (i == j) {
                     influence_IB_i.put(j, 0.0);
                 }
-                else{
+                else {
                     ArrayList<Integer> neighbours_j = adjacencyList.get(j);
                     double value = neighbours_i.size() * neighbours_j.size() / ((1 - similarityMatrix.get(i).get(j)) * (1 - similarityMatrix.get(i).get(j)));
                     influence_IB_i.put(j, value);
@@ -370,7 +370,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
             }
             influence_F.put(i, influence_F_i);
         }
-        if(DescriptiveVisualization.getVisualize()) {
+        if (DescriptiveVisualization.getVisualize()) {
             for (int i : influence_F.keySet()) {
                 nodeNumericalValues.put(i, influence_F.get(i));
             }
@@ -390,7 +390,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                     break;
                 }
             }
-            if(DescriptiveVisualization.getVisualize()) {
+            if (DescriptiveVisualization.getVisualize()) {
                 if (centralNode_i) {
                     nodeNumericalValues.put(i, influence_F.get(i));
                 }
@@ -401,7 +401,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                     break;
                 }
             }
-            if(DescriptiveVisualization.getVisualize()) {
+            if (DescriptiveVisualization.getVisualize()) {
                 if (centralNode_i) {
                     double maxSim = 0.0;
                     for (int v : centralNodes) {
@@ -415,13 +415,13 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
             if (centralNode_i) {
                 centralNodes.add(i);
                 double newInfluence_i = 0.0;
-                for (int j : neighbours_i){
+                for (int j : neighbours_i) {
                     newInfluence_i += influence_IB.get(i).get(j);
                 }
                 influence_F.put(i, communityMagneticInterferenceCoefficientGF * newInfluence_i);
             }
         }
-        if(DescriptiveVisualization.getVisualize()) {
+        if (DescriptiveVisualization.getVisualize()) {
             /* DV: mark nodes with maximal influence values in neighborhood */
             dv.setNodeNumericalValues(2, nodeNumericalValues);
             nodeNumericalValues.clear();
@@ -442,31 +442,31 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
     /**
      * This method gives a transformation of the central node set to the corresponding central edge sets
      * @param centralNodeSet is the central node set, where each node corresponds to a central edge set
-     * @param similarityMatrix is the similarity matrix for nodes of the input graph
+     * @param similarityMatrix is the similarity matrix for nodes
      * @param adjacencyList is the adjacency list of the input graph
      * @return all central edge sets and the non-central edges in the last entry
      * @throws InterruptedException if the thread was interrupted
      */
     protected HashMap<Integer, ArrayList<ArrayList<Integer>>> getCentralEdgeSets(HashSet<Integer> centralNodeSet, HashMap<Integer, HashMap<Integer, Double>> similarityMatrix, HashMap<Integer, ArrayList<Integer>> adjacencyList) throws InterruptedException {
         HashMap<Integer, ArrayList<ArrayList<Integer>>> centralEdgeSets = new HashMap<>();
-        // Calculate the average similarity of all central nodes and split their edges into central and non-central edge set
-        HashMap<Integer, Double> aveSimilarity = new HashMap<>();
-        for(int u : centralNodeSet){
-            double aveSimilarity_u = 0.0;
+        // Determines the average similarity of all central nodes and split their edges into central and non-central edge set
+        HashMap<Integer, Double> avgSimilarity = new HashMap<>();
+        for (int u : centralNodeSet) {
+            double avgSimilarity_u = 0.0;
             ArrayList<Integer> neighbours_u = adjacencyList.get(u);
-            for (int v : neighbours_u){
-                aveSimilarity_u += similarityMatrix.get(u).get(v);
+            for (int v : neighbours_u) {
+                avgSimilarity_u += similarityMatrix.get(u).get(v);
             }
-            aveSimilarity_u /= neighbours_u.size();
-            aveSimilarity.put(u, aveSimilarity_u);
-            if(DescriptiveVisualization.getVisualize()) {
-                nodeNumericalValues.put(u, aveSimilarity_u);
+            avgSimilarity_u /= neighbours_u.size();
+            avgSimilarity.put(u, avgSimilarity_u);
+            if (DescriptiveVisualization.getVisualize()) {
+                nodeNumericalValues.put(u, avgSimilarity_u);
             }
             ArrayList<ArrayList<Integer>> centralEdges_u = new ArrayList<>();
-            for(int v : neighbours_u){
-                if(similarityMatrix.get(u).get(v) > aveSimilarity_u){
+            for (int v : neighbours_u) {
+                if (similarityMatrix.get(u).get(v) > avgSimilarity_u) {
                     ArrayList<Integer> edge = new ArrayList<>();
-                    if(u < v) {
+                    if (u < v) {
                         edge.add(u);
                         edge.add(v);
                     }
@@ -477,17 +477,17 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                     centralEdges_u.add(edge);
                 }
             }
-            if(DescriptiveVisualization.getVisualize()) {
+            if (DescriptiveVisualization.getVisualize()) {
                 /* DV: set average similarity values of the central nodes */
                 dv.setNodeNumericalValues(5, nodeNumericalValues);
                 nodeNumericalValues.clear();
             }
             centralEdgeSets.put(u, centralEdges_u);
         }
-        if(DescriptiveVisualization.getVisualize()) {
+        if (DescriptiveVisualization.getVisualize()) {
             for (int u : centralNodeSet) {
                 for (ArrayList<Integer> edge : centralEdgeSets.get(u)) {
-                    edgeStringValues.put(edge, "sim(" + dv.getRealNode(edge.get(0)) + ", " + dv.getRealNode(edge.get(1)) + ") = " + similarityMatrix.get(edge.get(0)).get(edge.get(1)) + " > " + aveSimilarity.get(u));
+                    edgeStringValues.put(edge, "sim(" + dv.getRealNode(edge.get(0)) + ", " + dv.getRealNode(edge.get(1)) + ") = " + similarityMatrix.get(edge.get(0)).get(edge.get(1)) + " > " + avgSimilarity.get(u));
                 }
                 /* DV: set current central edge sets around the central nodes */
                 dv.setEdgeStringValues(6, edgeStringValues);
@@ -496,11 +496,11 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
         }
         // The remaining edges in the input graph are added to the non-central edge set
         ArrayList<ArrayList<Integer>> nonCentralEdges = new ArrayList<>();
-        for(int i = 0; i < adjacencyList.size(); i++){
+        for (int i = 0; i < adjacencyList.size(); i++) {
             ArrayList<Integer> neighbours_i = adjacencyList.get(i);
-            for(int j : neighbours_i){
+            for (int j : neighbours_i) {
                 ArrayList<Integer> edge = new ArrayList<>();
-                if(i < j) {
+                if (i < j) {
                     edge.add(i);
                     edge.add(j);
                 }
@@ -508,14 +508,14 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                     edge.add(j);
                     edge.add(i);
                 }
-                if(!nonCentralEdges.contains(edge)){
+                if (!nonCentralEdges.contains(edge)) {
                     boolean isNonCentralEdge = true;
-                    for (int u : centralNodeSet){
-                        if (centralEdgeSets.get(u).contains(edge)){
+                    for (int u : centralNodeSet) {
+                        if (centralEdgeSets.get(u).contains(edge)) {
                             isNonCentralEdge = false;
                         }
                     }
-                    if (isNonCentralEdge == true){
+                    if (isNonCentralEdge == true) {
                         nonCentralEdges.add(edge);
                     }
                 }
@@ -524,13 +524,13 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
 
         // Set the last entry of centralEdgeSets to the non-central edges
         int maxKey = 0;
-        for(int key : centralEdgeSets.keySet()){
-            if (maxKey < key){
+        for (int key : centralEdgeSets.keySet()) {
+            if (maxKey < key) {
                 maxKey = key;
             }
         }
         centralEdgeSets.put(maxKey + 1, nonCentralEdges);
-        if(DescriptiveVisualization.getVisualize()) {
+        if (DescriptiveVisualization.getVisualize()) {
             for (ArrayList<Integer> nce : nonCentralEdges) {
                 edgeStringValues.put(nce, "NCE");
             }
@@ -552,8 +552,8 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
      */
     protected HashMap<Integer, ArrayList<Integer>> getCommunitiesAndOverlappingNodes(Matrix A, HashMap<Integer, ArrayList<ArrayList<Integer>>> centralEdgeSets, HashMap<Integer, ArrayList<Integer>> adjacencyList) throws InterruptedException {
         int nonCentralEdgesKey = 0;
-        for (int key : centralEdgeSets.keySet()){
-            if(nonCentralEdgesKey < key){
+        for (int key : centralEdgeSets.keySet()) {
+            if (nonCentralEdgesKey < key) {
                 nonCentralEdgesKey = key;
             }
         }
@@ -564,10 +564,10 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
         HashMap<Integer, ArrayList<Integer>> edgeSet = new HashMap<>();
         HashMap<ArrayList<Integer>, Integer> edgeIndices = new HashMap<>();
         int edgeIndex = 0;
-        for (int i = 0; i < adjacencyList.size(); i++){
-            for (int j : adjacencyList.get(i)){
+        for (int i = 0; i < adjacencyList.size(); i++) {
+            for (int j : adjacencyList.get(i)) {
                 ArrayList<Integer> edge = new ArrayList<>();
-                if(i < j){
+                if (i < j) {
                     edge.add(i);
                     edge.add(j);
                     edgeSet.put(edgeIndex, edge);
@@ -586,23 +586,23 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
         // The distance matrix for edges of the graph, where distanceMatrix[i][j] = jaccardMatrix[i][j] * linkMatrix[i][j]
         double[][] distanceMatrix = new double[edgeSet.size()][edgeSet.size()];
 
-        for(int key1 = 0; key1 < edgeSet.size(); key1++){
+        for (int key1 = 0; key1 < edgeSet.size(); key1++) {
             List<Integer> edge1 = edgeSet.get(key1);
             List<Integer> neighbours_a = adjacencyList.get(edge1.get(0));
             List<Integer> neighbours_b = adjacencyList.get(edge1.get(1));
             List<Integer> union1 = new ArrayList<>(neighbours_a);
-            for(int el : neighbours_b){
-                if(!neighbours_a.contains(el)){
+            for (int el : neighbours_b) {
+                if (!neighbours_a.contains(el)) {
                     union1.add(el);
                 }
             }
-            for(int key2 = key1+1; key2 < edgeSet.size(); key2++){
+            for (int key2 = key1+1; key2 < edgeSet.size(); key2++) {
                 List<Integer> edge2 = edgeSet.get(key2);
                 List<Integer> neighbours_c = adjacencyList.get(edge2.get(0));
                 List<Integer> neighbours_d = adjacencyList.get(edge2.get(1));
                 List<Integer> union2 = new ArrayList<>(neighbours_c);
-                for(int el : neighbours_d){
-                    if(!neighbours_c.contains(el)){
+                for (int el : neighbours_d) {
+                    if (!neighbours_c.contains(el)) {
                         union2.add(el);
                     }
                 }
@@ -625,7 +625,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                 linkMatrix[key1][key2] = link;
                 linkMatrix[key2][key1] = link;
 
-                // The distance matrix, where distance_matrix[i][j] = jaccard_matrix[i][j] * link_matrix[i][j] for edge e_i and edge e_j.
+                // The distance matrix, where distance_matrix[i][j] = jaccard_matrix[i][j] * link_matrix[i][j] for edge e_i and edge e_j
                 double distance = jaccardMatrix[key1][key2] * linkMatrix[key1][key2];
                 distanceMatrix[key1][key1] = 0.0;
                 distanceMatrix[key1][key2] = distance;
@@ -661,14 +661,14 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                     minimum_dls = temp;
                 }
             }
-            for (int key : centralEdgeSets.keySet()){
-                if(dlsMatrix.get(nonCentralEdgeIndex).get(key) == minimum_dls){
+            for (int key : centralEdgeSets.keySet()) {
+                if (dlsMatrix.get(nonCentralEdgeIndex).get(key) == minimum_dls) {
                     centralEdgeSets.get(key).add(nce);
                 }
             }
             nonCentralEdgeIndex += 1;
         }
-        if(DescriptiveVisualization.getVisualize()) {
+        if (DescriptiveVisualization.getVisualize()) {
             HashMap<ArrayList<Integer>, ArrayList<Integer>> assignments = new HashMap<>();
             for (ArrayList<Integer> nce : nonCentralEdges) {
                 ArrayList<Integer> assigned = new ArrayList<>();
@@ -688,7 +688,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
                         edgeStringValues.put(nce, "CES " + assignments.get(nce));
                     }
                 }
-                /* DV: assign non-central edge to central-edgeset with smallest average distance */
+                /* DV: assign non-central edge to central-edge set with smallest average distance */
                 dv.setEdgeStringValues(8, edgeStringValues);
                 edgeStringValues.clear();
             }
@@ -696,10 +696,10 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
 
         // The node identifier indicates in how many central edge sets a node occurs
         HashMap<Integer, Integer> nodeIdentifier = new HashMap<>();
-        for (int node = 0; node < adjacencyList.size(); node++){
+        for (int node = 0; node < adjacencyList.size(); node++) {
             int identified = 0;
-            for (int ces_key : centralEdgeSets.keySet()){
-                if(identified < 2) {
+            for (int ces_key : centralEdgeSets.keySet()) {
+                if (identified < 2) {
                     ArrayList<ArrayList<Integer>> ces = centralEdgeSets.get(ces_key);
                     for (ArrayList<Integer> edge : ces) {
                         if (node == edge.get(0) || node == edge.get(1)) {
@@ -717,13 +717,13 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
 
         // The overlapping nodes occur in at least two central edge sets
         ArrayList<Integer> overlappingNodes = new ArrayList<>();
-        for (int node = 0; node < adjacencyList.size(); node++){
-            if (nodeIdentifier.get(node) > 1){
+        for (int node = 0; node < adjacencyList.size(); node++) {
+            if (nodeIdentifier.get(node) > 1) {
                 overlappingNodes.add(node);
             }
         }
 
-        // The corrosponding determined communities and the overlapping nodes in the last entry
+        // The corresponding determined communities and the overlapping nodes are in the last entry
         HashMap<Integer, ArrayList<Integer>> communitiesAndOverlappingNodes = new HashMap<>();
         HashSet<Integer> community = new HashSet<>();
         int comIndex = 1;
@@ -732,10 +732,10 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
         for (int key : centralEdgeSets.keySet()) {
             ArrayList<ArrayList<Integer>> centralEdgeSet = centralEdgeSets.get(key);
             for (ArrayList<Integer> centralEdge : centralEdgeSet) {
-                if(!community.contains(centralEdge.get(0))){
+                if (!community.contains(centralEdge.get(0))) {
                     community.add(centralEdge.get(0));
                 }
-                if(!community.contains(centralEdge.get(1))){
+                if (!community.contains(centralEdge.get(1))) {
                     community.add(centralEdge.get(1));
                 }
             }
@@ -748,7 +748,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
             community.clear();
         }
 
-        if(DescriptiveVisualization.getVisualize()) {
+        if (DescriptiveVisualization.getVisualize()) {
             HashMap<Integer, ArrayList<Integer>> comIndices = new HashMap<>();
             for (int i = 0; i < adjacencyList.size(); i++) {
                 ArrayList<Integer> com_i = new ArrayList<>();
@@ -799,8 +799,8 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
      */
     protected ConcurrentHashMap<Integer, ArrayList<Integer>> getOptimizedCommunities(Matrix A, HashMap<Integer, ArrayList<Integer>> communitiesAndOverlappingNodes) throws InterruptedException {
         int overlapping_key = 0;
-        for (int key : communitiesAndOverlappingNodes.keySet()){
-            if (overlapping_key < key){
+        for (int key : communitiesAndOverlappingNodes.keySet()) {
+            if (overlapping_key < key) {
                 overlapping_key = key;
             }
         }
@@ -811,7 +811,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
         // Store the communities of each overlapping node
         HashMap<Integer, ArrayList<Integer>> communities_ON = new HashMap<>();
         for (int n : overlappingNodes) {
-            ArrayList<Integer> communities_n = getCommunitiesOfNodeN(communities, n);
+            ArrayList<Integer> communities_n = getCommunities(communities, n);
             communities_ON.put(n, communities_n);
         }
 
@@ -822,7 +822,7 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
             double sum_connections = 0.0;
             ArrayList<Integer> connection_n_NonOverlap = new ArrayList<>();
             for (int j : communities_n) {
-                int connection_n_NonOverlap_j = getConnection(A, overlappingNodes, n, communities.get(j));
+                int connection_n_NonOverlap_j = getConnections(A, overlappingNodes, n, communities.get(j));
                 connection_n_NonOverlap.add(connection_n_NonOverlap_j);
                 sum_connections += connection_n_NonOverlap_j;
             }
@@ -839,25 +839,25 @@ public class NeighboringLocalClusteringAlgorithm implements OcdAlgorithm {
             ArrayList<Integer> removeFromCommunities = new ArrayList<>();
             for (int j = 0; j < communities_ON.get(n).size(); j++) {
                 if (ratio.get(n).get(j) < pruningThreshold) {
-                    for(int index = 0; index < communities.get(communities_ON.get(n).get(j)).size(); index++){
-                        if(communities.get(communities_ON.get(n).get(j)).get(index) == n){
+                    for (int index = 0; index < communities.get(communities_ON.get(n).get(j)).size(); index++) {
+                        if (communities.get(communities_ON.get(n).get(j)).get(index) == n) {
                             removeFromCommunities.add(communities_ON.get(n).get(j));
                             communities.get(communities_ON.get(n).get(j)).remove(index);
                         }
                     }
                 }
             }
-            if(DescriptiveVisualization.getVisualize()) {
+            if (DescriptiveVisualization.getVisualize()) {
                 if (removeFromCommunities.size() > 0) {
                     ArrayList<Integer> removed = new ArrayList<>();
-                    for (int r : removeFromCommunities){
+                    for (int r : removeFromCommunities) {
                         removed.add(dv.getRealNode(r));
                     }
                     nodeStringValues.put(n, "remove from community of node " + removed);
                 }
             }
         }
-        if(DescriptiveVisualization.getVisualize()) {
+        if (DescriptiveVisualization.getVisualize()) {
             /* DV: remove the node from the communities, where the community-ratio is smaller than the pruning threshold */
             dv.setNodeStringValues(11, nodeStringValues);
             nodeStringValues.clear();
