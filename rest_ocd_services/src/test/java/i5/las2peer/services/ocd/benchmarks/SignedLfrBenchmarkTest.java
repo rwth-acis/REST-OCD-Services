@@ -2,14 +2,13 @@ package i5.las2peer.services.ocd.benchmarks;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestCoverFactory;
 
-import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
 import java.util.Iterator;

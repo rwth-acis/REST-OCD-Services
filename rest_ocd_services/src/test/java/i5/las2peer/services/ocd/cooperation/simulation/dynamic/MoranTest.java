@@ -1,8 +1,8 @@
 package i5.las2peer.services.ocd.cooperation.simulation.dynamic;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.AdditionalMatchers;
 import org.mockito.Matchers;
@@ -14,11 +14,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 import ec.util.MersenneTwisterFast;
 import i5.las2peer.services.ocd.cooperation.simulation.Agent;
 import i5.las2peer.services.ocd.cooperation.simulation.Simulation;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Moran;
 import sim.util.Bag;
 
-@RunWith(MockitoJUnitRunner.class)
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
 public class MoranTest {
 	
 	@Spy

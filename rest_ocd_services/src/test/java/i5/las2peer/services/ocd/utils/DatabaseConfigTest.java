@@ -3,12 +3,10 @@ package i5.las2peer.services.ocd.utils;
 import static org.junit.Assert.*;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DatabaseConfigTest {
 	private static DatabaseConfig dc = new DatabaseConfig();

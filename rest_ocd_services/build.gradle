@@ -73,7 +73,7 @@ dependencies {
     compileOnly("org.apache.xmlgraphics:batik-bridge:1.14") {
         exclude group: 'xml-apis', module: 'xml-apis'
     }
-    implementation "org.mockito:mockito-all:1.9.5"
+
     implementation "fr.irit.smac.thirdparty.edu.gmu.cs:mason:19"
     implementation "org.ojalgo:ojalgo:50.0.0"
     compileOnly "net.sbbi:sbbi-upnplib:1.0.4"
@@ -86,6 +86,11 @@ dependencies {
     //arangoDB Java driver
     implementation "com.arangodb:arangodb-java-driver:6.18.0"
     implementation "com.arangodb:jackson-dataformat-velocypack:3.0.1"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.0'
+    testImplementation 'org.junit.vintage:junit-vintage-engine:5.8.0'
+    testImplementation 'org.mockito:mockito-core:3.12.4'
+    testImplementation 'org.mockito:mockito-junit-jupiter:3.12.4'
 }
 
 configurations {
@@ -104,7 +109,7 @@ jar {
         // Exclude signatures to be able to natively bundle signed jars
         exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
     }
-   duplicatesStrategy = 'include' // this is needed due to duplicate error in gradle 7.0 which seems to be a bug
+    duplicatesStrategy = 'include' // this is needed due to duplicate error in gradle 7.0 which seems to be a bug
 
 
 
@@ -286,6 +291,7 @@ task cleanAll {
 }
 
 test {
+    useJUnitPlatform()
     workingDir = file("$rootDir")
 }
 

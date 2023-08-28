@@ -2,19 +2,16 @@ package i5.las2peer.services.ocd.algorithms;
 
 import java.io.FileNotFoundException;
 
-import java.awt.Color;
 import java.util.*;
 
-import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
-import org.junit.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.Community;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
+import org.junit.jupiter.api.Test;
 
 
 public class LOCAlgorithmTest {

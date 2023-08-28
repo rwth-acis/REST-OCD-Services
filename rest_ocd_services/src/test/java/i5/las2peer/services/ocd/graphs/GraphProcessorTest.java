@@ -7,10 +7,6 @@ import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.GraphProcessor;
-import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.Pair;
@@ -18,10 +14,9 @@ import i5.las2peer.services.ocd.utils.Pair;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-import org.junit.Test;
-
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
+import org.junit.jupiter.api.Test;
 
 public class GraphProcessorTest {
 

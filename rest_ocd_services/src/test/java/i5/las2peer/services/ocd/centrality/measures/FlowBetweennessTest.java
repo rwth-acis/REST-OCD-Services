@@ -1,7 +1,6 @@
 package i5.las2peer.services.ocd.centrality.measures;
 
-import org.graphstream.graph.Node;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmException;

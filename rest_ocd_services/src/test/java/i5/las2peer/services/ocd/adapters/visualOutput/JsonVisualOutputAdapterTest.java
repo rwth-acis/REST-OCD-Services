@@ -1,11 +1,7 @@
 package i5.las2peer.services.ocd.adapters.visualOutput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputAdapter;
-import i5.las2peer.services.ocd.adapters.visualOutput.JsonVisualOutputAdapter;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
-import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.viewer.LayoutHandler;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayoutType;
 import i5.las2peer.services.ocd.viewer.testsUtil.ViewerTestConstants;
@@ -14,7 +10,7 @@ import i5.las2peer.services.ocd.viewer.testsUtil.ViewerTestGraphFactory;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JsonVisualOutputAdapterTest {
 	

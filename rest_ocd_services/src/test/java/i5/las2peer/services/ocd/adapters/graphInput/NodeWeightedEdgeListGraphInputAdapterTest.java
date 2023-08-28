@@ -2,8 +2,6 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 
 import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.NodeWeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 
@@ -11,7 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Iterator;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.graphstream.graph.Node;
 

@@ -7,8 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.HashMap;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.dense.BasicVector;
@@ -19,13 +19,10 @@ import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueSearch;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
 import i5.las2peer.services.ocd.metrics.ModularityMetric;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.Edge;
 
 public class AntColonyOptimizationTest {
 	
@@ -85,7 +82,7 @@ public class AntColonyOptimizationTest {
 		System.out.println(mod.measure(c));
 	}
 	
-	@Ignore
+	@Disabled
 	@Test
 	public void testDecoding() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph();
@@ -101,7 +98,7 @@ public class AntColonyOptimizationTest {
 		ACO.decodeMaximalCliques(graph, 5);
 	}
 	
-	@Ignore
+	@Disabled
 	@Test
 	public void testFitnessComputations() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph();

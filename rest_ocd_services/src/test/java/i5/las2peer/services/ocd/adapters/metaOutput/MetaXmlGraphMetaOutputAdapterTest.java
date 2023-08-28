@@ -5,7 +5,7 @@ import i5.las2peer.services.ocd.graphs.GraphCreationLog;
 import i5.las2peer.services.ocd.graphs.GraphCreationType;
 import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.FileWriter;
 import java.util.ArrayList;

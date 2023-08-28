@@ -6,23 +6,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import i5.las2peer.services.ocd.cooperation.data.simulation.AgentData;
-import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationDataset;
 import i5.las2peer.services.ocd.graphs.Community;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SimulationDatasetTest {
 	
-	@Rule
-    public ExpectedException thrown = ExpectedException.none();
+
 	
 	@Spy SimulationDataset simulation;
 	
@@ -149,40 +148,37 @@ public class SimulationDatasetTest {
 		assertEquals(0.69, results[1], 0.001);
 		assertEquals(0.30, results[2], 0.001);
 	}
-	
+
 	@Test
 	public void getCommunityCooperationValuesInvalidTooLarge() {
-		
-		thrown.expect(IllegalArgumentException.class);	
-		
 		List<AgentData> agentList = new ArrayList<>();
 		agentList.add(data1);
 		agentList.add(data2);
 		agentList.add(data3);
 		simulation.setAgentData(agentList);
-		
+
 		List<Community> communityList = new ArrayList<>();
 		communityList.add(community1);
 		communityList.add(community2);
-	
+
 		List<Integer> memberList1 = new ArrayList<>();
 		memberList1.add(4);
-		
+
 		List<Integer> memberList2 = new ArrayList<>();
 		memberList2.add(10);
-		memberList2.add(3);		
+		memberList2.add(3);
 
-		Mockito.when(community1.getMemberIndices()).thenReturn(memberList1);
+		//Mockito.when(community1.getMemberIndices()).thenReturn(memberList1);
 		Mockito.when(community2.getMemberIndices()).thenReturn(memberList2);
-				
-		simulation.getCommunityCooperationValues(communityList);		
+
+		assertThrows(IllegalArgumentException.class, () -> {
+			simulation.getCommunityCooperationValues(communityList);
+		});
+
 	}
 	
 	@Test
 	public void getCommunityCooperationValuesInvalidTooLow() {
-		
-		thrown.expect(IllegalArgumentException.class);	
-		
 		List<AgentData> agentList = new ArrayList<>();
 		agentList.add(data1);
 		agentList.add(data2);
@@ -202,8 +198,10 @@ public class SimulationDatasetTest {
 
 		Mockito.when(community1.getMemberIndices()).thenReturn(memberList1);
 		Mockito.when(community2.getMemberIndices()).thenReturn(memberList2);
-				
-		simulation.getCommunityCooperationValues(communityList);		
+
+		assertThrows(IllegalArgumentException.class, () -> {
+			simulation.getCommunityCooperationValues(communityList);
+		});
 	}
 	
 	

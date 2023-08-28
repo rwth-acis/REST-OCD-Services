@@ -6,11 +6,10 @@ import i5.las2peer.services.ocd.viewer.LayoutHandler;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayoutType;
 import i5.las2peer.services.ocd.viewer.testsUtil.ViewerTestConstants;
 import i5.las2peer.services.ocd.viewer.testsUtil.ViewerTestGraphFactory;
+import org.junit.jupiter.api.Test;
 
 import java.io.FileWriter;
 import java.io.IOException;
-
-import org.junit.Test;
 
 
 public class SvgVisualGraphOutputAdapterTest {

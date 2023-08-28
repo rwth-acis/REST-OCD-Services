@@ -1,21 +1,15 @@
 package i5.las2peer.services.ocd.utils;
 
-import static org.junit.Assert.*;
-
 import org.graphstream.graph.Node;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.awt.Color;
 
-import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;//graphen schnell erstellen
-import i5.las2peer.services.ocd.testsUtils.OcdTestCoverFactory;//cover schnell erstellen
-
 import i5.las2peer.services.ocd.algorithms.LOCAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
 
 import i5.las2peer.services.ocd.metrics.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
@@ -25,7 +19,6 @@ import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
 import i5.las2peer.services.ocd.graphs.*;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
-import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.measures.OutDegree;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmExecutor;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
@@ -43,12 +36,12 @@ public class DatabaseTest {
 	private static Database database;
 	private String map = "MAP 11111";
 	
-	@BeforeClass
+	@BeforeAll
 	public static void clearDatabase() {
 		database = new Database(true);
 	}
 	
-	@AfterClass
+	@AfterAll
 	public static void deleteDatabase() {
 		database.deleteDatabase();
 	}

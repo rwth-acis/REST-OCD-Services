@@ -1,10 +1,10 @@
 package i5.las2peer.services.ocd.algorithms;
 
 import org.graphstream.graph.Node;
-import org.junit.Test;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.Cover;
+import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 

@@ -2,20 +2,11 @@ package i5.las2peer.services.ocd.metrics;
 
 import java.io.FileNotFoundException;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
-import org.la4j.vector.Vector;
-import org.la4j.vector.dense.BasicVector;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.algorithms.AntColonyOptimizationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.utils.Ant;
-import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueSearch;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;

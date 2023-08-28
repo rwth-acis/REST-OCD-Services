@@ -1,47 +1,43 @@
 package i5.las2peer.services.ocd.utils;
 
-import static org.junit.Assert.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.FileNotFoundException;
-import java.util.Collections;
 import java.util.List;
 
-import i5.las2peer.services.ocd.utils.Database;
-import i5.las2peer.services.ocd.utils.DatabaseConfig;
-import org.eclipse.persistence.config.PersistenceUnitProperties;
-import org.junit.BeforeClass;
-import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 
 public class DatabaseMethodTest {
 
-	@Rule
-	public final ExpectedException exception = ExpectedException.none();
-	
 	private static Database database;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupTestDatabase() {
 		database = new Database(true);
 
 	}
-	@Before
+	@BeforeEach
 	public void clearDatabase() {
 		database.deleteDatabase();
 		database.init();
 	}
 	
-	@AfterClass
+	@AfterAll
 	public static void deleteDatabase() {
 		database.deleteDatabase();
 	}
@@ -203,11 +199,12 @@ public class DatabaseMethodTest {
 	
 	@Test
 	public void deleteCoverNotFound() throws Exception {
-		 
-		exception.expect(IllegalArgumentException.class);
-		exception.expectMessage("Cover not found");
-		
-		database.deleteCover("eve", "3", "1", new ThreadHandler());
+		IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+			database.deleteCover("eve", "3", "1", new ThreadHandler());
+		});
+
+		assertEquals("Cover not found", thrown.getMessage());
+
 	}
 
 }

@@ -2,8 +2,6 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 
 import static org.junit.Assert.*;
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.GraphMlGraphInputAdapter;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 
@@ -13,7 +11,7 @@ import java.io.FileReader;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class GraphMlGraphInputAdapterTest {
 

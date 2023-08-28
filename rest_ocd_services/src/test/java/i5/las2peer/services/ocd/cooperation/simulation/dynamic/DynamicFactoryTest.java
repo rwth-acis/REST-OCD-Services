@@ -1,30 +1,22 @@
 package i5.las2peer.services.ocd.cooperation.simulation.dynamic;
 
-import static org.junit.Assert.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicFactory;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Moran;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Replicator;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.UnconditionalImitation;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.WinStayLoseShift;
-
 public class DynamicFactoryTest {
-	
-	@Rule
-    public ExpectedException thrown = ExpectedException.none();
-	
+
 	@Test
 	public void buildUnkown() {
-		
-		thrown.expect(IllegalArgumentException.class);		
+
 		DynamicFactory factory = new DynamicFactory();
-		factory.build(DynamicType.UNKNOWN, new double[]{1.5});				
+		assertThrows(IllegalArgumentException.class, () -> {
+			factory.build(DynamicType.UNKNOWN, new double[]{1.5});
+		});
 	}
 	
 	@Test
@@ -41,12 +33,12 @@ public class DynamicFactoryTest {
 	@Test
 	public void buildReplicatorIllegalValues() {
 		
-		thrown.expect(IllegalArgumentException.class);	
-		
+
 		DynamicFactory factory = new DynamicFactory();
 		DynamicType type = DynamicType.REPLICATOR;
-		factory.build(type, new double[]{});
-		
+		assertThrows(IllegalArgumentException.class, () -> {
+			factory.build(type, new double[]{});
+		});
 	}
 	
 	@Test

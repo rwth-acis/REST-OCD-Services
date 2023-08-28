@@ -9,9 +9,8 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
-
 import org.graphstream.graph.Node;
+import org.junit.jupiter.api.Test;
 
 public class PopularityListenerRuleTest {
 

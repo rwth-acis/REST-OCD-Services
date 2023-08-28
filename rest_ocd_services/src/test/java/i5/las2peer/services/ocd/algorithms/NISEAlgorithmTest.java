@@ -11,7 +11,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 //TODO: GRAPHSTREAM UPGRADE: Check with further graphs, the tests here give every node the same belonging to every community. This is intended but not exhaustive enough
 public class NISEAlgorithmTest {

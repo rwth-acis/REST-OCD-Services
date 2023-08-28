@@ -1,6 +1,6 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;

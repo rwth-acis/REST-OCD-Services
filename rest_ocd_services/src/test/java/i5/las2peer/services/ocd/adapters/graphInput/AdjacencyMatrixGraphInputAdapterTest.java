@@ -6,12 +6,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Iterator;
 
-import org.junit.Test;
-
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import org.graphstream.graph.Node;
+import org.junit.jupiter.api.Test;
 
 public class AdjacencyMatrixGraphInputAdapterTest {
 

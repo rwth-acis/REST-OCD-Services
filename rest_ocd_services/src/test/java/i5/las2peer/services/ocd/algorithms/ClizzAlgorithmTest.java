@@ -13,8 +13,8 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 
 import org.graphstream.graph.Node;
@@ -61,7 +61,7 @@ public class ClizzAlgorithmTest {
 		System.out.println(cover);
 	}
 	
-	@Ignore
+	@Disabled
 	@Test
 	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();

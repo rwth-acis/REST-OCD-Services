@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.cooperation.data.table;
 
-import org.junit.Test;
-
-import i5.las2peer.services.ocd.cooperation.data.table.Table;
-import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
+import org.junit.jupiter.api.Test;
 
 public class TableTest {
 	

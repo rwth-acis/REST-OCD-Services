@@ -3,9 +3,6 @@ package i5.las2peer.services.ocd.algorithms;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
-import i5.las2peer.services.ocd.algorithms.OcdAlgorithmExecutor;
-import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
@@ -15,8 +12,8 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import java.io.FileNotFoundException;
 import java.util.Map;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
@@ -28,7 +25,7 @@ public class SSKAlgorithmTest {
 	/*
 	 * Tests the transition matrix calculation on directed aperiodic two communities.
 	 */
-	@Ignore
+	@Disabled
 	@Test
 	public void testCalculateTransitionMatrixOnDirectedAperiodicTwoCommunities() throws InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
@@ -41,7 +38,7 @@ public class SSKAlgorithmTest {
 	/*
 	 * Tests the transition matrix calculation on aperiodic two communities.
 	 */
-	@Ignore
+	@Disabled
 	@Test
 	public void testCalculateTransitionMatrixOnAperiodicTwoCommunities() throws InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
@@ -54,7 +51,7 @@ public class SSKAlgorithmTest {
 	/*
 	 * Tests the influence calculation random walk on sawmill.
 	 */
-	@Ignore
+	@Disabled
 	@Test
 	public void testExecuteRandomWalkOnSawmill() throws AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
@@ -227,7 +224,7 @@ public class SSKAlgorithmTest {
 		System.out.println(cover.toString());
 	}
 	
-	@Ignore
+	@Disabled
 	@Test
 	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();

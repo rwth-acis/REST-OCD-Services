@@ -2,8 +2,8 @@ package i5.las2peer.services.ocd.cooperation.simulation;
 
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicFactory;
@@ -32,7 +32,7 @@ public class SimulationInteractionTest {
 	Agent agent4;
 	Agent agent5;
 
-	@Before
+	@BeforeEach
 	public void setupNetwork() {
 
 		network = new Network();

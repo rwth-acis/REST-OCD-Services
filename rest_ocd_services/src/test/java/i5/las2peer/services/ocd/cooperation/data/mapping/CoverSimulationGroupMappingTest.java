@@ -6,19 +6,20 @@ import static org.junit.Assert.assertNotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import i5.las2peer.services.ocd.cooperation.data.mapping.CoverSimulationGroupMapping;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesGroup;
 import i5.las2peer.services.ocd.graphs.Community;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CoverSimulationGroupMappingTest {
 	
 	@Mock Cover cover;

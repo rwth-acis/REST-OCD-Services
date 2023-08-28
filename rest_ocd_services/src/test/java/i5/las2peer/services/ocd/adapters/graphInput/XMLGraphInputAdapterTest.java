@@ -5,14 +5,14 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import org.junit.jupiter.api.Test;
 
 public class XMLGraphInputAdapterTest {
-	@Ignore
+	@Disabled
 	@Test
 	public void test() throws AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		Map<String, String> adapterParam = new HashMap<String, String>();

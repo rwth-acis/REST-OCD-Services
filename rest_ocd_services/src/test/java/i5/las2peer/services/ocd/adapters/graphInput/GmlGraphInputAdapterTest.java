@@ -10,8 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import org.graphstream.graph.Node;
-
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class GmlGraphInputAdapterTest {
 

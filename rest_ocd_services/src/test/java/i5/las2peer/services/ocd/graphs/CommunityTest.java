@@ -2,8 +2,8 @@ package i5.las2peer.services.ocd.graphs;
 
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
@@ -13,7 +13,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import org.graphstream.graph.Node;
 
-@RunWith(MockitoJUnitRunner.class)
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
 public class CommunityTest {
 	
 	@Mock CustomGraph graph;
@@ -30,7 +33,7 @@ public class CommunityTest {
 	@Mock Node node4;
 	
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		
 		when(cover.getGraph()).thenReturn(graph);

@@ -1,7 +1,6 @@
 package i5.las2peer.services.ocd.algorithms;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
@@ -15,8 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.vector.Vector;
@@ -93,7 +92,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		System.out.println(cover);
 	}
 	
-	@Ignore
+	@Disabled
 	@Test
 	public void testOnTwoCommunities() throws OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
@@ -107,7 +106,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		System.out.println(cover.toString());
 	}
 	
-	@Ignore
+	@Disabled
 	@Test
 	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();

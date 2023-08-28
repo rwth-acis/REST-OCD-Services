@@ -2,13 +2,7 @@ package i5.las2peer.services.ocd.cooperation.simulation.dynamic;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
-
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Moran;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Replicator;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.UnconditionalImitation;
+import org.junit.jupiter.api.Test;
 
 public class DynamicTypeTest {
 	

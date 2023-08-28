@@ -1,10 +1,9 @@
 package i5.las2peer.services.ocd.adapters.metaOutput;
 
 import i5.las2peer.services.ocd.graphs.*;
-import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.FileWriter;
 import java.util.ArrayList;

@@ -10,7 +10,7 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.io.StringReader;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class UnweightedEdgeListGraphInputAdapterTest {
 

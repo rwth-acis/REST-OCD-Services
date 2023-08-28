@@ -5,11 +5,10 @@ import static org.junit.Assert.*;
 import java.util.Iterator;
 import java.util.List;
 
-import i5.las2peer.services.ocd.benchmarks.NewmanBenchmark;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.graphstream.graph.Node;
 

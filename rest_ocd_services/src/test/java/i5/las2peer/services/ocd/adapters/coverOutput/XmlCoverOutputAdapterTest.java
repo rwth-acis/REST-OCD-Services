@@ -1,8 +1,6 @@
 package i5.las2peer.services.ocd.adapters.coverOutput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputAdapter;
-import i5.las2peer.services.ocd.adapters.coverOutput.DefaultXmlCoverOutputAdapter;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationLog;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
@@ -19,7 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 

@@ -6,7 +6,7 @@ import java.text.ParseException;
 import java.util.HashSet;
 import java.util.HashMap;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.MaximalCliqueSearch;

@@ -1,9 +1,6 @@
 package i5.las2peer.services.ocd.algorithms;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.algorithms.MergingOfOverlappingCommunitiesAlgorithm;
-import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
-import i5.las2peer.services.ocd.algorithms.OcdAlgorithmExecutor;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
@@ -16,8 +13,8 @@ import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.UUID;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.graphstream.graph.Node;
 
@@ -63,7 +60,7 @@ public class MergingOfOverlappingCommunitiesTest {
 		System.out.println(cover.toString());
 	}
 	
-	@Ignore
+	@Disabled
 	@Test
 	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();

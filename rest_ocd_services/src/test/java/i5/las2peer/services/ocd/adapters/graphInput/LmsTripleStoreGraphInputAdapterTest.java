@@ -8,7 +8,7 @@ import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.util.HashMap;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 //TODO: Refactor Triplestore tests
 public class LmsTripleStoreGraphInputAdapterTest {

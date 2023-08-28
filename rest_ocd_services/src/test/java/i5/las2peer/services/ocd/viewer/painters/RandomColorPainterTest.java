@@ -11,7 +11,7 @@ import i5.las2peer.services.ocd.viewer.testsUtil.ViewerTestGraphFactory;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RandomColorPainterTest {
 

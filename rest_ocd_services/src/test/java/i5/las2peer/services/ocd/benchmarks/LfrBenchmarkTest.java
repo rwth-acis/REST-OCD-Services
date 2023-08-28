@@ -4,9 +4,8 @@ import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
-import org.junit.Test;
-
 import org.graphstream.graph.Node;
+import org.junit.jupiter.api.Test;
 
 import java.util.Iterator;
 

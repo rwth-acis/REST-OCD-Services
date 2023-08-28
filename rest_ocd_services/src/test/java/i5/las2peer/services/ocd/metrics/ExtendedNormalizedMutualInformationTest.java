@@ -10,8 +10,8 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestCoverFactory;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 
@@ -20,7 +20,7 @@ public class ExtendedNormalizedMutualInformationTest {
 	/*
 	 * Tests SLPA result on sawmill.
 	 */
-	@Ignore
+	@Disabled
 	@Test
 	public void testOnSawmillRawLpa() throws Exception {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
@@ -37,7 +37,7 @@ public class ExtendedNormalizedMutualInformationTest {
 	/*
 	 * Tests ground truth as output cover on sawmill.
 	 */
-	@Ignore
+	@Disabled
 	@Test
 	public void testOnSawmillGroundTruth() throws Exception {
 		KnowledgeDrivenMeasure metric = new ExtendedNormalizedMutualInformationMetric();

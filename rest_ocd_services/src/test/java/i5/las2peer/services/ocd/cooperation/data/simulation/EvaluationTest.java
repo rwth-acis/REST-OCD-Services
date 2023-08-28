@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.cooperation.data.simulation;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class EvaluationTest {
 	

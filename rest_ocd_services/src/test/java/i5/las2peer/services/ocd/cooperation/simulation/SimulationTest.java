@@ -3,11 +3,13 @@ package i5.las2peer.services.ocd.cooperation.simulation;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyInt;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
@@ -16,7 +18,8 @@ import i5.las2peer.services.ocd.cooperation.simulation.termination.Condition;
 import sim.field.network.Network;
 import sim.util.Bag;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@ExtendWith(MockitoExtension.class)
 public class SimulationTest {
 
 	@Mock
@@ -43,7 +46,7 @@ public class SimulationTest {
 	@Mock
 	Bag agentsBag;
 
-	@Before
+	@BeforeEach
 	public void setUpAgents() {
 
 		Mockito.when(network.getAllNodes()).thenReturn(agentsBag);
@@ -98,19 +101,19 @@ public class SimulationTest {
 		double average;
 		Simulation simulation = new Simulation(1, network, game, dynamic, condition);
 
-		Mockito.when(agent0.getPayoff(anyInt())).thenReturn(2.0);
-		Mockito.when(agent1.getPayoff(anyInt())).thenReturn(4.0);
-		Mockito.when(agent2.getPayoff(anyInt())).thenReturn(3.2);
-		Mockito.when(agent3.getPayoff(anyInt())).thenReturn(1.5);
+		Mockito.when(agent0.getPayoff()).thenReturn(2.0);
+		Mockito.when(agent1.getPayoff()).thenReturn(4.0);
+		Mockito.when(agent2.getPayoff()).thenReturn(3.2);
+		Mockito.when(agent3.getPayoff()).thenReturn(1.5);
 		total = simulation.getCooperationNumber();
 		assertEquals(10.7, 10.7, total);
 		average = simulation.getAveragePayoff();
 		assertEquals(2.675, 2.675, average);
 
-		Mockito.when(agent0.getPayoff(anyInt())).thenReturn(-1.2);
-		Mockito.when(agent1.getPayoff(anyInt())).thenReturn(3.4);
-		Mockito.when(agent2.getPayoff(anyInt())).thenReturn(0.0);
-		Mockito.when(agent3.getPayoff(anyInt())).thenReturn(1.6);
+		Mockito.when(agent0.getPayoff()).thenReturn(-1.2);
+		Mockito.when(agent1.getPayoff()).thenReturn(3.4);
+		Mockito.when(agent2.getPayoff()).thenReturn(0.0);
+		Mockito.when(agent3.getPayoff()).thenReturn(1.6);
 		total = simulation.getCooperationNumber();
 		assertEquals(3.8, 3.8, total);
 		average = simulation.getAveragePayoff();

@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.cooperation.simulation.dynamic;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mock;
@@ -13,11 +13,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 import ec.util.MersenneTwisterFast;
 import i5.las2peer.services.ocd.cooperation.simulation.Agent;
 import i5.las2peer.services.ocd.cooperation.simulation.Simulation;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
-import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Replicator;
 import sim.util.Bag;
 
-@RunWith(MockitoJUnitRunner.class)
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
 public class ReplicatorTest {
 
 	@Mock
@@ -32,7 +33,7 @@ public class ReplicatorTest {
 	Replicator replicator;
 	
 	@Test
-	public void getDynamicType() {
+	public void testGetDynamicType() {
 		
 		Replicator replicator = new Replicator(1);
 		DynamicType type = replicator.getDynamicType();
@@ -179,7 +180,7 @@ public class ReplicatorTest {
 		Mockito.when(agent1.getStrategy(Matchers.anyInt())).thenReturn(myStrategy);
 		Mockito.when(agent2.getStrategy(Matchers.anyInt())).thenReturn(otherStrategy);
 		Mockito.when(agent1.getRandomNeighbour(Matchers.any())).thenReturn(agent2);
-		Mockito.when(agent2.getRandomNeighbour(Matchers.any())).thenReturn(agent1);
+		//Mockito.when(agent2.getRandomNeighbour(Matchers.any())).thenReturn(agent1); //unnecessary stabbing
 
 		Bag bag = new Bag();
 		bag.add(1);

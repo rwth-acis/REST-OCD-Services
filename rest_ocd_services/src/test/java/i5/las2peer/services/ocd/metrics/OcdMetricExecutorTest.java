@@ -4,13 +4,9 @@ import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
-import i5.las2peer.services.ocd.metrics.OcdMetricException;
-import i5.las2peer.services.ocd.metrics.OcdMetricType;
-import i5.las2peer.services.ocd.metrics.OcdMetricExecutor;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
 

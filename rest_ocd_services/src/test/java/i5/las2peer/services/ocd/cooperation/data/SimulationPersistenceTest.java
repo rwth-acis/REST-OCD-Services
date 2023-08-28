@@ -3,11 +3,10 @@ package i5.las2peer.services.ocd.cooperation.data;
 import i5.las2peer.services.ocd.cooperation.data.simulation.*;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.utils.Database;
-import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import org.graphstream.graph.Node;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 
 import java.util.ArrayList;
@@ -23,12 +22,12 @@ public class SimulationPersistenceTest {
     private String map = "MAP 11111";
 
 
-    @BeforeClass
+    @BeforeAll
     public static void clearDatabase() {
         database = new Database(true);
     }
 
-    @AfterClass
+    @AfterAll
     public static void deleteDatabase() {
         database.deleteDatabase();
     }

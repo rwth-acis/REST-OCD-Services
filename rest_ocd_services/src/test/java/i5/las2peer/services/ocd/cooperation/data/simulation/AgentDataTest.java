@@ -5,9 +5,7 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
-
-import i5.las2peer.services.ocd.cooperation.data.simulation.AgentData;
+import org.junit.jupiter.api.Test;
 
 public class AgentDataTest {
 

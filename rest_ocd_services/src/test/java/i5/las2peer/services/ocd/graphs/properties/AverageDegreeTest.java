@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.graphs.properties;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -11,7 +11,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 
-@RunWith(MockitoJUnitRunner.class)
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
 public class AverageDegreeTest {
 	
 	@Spy

@@ -8,15 +8,13 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.HashMap;
 
-import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import i5.las2peer.services.ocd.utils.Database;
-
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import i5.las2peer.p2p.LocalNode;
 import i5.las2peer.p2p.LocalNodeManager;
@@ -32,7 +30,6 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import i5.las2peer.services.ocd.utils.RequestHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
 import i5.las2peer.testing.MockAgentFactory;
-import i5.las2peer.tools.LocalNodeStarter;
 import i5.las2peer.connectors.webConnector.WebConnector;
 import i5.las2peer.connectors.webConnector.client.ClientResponse;
 import i5.las2peer.connectors.webConnector.client.MiniClient;
@@ -72,7 +69,7 @@ public class ServiceTest {
 	 * 
 	 * @throws Exception
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void startServer() throws Exception {
 
 		// start node
@@ -176,7 +173,7 @@ public class ServiceTest {
 	 * 
 	 * @throws Exception
 	 */
-	@AfterClass
+	@AfterAll
 	public static void shutDownServer() throws Exception {
 		ThreadHandler t = new ThreadHandler();
 		String user = testAgent.getLoginName();

@@ -4,9 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import org.junit.Test;
-
-import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
+import org.junit.jupiter.api.Test;
 
 public class TableRowTest {
 		

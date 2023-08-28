@@ -5,8 +5,8 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
@@ -17,7 +17,7 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 public class CostFunctionOptimizationClusteringAlgorithmTest {
 	
-	@Ignore
+	@Disabled
 	@Test
 	public void testOnJmolTestGraph() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();
@@ -30,7 +30,7 @@ public class CostFunctionOptimizationClusteringAlgorithmTest {
 		System.out.println(cover.toString());
 	}
 	
-	@Ignore
+	@Disabled
 	@Test
 	public void testSVD()throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();

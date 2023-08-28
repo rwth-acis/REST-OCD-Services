@@ -15,8 +15,8 @@ import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.UUID;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -42,7 +42,7 @@ public class ExtendedModularityMetricTest {
 		System.out.println(value);
 	}
 	
-	@Ignore
+	@Disabled
 	@Test
 	public void testExtendedModularityOnSawmillSLPA() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();

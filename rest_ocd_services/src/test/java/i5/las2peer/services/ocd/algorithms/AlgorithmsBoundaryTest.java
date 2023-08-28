@@ -1,14 +1,5 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import i5.las2peer.services.ocd.algorithms.ClizzAlgorithm;
-import i5.las2peer.services.ocd.algorithms.ExtendedSpeakerListenerLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.LinkCommunitiesAlgorithm;
-import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
-import i5.las2peer.services.ocd.algorithms.OcdAlgorithmExecutor;
-import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
-import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
@@ -19,10 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.junit.Test;
-
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
+import org.junit.jupiter.api.Test;
 
 public class AlgorithmsBoundaryTest {
 

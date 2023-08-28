@@ -1,14 +1,10 @@
 package i5.las2peer.services.ocd.graphs;
 
 import static org.junit.Assert.assertEquals;
-import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkException;
-import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
-import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkExecutor;
-import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
+
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.utils.Database;
-import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
 
 import java.awt.Color;
@@ -16,10 +12,9 @@ import java.util.*;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
-import org.junit.Test;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -34,12 +29,12 @@ public class CoverDatabaseTest {
 	private static final String invalidCoverName = "invalidCoverName";
 	private static Database database;
 	
-	@BeforeClass
+	@BeforeAll
 	public static void clearDatabase() {
 		database = new Database(true);
 	}
 	
-	@AfterClass
+	@AfterAll
 	public static void deleteDatabase() {
 		database.deleteDatabase();
 	}

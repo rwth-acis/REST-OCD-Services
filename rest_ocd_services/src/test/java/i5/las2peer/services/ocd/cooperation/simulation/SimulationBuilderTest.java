@@ -1,10 +1,7 @@
 package i5.las2peer.services.ocd.cooperation.simulation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesParameters;
@@ -17,34 +14,36 @@ import i5.las2peer.services.ocd.graphs.GraphType;
 import sim.field.network.Network;
 import sim.util.Bag;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.Edge;
 
 import java.util.UUID;
 
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 public class SimulationBuilderTest {
 	
-	@Rule
-    public ExpectedException exception = ExpectedException.none();
+
 	
 	SimulationBuilder simulationBuilder;
 	SimulationSeriesParameters parameters;
 	
-	@Test 
+	@Test
 	public void setGameInvalidParameters() {
-		
-		exception.expect(IllegalArgumentException.class);		
-		
+
 		simulationBuilder = new SimulationBuilder();		
 		parameters = new SimulationSeriesParameters();
 		parameters.setPayoffCC(0);
 		parameters.setPayoffCD(0);
 		parameters.setPayoffDC(0);
 		parameters.setPayoffDD(0);
-		
-		simulationBuilder.setGameParameters(parameters);		
+
+		assertThrows(IllegalArgumentException.class, () -> simulationBuilder.setGameParameters(parameters));
+
 	}
 	
-	@Test 
+	@Test
 	public void setGameTest() {
 		
 		Game resultGame;
@@ -70,14 +69,13 @@ public class SimulationBuilderTest {
 	
 	@Test
 	public void setDynamicUnknownDynamic() {
-		
-		exception.expect(IllegalArgumentException.class);		
-		
+
 		simulationBuilder = new SimulationBuilder();		
 		parameters = new SimulationSeriesParameters();
 		parameters.setDynamic(DynamicType.UNKNOWN);
-		
-		simulationBuilder.setDynamicParameters(parameters);				
+
+		assertThrows(IllegalArgumentException.class, () -> simulationBuilder.setDynamicParameters(parameters));
+
 	}
 	
 	@Test
@@ -136,10 +134,7 @@ public class SimulationBuilderTest {
 	
 	@Test
 	public void buildNetworkSelfLoops() {
-		
-		exception.expect(IllegalArgumentException.class);
-		exception.expectMessage("Self loops not supported");
-		
+
 		SimulationBuilder simulationBuilder = new SimulationBuilder();
 		CustomGraph graph = new CustomGraph();
 		
@@ -154,9 +149,10 @@ public class SimulationBuilderTest {
 		graph.addEdge(UUID.randomUUID().toString(), n0, n1);
 		graph.addEdge(UUID.randomUUID().toString(), n1, n1);
 		graph.addEdge(UUID.randomUUID().toString(), n0, n2);
-		
-		simulationBuilder.buildNetwork(graph);		
-			
+
+		assertThrows(IllegalArgumentException.class, () -> simulationBuilder.buildNetwork(graph));
+
+
 	}
 	
 	

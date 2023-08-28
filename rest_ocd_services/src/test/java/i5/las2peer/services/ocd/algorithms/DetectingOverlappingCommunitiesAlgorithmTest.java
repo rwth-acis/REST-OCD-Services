@@ -9,8 +9,7 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 
-import org.apache.commons.lang3.SystemUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DetectingOverlappingCommunitiesAlgorithmTest {
 

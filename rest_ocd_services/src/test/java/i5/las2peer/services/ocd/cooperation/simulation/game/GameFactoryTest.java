@@ -2,11 +2,7 @@ package i5.las2peer.services.ocd.cooperation.simulation.game;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
-
-import i5.las2peer.services.ocd.cooperation.simulation.game.Game;
-import i5.las2peer.services.ocd.cooperation.simulation.game.GameFactory;
-import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
+import org.junit.jupiter.api.Test;
 
 public class GameFactoryTest {
 		
