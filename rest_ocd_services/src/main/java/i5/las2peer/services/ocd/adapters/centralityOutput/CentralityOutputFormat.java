@@ -21,7 +21,9 @@ public enum CentralityOutputFormat implements EnumDisplayNames {
 	 */
 	META_XML ("Meta XML", MetaXmlCentralityOutputAdapter.class, 0),
 	
-	DEFAULT_XML ("Default XML", DefaultXmlCentralityOutputAdapter.class, 1);
+	DEFAULT_XML ("Default XML", DefaultXmlCentralityOutputAdapter.class, 1),
+
+	CSV ("CSV", ValueCsvOutputAdapter.class, 2);
 	
 	/**
 	 * The adapter class corresponding to the format.
