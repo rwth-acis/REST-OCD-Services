@@ -6,6 +6,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraphTimedMeta;
 import i5.las2peer.services.ocd.graphs.CustomGraphSequence;
 import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
+import org.glassfish.jersey.internal.inject.Custom;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -16,6 +17,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.util.HashMap;
 import java.util.List;
 
 import java.text.DateFormat;
@@ -66,8 +68,14 @@ public class MetaXmlGraphSequenceOutputAdapter extends AbstractGraphSequenceOutp
              * Contained Graphs
              */
             List<CustomGraphMeta> graphMetas = db.getGraphMetaDataEfficiently(sequence.getUserName(), sequence.getCustomGraphKeys(), List.of(ExecutionStatus.COMPLETED.getId()));
+            HashMap<String, CustomGraphMeta> graphKeyMetaMap = new HashMap<>();
+            for (CustomGraphMeta graphMeta : graphMetas) { // put metas into map to access them in order
+                graphKeyMetaMap.put(graphMeta.getKey(), graphMeta);
+            }
             Element graphsElt = doc.createElement("Graphs");
-            for (CustomGraphMeta graphMeta : graphMetas) {
+            for (String graphKey : sequence.getCustomGraphKeys()) {
+                CustomGraphMeta graphMeta = graphKeyMetaMap.get(graphKey);
+
                 Element graphElt = doc.createElement("Graph");
                 graphElt.setAttribute("Id", graphMeta.getKey());
                 Element graphNameElt = doc.createElement("GraphName");
