@@ -1,6 +1,6 @@
 package i5.las2peer.services.ocd.cooperation.data.table;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 

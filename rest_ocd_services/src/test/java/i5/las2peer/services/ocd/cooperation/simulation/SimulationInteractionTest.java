@@ -1,7 +1,6 @@
 package i5.las2peer.services.ocd.cooperation.simulation;
 
-import static org.junit.Assert.assertTrue;
-
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +14,7 @@ import i5.las2peer.services.ocd.cooperation.simulation.termination.Condition;
 import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionFactory;
 import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
 import sim.field.network.Network;
+
 
 /**
  * It is not possible to determine the exact simulation process because of the

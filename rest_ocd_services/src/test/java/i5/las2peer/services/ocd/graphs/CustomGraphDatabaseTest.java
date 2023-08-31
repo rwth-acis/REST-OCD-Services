@@ -1,8 +1,11 @@
 package i5.las2peer.services.ocd.graphs;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.utils.Database;
 
@@ -10,9 +13,7 @@ import java.util.*;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+
 
 //@Ignore
 public class CustomGraphDatabaseTest {

@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.graphs;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,10 +9,9 @@ import java.util.UUID;
 
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 
-import org.junit.jupiter.api.Test;
-
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
+
 
 public class CustomGraphTest {
 

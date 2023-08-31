@@ -1,8 +1,9 @@
 package i5.las2peer.services.ocd.cooperation.simulation;
 
-import org.junit.Rule;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesParameters;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
@@ -11,16 +12,12 @@ import i5.las2peer.services.ocd.cooperation.simulation.game.Game;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
+
 import sim.field.network.Network;
 import sim.util.Bag;
 import org.graphstream.graph.Node;
-
 import java.util.UUID;
 
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SimulationBuilderTest {
 	

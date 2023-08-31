@@ -4,13 +4,14 @@ import java.io.FileNotFoundException;
 import java.text.ParseException;
 
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.ExecutionTime;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import org.junit.jupiter.api.Test;
+
 
 public class ContentBasedWeightingAlgorithmTest {
 	

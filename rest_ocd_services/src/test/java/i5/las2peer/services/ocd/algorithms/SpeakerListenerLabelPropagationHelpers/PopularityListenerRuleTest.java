@@ -1,6 +1,6 @@
 package i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationHelpers;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import i5.las2peer.services.ocd.algorithms.utils.SlpaListenerRuleCommand;
 import i5.las2peer.services.ocd.algorithms.utils.SlpaPopularityListenerRule;
 import i5.las2peer.services.ocd.graphs.CustomGraph;

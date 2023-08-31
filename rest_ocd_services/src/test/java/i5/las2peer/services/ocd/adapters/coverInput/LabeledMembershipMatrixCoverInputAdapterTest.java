@@ -1,6 +1,6 @@
 package i5.las2peer.services.ocd.adapters.coverInput;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;

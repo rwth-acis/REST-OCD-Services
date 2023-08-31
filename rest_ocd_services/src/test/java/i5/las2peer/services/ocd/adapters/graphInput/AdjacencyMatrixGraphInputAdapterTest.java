@@ -1,6 +1,6 @@
 package i5.las2peer.services.ocd.adapters.graphInput;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;

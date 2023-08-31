@@ -27,10 +27,6 @@ repositories {
 
 dependencies {
 
-
-    // Use JUnit test framework.
-    testImplementation 'junit:junit:4.13'
-
     // las2peer bundle which is not necessary in the runtime path
     // compileOnly will be moved into the lib dir afterwards
     api "i5:las2peer-bundle:${project.property('core.version')}"
@@ -87,8 +83,8 @@ dependencies {
     implementation "com.arangodb:arangodb-java-driver:6.18.0"
     implementation "com.arangodb:jackson-dataformat-velocypack:3.0.1"
 
+    // Use JUnit test framework
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.0'
-    testImplementation 'org.junit.vintage:junit-vintage-engine:5.8.0'
     testImplementation 'org.mockito:mockito-core:3.12.4'
     testImplementation 'org.mockito:mockito-junit-jupiter:3.12.4'
 }

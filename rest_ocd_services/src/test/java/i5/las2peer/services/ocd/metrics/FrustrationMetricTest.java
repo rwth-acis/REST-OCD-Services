@@ -1,10 +1,11 @@
 package i5.las2peer.services.ocd.metrics;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.testsUtils.OcdTestCoverFactory;
-import org.junit.jupiter.api.Test;
+
 
 public class FrustrationMetricTest {
 

@@ -1,7 +1,10 @@
 package i5.las2peer.services.ocd;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -11,10 +14,6 @@ import java.util.HashMap;
 import i5.las2peer.services.ocd.utils.Database;
 
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 
 import i5.las2peer.p2p.LocalNode;
 import i5.las2peer.p2p.LocalNodeManager;
@@ -34,11 +33,11 @@ import i5.las2peer.connectors.webConnector.WebConnector;
 import i5.las2peer.connectors.webConnector.client.ClientResponse;
 import i5.las2peer.connectors.webConnector.client.MiniClient;
 
+
 /**
  * Test service calls
  * 
  */
-
 public class ServiceTest {
 
 	private static final String HTTP_ADDRESS = "http://127.0.0.1";

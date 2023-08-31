@@ -1,12 +1,12 @@
 package i5.las2peer.services.ocd.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.junit.jupiter.api.Test;
 
 public class DatabaseConfigTest {
 	private static DatabaseConfig dc = new DatabaseConfig();

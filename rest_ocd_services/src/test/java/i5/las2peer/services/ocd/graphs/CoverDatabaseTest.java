@@ -1,6 +1,6 @@
 package i5.las2peer.services.ocd.graphs;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
@@ -12,6 +12,7 @@ import java.util.*;
 
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

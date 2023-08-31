@@ -1,14 +1,11 @@
 package i5.las2peer.services.ocd.cooperation.data.table;
 
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
-
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 
 @ExtendWith(MockitoExtension.class)
 public class PrinterTest {

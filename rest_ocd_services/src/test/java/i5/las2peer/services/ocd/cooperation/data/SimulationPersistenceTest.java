@@ -1,19 +1,19 @@
 package i5.las2peer.services.ocd.cooperation.data;
 
-import i5.las2peer.services.ocd.cooperation.data.simulation.*;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.utils.Database;
-import org.graphstream.graph.Node;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import i5.las2peer.services.ocd.cooperation.data.simulation.*;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.utils.Database;
+import org.graphstream.graph.Node;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class SimulationPersistenceTest {
     private static CustomGraph graph;

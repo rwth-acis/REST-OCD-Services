@@ -3,21 +3,20 @@ package i5.las2peer.services.ocd.cooperation.simulation.dynamic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.mockito.AdditionalMatchers;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import ec.util.MersenneTwisterFast;
 import i5.las2peer.services.ocd.cooperation.simulation.Agent;
 import i5.las2peer.services.ocd.cooperation.simulation.Simulation;
 import sim.util.Bag;
 
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class UnconditionalImitationTest {
