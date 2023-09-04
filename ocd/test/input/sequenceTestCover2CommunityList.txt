@@ -1,0 +1,4 @@
+Node_0 0
+Node_1 1
+Node_2 1
+Node_3 1

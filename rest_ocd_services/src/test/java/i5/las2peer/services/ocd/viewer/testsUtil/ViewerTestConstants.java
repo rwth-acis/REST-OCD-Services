@@ -50,4 +50,6 @@ public class ViewerTestConstants {
 	
 	public static final String slpaDolphinsSvgOutputPath = ViewerTestConstants.outputFolderPath + "SlpaDolphinsCover.svg";
 	
+	public static final String sequenceCover1OutputPath = ViewerTestConstants.outputFolderPath + "sequenceCover1.svg";
+	public static final String sequenceCover2OutputPath = ViewerTestConstants.outputFolderPath + "sequenceCover2.svg";
 }

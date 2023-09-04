@@ -43,7 +43,8 @@ public class OcdTestConstants {
 	public static final String epinionsWeightedEdgeListInputPath = inputFolderPath + "epinionsWeightedEdgeList.txt";
 	public static final String slashDotWeightedEdgeListInputPath = inputFolderPath + "slashDotWeightedEdgeList.txt";
 	public static final String twitterGraphExtraInfoGraphMlInputPath = inputFolderPath + "TwitterGraphExtraInfo.graphml";
-	
+	public static final String sequenceTestGraph1Name = inputFolderPath + "sequenceTest1UnweightedEdgelist.txt";
+	public static final String sequenceTestGraph2Name = inputFolderPath + "sequenceTest2UnweightedEdgelist.txt";
 	/*
 	 * Cover input filenames
 	 */
@@ -66,6 +67,8 @@ public class OcdTestConstants {
 			+ "signedLfrBlurredGroundTruthLabeledMembershipMatrix.txt";
 	public static final String sloveneParliamentaryPartyCommunityMemberMatrixInputPath = inputFolderPath
 			+ "sloveneParliamentaryPartyGroundTruthMembershipMatrix.txt";
+	public static final String sequenceTestCover1Name = inputFolderPath + "sequenceTestCover1CommunityList.txt";
+	public static final String sequenceTestCover2Name = inputFolderPath + "sequenceTestCover2CommunityList.txt";
 	
 	/*
 	 * Cover output filenames
@@ -80,6 +83,11 @@ public class OcdTestConstants {
 	public static final String sawmillWeightedEdgeListOutputPath = outputFolderPath + "SawmillWeightedEdgeList.txt";
 	public static final String sawmillGraphMlOutputPath = outputFolderPath + "SawmillGraphMl.xml";
 	public static final String sawmillMetaXmlOutputPath = outputFolderPath + "SawmillMetaXml.xml";
+
+	/**
+	 * Graph sequence output filenames
+	 */
+	public static final String sequenceMetaXmlOutputPath = outputFolderPath + "SequenceMetaXml.xml";
 
 	/*
 	 * Metadata output filenames

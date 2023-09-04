@@ -403,4 +403,17 @@ public class DatabaseTest {
 			graph.addEdge(UUID.randomUUID().toString(),n[b], n[a]);
 		}
 
+	@Test
+	public void persistGraphSequence() throws OcdPersistenceLoadException, ParseException {
+		Database db = new Database(true);
+		db.deleteDatabase();
+		db.init();
+
+		CustomGraph g1 = getGraph1();
+		g1.setUserName("testuser");
+		db.storeGraph(g1);
+		CustomGraphSequence gs1 = new CustomGraphSequence(g1, false);
+		gs1.setUserName("testuser");
+		db.storeGraphSequence(gs1);
+	}
 }

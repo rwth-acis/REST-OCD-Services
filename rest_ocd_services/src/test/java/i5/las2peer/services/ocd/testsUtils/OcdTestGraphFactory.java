@@ -1,17 +1,16 @@
 package i5.las2peer.services.ocd.testsUtils;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
+import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
+import i5.las2peer.services.ocd.adapters.coverInput.LabeledMembershipMatrixCoverInputAdapter;
+import i5.las2peer.services.ocd.adapters.coverInput.NodeCommunityListsCoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GmlGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.NodeContentEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.NodeWeightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.WeightedEdgeListGraphInputAdapter;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.GraphCreationLog;
-import i5.las2peer.services.ocd.graphs.GraphCreationType;
-import i5.las2peer.services.ocd.graphs.GraphProcessor;
-import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 import java.io.FileNotFoundException;
@@ -896,5 +895,49 @@ public class OcdTestGraphFactory {
 		log.setStatus(ExecutionStatus.COMPLETED);
 		graph.setCreationMethod(log);
 		return graph;
+	}
+
+	public static CustomGraph getSequenceTestGraph(int number) throws FileNotFoundException, AdapterException {
+		GraphInputAdapter adapter = new UnweightedEdgeListGraphInputAdapter();
+		if(number == 1) {
+			adapter.setReader(new FileReader(OcdTestConstants.sequenceTestGraph1Name));
+		}
+		else if(number == 2) {
+			adapter.setReader(new FileReader(OcdTestConstants.sequenceTestGraph2Name));
+		}
+		else {
+			throw new FileNotFoundException("Only graphs 1 and 2 are available for graph sequence testing");
+		}
+
+		CustomGraph graph = adapter.readGraph();
+		graph.setName(Integer.toString(number));
+		GraphProcessor processor = new GraphProcessor();
+		processor.makeUndirected(graph);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	public static Cover getSequenceTestCover(CustomGraph graph, int number) throws FileNotFoundException, AdapterException {
+		Cover cover;
+		CoverInputAdapter adapter;
+		if(number == 1) {
+			adapter = new NodeCommunityListsCoverInputAdapter(new FileReader(OcdTestConstants.sequenceTestCover1Name));
+		}
+		else if(number == 2) {
+			adapter = new NodeCommunityListsCoverInputAdapter(new FileReader(OcdTestConstants.sequenceTestCover2Name));
+		}
+		else {
+			throw new FileNotFoundException("Only covers 1 and 2 are available for graph sequence testing");
+		}
+		CoverCreationLog log = new CoverCreationLog(CoverCreationType.UNDEFINED, new HashMap<String, String>(), Collections.emptySet());
+		log.setStatus(ExecutionStatus.COMPLETED);
+
+
+		cover = adapter.readCover(graph);
+		cover.setCreationMethod(log);
+
+		return cover;
 	}
 }
