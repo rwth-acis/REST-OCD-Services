@@ -664,7 +664,7 @@ public class Database {
 			List<CustomGraphSequence> sequenceList = getGraphSequences(username, graphKey);
 			for (CustomGraphSequence sequence : sequenceList) {
 				try {
-					sequence.deleteGraphFromSequence(this, graphKey,coverList);
+					sequence.deleteGraphFromSequence(this, graphKey, coverList, threadHandler);
 					storeGraphSequence(sequence);
 					if(sequence.getCustomGraphKeys().isEmpty()) { //TODO: Actually sensible to always delete this?
 						deleteGraphSequence(sequence.getKey());

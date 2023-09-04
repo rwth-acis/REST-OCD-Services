@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
+import i5.las2peer.services.ocd.utils.ThreadHandler;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -83,7 +84,7 @@ public class CustomGraphSequence {
     }
 
     //TODO: Remove Sequence Community if empty?
-    public void deleteGraphFromSequence(Database db, String graphKey, List<Cover> coverList) throws OcdPersistenceLoadException {
+    public void deleteGraphFromSequence(Database db, String graphKey, List<Cover> coverList, ThreadHandler threadHandler) throws OcdPersistenceLoadException {
         if(this.timeOrdered) {
             if (customGraphKeys.indexOf(graphKey) == 0 && 1 < customGraphKeys.size()) {
                 CustomGraphTimed nextGraph = (CustomGraphTimed) db.getGraph(this.userName, customGraphKeys.get(1));
@@ -94,6 +95,14 @@ public class CustomGraphSequence {
             }
         }
         customGraphKeys.remove(graphKey);
+        if (customGraphKeys.isEmpty()) { // Delete the sequence since there are no more graphs in it
+            try {
+                db.deleteGraphSequence(this.userName, this.key, threadHandler);
+            }
+            catch(Exception e) {
+                throw new OcdPersistenceLoadException("Could not delete sequence");
+            }
+        }
         if (!communitySequenceCommunityMap.isEmpty()) {
             for (Cover cover : coverList) {
                 deleteCoverFromSequence(cover);
@@ -107,6 +116,10 @@ public class CustomGraphSequence {
         //Delete visualization since the new graph isnt mapped yet.
         communitySequenceCommunityMap = new HashMap<>();
         sequenceCommunityColorMap = new HashMap<>();
+    }
+
+    public void addGraphToSequence(int index, CustomGraph graph) {
+        addGraphToSequence(index, graph.getKey());
     }
 
     public void deleteCoverFromSequence(Cover cover) {
