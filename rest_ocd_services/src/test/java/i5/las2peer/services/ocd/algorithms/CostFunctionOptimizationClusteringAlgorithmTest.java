@@ -16,8 +16,7 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 
 public class CostFunctionOptimizationClusteringAlgorithmTest {
-	
-	@Disabled
+
 	@Test
 	public void testOnJmolTestGraph() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();
@@ -27,10 +26,9 @@ public class CostFunctionOptimizationClusteringAlgorithmTest {
 		parameters.put(CostFunctionOptimizationClusteringAlgorithm.OVERLAPPING_THRESHOLD_NAME, Double.toString(0.3));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 	
-	@Disabled
 	@Test
 	public void testSVD()throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();
@@ -41,6 +39,6 @@ public class CostFunctionOptimizationClusteringAlgorithmTest {
 		parameters.put(CostFunctionOptimizationClusteringAlgorithm.SVD_NAME, Boolean.toString(true));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 }

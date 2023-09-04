@@ -15,8 +15,7 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 public class ContentBasedWeightingAlgorithmTest {
 	
-	
-	@Disabled
+
 	@Test
 	public void testOnJmol() throws AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdAlgorithmException, InterruptedException{
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();

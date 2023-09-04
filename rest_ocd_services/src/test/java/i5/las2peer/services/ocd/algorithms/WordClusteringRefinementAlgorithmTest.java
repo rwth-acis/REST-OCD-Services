@@ -15,8 +15,7 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import org.junit.jupiter.api.Test;
 
 public class WordClusteringRefinementAlgorithmTest {
-	
-	@Disabled
+
 	@Test
 	public void testOnJmol() throws AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdAlgorithmException, InterruptedException{
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();
@@ -25,10 +24,9 @@ public class WordClusteringRefinementAlgorithmTest {
 		parameters.put(WordClusteringRefinementAlgorithm.OVERLAPP_COEF_NAME, Double.toString(0.4));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
-	
-	@Disabled
+
 	@Test
 	public void testSVDversion()throws AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdAlgorithmException, InterruptedException{
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();
@@ -38,6 +36,6 @@ public class WordClusteringRefinementAlgorithmTest {
 		parameters.put(WordClusteringRefinementAlgorithm.SVD_NAME, Boolean.toString(true));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 }
