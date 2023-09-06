@@ -2,10 +2,14 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 
 import com.arangodb.ArangoCollection;
 import com.arangodb.DbName;
+import com.arangodb.entity.CollectionType;
+import com.arangodb.model.CollectionCreateOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import i5.las2peer.services.ocd.adapters.AdapterException;
+import i5.las2peer.services.ocd.graphs.CustomEdge;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomNode;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.graphs.OcdPersistenceLoadException;
@@ -13,111 +17,112 @@ import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.time.DateUtils;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 import org.json.simple.parser.JSONParser;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 
 public class ArangoDBGraphInputAdapterTest {
-    @Test
-    @Ignore //TODO: Unignore, create database before tests
-    public void importNodesTest() throws AdapterException, ParseException, org.json.simple.parser.ParseException {
-        ArangoDBGraphInputAdapter inputAdapter = new ArangoDBGraphInputAdapter();
-        HashMap<String,String> paramMap = new HashMap<>();
-        paramMap.put("databaseAddress","localhost:8531");//"http://127.0.0.1"); //TODO: Check if some machines require 127.0.0.1 instead of localhost
-        paramMap.put("databaseCredentials","root,");
-        paramMap.put("databaseName","TwitterWatcher");
-        paramMap.put("nodeCollectionName","People");
-        paramMap.put("edgeCollectionNames","Retweets");
+    private static Database database;
 
+    @BeforeClass
+	public static void initDatabase() {
+		Database database = new Database(true);
 
-        inputAdapter.setParameter(paramMap);
-        CustomGraph graph = inputAdapter.readGraph();
-        //System.out.println(graph.getNodeCount() + " " +  graph.getEdgeCount());
-        //System.out.println(graph.getNodeName(graph.getNode(0)));
-    }
-
-    @Test
-    @Ignore
-    //TODO: Unignore, create database before tests
-    public void getGraphTest() throws AdapterException, ParseException, org.json.simple.parser.ParseException {
-        ArangoDBGraphInputAdapter inputAdapter = new ArangoDBGraphInputAdapter();
-        HashMap<String,String> paramMap = new HashMap<>();
-        paramMap.put("databaseAddress","localhost:8531");//"http://127.0.0.1"); //TODO: Check if some machines require 127.0.0.1 instead of localhost
-        paramMap.put("databaseCredentials","root,");
-        paramMap.put("databaseName","TestDB");
-        paramMap.put("nodeCollectionName","NodeStuff");
-        paramMap.put("edgeCollectionNames","EdgeStuff1");
-        paramMap.put("dateAttributeName","");
-        paramMap.put("startDate","");
-        paramMap.put("endDate","");
-
-
-        inputAdapter.setParameter(paramMap);
-        CustomGraph graph = inputAdapter.readGraph();
-
-
-        //DatabaseConfig.setConfigFile(false);		//TODO angeben ob test datenbank oder hauptdatenbank gewaehlt wird
-        //Database database = new Database();
-
-        //database.getGraph("maxkissgen","142924");
-
-    }
-    @Test
-    @Ignore
-    public void tmpTest() throws AdapterException, ParseException, org.json.simple.parser.ParseException, OcdPersistenceLoadException {
-        ArangoDBGraphInputAdapter inputAdapter = new ArangoDBGraphInputAdapter();
-        HashMap<String,String> paramMap = new HashMap<>();
-        paramMap.put("databaseAddress","localhost:8529");//"http://127.0.0.1"); //TODO: Check if some machines require 127.0.0.1 instead of localhost
-        paramMap.put("databaseCredentials","root,");
-        paramMap.put("databaseName","TwitterWatcher");
-        paramMap.put("nodeCollectionName","People");
-        paramMap.put("involvedUsers","Q12325752,Q12301603,Q20199803,Q64415132,Q21208022,Q64442287,Q952472,Q64439937,Q12301637,Q12301892,Q64441438,Q12301898,Q64441411,Q463680,Q64439073,Q12303134,Q567098,Q64440032,Q64441613,Q12303652,Q64417294,Q12342520,Q20197574,Q64439019,Q47500034,Q64439137,Q12306031,Q64439851");
-        paramMap.put("edgeCollectionNames","Retweets");
-        paramMap.put("dateAttributeName","created_at");
-        paramMap.put("startDate","2022-02-02");
-        paramMap.put("endDate","2023-01-16");
-
-
-        inputAdapter.setParameter(paramMap);
-        CustomGraph graph = inputAdapter.readGraph();
-        graph.setName("EXTRAINFOTEST");
-        graph.setUserName("");
-
-        GraphProcessor processor = new GraphProcessor();
-        processor.determineGraphTypes(graph);
-        graph.setNodeEdgeCountColumnFields(); // before persisting the graph, update node/edge count information
-        //Try to make graph undirected
-        Set<GraphType> graphTypes = graph.getTypes();
-        if (graphTypes.remove(GraphType.DIRECTED)) {
-            processor.makeCompatible(graph, graphTypes);
+        database.db.createCollection("TestNodes");
+        for(int i=0; i<10; i++) {
+            database.db.collection("TestNodes").insertDocument("{" + //
+                "  \"_key\": \"Q" + i + "\"," + //
+                "  \"object_a\": {" + //
+                "    \"username\": \"someName_a\"," + //
+                "    \"public_metrics\": {" + //
+                "      \"followers_count\": 5787," + //
+                "      \"following_count\": 1004" + //
+                "    }" + //
+                "  }," + //
+                "  \"object_b\": {" + //
+                "    \"name\": \"someName_b\"," + //
+                "    \"instance of\": [" + //
+                "      {" + //
+                "        \"value\": \"human\"" + //
+                "      }" + //
+                "    ]" + //
+                "  }" + //
+                "}");
         }
-        Database database = new Database(true); //TODO angeben ob test datenbank oder hauptdatenbank gewaehlt wird
-        String key = database.storeGraph(graph);
-        CustomGraph newGraph = database.getGraph("",key);
-        System.out.println(newGraph.getExtraInfo());
-        System.out.println(newGraph.getExtraInfo().get("startDate").getClass());
-        System.out.println(newGraph.getExtraInfo().get("endDate").getClass());
-        //DatabaseConfig.setConfigFile(false);		//TODO angeben ob test datenbank oder hauptdatenbank gewaehlt wird
-        //Database database = new Database();
+        CollectionCreateOptions options = (new CollectionCreateOptions());
+        options.type(CollectionType.EDGES);
+        database.db.createCollection("TestEdges", options);
+        for(int i=0; i<10; i++) {
+            for(int j=0; j<10; j++) {
+                if (i<3 && j>=3 && j<6) {
+                    String edgeDate = (j == 5) ? " \"point_in_time\": \"2022-02-25T09:26:30.000Z\"" : " \"point_in_time\": \"2019-02-25T09:26:30.000Z\"";
+                    
+                    database.db.collection("TestEdges").insertDocument("{" + //
+                        "  \"_from\": \"TestNodes/Q" + i + "\"," + //
+                        "  \"_to\": \"TestNodes/Q"+ j + "\"," + //
+                        " \"property_a\": {\"value\": 1}," + //
+                        " \"property_b\": [\"A\", \"B\", \"C\"]," + //
+                        edgeDate + //
+                        "}");
+                }
+            }
+        }
+	}
 
-        //database.getGraph("maxkissgen","142924");
-
+    @AfterClass
+    public static void deleteDatabase() {
+        database.deleteDatabase();
     }
 
     @Test
-    @Ignore
-    public void dateStuffTest() throws ParseException {
-        Database db = new Database(false);
-        ArangoCollection graphCollection = db.db.collection(CustomGraph.collectionName);
+    public void getGraphTest() throws AdapterException, ParseException, org.json.simple.parser.ParseException, OcdPersistenceLoadException {
+        ArangoDBGraphInputAdapter inputAdapter = new ArangoDBGraphInputAdapter();
+        HashMap<String,String> paramMap = new HashMap<>();
 
-        ObjectMapper om = new ObjectMapper();
-        ObjectNode nextGraphInListDoc = graphCollection.getDocument("734136", ObjectNode.class);
-        String testDateString = "2022-04-30T22:00:00Z";
-        System.out.println(DateUtils.parseDate(om.convertValue(nextGraphInListDoc.get(CustomGraph.extraInfoColumnName).get("endDate"),String.class), "yyyy-MM-dd'T'HH:mm:ss.sssXXX","yyyy-MM-dd'T'HH:mm:ss.sss'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'Z'", "yyyy-MM-dd'T'HH:mm:ss.sss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd").toString());
+        Properties dbProps = (new DatabaseConfig()).getConfigProperties();
+
+        paramMap.put("databaseAddress", dbProps.getProperty("HOST")+":" + dbProps.getProperty("PORT"));//"http://127.0.0.1"); //TODO: Check if some machines require 127.0.0.1 instead of localhost
+        paramMap.put("databaseCredentials", dbProps.getProperty("USER") + "," + dbProps.getProperty("PASSWORD"));
+        paramMap.put("databaseName", dbProps.getProperty("TESTDATABASENAME"));
+        paramMap.put("nodeCollectionName","TestNodes");
+        paramMap.put("edgeCollectionNames","TestEdges");
+        paramMap.put("dateAttributeName","point_in_time");
+        paramMap.put("startDate","2022-02-25T09:26:30.000Z");
+        paramMap.put("endDate","2022-02-26T09:26:30.000Z");
+
+        inputAdapter.setParameter(paramMap);
+        CustomGraph graph = inputAdapter.readGraph();
+        graph.setUserName("testuser");
+        database = new Database(true);
+        graph = database.getGraph("testuser", database.storeGraph(graph));
+        Iterator<Edge> edgesIt = graph.edges().iterator();
+        List<String> allowedSources = List.of("Q0","Q1","Q2");
+        List<String> allowedTargets = List.of("Q5");
+        int edgeCount = 0;
+        while(edgesIt.hasNext()) {
+            Edge edge = edgesIt.next();
+            String cSourceName = graph.getNodeName(edge.getSourceNode());
+            String cTargetName = graph.getNodeName(edge.getTargetNode());
+            assertTrue(allowedSources.contains(cSourceName));
+            assertTrue(allowedTargets.contains(cTargetName)); 
+            edgeCount++;
+        }
+        assertEquals(edgeCount, 3); // Check if all edges toward node Q5 were counted and whether not more have been registered
     }
 }
