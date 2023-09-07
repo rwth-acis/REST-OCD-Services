@@ -3,8 +3,8 @@
     "username": "default",
     "allowedInactiveDays": "30",
     "graphSize": "1000",
-    "graphCount": "10",
-    "coverCount": "15"
+    "graphCount": "20",
+    "coverCount": "40"
   },
   {
     "username": "user1",

@@ -3,8 +3,6 @@ package i5.las2peer.services.ocd.cooperation.data.simulation;
 import java.beans.ConstructorProperties;
 import java.io.Serializable;
 
-import javax.persistence.Embeddable;
-
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
@@ -25,7 +23,6 @@ import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType
  * They can be created by JSON parsed client requests. They can be stored as entity by JPA.
  * 
  */
-@Embeddable
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SimulationSeriesParameters implements Serializable {
 

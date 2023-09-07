@@ -3,8 +3,6 @@ package i5.las2peer.services.ocd.cooperation.data.simulation;
 import java.util.ArrayList;
 import java.util.List;
 
-
-import javax.persistence.Entity;
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
@@ -25,7 +23,7 @@ import i5.las2peer.services.ocd.graphs.Community;
  * objects can be stored
  *
  */
-@Entity
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SimulationDataset extends SimulationAbstract {
 

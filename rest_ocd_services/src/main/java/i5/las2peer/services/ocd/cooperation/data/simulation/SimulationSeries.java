@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.persistence.*;
-
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
@@ -35,7 +33,7 @@ import net.minidev.json.parser.ParseException;
  *
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Entity
+
 public class SimulationSeries extends SimulationAbstract {
 
 	//ArangoDB

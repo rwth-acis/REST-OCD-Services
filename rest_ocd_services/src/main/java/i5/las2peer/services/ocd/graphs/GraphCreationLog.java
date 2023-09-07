@@ -5,14 +5,6 @@ import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
@@ -26,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Sebastian
  *
  */
-@Entity
+
 public class GraphCreationLog {
 
 	/*
@@ -46,9 +38,8 @@ public class GraphCreationLog {
 	/**
 	 * System generated persistence id.
 	 */
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-    @Column(name = idColumnName)
+
+
 	private long id;
 	/**
 	 * System generated persistence key.
@@ -57,17 +48,17 @@ public class GraphCreationLog {
 	/**
 	 * Parameters used by the creation method.
 	 */
-	@ElementCollection
+
 	private Map<String, String> parameters;
 	/**
 	 * Id of the creation methods corresponding graph creation type.
 	 */
-	@Column(name = typeColumnName)
+
 	private int typeId;
 	/**
 	 * The status of the corresponding execution.
 	 */
-	@Column(name = statusIdColumnName)
+
 	private int statusId = ExecutionStatus.COMPLETED.getId();
 	
 	/**

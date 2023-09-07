@@ -7,17 +7,6 @@ import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
-
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
@@ -31,8 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Sebastian
  *
  */
-@Entity
-@IdClass(OcdMetricLogId.class)
 public class OcdMetricLog {
 
 	/*
@@ -64,40 +51,32 @@ public class OcdMetricLog {
 	/**
 	 * System generated persistence key.
 	 */
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-    @Column(name = idColumnName)
+
+
 	private String key = "";
 	/**
 	 * The cover the metric was run on.
 	 */
-	@Id
-	@ManyToOne
-	@JoinColumns({
-		@JoinColumn(name=graphIdColumnName, referencedColumnName=Cover.graphIdColumnName),
-		@JoinColumn(name=graphUserColumnName, referencedColumnName=Cover.graphUserColumnName),
-		@JoinColumn(name=coverIdColumnName, referencedColumnName=Cover.idColumnName)
-	})
 	private Cover cover;
 	/**
 	 * Parameters used by the metric.
 	 */
-	@ElementCollection
+
 	private Map<String, String> parameters;
 	/**
 	 * The calculated metric value.
 	 */
-	@Column(name = valueColumnName)
+
 	private double value;
 	/**
 	 * Id of the metrics corresponding ocd metric type.
 	 */
-	@Column(name = typeColumnName)
+
 	private int typeId;
 	/**
 	 * The status of the corresponding execution.
 	 */
-	@Column(name = statusIdColumnName)
+
 	private int statusId = ExecutionStatus.WAITING.getId();
 	
 	/**

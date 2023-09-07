@@ -1,10 +1,6 @@
 package i5.las2peer.services.ocd.utils;
 
 import java.util.logging.Level;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;

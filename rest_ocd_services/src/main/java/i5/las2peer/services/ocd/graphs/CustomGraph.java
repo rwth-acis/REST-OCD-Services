@@ -48,8 +48,6 @@ import org.graphstream.graph.Edge;
  * @author Sebastian
  *
  */
-@Entity
-@IdClass(CustomGraphId.class)
 //TODO: Add boolean/function to check if graph is connected or not.
 //TODO: Decide about undirected edges, graphstream would have own functionalities for that.
 //TODO: Check whether UUIDs work out as unique graph IDs, collision chances should however be extremely low
@@ -101,9 +99,8 @@ public class CustomGraph extends MultiGraph {
 	/**
 	 * System generated persistence key.
 	 */
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = idColumnName)
+
+
 	private String key = "";
 	/**
 	 * System generated persistence id.
@@ -113,33 +110,33 @@ public class CustomGraph extends MultiGraph {
 	/**
 	 * The name of the user owning the graph.
 	 */
-	@Id
-	@Column(name = userColumnName)
+
+
 	private String userName = "";
 
 	/**
 	 * The name of the graph.
 	 */
-	@Column(name = nameColumnName)
+
 	private String name = "";
 
 	/**
 	 * The path to the index for the content of each node belonging to the
 	 * graph.
 	 */
-	@Column(name = pathColumnName)
+
 	private String path = "";
 
 	/**
 	 * The number of nodes in the graph.
 	 */
-	@Column(name = nodeCountColumnName)
+
 	private long graphNodeCount;
 
 	/**
 	 * The number of edges in the graph.
 	 */
-	@Column(name = edgeCountColumnName)
+
 	private long graphEdgeCount;
 
 	@ElementCollection
@@ -161,33 +158,32 @@ public class CustomGraph extends MultiGraph {
 	/**
 	 * The graph's types.
 	 */
-	@ElementCollection
+
 	private Set<Integer> types = new HashSet<Integer>();
 
 	/**
 	 * The graph's properties.
 	 */
-	@ElementCollection
+
 	private List<Double> properties;
 	
 	/**
 	 * The log for the benchmark model the graph was created by.
 	 */
-	@OneToOne(orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinColumn(name = creationMethodColumnName)
+
 	private GraphCreationLog creationMethod = new GraphCreationLog(GraphCreationType.REAL_WORLD,
 			new HashMap<String, String>());
 
 	/**
 	 * The covers based on this graph.
 	 */
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+
 	private List<Cover> covers = new ArrayList<Cover>();
 	
 	/**
 	 * The simulations based on this graph.
 	 */
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+
 	private List<SimulationSeries> simulations = new ArrayList<>();
 	
 
@@ -198,46 +194,42 @@ public class CustomGraph extends MultiGraph {
 	 * Mapping from fix node ids to custom nodes for additional node data and
 	 * persistence.
 	 */
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
-	@MapKeyColumn(name = idNodeMapKeyColumnName)
+
 	private Map<Integer, CustomNode> customNodes = new HashMap<Integer, CustomNode>();
 	/*
 	 * Mapping from fix edge ids to custom nodes for additional edge data and
 	 * persistence.
 	 */
-	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
-	@MapKeyColumn(name = idEdgeMapKeyColumnName)
+
 	private Map<Integer, CustomEdge> customEdges = new HashMap<Integer, CustomEdge>();
 	/*
 	 * Mapping from edges to fix edge ids.
 	 */
-	@Transient
+
 	private Map<Edge, Integer> edgeIds = new HashMap<Edge, Integer>();
 	/*
 	 * Mapping from nodes to fix node ids.
 	 */
-	@Transient
+
 	private Map<MultiNode, Integer> nodeIds = new HashMap<MultiNode, Integer>();
 	/*
 	 * Mapping from custom nodes to nodes.
 	 */
-	@Transient
+
 	private Map<CustomNode, MultiNode> reverseNodeMap = new HashMap<CustomNode, MultiNode>();
 	/*
 	 * Used for assigning runtime edge indices.
 	 */
-	@Transient
+
 	private int edgeIndexer = 0;
 	/*
 	 * Used for assigning runtime node indices.
 	 */
-	@Transient
+
 	private int nodeIndexer = 0;
 
-	@Transient
 	private Termmatrix termMatrix = new Termmatrix();
 
-	@Transient
 	public Layout layout;
 
 	//////////////////////////////////////////////////////////////////
@@ -1676,7 +1668,6 @@ public class CustomGraph extends MultiGraph {
 	 * edges and sets the mappings between the two. The mapping indices are
 	 * reset to omit rising numbers due to deletions and reinsertions.
 	 */
-	@PostLoad
 	private void postLoad() {
 		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
 		this.nodeIds.clear();
@@ -1715,8 +1706,6 @@ public class CustomGraph extends MultiGraph {
 	 *
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	@PrePersist
-	@PreUpdate
 	protected void prePersist() throws InterruptedException {
 		Node[] nodes = this.nodes().toArray(Node[]::new);
 		for (Node node : nodes) {

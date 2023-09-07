@@ -1,11 +1,5 @@
 package i5.las2peer.services.ocd.cooperation.data.mapping;
 
-import javax.persistence.Basic;
-import javax.persistence.ElementCollection;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,50 +12,41 @@ import i5.las2peer.services.ocd.cooperation.data.table.TableLineInterface;
 import i5.las2peer.services.ocd.cooperation.data.table.TableRow;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 
-@MappedSuperclass
 public abstract class MappingAbstract implements TableInterface, TableLineInterface {
 
 	/**
 	 * The id is used as persistence primary key
 	 */
-	@Id
-	@GeneratedValue
 	private long id;
 
 	/**
 	 * The name of the mapping
 	 */
-	@Basic
 	String name;
 
 	/**
 	 * Correlation between cooperativity and size
 	 */
-	@ElementCollection
 	CorrelationDataset sizeCorrelation;
 
 	/**
 	 * Correlation between cooperativity and density
 	 */
-	@ElementCollection
 	CorrelationDataset densityCorrelation;
 
 	/**
 	 * Correlation between cooperativity and average degree
 	 */
-	@ElementCollection
 	CorrelationDataset averageDegreeCorrelation;
 
 	/**
 	 * Correlation between cooperativity and degree deviation
 	 */
-	@ElementCollection
 	CorrelationDataset degreeDeviationCorrelation;
 
 	/**
 	 * Correlation between cooperativity and clustering coefficient
 	 */
-	@ElementCollection
 	CorrelationDataset clusteringCoefficientCorrelation;
 
 	private double[] cooperationValues;

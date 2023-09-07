@@ -1,14 +1,10 @@
 package i5.las2peer.services.ocd.cooperation.data.simulation;
 
 import java.util.List;
-
-import javax.persistence.*;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Entity
 @JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Class to hold agent related data

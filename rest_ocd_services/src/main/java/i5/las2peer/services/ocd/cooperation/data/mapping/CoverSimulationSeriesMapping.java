@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.cooperation.data.mapping;
 
 import java.util.List;
 
-import javax.persistence.ManyToOne;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -15,10 +15,8 @@ public class CoverSimulationSeriesMapping extends MappingAbstract {
 
 ///// Entity Fields /////
 
-	@ManyToOne
 	private Cover cover;
 
-	@ManyToOne
 	private SimulationSeries simulation;
 
 	///// Getter /////

@@ -2,10 +2,6 @@ package i5.las2peer.services.ocd.cooperation.data.mapping.correlation;
 
 import java.security.InvalidParameterException;
 import java.util.List;
-
-import javax.persistence.Basic;
-import javax.persistence.Embeddable;
-
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.correlation.Covariance;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;

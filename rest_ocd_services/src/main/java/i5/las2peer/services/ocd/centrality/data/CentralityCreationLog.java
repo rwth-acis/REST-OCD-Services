@@ -9,12 +9,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+
+
+
+
+
+
 
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * A log representation for a CentralityCreationMethod.
  *
  */
-@Entity
+
 public class CentralityCreationLog {
 	
 	/*
@@ -51,9 +51,8 @@ public class CentralityCreationLog {
 	/**
 	 * System generated persistence id.
 	 */
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-    @Column(name = idColumnName)
+
+
 	private long id;
 	/**
 	 * System generated persistence key.
@@ -62,32 +61,32 @@ public class CentralityCreationLog {
 	/**
 	 * Parameters used by the creation method.
 	 */
-	@ElementCollection
+
 	private Map<String, String> parameters;
 	/**
 	 * Id of the creation methods corresponding CentralityType.
 	 */
-	@Column(name = centralityTypeColumnName)
+
 	private int centralityTypeId;
 	/**
 	 * Id of the corresponding CentralityCreationType.
 	 */
-	@Column(name = creationTypeColumnName)
+
 	private int creationTypeId;
 	/**
 	 * The status of the corresponding execution.
 	 */
-	@Column(name = statusIdColumnName)
+
 	private int statusId = ExecutionStatus.WAITING.getId();
 	/**
 	 * The execution time of the algorithm
 	 */
-	@Column(name = executionTimeColumnName)
+
 	private long executionTime;
 	/**
 	 * The graph types the creation method is compatible with.
 	 */
-	@ElementCollection
+
 	private Set<Integer> compatibleGraphTypes = new HashSet<Integer>();
 	
 	/**

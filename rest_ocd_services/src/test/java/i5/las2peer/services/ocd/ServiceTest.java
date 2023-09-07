@@ -10,8 +10,8 @@ import java.util.HashMap;
 
 import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import i5.las2peer.services.ocd.utils.Database;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
+
+
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.AfterClass;

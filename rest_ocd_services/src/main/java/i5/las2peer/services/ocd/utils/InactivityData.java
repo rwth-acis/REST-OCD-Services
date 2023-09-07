@@ -1,6 +1,5 @@
 package i5.las2peer.services.ocd.utils;
 
-import javax.persistence.*;
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
@@ -11,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
+import javax.persistence.Convert;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -19,7 +19,7 @@ import java.util.Map;
  * expiration date of the user data. This information will be used to remove user's content once the expiration date is
  * reached.
  */
-@Entity
+
 public class InactivityData {
 
     //////////////////////// DATABASE COLUMN NAMES ////////////////////////
@@ -48,8 +48,7 @@ public class InactivityData {
     /**
      * System generated persistence id.
      */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private long id;
     
     /**
@@ -59,24 +58,22 @@ public class InactivityData {
     /**
      * Username for which the info is stored.
      */
-    @Column(name = USER_COLUMN_NAME)
+
     String username;
 
-
-    @Column(name = "MINUTE")
     int min;
 
     /**
      * Date when the user last logged in.
      */
-    @Column(name = LAST_LOGIN_DATE_COLUMN_NAME)
+
     @Convert(converter = DateConverter.class)
     LocalDate lastLoginDate;
 
     /**
      * Date when the user's content should be deleted due to inactivity.
      */
-    @Column(name = DELETION_DATE_COLUMN_NAME)
+
     @Convert(converter = DateConverter.class)
     LocalDate deletionDate;
 
