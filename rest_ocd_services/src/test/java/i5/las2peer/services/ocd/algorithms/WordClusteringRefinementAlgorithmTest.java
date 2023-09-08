@@ -22,7 +22,7 @@ public class WordClusteringRefinementAlgorithmTest {
 		parameters.put(WordClusteringRefinementAlgorithm.OVERLAPP_COEF_NAME, Double.toString(0.4));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		//System.out.println(cover.toString());
+		////System.out.println(cover.toString());
 	}
 
 	@Test
@@ -34,6 +34,6 @@ public class WordClusteringRefinementAlgorithmTest {
 		parameters.put(WordClusteringRefinementAlgorithm.SVD_NAME, Boolean.toString(true));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		//System.out.println(cover.toString());
+		////System.out.println(cover.toString());
 	}
 }

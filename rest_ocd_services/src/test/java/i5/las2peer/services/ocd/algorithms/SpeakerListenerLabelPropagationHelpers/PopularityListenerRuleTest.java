@@ -25,11 +25,11 @@ public class PopularityListenerRuleTest {
 		}
 		receivedLabels.put(successors[0], 1);
 		receivedLabels.put(successors[successors.length == 0 ? 0 : successors.length-1], 1);
-		System.out.println("Labels:");
-		System.out.println(receivedLabels);
+		//System.out.println("Labels:");
+		//System.out.println(receivedLabels);
 		SlpaListenerRuleCommand listenerRule = new SlpaPopularityListenerRule();
 		int chosenLabel = listenerRule.getLabel(graph, listener, receivedLabels);
-		System.out.println("Chosen: " + chosenLabel);
+		//System.out.println("Chosen: " + chosenLabel);
 		assertEquals(chosenLabel, 0);
 	}
 

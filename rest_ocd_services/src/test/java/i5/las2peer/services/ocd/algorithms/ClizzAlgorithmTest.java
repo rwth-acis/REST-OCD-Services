@@ -30,7 +30,7 @@ public class ClizzAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new ClizzAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 	
 	@Test
@@ -43,20 +43,20 @@ public class ClizzAlgorithmTest {
 		parameters.put(ClizzAlgorithm.MEMBERSHIPS_PRECISION_FACTOR_NAME, Double.toString(0.001));
 		algo.setParameters(parameters);
 		Matrix distances = algo.calculateNodeDistances(graph);
-		System.out.println("Distances:");
-		System.out.println(distances);
+		//System.out.println("Distances:");
+		//System.out.println(distances);
 		Map<Node, Double> leadershipValues = algo.calculateLeadershipValues(graph, distances);
-		System.out.println("Leaderships:");
-		System.out.println(leadershipValues);
+		//System.out.println("Leaderships:");
+		//System.out.println(leadershipValues);
 		Map<Node, Integer> leaders = algo.determineCommunityLeaders(graph, distances, leadershipValues);
-		System.out.println("Leaders:");
-		System.out.println(leaders);
+		//System.out.println("Leaders:");
+		//System.out.println(leaders);
 		for(Node leader : leaders.keySet()) {
-			System.out.println(graph.getNodeName(leader));
+			//System.out.println(graph.getNodeName(leader));
 		}
 		Matrix memberships = algo.calculateMemberships(graph, leaders);
-		System.out.println("Memberships:");
-		System.out.println(memberships);
+		//System.out.println("Memberships:");
+		//System.out.println(memberships);
 		Cover cover = new Cover(graph, memberships);
 		cover.setCreationMethod(new CoverCreationLog(algo.getAlgorithmType(), algo.getParameters(), algo.compatibleGraphTypes()));
 		System.out.println(cover);

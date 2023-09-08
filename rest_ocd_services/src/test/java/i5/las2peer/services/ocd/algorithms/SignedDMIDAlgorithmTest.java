@@ -47,7 +47,7 @@ public class SignedDMIDAlgorithmTest {
 		for (int i = 0; i < nodeCount; i++) {
 			controlSum += leadershipVector.get(i) - expectedVector.get(i);
 		}
-		System.out.println(controlSum);
+		//System.out.println(controlSum);
 		assertEquals(0, controlSum, 0.01);
 	}
 
@@ -73,8 +73,8 @@ public class SignedDMIDAlgorithmTest {
 		Map<Node, Integer> followerMap = algo.getLocalLeader(graph, leadershipVector);
 		expectedMap.put(3, 5);
 		expectedMap.put(11, 3);
-		System.out.println("Expected: " + expectedMap.toString());
-		System.out.println("Result: " + followerMap.toString());
+		//System.out.println("Expected: " + expectedMap.toString());
+		//System.out.println("Result: " + followerMap.toString());
 
 		assertEquals(expectedMap.entrySet().size(), followerMap.entrySet().size());
 		assertTrue(followerMap.keySet().contains(graph.nodes().toArray(Node[]::new)[3]));
@@ -146,7 +146,7 @@ public class SignedDMIDAlgorithmTest {
 		expectedMap.put(graph.nodes().toArray(Node[]::new)[8], 3);
 		expectedMap.put(graph.nodes().toArray(Node[]::new)[7], 3);
 		expectedMap.put(graph.nodes().toArray(Node[]::new)[11], 4);
-		System.out.println(map.toString());
+		//System.out.println(map.toString());
 		assertEquals(expectedMap, map);
 	}
 
@@ -180,7 +180,7 @@ public class SignedDMIDAlgorithmTest {
 		communities.put(graph.nodes().toArray(Node[]::new)[11], communityTwo);
 		Cover cover = algo.getMembershipDegrees(graph, communities);
 		Matrix matrix = cover.getMemberships();
-		System.out.println(matrix.toString());
+		//System.out.println(matrix.toString());
 		Matrix expectedMatrix = new Basic2DMatrix(12, 2);
 		expectedMatrix.set(0, 0, 0.8);
 		expectedMatrix.set(0, 1, 0.2);

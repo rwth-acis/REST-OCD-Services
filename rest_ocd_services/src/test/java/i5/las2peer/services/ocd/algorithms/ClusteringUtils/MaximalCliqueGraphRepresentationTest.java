@@ -23,7 +23,7 @@ public class MaximalCliqueGraphRepresentationTest {
 		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph() ;
 		MaximalCliqueSearch MCl = new MaximalCliqueSearch();
 		HashMap<Integer, HashSet<Node>> maxClq = MCl.cliques(graph);
-		System.out.println(maxClq);
+		//System.out.println(maxClq);
 	}
 	
 	@Test
@@ -31,7 +31,7 @@ public class MaximalCliqueGraphRepresentationTest {
 		CustomGraph graph = OcdTestGraphFactory.getSimpleGraphUndirectedUnweighted() ;
 		MaximalCliqueSearch MCl = new MaximalCliqueSearch();
 		HashMap<Integer, HashSet<Node>> maxClq = MCl.cliques(graph);
-		System.out.println(maxClq);
+		//System.out.println(maxClq);
 
 	}
 	
@@ -40,7 +40,7 @@ public class MaximalCliqueGraphRepresentationTest {
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
 		MaximalCliqueSearch MCl = new MaximalCliqueSearch();
 		HashMap<Integer, HashSet<Node>> maxClq = MCl.cliques(graph);
-		System.out.println(maxClq);
+		//System.out.println(maxClq);
 
 	}
 }

@@ -19,8 +19,8 @@ public class SignedProbabilisticMixtureAlgorithmTest {
 		GraphProcessor processor = new GraphProcessor();
 		processor.makeUndirected(graph);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println("Detected Cover:");
-		System.out.println(cover.toString());
+		//System.out.println("Detected Cover:");
+		//System.out.println(cover.toString());
 	}
 	
 	@Test
@@ -31,8 +31,8 @@ public class SignedProbabilisticMixtureAlgorithmTest {
 		GraphProcessor processor = new GraphProcessor();
 		processor.makeUndirected(graph);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println("Detected Cover:");
-		System.out.println(cover.toString());
+		//System.out.println("Detected Cover:");
+		//System.out.println(cover.toString());
 	}
 	
 

@@ -25,7 +25,7 @@ public class CostFunctionOptimizationClusteringAlgorithmTest {
 		parameters.put(CostFunctionOptimizationClusteringAlgorithm.OVERLAPPING_THRESHOLD_NAME, Double.toString(0.3));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		//System.out.println(cover.toString());
+		////System.out.println(cover.toString());
 	}
 
 	@Test
@@ -38,6 +38,6 @@ public class CostFunctionOptimizationClusteringAlgorithmTest {
 		parameters.put(CostFunctionOptimizationClusteringAlgorithm.SVD_NAME, Boolean.toString(true));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		//System.out.println(cover.toString());
+		////System.out.println(cover.toString());
 	}
 }

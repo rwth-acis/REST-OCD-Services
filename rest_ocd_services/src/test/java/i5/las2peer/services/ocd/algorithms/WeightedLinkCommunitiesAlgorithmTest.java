@@ -19,7 +19,7 @@ public class WeightedLinkCommunitiesAlgorithmTest {
 				.getAperiodicTwoCommunitiesGraph();
 		OcdAlgorithm algo = new WeightedLinkCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 
 	/*
@@ -33,13 +33,12 @@ public class WeightedLinkCommunitiesAlgorithmTest {
 			Edge edge = edges.next();
 			Edge reverseEdge = edge.getTargetNode().getEdgeToward(edge.getSourceNode());
 			if (reverseEdge == null || edge.getIndex() < reverseEdge.getIndex()) {
-				System.out.println("Edge " + edge.getIndex() + ": "
-						+ edge.getSourceNode() + " -> " + edge.getTargetNode());
+				//System.out.println("Edge " + edge.getIndex() + ":  + edge.getSourceNode() + " -> " + edge.getTargetNode());
 			}
 		}
 		OcdAlgorithm algo = new WeightedLinkCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 
 }

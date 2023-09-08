@@ -32,8 +32,8 @@ public class SSKAlgorithmTest {
 		SskAlgorithm algo = new SskAlgorithm();
 		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
 		Vector totalInfluences = algo.executeRandomWalk(transitionMatrix);
-		System.out.println("Random Walk Vector Directed Aperiodic Communities:");
-		System.out.println(totalInfluences);
+		//System.out.println("Random Walk Vector Directed Aperiodic Communities:");
+		//System.out.println(totalInfluences);
 	}
 
 	/*
@@ -50,8 +50,8 @@ public class SSKAlgorithmTest {
 		Node[] nodes = graph.nodes().toArray(Node[]::new);
 		assertEquals(1, globalLeaders.size());
 		assertTrue(globalLeaders.keySet().contains(nodes[0]));
-		System.out.println("Global Leaders:");
-		System.out.println(globalLeaders);
+		//System.out.println("Global Leaders:");
+		//System.out.println(globalLeaders);
 	}
 	
 	/*
@@ -71,8 +71,8 @@ public class SSKAlgorithmTest {
 		assertTrue(globalLeaders.keySet().contains(nodes[26]));
 		assertTrue(globalLeaders.keySet().contains(nodes[30]));
 //		assertTrue(globalLeaders.keySet().contains(nodes[35]));
-		System.out.println("Global Leaders:");
-		System.out.println(globalLeaders);
+		//System.out.println("Global Leaders:");
+		//System.out.println(globalLeaders);
 	}
 	
 	/*

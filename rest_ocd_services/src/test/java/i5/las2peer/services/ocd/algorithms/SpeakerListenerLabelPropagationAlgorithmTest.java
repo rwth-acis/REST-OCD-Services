@@ -24,7 +24,7 @@ public class SpeakerListenerLabelPropagationAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
 		SpeakerListenerLabelPropagationAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 	
 	@Test
@@ -33,6 +33,6 @@ public class SpeakerListenerLabelPropagationAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		SpeakerListenerLabelPropagationAlgorithm algo = new SpeakerListenerLabelPropagationAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 }

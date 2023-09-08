@@ -37,8 +37,8 @@ public class AntColonyOptimizationTest {
 		Node v2 = nmap[7]; 
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		double cddistance = ACO.CzechkanowskiDice(graph, v1, v2);
-		System.out.println("CD-Distance:");
-		System.out.println(cddistance);
+//		System.out.println("CD-Distance:");
+//		System.out.println(cddistance);
 	}
 	
 	/**
@@ -51,9 +51,9 @@ public class AntColonyOptimizationTest {
 		HashMap<Integer, HashSet<Node>> maxClq = MCl.cliques(graph);
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		Matrix linkStr = ACO.linkStrength(graph, maxClq);
-		System.out.println("Link Strength Matrix:");
-		System.out.println(linkStr);
-		System.out.println(maxClq);
+//		System.out.println("Link Strength Matrix:");
+//		System.out.println(linkStr);
+//		System.out.println(maxClq);
 	}
 	
 	@Test
@@ -73,12 +73,12 @@ public class AntColonyOptimizationTest {
 		CustomGraph graph = OcdTestGraphFactory.getDolphinsGraph();
 		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
 		Cover c = ACO.detectOverlappingCommunities(graph);
-		//ClizzAlgorithm CA = new ClizzAlgorithm(); 
+		//ClizzAlgorithm CA = new ClizzAlgorithm();
 		//Cover c1 = CA.detectOverlappingCommunities(graph);
-		System.out.print(c);
+		//System.out.print(c);
 		ModularityMetric mod = new ModularityMetric();
-		//System.out.println(mod.measure(c1)); 
-		System.out.println(mod.measure(c));
+		//System.out.println(mod.measure(c1));
+		//System.out.println(mod.measure(c));
 	}
 
 

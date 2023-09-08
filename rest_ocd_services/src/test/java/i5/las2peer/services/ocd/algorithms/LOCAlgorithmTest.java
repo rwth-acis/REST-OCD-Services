@@ -20,16 +20,16 @@ public class LOCAlgorithmTest {
 
 	@Test
 	public void testgraphs() throws OcdAlgorithmException, InterruptedException, FileNotFoundException, AdapterException, OcdMetricException {
-		System.out.println("Test 1");
+		//System.out.println("Test 1");
 		graph = getGraph1();
 		test4(graph);
-		System.out.println("Test 2");
+		//System.out.println("Test 2");
 		graph = getGraph2();
 		test4(graph);
-		System.out.println("Test 3");
+		//System.out.println("Test 3");
 		graph = getGraph3();
 		test4(graph);
-		System.out.println("Test 4");
+		//System.out.println("Test 4");
 		graph = getGraph4();
 		test4(graph);
 
@@ -37,19 +37,19 @@ public class LOCAlgorithmTest {
 
 	private void test(CustomGraph graph) throws InterruptedException{
 		LOCAlgorithm loca = new LOCAlgorithm();
-		System.out.println("Graph statistics :");
-		System.out.println("Nodes " + graph.getNodeCount() + " Edges " + graph.getEdgeCount());
+		//System.out.println("Graph statistics :");
+		//System.out.println("Nodes " + graph.getNodeCount() + " Edges " + graph.getEdgeCount());
 
-		System.out.println("Test Local Density:");
+		//System.out.println("Test Local Density:");
 		HashMap<Node, Integer> map = loca.getLocalDensityMap(graph);
 		Node bestnode = loca.getMaxValueNode(map);
 		Set<Node> cluster = new HashSet<Node>();
-		System.out.println("Node : " + cluster.toString());
+		//System.out.println("Node : " + cluster.toString());
 		cluster.add(bestnode);
         Node[] nodes = graph.nodes().toArray(Node[]::new);
 		for(Node node : nodes) {
 			double nodefitness = loca.getNodeFitness(node, cluster, graph);
-			System.out.println(node.toString()+ "has fitness value " + nodefitness);
+			//System.out.println(node.toString()+ "has fitness value " + nodefitness);
 		}
 
 	}

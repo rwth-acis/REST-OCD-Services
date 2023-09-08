@@ -34,13 +34,13 @@ public class EvolutionaryAlgorithmBasedOnSimilarityTest {
 		EvolutionaryAlgorithmBasedOnSimilarity algo = new EvolutionaryAlgorithmBasedOnSimilarity();
 		Iterator<Edge> edges = graph.edges().iterator();
 		Edge edge;
-		System.out.println("Graph:");
+		//System.out.println("Graph:");
 		while (edges.hasNext()) {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
 			edge = edges.next();
-			System.out.println(edge + " " + graph.getEdgeWeight(edge));
+			//System.out.println(edge + " " + graph.getEdgeWeight(edge));
 		}
 		algo.writeNetworkFile(graph);
 	}
@@ -55,8 +55,8 @@ public class EvolutionaryAlgorithmBasedOnSimilarityTest {
 		 */
 		Matrix membership = algo.translateCommunityFile(LastResultPath, 12);
 		Matrix expectedMembership = new Basic2DMatrix(12, 3);
-		System.out.println("Test result:");
-		System.out.println(membership);
+		//System.out.println("Test result:");
+		//System.out.println(membership);
 		expectedMembership.set(0, 0, 0.5);
 		expectedMembership.set(0, 1, 0.5);
 		expectedMembership.set(0, 2, 0);
@@ -102,6 +102,6 @@ public class EvolutionaryAlgorithmBasedOnSimilarityTest {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrMadeUndirectedGraph();
 		EvolutionaryAlgorithmBasedOnSimilarity algo = new EvolutionaryAlgorithmBasedOnSimilarity();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 }

@@ -41,7 +41,7 @@ public class FuzzyCMeansSpectralClusteringTest {
 		
 		try {
 			Cover c = fuzzy.detectOverlappingCommunities(sawmill);
-			System.out.println(c.toString());
+			//System.out.println(c.toString());
 		} catch (OcdAlgorithmException | OcdMetricException | InterruptedException e) {
 			e.printStackTrace();
 		}

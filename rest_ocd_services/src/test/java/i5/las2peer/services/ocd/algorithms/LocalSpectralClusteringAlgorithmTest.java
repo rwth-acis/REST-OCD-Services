@@ -31,7 +31,7 @@ public class LocalSpectralClusteringAlgorithmTest {
 				
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 		
 		parameters = new HashMap<String, String>();
 		parameters.put(LocalSpectralClusteringAlgorithm.COMMA_SEPARATED_SEED_SET_NAME, "9,11");
@@ -39,7 +39,7 @@ public class LocalSpectralClusteringAlgorithmTest {
 				
 		cover = algo.detectOverlappingCommunities(graph);
 		
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 		
 		parameters = new HashMap<String, String>();
 		parameters.put(LocalSpectralClusteringAlgorithm.COMMA_SEPARATED_SEED_SET_NAME, "13,14,21");
@@ -47,7 +47,7 @@ public class LocalSpectralClusteringAlgorithmTest {
 				
 		cover = algo.detectOverlappingCommunities(graph);
 		
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 	
 }

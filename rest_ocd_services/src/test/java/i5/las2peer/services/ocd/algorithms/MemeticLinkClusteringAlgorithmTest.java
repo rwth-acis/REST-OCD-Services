@@ -34,7 +34,7 @@ public class MemeticLinkClusteringAlgorithmTest {
 
             OcdAlgorithm algo = new MemeticLinkClusteringAlgorithm();
             Cover cover = algo.detectOverlappingCommunities(graph);
-            System.out.println(cover.toString());
+            //System.out.println(cover.toString());
 
         }catch(Exception e){e.printStackTrace();}
     }

@@ -17,9 +17,9 @@ public class DetectingOverlappingCommunitiesAlgorithmTest {
 	public void test() throws OcdAlgorithmException, InterruptedException, FileNotFoundException, AdapterException, OcdMetricException {
 		OcdAlgorithm algo = new DetectingOverlappingCommunitiesAlgorithm();
 		CustomGraph graph = OcdTestGraphFactory.getDocaTestGraph();
-		System.out.println("Nodes " + graph.getNodeCount() + " Edges " + graph.getEdgeCount());
+		//System.out.println("Nodes " + graph.getNodeCount() + " Edges " + graph.getEdgeCount());
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 
 }

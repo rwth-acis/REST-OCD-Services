@@ -25,7 +25,7 @@ public class MergingOfOverlappingCommunitiesTest {
 				.getAperiodicTwoCommunitiesGraph();
 		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 	
 	@Test
@@ -33,7 +33,7 @@ public class MergingOfOverlappingCommunitiesTest {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 
 	@Test
@@ -56,7 +56,7 @@ public class MergingOfOverlappingCommunitiesTest {
 		processor.makeCompatible(graph, new HashSet<GraphType>());
 		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
 		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 
 	

@@ -24,7 +24,7 @@ public class NISEAlgorithmTest {
 		parameters.put(NISEAlgorithm.ACCURACY_NAME, "0.0000001");
 		algorithm.setParameters(parameters);
 		Cover cover = algorithm.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 
 	
@@ -35,7 +35,7 @@ public class NISEAlgorithmTest {
 		Map<String, String> parameters = new HashMap<String, String>();
 		algorithm.setParameters(parameters);
 		Cover cover = algorithm.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
+		//System.out.println(cover.toString());
 	}
 
 }

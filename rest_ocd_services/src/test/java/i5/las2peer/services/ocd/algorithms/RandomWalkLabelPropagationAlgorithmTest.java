@@ -52,8 +52,8 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		transitionMatrix.set(0, 1, 0.5);
 		transitionMatrix.set(1, 0, 0.1);
 		transitionMatrix.set(1, 1, 0.5);
-		System.out.println("Transition Matrix:");
-		System.out.println(transitionMatrix.transpose());
+		//System.out.println("Transition Matrix:");
+		//System.out.println(transitionMatrix.transpose());
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(0.05));
@@ -61,13 +61,13 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
 		algo.setParameters(parameters);
 		Vector vec = algo.executeRandomWalk(transitionMatrix);
-		System.out.println("Steady State Vector:");
-		System.out.println(vec);
+		//System.out.println("Steady State Vector:");
+		//System.out.println(vec);
 	}
 	
 	@Test
 	public void testWithKnownResults() throws OcdAlgorithmException, InterruptedException {
-		System.out.println("Known Result Test");
+		//System.out.println("Known Result Test");
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
@@ -76,19 +76,19 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
 		algo.setParameters(parameters);
 		Matrix disassortativityMatrix = algo.getTransposedDisassortativityMatrix(graph);
-		System.out.println("DA M:\n" + disassortativityMatrix);
+		//System.out.println("DA M:\n" + disassortativityMatrix);
 		Vector disassortativityVector = algo.executeRandomWalk(disassortativityMatrix);
-		System.out.println("DA Vec:\n" + disassortativityVector);
+		//System.out.println("DA Vec:\n" + disassortativityVector);
 		Vector leadershipVector = algo.getLeadershipValues(graph,
 				disassortativityVector);
-		System.out.println("LS Vec:\n" + leadershipVector);
+		//System.out.println("LS Vec:\n" + leadershipVector);
 		Map<Node, Double> followerMap = algo.getFollowerDegrees(graph,
 				leadershipVector);
-		System.out.println("Follower Degs:\n" + followerMap);
+		//System.out.println("Follower Degs:\n" + followerMap);
 		List<Node> leaders = algo.getGlobalLeaders(followerMap);
-		System.out.println("Leaders:\n" + leaders);
+		//System.out.println("Leaders:\n" + leaders);
 		Cover cover = algo.labelPropagationPhase(graph, leaders);
-		System.out.println(cover);
+		//System.out.println(cover);
 	}
 
 	@Test

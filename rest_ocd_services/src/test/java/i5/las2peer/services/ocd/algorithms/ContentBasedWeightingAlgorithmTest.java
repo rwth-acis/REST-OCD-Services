@@ -20,7 +20,7 @@ public class ContentBasedWeightingAlgorithmTest {
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();
 		ContentBasedWeightingAlgorithm algo = new ContentBasedWeightingAlgorithm();
 		graph = algo.detectOverlappingCommunities(graph, new ExecutionTime());
-		System.out.println(graph.toString());
+		//System.out.println(graph.toString());
 	}
 
 }
