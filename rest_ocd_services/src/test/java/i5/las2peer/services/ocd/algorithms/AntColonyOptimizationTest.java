@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.HashMap;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.vector.Vector;
@@ -81,40 +80,6 @@ public class AntColonyOptimizationTest {
 		//System.out.println(mod.measure(c1)); 
 		System.out.println(mod.measure(c));
 	}
-	
-	@Disabled
-	@Test
-	public void testDecoding() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException, OcdMetricException {
-		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph();
-		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
-		CustomGraph MCR = ACO.representationScheme(graph);
-		List<Ant> ants = ACO.initialization(MCR, 5);
-		Vector cover = new BasicVector(5);
-		cover.set(0, 0);
-		cover.set(1, 0);
-		cover.set(2, 1);
-		cover.set(3, 1);
-		cover.set(4, 1);
-		ACO.decodeMaximalCliques(graph, 5);
-	}
-	
-	@Disabled
-	@Test
-	public void testFitnessComputations() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
-		CustomGraph graph = OcdTestGraphFactory.getMaximalCliqueGraph();
-		
-		Vector cover = new BasicVector(5);
-		cover.set(0, 0);
-		cover.set(1, 0);
-		cover.set(2, 1);
-		cover.set(3, 1);
-		cover.set(4, 1);
-		
-		AntColonyOptimizationAlgorithm ACO = new AntColonyOptimizationAlgorithm();
-		Vector NRC = ACO.fitnessCalculations(graph, cover, 5);
-		System.out.println("Fitness values: ");
-		System.out.println(NRC);
-		
-	}
+
 
 }

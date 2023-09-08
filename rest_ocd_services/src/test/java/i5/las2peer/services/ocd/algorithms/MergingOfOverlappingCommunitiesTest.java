@@ -13,7 +13,6 @@ import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.UUID;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.graphstream.graph.Node;
@@ -59,15 +58,6 @@ public class MergingOfOverlappingCommunitiesTest {
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
-	
-	@Disabled
-	@Test
-	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
-		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
-		OcdAlgorithm algo = new MergingOfOverlappingCommunitiesAlgorithm();
-		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
-		Cover cover = executor.execute(graph, algo, 0);
-		System.out.println(cover.toString());
-	}
+
 	
 }

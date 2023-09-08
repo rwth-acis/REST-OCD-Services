@@ -14,11 +14,11 @@ import org.junit.jupiter.api.Test;
 
 public class TermmatrixTest {
 	
-	@Disabled
+
 	@Test
 	public void testOnJmolTestGraph() throws OcdAlgorithmException, InterruptedException, AdapterException, FileNotFoundException, IllegalArgumentException, ParseException {
 		CustomGraph graph = OcdTestGraphFactory.getJmolTestGraph();
 		Termmatrix tm = new Termmatrix(graph);
-		System.out.println(tm.toString(graph));
+		//System.out.println(tm.toString(graph));
 	}
 }

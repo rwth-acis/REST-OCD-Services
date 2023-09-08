@@ -3,7 +3,6 @@ package i5.las2peer.services.ocd.algorithms;
 import java.io.FileNotFoundException;
 import java.text.ParseException;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;

@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
@@ -85,32 +84,6 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest {
 		System.out.println("Leaders:\n" + leaders);
 		Cover cover = algo.labelPropagationPhase(graph, leaders);
 		System.out.println(cover);
-	}
-	
-	@Disabled
-	@Test
-	public void testOnTwoCommunities() throws OcdAlgorithmException, InterruptedException {
-		CustomGraph graph = OcdTestGraphFactory.getTwoCommunitiesGraph();
-		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
-		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
-		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
-		algo.setParameters(parameters);
-		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
-	}
-	
-	@Disabled
-	@Test
-	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException {
-		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
-		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
-		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
-		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
-		algo.setParameters(parameters);
-		Cover cover = algo.detectOverlappingCommunities(graph);
-		System.out.println(cover.toString());
 	}
 	
 	@Test

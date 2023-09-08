@@ -2,7 +2,6 @@ package i5.las2peer.services.ocd.algorithms;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
@@ -23,47 +22,7 @@ import org.graphstream.graph.Node;
 
 
 public class SSKAlgorithmTest {
-	
-	/*
-	 * Tests the transition matrix calculation on directed aperiodic two communities.
-	 */
-	@Disabled
-	@Test
-	public void testCalculateTransitionMatrixOnDirectedAperiodicTwoCommunities() throws InterruptedException {
-		CustomGraph graph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
-		SskAlgorithm algo = new SskAlgorithm();
-		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
-		System.out.println("Transition Matrix:");
-		System.out.println(transitionMatrix);
-	}
-	
-	/*
-	 * Tests the transition matrix calculation on aperiodic two communities.
-	 */
-	@Disabled
-	@Test
-	public void testCalculateTransitionMatrixOnAperiodicTwoCommunities() throws InterruptedException {
-		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
-		SskAlgorithm algo = new SskAlgorithm();
-		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
-		System.out.println("Transition Matrix:");
-		System.out.println(transitionMatrix);
-	}
-	
-	/*
-	 * Tests the influence calculation random walk on sawmill.
-	 */
-	@Disabled
-	@Test
-	public void testExecuteRandomWalkOnSawmill() throws AdapterException, FileNotFoundException, InterruptedException {
-		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-		SskAlgorithm algo = new SskAlgorithm();
-		Matrix transitionMatrix = algo.calculateTransitionMatrix(graph);
-		Vector totalInfluences = algo.executeRandomWalk(transitionMatrix);
-		System.out.println("Random Walk Vector:");
-		System.out.println(totalInfluences);
-	}
-	
+
 	/*
 	 * Tests the influence calculation random walk on directed aperiodic two communities.
 	 */
@@ -225,14 +184,5 @@ public class SSKAlgorithmTest {
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
-	
-	@Disabled
-	@Test
-	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
-		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
-		OcdAlgorithm algo = new SskAlgorithm();
-		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
-		Cover cover = executor.execute(graph, algo, 0);
-		System.out.println(cover.toString());
-	}
+
 }

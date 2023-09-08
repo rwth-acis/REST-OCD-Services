@@ -37,18 +37,5 @@ public class NISEAlgorithmTest {
 		Cover cover = algorithm.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
-	
-//	@Test
-//	public void testOnWikiElecUndirectedGraph() throws OcdAlgorithmException, InterruptedException, OcdMetricException, FileNotFoundException, AdapterException {
-//		CustomGraph graph = OcdTestGraphFactory.getWikiElecUndirectedGraph();
-//		OcdAlgorithm algorithm = new NISEAlgorithm();
-//		Map<String, String> parameters = new HashMap<String, String>();
-//		parameters.put(NISEAlgorithm.ACCURACY_NAME, "0.001");
-//		//parameters.put(NISEAlgorithm.SEED_COUNT_NAME, "10");
-//		//parameters.put(NISEAlgorithm.SEEDING_STRATEGY_NAME, "spreadHubs");
-//		algorithm.setParameters(parameters);
-//		Cover cover = algorithm.detectOverlappingCommunities(graph);
-//		System.out.println(cover.toString());
-//	}
 
 }

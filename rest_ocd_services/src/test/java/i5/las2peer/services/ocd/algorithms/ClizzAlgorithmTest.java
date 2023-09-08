@@ -1,7 +1,6 @@
 package i5.las2peer.services.ocd.algorithms;
 
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
@@ -62,22 +61,7 @@ public class ClizzAlgorithmTest {
 		cover.setCreationMethod(new CoverCreationLog(algo.getAlgorithmType(), algo.getParameters(), algo.compatibleGraphTypes()));
 		System.out.println(cover);
 	}
-	
-	@Disabled
-	@Test
-	public void testOnSiam() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
-		CustomGraph graph = OcdTestGraphFactory.getSiamDmGraph();
-		ClizzAlgorithm algo = new ClizzAlgorithm();
-		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(ClizzAlgorithm.INFLUENCE_FACTOR_NAME, Double.toString(0.9));
-		parameters.put(ClizzAlgorithm.MEMBERSHIPS_ITERATION_BOUND_NAME, Integer.toString(1000));
-		parameters.put(ClizzAlgorithm.MEMBERSHIPS_PRECISION_FACTOR_NAME, Double.toString(0.001));
-		algo.setParameters(parameters);
-		OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
-		Cover cover = executor.execute(graph, algo, 0);
-		System.out.println(cover.toString());
-	}
-	
+
 	@Test
 	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
