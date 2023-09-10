@@ -9,6 +9,7 @@ plugins {
     id 'application'
     id 'eclipse' // only required when using Eclipse
     id 'java-library'
+    id 'jacoco'
 }
 
 
@@ -286,9 +287,23 @@ task cleanAll {
     }
 }
 
+
+jacoco {
+    toolVersion = "0.8.8"
+    reportsDir = file("$buildDir/jacoco")
+}
+
 test {
     useJUnitPlatform()
     workingDir = file("$rootDir")
+    finalizedBy 'jacocoTestReport'
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
 }
 
 // Executes WebOCD tests without database tests. This task is used for github actions.
