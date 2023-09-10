@@ -55,6 +55,9 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 
 	@Override
 	public void setParameters(Map<String, String> parameters) {
+		if(parameters.size() > 0) {
+			throw new IllegalArgumentException();
+		}
 	}
 
 	@Override
@@ -67,6 +70,7 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 		Set<GraphType> compatibilities = new HashSet<GraphType>();
 		compatibilities.add(GraphType.NEGATIVE_WEIGHTS);
 		compatibilities.add(GraphType.WEIGHTED);
+		compatibilities.add(GraphType.DIRECTED);
 		return compatibilities;
 	}
 
