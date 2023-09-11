@@ -109,7 +109,134 @@ public class OcdTestGraphFactory {
 		graph.setCreationMethod(log);
 		return graph;
 	}
-	
+
+
+	/**
+	 * @return a directed chain graph of 10 nodes
+	 */
+	public static CustomGraph getSimpleDirectedChainGraph() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("SimpleChain");
+		Node n[] = new Node[10];
+		for (int i = 0; i < 10; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+			graph.setNodeName(n[i], Integer.toString(i));
+		}
+		for (int i = 0; i < 9; i++) {
+			graph.addEdge(UUID.randomUUID().toString(), n[i], n[i + 1]);
+		}
+		GraphProcessor processor = new GraphProcessor();
+		graph.addType(GraphType.DIRECTED);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	/**
+	 * @return Generate directed or undirected simple hub graphs
+	 */
+	public static CustomGraph generateHubGraph(Boolean directed){
+		CustomGraph graph = new CustomGraph();
+		Node n[] = new Node[10];
+		for (int i = 0; i < 10; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+			graph.setNodeName(n[i], Integer.toString(i));
+		}
+		for (int i = 1; i < 10; i++) {
+			graph.addEdge(UUID.randomUUID().toString(), n[0], n[i]);
+
+		}
+		if (!directed){
+			GraphProcessor processor = new GraphProcessor();
+			processor.makeUndirected(graph);
+		} else{
+			graph.addType(GraphType.DIRECTED);
+		}
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	/**
+	 * @return An undirected graph where there are undirected edges between
+	 * one center node and all other nodes
+	 */
+	public static CustomGraph getUndirectedHubGraph() {
+		CustomGraph graph = generateHubGraph(false);
+		graph.setName("undirected hub");
+		return generateHubGraph(false);
+	}
+
+	/**
+	 * @return A directed graph where one node is connected to all other nodes
+	 */
+	public static CustomGraph getDirectedHubGraph() {
+		CustomGraph graph = generateHubGraph(true);
+		graph.setName("directed hub");
+		return generateHubGraph(true);
+	}
+
+	/**
+	 * @return A directed graph where all nodes are connected to a single node
+	 */
+	public static CustomGraph getReverseDirectedHubGraph(){
+		CustomGraph graph = new CustomGraph();
+		Node n[] = new Node[10];
+		for (int i = 0; i < 10; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+			graph.setNodeName(n[i], Integer.toString(i));
+		}
+		for (int i = 1; i < 10; i++) {
+			graph.addEdge(UUID.randomUUID().toString(),n[i], n[0]);
+
+		}
+
+		graph.addType(GraphType.DIRECTED);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+
+
+
+	/**
+	 * @return A 3 node clique connected (with a directed edge) to a 3 node directed subgraph
+	 */
+	public static CustomGraph getCliqueWithOutliersGraph() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("CliqueWithOutliers");
+		Node n[] = new Node[6];
+		for (int i = 0; i < 6; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+			graph.setNodeName(n[i], Integer.toString(i));
+		}
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[3]);
+
+		GraphProcessor processor = new GraphProcessor();
+		graph.addType(GraphType.DIRECTED);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+
+	/**
+	 * @return A directed aperiodic graph with two communities
+	 */
 	public static CustomGraph getDirectedAperiodicTwoCommunitiesGraph() {
 		// Creates new graph
 		CustomGraph graph = new CustomGraph();
