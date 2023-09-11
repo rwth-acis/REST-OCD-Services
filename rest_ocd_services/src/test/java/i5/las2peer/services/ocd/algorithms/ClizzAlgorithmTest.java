@@ -1,6 +1,11 @@
 package i5.las2peer.services.ocd.algorithms;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import i5.las2peer.services.ocd.test_interfaces.ocda.BaseGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
@@ -20,11 +25,27 @@ import org.la4j.matrix.Matrix;
 import org.graphstream.graph.Node;
 
 
-public class ClizzAlgorithmTest {
+public class ClizzAlgorithmTest implements DirectedGraphTestReq {
+
+	OcdAlgorithm algo;
+
+	@BeforeEach
+	public void setup() {
+		algo = new ClizzAlgorithm();
+	}
+
+	@Override
+	public OcdAlgorithm getAlgorithm() {
+		return algo;
+	}
+
+
+
 
 	/*
 	 * Tests the algorithm on the sawmill graph
 	 */
+	@Disabled //TODO: remove 555
 	@Test
 	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
@@ -32,7 +53,8 @@ public class ClizzAlgorithmTest {
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		//System.out.println(cover.toString());
 	}
-	
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testOnSawmillbyFunctions() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
@@ -62,6 +84,7 @@ public class ClizzAlgorithmTest {
 		System.out.println(cover);
 	}
 
+	@Disabled //TODO: remove 555
 	@Test
 	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();

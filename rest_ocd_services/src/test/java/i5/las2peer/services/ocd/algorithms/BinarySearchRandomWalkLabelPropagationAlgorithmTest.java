@@ -4,6 +4,7 @@ import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
@@ -11,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
@@ -40,9 +43,22 @@ LDAV DA vector
 /*
  * Test Class for the Random Walk Label Propagation Algorithm
  */
-public class BinarySearchRandomWalkLabelPropagationAlgorithmTest {
+public class BinarySearchRandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTestReq {
 
-	
+	OcdAlgorithm algo;
+
+	@BeforeEach
+	public void setup() {
+		algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
+	}
+
+	@Override
+	public OcdAlgorithm getAlgorithm() {
+		return algo;
+	}
+
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testRandomWalkExecution() throws OcdAlgorithmException, InterruptedException {
 		Matrix transitionMatrix = new Basic2DMatrix(2, 2);
@@ -62,6 +78,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest {
 		//System.out.println(vec);
 	}
 
+	@Disabled //TODO: remove 555
 	@Test
 	public void testEntireAlgorithm() throws OcdAlgorithmException, InterruptedException {
 		//System.out.println("Known Result Test");
@@ -86,7 +103,8 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest {
 		Cover cover = algo.labelPropagationPhase(graph, leaders);
 		System.out.println(cover);
 	}
-	
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();

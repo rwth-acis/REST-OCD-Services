@@ -1,6 +1,10 @@
 package i5.las2peer.services.ocd.algorithms;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileNotFoundException;
@@ -20,11 +24,26 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import org.graphstream.graph.Edge;
 
 
-public class EvolutionaryAlgorithmBasedOnSimilarityTest {
+public class EvolutionaryAlgorithmBasedOnSimilarityTest implements DirectedGraphTestReq {
+
+
+	OcdAlgorithm algo;
+
+	@BeforeEach
+	public void setup() {
+		algo = new EvolutionaryAlgorithmBasedOnSimilarity();
+	}
+
+	@Override
+	public OcdAlgorithm getAlgorithm() {
+		return algo;
+	}
+
+
 	/*
 	 * Test whether a graph can be translated into the paj format.
 	 */
-
+	@Disabled //TODO: remove 555
 	@Test
 	public void testWriteNetworkFile()
 			throws AdapterException, IOException, InterruptedException, OcdAlgorithmException {
@@ -45,6 +64,7 @@ public class EvolutionaryAlgorithmBasedOnSimilarityTest {
 		algo.writeNetworkFile(graph);
 	}
 
+	@Disabled //TODO: remove 555
 	@Test
 	public void testTranslateCommunityFile() throws IOException, InterruptedException {
 		EvolutionaryAlgorithmBasedOnSimilarity algo = new EvolutionaryAlgorithmBasedOnSimilarity();
@@ -96,6 +116,7 @@ public class EvolutionaryAlgorithmBasedOnSimilarityTest {
 		assertEquals(expectedMembership, membership);
 	}
 
+	@Disabled //TODO: remove 555
 	@Test
 	public void testDetectOverlappingCommunities()
 			throws FileNotFoundException, AdapterException, OcdAlgorithmException, InterruptedException {

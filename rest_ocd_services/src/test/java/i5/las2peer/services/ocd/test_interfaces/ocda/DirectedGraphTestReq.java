@@ -12,6 +12,10 @@ import java.util.Map;
 
 import static org.junit.Assert.assertThrows;
 
+/**
+ * This interface holds basic test methods that should be present
+ * in all OCDA compatible with directed networks.
+ */
 public interface DirectedGraphTestReq extends BaseGraphTestReq {
 
     /**
@@ -32,7 +36,7 @@ public interface DirectedGraphTestReq extends BaseGraphTestReq {
 
 
     /**
-     *  Test OCDA on a directed aperiodic graph with two communities
+     *  Test OCDA on a directed aperiodic graph with two communities.
      */
     @Test
     default void basicTestOnDirectedAperiodicTwoCommunitiesGraph(){
@@ -49,7 +53,7 @@ public interface DirectedGraphTestReq extends BaseGraphTestReq {
 
 
     /**
-     *  Test OCDA on a directed chain graph of 10 nodes
+     *  Test OCDA on a directed chain graph of 10 nodes.
      */
     @Test
     default void basicTestOnDirectedChainGraph(){
@@ -66,7 +70,7 @@ public interface DirectedGraphTestReq extends BaseGraphTestReq {
 
 
     /**
-     *  Test OCDA on a graph where one node is connected to all other nodes
+     *  Test OCDA on a graph where one node is connected to all other nodes.
      */
     @Test
     default void basicTestOnDirectedHubGraph(){
@@ -83,7 +87,7 @@ public interface DirectedGraphTestReq extends BaseGraphTestReq {
 
 
     /**
-     *  Test OCDA on a graph where all nodes are connected to a single node
+     *  Test OCDA on a graph where all nodes are connected to a single node.
      */
     @Test
     default void basicTestOnReverseDirectedHubGraph(){
@@ -100,7 +104,7 @@ public interface DirectedGraphTestReq extends BaseGraphTestReq {
 
 
     /**
-     * Test OCDA on a 3 node clique connected (with a directed edge) to a 3 node directed subgraph
+     * Test OCDA on a 3 node clique connected (with a directed edge) to a 3 node directed subgraph.
      */
     @Test
     default void basicTestOnCliqueWithOutliers(){

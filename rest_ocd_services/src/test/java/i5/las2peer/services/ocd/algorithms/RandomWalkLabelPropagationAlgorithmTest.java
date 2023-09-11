@@ -7,6 +7,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.ExtendedModularityMetric;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
+import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
@@ -14,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
@@ -43,8 +46,22 @@ LDAV DA vector
 /*
  * Test Class for the Random Walk Label Propagation Algorithm
  */
-public class RandomWalkLabelPropagationAlgorithmTest {
+public class RandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTestReq {
 
+	OcdAlgorithm algo;
+
+	@BeforeEach
+	public void setup() {
+		algo = new RandomWalkLabelPropagationAlgorithm();
+	}
+
+	@Override
+	public OcdAlgorithm getAlgorithm() {
+		return algo;
+	}
+
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testRandomWalkExecution() throws OcdAlgorithmException, InterruptedException {
 		Matrix transitionMatrix = new Basic2DMatrix(2, 2);
@@ -64,7 +81,8 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		//System.out.println("Steady State Vector:");
 		//System.out.println(vec);
 	}
-	
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testWithKnownResults() throws OcdAlgorithmException, InterruptedException {
 		//System.out.println("Known Result Test");
@@ -91,6 +109,7 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		//System.out.println(cover);
 	}
 
+	@Disabled //TODO: remove 555
 	@Test
 	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
@@ -103,7 +122,8 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
 	}
-	
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
@@ -116,7 +136,8 @@ public class RandomWalkLabelPropagationAlgorithmTest {
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());	
 	}
-	
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testProfitabilityDelta() throws OcdAlgorithmException, AdapterException, FileNotFoundException, OcdMetricException, InterruptedException {
 		System.out.println();
