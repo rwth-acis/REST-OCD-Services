@@ -200,7 +200,16 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 		Matrix[] sorted_eigenvectors_eigenvalues = sortEigenPairs(eigenvectors_eigenvalues);
 
 
+		if (graph.getNodeCount() < 2) {
+			throw new OcdAlgorithmException("Graph should have at least two nodes");
+		}
+		// this condition is needed to avoid a null pointer exception caused when there are
+		// not enough nodes in the graph compared to the specified K.
+		if(K > graph.getNodeCount()){
+			K = graph.getNodeCount();
+		}
 		int optimal_K = K;
+
 		double modularity = -100000.0; // initially modularity value is set to unrealisticly low number
 		double new_modularity = -100000.0;
 		Matrix membership_matrix = null; // this will hold membership matrix based on which the cover will be created
@@ -566,7 +575,7 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 		for (int i = 0; i < M.rows(); i++) {
 			
 			points.add(new ArrayList<Double>());
-			
+
 			for (int j = 0; j < K; j++) {
 				
 				points.get(i).add(j, M.get(i, j));
