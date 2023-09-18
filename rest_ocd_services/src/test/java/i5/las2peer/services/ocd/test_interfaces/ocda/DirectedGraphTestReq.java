@@ -23,7 +23,6 @@ public interface DirectedGraphTestReq extends BaseGraphTestReq {
      */
     @Test
     default void basicTestOnSawmill(){
-        // I want to print algo object from ClizzAlgorithmTest here: System.out.println(algo);
         OcdAlgorithm algo = getAlgorithm();
         System.out.println("Inside DirectedGraphTestReq.basicTestOnSawmill: " + algo); //TODO: DELETE 555
         try {
@@ -40,7 +39,6 @@ public interface DirectedGraphTestReq extends BaseGraphTestReq {
      */
     @Test
     default void basicTestOnDirectedAperiodicTwoCommunitiesGraph(){
-        // I want to print algo object from ClizzAlgorithmTest here: System.out.println(algo);
         OcdAlgorithm algo = getAlgorithm();
         System.out.println("Inside DirectedGraphTestReq.basicTestOnDirectedAperiodicTwoCommunitiesGraph: " + algo); //TODO: DELETE 555
         try {
@@ -57,7 +55,6 @@ public interface DirectedGraphTestReq extends BaseGraphTestReq {
      */
     @Test
     default void basicTestOnDirectedChainGraph(){
-        // I want to print algo object from ClizzAlgorithmTest here: System.out.println(algo);
         OcdAlgorithm algo = getAlgorithm();
         System.out.println("Inside DirectedGraphTestReq.basicTestOnSimpleDirectedChainGraph: " + algo); //TODO: DELETE 555
         try {
@@ -74,7 +71,6 @@ public interface DirectedGraphTestReq extends BaseGraphTestReq {
      */
     @Test
     default void basicTestOnDirectedHubGraph(){
-        // I want to print algo object from ClizzAlgorithmTest here: System.out.println(algo);
         OcdAlgorithm algo = getAlgorithm();
         System.out.println("Inside DirectedGraphTestReq.basicTestOnSimpleDirectedHubGraph: " + algo); //TODO: DELETE 555
         try {
@@ -91,7 +87,6 @@ public interface DirectedGraphTestReq extends BaseGraphTestReq {
      */
     @Test
     default void basicTestOnReverseDirectedHubGraph(){
-        // I want to print algo object from ClizzAlgorithmTest here: System.out.println(algo);
         OcdAlgorithm algo = getAlgorithm();
         System.out.println("Inside DirectedGraphTestReq.basicTestOnReverseDirectedHubGraph: " + algo); //TODO: DELETE 555
         try {
@@ -108,7 +103,6 @@ public interface DirectedGraphTestReq extends BaseGraphTestReq {
      */
     @Test
     default void basicTestOnCliqueWithOutliers(){
-        // I want to print algo object from ClizzAlgorithmTest here: System.out.println(algo);
         OcdAlgorithm algo = getAlgorithm();
         System.out.println("Inside DirectedGraphTestReq.basicTestOnCliqueWithOutliers: " + algo); //TODO: DELETE 555
         try {

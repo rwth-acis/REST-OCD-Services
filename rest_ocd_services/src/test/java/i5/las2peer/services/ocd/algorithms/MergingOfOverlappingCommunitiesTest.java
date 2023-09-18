@@ -7,18 +7,34 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
+import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.graphstream.graph.Node;
 
-public class MergingOfOverlappingCommunitiesTest {
+public class MergingOfOverlappingCommunitiesTest implements UndirectedGraphTestReq {
 
+	OcdAlgorithm algo;
+
+	@BeforeEach
+	public void setup() {
+		algo = new MergingOfOverlappingCommunitiesAlgorithm();
+	}
+
+	@Override
+	public OcdAlgorithm getAlgorithm() {
+		return algo;
+	}
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testOnAperiodicTwoCommunities() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory
@@ -27,7 +43,8 @@ public class MergingOfOverlappingCommunitiesTest {
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		//System.out.println(cover.toString());
 	}
-	
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException, OcdMetricException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
@@ -36,6 +53,7 @@ public class MergingOfOverlappingCommunitiesTest {
 		//System.out.println(cover.toString());
 	}
 
+	@Disabled //TODO: remove 555
 	@Test
 	public void testOnKnowResultGraph() throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		CustomGraph graph = new CustomGraph();

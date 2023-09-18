@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
@@ -43,7 +44,7 @@ LDAV DA vector
 /*
  * Test Class for the Random Walk Label Propagation Algorithm
  */
-public class BinarySearchRandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTestReq {
+public class BinarySearchRandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTestReq, UndirectedGraphTestReq  {
 
 	OcdAlgorithm algo;
 
@@ -58,7 +59,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest implements Dire
 	}
 
 
-	@Disabled //TODO: remove 555
+	//@Disabled //TODO: remove 555
 	@Test
 	public void testRandomWalkExecution() throws OcdAlgorithmException, InterruptedException {
 		Matrix transitionMatrix = new Basic2DMatrix(2, 2);
@@ -78,7 +79,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest implements Dire
 		//System.out.println(vec);
 	}
 
-	@Disabled //TODO: remove 555
+	//@Disabled //TODO: remove 555
 	@Test
 	public void testEntireAlgorithm() throws OcdAlgorithmException, InterruptedException {
 		//System.out.println("Known Result Test");
@@ -104,7 +105,7 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest implements Dire
 		System.out.println(cover);
 	}
 
-	@Disabled //TODO: remove 555
+	//@Disabled //TODO: remove 555
 	@Test
 	public void testOnSawmill() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();

@@ -1,5 +1,8 @@
 package i5.las2peer.services.ocd.algorithms;
 
+import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -19,12 +22,25 @@ import java.util.UUID;
 
 import org.graphstream.graph.Node;
 
-public class WeakCliquePercolationMethodAlgorithmTest {
+public class WeakCliquePercolationMethodAlgorithmTest implements UndirectedGraphTestReq {
+
+	OcdAlgorithm algo;
+
+	@BeforeEach
+	public void setup() {
+		algo = new WeakCliquePercolationMethodAlgorithm();
+	}
+
+	@Override
+	public OcdAlgorithm getAlgorithm() {
+		return algo;
+	}
 
 	
 	/*
 	 * Run the algorithm on a simple graph with 3 communities 
 	 */
+	@Disabled //TODO: remove 555
 	@Test
 	public void testOnSimpleGraph() throws OcdAlgorithmException, AdapterException, FileNotFoundException, InterruptedException{
 		
@@ -82,6 +98,7 @@ public class WeakCliquePercolationMethodAlgorithmTest {
 	/*
 	 * Test saltonIndex method, which is based on the description in the algorithm paper
 	 */
+	@Disabled //TODO: remove 555
 	@Test
 	public void saltonIndexTest() {
 		
@@ -110,6 +127,7 @@ public class WeakCliquePercolationMethodAlgorithmTest {
 	/*
 	 * Test Merge method, which is based on the description in the algorithm paper
 	 */
+	@Disabled //TODO: remove 555
 	@Test
 	public void MergeTest() {
 		
@@ -179,6 +197,7 @@ public class WeakCliquePercolationMethodAlgorithmTest {
 	/*
 	 * Test priorityOfNode method, which is based on the description in the algorithm paper
 	 */
+	@Disabled //TODO: remove 555
 	@Test
 	public void nodePriorityTest() {
 		

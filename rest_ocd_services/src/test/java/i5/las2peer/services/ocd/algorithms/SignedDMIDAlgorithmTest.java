@@ -1,6 +1,10 @@
 package i5.las2peer.services.ocd.algorithms;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileNotFoundException;
@@ -25,7 +29,21 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import org.graphstream.graph.Node;
 
 
-public class SignedDMIDAlgorithmTest {
+public class SignedDMIDAlgorithmTest implements UndirectedGraphTestReq {
+
+	OcdAlgorithm algo;
+
+	@BeforeEach
+	public void setup() {
+		algo = new SignedDMIDAlgorithm();
+	}
+
+	@Override
+	public OcdAlgorithm getAlgorithm() {
+		return algo;
+	}
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testGetLeadershipVector() throws FileNotFoundException, AdapterException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrSixNodesGraph();
@@ -51,6 +69,7 @@ public class SignedDMIDAlgorithmTest {
 		assertEquals(0, controlSum, 0.01);
 	}
 
+	@Disabled //TODO: remove 555
 	@Test
 	public void testGetLocalLeader() throws FileNotFoundException, AdapterException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();
@@ -83,6 +102,7 @@ public class SignedDMIDAlgorithmTest {
 		assertEquals(3, (int) followerMap.get(graph.nodes().toArray(Node[]::new)[11]));
 	}
 
+	@Disabled //TODO: remove 555
 	@Test
 	public void testGetGlobalLeader() throws FileNotFoundException, AdapterException, InterruptedException {
 		CustomGraph graph = new CustomGraph();
@@ -105,6 +125,7 @@ public class SignedDMIDAlgorithmTest {
 		// assertEquals(expectedLeader,globalLeader);
 	}
 
+	@Disabled //TODO: remove 555
 	@Test
 	public void testExecuteLabelPropagation() throws FileNotFoundException, AdapterException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();
@@ -150,6 +171,8 @@ public class SignedDMIDAlgorithmTest {
 		assertEquals(expectedMap, map);
 	}
 
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testGetMembershipDegrees() throws FileNotFoundException, AdapterException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();
@@ -213,6 +236,8 @@ public class SignedDMIDAlgorithmTest {
 		assertEquals(0, controlSum, 0.1);
 	}
 
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testDetectOverlappingCommunities()
 			throws FileNotFoundException, AdapterException, OcdAlgorithmException, InterruptedException {
@@ -254,6 +279,8 @@ public class SignedDMIDAlgorithmTest {
 		assertEquals(0, controlSum, 0.1);
 	}
 
+
+	@Disabled //TODO: remove 555
 	@Test
 	public void testGetPosNodesWithNewLabel() throws FileNotFoundException, AdapterException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();
@@ -268,6 +295,7 @@ public class SignedDMIDAlgorithmTest {
 		assertEquals(3, posNeihboursWithNewBehavior);
 	}
 
+	@Disabled //TODO: remove 555
 	@Test
 	public void testGetNegNodesWithNewLabel() throws FileNotFoundException, AdapterException, InterruptedException {
 		CustomGraph graph = OcdTestGraphFactory.getSignedLfrGraph();

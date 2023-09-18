@@ -5,15 +5,29 @@ import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
+import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class LocalSpectralClusteringAlgorithmTest {
+public class LocalSpectralClusteringAlgorithmTest implements UndirectedGraphTestReq {
+
+	OcdAlgorithm algo;
+
+	@BeforeEach
+	public void setup() {
+		algo = new LocalSpectralClusteringAlgorithm();
+	}
+
+	@Override
+	public OcdAlgorithm getAlgorithm() {
+		return algo;
+	}
 
 	/*
 	 * Tests the algorithm on the sawmill graph

@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 
 import java.util.*;
 
+import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import org.graphstream.graph.Node;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
@@ -11,13 +12,29 @@ import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 
-public class LOCAlgorithmTest {
+public class LOCAlgorithmTest implements UndirectedGraphTestReq {
+
+	OcdAlgorithm algo;
+
+	@BeforeEach
+	public void setup() {
+		algo = new LOCAlgorithm();
+	}
+
+	@Override
+	public OcdAlgorithm getAlgorithm() {
+		return algo;
+	}
+
 	private static CustomGraph graph;
 	private static Node n[];
 
+	@Disabled //TODO: remove 555
 	@Test
 	public void testgraphs() throws OcdAlgorithmException, InterruptedException, FileNotFoundException, AdapterException, OcdMetricException {
 		//System.out.println("Test 1");

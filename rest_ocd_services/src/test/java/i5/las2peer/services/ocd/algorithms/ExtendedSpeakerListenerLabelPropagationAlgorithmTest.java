@@ -1,11 +1,12 @@
 package i5.las2peer.services.ocd.algorithms;
 
 import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import org.junit.jupiter.api.BeforeEach;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ExtendedSpeakerListenerLabelPropagationAlgorithmTest implements DirectedGraphTestReq {
+class ExtendedSpeakerListenerLabelPropagationAlgorithmTest implements DirectedGraphTestReq, UndirectedGraphTestReq {
 
     OcdAlgorithm algo;
 

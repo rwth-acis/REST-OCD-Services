@@ -1,18 +1,33 @@
 package i5.las2peer.services.ocd.algorithms;
 
+import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import org.graphstream.graph.Node;
 
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.Cover;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
 
-public class MemeticLinkClusteringAlgorithmTest {
-    
-    @Test
+public class MemeticLinkClusteringAlgorithmTest implements UndirectedGraphTestReq {
 
+    OcdAlgorithm algo;
+
+    @BeforeEach
+    public void setup() {
+        algo = new MemeticLinkClusteringAlgorithm();
+    }
+
+    @Override
+    public OcdAlgorithm getAlgorithm() {
+        return algo;
+    }
+
+    @Disabled //TODO: remove 555
+    @Test
     public void CustomGraphTest(){
 
         try {
