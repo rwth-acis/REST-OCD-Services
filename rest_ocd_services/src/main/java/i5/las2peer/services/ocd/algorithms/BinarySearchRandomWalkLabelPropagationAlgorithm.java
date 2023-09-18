@@ -208,11 +208,14 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 			vec2 = new BasicVector(vec1);
 			vec1 = disassortativityMatrix.multiply(vec1);
 		}
-		if (iteration >= randomWalkIterationBound) {
-			throw new OcdAlgorithmException(
-					"Random walk iteration bound exceeded: iteration "
-							+ iteration);
-		}
+		// this part of the code causes an exception when the randomWalkIterationBound is reached and terminates
+		// the algorithm execution. Disabling this part will prevent the algorithm termination and instead use
+		// the results found within the first randomWalkIterationBound many iterations.
+//		if (iteration >= randomWalkIterationBound) {
+//			throw new OcdAlgorithmException(
+//					"Random walk iteration bound exceeded: iteration "
+//							+ iteration);
+//		}
 		return vec1;
 	}
 
@@ -392,6 +395,11 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 			}
 		}
 		if(bestValidSolution == null) {
+			if (leaders.size() == 0){
+				// this if condition is needed to avoid a null pointer exception when there is no leader
+				// e.g. due to all nodes in a graph having the same exact structure.
+				leaders.add(graph.getNode(0));
+			}
 			for (Node leader : leaders) {
 				communityMemberships = executeLabelPropagation(graph, leader, 0);
 				communities.put(leader, communityMemberships);
