@@ -98,6 +98,8 @@
     - title: Architecture/Class Models
       url: "pages/wiki/architecture-class-models"
       children:
+        - title: WebOCD Architecture
+          url: "pages/wiki/architecture-class-models#webocd-architecture"
         - title: Service Architecture
           url: "pages/wiki/architecture-class-models#service-architecture"
         - title: Algorithms
