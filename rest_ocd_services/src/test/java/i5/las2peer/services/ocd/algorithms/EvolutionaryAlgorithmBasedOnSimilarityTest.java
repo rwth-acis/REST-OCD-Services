@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.algorithms;
 import static org.junit.jupiter.api.Assertions.*;
 
 import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.NegativeWeightGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +27,8 @@ import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import org.graphstream.graph.Edge;
 
 
-public class EvolutionaryAlgorithmBasedOnSimilarityTest implements WeightedGraphTestReq, DirectedGraphTestReq, UndirectedGraphTestReq {
+public class EvolutionaryAlgorithmBasedOnSimilarityTest implements
+		WeightedGraphTestReq, DirectedGraphTestReq, UndirectedGraphTestReq, NegativeWeightGraphTestReq {
 
 
 	OcdAlgorithm algo;

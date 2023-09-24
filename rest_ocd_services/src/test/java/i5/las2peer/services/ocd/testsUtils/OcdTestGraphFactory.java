@@ -564,6 +564,60 @@ public class OcdTestGraphFactory {
 	}
 
 	/**
+	 * @return a graph consisting of a cycle with only negative weights
+	 */
+	public static CustomGraph getNegativeCycleGraph() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("NegativeCycleGraph");
+		Node[] n = new Node[3];
+		for (int i = 0; i < 3; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+		}
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[0]);
+		graph.setEdgeWeight(graph.getEdge(0), -1);
+		graph.setEdgeWeight(graph.getEdge(1), -2);
+		graph.setEdgeWeight(graph.getEdge(2), -1);
+
+		graph.addType(GraphType.WEIGHTED);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	/**
+	 * @return a graph consisting of a mixture of positive and negative weights
+	 */
+	public static CustomGraph getMixedWeightsGraph() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("MixedWeightsGraph");
+		Node[] n = new Node[4];
+		for (int i = 0; i < 4; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+		}
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[0]);
+		graph.setEdgeWeight(graph.getEdge(0), 1.5);
+		graph.setEdgeWeight(graph.getEdge(1), -2.3);
+		graph.setEdgeWeight(graph.getEdge(2), 1);
+		graph.setEdgeWeight(graph.getEdge(3), -1);
+
+		graph.addType(GraphType.WEIGHTED);
+		graph.addType(GraphType.NEGATIVE_WEIGHTS);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+
+
+	/**
 	 * @return a weighted graph consisting of two communities
 	 */
 	public static CustomGraph getTwoCommunitiesWeightedGraph() {

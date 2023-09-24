@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.algorithms;
 
 import java.io.FileNotFoundException;
 
+import i5.las2peer.services.ocd.test_interfaces.ocda.NegativeWeightGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +15,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
-public class SignedProbabilisticMixtureAlgorithmTest implements UndirectedGraphTestReq, WeightedGraphTestReq {
+public class SignedProbabilisticMixtureAlgorithmTest implements UndirectedGraphTestReq, WeightedGraphTestReq, NegativeWeightGraphTestReq {
 
 	OcdAlgorithm algo;
 
