@@ -423,7 +423,205 @@ public class OcdTestGraphFactory {
 		graph.setCreationMethod(log);
 		return graph;
 	}
-	
+
+	/**
+	 *
+	 * @return a weighted graph consisting of equal edge weights
+	 */
+	public static CustomGraph getCompleteGraphWithEqualWeights() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("CompleteGraphWithEqualWeights");
+		Node[] n = new Node[3];
+		// Add nodes
+		for (int i = 0; i < 3; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+		}
+		// Add edges
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[1]);
+		// Set weights
+		graph.setEdgeWeight(graph.getEdge(0), 5);
+		graph.setEdgeWeight(graph.getEdge(1), 5);
+		graph.setEdgeWeight(graph.getEdge(2), 5);
+		graph.setEdgeWeight(graph.getEdge(3), 5);
+		graph.setEdgeWeight(graph.getEdge(4), 5);
+		graph.setEdgeWeight(graph.getEdge(5), 5);
+
+		graph.addType(GraphType.WEIGHTED);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	/**
+	 * @return a weighted chain graph with increasing weights
+	 */
+	public static CustomGraph getChainGraphWithIncreasingWeights() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("ChainGraphWithIncreasingWeights");
+		Node[] n = new Node[4];
+		// Add nodes
+		for (int i = 0; i < 4; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+		}
+		// Add edges
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[2]);
+		// Set weights
+		graph.setEdgeWeight(graph.getEdge(0), 1);
+		graph.setEdgeWeight(graph.getEdge(1), 1);
+		graph.setEdgeWeight(graph.getEdge(2), 2);
+		graph.setEdgeWeight(graph.getEdge(3), 2);
+		graph.setEdgeWeight(graph.getEdge(4), 3);
+		graph.setEdgeWeight(graph.getEdge(5), 3);
+
+		graph.addType(GraphType.WEIGHTED);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	/**
+	 * @return a graph consisting of a cycle that has an edge
+	 *  with a weight value that represents an outlier
+	 */
+	public static CustomGraph getLoopWithOutlierWeight() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("LoopWithOutlierWeight");
+		Node[] n = new Node[4];
+		// Add nodes
+		for (int i = 0; i < 4; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+		}
+		// Add edges
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[3]);
+		// Set weights
+		graph.setEdgeWeight(graph.getEdge(0), 1);
+		graph.setEdgeWeight(graph.getEdge(1), 1);
+		graph.setEdgeWeight(graph.getEdge(2), 1);
+		graph.setEdgeWeight(graph.getEdge(3), 1);
+		graph.setEdgeWeight(graph.getEdge(4), 1);
+		graph.setEdgeWeight(graph.getEdge(5), 1);
+		graph.setEdgeWeight(graph.getEdge(6), 50);
+		graph.setEdgeWeight(graph.getEdge(7), 50);
+
+		graph.addType(GraphType.WEIGHTED);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+
+	/**
+	 * @return a chain graph where most weights have decimal values
+	 */
+	public static CustomGraph getChainWithDecimalWeights() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("FourNodeChainWithDecimalWeights");
+		Node[] n = new Node[4];
+		// Add nodes
+		for (int i = 0; i < 4; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+		}
+		// Add edges
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[2]);
+		// Set weights
+		graph.setEdgeWeight(graph.getEdge(0), 1.5);
+		graph.setEdgeWeight(graph.getEdge(1), 1.5);
+		graph.setEdgeWeight(graph.getEdge(2), 2.3);
+		graph.setEdgeWeight(graph.getEdge(3), 2.3);
+		graph.setEdgeWeight(graph.getEdge(4), 2);
+		graph.setEdgeWeight(graph.getEdge(5), 2);
+
+		graph.addType(GraphType.WEIGHTED);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	/**
+	 * @return a weighted graph consisting of two communities
+	 */
+	public static CustomGraph getTwoCommunitiesWeightedGraph() {
+		CustomGraph graph = new CustomGraph();
+		graph.setName("TwoThreeNodeCommunities");
+		Node[] n = new Node[6];
+		// Add nodes
+		for (int i = 0; i < 6; i++) {
+			n[i] = graph.addNode(Integer.toString(i));
+		}
+		// Add edges within the first community
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[1], n[2]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[1]);
+		graph.addEdge(UUID.randomUUID().toString(), n[2], n[0]);
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[2]);
+
+		// Add edges within the second community
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[4], n[5]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[4]);
+		graph.addEdge(UUID.randomUUID().toString(), n[5], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[5]);
+
+		// Connect the two communities
+		graph.addEdge(UUID.randomUUID().toString(), n[0], n[3]);
+		graph.addEdge(UUID.randomUUID().toString(), n[3], n[0]);
+
+		// Set uniform weights for simplicity
+		Iterator<Edge> edges = graph.edges().iterator();
+		while (edges.hasNext()) {
+			Edge edge = edges.next();
+			graph.setEdgeWeight(edge, 1);
+		}
+
+		// Set different edge weights on several edges
+		graph.setEdgeWeight(graph.getEdge(0), 1.5);
+		graph.setEdgeWeight(graph.getEdge(1), 1.5);
+		graph.setEdgeWeight(graph.getEdge(2), 6.3);
+		graph.setEdgeWeight(graph.getEdge(3), 6.3);
+		graph.setEdgeWeight(graph.getEdge(4), 2);
+		graph.setEdgeWeight(graph.getEdge(5), 2);
+		graph.setEdgeWeight(graph.getEdge(8), 4);
+		graph.setEdgeWeight(graph.getEdge(9), 4);
+
+		graph.addType(GraphType.WEIGHTED);
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+
+
+
+
 	/*
 	 * A small test graph given in the original paper that introduces
 	 * the link communities algorithm.
