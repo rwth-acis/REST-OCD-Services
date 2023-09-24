@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import org.graphstream.graph.Edge;
@@ -14,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Iterator;
 
-public class WeightedLinkCommunitiesAlgorithmTest implements UndirectedGraphTestReq {
+public class WeightedLinkCommunitiesAlgorithmTest implements UndirectedGraphTestReq, WeightedGraphTestReq {
 
 	OcdAlgorithm algo;
 

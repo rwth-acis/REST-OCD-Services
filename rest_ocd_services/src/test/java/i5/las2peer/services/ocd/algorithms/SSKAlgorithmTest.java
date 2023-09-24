@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ import org.la4j.vector.Vectors;
 import org.graphstream.graph.Node;
 
 
-public class SSKAlgorithmTest implements DirectedGraphTestReq, UndirectedGraphTestReq {
+public class SSKAlgorithmTest implements DirectedGraphTestReq, UndirectedGraphTestReq, WeightedGraphTestReq {
 
 
 	OcdAlgorithm algo;

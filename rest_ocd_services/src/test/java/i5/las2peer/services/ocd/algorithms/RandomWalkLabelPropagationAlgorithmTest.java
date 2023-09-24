@@ -9,6 +9,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
 import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
@@ -47,7 +48,7 @@ LDAV DA vector
 /*
  * Test Class for the Random Walk Label Propagation Algorithm
  */
-public class RandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTestReq, UndirectedGraphTestReq {
+public class RandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTestReq, UndirectedGraphTestReq, WeightedGraphTestReq {
 
 	OcdAlgorithm algo;
 
