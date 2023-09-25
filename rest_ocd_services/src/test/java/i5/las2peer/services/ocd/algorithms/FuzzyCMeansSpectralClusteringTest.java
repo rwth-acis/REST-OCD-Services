@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.algorithms;
 
+import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +23,8 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FuzzyCMeansSpectralClusteringTest implements UndirectedGraphTestReq, WeightedGraphTestReq {
+public class FuzzyCMeansSpectralClusteringTest implements UndirectedGraphTestReq, WeightedGraphTestReq
+		, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;
 

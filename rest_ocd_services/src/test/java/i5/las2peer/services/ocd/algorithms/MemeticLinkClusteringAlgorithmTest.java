@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.algorithms;
 
+import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import org.graphstream.graph.Node;
 
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 
-public class MemeticLinkClusteringAlgorithmTest implements UndirectedGraphTestReq {
+public class MemeticLinkClusteringAlgorithmTest implements UndirectedGraphTestReq, OCDAParameterTestReq {
 
     OcdAlgorithm algo;
 

@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.HashMap;
 
+import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.SelfLoopGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.ZeroWeightedGraphTestReq;
@@ -28,7 +29,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import org.graphstream.graph.Node;
 
-public class AntColonyOptimizationTest implements  UndirectedGraphTestReq, ZeroWeightedGraphTestReq, SelfLoopGraphTestReq {
+public class AntColonyOptimizationTest implements  UndirectedGraphTestReq, ZeroWeightedGraphTestReq, SelfLoopGraphTestReq, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;
 

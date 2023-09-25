@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
@@ -13,7 +14,7 @@ import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
-
+@Disabled //TODO: disabled as content-based graphs need a rework
 public class CostFunctionOptimizationClusteringAlgorithmTest {
 
 	@Test

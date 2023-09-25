@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 
 import java.util.*;
 
+import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import org.graphstream.graph.Node;
 
@@ -17,7 +18,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 
-public class LOCAlgorithmTest implements UndirectedGraphTestReq {
+public class LOCAlgorithmTest implements UndirectedGraphTestReq, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;
 

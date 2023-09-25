@@ -7,6 +7,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
+import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
@@ -21,7 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import org.graphstream.graph.Node;
 
-public class MergingOfOverlappingCommunitiesTest implements UndirectedGraphTestReq, WeightedGraphTestReq {
+public class MergingOfOverlappingCommunitiesTest implements UndirectedGraphTestReq, WeightedGraphTestReq
+		, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;
 

@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
+import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 //TODO: GRAPHSTREAM UPGRADE: Check with further graphs, the tests here give every node the same belonging to every community. This is intended but not exhaustive enough
-public class NISEAlgorithmTest implements UndirectedGraphTestReq, WeightedGraphTestReq {
+public class NISEAlgorithmTest implements UndirectedGraphTestReq, WeightedGraphTestReq, OCDAParameterTestReq {
 
 
 	OcdAlgorithm algo;

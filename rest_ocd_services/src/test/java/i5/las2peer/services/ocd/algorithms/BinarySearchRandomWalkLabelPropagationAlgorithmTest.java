@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
@@ -45,7 +46,7 @@ LDAV DA vector
 /*
  * Test Class for the Random Walk Label Propagation Algorithm
  */
-public class BinarySearchRandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTestReq, UndirectedGraphTestReq, WeightedGraphTestReq {
+public class BinarySearchRandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTestReq, UndirectedGraphTestReq, WeightedGraphTestReq, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;
 
