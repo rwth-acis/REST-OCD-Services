@@ -55,6 +55,9 @@ public class MetaXmlCoverOutputAdapter extends AbstractCoverOutputAdapter {
 			graphNameElt.appendChild(doc.createTextNode(cover.getGraph().getName()));
 			graphElt.appendChild(graphNameElt);
 			coverElt.appendChild(graphElt);
+			Element isMultiplex = doc.createElement("IsMultiplex");
+			isMultiplex.appendChild(doc.createTextNode(String.valueOf(cover.getIsMultiplex())));
+			coverElt.appendChild(isMultiplex);
 //			Element lastUpdateElt = doc.createElement("LastUpdate");
 //			if(cover.getLastUpdate() != null) {
 //				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd hh:mm:ss");

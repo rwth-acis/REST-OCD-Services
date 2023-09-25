@@ -103,6 +103,12 @@ public class JsonVisualOutputAdapter extends AbstractVisualOutputAdapter {
 				tmp.put("style", 0);
 			}
 
+			//Set LayerId and edge color if Graph is of type Multiplex
+			if(graph.getTypes().contains(GraphType.MULTIPLE_EDGES)) {
+				tmp.put("layerId", graph.getEdgeLayerId(e));
+				tmp.put("color", e.getAttribute("color").toString());
+			}
+
 			JSONObject jsonEdge = (JSONObject) JSONValue.parse(JSONValue.toJSONString(tmp));
 
 			edges.add(jsonEdge);

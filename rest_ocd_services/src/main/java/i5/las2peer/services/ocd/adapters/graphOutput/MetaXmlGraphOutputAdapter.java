@@ -27,6 +27,7 @@ public class MetaXmlGraphOutputAdapter extends AbstractGraphOutputAdapter {
 	public void writeGraph(CustomGraph graph) throws AdapterException {
 		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 		try {
+			
 			DocumentBuilder builder = builderFactory.newDocumentBuilder();
 			Document doc = builder.newDocument();
 			Element graphElt = doc.createElement("Graph");

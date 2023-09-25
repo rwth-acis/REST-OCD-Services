@@ -1,6 +1,8 @@
 package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.algorithms.BinarySearchRandomWalkLabelPropagationAlgorithm;
+import i5.las2peer.services.ocd.algorithms.CliquePercolationMethodAlgorithm;
+import i5.las2peer.services.ocd.algorithms.CliquePercolationMethod_MultiplexAlgorithm;
 import i5.las2peer.services.ocd.algorithms.ClizzAlgorithm;
 import i5.las2peer.services.ocd.algorithms.CostFunctionOptimizationClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.EvolutionaryAlgorithmBasedOnSimilarity;
@@ -172,7 +174,15 @@ public enum CoverCreationType implements EnumDisplayNames {
 	/**
 	 * Type corresponding to the LOCAlgoirthm Algorithm.
 	 */
-	LOC_ALGORITHM("LOC Algorithm", LOCAlgorithm.class, 27);
+	LOC_ALGORITHM("LOC Algorithm", LOCAlgorithm.class, 27),
+	/**
+	 * Type corresponding to the CliquePercolationMethodMultiplex Algorithm.
+	 */
+	CLIQUE_PERCOLATION_METHOD_MULTIPLEX_ALGORITHM("Clique Percolation Method Multiplex Algorithm", CliquePercolationMethod_MultiplexAlgorithm.class, 28),
+	/**
+	 * Type corresponding to the CliquePercolationMethod Algorithm.
+	 */
+	CLIQUE_PERCOLATION_METHOD_MULTIPLEX("Clique Percolation Method Algorithm", CliquePercolationMethodAlgorithm.class, 29);
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
 	 * Abstract types correspond to the CoverCreationMethod interface itself.

@@ -4,6 +4,7 @@ import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.utils.NonZeroEntriesVectorProcedure;
+import i5.las2peer.services.ocd.utils.Pair;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -68,10 +69,12 @@ public class Cover {
 	private static final String creationMethodColumnName = "CREATION_METHOD";
 	public static final String simCostsColumnName = "SIMILARITYCOSTS";
 	public static final String numberOfCommunitiesColumnName = "NUMBER_OF_COMMUNITIES";
+	public static final String is_Multiplex = "IS_MULTIPLEX";
+
 	// private static final String descriptionColumnName = "DESCRIPTION";
 	// private static final String lastUpdateColumnName = "LAST_UPDATE";
-	
-	//ArangoDB name definitions
+
+	// ArangoDB name definitions
 	public static final String collectionName = "cover";
 	public static final String graphKeyColumnName = "GRAPH_KEY";
 	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
@@ -101,7 +104,8 @@ public class Cover {
 	/**
 	 * The graph that the cover is based on.
 	 */
-	//TODO: GRaph should not be ID in javax persistence, we should change this as long as we dont use any other database library
+	// TODO: GRaph should not be ID in javax persistence, we should change this as
+	// long as we dont use any other database library
 	@Id
 	// @ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumns({ @JoinColumn(name = graphIdColumnName, referencedColumnName = CustomGraph.idColumnName),
@@ -115,11 +119,16 @@ public class Cover {
 	private String name = "";
 
 	/**
+	 * 
+	 */
+	@Column(name = nameColumnName)
+	private boolean isMultiplex = false;
+
+	/**
 	 * The number of communities in the cover
 	 */
 	@Column(name = numberOfCommunitiesColumnName)
 	private Integer numberOfCommunities;
-
 
 	// /**
 	// * A description of the cover.
@@ -173,7 +182,7 @@ public class Cover {
 	 * Creates a new instance.
 	 * 
 	 * @param graph
-	 *            The graph that the cover is based on.
+	 *              The graph that the cover is based on.
 	 */
 	public Cover(CustomGraph graph) {
 		this.graph = graph;
@@ -185,18 +194,38 @@ public class Cover {
 	 * cover) will automatically be row-wise normalized according to the 1-norm.
 	 * 
 	 * @param graph
-	 *            The corresponding graph.
+	 *                    The corresponding graph.
 	 * @param memberships
-	 *            A membership matrix, with non-negative entries. Contains one
-	 *            row for each node and one column for each community. Entry
-	 *            (i,j) in row i and column j represents the membership degree /
-	 *            belonging factor of the node with index i with respect to the
-	 *            community with index j.
+	 *                    A membership matrix, with non-negative entries. Contains
+	 *                    one
+	 *                    row for each node and one column for each community. Entry
+	 *                    (i,j) in row i and column j represents the membership
+	 *                    degree /
+	 *                    belonging factor of the node with index i with respect to
+	 *                    the
+	 *                    community with index j.
 	 */
 	public Cover(CustomGraph graph, Matrix memberships) {
 		this.graph = graph;
 		setMemberships(memberships, true);
 		this.numberOfCommunities = communityCount();
+		this.isMultiplex = false;
+	}
+
+	/**
+	 * This constuctor creates an instance of a cover for multiplex networks.
+	 * 
+	 * @param graph
+	 *                    The corresponding graph.
+	 * @param memberships
+	 *                    A Map, mapping a node and its layerId to a list of
+	 *                    communities.
+	 */
+	public Cover(CustomGraph graph, Map<String, Matrix> memberships) {
+		this.graph = graph;
+		setMultiplexMemberships(memberships, true);
+		this.isMultiplex = true;
+
 	}
 
 	//////////////////////////// GETTER & SETTER ////////////////////////////
@@ -209,7 +238,26 @@ public class Cover {
 	public long getId() {
 		return id;
 	}
-	
+
+	/**
+	 * Getter for the isMultiplex.
+	 * 
+	 * @return The isMultiplex.
+	 */
+	public boolean getIsMultiplex() {
+		return isMultiplex;
+	}
+
+	/**
+	 * Setter for the graph that the cover is based on.
+	 * 
+	 * @param isMultiplex
+	 *                    The isMultiplex.
+	 */
+	public void setIsMultiplex(boolean isMultiplex) {
+		this.isMultiplex = isMultiplex;
+	}
+
 	/**
 	 * Getter for the key.
 	 * 
@@ -218,7 +266,7 @@ public class Cover {
 	public String getKey() {
 		return key;
 	}
-	
+
 	/**
 	 * Getter for the graph that the cover is based on.
 	 * 
@@ -232,7 +280,7 @@ public class Cover {
 	 * Setter for the graph that the cover is based on.
 	 * 
 	 * @param graph
-	 *            The graph.
+	 *              The graph.
 	 */
 	public void setGraph(CustomGraph graph) {
 		this.graph = graph;
@@ -251,7 +299,7 @@ public class Cover {
 	 * Setter for the cover name.
 	 * 
 	 * @param name
-	 *            The name.
+	 *             The name.
 	 */
 	public void setName(String name) {
 		this.name = name;
@@ -268,6 +316,7 @@ public class Cover {
 
 	/**
 	 * Setter for the simulation costs.
+	 * 
 	 * @param costs the costs
 	 */
 	public void setSimCosts(double costs) {
@@ -287,7 +336,7 @@ public class Cover {
 	 * Setter for the cover creation method.
 	 * 
 	 * @param creationMethod
-	 *            The creation method.
+	 *                       The creation method.
 	 */
 	public void setCreationMethod(CoverCreationLog creationMethod) {
 		if (creationMethod != null) {
@@ -359,13 +408,18 @@ public class Cover {
 	 * row normalized.
 	 * 
 	 * @param memberships
-	 *            A membership matrix, with non negative entries. Each row i
-	 *            contains the belonging factors of the node with index i of the
-	 *            corresponding graph. Hence the number of rows corresponds the
-	 *            number of graph nodes and the number of columns the number of
-	 *            communities.
+	 *                          A membership matrix, with non negative entries. Each
+	 *                          row i
+	 *                          contains the belonging factors of the node with
+	 *                          index i of the
+	 *                          corresponding graph. Hence the number of rows
+	 *                          corresponds the
+	 *                          number of graph nodes and the number of columns the
+	 *                          number of
+	 *                          communities.
 	 * @param keepExecutionTime
-	 *            Decides whether the (first) execution time metric log is kept.
+	 *                          Decides whether the (first) execution time metric
+	 *                          log is kept.
 	 */
 	protected void setMemberships(Matrix memberships, boolean keepExecutionTime) {
 		if (memberships.rows() != graph.getNodeCount()) {
@@ -397,6 +451,90 @@ public class Cover {
 		this.updateNumberOfCommunities(this.communityCount());
 	}
 
+	protected void setMultiplexMemberships(Map<String, Matrix> multiplexMemberships, boolean keepExecutionTime) {
+		communities.clear();
+		OcdMetricLog executionTime = getMetric(OcdMetricType.EXECUTION_TIME);
+		metrics.clear();
+		if (executionTime != null && keepExecutionTime) {
+			metrics.add(executionTime);
+		}
+		Node[] nodes = graph.nodes().toArray(Node[]::new);
+		Map<String, Matrix> memberships = setZeroColumnsMultiplexMembership(multiplexMemberships);
+		
+		Matrix matrix = convertMultiplexMembershipToMembershipMatrix(memberships);
+		matrix = normalizeMembershipMatrix(matrix);
+
+		boolean communitiesInitialized = false;
+
+		for (Map.Entry<String, Matrix> membership : memberships.entrySet()) {
+			if (!communitiesInitialized) {
+				for (int j = 0; j < membership.getValue().columns(); j++) {
+					MultiplexCommunity community = new MultiplexCommunity(this);
+					communities.add(community);
+				}
+				communitiesInitialized = true;
+			}
+			for (int i = 0; i < membership.getValue().rows(); i++) {
+				NonZeroEntriesVectorProcedure procedure = new NonZeroEntriesVectorProcedure();
+				membership.getValue().getRow(i).eachNonZero(procedure);
+				List<Integer> nonZeroEntries = procedure.getNonZeroEntries();
+				for (int j : nonZeroEntries) {
+					MultiplexCommunity community = (MultiplexCommunity) communities.get(j);
+					// Set MultiplexCommunity
+					community.setMultiplexBelongingFactor(membership.getKey(), nodes[i],
+							matrix.get(i, j));
+					// Set Community
+					community.setBelongingFactor(nodes[i], matrix.get(i, j));
+
+				}
+
+			}
+		}
+
+		this.updateNumberOfCommunities(this.communityCount());
+
+	}
+
+	
+	public Matrix convertMultiplexMembershipToMembershipMatrix(Map<String, Matrix> communities) {
+		Matrix matrix = new CCSMatrix(graph.getNodeCount(), 0);
+		boolean matrixInitialized = false;
+		for (Map.Entry<String, Matrix> entry : communities.entrySet()) {
+			if (!matrixInitialized) {
+				matrix = new CCSMatrix(entry.getValue().rows(), entry.getValue().columns());
+				matrixInitialized = true;
+			}
+			for (int i = 0; i < entry.getValue().rows(); i++) {
+				for (int j = 0; j < entry.getValue().columns(); j++) {
+					if (entry.getValue().get(i, j) > 0) {
+						matrix.set(i, j, entry.getValue().get(i, j));
+					}
+				}
+			}
+
+		}
+		return matrix;
+	}
+
+	public Map<String, Matrix> getMultiplexMemberships() {
+		Map<String, Matrix> result = new HashMap<>();
+		for (int i = 0; i < communities.size(); i++) {
+			Community community = communities.get(i);
+			MultiplexCommunity mCommunity = (MultiplexCommunity) community;
+			for (Map.Entry<String, Map<Node, Double>> entry : mCommunity.getMultiplexMemberships().entrySet()) {
+				if (!result.containsKey(entry.getKey())) {
+					Matrix memberships = new CCSMatrix(graph.getNodeCount(), communities.size());
+					result.put(entry.getKey(), memberships);
+				}
+				for (Map.Entry<Node, Double> entry2 : entry.getValue().entrySet()) {
+					result.get(entry.getKey()).set(entry2.getKey().getIndex(), i, entry2.getValue());
+				}
+			}
+		}
+		return result;
+
+	}
+
 	/**
 	 * Sets the communities from a membership matrix. All metric logs (besides
 	 * optionally the execution time) will be removed from the cover. Note that
@@ -404,14 +542,22 @@ public class Cover {
 	 * row-wise normalized according to the 1-norm.
 	 * 
 	 * @param memberships
-	 *            A membership matrix, with non negative entries. Each row i
-	 *            contains the belonging factors of the node with index i of the
-	 *            corresponding graph. Hence the number of rows corresponds the
-	 *            number of graph nodes and the number of columns the number of
-	 *            communities.
+	 *                    A membership matrix, with non negative entries. Each row i
+	 *                    contains the belonging factors of the node with index i of
+	 *                    the
+	 *                    corresponding graph. Hence the number of rows corresponds
+	 *                    the
+	 *                    number of graph nodes and the number of columns the number
+	 *                    of
+	 *                    communities.
 	 */
 	public void setMemberships(Matrix memberships) {
 		setMemberships(memberships, false);
+		this.updateNumberOfCommunities(this.communityCount());
+	}
+
+	public void setMultiplexMemberships(Map<String, Matrix> memberships) {
+		setMultiplexMemberships(memberships, false);
 		this.updateNumberOfCommunities(this.communityCount());
 	}
 
@@ -430,7 +576,7 @@ public class Cover {
 	 * Setter for the metric logs calculated for the cover.
 	 * 
 	 * @param metrics
-	 *            The metric logs.
+	 *                The metric logs.
 	 */
 	public void setMetrics(List<OcdMetricLog> metrics) {
 		this.metrics.clear();
@@ -444,7 +590,7 @@ public class Cover {
 	 * Returns the first metric occurrence with the corresponding metric type.
 	 * 
 	 * @param metricType
-	 *            The metric type.
+	 *                   The metric type.
 	 * @return The metric. Null if no such metric exists.
 	 */
 	public OcdMetricLog getMetric(OcdMetricType metricType) {
@@ -460,7 +606,7 @@ public class Cover {
 	 * Adds a metric log to the cover.
 	 * 
 	 * @param metric
-	 *            The metric log.
+	 *               The metric log.
 	 */
 	public void addMetric(OcdMetricLog metric) {
 		if (metric != null) {
@@ -472,7 +618,7 @@ public class Cover {
 	 * Removes a metric log from the cover.
 	 * 
 	 * @param metric
-	 *            The metric log.
+	 *               The metric log.
 	 */
 	public void removeMetric(OcdMetricLog metric) {
 		this.metrics.remove(metric);
@@ -488,7 +634,7 @@ public class Cover {
 	public int communityCount() {
 		return communities.size();
 	}
-	
+
 	/**
 	 * Returns the communities of this cover
 	 * 
@@ -497,12 +643,12 @@ public class Cover {
 	public List<Community> getCommunities() {
 		return this.communities;
 	}
-	
+
 	/**
 	 * Returns the size (i.e. the amount of members) of a certain community.
 	 * 
 	 * @param communityIndex
-	 *            The community index.
+	 *                       The community index.
 	 * @return The size.
 	 */
 	public int getCommunitySize(int communityIndex) {
@@ -513,7 +659,7 @@ public class Cover {
 	 * Getter for the name of a certain community.
 	 * 
 	 * @param communityIndex
-	 *            The community index.
+	 *                       The community index.
 	 * @return The name.
 	 */
 	public String getCommunityName(int communityIndex) {
@@ -524,9 +670,9 @@ public class Cover {
 	 * Setter for the name of a certain community.
 	 * 
 	 * @param communityIndex
-	 *            The community index.
+	 *                       The community index.
 	 * @param name
-	 *            The name.
+	 *                       The name.
 	 */
 	public void setCommunityName(int communityIndex, String name) {
 		communities.get(communityIndex).setName(name);
@@ -536,7 +682,7 @@ public class Cover {
 	 * Setter for the number of communities in the cover.
 	 *
 	 * @param numberOfCommunities
-	 *            The community count.
+	 *                            The community count.
 	 */
 	public void updateNumberOfCommunities(Integer numberOfCommunities) {
 		this.numberOfCommunities = numberOfCommunities;
@@ -546,21 +692,21 @@ public class Cover {
 	 * Getter for the color of a certain community.
 	 * 
 	 * @param communityIndex
-	 *            The community index.
+	 *                       The community index.
 	 * @return The color.
 	 */
 	public Color getCommunityColor(int communityIndex) {
 		return communities.get(communityIndex).getColor();
 	}
-	
+
 	/**
 	 * Checks whether the cover has been painted already
 	 * 
 	 * @return false if not painted(everything white), true if not
 	 */
 	public boolean isPainted() {
-		for(Community comm : communities) {
-			if( !(comm.getColor().equals(new Color(Color.WHITE.getRGB()))) ) {
+		for (Community comm : communities) {
+			if (!(comm.getColor().equals(new Color(Color.WHITE.getRGB())))) {
 				return true;
 			}
 		}
@@ -571,27 +717,27 @@ public class Cover {
 	 * Setter for the color of a certain community.
 	 * 
 	 * @param communityIndex
-	 *            The community index.
+	 *                       The community index.
 	 * @param color
-	 *            The color.
+	 *                       The color.
 	 */
 	public void setCommunityColor(int communityIndex, Color color) {
 		communities.get(communityIndex).setColor(color);
 	}
-	
+
 	/**
 	 * Returns the property value of a community
 	 * 
 	 * @param communityIndex The id of the community
-	 * @param property The property of the communtiy
+	 * @param property       The property of the communtiy
 	 * @return the property value
 	 */
 	public double getCommunityProperty(int communityIndex, GraphProperty property) {
 		Community community = communities.get(communityIndex);
-				
-		return community.getProperty(property);		
+
+		return community.getProperty(property);
 	}
-	
+
 	/**
 	 * Returns the indices of all nodes that have a belonging to the community
 	 *
@@ -606,7 +752,7 @@ public class Cover {
 	 * Returns the indices of the communities that a node is member of.
 	 * 
 	 * @param node
-	 *            The node.
+	 *             The node.
 	 * @return The community indices.
 	 */
 	public List<Integer> getCommunityIndices(Node node) {
@@ -624,9 +770,9 @@ public class Cover {
 	 * certain community.
 	 * 
 	 * @param node
-	 *            The node.
+	 *                       The node.
 	 * @param communityIndex
-	 *            The community index.
+	 *                       The community index.
 	 * @return The belonging factor.
 	 */
 	public double getBelongingFactor(Node node, int communityIndex) {
@@ -636,6 +782,7 @@ public class Cover {
 	/**
 	 * Get the community structure of a cover, i.e. the number of communities of
 	 * a certain size YLi
+	 * 
 	 * @return a map of community ids and structures
 	 */
 	public Map<Integer, Integer> getCommunityStructure() {
@@ -664,13 +811,13 @@ public class Cover {
 				it.remove();
 			}
 		}
-	}	
-	
+	}
+
 	/**
 	 * Initializes the properties of all communities of this cover.
 	 */
 	public void initCommunityProperties() throws InterruptedException {
-		for(Community community: getCommunities()) {
+		for (Community community : getCommunities()) {
 			CustomGraph subGraph = getGraph().getSubGraph(community.getMemberIndices());
 			community.setProperties(GraphProperty.getPropertyList(subGraph));
 		}
@@ -684,7 +831,7 @@ public class Cover {
 	 * separate node community.
 	 * 
 	 * @param matrix
-	 *            The memberships matrix to be normalized and set.
+	 *               The memberships matrix to be normalized and set.
 	 * @return The normalized membership matrix.
 	 */
 	protected Matrix normalizeMembershipMatrix(Matrix matrix) {
@@ -709,15 +856,43 @@ public class Cover {
 		return matrix;
 	}
 
+	protected Map<String, Matrix> setZeroColumnsMultiplexMembership(Map<String, Matrix> communities) {
+		List<Integer> zeroRowIndices = new ArrayList<Integer>();
+		Map<String, Matrix> result = new HashMap<>(communities);
+		for (int i = 0; i < graph.getNodeCount(); i++) {
+			boolean zeroRows = true;
+			for (Map.Entry<String, Matrix> entry : communities.entrySet()) {
+				Vector row = entry.getValue().getRow(i);
+				double norm = row.fold(Vectors.mkManhattanNormAccumulator());
+				if (norm != 0) {
+					zeroRows = false;
+				}
+
+			}
+			if (zeroRows) {
+				zeroRowIndices.add(i);
+			}
+		}
+		for (Map.Entry<String, Matrix> entry : communities.entrySet()) {
+			result.replace(entry.getKey(), entry.getValue().resize(entry.getValue().rows(), entry.getValue().columns() + zeroRowIndices.size()));
+			for (int i = 0; i < zeroRowIndices.size(); i++) {
+				result.get(entry.getKey()).set(zeroRowIndices.get(i), result.get(entry.getKey()).columns() - zeroRowIndices.size() + i, 1d);
+			}
+
+		}
+		return result;
+	}
+
 	/**
 	 * Filters the cover membership matrix by removing insignificant membership
 	 * values. The cover is then normalized and empty communities are removed.
 	 * All metric results besides the execution time are removed as well.
 	 * 
 	 * @param threshold
-	 *            A threshold value, all entries below the threshold will be set
-	 *            to 0, unless they are the maximum belonging factor of the
-	 *            node.
+	 *                  A threshold value, all entries below the threshold will be
+	 *                  set
+	 *                  to 0, unless they are the maximum belonging factor of the
+	 *                  node.
 	 */
 	public void filterMembershipsbyThreshold(double threshold) {
 		Matrix memberships = this.getMemberships();
@@ -733,11 +908,11 @@ public class Cover {
 	 * threshold value and the row's max entry to zero.
 	 * 
 	 * @param matrix
-	 *            The matrix.
+	 *                  The matrix.
 	 * @param rowIndex
-	 *            The index of the row to filter.
+	 *                  The index of the row to filter.
 	 * @param threshold
-	 *            The threshold.
+	 *                  The threshold.
 	 */
 	protected void setRowEntriesBelowThresholdToZero(Matrix matrix, int rowIndex, double threshold) {
 		Vector row = matrix.getRow(rowIndex);
@@ -750,139 +925,161 @@ public class Cover {
 		}
 		matrix.setRow(rowIndex, row);
 	}
-	
-	//persistence functions
+
+	// persistence functions
 	public void persist(ArangoDatabase db, String transId) {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
 		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
 		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
-		if(this.graph == null) {
+		if (this.graph == null) {
 			throw new IllegalArgumentException("graph attribute of the cover to be persisted does not exist");
-		}
-		else if(this.graph.getKey().equals("")) {
+		} else if (this.graph.getKey().equals("")) {
 			throw new IllegalArgumentException("the graph of the cover is not persisted yet");
 		}
 		bd.addAttribute(graphKeyColumnName, this.graph.getKey());
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(simCostsColumnName, this.simCosts);
 		bd.addAttribute(numberOfCommunitiesColumnName, this.numberOfCommunities);
-		
+		bd.addAttribute(is_Multiplex, this.isMultiplex);
+
 		this.creationMethod.persist(db, transId);
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		collection.insertDocument(bd, createOptions);
 		this.key = bd.getKey();
-		
+
 		bd = new BaseDocument();
 		List<String> communityKeyList = new ArrayList<String>();
-		for(Community c : this.communities) {
-			c.persist(db, createOptions);
+		for (Community c : this.communities) {
+			if (c instanceof MultiplexCommunity) {
+				MultiplexCommunity cMultiplex = (MultiplexCommunity) c;
+				cMultiplex.persist(db, createOptions);
+			} else {
+				c.persist(db, createOptions);
+			}
 			communityKeyList.add(c.getKey());
 		}
-		
+
 		bd.addAttribute(communityKeysColumnName, communityKeyList);
-		for(OcdMetricLog oml : this.metrics) {
+		for (OcdMetricLog oml : this.metrics) {
 			oml.persist(db, createOptions);
 		}
 		collection.updateDocument(this.key, bd, updateOptions);
 	}
-	
+
 	public void updateDB(ArangoDatabase db, String transId) {
 		ArangoCollection collection = db.collection(collectionName);
-		ArangoCollection communityCollection = db.collection(Community.collectionName);
+		ArangoCollection communityCollection;
+		if (this.isMultiplex) {
+			communityCollection = db.collection(MultiplexCommunity.multiplexCollectionName);
+		} else {
+			communityCollection = db.collection(Community.collectionName);
+		}
 		ObjectMapper om = new ObjectMapper();
-		
+
 		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
 		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
 		DocumentReadOptions readOptions = new DocumentReadOptions().streamTransactionId(transId);
 		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
-		
+
 		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOptions);
-		
-		if(this.graph == null) {
+
+		if (this.graph == null) {
 			throw new IllegalArgumentException("graph attribute of the cover to be updated does not exist");
-		}
-		else if(this.graph.getKey().equals("")) {
+		} else if (this.graph.getKey().equals("")) {
 			throw new IllegalArgumentException("the graph of the cover is not persisted yet");
 		}
 		bd.updateAttribute(nameColumnName, this.name);
 		bd.updateAttribute(simCostsColumnName, this.simCosts);
+		bd.updateAttribute(is_Multiplex, this.isMultiplex);
 		this.creationMethod.updateDB(db, transId);
-		
+
 		Object objCommunityKeys = bd.getAttribute(communityKeysColumnName);
 		List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
-		for(String communityKey : communityKeys) {			//delete all communitys
+		for (String communityKey : communityKeys) { // delete all communitys
 			communityCollection.deleteDocument(communityKey, null, deleteOpt);
-		}		
-		
+		}
+
 		List<String> communityKeyList = new ArrayList<String>();
-		for(Community c : this.communities) {		//add new communities
-			c.persist(db, createOptions);
+		for (Community c : this.communities) {
+			if (c instanceof MultiplexCommunity) {
+				MultiplexCommunity cMultiplex = (MultiplexCommunity) c;
+				cMultiplex.persist(db, createOptions);
+			} else {
+				c.persist(db, createOptions);
+			} // add new communities
 			communityKeyList.add(c.getKey());
-		}	
+		}
 		bd.updateAttribute(communityKeysColumnName, communityKeyList);
 		bd.addAttribute(numberOfCommunitiesColumnName, this.numberOfCommunities);
-			
-		for(OcdMetricLog oml : this.metrics) {		//updates or persists a metric depending on its current existence
-			if(oml.getKey().equals("")) {
+
+		for (OcdMetricLog oml : this.metrics) { // updates or persists a metric depending on its current existence
+			if (oml.getKey().equals("")) {
 				oml.persist(db, createOptions);
-			}
-			else {
+			} else {
 				oml.updateDB(db, transId);
 			}
 		}
 		collection.updateDocument(this.key, bd, updateOptions);
 	}
-	
+
 	public static Cover load(String key, CustomGraph g, ArangoDatabase db, String transId) {
-		
+
 		Cover cover = null;
 		ArangoCollection collection = db.collection(collectionName);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
-		
+
 		if (bd != null) {
 			cover = new Cover(g);
-			ObjectMapper om = new ObjectMapper();	//prepair attributes
+			ObjectMapper om = new ObjectMapper(); // prepair attributes
 			String graphKey = bd.getAttribute(graphKeyColumnName).toString();
-			if(!graphKey.equals(g.getKey())) {
-				System.out.println("graph with key: " + g.getKey() + " does not fit to cover with GraphKey: " + graphKey);
+			if (!graphKey.equals(g.getKey())) {
+				System.out
+						.println("graph with key: " + g.getKey() + " does not fit to cover with GraphKey: " + graphKey);
 				return null;
 			}
 			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
 			Object objCommunityKeys = bd.getAttribute(communityKeysColumnName);
 			List<String> communityKeys = om.convertValue(objCommunityKeys, List.class);
 			Object objSimCost = bd.getAttribute(simCostsColumnName);
-			
-			//restore all attributes
+
+			// restore all attributes
 			cover.key = key;
 			cover.name = bd.getAttribute(nameColumnName).toString();
+			String booleanValue = bd.getAttribute(is_Multiplex).toString();
+			cover.isMultiplex = Boolean.parseBoolean(booleanValue);
 			cover.creationMethod = CoverCreationLog.load(creationMethodKey, db, readOpt);
-			for(String communityKey : communityKeys) {
-				Community community = Community.load(communityKey,  cover, db, readOpt);
+			for (String communityKey : communityKeys) {
+				Community community;
+				if (cover.isMultiplex) {
+					community = MultiplexCommunity.load(communityKey, cover, db, readOpt);
+				} else {
+					community = Community.load(communityKey, cover, db, readOpt);
+				}
 				cover.communities.add(community);
 			}
 			cover.numberOfCommunities = (Integer) bd.getAttribute(numberOfCommunitiesColumnName);
-			
-			String queryStr = "FOR m IN " + OcdMetricLog.collectionName + " FILTER m." + OcdMetricLog.coverKeyColumnName +
+
+			String queryStr = "FOR m IN " + OcdMetricLog.collectionName + " FILTER m." + OcdMetricLog.coverKeyColumnName
+					+
 					" == @cKey RETURN m._key";
 			Map<String, Object> bindVars = Collections.singletonMap("cKey", key);
 			ArangoCursor<String> metricKeys = db.query(queryStr, bindVars, queryOpt, String.class);
-			
-			for(String metricKey : metricKeys) {
+
+			for (String metricKey : metricKeys) {
 				OcdMetricLog oml = OcdMetricLog.load(metricKey, cover, db, readOpt);
 				cover.metrics.add(oml);
 			}
-			if(objSimCost != null) {
+			if (objSimCost != null) {
 				cover.simCosts = Double.parseDouble(objSimCost.toString());
 			}
-		}	
-		else {
+		} else {
 			System.out.println("empty Cover document");
 		}
 		return cover;
-	}	
+	}
 
 	@Override
 	public String toString() {

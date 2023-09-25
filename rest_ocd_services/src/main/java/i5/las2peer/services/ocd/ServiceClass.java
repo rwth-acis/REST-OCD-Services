@@ -1220,11 +1220,17 @@ public class ServiceClass extends RESTService {
 						database.updateGraph(graph);	//done
 					}
 					cover = new Cover(graph, new CCSMatrix(graph.getNodeCount(), 0));
+
+					if (algorithmType == CoverCreationType.CLIQUE_PERCOLATION_METHOD_MULTIPLEX_ALGORITHM) {
+						cover.setIsMultiplex(true);
+						cover = new Cover(graph, new HashMap<>());
+					}
 					log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
 					cover.setCreationMethod(log);
 					cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
 					database.storeCover(cover);		//done
 					/*
+					
 					 * Registers and starts algorithm
 					 */
 					threadHandler.runAlgorithm(cover, algorithm, componentNodeCountFilter);

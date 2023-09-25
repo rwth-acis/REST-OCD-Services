@@ -29,8 +29,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
 /**
- * Handles the execution and synchronization of threads for running OCD algorithms, centrality algorithms, simulations, 
+ * Handles the execution and synchronization of threads for running OCD
+ * algorithms, centrality algorithms, simulations,
  * benchmarks and metrics.
+ * 
  * @author Sebastian
  *
  */
@@ -40,50 +42,59 @@ public class ThreadHandler {
 	 * Defines how many threads are allowed to run in parallel.
 	 */
 	private static final int THREAD_POOL_SIZE = 4;
-	
+
 	/**
-	 * Mapping from the id of a cover in calculation to the future of the algorithm calculating it.
+	 * Mapping from the id of a cover in calculation to the future of the algorithm
+	 * calculating it.
 	 */
 	private static Map<CoverId, Future<CoverCreationLog>> algorithms = new HashMap<CoverId, Future<CoverCreationLog>>();
-	
+
 	/**
-	 * Mapping from the id of a CentralityMap in calculation to the future of the algorithm calculating it.
+	 * Mapping from the id of a CentralityMap in calculation to the future of the
+	 * algorithm calculating it.
 	 */
 	private static Map<CentralityMapId, Future<CentralityCreationLog>> centralityAlgorithms = new HashMap<CentralityMapId, Future<CentralityCreationLog>>();
-	
+
 	/**
-	 * Mapping from the id of a metric being calculated to the future of its execution.
+	 * Mapping from the id of a metric being calculated to the future of its
+	 * execution.
 	 */
 	private static Map<OcdMetricLogId, Future<OcdMetricLog>> metrics = new HashMap<OcdMetricLogId, Future<OcdMetricLog>>();
-	
+
 	/**
-	 * Mapping from the id of a graph in calculation to the future of the benchmark calculating it.
+	 * Mapping from the id of a graph in calculation to the future of the benchmark
+	 * calculating it.
 	 */
 	private static Map<CustomGraphId, Future<GraphCreationLog>> benchmarks = new HashMap<CustomGraphId, Future<GraphCreationLog>>();
-	
+
 	/**
 	 * A thread pool for the execution of algorithm, benchmark and metric runnables.
 	 */
 	private static ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-	
+
 	/**
 	 * Creates a new instance.
 	 */
 	private RequestHandler requestHandler = new RequestHandler();
-	
+
 	/**
 	 * Creates a new instance.
 	 */
 	private static Database database;
-	
+
 	public ThreadHandler() {
 		database = new Database(false);
 	}
+
 	/**
 	 * Runs an algorithm.
-	 * @param cover The cover that is already persisted but not holding any valid information aside the graph and id.
-	 * @param algorithm The algorithm to calculate the cover with.
-	 * @param componentNodeCountFilter The node count filter used by the OcdAlgorithmExecutor.
+	 * 
+	 * @param cover                    The cover that is already persisted but not
+	 *                                 holding any valid information aside the graph
+	 *                                 and id.
+	 * @param algorithm                The algorithm to calculate the cover with.
+	 * @param componentNodeCountFilter The node count filter used by the
+	 *                                 OcdAlgorithmExecutor.
 	 */
 	public void runAlgorithm(Cover cover, OcdAlgorithm algorithm, int componentNodeCountFilter) {
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
@@ -95,10 +106,12 @@ public class ThreadHandler {
 			algorithms.put(coverId, future);
 		}
 	}
-	
+
 	/**
 	 * Runs a CentralityAlgorithm.
-	 * @param map The centrality map that is already persisted but not holding any valid information aside the graph and id.
+	 * 
+	 * @param map       The centrality map that is already persisted but not holding
+	 *                  any valid information aside the graph and id.
 	 * @param algorithm The algorithm to calculate the centrality values with.
 	 */
 	public void runCentralityAlgorithm(CentralityMap map, CentralityAlgorithm algorithm) {
@@ -111,11 +124,14 @@ public class ThreadHandler {
 			centralityAlgorithms.put(mapId, future);
 		}
 	}
-	
+
 	/**
 	 * Runs a CentralitySimulation.
-	 * @param map The centrality map that is already persisted but not holding any valid information aside the graph and id.
-	 * @param simulation The CentralitySimulation to calculate the centrality values with
+	 * 
+	 * @param map        The centrality map that is already persisted but not
+	 *                   holding any valid information aside the graph and id.
+	 * @param simulation The CentralitySimulation to calculate the centrality values
+	 *                   with
 	 */
 	public void runCentralitySimulation(CentralityMap map, CentralitySimulation simulation) {
 		CustomGraphId gId = new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName());
@@ -127,11 +143,13 @@ public class ThreadHandler {
 			centralityAlgorithms.put(mapId, future);
 		}
 	}
-	
+
 	/**
 	 * Runs a ground truth benchmark.
-	 * @param cover The id for the reserved, prepersisted ground truth cover.
-	 * @param benchmark The benchmark model to calculate the ground truth cover with.
+	 * 
+	 * @param cover     The id for the reserved, prepersisted ground truth cover.
+	 * @param benchmark The benchmark model to calculate the ground truth cover
+	 *                  with.
 	 */
 	public void runGroundTruthBenchmark(Cover cover, GroundTruthBenchmark benchmark) {
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
@@ -143,12 +161,13 @@ public class ThreadHandler {
 			benchmarks.put(gId, future);
 		}
 	}
-	
+
 	/**
 	 * Runs a statistical measure.
+	 * 
 	 * @param metricLog The reserved prepersisted log entry of the metric.
-	 * @param metric The metric to run.
-	 * @param cover The cover the metric shall run on.
+	 * @param metric    The metric to run.
+	 * @param cover     The cover the metric shall run on.
 	 */
 	public void runStatisticalMeasure(OcdMetricLog metricLog, StatisticalMeasure metric, Cover cover) {
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
@@ -160,19 +179,22 @@ public class ThreadHandler {
 			metrics.put(logId, future);
 		}
 	}
-	
+
 	/**
 	 * Runs a knowledge-driven measure.
-	 * @param metricLog The reserved prepersisted log entry of the metric.
-	 * @param metric The metric to run.
-	 * @param cover The cover the metric shall run on.
+	 * 
+	 * @param metricLog   The reserved prepersisted log entry of the metric.
+	 * @param metric      The metric to run.
+	 * @param cover       The cover the metric shall run on.
 	 * @param groundTruth The ground truth cover to be used by the metric.
 	 */
-	public void runKnowledgeDrivenMeasure(OcdMetricLog metricLog, KnowledgeDrivenMeasure metric, Cover cover, Cover groundTruth) {
+	public void runKnowledgeDrivenMeasure(OcdMetricLog metricLog, KnowledgeDrivenMeasure metric, Cover cover,
+			Cover groundTruth) {
 		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
 		CoverId coverId = new CoverId(cover.getKey(), gId);
 		OcdMetricLogId logId = new OcdMetricLogId(metricLog.getKey(), coverId);
-		KnowledgeDrivenMeasureRunnable runnable = new KnowledgeDrivenMeasureRunnable(logId, metric, cover, groundTruth, this);
+		KnowledgeDrivenMeasureRunnable runnable = new KnowledgeDrivenMeasureRunnable(logId, metric, cover, groundTruth,
+				this);
 		synchronized (metrics) {
 			Future<OcdMetricLog> future = executor.<OcdMetricLog>submit(runnable, metricLog);
 			metrics.put(logId, future);
@@ -182,21 +204,22 @@ public class ThreadHandler {
 	/**
 	 * Merges a calculated metric to the persistence context.
 	 * Is called from the runnable itself.
-	 * @param log The calculated metric.
-	 * May be null if error is true.
+	 * 
+	 * @param log   The calculated metric.
+	 *              May be null if error is true.
 	 * @param logId The id reserved for the calculated metric.
 	 * @param error States whether an error occurred (true) during execution.
 	 */
 	public void createMetric(OcdMetricLog log, OcdMetricLogId logId, boolean error) {
-    	synchronized (metrics) {
-    		if(Thread.interrupted()) {
-    			Thread.currentThread().interrupt();
-    			return;
-    		}
-    		if(!error) {
-		    	try {				
+		synchronized (metrics) {
+			if (Thread.interrupted()) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+			if (!error) {
+				try {
 					OcdMetricLog persistedLog = database.getOcdMetricLog(logId);
-					if(persistedLog == null) {
+					if (persistedLog == null) {
 						/*
 						 * Should not happen.
 						 */
@@ -206,17 +229,17 @@ public class ThreadHandler {
 					persistedLog.setValue(log.getValue());
 					persistedLog.setStatus(ExecutionStatus.COMPLETED);
 					database.updateOcdMetricLog(persistedLog);
-		    	} catch( RuntimeException e ) {
+				} catch (RuntimeException e) {
 
 					error = true;
 				}
 
-    		}
-    		if(error) {
+			}
+			if (error) {
 
-    			try {
+				try {
 					OcdMetricLog persistedLog = database.getOcdMetricLog(logId);
-					if(persistedLog == null) {
+					if (persistedLog == null) {
 						/*
 						 * Should not happen.
 						 */
@@ -225,143 +248,155 @@ public class ThreadHandler {
 					}
 					persistedLog.setStatus(ExecutionStatus.ERROR);
 					database.updateOcdMetricLog(persistedLog);
-    			} catch( RuntimeException e ) {
-    				e.printStackTrace();
-    			}
+				} catch (RuntimeException e) {
+					e.printStackTrace();
+				}
 
-			}	
-    		unsynchedInterruptMetric(logId);
+			}
+			unsynchedInterruptMetric(logId);
 		}
 	}
 
 	/**
-	 * Merges a calculated ground truth cover created by a ground truth benchmark to the persistence context.
+	 * Merges a calculated ground truth cover created by a ground truth benchmark to
+	 * the persistence context.
 	 * Is called from the runnable itself.
-	 * @param calculatedCover The calculated ground truth cover holding also the corresponding calculated graph.
-	 * May be null if error is true.
-	 * @param coverId The id reserved for the ground truth cover.
-	 * @param error Indicates whether an error occurred (true) during the calculation.
+	 * 
+	 * @param calculatedCover The calculated ground truth cover holding also the
+	 *                        corresponding calculated graph.
+	 *                        May be null if error is true.
+	 * @param coverId         The id reserved for the ground truth cover.
+	 * @param error           Indicates whether an error occurred (true) during the
+	 *                        calculation.
 	 */
 	public void createGroundTruthCover(Cover calculatedCover, CoverId coverId, boolean error) {
 		String cKey = coverId.getKey();
 		CustomGraphId gId = coverId.getGraphId();
 		String user = gId.getUser();
 		String gKey = gId.getKey();
-    	synchronized (benchmarks) {
-    		if(Thread.interrupted()) {
-    			Thread.currentThread().interrupt();
-    			return;
-    		}
-    		if(!error) {
-
-    			try {
-    				Cover cover = database.getCover(user, gKey, cKey);
-    				if(cover == null) {
-    					/*
-    					 * Should not happen.
-    					 */
-    					requestHandler.log(Level.WARNING, "Cover deleted while benchmark running.");
-    					throw new IllegalStateException();
-    				}
-    				CustomGraph graph = cover.getGraph();
-    				graph.setStructureFrom(calculatedCover.getGraph());
-    				graph.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
-					graph.setNodeEdgeCountColumnFields(); // before persisting to db, update node/edge count information
-    				database.updateGraph(graph);
-    			} catch( RuntimeException ex ) {
-
-    				error = true;
-    			}
-
-    			try {
-    				Cover cover = database.getCover(user, gKey, cKey);
-    				if(cover == null) {
-    					/*
-    					 * Should not happen.
-    					 */
-    					requestHandler.log(Level.WARNING, "Cover deleted while benchmark running.");
-    					throw new IllegalStateException();
-    				}
-    				cover.setMemberships(calculatedCover.getMemberships());
-    				cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
-    				database.updateCover(cover);
-    			} catch( RuntimeException ex ) {
-
-    				error = true;
-    			}
-
-    		}
-			if(error) {
+		synchronized (benchmarks) {
+			if (Thread.interrupted()) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+			if (!error) {
 
 				try {
-    				Cover cover = database.getCover(user, gKey, cKey);
-    				if(cover == null) {
-    					/*
-    					 * Should not happen.
-    					 */
-    					requestHandler.log(Level.SEVERE, "Cover deleted while benchmark running.");
-    					throw new IllegalStateException();
-    				}
-    				CustomGraph graph = cover.getGraph();
-					cover.getCreationMethod().setStatus(ExecutionStatus.ERROR);
-					database.updateCoverCreationLog(cover);	//TODO optimieren
-					graph.getCreationMethod().setStatus(ExecutionStatus.ERROR);
-					database.updateGraphCreationLog(graph);	//TODO muss beides in transaktion?
-				}  catch( RuntimeException e ) {
+					Cover cover = database.getCover(user, gKey, cKey);
+					if (cover == null) {
+						/*
+						 * Should not happen.
+						 */
+						requestHandler.log(Level.WARNING, "Cover deleted while benchmark running.");
+						throw new IllegalStateException();
+					}
+					CustomGraph graph = cover.getGraph();
+					graph.setStructureFrom(calculatedCover.getGraph());
+					graph.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+					graph.setNodeEdgeCountColumnFields(); // before persisting to db, update node/edge count information
+					database.updateGraph(graph);
+				} catch (RuntimeException ex) {
 
-    			}
+					error = true;
+				}
+
+				try {
+					Cover cover = database.getCover(user, gKey, cKey);
+					if (cover == null) {
+						/*
+						 * Should not happen.
+						 */
+						requestHandler.log(Level.WARNING, "Cover deleted while benchmark running.");
+						throw new IllegalStateException();
+					}
+					cover.setMemberships(calculatedCover.getMemberships());
+					cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+					database.updateCover(cover);
+				} catch (RuntimeException ex) {
+
+					error = true;
+				}
+
+			}
+			if (error) {
+
+				try {
+					Cover cover = database.getCover(user, gKey, cKey);
+					if (cover == null) {
+						/*
+						 * Should not happen.
+						 */
+						requestHandler.log(Level.SEVERE, "Cover deleted while benchmark running.");
+						throw new IllegalStateException();
+					}
+					CustomGraph graph = cover.getGraph();
+					cover.getCreationMethod().setStatus(ExecutionStatus.ERROR);
+					database.updateCoverCreationLog(cover); // TODO optimieren
+					graph.getCreationMethod().setStatus(ExecutionStatus.ERROR);
+					database.updateGraphCreationLog(graph); // TODO muss beides in transaktion?
+				} catch (RuntimeException e) {
+
+				}
 
 			}
 			unsynchedInterruptBenchmark(gId);
-    	}
+		}
 	}
-	
+
 	/**
 	 * Merges a calculated cover to the persistence context.
 	 * Is called from the runnable itself.
+	 * 
 	 * @param calculatedCover The calculated cover.
-	 * May be null if error is true.
-	 * @param coverId The id reserved for the calculated cover.
-	 * @param error States whether an error occurred (true) during execution.
+	 *                        May be null if error is true.
+	 * @param coverId         The id reserved for the calculated cover.
+	 * @param error           States whether an error occurred (true) during
+	 *                        execution.
 	 */
 	public void createCover(Cover calculatedCover, CoverId coverId, boolean error) {
 		String cKey = coverId.getKey();
 		CustomGraphId gId = coverId.getGraphId();
 		String user = gId.getUser();
 		String gKey = gId.getKey();
-    	synchronized (algorithms) {
-    		if(Thread.interrupted()) {
-    			Thread.currentThread().interrupt();
-    			return;
-    		}
-    		if(!error) {
+		synchronized (algorithms) {
+			if (Thread.interrupted()) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+			if (!error) {
 
-		    	try {
+				try {
 					Cover cover = database.getCover(user, gKey, cKey);
-					if(cover == null) {
+					if (cover == null) {
 						/*
 						 * Should not happen.
 						 */
 						requestHandler.log(Level.SEVERE, "Cover deleted while algorithm running.");
 						throw new IllegalStateException();
 					}
-					cover.setMemberships(calculatedCover.getMemberships());
+
+					if (cover.getIsMultiplex()) {
+						cover.setMultiplexMemberships(calculatedCover.getMultiplexMemberships());
+					} else {
+						cover.setMemberships(calculatedCover.getMemberships());
+					}
 					OcdMetricLog calculatedExecTime = calculatedCover.getMetrics().get(0);
-					OcdMetricLog log = new OcdMetricLog(calculatedExecTime.getType(), calculatedExecTime.getValue(), calculatedExecTime.getParameters(), cover);
+					OcdMetricLog log = new OcdMetricLog(calculatedExecTime.getType(), calculatedExecTime.getValue(),
+							calculatedExecTime.getParameters(), cover);
 					log.setStatus(ExecutionStatus.COMPLETED);
 					cover.addMetric(log);
 					cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
 					database.updateCover(cover);
-		    	} catch(Exception e ) {
+				} catch (Exception e) {
 					error = true;
 				}
 
-    		}
-    		if(error) {
+			}
+			if (error) {
 
-    			try {
+				try {
 					Cover cover = database.getCover(user, gKey, cKey);
-					if(cover == null) {
+					if (cover == null) {
 						/*
 						 * Should not happen.
 						 */
@@ -370,38 +405,40 @@ public class ThreadHandler {
 					}
 					cover.getCreationMethod().setStatus(ExecutionStatus.ERROR);
 					database.updateCoverCreationLog(cover);
-    			} catch( Exception e ) {
-    				e.printStackTrace();
-    			}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 
-			}	
-	    	unsynchedInterruptAlgorithm(coverId);
+			}
+			unsynchedInterruptAlgorithm(coverId);
 		}
 	}
-	
+
 	/**
 	 * Merges a calculated CentralityMap to the persistence context.
 	 * Is called from the runnable itself.
+	 * 
 	 * @param calculatedMap The calculated cover.
-	 * May be null if error is true.
-	 * @param mapId The id reserved for the calculated cover.
-	 * @param error States whether an error occurred (true) during execution.
+	 *                      May be null if error is true.
+	 * @param mapId         The id reserved for the calculated cover.
+	 * @param error         States whether an error occurred (true) during
+	 *                      execution.
 	 */
 	public void createCentralityMap(CentralityMap calculatedMap, CentralityMapId mapId, boolean error) {
 		String mKey = mapId.getKey();
 		CustomGraphId gId = mapId.getGraphId();
 		String user = gId.getUser();
 		String gKey = gId.getKey();
-    	synchronized (centralityAlgorithms) {
-    		if(Thread.interrupted()) {
-    			Thread.currentThread().interrupt();
-    			return;
-    		}
-    		if(!error) {
+		synchronized (centralityAlgorithms) {
+			if (Thread.interrupted()) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+			if (!error) {
 
-		    	try {
-					CentralityMap map = database.getCentralityMap(user,  gKey, mKey);
-					if(map == null) {
+				try {
+					CentralityMap map = database.getCentralityMap(user, gKey, mKey);
+					if (map == null) {
 						/*
 						 * Should not happen.
 						 */
@@ -412,16 +449,16 @@ public class ThreadHandler {
 					map.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
 					map.getCreationMethod().setExecutionTime(calculatedMap.getCreationMethod().getExecutionTime());
 					database.updateCentralityMap(map);
-		    	} catch(RuntimeException e ) {
+				} catch (RuntimeException e) {
 					error = true;
 				}
 
-    		}
-    		if(error) {
+			}
+			if (error) {
 
-    			try {
+				try {
 					CentralityMap map = database.getCentralityMap(user, gKey, mKey);
-					if(map == null) {
+					if (map == null) {
 						/*
 						 * Should not happen.
 						 */
@@ -430,38 +467,44 @@ public class ThreadHandler {
 					}
 					map.getCreationMethod().setStatus(ExecutionStatus.ERROR);
 					database.updateCentralityCreationLog(map);
-    			} catch( RuntimeException e ) {
+				} catch (RuntimeException e) {
 
-    			}
+				}
 
-			}	
-	    	unsynchedInterruptAlgorithm(mapId);
+			}
+			unsynchedInterruptAlgorithm(mapId);
 		}
 	}
-	
+
 	/**
 	 * Interrupts the algorithm creating a cover.
-	 * @param coverId The id of the persisted cover reserved for the algorithm result.
+	 * 
+	 * @param coverId The id of the persisted cover reserved for the algorithm
+	 *                result.
 	 */
 	public void interruptAlgorithm(CoverId coverId) {
 		synchronized (algorithms) {
 			unsynchedInterruptAlgorithm(coverId);
 		}
 	}
-	
+
 	/**
 	 * Interrupts the benchmark creating a graph
-	 * (and in case of a ground truth benchmark also creating the corresponding cover).
-	 * @param graphId The id of the persisted graph reserved for the benchmark result.
+	 * (and in case of a ground truth benchmark also creating the corresponding
+	 * cover).
+	 * 
+	 * @param graphId The id of the persisted graph reserved for the benchmark
+	 *                result.
 	 */
 	public void interruptBenchmark(CustomGraphId graphId) {
 		synchronized (benchmarks) {
 			unsynchedInterruptBenchmark(graphId);
 		}
 	}
-	
+
 	/**
 	 * Interrupts a metric running on a cover.
+	 * 
 	 * @param logId The id of the persisted log reserved for the metric result.
 	 */
 	public void interruptMetric(OcdMetricLogId logId) {
@@ -469,88 +512,101 @@ public class ThreadHandler {
 			unsynchedInterruptMetric(logId);
 		}
 	}
-	
+
 	/**
 	 * Interrupts the algorithm creating a cover or if already created
 	 * all metrics running it.
 	 * Note that ground truth benchmarks will not be interrupted.
+	 * 
 	 * @param cover The cover.
 	 */
 	public void interruptAll(Cover cover) {
 		synchronized (algorithms) {
-			unsynchedInterruptAlgorithm(new CoverId(cover.getKey(), new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName())));
+			unsynchedInterruptAlgorithm(new CoverId(cover.getKey(),
+					new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName())));
 		}
 		synchronized (metrics) {
 			unsynchedInterruptAllMetrics(cover);
 		}
 	}
-	
+
 	/**
 	 * Interrupts the algorithm creating the given CentralityMap.
-	 * @param map The CentralityMap 
+	 * 
+	 * @param map The CentralityMap
 	 */
 	public void interruptAll(CentralityMap map) {
 		synchronized (centralityAlgorithms) {
-			unsynchedInterruptAlgorithm(new CentralityMapId(map.getKey(), new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName())));
+			unsynchedInterruptAlgorithm(new CentralityMapId(map.getKey(),
+					new CustomGraphId(map.getGraph().getKey(), map.getGraph().getUserName())));
 		}
 	}
-	
+
 	/**
 	 * Interrupts an algorithm execution without synchronization.
-	 * @param coverId The id of the reserved persisted cover being calculated by the algorithm.
+	 * 
+	 * @param coverId The id of the reserved persisted cover being calculated by the
+	 *                algorithm.
 	 */
 	private void unsynchedInterruptAlgorithm(CoverId coverId) {
 		Future<CoverCreationLog> future = algorithms.get(coverId);
-		if(future != null) {
+		if (future != null) {
 			future.cancel(true);
 			algorithms.remove(future);
 		}
 	}
-	
+
 	/**
 	 * Interrupts a centrality algorithm execution without synchronization.
-	 * @param mapId The id of the reserved persisted centrality map being calculated by the algorithm.
+	 * 
+	 * @param mapId The id of the reserved persisted centrality map being calculated
+	 *              by the algorithm.
 	 */
 	private void unsynchedInterruptAlgorithm(CentralityMapId mapId) {
 		Future<CentralityCreationLog> future = centralityAlgorithms.get(mapId);
-		if(future != null) {
+		if (future != null) {
 			future.cancel(true);
 			centralityAlgorithms.remove(future);
 		}
 	}
-	
+
 	/**
 	 * Interrupts a benchmark execution without synchronization.
-	 * @param graphId The id of the reserved persisted graph the benchmark is calculating.
+	 * 
+	 * @param graphId The id of the reserved persisted graph the benchmark is
+	 *                calculating.
 	 */
 	private void unsynchedInterruptBenchmark(CustomGraphId graphId) {
 		Future<GraphCreationLog> future = benchmarks.get(graphId);
-		if(future != null) {
+		if (future != null) {
 			future.cancel(true);
 			benchmarks.remove(future);
 		}
 	}
-	
+
 	/**
 	 * Interrupts a metric execution without synchronization.
-
+	 * 
 	 * @param logId The id of the reserved persisted log the metric is calculating.
 	 */
 	private void unsynchedInterruptMetric(OcdMetricLogId logId) {
 		Future<OcdMetricLog> future = metrics.get(logId);
-		if(future != null) {
+		if (future != null) {
 			future.cancel(true);
 			metrics.remove(future);
 		}
 	}
-	
+
 	/**
-	 * Interrupts the execution of all metric running on a cover without synchronization.
+	 * Interrupts the execution of all metric running on a cover without
+	 * synchronization.
+	 * 
 	 * @param cover The cover.
 	 */
 	private void unsynchedInterruptAllMetrics(Cover cover) {
-		CoverId coverId = new CoverId(cover.getKey(), new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName()));
-		for(OcdMetricLog log : cover.getMetrics()) {
+		CoverId coverId = new CoverId(cover.getKey(),
+				new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName()));
+		for (OcdMetricLog log : cover.getMetrics()) {
 			OcdMetricLogId logId = new OcdMetricLogId(log.getKey(), coverId);
 			unsynchedInterruptMetric(logId);
 		}
@@ -558,7 +614,8 @@ public class ThreadHandler {
 
 	/**
 	 * Getter for executor. This is needed for automatic content removal.
-	 * @return      ExecutorService.
+	 * 
+	 * @return ExecutorService.
 	 */
 	public static ExecutorService getExecutor() {
 		return executor;

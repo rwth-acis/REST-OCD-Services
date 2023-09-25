@@ -45,13 +45,12 @@ import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
 import i5.las2peer.services.ocd.graphs.properties.AbstractProperty;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
+import i5.las2peer.services.ocd.utils.Pair;
+
 import org.graphstream.graph.implementations.MultiGraph;
-
-
 
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
-
 
 /**
  * Represents a graph (or network), i.e. the node / edge structure and
@@ -62,12 +61,18 @@ import org.graphstream.graph.Edge;
  */
 @Entity
 @IdClass(CustomGraphId.class)
-//TODO: Add boolean/function to check if graph is connected or not.
-//TODO: Decide about undirected edges, graphstream would have own functionalities for that.
-//TODO: Check whether UUIDs work out as unique graph IDs, collision chances should however be extremely low
-//TODO: Check whether UUIDs work out as unique edge IDs, collision chances should however be extremely low
-//TODO: Check whether UUIDs work out as unique node IDs, collision chances should however be extremely low. Check whether this could actually replace the current node names. Would however break style with the naming of the other classes.
-//TODO: Integrate graphstream attributes into persistence or not?
+// TODO: Add boolean/function to check if graph is connected or not.
+// TODO: Decide about undirected edges, graphstream would have own
+// functionalities for that.
+// TODO: Check whether UUIDs work out as unique graph IDs, collision chances
+// should however be extremely low
+// TODO: Check whether UUIDs work out as unique edge IDs, collision chances
+// should however be extremely low
+// TODO: Check whether UUIDs work out as unique node IDs, collision chances
+// should however be extremely low. Check whether this could actually replace
+// the current node names. Would however break style with the naming of the
+// other classes.
+// TODO: Integrate graphstream attributes into persistence or not?
 public class CustomGraph extends MultiGraph {
 
 	/////////////////// DATABASE COLUMN NAMES
@@ -86,13 +91,14 @@ public class CustomGraph extends MultiGraph {
 	private static final String idNodeMapKeyColumnName = "RUNTIME_ID";
 	public static final String creationMethodColumnName = "CREATION_METHOD";
 	private static final String pathColumnName = "INDEX_PATH";
-	//ArangoDB 
+	// ArangoDB
 	private static final String propertiesColumnName = "PROPERTIES";
 	private static final String coverKeysColumnName = "COVER_KEYS";
 	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
 	public static final String typesColumnName = "TYPES";
-	public static final String collectionName = "customgraph";		//do not choose the name "graph" here because it is reserved for querys
-	
+	public static final String collectionName = "customgraph"; // do not choose the name "graph" here because it is
+																// reserved for querys
+
 	/*
 	 * Field name definitions for JPQL queries.
 	 */
@@ -152,9 +158,6 @@ public class CustomGraph extends MultiGraph {
 	@Column(name = edgeCountColumnName)
 	private long graphEdgeCount;
 
-
-
-
 	// /**
 	// * The description of the graph.
 	// */
@@ -166,7 +169,7 @@ public class CustomGraph extends MultiGraph {
 	// @Version
 	// @Column(name = lastUpdateColumnName)
 	// private Timestamp lastUpdate;
-	
+
 	/**
 	 * The graph's types.
 	 */
@@ -178,7 +181,7 @@ public class CustomGraph extends MultiGraph {
 	 */
 	@ElementCollection
 	private List<Double> properties;
-	
+
 	/**
 	 * The log for the benchmark model the graph was created by.
 	 */
@@ -192,13 +195,12 @@ public class CustomGraph extends MultiGraph {
 	 */
 	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Cover> covers = new ArrayList<Cover>();
-	
+
 	/**
 	 * The simulations based on this graph.
 	 */
 	@OneToMany(mappedBy = "graph", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<SimulationSeries> simulations = new ArrayList<>();
-	
 
 	///////////////////// THE FOLLOWING ATTRIBUTES ARE MAINTAINED AUTOMATICALLY
 	///////////////////// AND ONLY OF INTERNAL / PERSISTENCE USE
@@ -256,79 +258,80 @@ public class CustomGraph extends MultiGraph {
 	/**
 	 * Creates a new instance. The name attribute will be a random UUID
 	 */
-    public CustomGraph() {
+	public CustomGraph() {
 		super(UUID.randomUUID().toString());
-        this.addSink(new CustomGraphListener(this));
-		layout = new SpringBox(false);
-		this.addSink(layout); //Layout listener
-		layout.addAttributeSink(this);
-    }
-	
-	/**
-	 * Creates a new instance with given persistence key. The name attribute will be a random UUID
-	 */
-    protected CustomGraph(String key) {
-		super(UUID.randomUUID().toString());
-        this.addSink(new CustomGraphListener(this));
-		layout = new SpringBox(false);
-		this.addSink(layout); //Layout listener
-		layout.addAttributeSink(this);
-		this.key = key;
-    }
-
-	/**
-	 * Copy constructor.
-	 *
-	 * @param graph
-	 *            The graph to copy.
-	 */
-	//TODO: Refactor this to actually copy nodes/edges
-	public CustomGraph(AbstractGraph graph) {
-		super(UUID.randomUUID().toString()); //TODO: CHANGE to correct super execution
 		this.addSink(new CustomGraphListener(this));
 		layout = new SpringBox(false);
-		this.addSink(layout); //Layout listener
+		this.addSink(layout); // Layout listener
 		layout.addAttributeSink(this);
-		//super(graph);
-		Node[] nodes = this.nodes().toArray(Node[]::new);
-		for(Node node : nodes) {
-			//TODO: Maybe checks needed whether MultiNode or not
-			this.addNode(node.getId());
-		}
-		Edge[] edges = this.edges().toArray(Edge[]::new);
-		for(Edge edge : edges) {
-			this.addEdge(edge.getId(), edge.getSourceNode().getId(),edge.getTargetNode().getId());
-		}
-//        Iterator<?> listenerIt = this.getGraphListeners();
-//        while (listenerIt.hasNext()) {
-//           this.removeGraphListener((GraphListener) listenerIt.next());
-//            listenerIt.remove();
-//        }
-//        this.addGraphListener(new CustomGraphListener());
+	}
+
+	/**
+	 * Creates a new instance with given persistence key. The name attribute will be
+	 * a random UUID
+	 */
+	protected CustomGraph(String key) {
+		super(UUID.randomUUID().toString());
+		this.addSink(new CustomGraphListener(this));
+		layout = new SpringBox(false);
+		this.addSink(layout); // Layout listener
+		layout.addAttributeSink(this);
+		this.key = key;
 	}
 
 	/**
 	 * Copy constructor.
 	 *
 	 * @param graph
-	 *            The graph to copy.
+	 *              The graph to copy.
+	 */
+	// TODO: Refactor this to actually copy nodes/edges
+	public CustomGraph(AbstractGraph graph) {
+		super(UUID.randomUUID().toString()); // TODO: CHANGE to correct super execution
+		this.addSink(new CustomGraphListener(this));
+		layout = new SpringBox(false);
+		this.addSink(layout); // Layout listener
+		layout.addAttributeSink(this);
+		// super(graph);
+		Node[] nodes = this.nodes().toArray(Node[]::new);
+		for (Node node : nodes) {
+			// TODO: Maybe checks needed whether MultiNode or not
+			this.addNode(node.getId());
+		}
+		Edge[] edges = this.edges().toArray(Edge[]::new);
+		for (Edge edge : edges) {
+			this.addEdge(edge.getId(), edge.getSourceNode().getId(), edge.getTargetNode().getId());
+		}
+		// Iterator<?> listenerIt = this.getGraphListeners();
+		// while (listenerIt.hasNext()) {
+		// this.removeGraphListener((GraphListener) listenerIt.next());
+		// listenerIt.remove();
+		// }
+		// this.addGraphListener(new CustomGraphListener());
+	}
+
+	/**
+	 * Copy constructor.
+	 *
+	 * @param graph
+	 *              The graph to copy.
 	 */
 	public CustomGraph(CustomGraph graph) {
 		super(UUID.randomUUID().toString());
 		this.addSink(new CustomGraphListener(this));
 		layout = new SpringBox(false);
-		this.addSink(layout); //Layout listener
+		this.addSink(layout); // Layout listener
 		layout.addAttributeSink(this);
 
 		Iterator<Node> nodesIt = graph.iterator();
-		while(nodesIt.hasNext()) {
+		while (nodesIt.hasNext()) {
 			this.addNode(nodesIt.next().getId());
 		}
 
 		Iterator<Edge> edgesIt = graph.edges().iterator();
-		while(edgesIt.hasNext()) {
+		while (edgesIt.hasNext()) {
 			Edge edge = edgesIt.next();
-			this.addEdge(edge.getId(),edge.getSourceNode().getId(),edge.getTargetNode().getId());
+			this.addEdge(edge.getId(), edge.getSourceNode().getId(), edge.getTargetNode().getId());
 		}
 
 		this.creationMethod = new GraphCreationLog(graph.creationMethod.getType(),
@@ -359,15 +362,16 @@ public class CustomGraph extends MultiGraph {
 	 * and the graph types.
 	 *
 	 * @param graph
-	 *            The graph to obtain data from.
+	 *              The graph to obtain data from.
 	 */
-	//TODO: Possibly add graphstream attributes as well here (provided we start saving them as well)
+	// TODO: Possibly add graphstream attributes as well here (provided we start
+	// saving them as well)
 	public void setStructureFrom(CustomGraph graph) {
 		Node[] nodes = this.nodes().toArray(Node[]::new);
 		/*
 		 * Removes all nodes and edges including their custom information.
 		 */
-		for(Node NodeToRemove : nodes) {
+		for (Node NodeToRemove : nodes) {
 			this.removeNode(NodeToRemove);
 		}
 		/*
@@ -384,27 +388,28 @@ public class CustomGraph extends MultiGraph {
 
 		Node node;
 
-        nodes = graph.nodes().toArray(Node[]::new);
-        for(Node nodeToCopy : nodes) {
-            node = this.addNode(nodeToCopy.getId());
-            this.setNodeName(node, graph.getNodeName(nodeToCopy));
-        }
-        Node[] nodeArr = this.nodes().toArray(Node[]::new);
+		nodes = graph.nodes().toArray(Node[]::new);
+		for (Node nodeToCopy : nodes) {
+			node = this.addNode(nodeToCopy.getId());
+			this.setNodeName(node, graph.getNodeName(nodeToCopy));
+		}
+		Node[] nodeArr = this.nodes().toArray(Node[]::new);
 
-        Iterator<Edge> edges = graph.edges().iterator();
-        Edge edge;
-        Edge refEdge;
-        while (edges.hasNext()) {
-            refEdge = edges.next();
-            edge = this.addEdge(UUID.randomUUID().toString(), nodeArr[refEdge.getSourceNode().getIndex()], nodeArr[refEdge.getTargetNode().getIndex()]);
-            this.setEdgeWeight(edge, graph.getEdgeWeight(refEdge));
-        }
-        /*
-         * Updates graph types.
-         */
-        for (GraphType type : graph.getTypes()) {
-            this.addType(type);
-        }
+		Iterator<Edge> edges = graph.edges().iterator();
+		Edge edge;
+		Edge refEdge;
+		while (edges.hasNext()) {
+			refEdge = edges.next();
+			edge = this.addEdge(UUID.randomUUID().toString(), nodeArr[refEdge.getSourceNode().getIndex()],
+					nodeArr[refEdge.getTargetNode().getIndex()]);
+			this.setEdgeWeight(edge, graph.getEdgeWeight(refEdge));
+		}
+		/*
+		 * Updates graph types.
+		 */
+		for (GraphType type : graph.getTypes()) {
+			this.addType(type);
+		}
 	}
 
 	/**
@@ -429,7 +434,7 @@ public class CustomGraph extends MultiGraph {
 	 * Setter for the user name.
 	 *
 	 * @param user
-	 *            The name.
+	 *             The name.
 	 */
 	public void setUserName(String user) {
 		this.userName = user;
@@ -448,7 +453,7 @@ public class CustomGraph extends MultiGraph {
 	 * Setter for the graph name.
 	 *
 	 * @param name
-	 *            The name.
+	 *             The name.
 	 */
 	public void setName(String name) {
 		this.name = name;
@@ -467,7 +472,7 @@ public class CustomGraph extends MultiGraph {
 	 * Setter for the graphs path to the index for the node content.
 	 *
 	 * @param path
-	 *            The index path.
+	 *             The index path.
 	 */
 	public void setPath(String path) {
 		this.path = path;
@@ -497,7 +502,7 @@ public class CustomGraph extends MultiGraph {
 	 * Setter for the creation method.
 	 *
 	 * @param creationMethod
-	 *            The creation method.
+	 *                       The creation method.
 	 */
 	public void setCreationMethod(GraphCreationLog creationMethod) {
 		this.creationMethod = creationMethod;
@@ -518,7 +523,7 @@ public class CustomGraph extends MultiGraph {
 	 * States whether the graph is of a certain type.
 	 *
 	 * @param type
-	 *            The graph type.
+	 *             The graph type.
 	 * @return TRUE if the graph is of the type, otherwise FALSE.
 	 */
 	public boolean isOfType(GraphType type) {
@@ -529,7 +534,7 @@ public class CustomGraph extends MultiGraph {
 	 * Adds a graph type to the graph.
 	 *
 	 * @param type
-	 *            The graph type.
+	 *             The graph type.
 	 */
 	public void addType(GraphType type) {
 		this.types.add(type.getId());
@@ -539,7 +544,7 @@ public class CustomGraph extends MultiGraph {
 	 * Removes a graph type from the graph.
 	 *
 	 * @param type
-	 *            The graph type.
+	 *             The graph type.
 	 */
 	public void removeType(GraphType type) {
 		this.types.remove(type.getId());
@@ -580,23 +585,31 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	/**
+	 * @return true if the graph is weighted
+	 */
+	public boolean isMultiEdged() {
+		return isOfType(GraphType.MULTIPLE_EDGES);
+	}
+
+	/**
 	 * TODO
+	 * 
 	 * @param edgeId
-	 *             Id of the edge to be added.
+	 *                 Id of the edge to be added.
 	 * @param src
-	 *             Source node
+	 *                 Source node
 	 * @param srcId
-	 *             Source node id
+	 *                 Source node id
 	 * @param dst
-	 *             Destination node
+	 *                 Destination node
 	 * @param dstId
-	 *             Destination node id
+	 *                 Destination node id
 	 * @param directed
-	 *             True if edge is directed
+	 *                 True if edge is directed
 	 * @return The directed edge
 	 */
 	protected Edge addEdge(String edgeId, AbstractNode src, String srcId, AbstractNode dst, String dstId,
-								  boolean directed) {
+			boolean directed) {
 		Edge edge = super.addEdge(edgeId, src, srcId, dst, dstId, true);
 		return edge;
 	}
@@ -605,7 +618,7 @@ public class CustomGraph extends MultiGraph {
 	 * Getter for the edge weight of a certain edge.
 	 *
 	 * @param edge
-	 *            The edge.
+	 *             The edge.
 	 * @return The edge weight.
 	 */
 	public double getEdgeWeight(Edge edge) {
@@ -616,24 +629,48 @@ public class CustomGraph extends MultiGraph {
 	 * Setter for the edge weight of a certain edge.
 	 *
 	 * @param edge
-	 *            The edge.
+	 *               The edge.
 	 * @param weight
-	 *            The edge weight.
+	 *               The edge weight.
 	 */
 	public void setEdgeWeight(Edge edge, double weight) {
 		getCustomEdge(edge).setWeight(weight);
 	}
 
 	/**
+	 * Getter for the layerId of a certain edge.
+	 *
+	 * @param edge
+	 *             The edge.
+	 * @return The edge layerId.
+	 */
+	public String getEdgeLayerId(Edge edge) {
+		return getCustomEdge(edge).getLayerId();
+	}
+
+	/**
+	 * Setter for the layerId of a certain edge.
+	 *
+	 * @param edge
+	 *                The edge.
+	 * @param layerId
+	 *                The edge layerId.
+	 */
+	public void setEdgeLayerId(Edge edge, String layerId) {
+		getCustomEdge(edge).setLayerId(layerId);
+	}
+
+	/**
 	 * Finds two nodes based on their identifiers and combines edge weights
 	 * between the found nodes. This is equivalent to having
 	 * a single undirected, weighted edge between two nodes.
-	 * @param fromId       First node
-	 * @param toId         Second node
+	 * 
+	 * @param fromId First node
+	 * @param toId   Second node
 	 */
-	public void combineEdgeWeights(String fromId, String toId){
+	public void combineEdgeWeights(String fromId, String toId) {
 		/*
-		 find nodes and edges based on the identifiers provided
+		 * find nodes and edges based on the identifiers provided
 		 */
 		Node from = this.getNode(fromId);
 		Node to = this.getNode(toId);
@@ -641,12 +678,13 @@ public class CustomGraph extends MultiGraph {
 		Edge backward = to.getEdgeToward(from);
 
 		/*
-		 calculate combined weight of edges between the above two nodes
+		 * calculate combined weight of edges between the above two nodes
 		 */
 		double edgeWeight = this.getEdgeWeight(forward) + this.getEdgeWeight(backward);
 
 		/*
-		 set the combined weight to be the weight of the edges between the above two nodes.
+		 * set the combined weight to be the weight of the edges between the above two
+		 * nodes.
 		 */
 		this.setEdgeWeight(forward, edgeWeight);
 		this.setEdgeWeight(backward, edgeWeight);
@@ -661,7 +699,7 @@ public class CustomGraph extends MultiGraph {
 	 * Getter for the node name of a certain node.
 	 *
 	 * @param node
-	 *            The node.
+	 *             The node.
 	 * @return The node name.
 	 */
 	public String getNodeName(Node node) {
@@ -672,9 +710,9 @@ public class CustomGraph extends MultiGraph {
 	 * Setter for the node name of a certain node.
 	 *
 	 * @param node
-	 *            The node.
+	 *             The node.
 	 * @param name
-	 *            The node name.
+	 *             The node name.
 	 */
 	public void setNodeName(Node node, String name) {
 		getCustomNode(node).setName(name);
@@ -683,7 +721,7 @@ public class CustomGraph extends MultiGraph {
 	/**
 	 * Update node and edge count numbers
 	 */
-	public void setNodeEdgeCountColumnFields(){
+	public void setNodeEdgeCountColumnFields() {
 		this.graphNodeCount = this.nodes().count();
 		this.graphEdgeCount = this.edges().count();
 	}
@@ -699,13 +737,15 @@ public class CustomGraph extends MultiGraph {
 	 * edges of a node.
 	 *
 	 * @param node
-	 *            The node.
+	 *             The node.
 	 * @return The weighted in-degree.
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	//TODO: Check whether we need to account extra for parallel edges here (and in all other edge methods)
+	// TODO: Check whether we need to account extra for parallel edges here (and in
+	// all other edge methods)
 	public double getWeightedInDegree(Node node) throws InterruptedException {
-		Edge[] inEdges = Stream.concat(this.getPositiveInEdges(node).stream(), this.getNegativeInEdges(node).stream()).toArray(Edge[]::new);
+		Edge[] inEdges = Stream.concat(this.getPositiveInEdges(node).stream(), this.getNegativeInEdges(node).stream())
+				.toArray(Edge[]::new);
 		double inDegree = 0;
 		for (Edge edge : inEdges) {
 			inDegree += getCustomEdge(edge).getWeight();
@@ -719,7 +759,7 @@ public class CustomGraph extends MultiGraph {
 	 * edges of a node.
 	 *
 	 * @param node
-	 *            The node.
+	 *             The node.
 	 * @return The positive in-degree.
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 *
@@ -739,7 +779,7 @@ public class CustomGraph extends MultiGraph {
 	 * edges of a node.
 	 *
 	 * @param node
-	 *            The concerned node.
+	 *             The concerned node.
 	 * @return The positive out-degree.
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 *
@@ -759,7 +799,7 @@ public class CustomGraph extends MultiGraph {
 	 * of a node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 * @return The negative in-degree.
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 *
@@ -779,7 +819,7 @@ public class CustomGraph extends MultiGraph {
 	 * of a node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 * @return The negative out-degree.
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 *
@@ -799,12 +839,14 @@ public class CustomGraph extends MultiGraph {
 	 * outgoing edges of a node.
 	 *
 	 * @param node
-	 *            The node.
+	 *             The node.
 	 * @return The weighted out-degree.
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public double getWeightedOutDegree(MultiNode node) throws InterruptedException {
-		Edge[] outEdges = Stream.concat(this.getPositiveOutEdges(node).stream(), this.getNegativeOutEdges(node).stream()).toArray(Edge[]::new);
+		Edge[] outEdges = Stream
+				.concat(this.getPositiveOutEdges(node).stream(), this.getNegativeOutEdges(node).stream())
+				.toArray(Edge[]::new);
 		double outDegree = 0;
 		for (Edge edge : outEdges) {
 			outDegree += getCustomEdge(edge).getWeight();
@@ -818,7 +860,7 @@ public class CustomGraph extends MultiGraph {
 	 * incident edges of a node.
 	 *
 	 * @param node
-	 *            The node.
+	 *             The node.
 	 * @return The weighted degree.
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
@@ -837,7 +879,7 @@ public class CustomGraph extends MultiGraph {
 	 * incident edges of a node.
 	 *
 	 * @param node
-	 *            The node.
+	 *             The node.
 	 * @return The absolute degree.
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 *
@@ -855,6 +897,7 @@ public class CustomGraph extends MultiGraph {
 
 	/**
 	 * Returns all edge weights
+	 * 
 	 * @return Double array containing all edge weights
 	 *
 	 * @author Tobias
@@ -974,7 +1017,8 @@ public class CustomGraph extends MultiGraph {
 			if (Thread.interrupted()) {
 				throw new InterruptedException();
 			}
-			neighbourhoodMatrix.set(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex(), this.getEdgeWeight(edge));
+			neighbourhoodMatrix.set(edge.getSourceNode().getIndex(), edge.getTargetNode().getIndex(),
+					this.getEdgeWeight(edge));
 		}
 		return neighbourhoodMatrix;
 	}
@@ -983,7 +1027,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all neighbours of a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The neighbour set of the given node.
 	 *
@@ -992,7 +1036,8 @@ public class CustomGraph extends MultiGraph {
 	 */
 	public Set<Node> getNeighbours(Node node) throws InterruptedException {
 		Set<Node> neighbourSet = new HashSet<Node>();
-		Node[] neighbours = node.neighborNodes().toArray(Node[]::new); // Gets every "opposite" node of all adjacent edges, can therefore have duplicates
+		Node[] neighbours = node.neighborNodes().toArray(Node[]::new); // Gets every "opposite" node of all adjacent
+																		// edges, can therefore have duplicates
 
 		for (Node neighbour : neighbours) {
 			if (Thread.interrupted()) {
@@ -1010,7 +1055,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all neighbours of a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The neighbour set of the given node.
 	 *
@@ -1033,10 +1078,11 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	/**
-	 * Returns the set of all neighbours of a given node that have an edge toward it.
+	 * Returns the set of all neighbours of a given node that have an edge toward
+	 * it.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The neighbour set of the given node.
 	 *
@@ -1062,7 +1108,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all positive neighbours of a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The positive neighbour set of the given node.
 	 *
@@ -1092,7 +1138,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all negative neighbours of a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The negative neighbour set of the given node.
 	 *
@@ -1125,7 +1171,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all positive edges incident to a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The positive edge set of the given node.
 	 *
@@ -1149,7 +1195,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all positive edges incident to a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The positive edge set of the given node.
 	 *
@@ -1174,7 +1220,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all positive incoming edges for a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The positive incoming edge set of the given node.
 	 *
@@ -1200,7 +1246,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all positive incoming edges for a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The positive incoming edge set of the given node.
 	 *
@@ -1227,7 +1273,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all positive outgoing edges for a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The positive outgoing edge set of the given node.
 	 *
@@ -1253,7 +1299,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all positive outgoing edges for a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The positive outgoing edge set of the given node.
 	 *
@@ -1280,7 +1326,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all negative edges incident to a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The negative edge set of the given node.
 	 *
@@ -1305,7 +1351,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all negative incoming edges for a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The negative incoming edge set of the given node.
 	 *
@@ -1333,7 +1379,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the set of all negative outgoing edges for a given node.
 	 *
 	 * @param node
-	 *            The node under observation.
+	 *             The node under observation.
 	 *
 	 * @return The negative outgoing edge set of the given node.
 	 *
@@ -1358,19 +1404,17 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	////////// properties ////////
-	
+
 	/**
-
-
+	 * 
+	 * 
 	 * @return properties list
 	 */
 	public List<Double> getProperties() {
 		return this.properties;
 	}
 
-
-
-	/**	 
+	/**
 	 * Returns a specific graph property
 	 *
 	 * @param property requested property
@@ -1384,9 +1428,10 @@ public class CustomGraph extends MultiGraph {
 
 	/**
 	 * Initialize the properties
+	 * 
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
-	//TODO: Figure out what this means
+	// TODO: Figure out what this means
 	public void initProperties() throws InterruptedException {
 
 		this.properties = new ArrayList<>(GraphProperty.size());
@@ -1413,7 +1458,7 @@ public class CustomGraph extends MultiGraph {
 		long graphSize = nodeCount;
 		int subSize = nodeIds.size();
 		Map<Integer, Node> nodeMap = new HashMap<>(subSize);
-		
+
 		for (int i = 0; i < subSize; i++) {
 			int nodeId = nodeIds.get(i);
 
@@ -1437,6 +1482,31 @@ public class CustomGraph extends MultiGraph {
 		return subGraph;
 	}
 
+	/**
+	 * Returns the number of layers of the Custom Graph
+	 *
+	 * @return number of layers
+	 */
+	public int getNumberOfLayers() {
+		List<String> layers = Layers();
+		return layers.size();
+
+	}
+
+	public List<String> Layers() {
+		List<String> layers = new ArrayList<>();
+		Iterator<Edge> edgesIt = edges().iterator();
+		Edge edge;
+		while (edgesIt.hasNext()) {
+			edge = edgesIt.next();
+			if (!layers.contains(getEdgeLayerId(edge))) {
+				layers.add(getEdgeLayerId(edge));
+			}
+			
+		}
+		return layers;
+	}
+
 	////////////////// THE FOLLOWING METHODS ARE ONLY OF INTERNAL PACKAGE USE
 	////////////////// AND FOR PERSISTENCE PURPOSES
 
@@ -1444,16 +1514,16 @@ public class CustomGraph extends MultiGraph {
 	 * Initializes all node and edge mappings for the copy constructor.
 	 *
 	 * @param customNodes
-	 *            The custom node mapping of the copied custom graph.
+	 *                    The custom node mapping of the copied custom graph.
 	 * @param customEdges
-	 *            The custom edge mapping of the copied custom graph.
+	 *                    The custom edge mapping of the copied custom graph.
 	 * @param nodeIds
-	 *            The node id mapping of the copied custom graph.
+	 *                    The node id mapping of the copied custom graph.
 	 * @param edgeIds
-	 *            The edge id mapping of the copied custom graph.
+	 *                    The edge id mapping of the copied custom graph.
 	 */
 	protected void copyMappings(Map<Integer, CustomNode> customNodes, Map<Integer, CustomEdge> customEdges,
-								Map<MultiNode, Integer> nodeIds, Map<Edge, Integer> edgeIds) {
+			Map<MultiNode, Integer> nodeIds, Map<Edge, Integer> edgeIds) {
 
 		for (Map.Entry<Integer, CustomNode> entry : customNodes.entrySet()) {
 			this.customNodes.put(entry.getKey(), new CustomNode(entry.getValue()));
@@ -1479,7 +1549,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the custom edge object corresponding to an edge.
 	 *
 	 * @param edge
-	 *            An edge which must belong to this graph.
+	 *             An edge which must belong to this graph.
 	 * @return The corresponding custom edge object.
 	 */
 	protected CustomEdge getCustomEdge(Edge edge) {
@@ -1491,26 +1561,24 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the custom node object corresponding to a node.
 	 *
 	 * @param node
-	 *            A node which must belong to this graph.
+	 *             A node which must belong to this graph.
 	 * @return The corresponding custom node object.
 	 */
 
 	protected CustomNode getCustomNode(Node node) {
 
-		if ( nodeIds.get(node) != null) {
+		if (nodeIds.get(node) != null) {
 			int index = nodeIds.get(node);
 			return customNodes.get(index);
 		}
 
-
-		//TODO: is this addition to avoid nullpointer exception correct?
-		for (CustomNode customNode : customNodes.values()){
-			if (node.getId().equals(customNode.getName())){
+		// TODO: is this addition to avoid nullpointer exception correct?
+		for (CustomNode customNode : customNodes.values()) {
+			if (node.getId().equals(customNode.getName())) {
 				return customNode;
 			}
 		}
 		return null;
-
 
 	}
 
@@ -1518,7 +1586,7 @@ public class CustomGraph extends MultiGraph {
 	 * Returns the node object corresponding to a custom node.
 	 *
 	 * @param customNode
-	 *            A customMultiNode which must belong to this graph.
+	 *                   A customMultiNode which must belong to this graph.
 	 * @return The corresponding node object.
 	 */
 	protected Node getNode(CustomNode customNode) {
@@ -1529,7 +1597,7 @@ public class CustomGraph extends MultiGraph {
 	 * Creates a new custom node object and maps the node to it.
 	 *
 	 * @param node
-	 *            The node.
+	 *             The node.
 	 */
 	protected void addCustomNode(MultiNode node) {
 		CustomNode customNode = new CustomNode();
@@ -1543,7 +1611,7 @@ public class CustomGraph extends MultiGraph {
 	 * Removes the mappings between a node and its custom node object.
 	 *
 	 * @param node
-	 * 		  the node
+	 *             the node
 	 */
 	protected void removeCustomNode(MultiNode node) {
 		CustomNode customNode = this.getCustomNode(node);
@@ -1557,7 +1625,7 @@ public class CustomGraph extends MultiGraph {
 	 * Creates a new custom edge object and maps the edge to it.
 	 *
 	 * @param edge
-	 *            The edge.
+	 *             The edge.
 	 */
 	protected void addCustomEdge(Edge edge) {
 		CustomEdge customEdge = new CustomEdge();
@@ -1570,7 +1638,7 @@ public class CustomGraph extends MultiGraph {
 	 * Removes the mapping from an edge to its custom edge.
 	 *
 	 * @param edge
-	 * 		  the edge
+	 *             the edge
 	 */
 	protected void removeCustomEdge(Edge edge) {
 		int id = this.edgeIds.get(edge);
@@ -1607,14 +1675,13 @@ public class CustomGraph extends MultiGraph {
 		}
 		nodeIndexer = this.nodeCount;
 		edgeIndexer = this.edgeCount;
-//        Iterator<?> listenerIt = this.getGraphListeners();
-//        while (listenerIt.hasNext()) {
-//            this.removeGraphListener((GraphListener) listenerIt.next());
-//            listenerIt.remove();
-//        }
-//        this.addGraphListener(new CustomGraphListener());
+		// Iterator<?> listenerIt = this.getGraphListeners();
+		// while (listenerIt.hasNext()) {
+		// this.removeGraphListener((GraphListener) listenerIt.next());
+		// listenerIt.remove();
+		// }
+		// this.addGraphListener(new CustomGraphListener());
 	}
-
 
 	/**
 	 * PrePersist Method. Writes the attributes of nodes and edges into their
@@ -1629,43 +1696,44 @@ public class CustomGraph extends MultiGraph {
 	protected void prePersist() throws InterruptedException {
 		Node[] nodes = this.nodes().toArray(Node[]::new);
 		for (Node node : nodes) {
-			this.getCustomNode(node).update(this, (Node)node);
+			this.getCustomNode(node).update(this, (Node) node);
 		}
 		Edge[] edges = this.edges().toArray(Edge[]::new);
 		for (Edge edge : edges) {
 			this.getCustomEdge(edge).update(this, edge);
 		}
-		
+
 		initProperties();
 	}
 
-	//persistence functions
+	// persistence functions
 	protected CustomNode getCustomNodeByKey(String key) {
 		CustomNode ret = null;
 		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
-		for(CustomNode cn : nodes) {
-			if(key.equals(cn.getKey())) {
+		for (CustomNode cn : nodes) {
+			if (key.equals(cn.getKey())) {
 				ret = cn;
 				break;
 			}
 		}
-		if(ret == null) {
+		if (ret == null) {
 			System.out.println("CustomNode with Key : " + key + "does not exist in this graph.");
 		}
 		return ret;
 	}
-	
-	public void persist( ArangoDatabase db, String transId) throws InterruptedException {
+
+	public void persist(ArangoDatabase db, String transId) throws InterruptedException {
 		this.setNodeEdgeCountColumnFields(); // update node/edge counts before persisting
 		this.prePersist();
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
-		//options for the transaction
+		// options for the transaction
 		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
 		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
-		//EdgeCreateOptions edgeCreateOptions = new EdgeCreateOptions().streamTransactionId(transId);
+		// EdgeCreateOptions edgeCreateOptions = new
+		// EdgeCreateOptions().streamTransactionId(transId);
 		bd.addAttribute(userColumnName, this.userName);
-		bd.addAttribute(pathColumnName, this.path);		//TODO muss gespeichert werden?
+		bd.addAttribute(pathColumnName, this.path); // TODO muss gespeichert werden?
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(typesColumnName, this.types);
 		bd.addAttribute(nodeCountColumnName, this.graphNodeCount);
@@ -1674,37 +1742,36 @@ public class CustomGraph extends MultiGraph {
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		collection.insertDocument(bd, createOptions);
 		this.key = bd.getKey();
-		
+
 		bd = new BaseDocument();
 
-		//TODO: is this a valid replacement to store customNode?
-//		NodeCursor nodes = this.nodes();
-//		while (nodes.ok()) {		//persist all nodes from the graph
-//			Node n = nodes.node();
-//			CustomNode node = this.getCustomNode(n);
-//			node.persist(db, createOptions);
-//			nodes.next();
-//		}
+		// TODO: is this a valid replacement to store customNode?
+		// NodeCursor nodes = this.nodes();
+		// while (nodes.ok()) { //persist all nodes from the graph
+		// Node n = nodes.node();
+		// CustomNode node = this.getCustomNode(n);
+		// node.persist(db, createOptions);
+		// nodes.next();
+		// }
 		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
 		for (CustomNode customNode : nodes) {
-			customNode.persist(db,createOptions);
+			customNode.persist(db, createOptions);
 		}
-
 
 		List<CustomEdge> edges = new ArrayList<CustomEdge>(this.customEdges.values());
 		for (CustomEdge customEdge : edges) {
 			customEdge.persist(db, createOptions);
 		}
 
-//		Iterator<Edge> edges = this.edges().iterator();
-//		while (edges.hasNext()) { //persist all edges from the graph
-//			Edge edge = edges.next();
-//			edge.
-//		}
+		// Iterator<Edge> edges = this.edges().iterator();
+		// while (edges.hasNext()) { //persist all edges from the graph
+		// Edge edge = edges.next();
+		// edge.
+		// }
 
-		bd.addAttribute(propertiesColumnName, this.properties);	
-		//TODO covers variable speichern?
-		
+		bd.addAttribute(propertiesColumnName, this.properties);
+		// TODO covers variable speichern?
+
 		collection.updateDocument(this.key, bd, updateOptions);
 	}
 
@@ -1714,12 +1781,12 @@ public class CustomGraph extends MultiGraph {
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
-		
+
 		if (bd != null) {
 			graph = new CustomGraph();
-			ObjectMapper om = new ObjectMapper();	
+			ObjectMapper om = new ObjectMapper();
 			Object objId = bd.getAttribute(idColumnName);
-			if(objId!= null) {
+			if (objId != null) {
 				graph.id = Long.parseLong(objId.toString());
 			}
 			graph.key = key;
@@ -1735,28 +1802,28 @@ public class CustomGraph extends MultiGraph {
 			graph.graphEdgeCount = om.convertValue(bd.getAttribute(edgeCountColumnName), Long.class);
 			graph.creationMethod = GraphCreationLog.load(creationMethodKey, db, readOpt);
 
-			//nodes werden in customNodes Map eingefuegt
+			// nodes werden in customNodes Map eingefuegt
 			Map<String, CustomNode> customNodeKeyMap = new HashMap<String, CustomNode>();
 			String query = "FOR node IN " + CustomNode.collectionName + " FILTER node."
-				+ CustomNode.graphKeyColumnName +" == \"" + key +"\" RETURN node";
+					+ CustomNode.graphKeyColumnName + " == \"" + key + "\" RETURN node";
 			ArangoCursor<BaseDocument> nodeDocuments = db.query(query, queryOpt, BaseDocument.class);
 
-			int i=0;
-			while(nodeDocuments.hasNext()) {
+			int i = 0;
+			while (nodeDocuments.hasNext()) {
 				BaseDocument nodeDocument = nodeDocuments.next();
 				CustomNode node = CustomNode.load(nodeDocument, graph);
 				graph.customNodes.put(i, node);
-				customNodeKeyMap.put(CustomNode.collectionName +"/"+node.getKey(), node);
+				customNodeKeyMap.put(CustomNode.collectionName + "/" + node.getKey(), node);
 				i++;
 			}
-			
-			//edges werden in customNodes Map eingefuegt
+
+			// edges werden in customNodes Map eingefuegt
 			query = "FOR edge IN " + CustomEdge.collectionName + " FILTER edge.";
-			query += CustomEdge.graphKeyColumnName +" == \"" + key +"\" RETURN edge";
+			query += CustomEdge.graphKeyColumnName + " == \"" + key + "\" RETURN edge";
 			ArangoCursor<BaseEdgeDocument> edgeDocuments = db.query(query, queryOpt, BaseEdgeDocument.class);
-			i=0;
-			
-			while(edgeDocuments.hasNext()) {
+			i = 0;
+
+			while (edgeDocuments.hasNext()) {
 				BaseEdgeDocument edgeDocument = edgeDocuments.next();
 				CustomNode source = customNodeKeyMap.get(edgeDocument.getFrom());
 				CustomNode target = customNodeKeyMap.get(edgeDocument.getTo());
@@ -1765,88 +1832,94 @@ public class CustomGraph extends MultiGraph {
 				i++;
 			}
 			graph.postLoad();
-		}	
-		else {
+		} else {
 			System.out.println("Empty Graph document");
 			System.out.println(" DB name: " + db.dbName().get());
 		}
 		return graph;
 	}
-	
-	public void updateDB(ArangoDatabase db, String transId) throws InterruptedException {		//only updates the nodes/edges/GraphCreationLog and graph Attributes
+
+	public void updateDB(ArangoDatabase db, String transId) throws InterruptedException { // only updates the
+																							// nodes/edges/GraphCreationLog
+																							// and graph Attributes
 		this.prePersist();
 		ArangoCollection collection = db.collection(collectionName);
-		
+
 		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
 		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
-		
+
 		BaseDocument bd = collection.getDocument(this.key, BaseDocument.class, readOpt);
-		
+
 		String gclKey = bd.getAttribute(creationMethodKeyColumnName).toString();
 		ArangoCollection gclCollection = db.collection(GraphCreationLog.collectionName);
-		gclCollection.deleteDocument(gclKey, null, deleteOpt);			//delete GraphCreationLog
+		gclCollection.deleteDocument(gclKey, null, deleteOpt); // delete GraphCreationLog
 		this.creationMethod.persist(db, createOptions);
-		bd.updateAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());	//update creation method key
-
+		bd.updateAttribute(creationMethodKeyColumnName, this.creationMethod.getKey()); // update creation method key
 
 		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
 		for (CustomNode customNode : nodes) { // update all nodes from the graph
-			if(customNode.getKey() == null) {
+			if (customNode.getKey() == null) {
 				customNode.persist(db, createOptions);
-			}else {
+			} else {
 				customNode.updateDB(db, updateOptions);
 			}
 		}
 
-
 		List<CustomEdge> edges = new ArrayList<CustomEdge>(this.customEdges.values());
 		for (CustomEdge customEdge : edges) {
-			if(customEdge.getKey() == null) {
+			if (customEdge.getKey() == null) {
 				customEdge.persist(db, createOptions);
-			}else {
+			} else {
 				customEdge.updateDB(db, updateOptions);
 			}
 		}
 
-
-		
-		bd.updateAttribute(userColumnName, this.userName);	//update all atributes
+		bd.updateAttribute(userColumnName, this.userName); // update all atributes
 		bd.updateAttribute(pathColumnName, this.path);
 		bd.updateAttribute(nameColumnName, this.name);
 		bd.updateAttribute(typesColumnName, this.types);
 		bd.updateAttribute(propertiesColumnName, this.properties);
 		bd.updateAttribute(nodeCountColumnName, this.graphNodeCount);
 		bd.updateAttribute(edgeCountColumnName, this.graphEdgeCount);
-		
+
 		collection.updateDocument(this.key, bd, updateOptions);
 	}
-	
-	//TODO funktion verwerfen
+
+	// TODO funktion verwerfen
 	public void setNodeNames() {
 		Set<MultiNode> nodes = this.nodeIds.keySet();
 		int i = 0;
-		for(Node node : nodes) {
+		for (Node node : nodes) {
 			i++;
-			this.setNodeName(node,"Node : " + i);
+			this.setNodeName(node, "Node : " + i);
 		}
 	}
-	
+
 	public String String() {
 		String n = System.getProperty("line.separator");
 		String ret = "CustomGraph: " + n;
-		ret += "Key :         " + this.key +n ;
-		ret += "userName :    " + this.userName + n ; 
-		ret += "name :        " + this.name+n;
+		ret += "Key :         " + this.key + n;
+		ret += "userName :    " + this.userName + n;
+		ret += "name :        " + this.name + n;
 		ret += "path :        " + this.path + n;
-		if(this.types != null) {ret += "types :       " + this.types.toString()+n;}
-		else { ret += "no types" +n;}
-		if(this.properties != null) { ret += "properties :  " + this.properties + n;}
-		else { ret += "no properties" +n;}
-		if(this.creationMethod != null) { ret += "creationMethod :  " + this.creationMethod.String() + n;}
-		else { ret += "no creationMethod" +n;}
-		ret += "Es gibt : " + this.covers.size() + " cover"+n;
+		if (this.types != null) {
+			ret += "types :       " + this.types.toString() + n;
+		} else {
+			ret += "no types" + n;
+		}
+		if (this.properties != null) {
+			ret += "properties :  " + this.properties + n;
+		} else {
+			ret += "no properties" + n;
+		}
+		if (this.creationMethod != null) {
+			ret += "creationMethod :  " + this.creationMethod.String() + n;
+		} else {
+			ret += "no creationMethod" + n;
+		}
+		ret += "Es gibt : " + this.covers.size() + " cover" + n;
 		return ret;
 	}
 

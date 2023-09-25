@@ -32,7 +32,11 @@ public enum GraphOutputFormat implements EnumDisplayNames{
 	/**
 	 * Format corresponding to the PropertiesXMLGraphOutputAdapter.
 	 */
-	PROPERTIES_XML ("Properties XML", PropertiesXmlGraphOutputAdapter.class, 3);
+	PROPERTIES_XML ("Properties XML", PropertiesXmlGraphOutputAdapter.class, 3),
+    /**
+	 * Format corresponding to the MetaXmlGraphOutputAdapter.
+	 */
+	UNWEIGHTED_EDGE_LIST_MULTIPLEX ("Unweighted Edge List Multiplex", UnweightedEdgeListMultiGraphOutputAdapter.class, 4);
 	/**
 	 * The adapter class corresponding to the format.
 	 */

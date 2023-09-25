@@ -30,7 +30,6 @@ import com.arangodb.model.DocumentReadOptions;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
 import org.graphstream.graph.Node;
 
@@ -57,7 +56,7 @@ public class Community {
 	private static final String membershipMapGraphIdKeyColumnName = "GRAPH_ID";
 	private static final String membershipMapGraphUserKeyColumnName = "USER_NAME";
 	private static final String membershipMapNodeIdKeyColumnName = "CUSTOM_NODE_ID";
-	
+
 	public static final String collectionName = "community";
 	private static final String coverKeyColumnName = "COVER_KEY";
 	private static final String membershipKeyMapColumnName = "MEMBERSHIP_KEYS";
@@ -116,7 +115,7 @@ public class Community {
 	 * Creates a new instance.
 	 * 
 	 * @param cover
-	 *            The cover the community belongs to.
+	 *              The cover the community belongs to.
 	 */
 	public Community(Cover cover) {
 		this.cover = cover;
@@ -136,13 +135,26 @@ public class Community {
 	public long getId() {
 		return id;
 	}
+
 	/**
 	 * Getter for key.
+	 * 
 	 * @return The key.
 	 */
 	public String getKey() {
 		return key;
 	}
+
+	/**
+	 * Setter for key.
+	 * 
+	 * @param key
+	 *              The key.
+	 */
+	protected void setKey(String key) {
+		this.key = key;
+	}
+
 	/**
 	 * Getter for name.
 	 * 
@@ -156,7 +168,7 @@ public class Community {
 	 * Setter for name.
 	 * 
 	 * @param name
-	 *            The name.
+	 *             The name.
 	 */
 	public void setName(String name) {
 		this.name = name;
@@ -172,10 +184,30 @@ public class Community {
 	}
 
 	/**
+	 * Getter for color.
+	 * 
+	 * @return The color.
+	 */
+	public int getPersistenceColor() {
+		return this.color;
+	}
+
+		/**
 	 * Setter for color.
 	 * 
 	 * @param color
-	 *            The color.
+	 *              The color.
+	 */
+	public void setPersistenceColor(int color) {
+		this.color = color;
+	}
+
+
+	/**
+	 * Setter for color.
+	 * 
+	 * @param color
+	 *              The color.
 	 */
 	public void setColor(Color color) {
 		this.color = color.getRGB();
@@ -191,6 +223,20 @@ public class Community {
 	}
 
 	/**
+	 * Setter for cover.
+	 * 
+	 * @param cover
+	 *              The cover.
+	 */
+	public void setCover(Cover cover) {
+		this.cover = cover;
+	}
+
+	
+
+
+
+	/**
 	 * Getter for memberships.
 	 * 
 	 * @return The memberships.
@@ -203,11 +249,28 @@ public class Community {
 		return memberships;
 	}
 
+	public Map<CustomNode, Double> getMemberships2() {
+		return this.memberships;
+	}
+
+	public void setMemberships(Map<CustomNode, Double> memberships) {
+		this.memberships = memberships;
+	}
+
+	/**
+	 * Getter for properties.
+	 * 
+	 * @return The properties.
+	 */
+	public List<Double> getProperties() {
+		return this.properties;
+	}
+
 	/**
 	 * Getter for the belonging factor of a certain node.
 	 * 
 	 * @param node
-	 *            The member node.
+	 *             The member node.
 	 * @return The belonging factor, i.e. the corresponding value from the
 	 *         memberships map or 0 if the node does not belong to the
 	 *         community.
@@ -226,9 +289,9 @@ public class Community {
 	 * removed from the community.
 	 * 
 	 * @param node
-	 *            The member node.
+	 *                        The member node.
 	 * @param belongingFactor
-	 *            The belonging factor.
+	 *                        The belonging factor.
 	 */
 	protected void setBelongingFactor(Node node, double belongingFactor) {
 		CustomNode customNode = this.cover.getGraph().getCustomNode(node);
@@ -251,7 +314,7 @@ public class Community {
 	 * Return a specific property value
 	 * 
 	 * @param property
-	 *            The GraphProperty
+	 *                 The GraphProperty
 	 * @return the property value
 	 */
 	public double getProperty(GraphProperty property) {
@@ -259,11 +322,12 @@ public class Community {
 	}
 
 	/**
-	 * Sets the {@link #properties}. Should only be called by the community {@link Cover}
+	 * Sets the {@link #properties}. Should only be called by the community
+	 * {@link Cover}
 	 * or for test purposes.
 	 * 
 	 * @param properties
-	 *            List of properties
+	 *                   List of properties
 	 */
 	protected void setProperties(List<Double> properties) {
 		this.properties = properties;
@@ -285,7 +349,6 @@ public class Community {
 
 	/////////////////////////// PERSISTENCE CALLBACK METHODS
 
-
 	/*
 	 * PreRemove Method. Removes all membership mappings.
 	 */
@@ -293,39 +356,42 @@ public class Community {
 	public void preRemove() {
 		this.memberships.clear();
 	}
-	
-	//persistence functions
-	public void persist( ArangoDatabase db, DocumentCreateOptions opt) {
+
+	// persistence functions
+	public void persist(ArangoDatabase db, DocumentCreateOptions opt) {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(colorColumnName, this.color);
-		if(this.properties == null) {
-			this.properties = new ArrayList<Double>();	//TODO kann das null bleiben?
+		if (this.properties == null) {
+			this.properties = new ArrayList<Double>(); // TODO kann das null bleiben?
 		}
-		bd.addAttribute(propertiesColumnName, this.properties);  
+		bd.addAttribute(propertiesColumnName, this.properties);
 		bd.addAttribute(coverKeyColumnName, this.cover.getKey());
+
 		Map<String, Double> membershipKeyMap = new HashMap<String, Double>();
-		
-		for (Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {	
-			membershipKeyMap.put(entry.getKey().getKey(), entry.getValue());	//CustomNode Keys muessen bekannt sein
+
+		for (Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {
+			membershipKeyMap.put(entry.getKey().getKey(), entry.getValue()); // CustomNode Keys muessen bekannt sein
 		}
-		bd.addAttribute(membershipKeyMapColumnName,  membershipKeyMap);
+		bd.addAttribute(membershipKeyMapColumnName, membershipKeyMap);
 		collection.insertDocument(bd, opt);
 		this.key = bd.getKey();
 	}
-	
+
 	public static Community load(String key, Cover cover, ArangoDatabase db, DocumentReadOptions opt) {
 		Community c = new Community();
 		ArangoCollection collection = db.collection(collectionName);
-		
+
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, opt);
 		if (bd != null) {
-			ObjectMapper om = new ObjectMapper(); 
+			ObjectMapper om = new ObjectMapper();
 			String colorString = bd.getAttribute(colorColumnName).toString();
 			Object objProperties = bd.getAttribute(propertiesColumnName);
 			Object objMembershipKeyMap = bd.getAttribute(membershipKeyMapColumnName);
-			HashMap<String, Double> membershipKeyMap = om.convertValue(objMembershipKeyMap,new TypeReference<HashMap<String,Double>>() { });
+			HashMap<String, Double> membershipKeyMap = om.convertValue(objMembershipKeyMap,
+					new TypeReference<HashMap<String, Double>>() {
+					});
 
 			c.key = key;
 			c.cover = cover;
@@ -339,29 +405,29 @@ public class Community {
 				CustomNode cn = cover.getGraph().getCustomNodeByKey(nodeKey);// null fall abfangen
 				c.memberships.put(cn, entry.getValue());
 			}
-		}	
-		else {
+		} else {
 			System.out.println("empty Community document");
 		}
 		return c;
 	}
-	
-	
+
 	public String String() {
 		String n = System.getProperty("line.separator");
 		String ret = "Community : " + n;
-		if(this.cover != null) {ret += "cover : existiert" +n;}
+		if (this.cover != null) {
+			ret += "cover : existiert" + n;
+		}
 		ret += "Key :           " + this.key + n;
-		ret += "name :          " + this.name + n; 
+		ret += "name :          " + this.name + n;
 		ret += "color value:    " + this.color + n;
 		ret += "properties :    " + this.properties + n;
-		if(this.memberships != null) {	
+		if (this.memberships != null) {
 			for (Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {
 				CustomNode cn = entry.getKey();
-				ret += cn.String() + entry.getValue() +n;
+				ret += cn.String() + entry.getValue() + n;
 			}
 		}
 		return ret;
-	}	
+	}
 
 }
