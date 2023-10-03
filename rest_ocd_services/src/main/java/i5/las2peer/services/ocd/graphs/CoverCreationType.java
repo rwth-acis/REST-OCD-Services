@@ -24,6 +24,7 @@ import i5.las2peer.services.ocd.algorithms.MemeticLinkClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.FuzzyCMeansSpectralClusteringAlgorithm;
 import i5.las2peer.services.ocd.algorithms.WeakCliquePercolationMethodAlgorithm;
 import i5.las2peer.services.ocd.algorithms.LOCAlgorithm;
+import i5.las2peer.services.ocd.algorithms.OCDIDAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.SignedLfrBenchmark;
@@ -172,7 +173,11 @@ public enum CoverCreationType implements EnumDisplayNames {
 	/**
 	 * Type corresponding to the LOCAlgoirthm Algorithm.
 	 */
-	LOC_ALGORITHM("LOC Algorithm", LOCAlgorithm.class, 27);
+	LOC_ALGORITHM("LOC Algorithm", LOCAlgorithm.class, 27),
+	/**
+	 * Type corresponding to the OCDID Algorithm.
+	 */
+	OCDID_ALGORITHM("OCDID Algorithm", OCDIDAlgorithm.class, 28);
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
 	 * Abstract types correspond to the CoverCreationMethod interface itself.
