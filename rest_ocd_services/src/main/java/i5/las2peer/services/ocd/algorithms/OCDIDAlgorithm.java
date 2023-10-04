@@ -56,29 +56,27 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
     public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException{
         //compute initial information and values needed later
         double d_max = graph.getMaxWeightedInDegree();      //max degree of graph
-        int nodeCount = (int) graph.getNodeCount();         //number od nodes
-        List<double[]> I_v = new ArrayList<>();             //List of I_v0, I_v1, .....
+        int nodeCount = graph.getNodeCount();               //number od nodes
         List<double[][]> I_uv = new ArrayList<>();          //Information flow from u to v at time t
 
         //compute initial Information
-        double[] I_v0 = new double[nodeCount];              //Initial Information: List of information of the nodes at time t=0
+        double[] I_v = new double[nodeCount];              //List of current information of the nodes
+       
         Iterator<Node> nodesIt = graph.nodes().iterator();
         Node node;
         while(nodesIt.hasNext()) {
             node = nodesIt.next();
             double degree = (node.getDegree()/2);
             double clusteringCoeff = clusteringCoeff(graph, node);
-            I_v0[node.getIndex()] = (degree * clusteringCoeff) / d_max;
+            I_v[node.getIndex()] = (degree * clusteringCoeff) / d_max;
         }
-        I_v.add(I_v0);
 
         //spread information
         double I_max = 1;
-        int time = 0;
         while (I_max > thresholdOCDID) {
             double[][] I_uv_t = new double[nodeCount][nodeCount];
             I_max = 0;
-            double[] I_new = I_v.get(time).clone();
+            double[] I_new = I_v.clone();
             Iterator<Edge> edgesIt = graph.edges().iterator();
             Edge edge;
             while(edgesIt.hasNext()) {
@@ -89,13 +87,13 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                 double CC_node1 = clusteringCoeff(graph, node1);
                 double CC_node2 = clusteringCoeff(graph, node2);
 
-                if (I_v.get(time)[node1.getIndex()] < I_v.get(time)[node2.getIndex()]) { // 2->1
+                if (I_v[node1.getIndex()] < I_v[node2.getIndex()]) { // 2->1
                     double CS = contact_strength(graph, node1, node2);
                     double avg_degree_neighbours = avgDegreeNeighbours(graph, node1);
                     double avg_similarity_neighbours = avgSimilarityNeighbours(graph, node1);
 
-                    double I_vu = (Math.exp(I_v.get(time)[node2.getIndex()] - I_v.get(time)[node1.getIndex()]) - 1) * ((1 / (1 + Math.exp(-5 * CC_node1 * CC_node2))) - 0.5) * JS * CS;
-                    double I_vu_cost = (Math.exp(I_v.get(time)[node2.getIndex()] - I_v.get(time)[node1.getIndex()]) - 1) * (1 - JS) * (avg_similarity_neighbours / avg_degree_neighbours);
+                    double I_vu = (Math.exp(I_v[node2.getIndex()] - I_v[node1.getIndex()]) - 1) * ((1 / (1 + Math.exp(-5 * CC_node1 * CC_node2))) - 0.5) * JS * CS;
+                    double I_vu_cost = (Math.exp(I_v[node2.getIndex()] - I_v[node1.getIndex()]) - 1) * (1 - JS) * (avg_similarity_neighbours / avg_degree_neighbours);
                     double I_in = I_vu - I_vu_cost;
 
                     if (I_in > 0) {
@@ -105,13 +103,13 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                             I_max = I_in;
                         }
                     }
-                } else if (I_v.get(time)[node1.getIndex()] > I_v.get(time)[node2.getIndex()]) { // 1->2
+                } else if (I_v[node1.getIndex()] > I_v[node2.getIndex()]) { // 1->2
                     double CS = contact_strength(graph, node2, node1);
                     double avg_degree_neighbours = avgDegreeNeighbours(graph, node2);
                     double avg_similarity_neighbours = avgSimilarityNeighbours(graph, node2);
 
-                    double I_vu = (Math.exp(I_v.get(time)[node1.getIndex()] - I_v.get(time)[node2.getIndex()]) - 1) * ((1 / (1 + Math.exp(-5 * CC_node1 * CC_node2))) - 0.5) * JS * CS;
-                    double I_vu_cost = (Math.exp(I_v.get(time)[node2.getIndex()] - I_v.get(time)[node1.getIndex()]) - 1) * (1 - JS) * (avg_similarity_neighbours / avg_degree_neighbours);
+                    double I_vu = (Math.exp(I_v[node1.getIndex()] - I_v[node2.getIndex()]) - 1) * ((1 / (1 + Math.exp(-5 * CC_node1 * CC_node2))) - 0.5) * JS * CS;
+                    double I_vu_cost = (Math.exp(I_v[node2.getIndex()] - I_v[node1.getIndex()]) - 1) * (1 - JS) * (avg_similarity_neighbours / avg_degree_neighbours);
                     double I_in = I_vu - I_vu_cost;
 
                     if (I_in > 0) {
@@ -123,13 +121,12 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                     }
                 }
             }
-            I_v.add(I_new);
+            I_v = I_new;
             I_uv.add(I_uv_t);
-            time++;
         }
 
         //community detection
-        Matrix communities = cd(graph, I_v.get(I_v.size() - 1));
+        Matrix communities = cd(graph, I_v);
         Matrix overlapping_communities = ocd(graph, communities, I_uv);
 
         Matrix membershipMatrix = toMembershipMatrix(overlapping_communities);
@@ -198,18 +195,19 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
             return 0.0;
         }
 
-        int possibleEdges = neighboursCount * (neighboursCount - 1) / 2;
-        int existingEdges = 0;
+        double possibleEdges = (neighboursCount * (neighboursCount - 1)) / 2;
 
+        double existingEdges = 0;
         for (Node neighbour1 : graph.getNeighbours(node)) {
-            for (Node neighbour2 : graph.getNeighbours(neighbour1)) {
-                if (neighbour2.equals(node)) {
+            for (Node neighbour2 : graph.getNeighbours(node)) {
+                if (neighbour1 != neighbour2 && containsEdge(graph, neighbour1, neighbour2)) {
                     existingEdges++;
                 }
             }
         }
+        existingEdges /= 2;
 
-        return (double) existingEdges / possibleEdges;
+        return existingEdges / possibleEdges;
     }
 
     /**
@@ -366,10 +364,10 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
         Node node;
         while(nodesIt.hasNext()) {
             node = nodesIt.next();
-            if (!getMemberships(communities, node.getIndex()).isEmpty()) {
+            if (getMemberships(communities, node.getIndex()).isEmpty()) {
                 for (Node neighbour : graph.getNeighbours(node)) {
                     double informationNode = informationList[node.getIndex()];
-                    double informationNeighbour = informationList[node.getIndex()];
+                    double informationNeighbour = informationList[neighbour.getIndex()];
 
                     if (Math.abs(informationNode - informationNeighbour) < thresholdCD) {
                         if (!getMemberships(communities, neighbour.getIndex()).isEmpty()) {
@@ -389,8 +387,8 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                             if (!getMemberships(communities, node.getIndex()).isEmpty()) {
                                 communities.set(neighbour.getIndex(), getMemberships(communities, node.getIndex()).get(0), 1);
                             } else {
-                                communities.set(node.getIndex(), getMemberships(communities, neighbour.getIndex()).get(0), 1);
-                                communities.set(neighbour.getIndex(), getMemberships(communities, neighbour.getIndex()).get(0), 1);
+                                communities.set(node.getIndex(), neighbour.getIndex(), 1);
+                                communities.set(neighbour.getIndex(), neighbour.getIndex(), 1);
                             }
                         }
                     }
@@ -429,7 +427,8 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
             }
 
             double hightesB = 0.0;              //extension so that all nodes are assigned
-            int communityOfHighestB = -1;
+            int communityOfHighestB = 0;
+            boolean informationFlowToNeighbours = false;
 
             for (int community : NC) {
                 List<Node> communityMembers = new ArrayList<>();
@@ -466,7 +465,8 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                 double B = 0.5 * (BI + BT);
 
                 if(B > hightesB){                           //extension so that all nodes are assigned
-                    communityOfHighestB =community;
+                    communityOfHighestB = community;
+                    informationFlowToNeighbours = true;
                 }
 
                 if (B > thresholdOCD && !communityMembers.contains(node)) {
@@ -474,7 +474,11 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                 }
             }
             if (!getMemberships(communities, node.getIndex()).isEmpty()){             //extension so that all nodes are assigned
-                communities.set(node.getIndex(), communityOfHighestB, 1);
+                if (informationFlowToNeighbours) {
+                    communities.set(node.getIndex(), communityOfHighestB, 1);
+                }else{                                                                //there was no information flow from or to the node then it becomes an own community
+                    communities.set(node.getIndex(), node.getIndex(), 1);
+                }
             }
         }
         return communities;
@@ -493,48 +497,27 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
     private List<Node> boundaryNodes(CustomGraph graph, Matrix communities) throws InterruptedException {
         List<Node> BN = new ArrayList<>();
 
-        //add boundary nodes
-        for (int community = 0; community < communities.columns(); community++) {
-            List<Node> communityMembers = new ArrayList<>();
-
-            Iterator<Node> nodesIt = graph.nodes().iterator();
-            Node node;
-            while(nodesIt.hasNext()) {
-                node = nodesIt.next();
-                if (communities.get(node.getIndex(), community) == 1) {
-                    communityMembers.add(node);
-                }
-            }
-
-            for (Node node_v : communityMembers) {
-                List<Node> neighbours = new ArrayList<>(graph.getNeighbours(node_v));
-                neighbours.add(node_v);
-                List<Node> intersection = new ArrayList<>(neighbours);
-                intersection.retainAll(communityMembers);
-                if (!intersection.isEmpty() && !communityMembers.containsAll(neighbours)) {
-                    BN.add(node_v);
-                }
-            }
-        }
-
-        //add nodes with no community
         Iterator<Node> nodesIt = graph.nodes().iterator();
         Node node;
         while(nodesIt.hasNext()) {
             node = nodesIt.next();
-            boolean communityFound = false;
+            List<Integer> communitiesNode = getMemberships(communities, node.getIndex());
 
-            for (int community = 0; community < communities.columns(); community++) {
-                if (communities.get(node.getIndex(), community) == 1) {
-                    communityFound = true;
+            if (communitiesNode.isEmpty()){
+                BN.add(node);                                           //add nodes with no community
+            }else {
+                for (Node neighbour : graph.getNeighbours(node)) {
+                    List<Integer> communitiesNeighbour = getMemberships(communities, neighbour.getIndex());
+                    if (!communitiesNeighbour.isEmpty()) {
+                        for (Integer element : communitiesNeighbour) {
+                            if (!communitiesNode.contains(element)) {
+                                BN.add(node);                           //add boundary nodes
+                            }
+                        }
+                    }
                 }
             }
-
-            if (!communityFound) {
-                BN.add(node);
-            }
         }
-
         return BN;
     }
 
