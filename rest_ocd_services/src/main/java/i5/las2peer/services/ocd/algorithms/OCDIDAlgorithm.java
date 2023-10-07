@@ -3,7 +3,6 @@ package i5.las2peer.services.ocd.algorithms;
 import i5.las2peer.services.ocd.graphs.*;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.implementations.MultiNode;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
@@ -54,24 +53,40 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
 
     @Override
     public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException{
-        //compute initial information and values needed later
+        //Initialization of information
         double d_max = graph.getMaxWeightedInDegree();      //max degree of graph
         int nodeCount = graph.getNodeCount();               //number od nodes
         List<double[][]> I_uv = new ArrayList<>();          //Information flow from u to v at time t
 
-        //compute initial Information
         double[] I_v = new double[nodeCount];              //List of current information of the nodes
-       
+        int[] triangles = new int[nodeCount];
+        double[] CC = new double[nodeCount];
+        double[] avg_d = new double[nodeCount];
+        double[] avg_s = new double[nodeCount];
+        double[][] JS = new double[nodeCount][nodeCount];
+        double[][] CS = new double[nodeCount][nodeCount];
+
         Iterator<Node> nodesIt = graph.nodes().iterator();
         Node node;
         while(nodesIt.hasNext()) {
             node = nodesIt.next();
+            int nodeID = node.getIndex();
+            triangles[nodeID] = triangles(graph, node);
+
+            for (Node neighbour : graph.getNeighbours(node)) {
+                JS[nodeID][neighbour.getIndex()]=jaccardCoeff(graph, node, neighbour);
+                CS[nodeID][neighbour.getIndex()]=contact_strength(graph, node, neighbour, triangles[nodeID]);
+            }
+
+            CC[nodeID] = clusteringCoeff(node, triangles[nodeID]);
+            avg_d[nodeID] = avgDegreeNeighbours(graph, node);
+            avg_s[nodeID] = avgSimilarityNeighbours(graph, node, JS);
+
             double degree = (node.getDegree()/2);
-            double clusteringCoeff = clusteringCoeff(graph, node);
-            I_v[node.getIndex()] = (degree * clusteringCoeff) / d_max;
+            I_v[nodeID] = (degree * CC[nodeID]) / d_max;
         }
 
-        //spread information
+        //Spread information
         double I_max = 1;
         while (I_max > thresholdOCDID) {
             double[][] I_uv_t = new double[nodeCount][nodeCount];
@@ -83,40 +98,19 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                 edge = edgesIt.next();
                 Node node1 = edge.getSourceNode();
                 Node node2 = edge.getTargetNode();
-                double JS = jaccardCoeff(graph, node1, node2);
-                double CC_node1 = clusteringCoeff(graph, node1);
-                double CC_node2 = clusteringCoeff(graph, node2);
+                int node1ID = node1.getIndex();
+                int node2ID = node2.getIndex();
 
-                if (I_v[node1.getIndex()] < I_v[node2.getIndex()]) { // 2->1
-                    double CS = contact_strength(graph, node1, node2);
-                    double avg_degree_neighbours = avgDegreeNeighbours(graph, node1);
-                    double avg_similarity_neighbours = avgSimilarityNeighbours(graph, node1);
-
-                    double I_vu = (Math.exp(I_v[node2.getIndex()] - I_v[node1.getIndex()]) - 1) * ((1 / (1 + Math.exp(-5 * CC_node1 * CC_node2))) - 0.5) * JS * CS;
-                    double I_vu_cost = (Math.exp(I_v[node2.getIndex()] - I_v[node1.getIndex()]) - 1) * (1 - JS) * (avg_similarity_neighbours / avg_degree_neighbours);
+                if (I_v[node1ID] > I_v[node2ID]) { // information flows from node1 to node2
+                    double I_vu = (Math.exp(I_v[node1ID] - I_v[node2ID]) - 1) * ((1 / (1 + Math.exp(-5 * CC[node1ID] * CC[node2ID]))) - 0.5) * JS[node1ID][node2ID] * CS[node1ID][node2ID];
+                    double I_vu_cost = (Math.exp(I_v[node1ID] - I_v[node2ID]) - 1) * (1 - JS[node1ID][node2ID]) * (avg_s[node2ID] / avg_d[node2ID]);
                     double I_in = I_vu - I_vu_cost;
 
                     if (I_in > 0) {
-                        I_new[node1.getIndex()] += I_in;
-                        I_uv_t[node2.getIndex()][node1.getIndex()] = I_in;
+                        I_new[node2ID] += I_in;
+                        I_uv_t[node1ID][node2ID] = I_in;
                         if (I_in > I_max) {
                             I_max = I_in;
-                        }
-                    }
-                } else if (I_v[node1.getIndex()] > I_v[node2.getIndex()]) { // 1->2
-                    double CS = contact_strength(graph, node2, node1);
-                    double avg_degree_neighbours = avgDegreeNeighbours(graph, node2);
-                    double avg_similarity_neighbours = avgSimilarityNeighbours(graph, node2);
-
-                    double I_vu = (Math.exp(I_v[node1.getIndex()] - I_v[node2.getIndex()]) - 1) * ((1 / (1 + Math.exp(-5 * CC_node1 * CC_node2))) - 0.5) * JS * CS;
-                    double I_vu_cost = (Math.exp(I_v[node2.getIndex()] - I_v[node1.getIndex()]) - 1) * (1 - JS) * (avg_similarity_neighbours / avg_degree_neighbours);
-                    double I_in = I_vu - I_vu_cost;
-
-                    if (I_in > 0) {
-                        I_new[node2.getIndex()] += I_in;
-                        I_uv_t[node1.getIndex()][node2.getIndex()] = I_in;
-                        if (I_in > I_max) {
-                            I_max = (int) I_in;
                         }
                     }
                 }
@@ -125,7 +119,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
             I_uv.add(I_uv_t);
         }
 
-        //community detection
+        //Community detection
         Matrix communities = cd(graph, I_v);
         Matrix overlapping_communities = ocd(graph, communities, I_uv);
 
@@ -184,34 +178,25 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
     /**
      * Calculates the clustering coefficient of a node
      *
-     * @param graph
      * @param node
+     * @param t_v the amount of triangles for the node, which equals the amount of exitsting edges
      * @return The clustering coefficient
      * @throws InterruptedException if the thread was interrupted
      */
-    private double clusteringCoeff(CustomGraph graph, Node node) throws InterruptedException {
-        int neighboursCount = (node.getDegree()/2);
+    private double clusteringCoeff(Node node, int t_v) throws InterruptedException {
+        int neighboursCount = (node.getDegree() / 2);
         if (neighboursCount < 2) {
             return 0.0;
         }
 
         double possibleEdges = (neighboursCount * (neighboursCount - 1)) / 2;
-
-        double existingEdges = 0;
-        for (Node neighbour1 : graph.getNeighbours(node)) {
-            for (Node neighbour2 : graph.getNeighbours(node)) {
-                if (neighbour1 != neighbour2 && containsEdge(graph, neighbour1, neighbour2)) {
-                    existingEdges++;
-                }
-            }
-        }
-        existingEdges /= 2;
+        double existingEdges = t_v;
 
         return existingEdges / possibleEdges;
     }
 
     /**
-     * Calculates the jaccard similarity coefficient of a node
+     * Calculates the jaccard similarity between two nodes
      *
      * @param graph
      * @param node1
@@ -245,10 +230,13 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @param graph
      * @param node1 the node with a smaller information volume
      * @param node2 the node with a higher information volume
+     * @param trianglesNode1 the amount of triangles for node1
      * @return the contact strength
      * @throws InterruptedException if the thread was interrupted
      */
-    private double contact_strength(CustomGraph graph, Node node1, Node node2) throws InterruptedException {
+    private double contact_strength(CustomGraph graph, Node node1, Node node2, int trianglesNode1) throws InterruptedException {
+        int T_node1 = trianglesNode1;
+
         //count common neighbours
         int commonNeighboursCount = 0;
         for (Node neighbour1 : graph.getNeighbours(node1)) {
@@ -259,23 +247,32 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
             }
         }
 
-        //count triangles
+        //compute contact strength
+        if(T_node1 > 0) {
+            return ((double) commonNeighboursCount) / ((double) T_node1);
+        }else {
+            return 0.0;
+        }
+    }
+
+    /**
+     * Calculates the amount of triangles for a node
+     *
+     * @param graph
+     * @param node
+     * @return The number of triangles for the node
+     * @throws InterruptedException if the thread was interrupted
+     */
+    private int triangles(CustomGraph graph, Node node) throws InterruptedException {
         int T_v = 0;
-        for (Node neighbour1 : graph.getNeighbours(node1)) {
-            for (Node neighbour2 : graph.getNeighbours(node1)) {
+        for (Node neighbour1 : graph.getNeighbours(node)) {
+            for (Node neighbour2 : graph.getNeighbours(node)) {
                 if (neighbour1 != neighbour2 && containsEdge(graph, neighbour1, neighbour2)) {
                     T_v++;
                 }
             }
         }
-        T_v /= 2;
-
-        //compute contact strength
-        if(T_v > 0) {
-            return ((double) commonNeighboursCount) / ((double) T_v);
-        }else {
-            return 0;
-        }
+        return T_v / 2;
     }
 
     /**
@@ -284,7 +281,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @param graph
      * @param node1
      * @param node2
-     * @return true if the graph conatins an edge between node1 and node2, false otherwise
+     * @return true if the graph contains an edge between node1 and node2, false otherwise
      * @throws InterruptedException if the thread was interrupted
      */
     private boolean containsEdge(CustomGraph graph, Node node1, Node node2) throws InterruptedException{
@@ -307,7 +304,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * Calculates the average degree the neighbouring nodes of specific node have
      *
      * @param graph
-     * @param node the node the average degree of the neighbours should be calculated for
+     * @param node
      * @return the average degree the neighbouring nodes
      * @throws InterruptedException if the thread was interrupted
      */
@@ -321,30 +318,33 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
         }
         if (neighbourCount == 0) {
             return 0.0;
+        }else {
+            return ((double) totalDegree) / ((double) neighbourCount);
         }
-        return ((double) totalDegree) / ((double) neighbourCount);
     }
 
     /**
      * Calculates the average jaccard similarity coefficient of neighbouring nodes of specific node have.
      *
      * @param graph
-     * @param node the node the average similarity of the neighbours should be calculated for
+     * @param node
+     * @param JS a two-dimensional List of the jaccard similarity coefficients
      * @return the average similarity the neighbouring nodes
      * @throws InterruptedException if the thread was interrupted
      */
-    private double avgSimilarityNeighbours(CustomGraph graph, Node node) throws InterruptedException{
+    private double avgSimilarityNeighbours(CustomGraph graph, Node node, double[][] JS) throws InterruptedException{
         double neighbourCount = 0;
         double totalSimilarity = 0;
         for (Node neighbour : graph.getNeighbours(node)) {
-            double neighbourSimilarity = jaccardCoeff(graph, node, neighbour);
+            double neighbourSimilarity = JS[node.getIndex()][neighbour.getIndex()];
             neighbourCount++;
             totalSimilarity += neighbourSimilarity;
         }
         if (neighbourCount == 0) {
             return 0.0;
+        }else {
+            return totalSimilarity / neighbourCount;
         }
-        return totalSimilarity / neighbourCount;
     }
 
     /**
@@ -364,16 +364,20 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
         Node node;
         while(nodesIt.hasNext()) {
             node = nodesIt.next();
-            if (getMemberships(communities, node.getIndex()).isEmpty()) {
+            int nodeID = node.getIndex();
+            if (getMemberships(communities, nodeID).isEmpty()) {
                 for (Node neighbour : graph.getNeighbours(node)) {
-                    double informationNode = informationList[node.getIndex()];
-                    double informationNeighbour = informationList[neighbour.getIndex()];
+                    double informationNode = informationList[nodeID];
+                    int neighbourID = neighbour.getIndex();
+                    double informationNeighbour = informationList[neighbourID];
+                    List<Integer> communitiesNode = getMemberships(communities, nodeID);
+                    List<Integer> communitiesNeighbour = getMemberships(communities, neighbourID);
 
                     if (Math.abs(informationNode - informationNeighbour) < thresholdCD) {
-                        if (!getMemberships(communities, neighbour.getIndex()).isEmpty()) {
-                            if (!getMemberships(communities, node.getIndex()).isEmpty()) {
-                                int communityNode = getMemberships(communities, node.getIndex()).get(0);
-                                int communityNeighbour = getMemberships(communities, neighbour.getIndex()).get(0);
+                        if (!communitiesNeighbour.isEmpty()) {
+                            if (!communitiesNode.isEmpty()) {
+                                int communityNode = communitiesNode.get(0);
+                                int communityNeighbour = communitiesNeighbour.get(0);
                                 for(int row=0; row < nodeCount; row++){
                                     if(communities.get(row,communityNode) == 1) {
                                         communities.set(row, communityNode, 0);
@@ -381,14 +385,14 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                                     }
                                 }
                             } else {
-                                communities.set(node.getIndex(), getMemberships(communities, neighbour.getIndex()).get(0), 1);
+                                communities.set(nodeID, communitiesNeighbour.get(0), 1);
                             }
                         }else{
-                            if (!getMemberships(communities, node.getIndex()).isEmpty()) {
-                                communities.set(neighbour.getIndex(), getMemberships(communities, node.getIndex()).get(0), 1);
+                            if (!communitiesNode.isEmpty()) {
+                                communities.set(neighbourID, communitiesNode.get(0), 1);
                             } else {
-                                communities.set(node.getIndex(), neighbour.getIndex(), 1);
-                                communities.set(neighbour.getIndex(), neighbour.getIndex(), 1);
+                                communities.set(nodeID, neighbourID, 1);
+                                communities.set(neighbourID, neighbourID, 1);
                             }
                         }
                     }
@@ -416,68 +420,31 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
         List<Node> BN = boundaryNodes(graph, communities);
 
         for (Node node : BN) {
+            int nodeID = node.getIndex();
 
-            //compute NC
-            Set<Integer> NC = new HashSet<>();                  //Community set to which node v neighbours belong
-            for(Node neighbour : graph.getNeighbours(node)){
-                Set<Integer> communitiesOfNeighbour = new HashSet<>(getMemberships(communities, neighbour.getIndex()));
-                Set<Integer> communitiesOfNode = new HashSet<>(getMemberships(communities, node.getIndex()));
-                communitiesOfNeighbour.removeAll(communitiesOfNode);
-                NC.addAll(communitiesOfNeighbour);
-            }
+            Set<Node> neighbours = graph.getNeighbours(node);
+            Set<Integer> NC = computeNC(communities, nodeID, neighbours);
 
-            double hightesB = 0.0;              //extension so that all nodes are assigned
+            double hightesB = 0.0;                                      //extension so that all nodes are assigned
             int communityOfHighestB = 0;
-            boolean informationFlowToNeighbours = false;
 
             for (int community : NC) {
-                List<Node> communityMembers = new ArrayList<>();
-                Iterator<Node> nodesIt2 = graph.nodes().iterator();
-                Node node2;
-                while(nodesIt2.hasNext()) {
-                    node2 = nodesIt2.next();
-                    if (communities.get(node2.getIndex(), community) == 1) {
-                        communityMembers.add(node2);
-                    }
+                List<Node> communityMembers = getCommunityMembers(graph, communities, community);
+                double B = belongingDegree(node, neighbours, communityMembers, I_uv);
+
+                if (B > thresholdOCD) {
+                    communities.set(nodeID, community, 1);
                 }
 
-                List<Node> intersectionNeighboursCommunity = new ArrayList<>(graph.getNeighbours(node));
-                intersectionNeighboursCommunity.retainAll(communityMembers);
-
-                double BT = intersectionNeighboursCommunity.size() / (double) (node.getDegree()/2);
-
-                double IsumIntersection = 0;
-                double IsumNeighbours = 0;
-
-                for (Node neighbour : intersectionNeighboursCommunity) {
-                    for (int time = 0; time < I_uv.size(); time++) {
-                        IsumIntersection += (I_uv.get(time)[node.getIndex()][neighbour.getIndex()] + I_uv.get(time)[neighbour.getIndex()][node.getIndex()]);
-                    }
-                }
-
-                for (Node neighbour : graph.getNeighbours(node)) {
-                    for (int time = 0; time < I_uv.size(); time++) {
-                        IsumNeighbours += (I_uv.get(time)[node.getIndex()][neighbour.getIndex()] + I_uv.get(time)[neighbour.getIndex()][node.getIndex()]);
-                    }
-                }
-
-                double BI = IsumIntersection / IsumNeighbours;
-                double B = 0.5 * (BI + BT);
-
-                if(B > hightesB){                           //extension so that all nodes are assigned
+                if(B > hightesB){                                       //extension so that all nodes are assigned
                     communityOfHighestB = community;
-                    informationFlowToNeighbours = true;
-                }
-
-                if (B > thresholdOCD && !communityMembers.contains(node)) {
-                    communities.set(node.getIndex(), community, 1);
                 }
             }
-            if (!getMemberships(communities, node.getIndex()).isEmpty()){             //extension so that all nodes are assigned
-                if (informationFlowToNeighbours) {
-                    communities.set(node.getIndex(), communityOfHighestB, 1);
+            if (getMemberships(communities, nodeID).isEmpty()){        //extension so that all nodes are assigned
+                if (hightesB > 0.0) {
+                    communities.set(nodeID, communityOfHighestB, 1);
                 }else{                                                                //there was no information flow from or to the node then it becomes an own community
-                    communities.set(node.getIndex(), node.getIndex(), 1);
+                    communities.set(nodeID, nodeID, 1);
                 }
             }
         }
@@ -522,6 +489,47 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
     }
 
     /**
+     * Computes the community set to which the nodes neighbours belong
+     *
+     * @param communities A matrix corresponding to the detected communities
+     * @param nodeID The id of the node
+     * @return
+     * @throws InterruptedException if the thread was interrupted
+     */
+    private Set<Integer> computeNC(Matrix communities, int nodeID, Set<Node> neighbours) throws InterruptedException{
+        Set<Integer> NC = new HashSet<>();
+        for(Node neighbour : neighbours){
+            Set<Integer> communitiesOfNeighbour = new HashSet<>(getMemberships(communities, neighbour.getIndex()));
+            Set<Integer> communitiesOfNode = new HashSet<>(getMemberships(communities, nodeID));
+            communitiesOfNeighbour.removeAll(communitiesOfNode);
+            NC.addAll(communitiesOfNeighbour);
+        }
+        return NC;
+    }
+
+    /**
+     *
+     *
+     * @param graph
+     * @param communities
+     * @return
+     * @throws InterruptedException if the thread was interrupted
+     */
+    private List<Node> getCommunityMembers(CustomGraph graph, Matrix communities, int community) throws InterruptedException {
+        List<Node> communityMembers = new ArrayList<>();
+        Iterator<Node> nodesIt = graph.nodes().iterator();
+
+        while (nodesIt.hasNext()) {
+            Node node = nodesIt.next();
+            if (communities.get(node.getIndex(), community) == 1) {
+                communityMembers.add(node);
+            }
+        }
+
+        return communityMembers;
+    }
+
+    /**
      * Looks up the communities a node is assigned to
      *
      * @param matrix A matrix corresponding to the detected communities
@@ -540,33 +548,69 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
     }
 
     /**
+     *
+     *
+     * @param
+     * @param
+     * @return
+     * @throws InterruptedException if the thread was interrupted
+     */
+    private double belongingDegree(Node node, Set<Node> neighbours, List<Node> communityMembers, List<double[][]> I_uv) throws InterruptedException{
+        //compute BT
+        List<Node> intersection = new ArrayList<>();
+
+        for (Node neighbour : neighbours) {
+            if (communityMembers.contains(neighbour)) {
+                intersection.add(neighbour);
+            }
+        }
+        double BT = intersection.size() / (double) (node.getDegree()/2);
+
+        //compute BI
+        double IsumIntersection = 0;
+        double IsumNeighbours = 0;
+        int nodeID = node.getIndex();
+        for (Node neighbour : intersection) {
+            int neighbourID = neighbour.getIndex();
+            for (int time = 0; time < I_uv.size(); time++) {
+                IsumIntersection += (I_uv.get(time)[nodeID][neighbourID] + I_uv.get(time)[neighbourID][nodeID]);
+            }
+        }
+        for (Node neighbour : neighbours) {
+            int neighbourID = neighbour.getIndex();
+            for (int time = 0; time < I_uv.size(); time++) {
+                IsumNeighbours += (I_uv.get(time)[nodeID][neighbourID] + I_uv.get(time)[neighbourID][nodeID]);
+            }
+        }
+        double BI = 0.0;
+        if(IsumIntersection != 0 && IsumNeighbours != 0) {
+            BI = IsumIntersection / IsumNeighbours;
+        }
+
+        return 0.5 * (BI + BT);
+    }
+
+    /**
      * Transforms the input matrix to a membership matrix by deleting all empty columns
      *
-     * @param overlapping_communities A matrix consisting of the overlapping_communities where empty columns are possible
+     * @param oc A matrix consisting of the overlapping communities where empty columns are possible
      * @return A matrix where all empty columns where deleted, now the number of columns corresponds to the number of communities
      * @throws InterruptedException if the thread was interrupted
      */
-    private Matrix toMembershipMatrix(Matrix overlapping_communities) throws InterruptedException{ //remove columns with consisting of only zeros
-        int numRows = overlapping_communities.rows();
-        int numCols = overlapping_communities.columns();
+    private Matrix toMembershipMatrix(Matrix oc) throws InterruptedException{
+        int numRows = oc.rows();
+        int numCols = oc.columns();
 
         boolean[] keepColumns = new boolean[numCols];
+        int remainingColumnsCount = 0;
 
         for (int col = 0; col < numCols; col++) {
-            boolean isZeroColumn = true;
             for (int row = 0; row < numRows; row++) {
-                if (overlapping_communities.get(row, col) != 0) {
-                    isZeroColumn = false;
+                if (oc.get(row, col) != 0) {
+                    keepColumns[col] = true;
+                    remainingColumnsCount++;
                     break;
                 }
-            }
-            keepColumns[col] = !isZeroColumn;
-        }
-
-        int remainingColumnsCount = 0;
-        for (boolean keepColumn : keepColumns) {
-            if (keepColumn) {
-                remainingColumnsCount++;
             }
         }
 
@@ -575,7 +619,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
         for (int col = 0; col < numCols; col++) {
             if (keepColumns[col]) {
                 for (int row = 0; row < numRows; row++) {
-                    membershipMatrix.set(row, newCol, overlapping_communities.get(row, col));
+                    membershipMatrix.set(row, newCol, oc.get(row, col));
                 }
                 newCol++;
             }
