@@ -28,6 +28,9 @@ repositories {
 
 dependencies {
 
+    // Add JavaParser dependency
+    implementation 'com.github.javaparser:javaparser-core:3.25.5'
+
     // las2peer bundle which is not necessary in the runtime path
     // compileOnly will be moved into the lib dir afterwards
     api "i5:las2peer-bundle:${project.property('core.version')}"
