@@ -180,7 +180,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return The clustering coefficient
      * @throws InterruptedException if the thread was interrupted
      */
-    private double clusteringCoeff(Node node, int t_v) throws InterruptedException {
+    protected double clusteringCoeff(Node node, int t_v) throws InterruptedException {
         int neighboursCount = (node.getDegree() / 2);
         if (neighboursCount < 2) {
             return 0.0;
@@ -201,9 +201,11 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return The jaccard similarity coefficient
      * @throws InterruptedException if the thread was interrupted
      */
-    private double jaccardCoeff(CustomGraph graph, Node node1, Node node2) throws InterruptedException {
+    protected double jaccardCoeff(CustomGraph graph, Node node1, Node node2) throws InterruptedException {
         Set<Node> neighbours1 = new HashSet<>(graph.getNeighbours(node1));
+        neighbours1.add(node1);
         Set<Node> neighbours2 = new HashSet<>(graph.getNeighbours(node2));
+        neighbours2.add(node2);
 
         int intersectionSize = 0;
         for (Node neighbour : neighbours1) {
@@ -231,7 +233,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return the contact strength
      * @throws InterruptedException if the thread was interrupted
      */
-    private double contact_strength(CustomGraph graph, Node node1, Node node2, int trianglesNode1) throws InterruptedException {
+    protected double contact_strength(CustomGraph graph, Node node1, Node node2, int trianglesNode1) throws InterruptedException {
         int T_node1 = trianglesNode1;
 
         //count common neighbours
@@ -260,11 +262,11 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return The number of triangles for the node
      * @throws InterruptedException if the thread was interrupted
      */
-    private int triangles(CustomGraph graph, Node node) throws InterruptedException {
+    protected int triangles(CustomGraph graph, Node node) throws InterruptedException {
         int T_v = 0;
         for (Node neighbour1 : graph.getNeighbours(node)) {
             for (Node neighbour2 : graph.getNeighbours(node)) {
-                if (neighbour1 != neighbour2 && containsEdge(graph, neighbour1, neighbour2)) {
+                if (neighbour1 != neighbour2 && containsEdge(graph, neighbour1.getIndex(), neighbour2.getIndex())) {
                     T_v++;
                 }
             }
@@ -276,14 +278,12 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * Checks if an edge between two specific nodes exists in the graph
      *
      * @param graph the graph in which the nodes are located
-     * @param node1 the node for which the existence of an edge to node2 should be checked
-     * @param node2 analogous to node1
+     * @param node1_id Id of the node for which the existence of an edge to node2 should be checked
+     * @param node2_id analogous to node1_id
      * @return true if the graph contains an edge between node1 and node2, false otherwise
      * @throws InterruptedException if the thread was interrupted
      */
-    private boolean containsEdge(CustomGraph graph, Node node1, Node node2) throws InterruptedException{
-        int node1_id = node1.getIndex();
-        int node2_id = node2.getIndex();
+    protected boolean containsEdge(CustomGraph graph, int node1_id, int node2_id) throws InterruptedException{
         Iterator<Edge> edgesIt = graph.edges().iterator();
         Edge edge;
         while(edgesIt.hasNext()) {
@@ -305,7 +305,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return the average degree the neighbouring nodes
      * @throws InterruptedException if the thread was interrupted
      */
-    private double avgDegreeNeighbours(CustomGraph graph, Node node) throws InterruptedException{
+    protected double avgDegreeNeighbours(CustomGraph graph, Node node) throws InterruptedException{
         int neighbourCount = 0;
         int totalDegree = 0;
         for (Node neighbour : graph.getNeighbours(node)) {
@@ -329,7 +329,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return the average similarity the neighbouring nodes
      * @throws InterruptedException if the thread was interrupted
      */
-    private double avgSimilarityNeighbours(CustomGraph graph, Node node, double[][] JS) throws InterruptedException{
+    protected double avgSimilarityNeighbours(CustomGraph graph, Node node, double[][] JS) throws InterruptedException{
         double neighbourCount = 0;
         double totalSimilarity = 0;
         for (Node neighbour : graph.getNeighbours(node)) {
@@ -354,7 +354,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      *         columns correspond to the community a node was assigned. The matrix allows to have empty columns.
      * @throws InterruptedException if the thread was interrupted
      */
-    private Matrix cd(CustomGraph graph, double[] informationList) throws InterruptedException{
+    protected Matrix cd(CustomGraph graph, double[] informationList) throws InterruptedException{
         int nodeCount = graph.getNodeCount();                           //number of nodes
         Matrix communities = new Basic2DMatrix(nodeCount, nodeCount);
         Iterator<Node> nodesIt = graph.nodes().iterator();
@@ -413,7 +413,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      *         columns correspond to the community a node was assigned. The matrix allows to have empty columns.
      * @throws InterruptedException if the thread was interrupted
      */
-    private Matrix ocd(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
+    protected Matrix ocd(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
         List<Node> BN = boundaryNodes(graph, communities);
 
         for (Node node : BN) {
@@ -448,7 +448,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
         return communities;
     }
 
-    private Matrix ocd_fair(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
+    protected Matrix ocd_fair(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
         List<Node> BN = boundaryNodes(graph, communities);
         Matrix oc = communities.copy();
 
@@ -484,7 +484,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
         return oc;
     }
 
-    private Matrix ocd_fair_and_good(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
+    protected Matrix ocd_fair_and_good(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
         List<Node> BN = boundaryNodes(graph, communities);
         boolean changes = true;
         while(changes){
@@ -539,7 +539,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return A list of consisting of boundary nodes and nodes with no community
      * @throws InterruptedException if the thread was interrupted
      */
-    private List<Node> boundaryNodes(CustomGraph graph, Matrix communities) throws InterruptedException {
+    protected List<Node> boundaryNodes(CustomGraph graph, Matrix communities) throws InterruptedException {
         List<Node> BN = new ArrayList<>();
 
         Iterator<Node> nodesIt = graph.nodes().iterator();
@@ -574,7 +574,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return The set of communities the nodes neighbours belong to
      * @throws InterruptedException if the thread was interrupted
      */
-    private Set<Integer> computeNC(Matrix communities, int nodeID, Set<Node> neighbours) throws InterruptedException{
+    protected Set<Integer> computeNC(Matrix communities, int nodeID, Set<Node> neighbours) throws InterruptedException{
         Set<Integer> NC = new HashSet<>();
         for(Node neighbour : neighbours){
             Set<Integer> communitiesOfNeighbour = new HashSet<>(getMemberships(communities, neighbour.getIndex()));
@@ -594,10 +594,10 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return A List of nodes containing the members of the input community
      * @throws InterruptedException if the thread was interrupted
      */
-    private List<Node> getCommunityMembers(CustomGraph graph, Matrix communities, int community) throws InterruptedException {
+    protected List<Node> getCommunityMembers(CustomGraph graph, Matrix communities, int community) throws InterruptedException {
         List<Node> communityMembers = new ArrayList<>();
-        Iterator<Node> nodesIt = graph.nodes().iterator();
 
+        Iterator<Node> nodesIt = graph.nodes().iterator();
         while (nodesIt.hasNext()) {
             Node node = nodesIt.next();
             if (communities.get(node.getIndex(), community) == 1) {
@@ -611,15 +611,15 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
     /**
      * Looks up the communities a node is assigned to
      *
-     * @param matrix The matrix corresponding to the detected communities
+     * @param communities The matrix corresponding to the detected communities
      * @param nodeId The id of the node that communities are going to be returned
      * @return A list of communities the node with nodeId is currently assigned to
      * @throws InterruptedException if the thread was interrupted
      */
-    private List<Integer> getMemberships(Matrix matrix, Integer nodeId) throws InterruptedException {
+    protected List<Integer> getMemberships(Matrix communities, Integer nodeId) throws InterruptedException {
         List<Integer> commMemberships = new ArrayList<>();
-        for (int col = 0; col < matrix.rows(); col++) {
-            if (matrix.get(nodeId, col) != 0) {
+        for (int col = 0; col < communities.rows(); col++) {
+            if (communities.get(nodeId, col) != 0) {
                 commMemberships.add(col);
             }
         }
@@ -638,7 +638,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return The belonging degree of the input node to the input community
      * @throws InterruptedException if the thread was interrupted
      */
-    private double belongingDegree(Node node, Set<Node> neighbours, List<Node> communityMembers, double[][] I_uv) throws InterruptedException{
+    protected double belongingDegree(Node node, Set<Node> neighbours, List<Node> communityMembers, double[][] I_uv) throws InterruptedException{
         //compute BT
         List<Node> intersection = new ArrayList<>();
 
@@ -676,7 +676,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return A matrix where all empty columns where deleted, now the number of columns corresponds to the number of communities
      * @throws InterruptedException if the thread was interrupted
      */
-    private Matrix toMembershipMatrix(Matrix oc) throws InterruptedException{
+    protected Matrix toMembershipMatrix(Matrix oc) throws InterruptedException{
         int numRows = oc.rows();
         int numCols = oc.columns();
 
