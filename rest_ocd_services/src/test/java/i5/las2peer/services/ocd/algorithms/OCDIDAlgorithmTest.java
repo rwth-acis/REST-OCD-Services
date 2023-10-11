@@ -135,6 +135,49 @@ public class OCDIDAlgorithmTest {
         double expectedavgS2 = 2.0 / 4;
         assertEquals(expectedavgS2, avgS2, 0.0001);
     }
+
+    @Test
+    public void testCd() throws InterruptedException {
+        OCDIDAlgorithm ocdid = new OCDIDAlgorithm();
+        CustomGraph graph = get5NodesTestGraph();
+
+        double[] informationList = new double[7];
+        informationList[0] = 2.0 / 3;
+        informationList[1] = 2.0 / 3;
+        informationList[2] = 2.0 / 3;
+        informationList[3] = 1.0 / 3;
+        informationList[4] = 0.0;
+
+        Matrix expectedMatrix = new Basic2DMatrix(5, 5);
+        expectedMatrix.set(0, 1, 1);
+        expectedMatrix.set(1, 1, 1);
+        expectedMatrix.set(2, 1, 1);
+
+        Matrix actualMatrix = ocdid.cd(graph, informationList);
+        assertEquals(expectedMatrix, actualMatrix);
+    }
+    @Test
+    public void testOcd() throws InterruptedException {
+        OCDIDAlgorithm ocdid = new OCDIDAlgorithm();
+        CustomGraph graph = get5NodesTestGraph();
+
+        Matrix communities = new Basic2DMatrix(5, 5);
+        communities.set(0, 1, 1);
+        communities.set(1, 1, 1);
+        communities.set(2, 1, 1);
+
+        double[][] I_uv = new double[5][5];
+
+        Matrix expectedMatrix = new Basic2DMatrix(5, 5);
+        expectedMatrix.set(0, 1, 1);
+        expectedMatrix.set(1, 1, 1);
+        expectedMatrix.set(2, 1, 1);
+        expectedMatrix.set(3, 1, 1);
+        expectedMatrix.set(4, 1, 1);
+
+        Matrix actualMatrix = ocdid.ocd(graph, communities, I_uv);
+        assertEquals(expectedMatrix, actualMatrix);
+    }
     @Test
     public void testBoundaryNodes() throws InterruptedException {
         OCDIDAlgorithm ocdid = new OCDIDAlgorithm(); // instance of OCDID algorithm
@@ -199,7 +242,6 @@ public class OCDIDAlgorithmTest {
     public void testGetCommunityMembers() throws InterruptedException {
         OCDIDAlgorithm ocdid = new OCDIDAlgorithm(); // instance of OCDID algorithm
         CustomGraph graph = get5NodesTestGraph();
-        System.out.println(graph.getNodeCount());
 
         Matrix inputMatrix = new Basic2DMatrix(5, 5);
         inputMatrix.set(1, 1, 1);
@@ -241,6 +283,33 @@ public class OCDIDAlgorithmTest {
     }
 
     @Test
+    public void testBelongingDegree() throws InterruptedException {
+        OCDIDAlgorithm ocdid = new OCDIDAlgorithm();
+        CustomGraph graph = get7NodesTestGraph();
+
+        Set<Node> neighbours = new HashSet<Node>();
+        neighbours.add(graph.getNode(0));
+        neighbours.add(graph.getNode(1));
+        neighbours.add(graph.getNode(3));
+
+        List<Node> communityMembers = new ArrayList<Node>();
+        communityMembers.add(graph.getNode(3));
+        communityMembers.add(graph.getNode(4));
+        communityMembers.add(graph.getNode(5));
+        communityMembers.add(graph.getNode(6));
+
+        double[][] I_uv = new double[7][7];
+        I_uv[0][2] = 0.1250;
+        I_uv[1][2] = 0.1250;
+        I_uv[4][3] = 0.0493;
+        I_uv[5][3] = 0.0680;
+        I_uv[6][3] = 0.0493;
+
+        double actualBD = ocdid.belongingDegree(graph.getNode(2), neighbours, communityMembers, I_uv);
+        double expectedBD = 0.5 * (0.0 + (1.0/3));
+        assertEquals(expectedBD, actualBD, 0.001);
+    }
+    @Test
     public void testToMembershipMatrix() throws InterruptedException {
         OCDIDAlgorithm ocdid = new OCDIDAlgorithm();
         Matrix inputMatrix = new Basic2DMatrix(4, 4);
@@ -280,6 +349,27 @@ public class OCDIDAlgorithmTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void textDetectOverlappingCommunities() throws InterruptedException {
+        OCDIDAlgorithm ocdid = new OCDIDAlgorithm();
+        CustomGraph graph = get5NodesTestGraph();
+
+        Matrix membershipMatrix = new Basic2DMatrix(5, 1);
+        membershipMatrix.set(0, 0, 1);
+        membershipMatrix.set(1, 0, 1);
+        membershipMatrix.set(2, 0, 1);
+        membershipMatrix.set(3, 0, 1);
+        membershipMatrix.set(4, 0, 1);
+
+        Cover expectedCover = new Cover(graph, membershipMatrix);
+        System.out.println("Expected Cover:");
+        System.out.println(expectedCover.toString());
+
+        Cover actualCover = ocdid.detectOverlappingCommunities(graph);
+        System.out.println("Actual Cover:");
+        System.out.println(actualCover.toString());
     }
 
     @Test
