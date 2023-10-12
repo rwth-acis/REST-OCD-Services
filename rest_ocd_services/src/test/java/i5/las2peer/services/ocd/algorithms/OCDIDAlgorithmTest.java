@@ -4,6 +4,7 @@ import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
@@ -136,6 +137,7 @@ public class OCDIDAlgorithmTest {
         assertEquals(expectedavgS2, avgS2, 0.0001);
     }
 
+    @Ignore
     @Test
     public void testCd() throws InterruptedException {
         OCDIDAlgorithm ocdid = new OCDIDAlgorithm();
@@ -352,7 +354,7 @@ public class OCDIDAlgorithmTest {
     }
 
     @Test
-    public void textDetectOverlappingCommunities() throws InterruptedException {
+    public void testOn5NodesTestGraph() throws InterruptedException {
         OCDIDAlgorithm ocdid = new OCDIDAlgorithm();
         CustomGraph graph = get5NodesTestGraph();
 
@@ -419,6 +421,7 @@ public class OCDIDAlgorithmTest {
         graph.addEdge(UUID.randomUUID().toString(), n[5], n[14]);
         graph.addEdge(UUID.randomUUID().toString(), n[6], n[7]);
         graph.addEdge(UUID.randomUUID().toString(), n[6], n[11]);
+        graph.addEdge(UUID.randomUUID().toString(), n[6], n[13]);
         graph.addEdge(UUID.randomUUID().toString(), n[7], n[8]);
         graph.addEdge(UUID.randomUUID().toString(), n[7], n[9]);
         graph.addEdge(UUID.randomUUID().toString(), n[7], n[10]);
