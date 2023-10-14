@@ -158,6 +158,7 @@ public class OCDIDAlgorithmTest {
         Matrix actualMatrix = ocdid.cd(graph, informationList);
         assertEquals(expectedMatrix, actualMatrix);
     }
+    //@Ignore
     @Test
     public void testOcd() throws InterruptedException {
         OCDIDAlgorithm ocdid = new OCDIDAlgorithm();
@@ -193,8 +194,8 @@ public class OCDIDAlgorithmTest {
         communities.set(2, 1, 1);
         communities.set(3, 1, 1);
 
-        List<Node> actualBoundaryNodes = ocdid.boundaryNodes(graph, communities);
-        List<Node> expectedBoundaryNodes = new ArrayList<Node>();
+        Set<Node> actualBoundaryNodes = ocdid.boundaryNodes(graph, communities);
+        Set<Node> expectedBoundaryNodes = new HashSet<>();
         expectedBoundaryNodes.add(graph.getNode(4));
         assertEquals(expectedBoundaryNodes, actualBoundaryNodes);
 
@@ -210,8 +211,8 @@ public class OCDIDAlgorithmTest {
         communities2.set(5, 2, 1);
         communities2.set(6, 2, 1);
 
-        List<Node> actualBoundaryNodes2 = ocdid.boundaryNodes(graph2, communities2);
-        List<Node> expectedBoundaryNodes2 = new ArrayList<Node>();
+        Set<Node> actualBoundaryNodes2 = ocdid.boundaryNodes(graph2, communities2);
+        Set<Node> expectedBoundaryNodes2 = new HashSet<>();
         expectedBoundaryNodes2.add(graph2.getNode(2));
         expectedBoundaryNodes2.add(graph2.getNode(3));
         assertEquals(expectedBoundaryNodes2, actualBoundaryNodes2);
@@ -252,15 +253,15 @@ public class OCDIDAlgorithmTest {
         inputMatrix.set(3, 1, 1);
 
         //community with two members
-        List<Node> actualMembers = ocdid.getCommunityMembers(graph, inputMatrix, 1);
-        List<Node> expectedMembers = new ArrayList<>();
+        Set<Node> actualMembers = ocdid.getCommunityMembers(graph, inputMatrix, 1);
+        Set<Node> expectedMembers = new HashSet<>();
         expectedMembers.add(graph.getNode(1));
         expectedMembers.add(graph.getNode(3));
         assertEquals(expectedMembers, actualMembers);
 
         //community with zero members
-        List<Node> actualMembers2 = ocdid.getCommunityMembers(graph, inputMatrix, 2);
-        List<Node> expectedMembers2 = new ArrayList<>();
+        Set<Node> actualMembers2 = ocdid.getCommunityMembers(graph, inputMatrix, 2);
+        Set<Node> expectedMembers2 = new HashSet<>();
         assertEquals(expectedMembers2, actualMembers2);
     }
     @Test
@@ -273,11 +274,11 @@ public class OCDIDAlgorithmTest {
         inputMatrix.set(3, 0, 1);
         inputMatrix.set(3, 1, 1);
 
-        List<Integer> expectedMemberships1 = new ArrayList<Integer>();
+        List<Integer> expectedMemberships1 = new ArrayList<>();
         List<Integer> actualMemberships1 = ocdid.getMemberships(inputMatrix, 0);
         assertEquals(expectedMemberships1, actualMemberships1);
 
-        List<Integer> expectedMemberships2 = new ArrayList<Integer>();
+        List<Integer> expectedMemberships2 = new ArrayList<>();
         expectedMemberships2.add(0);
         expectedMemberships2.add(1);
         List<Integer> actualMemberships2 = ocdid.getMemberships(inputMatrix, 3);
@@ -294,7 +295,7 @@ public class OCDIDAlgorithmTest {
         neighbours.add(graph.getNode(1));
         neighbours.add(graph.getNode(3));
 
-        List<Node> communityMembers = new ArrayList<Node>();
+        Set<Node> communityMembers = new HashSet<>();
         communityMembers.add(graph.getNode(3));
         communityMembers.add(graph.getNode(4));
         communityMembers.add(graph.getNode(5));

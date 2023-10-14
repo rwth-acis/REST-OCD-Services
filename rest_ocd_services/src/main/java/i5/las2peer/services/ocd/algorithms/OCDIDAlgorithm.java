@@ -6,13 +6,7 @@ import org.graphstream.graph.Node;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Implements the algorithm to the OCDID (Overlapping Community Detection based on Information Dynamics) method, by Z. Sun, B. Wang, J. Sheng,Z. Yu, J. Shao:
@@ -24,11 +18,11 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
     /**
      * The threshold value used for spreading the information in the network.
      */
-    private double thresholdOCDID = 0.001;
+    private double thresholdOCDID = 0.00001;
     /**
      * The threshold value used in the community detection phase of the algorithm.
      */
-    private double thresholdCD = 0.001;
+    private double thresholdCD = 0.002;
     /**
      * The threshold value used in the overlapping community detection phase of the algorithm.
      */
@@ -118,7 +112,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
 
         //Community detection
         Matrix communities = cd(graph, I_v);
-        Matrix overlapping_communities = ocd_fair_and_good(graph, communities, I_uv);
+        Matrix overlapping_communities = ocd(graph, communities, I_uv);
 
         Matrix membershipMatrix = toMembershipMatrix(overlapping_communities);
         return new Cover(graph, membershipMatrix);
@@ -414,78 +408,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @throws InterruptedException if the thread was interrupted
      */
     protected Matrix ocd(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
-        List<Node> BN = boundaryNodes(graph, communities);
-
-        for (Node node : BN) {
-            int nodeID = node.getIndex();
-
-            Set<Node> neighbours = graph.getNeighbours(node);
-            Set<Integer> NC = computeNC(communities, nodeID, neighbours);
-
-            double hightesB = 0.0;                                      //extension so that all nodes are assigned
-            int communityOfHighestB = 0;
-
-            for (int community : NC) {
-                List<Node> communityMembers = getCommunityMembers(graph, communities, community);
-                double B = belongingDegree(node, neighbours, communityMembers, I_uv);
-
-                if (B > thresholdOCD) {
-                    communities.set(nodeID, community, 1);
-                }
-
-                if(B > hightesB){                                       //extension so that all nodes are assigned
-                    communityOfHighestB = community;
-                }
-            }
-            if (getMemberships(communities, nodeID).isEmpty()){        //extension so that all nodes are assigned
-                if (hightesB > 0.0) {
-                    communities.set(nodeID, communityOfHighestB, 1);
-                }else{                                                                //there was no information flow from or to the node then it becomes an own community
-                    communities.set(nodeID, nodeID, 1);
-                }
-            }
-        }
-        return communities;
-    }
-
-    protected Matrix ocd_fair(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
-        List<Node> BN = boundaryNodes(graph, communities);
-        Matrix oc = communities.copy();
-
-        for (Node node : BN) {
-            int nodeID = node.getIndex();
-
-            Set<Node> neighbours = graph.getNeighbours(node);
-            Set<Integer> NC = computeNC(oc, nodeID, neighbours);
-
-            double hightesB = 0.0;                                      //extension so that all nodes are assigned
-            int communityOfHighestB = 0;
-
-            for (int community : NC) {
-                List<Node> communityMembers = getCommunityMembers(graph, communities, community);
-                double B = belongingDegree(node, neighbours, communityMembers, I_uv);
-
-                if (B > thresholdOCD) {
-                    oc.set(nodeID, community, 1);
-                }
-
-                if(B > hightesB){                                       //extension so that all nodes are assigned
-                    communityOfHighestB = community;
-                }
-            }
-            if (getMemberships(communities, nodeID).isEmpty()){        //extension so that all nodes are assigned
-                if (hightesB > 0.0) {
-                    oc.set(nodeID, communityOfHighestB, 1);
-                }else{                                                                //there was no information flow from or to the node then it becomes an own community
-                    oc.set(nodeID, nodeID, 1);
-                }
-            }
-        }
-        return oc;
-    }
-
-    protected Matrix ocd_fair_and_good(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
-        List<Node> BN = boundaryNodes(graph, communities);
+        Set<Node> BN = boundaryNodes(graph, communities);
         boolean changes = true;
         while(changes){
             changes=false;
@@ -499,7 +422,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                 int communityOfHighestB = 0;
 
                 for (int community : NC) {
-                    List<Node> communityMembers = getCommunityMembers(graph, communities, community);
+                    Set<Node> communityMembers = getCommunityMembers(graph, communities, community);
                     double B = belongingDegree(node, neighbours, communityMembers, I_uv);
 
                     if (B > thresholdOCD) {
@@ -539,8 +462,8 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return A list of consisting of boundary nodes and nodes with no community
      * @throws InterruptedException if the thread was interrupted
      */
-    protected List<Node> boundaryNodes(CustomGraph graph, Matrix communities) throws InterruptedException {
-        List<Node> BN = new ArrayList<>();
+    protected Set<Node> boundaryNodes(CustomGraph graph, Matrix communities) throws InterruptedException {
+        Set<Node> BN = new HashSet<>();
 
         Iterator<Node> nodesIt = graph.nodes().iterator();
         Node node;
@@ -594,8 +517,8 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return A List of nodes containing the members of the input community
      * @throws InterruptedException if the thread was interrupted
      */
-    protected List<Node> getCommunityMembers(CustomGraph graph, Matrix communities, int community) throws InterruptedException {
-        List<Node> communityMembers = new ArrayList<>();
+    protected Set<Node> getCommunityMembers(CustomGraph graph, Matrix communities, int community) throws InterruptedException {
+        Set<Node> communityMembers = new HashSet<>();
 
         Iterator<Node> nodesIt = graph.nodes().iterator();
         while (nodesIt.hasNext()) {
@@ -638,9 +561,9 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      * @return The belonging degree of the input node to the input community
      * @throws InterruptedException if the thread was interrupted
      */
-    protected double belongingDegree(Node node, Set<Node> neighbours, List<Node> communityMembers, double[][] I_uv) throws InterruptedException{
+    protected double belongingDegree(Node node, Set<Node> neighbours, Set<Node> communityMembers, double[][] I_uv) throws InterruptedException{
         //compute BT
-        List<Node> intersection = new ArrayList<>();
+        Set<Node> intersection = new HashSet<>();
 
         for (Node neighbour : neighbours) {
             if (communityMembers.contains(neighbour)) {
