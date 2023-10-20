@@ -14,7 +14,13 @@ import java.util.Random;
 import org.graphstream.graph.Edge;
 
 public class EdgePainter {
+     
 
+
+        /**
+	 * This method assigns every edge a color, corresponding on the layer it is on.
+	 * @param cover The cover, whose graph should be painted
+	 */
     public void doEdgePaint(Cover cover) {
         List<Color> colors;
         if (cover.getGraph().getNumberOfLayers() > 20) {
@@ -41,7 +47,10 @@ public class EdgePainter {
         }
 
     }
-
+      /**
+	 * This method assigns every edge a color, corresponding on the layer it is on.
+	 * @param graph The graph, whose edges should be painted
+	 */
     public void doEdgePaint(CustomGraph graph) {
         List<Color> colors;
         if (graph.getNumberOfLayers() > 20) {
@@ -71,7 +80,6 @@ public class EdgePainter {
 
     /**
      * Returns a collection of random colors.
-     * Each color is mixed with a light gray to ensure readability of node labels.
      * 
      * @param amount The amount of colors required.
      * @return The color collection.
@@ -98,6 +106,12 @@ public class EdgePainter {
         return colors;
     }
 
+
+
+     /**
+     * Returns a collection of predefined colors.
+     * @return The color collection.
+     */
     public List<Color> getPredefinedColors() {
         List<Color> colors = new ArrayList<>();
         colors.add(new Color(139, 0, 0));          

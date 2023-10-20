@@ -451,6 +451,28 @@ public class Cover {
 		this.updateNumberOfCommunities(this.communityCount());
 	}
 
+
+	/**
+	 * Sets the communities from a membership matrix for every layer. All metric logs (besides
+	 * optionally the execution time) will be removed from the cover. Note that
+	 * all the membesrship matrix for every layer (and consequently the cover) will automatically be
+	 * row normalized.
+	 * 
+	 * @param multiplexMemberships
+	 *                          A membership matrix for every layer, with non negative entries. Each
+	 *                          row i
+	 *                          contains the belonging factors of the node with
+	 *                          index i of the
+	 *                          corresponding graph. Hence the number of rows
+	 *                          corresponds the
+	 *                          number of graph nodes and the number of columns the
+	 *                          number of
+	 *                          communities.
+	 *                          The value String indicates the corresponding layer.
+	 * @param keepExecutionTime
+	 *                          Decides whether the (first) execution time metric
+	 *                          log is kept.
+	 */
 	protected void setMultiplexMemberships(Map<String, Matrix> multiplexMemberships, boolean keepExecutionTime) {
 		communities.clear();
 		OcdMetricLog executionTime = getMetric(OcdMetricType.EXECUTION_TIME);
@@ -495,7 +517,12 @@ public class Cover {
 
 	}
 
-	
+    /**
+	 * Converts the multiplexMembership Matrix into the normal membership matrix by ignoring the layer.
+	 * 
+	 * @param communities   The multiplexMembershipMatrix
+     * @return the membershipMatrix
+	 */
 	public Matrix convertMultiplexMembershipToMembershipMatrix(Map<String, Matrix> communities) {
 		Matrix matrix = new CCSMatrix(graph.getNodeCount(), 0);
 		boolean matrixInitialized = false;
@@ -515,7 +542,10 @@ public class Cover {
 		}
 		return matrix;
 	}
-
+    /**
+	 * Processes all multiplex communities in order to reconstruct the multiplexMembershipMatrix
+	 * @return The multiplexMembershipMatrix
+	 */
 	public Map<String, Matrix> getMultiplexMemberships() {
 		Map<String, Matrix> result = new HashMap<>();
 		for (int i = 0; i < communities.size(); i++) {
@@ -556,6 +586,22 @@ public class Cover {
 		this.updateNumberOfCommunities(this.communityCount());
 	}
 
+	/**
+	 * Sets the communities from a membership matrix for every layer. All metric logs (besides
+	 * optionally the execution time) will be removed from the cover. Note that
+	 * all the membership matrices (and consequently the cover) will automatically be
+	 * row-wise normalized according to the 1-norm.
+	 * 
+	 * @param memberships
+	 *                    Membership matrices for every layer, with non negative entries. Each row i
+	 *                    contains the belonging factors of the node with index i of
+	 *                    the
+	 *                    corresponding graph. Hence the number of rows corresponds
+	 *                    the
+	 *                    number of graph nodes and the number of columns the number
+	 *                    of
+	 *                    communities.
+	 */
 	public void setMultiplexMemberships(Map<String, Matrix> memberships) {
 		setMultiplexMemberships(memberships, false);
 		this.updateNumberOfCommunities(this.communityCount());
@@ -766,6 +812,28 @@ public class Cover {
 	}
 
 	/**
+	 * Returns the indices of the communities that a node on a specific layers is member of.
+	 * 
+	 * @param node
+	 *             The node.
+	 * @return The community indices.
+	 */
+	public List<Integer> getMultiplexCommunityIndices(String layerId, Node node) {
+		if (this.isMultiplex) {
+
+		List<Integer> communityIndices = new ArrayList<Integer>();
+		for (int j = 0; j < communities.size(); j++) {
+			MultiplexCommunity community = (MultiplexCommunity) communities.get(j);
+			if (community.getMultiplexBelongingFactor(layerId, node) > 0) {
+				communityIndices.add(j);
+			}
+		}
+		return communityIndices;
+	} 
+	return null;
+}
+
+	/**
 	 * Getter for the belonging factor / membership degree of a node for a
 	 * certain community.
 	 * 
@@ -856,6 +924,16 @@ public class Cover {
 		return matrix;
 	}
 
+
+	/**
+	 * Normalizes each row of a matrix using the one norm. Note that a unit
+	 * vector column is added for each row that is equal to zero to create a
+	 * separate node community.
+	 * 
+	 * @param communities
+	 *               The memberships matrices to be normalized
+	 * @return The normalized membership matrices.
+	 */
 	protected Map<String, Matrix> setZeroColumnsMultiplexMembership(Map<String, Matrix> communities) {
 		List<Integer> zeroRowIndices = new ArrayList<Integer>();
 		Map<String, Matrix> result = new HashMap<>(communities);

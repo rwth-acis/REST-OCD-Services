@@ -24,6 +24,10 @@ import i5.las2peer.services.ocd.algorithms.utils.Clique;
 
 public class CliquePercolationMethodAlgorithm implements OcdAlgorithm {
 
+
+    /**
+	 *  The minimal clique size to be considered
+	 */
     private int k = 3;
 
     /*
@@ -75,26 +79,45 @@ public class CliquePercolationMethodAlgorithm implements OcdAlgorithm {
     @Override
     public CoverCreationType getAlgorithmType() {
 
-        return CoverCreationType.CLIQUE_PERCOLATION_METHOD_MULTIPLEX_ALGORITHM;
+        return CoverCreationType.CLIQUE_PERCOLATION_METHOD_MULTIPLEX;
 
     }
-
+     
+     /**
+	 * This method returns the computed Cover of the algorithm
+	 * @param graph    The graph, whose cover should be computed with the algorithm
+	 * @return     The cover
+	 */
     @Override
     public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException {
+
+
         MaximalCliqueSearch maximalCliqueSearch = new MaximalCliqueSearch();
-        long start = System.currentTimeMillis();
+
+        //Searches for all maximal cliques with the maximalCliqueSearch method, implemented in WebOCD.
         HashMap<Integer, HashSet<Node>> allMaxCliques = maximalCliqueSearch.cliques(graph);
-        long finish = System.currentTimeMillis();
-        long timeElapsed = finish - start;
+
+        //Converts the cliques hashmap into a hashset consistinf of cliques.
         HashSet<Clique> maxCliques = createCliques(allMaxCliques);
+
+        //Creates the nodesToCliques map, as described in the paper, for faster execution time.
         HashMap<Integer, HashSet<Clique>> nodesToCliques = nodesToCliques(maxCliques);
+
+        //Computes all the communites and returns the community count. 
         int communityCount = computeCommunities(maxCliques, nodesToCliques);
         int nodeCount = graph.getNodeCount();
+
+        //Converts the communities into the membershipMatrix representation for the cover.
         Matrix membershipMatrix = createMembershipMatrix(maxCliques, communityCount, nodeCount);
         return new Cover(graph, membershipMatrix);
 
     }
 
+        /**
+	 * This method converts the mapping of cliqueIds to a set of nodes into a set of Clique objects.
+	 * @param allMaxCliques  The computed maximal cliques.
+	 * @return    Set of Clique objects
+	 */
     private HashSet<Clique> createCliques(HashMap<Integer, HashSet<Node>> allMaxCliques) {
 
         HashSet<Clique> maxCliques = new HashSet<>();
@@ -112,6 +135,18 @@ public class CliquePercolationMethodAlgorithm implements OcdAlgorithm {
         return maxCliques;
     }
 
+
+        /**
+	 * This method returns the computed Cover of the algorithm
+	 * @param customGraph    The graph, whose cover should be computed with the algorithm
+	 * @return     The cover
+	 */
+
+         /**
+	 * This method computes the nodesToCliques map.
+	 * @param maxCliques The set of maximal cliques
+	 * @return     nodestToCliques map
+	 */
     private HashMap<Integer, HashSet<Clique>> nodesToCliques(HashSet<Clique> maxCliques) {
         HashMap<Integer, HashSet<Clique>> nodesTocliques = new HashMap<>();
         for (Clique clique : maxCliques) {
@@ -124,7 +159,15 @@ public class CliquePercolationMethodAlgorithm implements OcdAlgorithm {
         }
         return nodesTocliques;
     }
+    
 
+
+        /**
+	 * This method computes the communities, by assigning each Clique object the corresponding community index.
+	 * @param maximalCliques  The set of maximal Cliques
+	 * @param nodesToClique   The nodesToClique map
+     * @return  The number of computed communities.
+	 */
     private int computeCommunities(HashSet<Clique> maxCliques, HashMap<Integer, HashSet<Clique>> nodesToClique) {
 
         int currentCommunity = 0;
@@ -160,7 +203,14 @@ public class CliquePercolationMethodAlgorithm implements OcdAlgorithm {
         }
         return currentCommunity;
     }
+    
 
+        /**
+	 * This method returns all unvisited adjacent cliques for a clique
+	 * @param clique   The clique, whose adjacent cliques should be retunred
+	 * @param nodesToClique The nodesToClique map
+     * @return Set of unvisited cliques
+	 */
     private HashSet<Clique> getUnvisitedAdjacentCliques(Clique clique,
             HashMap<Integer, HashSet<Clique>> nodesToClique) {
 
@@ -177,6 +227,14 @@ public class CliquePercolationMethodAlgorithm implements OcdAlgorithm {
         return neighbors;
     }
 
+
+        /**
+	 * This method converts the current representation of communites into the membership matrix way.
+	 * @param maxCliques   The maximal Cliques with their community participations
+     * @param communityCount The number of communities
+     * @param nodeCount The number of nodes
+	 * @return   the membership matrix
+	 */
     private Matrix createMembershipMatrix(HashSet<Clique> maxCliques, int communityCount, int nodeCount) {
         Matrix membershipMatrix = new CCSMatrix(nodeCount, communityCount);
         for (Clique clique : maxCliques) {

@@ -67,7 +67,14 @@ public class MultiplexCommunity extends Community {
 	public void setMultiplexMemberships(Map<String, Map<CustomNode, Double>> multiplexMemberships) {
 		this.multiplexMemberships = multiplexMemberships;
 	}
+    
 
+	/**
+	 * Setter for belongingfactor of a node on a layer.
+	 * @param layerId  The layerId the node is on.
+	 * @param node     The node 
+	 * @param belongingFactor  The belongingFactor of the node to this community.
+	 */
 	public void setMultiplexBelongingFactor(String layerId, Node node, Double belongingFactor) {
 		CustomNode customNode = getCover().getGraph().getCustomNode(node);
 		if (multiplexMemberships.get(layerId) == null) {
@@ -94,7 +101,13 @@ public class MultiplexCommunity extends Community {
 		}
 		return result;
 	}
+    
 
+	/**
+	 * Getter for the belongingfactor of a node on a layer.
+	 * 
+	 * @return The belonging factor
+	 */
 	public double getMultiplexBelongingFactor(String layer, Node node) {
 		CustomNode customNode = this.getCover().getGraph().getCustomNode(node);
 		if (multiplexMemberships.containsKey(layer)) {

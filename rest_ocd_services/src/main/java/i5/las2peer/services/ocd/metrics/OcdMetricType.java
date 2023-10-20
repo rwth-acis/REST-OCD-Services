@@ -52,7 +52,12 @@ public enum OcdMetricType implements EnumDisplayNames{
 	/**
 	 * Type corresponding to Newmans Modularity, a statistical measure.
 	 */
-	NEWMAN_MODULARITY ("Newman Modularity", ModularityMetric.class, 7);
+	NEWMAN_MODULARITY ("Newman Modularity", ModularityMetric.class, 7),
+		/**
+	 * Type corresponding to Muliplex Modularity, a statistical measure.
+	 */
+	MULTIPLEX_MODULARITY ("Multiplex Modularity", MultiplexModularityMetric.class, 8);
+
 	
 	/**
 	 * For persistence and other purposes.

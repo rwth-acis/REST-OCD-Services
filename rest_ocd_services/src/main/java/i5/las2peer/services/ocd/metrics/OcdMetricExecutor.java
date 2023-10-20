@@ -48,7 +48,11 @@ public class OcdMetricExecutor {
 		CustomGraph graph = cover.getGraph();
 		CustomGraph graphCopy = new CustomGraph(graph);
 		processor.makeCompatible(graphCopy, metric.compatibleGraphTypes());
-		Cover coverCopy = new Cover(graphCopy, cover.getMemberships());
+		Cover coverCopy;
+		//Copy a cover of type multiplex 
+			if (!cover.getIsMultiplex()) {
+		 coverCopy = new Cover(graphCopy, cover.getMemberships());
+			} else {coverCopy = new Cover(graphCopy, cover.getMultiplexMemberships());}
 		double value = metric.measure(coverCopy);
 		OcdMetricLog log = new OcdMetricLog(OcdMetricType.lookupType(metric.getClass()), value, metric.getParameters(), cover);
 		log.setStatus(ExecutionStatus.COMPLETED);

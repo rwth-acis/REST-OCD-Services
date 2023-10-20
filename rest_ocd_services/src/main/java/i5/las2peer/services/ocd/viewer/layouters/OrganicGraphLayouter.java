@@ -52,6 +52,7 @@ public class OrganicGraphLayouter implements GraphLayouter {
 			}
 		} else {
 			Iterator<Edge> edgesIt = graph.edges().iterator();
+			//If the graph is of type MULTIPLE_EDGES, compute the thickness of edges for the SVG image visualization
 			if (graph.getTypes().contains(GraphType.MULTIPLE_EDGES)) {
 				Iterator<Node> nodesIt1 = graph.nodes().iterator();
 				List<Node> nodes2 = new ArrayList<>(graph.nodes().toList());
@@ -61,7 +62,7 @@ public class OrganicGraphLayouter implements GraphLayouter {
 						if (node1.getEdgeSetBetween(node2).size() > 0) {
 
 							Edge edge = node1.getEdgeToward(node2);
-							int edgeSize = biggestEdgeSize
+							int edgeSize = 1 + 1
 									* (node1.getEdgeSetBetween(node2).size() / numberOfLayers);
 							edge.setAttribute("ui.style",
 									edge.getAttribute("ui.style") + "fill-color: black; shape: line; size: " + edgeSize
