@@ -73,6 +73,28 @@ public class OCDAParser {
 
 
 
+    public static void main(String[] args) {
+
+        try {
+
+            /* Parse the OCDA class file */
+            File file = new File(getOCDAPath("SskAlgorithm.java"));
+            CompilationUnit compilationUnit = parseJavaFile(file);
+
+            /* Identify compatible graph types for a parsed OCDA */
+            List<String> compatibilities = extractCompatibilities(file);
+
+            /* Generate Chat-GPT prompt for a given OCDA that can be used to create an OCDA test class */
+            PromptGenerator.generatePromptString(compatibilities,getClassName(compilationUnit));
+
+
+        } catch (ParseProblemException e) {
+            System.err.println("Parsing error: " + e.getMessage());
+            System.err.println("The code is not valid Java.");
+        }
+    }
+
+
     /**
      * Gets method calls and corresponding method call lines for a specified java class (file)
      * @param javaFile    Java class the method calls of which to list
