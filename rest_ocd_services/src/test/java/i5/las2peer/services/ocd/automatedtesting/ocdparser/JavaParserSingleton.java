@@ -1,4 +1,4 @@
-package i5.las2peer.services.ocd.ocdparser;
+package i5.las2peer.services.ocd.automatedtesting.ocdparser;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;

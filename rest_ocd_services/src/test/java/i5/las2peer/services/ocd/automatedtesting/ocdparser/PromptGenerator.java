@@ -1,4 +1,4 @@
-package i5.las2peer.services.ocd.ocdparser;
+package i5.las2peer.services.ocd.automatedtesting.ocdparser;
 
 import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
