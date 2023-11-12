@@ -9,7 +9,8 @@ plugins {
     id 'application'
     id 'eclipse' // only required when using Eclipse
     id 'java-library'
-    id 'jacoco'
+    id 'jacoco' // Jacoco used for coverage report for OCDA and other classes
+    id 'pmd' // PDM is used for calculating WebOCD quality metric
 }
 
 
@@ -308,6 +309,31 @@ jacocoTestReport {
         html.enabled true
     }
 }
+
+
+// Configure PMD
+pmd {
+    toolVersion = '6.39.0'
+    sourceSets = [sourceSets.main, sourceSets.test]
+    consoleOutput = true // Show output in console
+    ignoreFailures = true // Set to true to not fail the build on PMD issues
+    reportsDir = file("$project.buildDir/reports/pmd") // Define the reports directory
+    ruleSetFiles = files("config/pdm/ruleset.xml") // Location of the rule set against which the code is checked
+    incrementalAnalysis = false
+
+
+}
+
+tasks.withType(org.gradle.api.plugins.quality.Pmd) {
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.file("reports/pmd/pmd.html"))
+        xml.outputLocation.set(layout.buildDirectory.file("reports/pmd/pmd.xml"))
+    }
+}
+
+
 
 // Executes WebOCD tests without database tests. This task is used for github actions.
 task testWithoutDB(type: Test) {
