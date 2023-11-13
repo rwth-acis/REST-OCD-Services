@@ -17,8 +17,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
+import com.github.javaparser.Problem;
+import com.github.javaparser.TokenRange;
+import com.github.javaparser.ast.CompilationUnit;
 
 
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import org.junit.platform.launcher.Launcher;
+import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
+import org.junit.platform.launcher.core.LauncherFactory;
+import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
+import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
 public class OCDAParser {
 
@@ -32,7 +46,7 @@ public class OCDAParser {
 
 
     /**
-     * @param ocdaFileName      Name of the OCDA class file name
+     * @param ocdaFileName      Name of the OCDA class file
      * @return                  String representation of the path to the OCDA class
      */
     public static String getOCDAPath(String ocdaFileName){
@@ -47,6 +61,24 @@ public class OCDAParser {
 
         return absoluteFilePath;
     }
+
+    /**
+     * @param ocdaTestFileName      Name of the OCDA test class file
+     * @return                  String representation of the path to the OCDA class
+     */
+    public static String getOCDATestPath(String ocdaTestFileName){
+        // path starting with 'rest_ocd_services'
+        String relativeFilePath = "rest_ocd_services/src/test/java/i5/las2peer/services/ocd/algorithms/" + ocdaTestFileName;
+
+        // Get the current working directory (content root)
+        String contentRoot = System.getProperty("user.dir");
+
+        // Create the absolute file path
+        String absoluteFilePath = contentRoot + File.separator + relativeFilePath;
+
+        return absoluteFilePath;
+    }
+
 
 
     /**
@@ -71,15 +103,43 @@ public class OCDAParser {
                 .orElse("No class name found");
     }
 
+    /**
+     * Parses a given Java file and returns a list of parsing error messages.
+     *
+     * @param file The Java file to be parsed.
+     * @return A list of error messages. Returns an empty list if no errors are found.
+     */
+    public static List<String> getParsingErrors(File file) {
+        try {
+            ParseResult<CompilationUnit> parseResult = javaParser.parse(file);
 
+            if (!parseResult.isSuccessful()) {
+                return parseResult.getProblems().stream()
+                        .map(problem -> {
+                            TokenRange tokenRange = problem.getLocation().orElse(null);
+                            String location = (tokenRange != null) ? "Line " + tokenRange.getBegin().getRange().get().begin.line + ": " : "";
+                            return location + problem.getMessage();
+                        })
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Return an empty list if there are no parsing errors
+        return List.of();
+    }
 
     public static void main(String[] args) {
 
         try {
 
+            // ===== Parsing OCD =====
+
             /* Parse the OCDA class file */
             File file = new File(getOCDAPath("SskAlgorithm.java"));
             CompilationUnit compilationUnit = parseJavaFile(file);
+
 
             /* Identify compatible graph types for a parsed OCDA */
             List<String> compatibilities = extractCompatibilities(file);
@@ -87,10 +147,23 @@ public class OCDAParser {
             /* Generate Chat-GPT prompt for a given OCDA that can be used to create an OCDA test class */
             PromptGenerator.generatePromptString(compatibilities,getClassName(compilationUnit));
 
+            // ==== Parse file for compilation errors ===
+//            File fileBasic = new File("someFile.java"); //TODO: decide where to put files to parse
+//            System.out.println("compilation errors list: "+ getParsingErrors(fileBasic));
 
-        } catch (ParseProblemException e) {
-            System.err.println("Parsing error: " + e.getMessage());
-            System.err.println("The code is not valid Java.");
+
+            // ===== RUNTIME =====
+
+            /* Parse the OCDA Test class file */
+            File testFile = new File(getOCDATestPath("SSKAlgorithmTest.java"));
+            CompilationUnit compilationUnitTest = parseJavaFile(testFile);
+
+            /* Check if the test class is executable or if exception is thrown */
+            OCDTestRunner.runCompiledTestClassWithJUnit5(compilationUnitTest, testFile);
+
+
+        } catch (Exception e) {
+            System.err.println("Error parsing file: " + e.getMessage());
         }
     }
 

@@ -10,7 +10,7 @@ plugins {
     id 'eclipse' // only required when using Eclipse
     id 'java-library'
     id 'jacoco' // Jacoco used for coverage report for OCDA and other classes
-    id 'pmd' // PDM is used for calculating WebOCD quality metric
+    id 'pmd' // PMD is used for calculating WebOCD quality metric
 }
 
 
@@ -92,6 +92,10 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.0'
     testImplementation 'org.mockito:mockito-core:3.12.4'
     testImplementation 'org.mockito:mockito-junit-jupiter:3.12.4'
+
+    // tools for code compilation and runtime analysis
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.0'
+    testImplementation 'org.junit.platform:junit-platform-launcher:1.7.0'
 }
 
 configurations {
@@ -318,7 +322,7 @@ pmd {
     consoleOutput = true // Show output in console
     ignoreFailures = true // Set to true to not fail the build on PMD issues
     reportsDir = file("$project.buildDir/reports/pmd") // Define the reports directory
-    ruleSetFiles = files("config/pdm/ruleset.xml") // Location of the rule set against which the code is checked
+    ruleSetFiles = files("config/pmd/ruleset.xml") // Location of the rule set against which the code is checked
     incrementalAnalysis = false
 
 
