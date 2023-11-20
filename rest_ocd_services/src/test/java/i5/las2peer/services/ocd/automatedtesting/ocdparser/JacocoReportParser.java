@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.automatedtesting.ocdparser;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers.CoverageData;
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers.Pair;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -24,11 +25,11 @@ public class JacocoReportParser {
      * Parses coverage data from the JaCoCo report for a specified class
      * @param targetClassName       Class for which the coverage data should be parsed
      */
-    public static HashMap<String, Pair<String, String>> parseJacocoXmlReportForClass(String targetClassName) {
+    public static HashMap<String, CoverageData> parseJacocoXmlReportForClass(String targetClassName) {
 
         // Map of aggregate coverage data where key is the type (e.g., LINE, BRANCH),
         // and value is a pair of missed and covered counts
-        HashMap<String, Pair<String, String>> aggregateCoverageData = new HashMap<>();
+        HashMap<String, CoverageData> aggregateCoverageData = new HashMap<>();
 
 
         try {
@@ -53,9 +54,10 @@ public class JacocoReportParser {
                     for (int j = 0; j < counters.getLength(); j++) {
                         Element counter = (Element) counters.item(j);
                         String type = counter.getAttribute("type");
+                        int missed = Integer.parseInt(counter.getAttribute("missed"));
+                        int covered = Integer.parseInt(counter.getAttribute("covered"));
 
-                        aggregateCoverageData.put(type, new Pair<>(counter.getAttribute("missed"),
-                                counter.getAttribute("covered")));
+                        aggregateCoverageData.put(type, new CoverageData(missed, covered));
                     }
                     break; // Break after finding the target class
                 }
@@ -68,7 +70,7 @@ public class JacocoReportParser {
     }
 
     public static void main(String[] args) {
-        HashMap<String, Pair<String, String>> coverageData
+        HashMap<String, CoverageData> coverageData
                 = parseJacocoXmlReportForClass("SpeakerListenerLabelPropagationAlgorithm");
         System.out.println(coverageData);
     }
