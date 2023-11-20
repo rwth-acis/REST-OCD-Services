@@ -19,10 +19,17 @@ public class Pair<L, R> {
 
     @Override
     public String toString() {
-        return "{\"" +
-                 left +
-                "\":\"" + right +
-                "\"}";
+        return "{\"" + escapeJson(left.toString()) + "\":\"" + escapeJson(right.toString()) + "\"}";
+    }
+
+    private String escapeJson(String str) {
+        return str.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\b", "\\b")
+                .replace("\f", "\\f")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 
 }

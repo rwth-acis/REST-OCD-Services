@@ -15,6 +15,7 @@ public class PromptGenerator {
 
 
 
+    /*  Constants related to graph types */
     // Method names to fetch graphs to be used in auto-generated tests
     //TODO: add/replace method names
     public static String UNDIRECTED_GRAPH_METHOD_NAME = "getSawmillGraph()";
@@ -32,6 +33,21 @@ public class PromptGenerator {
 
     // Name of the graph class used in WebOCD
     public static String GRAPH_CLASS_NAME = "CustomGraph";
+
+    /*  Constants related to test names that must be auto-completed by ChatGPT */
+
+    public static String UNDIRECTED_GRAPH_TEST_NAME = "undirectedGraphTest1";
+
+    public static String DIRECTED_GRAPH_TEST_NAME = "directedGraphTest1";
+
+    public static String WEIGHTED_GRAPH_TEST_NAME = "weightedGraphTest1";
+
+    public static String ZERO_WEIGHTS_GRAPH_TEST_NAME = "zeroWeightsGraphTest1";
+
+    public static String NEGATIVE_WEIGHTS_GRAPH_TEST_NAME = "negativeWeightsGraphTest1";
+
+    public static String SELF_LOOPS_GRAPH_TEST_NAME = "selfLoopsGraphTest1";
+
 
     /**
      * Generates a prompt for a given OCDA and its compatible graph types. This prompt can be used as an input
