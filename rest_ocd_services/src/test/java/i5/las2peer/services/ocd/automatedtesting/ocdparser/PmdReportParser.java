@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.automatedtesting.ocdparser;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers.CodeSmellData;
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers.Pair;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -26,10 +27,10 @@ public class PmdReportParser {
      * Parses violations from the PMD report for a specified class
      * @param targetClassName       Class for which the violations should be parsed
      */
-    public static HashMap<String, List<Pair<String, String>>> parsePmdXmlReportForViolationsForClass(String targetClassName) {
+    public static HashMap<String, List<CodeSmellData>> parsePmdXmlReportForViolationsForClass(String targetClassName) {
 
         // map of rule violations where value is a pair of line number where violation occurred and its description
-        HashMap<String, List<Pair<String, String>>> ruleViolations = new HashMap<>();
+        HashMap<String, List<CodeSmellData>> ruleViolations = new HashMap<>();
 
         try {
             File xmlFile = new File(PMD_REPORT_LOCATION);
@@ -40,7 +41,6 @@ public class PmdReportParser {
 
             NodeList violations = doc.getElementsByTagName("violation");
 
-
             for (int i = 0; i < violations.getLength(); i++) {
                 Element violation = (Element) violations.item(i);
                 String className = violation.getAttribute("class");
@@ -48,15 +48,17 @@ public class PmdReportParser {
                     String violatedRule = violation.getAttribute("rule");
                     if(!violatedRule.equals("DataflowAnomalyAnalysis")) { // ignore data flow anomalies
 
+                        String beginLine = violation.getAttribute("beginline");
+                        String endLine = violation.getAttribute("endline");
+                        String ruleSet = violation.getAttribute("ruleset");
+                        String description = violation.getTextContent().trim();
+
+                        CodeSmellData codeSmellData = new CodeSmellData(beginLine, endLine, violatedRule, ruleSet, className, description);
+
+
                         // add violation to the list of violations
-                        ruleViolations.computeIfAbsent(violatedRule, k -> new ArrayList<>())
-                                .add(new Pair<>(violation.getAttribute("beginline"),
-                                        violation.getTextContent().trim()));
+                        ruleViolations.computeIfAbsent(violatedRule, k -> new ArrayList<>()).add(codeSmellData);
 
-
-                        String lineNumber = violation.getAttribute("beginline");
-                        String problemDescription = violation.getTextContent().trim();
-                        System.out.println("Violation of rule " + violatedRule + " on line " + lineNumber + ": " + problemDescription);
                     }
                 }
             }
@@ -72,8 +74,8 @@ public class PmdReportParser {
 
     public static void main(String[] args) {
 
-        HashMap<String, List<Pair<String, String>>> ruleViolations
-                = parsePmdXmlReportForViolationsForClass("ServiceTest");
+        HashMap<String, List<CodeSmellData>> ruleViolations
+                = parsePmdXmlReportForViolationsForClass("SskAlgorithmTest");
         System.out.println(ruleViolations);
     }
 }
