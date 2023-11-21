@@ -18,7 +18,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
     /**
      * The threshold value used for spreading the information in the network.
      */
-    private double thresholdOCDID = 0.00001;
+    private double thresholdOCDID = 0.0001;
     /**
      * The threshold value used in the community detection phase of the algorithm.
      */
@@ -407,19 +407,85 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      *         columns correspond to the community a node was assigned. The matrix allows to have empty columns.
      * @throws InterruptedException if the thread was interrupted
      */
-    protected Matrix ocd(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
+    private Matrix ocd(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
         Set<Node> BN = boundaryNodes(graph, communities);
+
+        for (Node node : BN) {
+            int nodeID = node.getIndex();
+            Set<Node> neighbours = graph.getNeighbours(node);
+            Set<Integer> NC = computeNC(communities, nodeID, neighbours);
+            double hightesB = 0.0;                                      //extension so that all nodes are assigned
+            int communityOfHighestB = 0;
+            for (int community : NC) {
+                Set<Node> communityMembers = getCommunityMembers(graph, communities, community);
+                double B = belongingDegree(node, neighbours, communityMembers, I_uv);
+                if (B > thresholdOCD) {
+                    communities.set(nodeID, community, 1);
+                }
+                if(B > hightesB){                                       //extension so that all nodes are assigned
+                    communityOfHighestB = community;
+                }
+            }
+            if (getMemberships(communities, nodeID).isEmpty()){        //extension so that all nodes are assigned
+                if (hightesB > 0.0) {
+                    communities.set(nodeID, communityOfHighestB, 1);
+                }else{                                                                //there was no information flow from or to the node then it becomes an own community
+                    communities.set(nodeID, nodeID, 1);
+                }
+            }
+        }
+        return communities;
+    }
+    protected Matrix ocdFair(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
+        Set<Node> BN = boundaryNodes(graph, communities);
+        Matrix communitiesBeforeOCD = communities.copy();
+        for (Node node : BN) {
+            int nodeID = node.getIndex();
+
+            Set<Node> neighbours = graph.getNeighbours(node);
+            Set<Integer> NC = computeNC(communitiesBeforeOCD, nodeID, neighbours);
+
+            double hightesB = 0.0;                                      //extension so that all nodes are assigned
+            int communityOfHighestB = 0;
+
+            for (int community : NC) {
+                Set<Node> communityMembers = getCommunityMembers(graph, communitiesBeforeOCD, community);
+                double B = belongingDegree(node, neighbours, communityMembers, I_uv);
+
+                if (B > thresholdOCD) {
+                    communities.set(nodeID, community, 1);
+                }
+
+                if(B > hightesB){                                       //extension so that all nodes are assigned
+                    communityOfHighestB = community;
+                }
+            }
+            if (getMemberships(communities, nodeID).isEmpty()){        //extension so that all nodes are assigned
+                if (hightesB > 0.0) {
+                    communities.set(nodeID, communityOfHighestB, 1);
+                }else {
+                    communities.set(nodeID, nodeID, 1);          //add nodes with no community
+                }
+            }
+        }
+        return communities;
+    }
+    protected Matrix ocdBetter(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
+        Set<Node> BN = boundaryNodes(graph, communities);
+        List<Node> nodeList = new ArrayList<>(BN);
+        double hightesB[] = new double[nodeList.size()];
+        int communityOfHighestB[] = new int[nodeList.size()];
+
         boolean changes = true;
         while(changes){
-            changes=false;
-            for (Node node : BN) {
+            changes = false;
+
+            for (int i = 0; i < nodeList.size(); i++) {
+                Node node = nodeList.get(i);
                 int nodeID = node.getIndex();
 
                 Set<Node> neighbours = graph.getNeighbours(node);
                 Set<Integer> NC = computeNC(communities, nodeID, neighbours);
-
-                double hightesB = 0.0;                                      //extension so that all nodes are assigned
-                int communityOfHighestB = 0;
 
                 for (int community : NC) {
                     Set<Node> communityMembers = getCommunityMembers(graph, communities, community);
@@ -430,14 +496,43 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                         changes = true;
                     }
 
-                    if(B > hightesB){                                       //extension so that all nodes are assigned
-                        communityOfHighestB = community;
+                    if(B > hightesB[i]){                                       //extension so that all nodes are assigned
+                        communityOfHighestB[i] = community;
                     }
-                    if (getMemberships(communities, nodeID).isEmpty()){        //extension so that all nodes are assigned
-                        if (hightesB > 0.0) {
-                            communities.set(nodeID, communityOfHighestB, 1);
-                            changes = true;
-                        }
+                }
+            }
+        }
+        for (int i = 0; i < nodeList.size(); i++) {
+            Node node = nodeList.get(i);
+            int nodeID = node.getIndex();
+            if (getMemberships(communities, node.getIndex()).isEmpty()) {
+                if (hightesB[i] > 0.0) {
+                    communities.set(nodeID, communityOfHighestB[i], 1);
+                }else {
+                    communities.set(nodeID, nodeID, 1);
+                }
+            }
+        }
+        return communities;
+    }
+    protected Matrix ocdNoHighestB(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
+        Set<Node> BN = boundaryNodes(graph, communities);
+        boolean changes = true;
+        while(changes){
+            changes=false;
+            for (Node node : BN) {
+                int nodeID = node.getIndex();
+
+                Set<Node> neighbours = graph.getNeighbours(node);
+                Set<Integer> NC = computeNC(communities, nodeID, neighbours);
+
+                for (int community : NC) {
+                    Set<Node> communityMembers = getCommunityMembers(graph, communities, community);
+                    double B = belongingDegree(node, neighbours, communityMembers, I_uv);
+
+                    if (B > thresholdOCD) {
+                        communities.set(nodeID, community, 1);
+                        changes = true;
                     }
                 }
             }
@@ -616,6 +711,16 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
             }
         }
 
+        //if columns are identical only keep one of them, only needed for ocdBetter
+        for (int col1 = 0; col1 < numCols; col1++) {
+            for (int col2 = col1 + 1; col2 < numCols; col2++) {
+                if (keepColumns[col2] && columnsEqual(oc, col1, col2, numRows)) {
+                    keepColumns[col2] = false;
+                    remainingColumnsCount--;
+                }
+            }
+        }
+
         Matrix membershipMatrix = new Basic2DMatrix(numRows, remainingColumnsCount);
         int newCol = 0;
         for (int col = 0; col < numCols; col++) {
@@ -628,5 +733,15 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
         }
 
         return membershipMatrix;
+    }
+
+    //only needed for ocdBetter
+    private boolean columnsEqual(Matrix matrix, int col1, int col2, int numRows) {
+        for (int row = 0; row < numRows; row++) {
+            if (matrix.get(row, col1) != matrix.get(row, col2)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
