@@ -46,37 +46,38 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
 
     @Override
     public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException{
-        //Initialization of information
-        double d_max = graph.getMaxWeightedInDegree();      //max degree of graph
-        int nodeCount = graph.getNodeCount();               //number od nodes
-        double[][] I_uv = new double[nodeCount][nodeCount];              //Information flow from u to v
+        //declaration of variables
+        double d_max = graph.getMaxWeightedInDegree();              //max degree of graph
+        int nodeCount = graph.getNodeCount();                       //number od nodes
+        double[][] I_uv = new double[nodeCount][nodeCount];         //Information flow from u to v
 
-        double[] I_v = new double[nodeCount];              //List of current information of the nodes
-        int[] triangles = new int[nodeCount];
-        double[] CC = new double[nodeCount];
-        double[] avg_d = new double[nodeCount];
-        double[] avg_s = new double[nodeCount];
-        double[][] JS = new double[nodeCount][nodeCount];
-        double[][] CS = new double[nodeCount][nodeCount];
+        double[] I_v = new double[nodeCount];                       //List of current information of the nodes
+        int[] triangles = new int[nodeCount];                       //List of triangles for the nodes
+        double[] CC = new double[nodeCount];                        //List of clustering coefficients for the nodes
+        double[] avg_d = new double[nodeCount];                     //List of average degree of neighbours for the nodes
+        double[] avg_s = new double[nodeCount];                     //List of average similarity of neighbours for the nodes
+        double[][] JS = new double[nodeCount][nodeCount];           //List of jaccard similarity coefficients for all pairs of nodes which are neighbors
+        double[][] CS = new double[nodeCount][nodeCount];           //List of contact strength for all pairs of nodes which are neighbors
 
+        //Compute initial information
         Iterator<Node> nodesIt = graph.nodes().iterator();
         Node node;
         while(nodesIt.hasNext()) {
             node = nodesIt.next();
             int nodeID = node.getIndex();
-            triangles[nodeID] = triangles(graph, node);
+            triangles[nodeID] = triangles(graph, node);                                                         //number of triangles the node has with its neighbours
 
             for (Node neighbour : graph.getNeighbours(node)) {
-                JS[nodeID][neighbour.getIndex()]=jaccardCoeff(graph, node, neighbour);
-                CS[nodeID][neighbour.getIndex()]=contact_strength(graph, node, neighbour, triangles[nodeID]);
+                JS[nodeID][neighbour.getIndex()]=jaccardCoeff(graph, node, neighbour);                          //jaccard similarity of the node and its neighbour
+                CS[nodeID][neighbour.getIndex()]=contact_strength(graph, node, neighbour, triangles[nodeID]);   //contact strength of the node and its neighbour
             }
 
-            CC[nodeID] = clusteringCoeff(node, triangles[nodeID]);
-            avg_d[nodeID] = avgDegreeNeighbours(graph, node);
-            avg_s[nodeID] = avgSimilarityNeighbours(graph, node, JS);
+            CC[nodeID] = clusteringCoeff(node, triangles[nodeID]);                                              //clustering coefficient
+            avg_d[nodeID] = avgDegreeNeighbours(graph, node);                                                   //average degree of neighbours of the node
+            avg_s[nodeID] = avgSimilarityNeighbours(graph, node, JS);                                           //average similarity of neighbours of the node
 
             double degree = (node.getDegree()/2);
-            I_v[nodeID] = (degree * CC[nodeID]) / d_max;
+            I_v[nodeID] = (degree * CC[nodeID]) / d_max;                                                        //initial information
         }
 
         //Spread information
@@ -93,7 +94,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                 int node1ID = node1.getIndex();
                 int node2ID = node2.getIndex();
 
-                if (I_v[node1ID] > I_v[node2ID]) { // information flows from node1 to node2
+                if (I_v[node1ID] > I_v[node2ID]) { // information flows from node1 to node2, only check this direction cause each edge appears twice once in each direction because the graph is undirected
                     double I_vu = (Math.exp(I_v[node1ID] - I_v[node2ID]) - 1) * ((1 / (1 + Math.exp(-5 * CC[node1ID] * CC[node2ID]))) - 0.5) * JS[node1ID][node2ID] * CS[node1ID][node2ID];
                     double I_vu_cost = (Math.exp(I_v[node1ID] - I_v[node2ID]) - 1) * (1 - JS[node1ID][node2ID]) * (avg_s[node2ID] / avg_d[node2ID]);
                     double I_in = I_vu - I_vu_cost;
@@ -107,11 +108,11 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                     }
                 }
             }
-            I_v = I_new;
+            I_v = I_new;        //update information
         }
 
         //Community detection
-        Matrix communities = cd(graph, I_v);
+        Matrix communities = cd(graph, I_v);               //community detection phase,
         Matrix overlapping_communities = ocd(graph, communities, I_uv);
 
         Matrix membershipMatrix = toMembershipMatrix(overlapping_communities);
@@ -269,7 +270,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
     }
 
     /**
-     * Checks if an edge between two specific nodes exists in the graph
+     * Checks if an edge between two specific nodes exists in the graph; needed in triangles() method
      *
      * @param graph the graph in which the nodes are located
      * @param node1_id Id of the node for which the existence of an edge to node2 should be checked
@@ -407,7 +408,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      *         columns correspond to the community a node was assigned. The matrix allows to have empty columns.
      * @throws InterruptedException if the thread was interrupted
      */
-    private Matrix ocd(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
+    protected Matrix ocd(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
         Set<Node> BN = boundaryNodes(graph, communities);
 
         for (Node node : BN) {
@@ -736,7 +737,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
     }
 
     //only needed for ocdBetter
-    private boolean columnsEqual(Matrix matrix, int col1, int col2, int numRows) {
+    protected boolean columnsEqual(Matrix matrix, int col1, int col2, int numRows) {
         for (int row = 0; row < numRows; row++) {
             if (matrix.get(row, col1) != matrix.get(row, col2)) {
                 return false;
