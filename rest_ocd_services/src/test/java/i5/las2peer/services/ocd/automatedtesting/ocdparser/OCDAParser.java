@@ -3,18 +3,14 @@ package i5.las2peer.services.ocd.automatedtesting.ocdparser;
 
 import java.io.*;
 
+import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseResult;
-import com.github.javaparser.Problem;
-import com.github.javaparser.ParseProblemException;
-import com.github.javaparser.TokenRange;
+import com.github.javaparser.*;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
@@ -23,22 +19,8 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.type.Type;
-
-
-
-
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
-import org.junit.platform.launcher.Launcher;
-import org.junit.platform.launcher.LauncherDiscoveryRequest;
-import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
-import org.junit.platform.launcher.core.LauncherFactory;
-import org.junit.platform.engine.discovery.DiscoverySelectors;
-import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
-import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
 public class OCDAParser {
 
@@ -110,6 +92,13 @@ public class OCDAParser {
     }
 
     /**
+     * @return class name from the class file
+     */
+    public static String getClassName(File file) {
+        return getClassName(parseJavaFile(file));
+    }
+
+    /**
      * Parses a given Java file and returns a list of parsing error messages.
      *
      * @param file The Java file to be parsed.
@@ -140,18 +129,20 @@ public class OCDAParser {
 
         try {
 
-//            // ===== Parsing OCD =====
-//
-//            /* Parse the OCDA class file */
-//            File file = new File(getOCDAPath("SSKAlgorithm.java"));
-//            CompilationUnit compilationUnit = parseJavaFile(file);
-//
-//
-//            /* Identify compatible graph types for a parsed OCDA */
-//            List<String> compatibilities = extractCompatibilities(file);
-//
-//            /* Generate Chat-GPT prompt for a given OCDA that can be used to create an OCDA test class */
-//            PromptGenerator.generatePromptString(compatibilities,getClassName(compilationUnit));
+            // ===== Parsing OCD =====
+
+            /* Parse the OCDA class file */
+            File file = new File(getOCDAPath("SskAlgorithm.java"));
+            CompilationUnit compilationUnit = parseJavaFile(file);
+
+
+            /* Identify compatible graph types for a parsed OCDA */
+            List<String> compatibilities = extractCompatibilities(file);
+
+            /* Generate Chat-GPT prompt for a given OCDA that can be used to create an OCDA test class */
+            PromptGenerator.generateAndWritePromptString(file);
+
+
 //
 //            // ==== Parse file for compilation errors ===
 ////            File fileBasic = new File("someFile.java"); //TODO: decide where to put files to parse
@@ -168,12 +159,12 @@ public class OCDAParser {
 //            OCDTestRunner.runCompiledTestClassWithJUnit5(compilationUnitTest, testFile);
 
 
-            /////////////////
-            File testFile = new File(getOCDATestPath("SskAlgorithmTest.java"));
-            CompilationUnit compilationUnit = parseJavaFile(testFile);
-
-            String res = getFullClassDeclaration(testFile);
-            System.out.println("HELLO " + res);
+//            /////////////////
+//            File testFile = new File(getOCDATestPath("SskAlgorithmTest.java"));
+//            CompilationUnit compilationUnit = parseJavaFile(testFile);
+//
+//            String res = getFullClassDeclaration(testFile);
+//            System.out.println("HELLO " + res);
 
 
 
@@ -254,6 +245,49 @@ public class OCDAParser {
         }
 
         return methodCallList;
+    }
+
+    /**
+     * Lists lines within a specified method of a Java class that are annotated with a specific comment.
+     * This method parses the given Java file, locates the specified method, and then iterates through
+     * each line of that method to check for the presence of the specified annotation comment at the end.
+     * Optionally, it can include the line numbers in the output.
+     *
+     * @param javaFile         The Java file to parse.
+     * @param targetMethodName The name of the method within the Java class to search for annotated lines.
+     * @param annotation       The specific comment annotation to look for at the end of each line within the method.
+     * @param includeLines     Flag indicating whether to include line numbers in the output.
+     * @return                 A list of strings, each representing a line from the method that ends with the specified
+     *                          annotation. If includeLines is true, each string will start with the line number in the
+     *                          format " [L {line number}] ".
+     * @throws RuntimeException If an IOException occurs during file reading.
+     */
+    public static List<String> listAnnotatedLinesInMethod(File javaFile, String targetMethodName, String annotation, boolean includeLines) {
+        List<String> annotatedLines = new ArrayList<>();
+        try {
+            String fileContent = new String(Files.readAllBytes(javaFile.toPath()));
+            String[] lines = fileContent.split("\\r?\\n");
+
+            javaParser.parse(javaFile).getResult().ifPresent(cu -> {
+                Optional<MethodDeclaration> method = cu.findFirst(MethodDeclaration.class,
+                        m -> m.getNameAsString().equals(targetMethodName));
+
+                method.ifPresent(m -> {
+                    Range methodRange = m.getRange().get();
+                    for (int i = methodRange.begin.line; i <= methodRange.end.line; i++) {
+                        String line = lines[i - 1].trim(); // -1 because array index is 0-based
+                        if (line.endsWith(annotation)) {
+                            String annotatedLine = includeLines ? " [L " + i + "] " + line : line;
+                            annotatedLines.add(annotatedLine);
+                        }
+                    }
+                });
+            });
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading file: " + javaFile, e);
+        }
+
+        return annotatedLines;
     }
 
     /**
