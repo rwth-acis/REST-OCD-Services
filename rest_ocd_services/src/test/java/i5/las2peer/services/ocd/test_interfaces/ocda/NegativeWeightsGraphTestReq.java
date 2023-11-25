@@ -8,20 +8,18 @@ import org.junit.jupiter.api.Test;
 
 /**
  * This interface holds basic test methods that should be present
- * in all OCDA compatible networks with self loops.
+ * in all OCDA compatible networks with negative weights.
  */
-public interface SelfLoopGraphTestReq extends BaseGraphTestReq {
-
-
+public interface NegativeWeightsGraphTestReq extends BaseGraphTestReq{
     /**
-     * Test OCDA on a graph consisting of a cycle where every node has a self loop
+     * Test OCDA on a graph consisting of a cycle with only negative weights
      */
     @Test
-    default void basicTestOnAllNodeSelfLoopGraph(){
+    default void basicTestOnNegativeCycleGraph(){
         OcdAlgorithm algo = getAlgorithm();
-        System.out.println("Inside SelfLoopGraphTestReq.basicTestOnAllNodeSelfLoopGraph: " + algo); //TODO: DELETE 555
+        System.out.println("Inside NegativeWeightGraphTestReq.basicTestOnNegativeCycleGraph: " + algo); //TODO: DELETE 555
         try {
-            CustomGraph graph = OcdTestGraphFactory.getAllNodeSelfLoopGraph();
+            CustomGraph graph = OcdTestGraphFactory.getNegativeCycleGraph();
             Cover cover = algo.detectOverlappingCommunities(graph);
         }catch(Exception e){
             e.printStackTrace();
@@ -29,14 +27,14 @@ public interface SelfLoopGraphTestReq extends BaseGraphTestReq {
     }
 
     /**
-     * Test OCDA on an undirected bipartite graph with self loops
+     * Test OCDA on a graph consisting of a mixture of positive and negative weights
      */
     @Test
-    default void basicTestOnBipartiteGraphWithSelfLoops(){
+    default void basicTestOnMixedWeightsGraph(){
         OcdAlgorithm algo = getAlgorithm();
-        System.out.println("Inside SelfLoopGraphTestReq.basicTestOnBipartiteGraphWithSelfLoops: " + algo); //TODO: DELETE 555
+        System.out.println("Inside NegativeWeightGraphTestReq.basicTestOnMixedWeightsGraph: " + algo); //TODO: DELETE 555
         try {
-            CustomGraph graph = OcdTestGraphFactory.getBipartiteGraphWithSelfLoops();
+            CustomGraph graph = OcdTestGraphFactory.getMixedWeightsGraph();
             Cover cover = algo.detectOverlappingCommunities(graph);
         }catch(Exception e){
             e.printStackTrace();

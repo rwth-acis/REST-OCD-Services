@@ -26,7 +26,7 @@ import org.graphstream.graph.Edge;
 
 public class EvolutionaryAlgorithmBasedOnSimilarityTest implements
 		WeightedGraphTestReq, DirectedGraphTestReq, UndirectedGraphTestReq,
-		NegativeWeightGraphTestReq, OCDAParameterTestReq {
+        NegativeWeightsGraphTestReq, OCDAParameterTestReq {
 
 
 	OcdAlgorithm algo;

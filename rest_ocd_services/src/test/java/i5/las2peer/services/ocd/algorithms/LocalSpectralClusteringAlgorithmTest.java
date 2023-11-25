@@ -8,7 +8,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.ZeroWeightedGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.ZeroWeightsGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-public class LocalSpectralClusteringAlgorithmTest implements ZeroWeightedGraphTestReq, UndirectedGraphTestReq,
+public class LocalSpectralClusteringAlgorithmTest implements ZeroWeightsGraphTestReq, UndirectedGraphTestReq,
 		WeightedGraphTestReq, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;

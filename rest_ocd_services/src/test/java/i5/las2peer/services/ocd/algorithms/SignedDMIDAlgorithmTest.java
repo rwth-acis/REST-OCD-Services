@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.algorithms;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import i5.las2peer.services.ocd.test_interfaces.ocda.NegativeWeightGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.NegativeWeightsGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
@@ -33,7 +33,7 @@ import org.graphstream.graph.Node;
 
 
 public class SignedDMIDAlgorithmTest implements UndirectedGraphTestReq, WeightedGraphTestReq,
-		NegativeWeightGraphTestReq, OCDAParameterTestReq {
+        NegativeWeightsGraphTestReq, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;
 

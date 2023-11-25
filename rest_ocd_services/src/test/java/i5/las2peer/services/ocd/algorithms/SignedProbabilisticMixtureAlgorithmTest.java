@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.algorithms;
 
 import java.io.FileNotFoundException;
 
-import i5.las2peer.services.ocd.test_interfaces.ocda.NegativeWeightGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.NegativeWeightsGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
@@ -17,7 +17,7 @@ import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 public class SignedProbabilisticMixtureAlgorithmTest implements UndirectedGraphTestReq, WeightedGraphTestReq,
-		NegativeWeightGraphTestReq, OCDAParameterTestReq {
+        NegativeWeightsGraphTestReq, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;
 

@@ -8,15 +8,13 @@ import java.util.List;
 import java.util.HashMap;
 
 import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.SelfLoopGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.SelfLoopsGraphTestReq;
 import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.ZeroWeightedGraphTestReq;
+import i5.las2peer.services.ocd.test_interfaces.ocda.ZeroWeightsGraphTestReq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.la4j.matrix.Matrix;
-import org.la4j.vector.Vector;
-import org.la4j.vector.dense.BasicVector;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.Ant;
@@ -29,7 +27,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import org.graphstream.graph.Node;
 
-public class AntColonyOptimizationTest implements  UndirectedGraphTestReq, ZeroWeightedGraphTestReq, SelfLoopGraphTestReq, OCDAParameterTestReq {
+public class AntColonyOptimizationTest implements  UndirectedGraphTestReq, ZeroWeightsGraphTestReq, SelfLoopsGraphTestReq, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;
 

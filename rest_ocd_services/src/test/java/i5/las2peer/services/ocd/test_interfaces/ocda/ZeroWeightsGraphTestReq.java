@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
  * This interface holds basic test methods that should be present
  * in all OCDA compatible networks with zero weights.
  */
-public interface ZeroWeightedGraphTestReq extends BaseGraphTestReq {
+public interface ZeroWeightsGraphTestReq extends BaseGraphTestReq {
 
     /**
      * Test OCDA on a graph consisting of a cycle with only zero weights

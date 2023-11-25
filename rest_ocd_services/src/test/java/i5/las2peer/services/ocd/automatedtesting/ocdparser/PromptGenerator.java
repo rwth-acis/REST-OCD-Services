@@ -1,7 +1,12 @@
 package i5.las2peer.services.ocd.automatedtesting.ocdparser;
 
+import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.automatedtesting.metric.OCDSubmetric;
+import i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers.OCDATestExceptionHandler;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.test_interfaces.ocda.*;
+import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser.extractCompatibilitiesAndAddUndirectedGraphType;
 import static i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser.getOCDAPath;
 
 public class PromptGenerator {
@@ -161,7 +167,7 @@ public class PromptGenerator {
             }
             if (graphType.equals("GraphType.ZERO_WEIGHTS")){
                 // test interface for zero weight graphs should be implemented in the OCDA test class
-                baseInterfaceNamesToImplement+= ", " + ZeroWeightedGraphTestReq.class.getSimpleName();
+                baseInterfaceNamesToImplement+= ", " + ZeroWeightsGraphTestReq.class.getSimpleName();
 
 
                 // instruction to generate a test used on a weighted graph
@@ -171,7 +177,7 @@ public class PromptGenerator {
             }
             if (graphType.equals("GraphType.NEGATIVE_WEIGHTS")){
                 // test interface for negative weights graphs should be implemented in the OCDA test class
-                baseInterfaceNamesToImplement+= ", " + NegativeWeightGraphTestReq.class.getSimpleName();
+                baseInterfaceNamesToImplement+= ", " + NegativeWeightsGraphTestReq.class.getSimpleName();
 
 
                 // instruction to generate a test used on a weighted graph
@@ -181,7 +187,7 @@ public class PromptGenerator {
             }
             if (graphType.equals("GraphType.SELF_LOOPS")){
                 // test interface for self loops graphs should be implemented in the OCDA test class
-                baseInterfaceNamesToImplement+= ", " + SelfLoopGraphTestReq.class.getSimpleName();
+                baseInterfaceNamesToImplement+= ", " + SelfLoopsGraphTestReq.class.getSimpleName();
 
 
                 // instruction to generate a test used on a weighted graph
@@ -291,21 +297,18 @@ public class PromptGenerator {
                 "\n" +
                 "import static org.junit.jupiter.api.Assertions.assertEquals;\n" +
                 "import static org.junit.jupiter.api.Assertions.assertTrue;\n" +
-                "import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;\n" +
-                "import i5.las2peer.services.ocd.algorithms." + ocdaName + ";\n" +
-                "import i5.las2peer.services.ocd.graphs.Cover;\n" +
-                "import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;\n" +
-                "import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;\n" +
-                "import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;\n" +
-                "import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;\n" +
                 "import org.junit.jupiter.api.BeforeEach;\n" +
                 "import org.junit.jupiter.api.Test;\n" +
-                "import i5.las2peer.services.ocd.graphs.CustomGraph;\n" +
-                "import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;\n" +
                 "import java.util.HashMap;\n" +
                 "import java.util.Map;\n" +
-                "import i5.las2peer.services.ocd.graphs.CustomGraph;\n" +
-                "import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;\n" +
+                "import " + OCDATestExceptionHandler.class.getName() + ";\n" +
+                "import " + OcdAlgorithm.class.getName() + ";\n" +
+                "import " + OcdAlgorithm.class.getPackage().getName() + "." + ocdaName + ";\n" +
+                "import " + Cover.class.getName() + ";\n" +
+                "import " + CustomGraph.class.getName() + ";\n" +
+                "import " + OcdTestGraphFactory.class.getName() + ";\n" +
+                generateGraphTypeTestInterfaceImportString(compatibilities) +
+
                 "\n" +
                 "public class " +  ocdaName +"Test implements "
                 + baseInterfaceNamesToImplement + " {\n" +
@@ -411,8 +414,71 @@ public class PromptGenerator {
         generateAndWritePromptString(ocdaCode);
 
 
+    }
 
 
+
+
+    // creates an import string to import a test interface for each compatible graph type for the algorithm
+    /**
+     * Generates import statements for test interfaces corresponding to compatible graph types.
+     *
+     * This method constructs import statements for each graph type compatible with a specific algorithm.
+     * It first appends the import statement for the OCDAParameterTestReq class as this interface is implemented by
+     * all OCDA test classes, independent of compatible graph types. Then, for each compatible graph type,
+     * it converts the graph type to camel case and capitalizes the first letter (e.g., ZERO_WEIGHTS becomes
+     * ZeroWeights). Then, it uses the graph type name to create import statement for the respective graph
+     * test interface and add this import statement to a string of import statements that will be used in the prompt.
+     * These interfaces for each graph type are assumed to be in the same package as the base
+     * interface (BaseGraphTestReq) from which they inherit.
+     *
+     * @param compatibleGraphTypes A list of strings representing the compatible graph types (e.g. GraphType.DIRECTED).
+     * @return A string containing import statements for each of the compatible graph type test interfaces.
+     */
+    private static String generateGraphTypeTestInterfaceImportString(List<String> compatibleGraphTypes){
+
+        // Each OCDA in WebOCD should work on an undirected graph
+        if (!compatibleGraphTypes.contains("GraphType.UNDIRECTED")){
+            compatibleGraphTypes.add("GraphType.UNDIRECTED");
+        }
+
+        StringBuilder importString = new StringBuilder("import " + OCDAParameterTestReq.class.getName() + ";\n");
+
+        // Package of the base test interface, the other test interfaces should be in the same package
+        String baseTestInterfacePackage = BaseGraphTestReq.class.getPackage().getName();
+        System.out.println(BaseGraphTestReq.class.getPackage().getName());
+        for (String compatibleGraphType : compatibleGraphTypes){
+
+            // Turn graph type to a camel case, e.g. ZERO_WEIGHTS will be turned into zeroWeights
+            String graphTypeCamelCase = toCamelCaseFromUnderscore(compatibleGraphType.split("\\.")[1]);
+
+            // Capitalize the camel case string as it is common for class names
+            String capitalizedGraphTypeCamelCase = capitalizeFirstLetter(graphTypeCamelCase);
+
+            // Create an import statement based on a graph type that will be used in the prompt generator
+            importString.append("import " + baseTestInterfacePackage + "."
+                    + capitalizedGraphTypeCamelCase + "GraphTestReq;\n");
+        }
+
+        return importString.toString();
+    }
+
+
+    /**
+     * Capitalizes the first letter of a given string.
+     *
+     * This method converts the first character of a string to uppercase while leaving the rest of the string unchanged.
+     * If the string is null or empty, it returns the string as is. This method is useful for formatting strings
+     * where the first letter needs to be capitalized, such as in class names or certain types of identifiers.
+     *
+     * @param str The string whose first letter is to be capitalized.
+     * @return The string with its first letter capitalized, or the original string if it is null or empty.
+     */
+    public static String capitalizeFirstLetter(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
 
