@@ -73,7 +73,7 @@ public class OCDAParser {
      * Use the singleton JavaParser to parse the Java file
      * @return Compulation unit of the parsed file
      */
-    private static CompilationUnit parseJavaFile(File file) {
+    public static CompilationUnit parseJavaFile(File file) {
         try {
             return javaParser.parse(file).getResult().orElseThrow(() -> new RuntimeException("Parsing failed"));
         } catch (IOException e) {
@@ -98,11 +98,20 @@ public class OCDAParser {
         return getClassName(parseJavaFile(file));
     }
 
+
     /**
-     * Parses a given Java file and returns a list of parsing error messages.
+     * Parses a given Java file and extracts parsing error messages, if any.
+     * This method utilizes a Java parser to analyze the specified file, identifying syntactical and structural
+     * issues that prevent successful parsing. It captures details of each identified problem, including its
+     * location in the source file (if available) and a descriptive error message. This is particularly useful
+     * for validating the syntax of Java code and providing feedback on errors.
      *
-     * @param file The Java file to be parsed.
-     * @return A list of error messages. Returns an empty list if no errors are found.
+     * @param file The Java file to be parsed. This should be a valid file object pointing to a Java source file.
+     * @return     A list of error messages, each providing details about a specific parsing issue.
+     *             The error messages include the line number (if available) and a description of the problem.
+     *             Returns an empty list if the file is parsed successfully without any errors.
+     * @throws     RuntimeException if an exception occurs during the file parsing process. This exception
+     *             includes details about the cause, such as file access issues or interruptions in the parsing process.
      */
     public static List<String> getParsingErrors(File file) {
         try {
@@ -153,10 +162,9 @@ public class OCDAParser {
 //
 //            /* Parse the OCDA Test class file */
 //            File testFile = new File(getOCDATestPath("SskAlgorithmTest.java"));
-//            CompilationUnit compilationUnitTest = parseJavaFile(testFile);
 //
 //            /* Check if the test class is executable or if exception is thrown */
-//            OCDTestRunner.runCompiledTestClassWithJUnit5(compilationUnitTest, testFile);
+//            OCDTestRunner.runCompiledTestClassWithJUnit5(testFile);
 
 
 //            /////////////////
