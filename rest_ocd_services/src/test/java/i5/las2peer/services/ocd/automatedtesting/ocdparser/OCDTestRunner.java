@@ -137,7 +137,7 @@ public class OCDTestRunner {
         String exceptionType = throwable.getClass().getName();
         String exceptionMessage = throwable.getMessage();
 
-        return "Test '" + testIdentifier.getDisplayName() + "' failed throwing an " + "exception: '"
+        return "Test '" + testIdentifier.getDisplayName() + "' failed and threw an " + "exception '"
                 + exceptionType + "' with the message: \"" +exceptionMessage + "\"";
     }
 
