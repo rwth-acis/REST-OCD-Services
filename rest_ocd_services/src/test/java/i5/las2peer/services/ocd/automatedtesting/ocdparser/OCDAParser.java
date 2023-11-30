@@ -4,23 +4,26 @@ package i5.las2peer.services.ocd.automatedtesting.ocdparser;
 import java.io.*;
 
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 
 import com.github.javaparser.*;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.ast.type.ReferenceType;
+import com.github.javaparser.ast.comments.JavadocComment;
 
 public class OCDAParser {
 
@@ -141,15 +144,18 @@ public class OCDAParser {
             // ===== Parsing OCD =====
 
             /* Parse the OCDA class file */
-            File file = new File(getOCDAPath("SskAlgorithm.java"));
-            CompilationUnit compilationUnit = parseJavaFile(file);
+            File ocdaCode = new File(getOCDAPath("SskAlgorithm.java"));
+            File testFile = new File(getOCDATestPath("SskAlgorithmTest1.java"));
+
+
+            System.out.println(getMethodSignature(ocdaCode,"setParameters"));
 
 
             /* Identify compatible graph types for a parsed OCDA */
-            List<String> compatibilities = extractCompatibilities(file);
+            List<String> compatibilities = extractCompatibilities(ocdaCode);
 
             /* Generate Chat-GPT prompt for a given OCDA that can be used to create an OCDA test class */
-            PromptGenerator.generateAndWritePromptString(file);
+            //PromptGenerator.generateAndWritePromptString(file);
 
 
 //
@@ -214,6 +220,95 @@ public class OCDAParser {
 
         return methodCallList;
     }
+
+    /**
+     * Extracts the signature of a specified method from a Java class file, including its visibility and throws clause.
+     * This method uses JavaParser to analyze the source code and find the method declaration.
+     *
+     * @param javaFile The Java class file to parse.
+     * @param methodName The name of the method whose signature is to be extracted.
+     * @return A String representing the method signature, or an empty string if the method is not found.
+     */
+    public static String getMethodSignature(File javaFile, String methodName) {
+        try {
+            CompilationUnit cu = parseJavaFile(javaFile);
+
+            AtomicReference<MethodDeclaration> foundMethod = new AtomicReference<>();
+
+            cu.accept(new VoidVisitorAdapter<Void>() {
+                @Override
+                public void visit(MethodDeclaration md, Void arg) {
+                    if (md.getNameAsString().equals(methodName)) {
+                        foundMethod.set(md);
+                    }
+                    super.visit(md, arg);
+                }
+            }, null);
+
+            return Optional.ofNullable(foundMethod.get())
+                    .map(md -> {
+                        String visibility = md.getModifiers().stream()
+                                .map(Modifier::getKeyword)
+                                .filter(kw -> kw == Modifier.Keyword.PUBLIC ||
+                                        kw == Modifier.Keyword.PROTECTED ||
+                                        kw == Modifier.Keyword.PRIVATE)
+                                .map(Modifier.Keyword::asString)
+                                .findFirst()
+                                .orElse("");
+                        String returnType = md.getType().asString();
+                        String parameters = md.getParameters().stream()
+                                .map(Parameter::toString)
+                                .collect(Collectors.joining(", ", "(", ")"));
+
+                        // Extracting the 'throws' clause
+                        String throwsClause = md.getThrownExceptions().stream()
+                                .map(ReferenceType::asString)
+                                .collect(Collectors.joining(", ", " throws ", ""));
+
+                        // Only add the throws clause if exceptions are present
+                        throwsClause = md.getThrownExceptions().isEmpty() ? "" : throwsClause;
+
+                        return visibility + " " + returnType + " " + methodName + parameters + throwsClause;
+                    })
+                    .orElse("");
+        } catch (Exception e) {
+            throw new RuntimeException("Error extracting method signature: " + e.getMessage(), e);
+        }
+    }
+
+
+    /**
+     * Extracts the implementation of a specified method from a Java class file.
+     * This method uses JavaParser to analyze the source code and find the specified method.
+     *
+     * @param javaFile The Java class file to parse.
+     * @param methodName The name of the method to find.
+     * @return A string representing the whole method implementation, or an empty string if the method is not found.
+     */
+    public static String getMethodImplementation(File javaFile, String methodName) {
+        try {
+            CompilationUnit cu = parseJavaFile(javaFile);
+
+            AtomicReference<MethodDeclaration> foundMethod = new AtomicReference<>();
+
+            cu.accept(new VoidVisitorAdapter<Void>() {
+                @Override
+                public void visit(MethodDeclaration md, Void arg) {
+                    if (md.getNameAsString().equals(methodName)) {
+                        foundMethod.set(md);
+                    }
+                    super.visit(md, arg);
+                }
+            }, null);
+
+            return Optional.ofNullable(foundMethod.get())
+                    .map(MethodDeclaration::toString)
+                    .orElse("");
+        } catch (Exception e) {
+            throw new RuntimeException("Error extracting method implementation: " + e.getMessage(), e);
+        }
+    }
+
 
 
     /**
@@ -299,6 +394,54 @@ public class OCDAParser {
     }
 
     /**
+     * Extracts and lists all import statements from a Java class file, sorted alphabetically.
+     * This method uses JavaParser to analyze the source code and find import declarations.
+     *
+     * @param javaFile The Java class file to parse.
+     * @return A sorted List of Strings, each representing an import statement.
+     */
+    public static List<String> extractSortedImports(File javaFile) {
+        List<String> imports = new ArrayList<>();
+        try {
+            CompilationUnit cu = parseJavaFile(javaFile);
+
+            for (ImportDeclaration importDecl : cu.getImports()) {
+                imports.add(importDecl.toString().trim());
+            }
+
+            // Sort the list alphabetically
+            Collections.sort(imports);
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing import statements: " + e.getMessage(), e);
+        }
+        return imports;
+    }
+
+    /**
+     * Merges two lists of String values, removes duplicates, and returns a sorted list.
+     *
+     * @param list1 The first list of String values.
+     * @param list2 The second list of String values.
+     * @return A sorted List of Strings, with duplicates removed.
+     */
+    public static List<String> mergeAndSortLists(List<String> list1, List<String> list2) {
+        Set<String> mergedSet = new HashSet<>();
+
+        // Add all elements from both lists to the set (duplicates are automatically removed)
+        mergedSet.addAll(list1);
+        mergedSet.addAll(list2);
+
+        // Convert the set back to a list
+        List<String> sortedList = new ArrayList<>(mergedSet);
+
+        // Sort the list
+        Collections.sort(sortedList);
+
+        return sortedList;
+    }
+
+
+    /**
      * Extracts and lists all class-level variable declarations from a Java class file.
      * This method uses JavaParser to analyze the source code and find field declarations.
      *
@@ -329,6 +472,55 @@ public class OCDAParser {
         }
         return classVariables;
     }
+
+    /**
+     * Extracts and lists all non-final class-level variable declarations along with their properly formatted Javadoc
+     * comments from a Java class file. This method uses JavaParser to analyze the source code and find field
+     * declarations and their associated comments.
+     *
+     * @param javaFile The Java class file to parse.
+     * @return A List of Strings, each representing a non-final class-level variable declaration
+     *         with properly formatted Javadoc comment.
+     */
+    public static List<String> listNonFinalClassVariablesWithComments(File javaFile) {
+        List<String> classVariablesWithComments = new ArrayList<>();
+        try {
+            CompilationUnit cu = parseJavaFile(javaFile);
+            List<FieldDeclaration> fields = cu.findAll(FieldDeclaration.class);
+
+            for (FieldDeclaration field : fields) {
+                // Check if field is final and skip if it is
+                if (field.getModifiers().contains(Modifier.finalModifier())) {
+                    continue;
+                }
+
+                // Extract the Javadoc comment if present, with proper formatting
+                String javadocComment = field.getComment()
+                        .filter(c -> c.isJavadocComment())
+                        .map(c -> ((JavadocComment) c).toString())
+                        .orElse("");
+
+                // Extract the field declaration
+                String modifiers = field.getModifiers().stream()
+                        .map(Modifier::toString)
+                        .collect(Collectors.joining(" ")).trim();
+
+                Type type = field.getCommonType();
+                String vars = field.getVariables().stream()
+                        .map(v -> v.getNameAsString() + (v.getInitializer().isPresent() ? " = " + v.getInitializer().get() : ""))
+                        .collect(Collectors.joining(", "));
+
+                String fieldDeclaration = (modifiers.isEmpty() ? "" : modifiers + " ") + type + " " + vars + ";";
+
+                // Combine Javadoc comment and field declaration
+                classVariablesWithComments.add(javadocComment.trim() + "\n" + fieldDeclaration.trim());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing class variables with comments: " + e.getMessage(), e);
+        }
+        return classVariablesWithComments;
+    }
+
 
     /**
      * Extracts and lists all variable declarations from a specified method within a Java class file.
