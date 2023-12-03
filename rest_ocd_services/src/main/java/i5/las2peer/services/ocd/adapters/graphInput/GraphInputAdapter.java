@@ -14,7 +14,7 @@ import org.apache.poi.ss.formula.functions.T;
  * @author Sebastian
  *
  */
-public interface GraphInputAdapter extends CommonGraphInputAdapter {
+public interface GraphInputAdapter extends CommonGraphInputAdapter<CustomGraph> {
 	
 	/**
 	 * Reads the graph and closes the reader.

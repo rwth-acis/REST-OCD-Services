@@ -47,7 +47,7 @@ import org.graphstream.graph.Edge;
 //TODO: Check whether UUIDs work out as unique edge IDs, collision chances should however be extremely low
 //TODO: Check whether UUIDs work out as unique node IDs, collision chances should however be extremely low. Check whether this could actually replace the current node names. Would however break style with the naming of the other classes.
 //TODO: Integrate graphstream attributes into persistence or not?
-public class CustomGraph extends MultiGraph {
+public class CustomGraph extends MultiGraph{
 
 	/////////////////// DATABASE COLUMN NAMES
 

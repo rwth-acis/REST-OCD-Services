@@ -45,8 +45,7 @@ public class MultiplexUnweightedEdgeListGraphInputAdapter extends
 	public MultiplexGraph readGraph() throws AdapterException {
 		MultiplexGraph multiplexGraph = new MultiplexGraph();
 		try {
-
-			Map<String, Node> reverseNodeNames = new HashMap<String, Node>();
+			Map<String, Map<String, Node>> graphReverseNodeNames = new HashMap<String, Map<String, Node>>();
 			List<String> line = Adapters.readLine(reader);
 
 			while (line.size() == 3) {
@@ -54,8 +53,10 @@ public class MultiplexUnweightedEdgeListGraphInputAdapter extends
 				String layerName = line.get(0);
 				if (!multiplexGraph.getCustomGraphs().containsKey(layerName)) {
 					multiplexGraph.addLayer(layerName, new CustomGraph());
+					graphReverseNodeNames.put(layerName, new HashMap<String, Node>());
 				}
 				CustomGraph graph = multiplexGraph.getCustomGraphs().get(layerName);
+				Map<String, Node>reverseNodeNames = graphReverseNodeNames.get(layerName);
 
 				//read edge
 				String sourceNodeName = line.get(1);

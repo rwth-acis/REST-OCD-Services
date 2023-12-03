@@ -14,7 +14,7 @@ import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputAdapter;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
-import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
+import i5.las2peer.services.ocd.adapters.graphInput.CommonGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapter;
@@ -854,7 +854,7 @@ public class RequestHandler {
 	 */
 	public CustomGraph parseGraph(String contentStr, GraphInputFormat inputFormat)
 			throws AdapterException, InstantiationException, IllegalAccessException {
-		GraphInputAdapter adapter = graphInputAdapterFactory.getInstance(inputFormat);
+		CommonGraphInputAdapter<CustomGraph> adapter = graphInputAdapterFactory.getInstance(inputFormat);
 		Reader reader = new StringReader(contentStr);
 		adapter.setReader(reader);
 		return adapter.readGraph();
@@ -879,7 +879,33 @@ public class RequestHandler {
 	public CustomGraph parseGraph(String contentStr, GraphInputFormat inputFormat, Map<String, String> param)
 			throws AdapterException, InstantiationException, IllegalAccessException, IllegalArgumentException,
 			ParseException {
-		GraphInputAdapter adapter = graphInputAdapterFactory.getInstance(inputFormat);
+		CommonGraphInputAdapter<CustomGraph> adapter = graphInputAdapterFactory.getInstance(inputFormat);
+		Reader reader = new StringReader(contentStr);
+		adapter.setReader(reader);
+		adapter.setParameter(param);
+		return adapter.readGraph();
+	}
+
+	/**
+	 * Parses a multiplex graph input using a specified format.
+	 *
+	 * @param contentStr
+	 *            The graph input.
+	 * @param inputFormat
+	 *            The format.
+	 * @param param
+	 *            Parametes that are passed to the adapters.
+	 * @return The graph.
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 * @throws IllegalArgumentException if arguments were faulty
+	 * @throws ParseException if parsing failed
+	 */
+	public MultiplexGraph parseMultiplexGraph(String contentStr, GraphInputFormat inputFormat, Map<String, String> param)
+			throws AdapterException, InstantiationException, IllegalAccessException, IllegalArgumentException,
+			ParseException {
+		CommonGraphInputAdapter<MultiplexGraph> adapter = graphInputAdapterFactory.getInstance(inputFormat);
 		Reader reader = new StringReader(contentStr);
 		adapter.setReader(reader);
 		adapter.setParameter(param);

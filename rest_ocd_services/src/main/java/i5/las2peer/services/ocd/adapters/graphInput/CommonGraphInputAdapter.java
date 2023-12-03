@@ -13,7 +13,8 @@ import java.util.Map;
  * @author Maren
  *
  */
-public interface CommonGraphInputAdapter extends InputAdapter {
-	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException;
+public interface CommonGraphInputAdapter<T> extends InputAdapter {
 
+	T readGraph() throws AdapterException;
+	public void setParameter(Map<String,String> param) throws IllegalArgumentException, ParseException;
 }

@@ -13,7 +13,7 @@ import java.util.Map;
  * @author Maren
  *
  */
-public interface MultiplexGraphInputAdapter extends CommonGraphInputAdapter {
+public interface MultiplexGraphInputAdapter extends CommonGraphInputAdapter<MultiplexGraph> {
 	
 	/**
 	 * Reads the graph and closes the reader.

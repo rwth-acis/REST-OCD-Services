@@ -46,7 +46,7 @@ public class MultiplexWeightedEdgeListGraphInputAdapter extends AbstractMultiple
 	public MultiplexGraph readGraph() throws AdapterException {
 		MultiplexGraph multiplexGraph = new MultiplexGraph();
 		try {
-			Map<String, Node> reverseNodeNames = new HashMap<String, Node>();
+			Map<String, Map<String, Node>> graphReverseNodeNames = new HashMap<String, Map<String, Node>>();
 			List<String> line = Adapters.readLine(reader);
 			/*
 			 * Reads edges
@@ -56,8 +56,10 @@ public class MultiplexWeightedEdgeListGraphInputAdapter extends AbstractMultiple
 				String layerName = line.get(0);
 				if (!multiplexGraph.getCustomGraphs().containsKey(layerName)) {
 					multiplexGraph.addLayer(layerName, new CustomGraph());
+					graphReverseNodeNames.put(layerName, new HashMap<String, Node>());
 				}
 				CustomGraph graph = multiplexGraph.getCustomGraphs().get(layerName);
+				Map<String, Node>reverseNodeNames = graphReverseNodeNames.get(layerName);
 
 				//read edge
 				String sourceNodeName = line.get(1);
@@ -70,7 +72,7 @@ public class MultiplexWeightedEdgeListGraphInputAdapter extends AbstractMultiple
 				else {
 					sourceNode = reverseNodeNames.get(sourceNodeName);
 				}
-				String targetNodeName = line.get(1);
+				String targetNodeName = line.get(2);
 				Node targetNode;
 				if (!reverseNodeNames.containsKey(targetNodeName)) {
 					targetNode = graph.addNode(targetNodeName);
@@ -80,7 +82,7 @@ public class MultiplexWeightedEdgeListGraphInputAdapter extends AbstractMultiple
 				else {
 					targetNode = reverseNodeNames.get(targetNodeName);
 				}
-				String edgeWeightString = line.get(2);
+				String edgeWeightString = line.get(3);
 				double edgeWeight = Double.parseDouble(edgeWeightString);
 				Edge edge = graph.addEdge(UUID.randomUUID().toString(), sourceNode, targetNode);
 				graph.setEdgeWeight(edge, edgeWeight);

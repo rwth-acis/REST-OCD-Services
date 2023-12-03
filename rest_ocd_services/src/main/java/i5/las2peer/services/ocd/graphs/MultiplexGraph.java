@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  *
  */
 
-public class MultiplexGraph {
+public class MultiplexGraph{
 	public static final String idColumnName = "ID";
 	public static final String userColumnName = "USER_NAME";
 	public static final String nameColumnName = "NAME";
@@ -213,4 +213,36 @@ public class MultiplexGraph {
 	//protected CustomGraph getCustomGraph(CustomGraph customgraph) {
 	//	return mapCustomGraphs.get(customgraph.getId());
 	//}
+
+	public void persist( ArangoDatabase db, String transId) throws InterruptedException {
+		ArangoCollection collection = db.collection(collectionName);
+		BaseDocument bd = new BaseDocument();
+		//options for the transaction
+		DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+		DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+		bd.addAttribute(userColumnName, this.userName);
+		bd.addAttribute(nameColumnName, this.name);
+		bd.addAttribute(typesColumnName, this.types);
+		bd.addAttribute(layerCount, this.layerCount);
+		this.creationMethod.persist(db, createOptions);
+		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
+		collection.insertDocument(bd, createOptions);
+		this.key = bd.getKey();
+
+		bd = new BaseDocument();
+
+		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
+		for (CustomNode customNode : nodes) {
+			customNode.persist(db,createOptions);
+		}
+
+
+		List<CustomEdge> edges = new ArrayList<CustomEdge>(this.customEdges.values());
+		for (CustomEdge customEdge : edges) {
+			customEdge.persist(db, createOptions);
+		}
+
+		bd.addAttribute(propertiesColumnName, this.properties);
+		collection.updateDocument(this.key, bd, updateOptions);
+	}
 }

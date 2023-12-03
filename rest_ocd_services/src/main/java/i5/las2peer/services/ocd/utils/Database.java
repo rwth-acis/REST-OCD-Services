@@ -208,7 +208,25 @@ public class Database {
 		}
 		return graph.getKey();
 	}
-	
+
+	/**
+	 * Persists a MultiplexGraph
+	 *
+	 * @param graph
+	 *            MultiplexGraph
+	 * @return persistence key of the stored graph
+	 */
+	public String storeMultiplexGraph(MultiplexGraph graph) {
+		String transId = getTransactionId(MultiplexGraph.class, true);
+		try {
+			graph.persist(db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			e.printStackTrace();
+		}
+		return graph.getKey();
+	}
 	/**
 	 * Updates a persisted graph by updating Attributes,nodes,edges and creationMethod
 	 * does NOT update changes in the covers or CentralityMaps that run on the given graph
