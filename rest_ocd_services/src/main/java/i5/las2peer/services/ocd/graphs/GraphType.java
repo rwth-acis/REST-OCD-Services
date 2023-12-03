@@ -47,8 +47,11 @@ public enum GraphType implements EnumDisplayNames {
 	 * Indicates that a graph contains the content attribute for each node and
 	 *  that there can be identified a sender and receiver for link creation.
 	 */
-	CONTENT_LINKED("Content Linked", 6);
-	
+	CONTENT_LINKED("Content Linked", 6),
+	/**
+	 * Indicates that a graph contains of multiple layers.
+	 */
+	MULTIPLEX("Multiplex", 7);
 	/**
 	 * For persistence and other purposes.
 	 */

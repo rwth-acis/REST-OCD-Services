@@ -56,12 +56,19 @@ public enum GraphInputFormat implements EnumDisplayNames {
 	/**
 	 * Format corresponding to the LmsTripleStoreGraphInputAdapter.
 	 */
-	LMS_TRIPLESTORE ("Fetched from LMS Triplestore", LmsTripleStoreGraphInputAdapter.class, 9);
-	
+	LMS_TRIPLESTORE ("Fetched from LMS Triplestore", LmsTripleStoreGraphInputAdapter.class, 9),
+	/**
+	 * Format corresponding to the NodeWeightedEdgeListGraphInputAdapter.
+	 */
+	MULTIPLEX_WEIGHTED_EDGE_LIST ("Multiplex Weighted Edge List", MultiplexWeightedEdgeListGraphInputAdapter.class, 10),
+	/**
+	 * Format corresponding to the NodeWeightedEdgeListGraphInputAdapter.
+	 */
+	MULTIPLEX_UNWEIGHTED_EDGE_LIST ("Multiplex Unweighted Edge List", MultiplexUnweightedEdgeListGraphInputAdapter.class, 11);
 	/**
 	 * The adapter class corresponding to the format.
 	 */
-	private final Class<? extends GraphInputAdapter> adapterClass;
+	private final Class<? extends CommonGraphInputAdapter> adapterClass;
 	
 	/**
 	 * Reserved for persistence or other purposes.
@@ -78,7 +85,7 @@ public enum GraphInputFormat implements EnumDisplayNames {
 	 * @param adapterClass Defines the adapterClass attribute.
 	 * @param id Defines the id attribute.
 	 */
-	private GraphInputFormat(String displayName, Class<? extends GraphInputAdapter> adapterClass, int id) {
+	private GraphInputFormat(String displayName, Class<? extends CommonGraphInputAdapter> adapterClass, int id) {
 		this.displayName = displayName;
 		this.id = id;
 		this.adapterClass = adapterClass;
@@ -88,7 +95,7 @@ public enum GraphInputFormat implements EnumDisplayNames {
 	 * Returns the GraphInputAdapter subclass corresponding to the type.
 	 * @return The corresponding class.
 	 */
-	protected Class<? extends GraphInputAdapter> getAdapterClass() {
+	protected Class<? extends CommonGraphInputAdapter> getAdapterClass() {
 		return this.adapterClass;
 	}
 	
