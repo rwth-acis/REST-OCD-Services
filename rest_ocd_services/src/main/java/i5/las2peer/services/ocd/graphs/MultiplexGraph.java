@@ -1,30 +1,10 @@
 package i5.las2peer.services.ocd.graphs;
 
 import com.arangodb.ArangoCollection;
-import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
-import com.arangodb.entity.BaseEdgeDocument;
 import com.arangodb.model.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import i5.las2peer.services.ocd.algorithms.utils.Termmatrix;
-import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
-import i5.las2peer.services.ocd.graphs.properties.AbstractProperty;
-import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
-import org.graphstream.graph.Edge;
-import org.graphstream.graph.Node;
-import org.graphstream.graph.implementations.AbstractGraph;
-import org.graphstream.graph.implementations.AbstractNode;
-import org.graphstream.graph.implementations.MultiGraph;
-import org.graphstream.graph.implementations.MultiNode;
-import org.graphstream.ui.layout.Layout;
-import org.graphstream.ui.layout.springbox.implementations.SpringBox;
-import org.la4j.matrix.Matrix;
-import org.la4j.matrix.sparse.CCSMatrix;
-
 import java.util.*;
-import java.util.stream.Stream;
-
 
 /**
  * Represents a graph (or network), i.e. the node / edge structure and
@@ -34,7 +14,7 @@ import java.util.stream.Stream;
  *
  */
 
-public class MultiplexGraph{
+public class MultiplexGraph {
 	public static final String idColumnName = "ID";
 	public static final String userColumnName = "USER_NAME";
 	public static final String nameColumnName = "NAME";
@@ -62,7 +42,7 @@ public class MultiplexGraph{
 	private String name = "";
 
 	/**
-	 * The number of layer of the graph.
+	 * The number of layers of the graph.
 	 */
 	private long layerCount;
 
@@ -84,7 +64,7 @@ public class MultiplexGraph{
 
 	private Map<String, CustomGraph> mapCustomGraphs = new HashMap<String, CustomGraph>();
 
-	private Map<CustomGraph, String> mapCustomGraphIds = new HashMap<CustomGraph, String>();
+	//private Map<CustomGraph, String> mapCustomGraphIds = new HashMap<CustomGraph, String>();
 
 	//////////////////////////////////////////////////////////////////
 	///////// Constructor
@@ -207,14 +187,14 @@ public class MultiplexGraph{
 		return mapCustomGraphs;
 	}
 
-	public void setCustomGraphs(Map<String, CustomGraph> customGraphs) {
-		this.mapCustomGraphs = customGraphs;
-	}
+	//public void setCustomGraphs(Map<String, CustomGraph> customGraphs) {
+	//	this.mapCustomGraphs = customGraphs;
+	//}
 	//protected CustomGraph getCustomGraph(CustomGraph customgraph) {
 	//	return mapCustomGraphs.get(customgraph.getId());
 	//}
 
-	public void persist( ArangoDatabase db, String transId) throws InterruptedException {
+	public void persist(ArangoDatabase db, String transId) throws InterruptedException {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
 		//options for the transaction
@@ -223,7 +203,6 @@ public class MultiplexGraph{
 		bd.addAttribute(userColumnName, this.userName);
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(typesColumnName, this.types);
-		bd.addAttribute(layerCount, this.layerCount);
 		this.creationMethod.persist(db, createOptions);
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		collection.insertDocument(bd, createOptions);
@@ -231,18 +210,10 @@ public class MultiplexGraph{
 
 		bd = new BaseDocument();
 
-		List<CustomNode> nodes = new ArrayList<CustomNode>(this.customNodes.values());
-		for (CustomNode customNode : nodes) {
-			customNode.persist(db,createOptions);
+		List<CustomGraph> layers = new ArrayList<CustomGraph>(this.mapCustomGraphs.values());
+		for (CustomGraph customGraph : layers) {
+			customGraph.persist(db, transId);
 		}
-
-
-		List<CustomEdge> edges = new ArrayList<CustomEdge>(this.customEdges.values());
-		for (CustomEdge customEdge : edges) {
-			customEdge.persist(db, createOptions);
-		}
-
-		bd.addAttribute(propertiesColumnName, this.properties);
 		collection.updateDocument(this.key, bd, updateOptions);
 	}
 }

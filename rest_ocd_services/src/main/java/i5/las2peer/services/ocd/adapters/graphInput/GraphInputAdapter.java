@@ -10,7 +10,7 @@ import org.apache.poi.ss.formula.functions.T;
 
 
 /**
- * The common interface of all graph input adapters.
+ * The common interface of all customgraph input adapters.
  * @author Sebastian
  *
  */

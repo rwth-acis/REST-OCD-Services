@@ -600,7 +600,7 @@ public class ServiceClass extends RESTService {
 				log.setStatus(ExecutionStatus.COMPLETED);
 				graph.setCreationMethod(log);
 				GraphProcessor processor = new GraphProcessor();
-				processor.determineGraphTypes(graph);
+				//processor.determineGraphTypes(graph);
 				//if (doMakeUndirected) {
 				//	Set<GraphType> graphTypes = graph.getTypes();
 				//	if (graphTypes.remove(GraphType.DIRECTED)) {
@@ -608,7 +608,7 @@ public class ServiceClass extends RESTService {
 				//	}
 				//}
 				try {
-					database.storeGraph(graph);
+					database.storeMultiplexGraph(graph);
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + graph.getKey() + " in format " + graphInputFormatStr);
 				} catch (Exception e) {
 					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
@@ -733,12 +733,15 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 			graphFile.delete();
-			if (graphInputFormatStr.equals("MULTIPLEX_WEIGHTED_EDGE_LIST" || graphInputFormatStr.equals("MULTIPLEX_UNWEIGHTED_EDGE_LIST"))
-				return createMultiplexGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
+			Response response;
+			if (graphInputFormatStr.equals("MULTIPLEX_WEIGHTED_EDGE_LIST") || graphInputFormatStr.equals("MULTIPLEX_UNWEIGHTED_EDGE_LIST")){
+				response = createMultiplexGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
+						endDateStr,involvedUserURIsStr, showUserNamesStr, indexPathStr, filePathStr, contentStr.toString());
+			}else{
+				response = createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
 						endDateStr,involvedUserURIsStr, showUserNamesStr, indexPathStr, filePathStr, contentStr.toString());
 			}
-			return createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
-					endDateStr,involvedUserURIsStr, showUserNamesStr, indexPathStr, filePathStr, contentStr.toString());
+			return response;
 		}
 
 		/**

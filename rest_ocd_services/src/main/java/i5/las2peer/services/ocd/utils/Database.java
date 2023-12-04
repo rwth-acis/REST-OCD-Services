@@ -67,7 +67,7 @@ public class Database {
 	private ArangoDB arangoDB;
 	public ArangoDatabase db;
 	
-	private List<String> collectionNames =new ArrayList<String>(13);
+	private List<String> collectionNames =new ArrayList<String>(14);
 	
 	
 	public Database(boolean testDB) {
@@ -182,7 +182,11 @@ public class Database {
 		if(!collection.exists()) {
 			collection.create();
 		}
-
+		collectionNames.add(MultiplexGraph.collectionName);		//13
+		collection = db.collection(MultiplexGraph.collectionName);
+		if(!collection.exists()) {
+			collection.create();
+		}
 	}
 	
 
@@ -1742,10 +1746,7 @@ public class Database {
 				throw e;
 			}
 		}
-	}	
-	
-	
-
+	}
 	
 	public String getTransactionId(Class c, boolean write) {
 		String [] collections;
@@ -1779,6 +1780,9 @@ public class Database {
 		else if(c == SimulationSeriesGroup.class){
 			collections = collectionNames.subList(11,13).toArray(new String[1]);
 		}
+		//else if(c == MultiplexGraph.class) {
+			//collections = collectionNames.subList(0, 4).toArray(new String[4]);
+		//}
 		else {
 			collections = collectionNames.subList(0, 13).toArray(new String[10]);
 		}

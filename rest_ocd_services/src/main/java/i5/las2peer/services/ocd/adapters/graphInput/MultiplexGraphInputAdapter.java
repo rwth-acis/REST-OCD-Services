@@ -9,7 +9,7 @@ import java.util.Map;
 
 
 /**
- * The common interface of all graph input adapters.
+ * The common interface of all multiplexgraph input adapters.
  * @author Maren
  *
  */

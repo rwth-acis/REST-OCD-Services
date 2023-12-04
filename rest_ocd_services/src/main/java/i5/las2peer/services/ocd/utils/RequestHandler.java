@@ -559,6 +559,20 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates an XML document containing the id of a single graph.
+	 *
+	 * @param graph
+	 *            The multiplex graph.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parsing failed
+	 */
+	public String writeId(MultiplexGraph graph) throws ParserConfigurationException {
+		Document doc = getDocument();
+		doc.appendChild(getIdElt(graph, doc));
+		return writeDoc(doc);
+	}
+
+	/**
 	 * Creates an XML document containing the id of a single cover.
 	 * 
 	 * @param cover
@@ -969,6 +983,23 @@ public class RequestHandler {
 		Element graphElt = doc.createElement("Graph");
 		Element graphIdElt = doc.createElement("Id");
 		graphIdElt.appendChild(doc.createTextNode(graph.getKey()));	//done
+		graphElt.appendChild(graphIdElt);
+		return graphElt;
+	}
+
+	/**
+	 * Returns an XML element node representing the id (key) of a multiplex graph.
+	 *
+	 * @param graph
+	 *            The multiplex graph.
+	 * @param doc
+	 *            The document to create the element node for.
+	 * @return The element node.
+	 */
+	protected Node getIdElt(MultiplexGraph graph, Document doc) {
+		Element graphElt = doc.createElement("Graph");
+		Element graphIdElt = doc.createElement("Id");
+		graphIdElt.appendChild(doc.createTextNode(graph.getKey()));
 		graphElt.appendChild(graphIdElt);
 		return graphElt;
 	}
