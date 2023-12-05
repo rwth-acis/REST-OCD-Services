@@ -1,4 +1,4 @@
-package i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers;
+package i5.las2peer.services.ocd.automatedtesting.helpers;
 
 /**
  * A helper class acting as a pair of two objects

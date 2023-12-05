@@ -1,7 +1,6 @@
 package i5.las2peer.services.ocd.automatedtesting.metric;
 
-import i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers.CodeSmellData;
-import i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers.Pair;
+import i5.las2peer.services.ocd.automatedtesting.helpers.CodeSmellData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,14 +10,22 @@ import static i5.las2peer.services.ocd.automatedtesting.ocdparser.PmdReportParse
 
 public class CodeSmellSubmetric {
 
-    /* Value that determines from what number of code smell type presence will the submetric value become 0. */
+    /**
+     * Value that determines from what number of code smell type presence will the submetric value become 0.
+     */
     public static final int THRESHOLD_MAX_CODE_SMELL_TYPES = 10;
 
-    /* List that holds instructions that will be used to generate the prompt for improving ChatGPT code */
-    public static ArrayList<String> promptImprovementRemarks = new ArrayList<>();
 
-    /* Number of code smells of different types detected in the analyzed code */
-    public static int detectedCodeSmellTypeCount = 0;
+    /**
+     * Ratio of lack of code smells. Value 1 represents no code smells detected.
+     */
+    private static double noCodeSmellRatio = 1.0;
+
+
+    /**
+     * List that holds instructions that will be used to generate the prompt for improving ChatGPT code
+     */
+    private static ArrayList<String> promptImprovementRemarks = new ArrayList<>();
 
     public static void main(String[] args) {
 
@@ -32,6 +39,8 @@ public class CodeSmellSubmetric {
      * It also creates a list of code improvement instructions based on the identified code smells.
      * These instructions are intended for use in subsequent prompts to ChatGPT to improve the generated code.
      *
+     * Important: this method should only be used after PMD report has been generated.
+     *
      * @param ocdaTestClassName The name of the OCDA test class to be evaluated for code smells.
      * @return The calculated submetric value, which is a measure of code quality. The value is between 0 and 1,
      *         where 0 indicates a high number of diverse code smells and 1 indicates fewer or no code smells.
@@ -40,32 +49,50 @@ public class CodeSmellSubmetric {
                 = parsePmdXmlReportForViolationsForClass(ocdaTestClassName);
 
         /* number of code smell types that were detected in the algorithm code*/
-        detectedCodeSmellTypeCount = ruleViolations.size();
+        int detectedCodeSmellTypeCount = ruleViolations.size();
 
-        System.out.println("number of detected violation types " + detectedCodeSmellTypeCount);//TODO:DELETE
         for (String codeSmellType : ruleViolations.keySet()){
 
-            String instructionString = "These following " + ruleViolations.get(codeSmellType).size() +" code smells of type " + codeSmellType + " should be fixed:\n";
-            int cnt = 1;
+            // Add code smells to the prompt improvement remarks list to be used to improve future prompts to ChatGPT
             for (CodeSmellData codeSmellData : ruleViolations.get(codeSmellType)){
-                instructionString += "   " + cnt  + ". on line " + codeSmellData.getBeginLine() + ": " + codeSmellData.getDescription() + "\n";
-                cnt++;
+                promptImprovementRemarks.add("Code smell on line " + codeSmellData.getBeginLine() + ": " + codeSmellData.getDescription());
+
             }
 
-            promptImprovementRemarks.add(instructionString);
         }
 
-        for (String pString : promptImprovementRemarks){
-            System.out.println(pString);
-        }
+//        for (String pString : promptImprovementRemarks){
+//            System.out.println(pString);
+//        }
 
-        double submetricValue;
+
         if (detectedCodeSmellTypeCount >= THRESHOLD_MAX_CODE_SMELL_TYPES) {
-            submetricValue = 0;
+            noCodeSmellRatio = 0;
         } else {
-            submetricValue = 1.0 - (double) detectedCodeSmellTypeCount / THRESHOLD_MAX_CODE_SMELL_TYPES;
+            noCodeSmellRatio = 1.0 - (double) detectedCodeSmellTypeCount / THRESHOLD_MAX_CODE_SMELL_TYPES;
         }
 
-        return submetricValue;
+        return noCodeSmellRatio;
     }
+
+
+    /**
+     * Resets variables of code smell submetric to be reused
+     */
+    public static void resetSubmetricVariables(){
+        promptImprovementRemarks = new ArrayList<>();
+        noCodeSmellRatio = 1;
+
+    }
+
+    public static ArrayList<String> getPromptImprovementRemarks() {
+        return promptImprovementRemarks;
+    }
+
+
+    public static double getNoCodeSmellRatio() {
+        return noCodeSmellRatio;
+    }
+
+
 }

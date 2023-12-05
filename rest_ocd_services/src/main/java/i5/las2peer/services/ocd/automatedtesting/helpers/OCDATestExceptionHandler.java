@@ -1,4 +1,4 @@
-package i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers;
+package i5.las2peer.services.ocd.automatedtesting.helpers;
 
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;

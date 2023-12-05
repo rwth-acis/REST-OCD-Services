@@ -3,8 +3,7 @@ package i5.las2peer.services.ocd.automatedtesting.ocdparser;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers.CodeSmellData;
-import i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers.Pair;
+import i5.las2peer.services.ocd.automatedtesting.helpers.CodeSmellData;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;

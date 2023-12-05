@@ -1,14 +1,10 @@
-package i5.las2peer.services.ocd.test_interfaces.ocda;
+package i5.las2peer.services.ocd.ocdatestautomation.test_interfaces;
 
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.Assert.assertThrows;
 

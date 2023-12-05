@@ -1,7 +1,4 @@
-package i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers;
-
-import java.util.HashMap;
-import java.util.Map;
+package i5.las2peer.services.ocd.automatedtesting.helpers;
 
 /**
  * This is a container class to hold coverage information for different types

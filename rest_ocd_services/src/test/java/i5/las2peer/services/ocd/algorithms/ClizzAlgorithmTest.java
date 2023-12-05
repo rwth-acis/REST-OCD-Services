@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.algorithms;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import i5.las2peer.services.ocd.test_interfaces.ocda.*;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

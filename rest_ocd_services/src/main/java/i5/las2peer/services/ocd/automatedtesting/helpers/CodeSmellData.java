@@ -1,4 +1,4 @@
-package i5.las2peer.services.ocd.automatedtesting.ocdparser.helpers;
+package i5.las2peer.services.ocd.automatedtesting.helpers;
 
 /**
  * This is a container class to hold code smell information based on the PMD report

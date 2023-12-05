@@ -1,4 +1,4 @@
-package i5.las2peer.services.ocd.test_interfaces.ocda;
+package i5.las2peer.services.ocd.ocdatestautomation.test_interfaces;
 
 import org.junit.jupiter.api.Test;
 

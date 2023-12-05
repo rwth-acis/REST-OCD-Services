@@ -5,15 +5,14 @@ import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
-import i5.las2peer.services.ocd.test_interfaces.ocda.DirectedGraphTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.DirectedGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.OCDAParameterTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.UndirectedGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.WeightedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
 
-import jnr.ffi.annotations.Direct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

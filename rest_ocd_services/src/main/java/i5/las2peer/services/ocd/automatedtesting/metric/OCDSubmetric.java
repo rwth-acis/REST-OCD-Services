@@ -1,37 +1,49 @@
 package i5.las2peer.services.ocd.automatedtesting.metric;
 
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser;
-import i5.las2peer.services.ocd.automatedtesting.ocdparser.PromptGenerator;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static i5.las2peer.services.ocd.automatedtesting.OCDATestAutomationConstants.getGraphTypeBasedTestNames;
+
 public class OCDSubmetric {
 
-    //TODO: add variables for each part of this submetric
 
     /**
      * Represents whether each compatible graph type is tested in the test class of the algorithm.
      * Initially this value is 1. Each missing test will reduce the value.
      */
-    public static double compatibleGraphTypeTestRatio = 1;
+    private static double compatibleGraphTypeTestRatio = 1.0;
 
     /**
      * Represents ratio of OCDA parameters that are used within the OCDA test class. Ideally this should be 1,
      * which means every parameter is used.
      */
-    public static double algorithmParameterUsageRatio = 1;
+    private static double algorithmParameterUsageRatio = 1.0;
+
+
+    /**
+     * Weight of the ratio that represents if each compatible graph type is tested in the test class of the algorithm.
+     * The weight is used to determine how much does this value contribute to the submetric calculation.
+     */
+    private static double compatibleGraphTypeTestRatioWeight = 1.0;
+
+    /**
+     * Weight of the ratio of OCDA paramters used within OCDA tests. The weight is used to determine how much
+     * does this value contribute to the submetric calculation.
+     */
+    private static double algorithmParameterUsageRatioRatioWeight = 1.0;
 
     /**
      * List that holds instructions that will be used to generate the prompt for improving ChatGPT code
      */
-    public static ArrayList<String> promptImprovementRemarks = new ArrayList<>();
+    private static ArrayList<String> promptImprovementRemarks = new ArrayList<>();
 
 
     public static void main(String[] args) {
@@ -43,8 +55,8 @@ public class OCDSubmetric {
 
         File ocdaCode = new File(OCDAParser.getOCDAPath("SskAlgorithm.java"));
 
-       evaluateCompatibleGraphTesting(gptOutput,ocdaCode);
-       evaluateAlgorithmParameterTesting(gptOutput, ocdaCode);
+        evaluateCompatibleGraphTypeTestRaio(gptOutput,ocdaCode);
+        evaluateAlgorithmParameterUsageRatio(gptOutput, ocdaCode);
 
 
         System.out.println("======= PROMPT IMPROVEMENT REMARKS ======");
@@ -69,7 +81,7 @@ public class OCDSubmetric {
      *         A value of 1 indicates that all parameters were set in all auto-generated unit tests,
      *         and the value decreases as the number of missed parameters increases.
      */
-    public static double evaluateAlgorithmParameterTesting(File gptOutput, File ocdaCode){
+    public static double evaluateAlgorithmParameterUsageRatio(File gptOutput, File ocdaCode){
         // Get all variable declarations in the OCDA class file
         List<String> variableDeclarations = OCDAParser.listClassVariables(ocdaCode);
 
@@ -133,34 +145,7 @@ public class OCDSubmetric {
     }
 
 
-    /**
-     * Creates and returns a mapping of graph types to their corresponding unit test names.
-     * This mapping is intended for use in generating tests to be completed by ChatGPT.
-     * The method also adds an artificial UNDIRECTED graph type entry, as each Overlapping
-     * Community Detection Algorithm (OCDA) test class in WebOCD is expected to have a
-     * corresponding test for undirected graphs.
-     *
-     * The method populates a Map where each key is a specific graph type (e.g., DIRECTED, WEIGHTED) and each value
-     * is the name of the unit test associated with that graph type.
-     *
-     * @return A Map where each key is a string representing a graph type, and each value is a string
-     *         representing the corresponding unit test name that needs to be completed.
-     */
-    public static Map<String, String>  getGraphTypeBasedTestNames(){
 
-        Map<String, String> graphTypeToTestNameMap = new HashMap<>();
-
-        graphTypeToTestNameMap.put("GraphType.DIRECTED", PromptGenerator.DIRECTED_GRAPH_TEST_NAME);
-        graphTypeToTestNameMap.put("GraphType.WEIGHTED", PromptGenerator.WEIGHTED_GRAPH_TEST_NAME);
-        graphTypeToTestNameMap.put("GraphType.NEGATIVE_WEIGHTS", PromptGenerator.NEGATIVE_WEIGHTS_GRAPH_TEST_NAME);
-        graphTypeToTestNameMap.put("GraphType.SELF_LOOPS", PromptGenerator.SELF_LOOPS_GRAPH_TEST_NAME);
-        graphTypeToTestNameMap.put("GraphType.ZERO_WEIGHTS", PromptGenerator.ZERO_WEIGHTS_GRAPH_TEST_NAME);
-
-        // While undirected graph doesn't exist as a separate GraphType, each OCDA is compatible with undirected graphs.
-        graphTypeToTestNameMap.put("GraphType.UNDIRECTED", PromptGenerator.UNDIRECTED_GRAPH_TEST_NAME);
-
-        return graphTypeToTestNameMap;
-    }
 
 
     /**
@@ -205,7 +190,7 @@ public class OCDSubmetric {
      * @return A filtered list of method calls that are related to setting OCDA algorithm parameters.
      *         Each element in the list represents a method call that includes 'parameters.put'.
      */
-    public static List<String> extractParameterRelatedMethodCalls(List<String> methodCallsInTest){
+    private static List<String> extractParameterRelatedMethodCalls(List<String> methodCallsInTest){
 
         // Filter the method call list to only include the parts concerning setting algorithm parameter values
         List<String> filteredMethodCalls = methodCallsInTest.stream()
@@ -232,7 +217,7 @@ public class OCDSubmetric {
      * @param ocdaCode File that holds the OCD algorithm code.tests.
      * @return The submetric value, representing the proportion of tests not missing.
      */
-    public static double evaluateCompatibleGraphTesting(File gptOutput, File ocdaCode) {
+    public static double evaluateCompatibleGraphTypeTestRaio(File gptOutput, File ocdaCode) {
         // List of methods in the test class for the OCDA. This list is used to ensure no method is missing
         // e.g. due to existing methods being removed by ChatGPT
         List<String> ocdaTestClassMethods = OCDAParser.extractMethods(gptOutput);
@@ -277,7 +262,7 @@ public class OCDSubmetric {
      * to improve the code generated by ChatGPT.
      * @param testName          Name of the test that is missing.
      */
-    public static void addMissingTestToPrompt(String testName){
+    private static void addMissingTestToPrompt(String testName){
         promptImprovementRemarks.add("Missing unit test: unit test " +  testName
                 + " was removed, even though it must be in the test class.");
     }
@@ -305,7 +290,7 @@ public class OCDSubmetric {
      *                  in the gptInput file, indicating that the class declaration remains unmodified.
      *                  Returns false if there are any differences in the class declarations.
      */
-    public static Boolean isClassDeclarationUnmodified(File gptInput, File gptOutput) {
+    private static Boolean isClassDeclarationUnmodified(File gptInput, File gptOutput) {
         return OCDAParser.getFullClassDeclaration(gptInput).equals(OCDAParser.getFullClassDeclaration(gptOutput));
     }
 
@@ -324,16 +309,38 @@ public class OCDSubmetric {
      *                       contains the comment from the corresponding method in the gptInput file, also normalized for whitespace.
      *                       This indicates that the comment text remains unmodified or includes the original. Returns false otherwise.
      */
-    public static Boolean isMethodCommentTextUnmodified(File gptInput, File gptOutput, String targetMethod) {
+    private static Boolean isMethodCommentTextUnmodified(File gptInput, File gptOutput, String targetMethod) {
         String inputComment = OCDAParser.getMethodComment(gptInput, targetMethod).replaceAll("\\s+", " ").trim();
         String outputComment = OCDAParser.getMethodComment(gptOutput, targetMethod).replaceAll("\\s+", " ").trim();
         return outputComment.contains(inputComment);
     }
 
 
+    public static double getCompatibleGraphTypeTestRatio() {
+        return compatibleGraphTypeTestRatio;
+    }
 
+    public static double getAlgorithmParameterUsageRatio() {
+        return algorithmParameterUsageRatio;
+    }
 
+    public static ArrayList<String> getPromptImprovementRemarks() {
+        return promptImprovementRemarks;
+    }
 
+    public static double getCompatibleGraphTypeTestRatioWeight() {
+        return compatibleGraphTypeTestRatioWeight;
+    }
 
+    public static void setCompatibleGraphTypeTestRatioWeight(double compatibleGraphTypeTestRatioWeight) {
+        OCDSubmetric.compatibleGraphTypeTestRatioWeight = compatibleGraphTypeTestRatioWeight;
+    }
 
+    public static double getAlgorithmParameterUsageRatioRatioWeight() {
+        return algorithmParameterUsageRatioRatioWeight;
+    }
+
+    public static void setAlgorithmParameterUsageRatioRatioWeight(double algorithmParameterUsageRatioRatioWeight) {
+        OCDSubmetric.algorithmParameterUsageRatioRatioWeight = algorithmParameterUsageRatioRatioWeight;
+    }
 }

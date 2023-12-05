@@ -5,8 +5,8 @@ import java.io.FileNotFoundException;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.OCDAParameterTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import org.junit.jupiter.api.BeforeEach;

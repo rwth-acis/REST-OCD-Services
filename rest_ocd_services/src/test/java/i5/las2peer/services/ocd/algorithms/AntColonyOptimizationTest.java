@@ -7,10 +7,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.HashMap;
 
-import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.SelfLoopsGraphTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.ZeroWeightsGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.OCDAParameterTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.SelfLoopsGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.UndirectedGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.ZeroWeightsGraphTestReq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

@@ -7,9 +7,9 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
-import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.OCDAParameterTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.UndirectedGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.WeightedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;

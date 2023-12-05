@@ -1,8 +1,8 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.WeightedGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.OCDAParameterTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.UndirectedGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.WeightedGraphTestReq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

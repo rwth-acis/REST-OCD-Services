@@ -4,8 +4,8 @@ import java.io.FileNotFoundException;
 
 import java.util.*;
 
-import i5.las2peer.services.ocd.test_interfaces.ocda.OCDAParameterTestReq;
-import i5.las2peer.services.ocd.test_interfaces.ocda.UndirectedGraphTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.OCDAParameterTestReq;
+import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.UndirectedGraphTestReq;
 import org.graphstream.graph.Node;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
