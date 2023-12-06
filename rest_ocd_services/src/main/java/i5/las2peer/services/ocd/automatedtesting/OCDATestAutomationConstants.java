@@ -49,6 +49,8 @@ public class OCDATestAutomationConstants {
     // Name of the class where the test graphs are stored or generated
     public static String GRAPH_FACTORY_CLASS_NAME = "i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory";
 
+    public static String AUTO_GENERATED_TEST_CLASS_PACKAGE = "i5.las2peer.services.ocd.ocdatestautomation.testrunner.generatedclasses";
+
     // Name of the shared method among OCDA test classes to get an algorithm instance
     public static String OCDA_GETTER = "getAlgorithm";
 

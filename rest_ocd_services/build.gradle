@@ -337,6 +337,19 @@ tasks.withType(org.gradle.api.plugins.quality.Pmd) {
     }
 }
 
+// Run a custom test such as OCDA test. This task can be used to check dynamically
+// if e.g. auto-generated test can be run successfully
+task runCustomTests(type: JavaExec) {
+    // Check if a system property 'testClass' is provided
+    if (project.hasProperty('testClass')) {
+        // Set system property for the Java process
+        systemProperty 'testClassName', project.property('testClass')
+    }
+
+    classpath = sourceSets.test.runtimeClasspath
+    main = 'i5.las2peer.services.ocd.ocdatestautomation.testrunner.CustomTestExecutor'
+}
+
 
 
 // Executes WebOCD tests without database tests. This task is used for github actions.
