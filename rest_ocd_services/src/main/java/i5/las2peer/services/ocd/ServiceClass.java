@@ -378,7 +378,6 @@ public class ServiceClass extends RESTService {
 				}
 
 				GraphInputFormat format;
-				CustomGraph graph;
 				try {
 					format = GraphInputFormat.valueOf(graphInputFormatStr);
 				} catch (Exception e) {
@@ -409,211 +408,110 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.INTERNAL, "Index path exception.");
 				}
-				try {
-					Map<String, String> param = new HashMap<String, String>();
-					if (format == GraphInputFormat.NODE_CONTENT_EDGE_LIST || format == GraphInputFormat.XML || format == GraphInputFormat.LMS_TRIPLESTORE) {
-						param.put("startDate", startDateStr);
-						param.put("endDate", endDateStr);
-						if (format == GraphInputFormat.XML) {
-							param.put("indexPath", indexPathStr);
-							param.put("filePath", filePathStr);
-						} else if(format == GraphInputFormat.LMS_TRIPLESTORE) {
-							param.put("showUserNames", showUserNamesStr);
-							param.put("involvedUserURIs", involvedUserURIsStr);
-						} else {
-							param.put("path", indexPathStr);
-						}
+
+				//Is Multiplex
+				if (format == GraphInputFormat.MULTIPLEX_WEIGHTED_EDGE_LIST || format == GraphInputFormat.MULTIPLEX_UNWEIGHTED_EDGE_LIST) {
+					MultiplexGraph graph;
+					try {
+						Map<String, String> param = new HashMap<String, String>();
+						graph = requestHandler.parseMultiplexGraph(contentStr, format, param);
+
+					} catch (Exception e) {
+						requestHandler.log(Level.WARNING, "user: " + username, e);
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Input graph does not correspond to the specified format.");
 					}
-					//else if (format == GraphInputFormat.XGMML) {
+					boolean doMakeUndirected;
+					try {
+						doMakeUndirected = requestHandler.parseBoolean(doMakeUndirectedStr);
+					} catch (Exception e) {
+						requestHandler.log(Level.WARNING, "user: " + username, e);
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Do make undirected ist not a boolean value.");
+					}
+					graph.setUserName(username);
+					graph.setName(URLDecoder.decode(nameStr, "UTF-8"));
+					GraphCreationLog log = new GraphCreationLog(benchmarkType, new HashMap<String, String>());
+					log.setStatus(ExecutionStatus.COMPLETED);
+					graph.setCreationMethod(log);
+					//GraphProcessor processor = new GraphProcessor();
+					//processor.determineGraphTypes(graph);
+					//if (doMakeUndirected) {
+					//	Set<GraphType> graphTypes = graph.getTypes();
+					//	if (graphTypes.remove(GraphType.DIRECTED)) {
+					//		processor.makeCompatible(graph, graphTypes);
+					//	}
+					//}
+					try {
+						database.storeMultiplexGraph(graph);
+						generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + graph.getKey() + " in format " + graphInputFormatStr);
+					} catch (Exception e) {
+						return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
+					}
+					return Response.ok(requestHandler.writeId(graph)).build();
+				}else{ //Is CustomGraph
+					CustomGraph graph;
+					try {
+						Map<String, String> param = new HashMap<String, String>();
+						if (format == GraphInputFormat.NODE_CONTENT_EDGE_LIST || format == GraphInputFormat.XML || format == GraphInputFormat.LMS_TRIPLESTORE) {
+							param.put("startDate", startDateStr);
+							param.put("endDate", endDateStr);
+							if (format == GraphInputFormat.XML) {
+								param.put("indexPath", indexPathStr);
+								param.put("filePath", filePathStr);
+							} else if(format == GraphInputFormat.LMS_TRIPLESTORE) {
+								param.put("showUserNames", showUserNamesStr);
+								param.put("involvedUserURIs", involvedUserURIsStr);
+							} else {
+								param.put("path", indexPathStr);
+							}
+						}
+						//else if (format == GraphInputFormat.XGMML) {
 						//param.put("key", keyStr);
 						//param.put("type1", type1Str);
 						//param.put("type2", type2Str);
 						//param.put("type3", type3Str);
-					//}
-					graph = requestHandler.parseGraph(contentStr, format, param);
+						//}
+						graph = requestHandler.parseGraph(contentStr, format, param);
 
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Input graph does not correspond to the specified format.");
-				}
-				boolean doMakeUndirected;
-				try {
-					doMakeUndirected = requestHandler.parseBoolean(doMakeUndirectedStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Do make undirected ist not a boolean value.");
-				}
-				graph.setUserName(username);
-				graph.setName(URLDecoder.decode(nameStr, "UTF-8"));
-				GraphCreationLog log = new GraphCreationLog(benchmarkType, new HashMap<String, String>());
-				log.setStatus(ExecutionStatus.COMPLETED);
-				graph.setCreationMethod(log);
-				GraphProcessor processor = new GraphProcessor();
-				processor.determineGraphTypes(graph);
-				graph.setNodeEdgeCountColumnFields(); // before persisting the graph, update node/edge count information
-				if (doMakeUndirected) {
-					Set<GraphType> graphTypes = graph.getTypes();
-					if (graphTypes.remove(GraphType.DIRECTED)) {
-						processor.makeCompatible(graph, graphTypes);
+					} catch (Exception e) {
+						requestHandler.log(Level.WARNING, "user: " + username, e);
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Input graph does not correspond to the specified format.");
 					}
-				}
-				try {
-					database.storeGraph(graph);
-					generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + graph.getKey() + " in format " + graphInputFormatStr);
-				} catch (Exception e) {
-					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
-				}
-				return Response.ok(requestHandler.writeId(graph)).build();
-			} catch (Exception e) {
-				requestHandler.log(Level.SEVERE, "", e);
-				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
-			}
-		}
-
-		/**
-		 * Imports a multiplex graph.
-		 *
-		 * @param nameStr
-		 *            The name for the graph.
-		 * @param creationTypeStr
-		 *            The creation type the graph was created by.
-		 * @param graphInputFormatStr
-		 *            The name of the graph input format.
-		 * @param doMakeUndirectedStr
-		 *            Optional query parameter. Defines whether directed edges
-		 *            shall be turned into undirected edges (TRUE) or not.
-		 * @param startDateStr
-		 *            Optional query parameter. For big graphs start date is the
-		 *            date from which the file will start parse.
-		 * @param endDateStr
-		 *            Optional query parameter. For big graphs end date is the
-		 *            date till which the file will parse.
-		 * @param involvedUserURIsStr
-		 * 			  Optional query parameter. Users to consider for LMS Triplestore import
-		 * @param showUserNamesStr
-		 * 			  Optional query parameter. Whether to show usernames as node names for LMS Triplestore import
-		 * @param indexPathStr
-		 *            Optional query parameter. Set index directory.
-		 * @param filePathStr
-		 *            Optional query parameter. For testing purpose, file
-		 *            location of local file can be given.
-		 * @param contentStr
-		 *            The graph input.
-		 * @return A graph id xml. Or an error xml.
-		 */
-		@POST
-		@Path("graphs")
-		@Produces(MediaType.TEXT_XML)
-		@Consumes(MediaType.TEXT_PLAIN)
-		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
-				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(tags = {"import"}, value = "Import Graph", notes = "Imports a graph with various formats possible.")
-		public Response createMultiplexGraph(@DefaultValue("unnamed") @QueryParam("name") String nameStr,
-									@DefaultValue("UNDEFINED") @QueryParam("creationType") String creationTypeStr,
-									@DefaultValue("GRAPH_ML") @QueryParam("inputFormat") String graphInputFormatStr,
-									@DefaultValue("FALSE") @QueryParam("doMakeUndirected") String doMakeUndirectedStr,
-									@DefaultValue("2004-01-01") @QueryParam("startDate") String startDateStr,
-									@DefaultValue("2004-01-20") @QueryParam("endDate") String endDateStr,
-									@DefaultValue("") @QueryParam("involvedUserURIs") String involvedUserURIsStr,
-									@DefaultValue("false") @QueryParam("showUserNames") String showUserNamesStr,
-									@DefaultValue("indexes") @QueryParam("indexPath") String indexPathStr,
-									@DefaultValue("ocd/test/input/stackexAcademia.xml") @QueryParam("filePath") String filePathStr,
-									String contentStr) {
-			try {
-				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
-				/*
-				Check if user has a limit regarding number of graph throw an error if the limit is violated.
-                */
-
-				if (userLimitsHandler.reachedGraphCountLimit(username)){
-					requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
-					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
-				}
-
-				GraphInputFormat format;
-				MultiplexGraph graph;
-				try {
-					format = GraphInputFormat.valueOf(graphInputFormatStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified input format does not exist.");
-				}
-				GraphCreationType benchmarkType;
-				try {
-					benchmarkType = GraphCreationType.valueOf(creationTypeStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified input format does not exist.");
-				}
-				try {
-					int subDirName = 0;
-					File indexPathDir = new File(indexPathStr);
-
-					if (indexPathDir.exists()) {
-						for (String subDir : indexPathDir.list()) {
-							if (Integer.parseInt(subDir) == subDirName) {
-								subDirName++;
-							}
+					boolean doMakeUndirected;
+					try {
+						doMakeUndirected = requestHandler.parseBoolean(doMakeUndirectedStr);
+					} catch (Exception e) {
+						requestHandler.log(Level.WARNING, "user: " + username, e);
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Do make undirected ist not a boolean value.");
+					}
+					graph.setUserName(username);
+					graph.setName(URLDecoder.decode(nameStr, "UTF-8"));
+					GraphCreationLog log = new GraphCreationLog(benchmarkType, new HashMap<String, String>());
+					log.setStatus(ExecutionStatus.COMPLETED);
+					graph.setCreationMethod(log);
+					GraphProcessor processor = new GraphProcessor();
+					processor.determineGraphTypes(graph);
+					graph.setNodeEdgeCountColumnFields(); // before persisting the graph, update node/edge count information
+					if (doMakeUndirected) {
+						Set<GraphType> graphTypes = graph.getTypes();
+						if (graphTypes.remove(GraphType.DIRECTED)) {
+							processor.makeCompatible(graph, graphTypes);
 						}
 					}
-					indexPathStr = indexPathStr + File.separator + String.valueOf(subDirName);
 
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.INTERNAL, "Index path exception.");
-				}
-				try {
-					Map<String, String> param = new HashMap<String, String>();
-					if (format == GraphInputFormat.NODE_CONTENT_EDGE_LIST || format == GraphInputFormat.XML || format == GraphInputFormat.LMS_TRIPLESTORE) {
-						param.put("startDate", startDateStr);
-						param.put("endDate", endDateStr);
-						if (format == GraphInputFormat.XML) {
-							param.put("indexPath", indexPathStr);
-							param.put("filePath", filePathStr);
-						} else if(format == GraphInputFormat.LMS_TRIPLESTORE) {
-							param.put("showUserNames", showUserNamesStr);
-							param.put("involvedUserURIs", involvedUserURIsStr);
-						} else {
-							param.put("path", indexPathStr);
-						}
+
+					try {
+						database.storeGraph(graph);
+						generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + graph.getKey() + " in format " + graphInputFormatStr);
+					} catch (Exception e) {
+						return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
 					}
-					graph = requestHandler.parseMultiplexGraph(contentStr, format, param);
+					return Response.ok(requestHandler.writeId(graph)).build();
+				}
 
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Input graph does not correspond to the specified format.");
-				}
-				boolean doMakeUndirected;
-				try {
-					doMakeUndirected = requestHandler.parseBoolean(doMakeUndirectedStr);
-				} catch (Exception e) {
-					requestHandler.log(Level.WARNING, "user: " + username, e);
-					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Do make undirected ist not a boolean value.");
-				}
-				graph.setUserName(username);
-				graph.setName(URLDecoder.decode(nameStr, "UTF-8"));
-				GraphCreationLog log = new GraphCreationLog(benchmarkType, new HashMap<String, String>());
-				log.setStatus(ExecutionStatus.COMPLETED);
-				graph.setCreationMethod(log);
-				GraphProcessor processor = new GraphProcessor();
-				//processor.determineGraphTypes(graph);
-				//if (doMakeUndirected) {
-				//	Set<GraphType> graphTypes = graph.getTypes();
-				//	if (graphTypes.remove(GraphType.DIRECTED)) {
-				//		processor.makeCompatible(graph, graphTypes);
-				//	}
-				//}
-				try {
-					database.storeMultiplexGraph(graph);
-					generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + graph.getKey() + " in format " + graphInputFormatStr);
-				} catch (Exception e) {
-					return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
-				}
-				return Response.ok(requestHandler.writeId(graph)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
@@ -733,14 +631,8 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 			graphFile.delete();
-			Response response;
-			if (graphInputFormatStr.equals("MULTIPLEX_WEIGHTED_EDGE_LIST") || graphInputFormatStr.equals("MULTIPLEX_UNWEIGHTED_EDGE_LIST")){
-				response = createMultiplexGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
+			Response response = createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
 						endDateStr,involvedUserURIsStr, showUserNamesStr, indexPathStr, filePathStr, contentStr.toString());
-			}else{
-				response = createGraph(nameStr, creationTypeStr, graphInputFormatStr, doMakeUndirectedStr, startDateStr,
-						endDateStr,involvedUserURIsStr, showUserNamesStr, indexPathStr, filePathStr, contentStr.toString());
-			}
 			return response;
 		}
 

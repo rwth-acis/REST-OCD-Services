@@ -139,6 +139,8 @@ public class MultiplexGraph {
 		return this.creationMethod;
 	}
 
+	public int getLayerCount(){return this.mapCustomGraphs.size();}
+
 
 	////////// Graph Types //////////
 	/**
@@ -210,8 +212,7 @@ public class MultiplexGraph {
 
 		bd = new BaseDocument();
 
-		List<CustomGraph> layers = new ArrayList<CustomGraph>(this.mapCustomGraphs.values());
-		for (CustomGraph customGraph : layers) {
+		for (CustomGraph customGraph : this.mapCustomGraphs.values()) {
 			customGraph.persist(db, transId);
 		}
 		collection.updateDocument(this.key, bd, updateOptions);

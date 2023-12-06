@@ -1780,9 +1780,9 @@ public class Database {
 		else if(c == SimulationSeriesGroup.class){
 			collections = collectionNames.subList(11,13).toArray(new String[1]);
 		}
-		//else if(c == MultiplexGraph.class) {
-			//collections = collectionNames.subList(0, 4).toArray(new String[4]);
-		//}
+		else if(c == MultiplexGraph.class) {
+			collections = new String[] {collectionNames.get(0),collectionNames.get(3),collectionNames.get(14)};
+		}
 		else {
 			collections = collectionNames.subList(0, 13).toArray(new String[10]);
 		}
