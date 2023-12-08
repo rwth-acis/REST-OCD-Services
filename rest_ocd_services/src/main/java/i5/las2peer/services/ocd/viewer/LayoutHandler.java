@@ -13,10 +13,12 @@ import i5.las2peer.services.ocd.viewer.painters.CoverPaintingType;
 import i5.las2peer.services.ocd.viewer.utils.CentralityVisualizationType;
 
 import java.awt.Color;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.bouncycastle.pqc.math.linearalgebra.Matrix;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
@@ -117,7 +119,7 @@ public class LayoutHandler {
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 */
 	public void doLayout(Cover cover, GraphLayoutType layoutType, boolean doLabelNodes, boolean doLabelEdges, 
-			double minNodeSize, double maxNodeSize, CoverPaintingType paintingType) throws InstantiationException, IllegalAccessException, InterruptedException {
+			double minNodeSize, double maxNodeSize, CoverPaintingType paintingType, int maxNodeColors) throws InstantiationException, IllegalAccessException, InterruptedException {
 		CustomGraph graph = cover.getGraph();
 		setCoverLayoutDefaults(graph, minNodeSize, maxNodeSize);
 		labelGraph(graph, doLabelNodes, doLabelEdges);
@@ -125,7 +127,7 @@ public class LayoutHandler {
 		layouter.doLayout(graph);
 		CoverPainter painter = coverPainterFactory.getInstance(paintingType);
 		painter.doPaint(cover);
-		paintNodes(cover);
+		paintNodes(cover, maxNodeColors);
 		setViewDefaults(graph);
 
 	}
@@ -284,12 +286,13 @@ public class LayoutHandler {
 	 * membership degrees / belonging factors.
 	 * @param cover The cover.
 	 */
-	private void paintNodes(Cover cover) {
+	private void paintNodes(Cover cover, int maxNodeColors) {
 		CustomGraph graph = cover.getGraph();
 		Iterator<Node> nodesIt = graph.iterator();
 		float[] curColorCompArray = new float[4];
 		float[] colorCompArray;
 		Node node;
+		maxNodeColors--;
 		while(nodesIt.hasNext()) {
 			colorCompArray = new float[4];
 			node = nodesIt.next();
@@ -306,6 +309,40 @@ public class LayoutHandler {
 			node.setAttribute("ui.style",node.getAttribute("ui.style") + "fill-color: rgba(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "," + color.getAlpha() + ");");
 			//TODO: Ideally we shouldn't need a separate ui.fill-color attribute and should be able to use the value from ui.style
 			node.setAttribute("ui.fill-color", new float[]{color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()/255}); // set directly accessible color attribute for node
+
+			if (maxNodeColors > 0) {
+				final Node n = node;
+				HashMap<String, Double> belongingColors = new HashMap<>();
+				communityIndices.sort((i1, i2) -> cover.getBelongingFactor(n, i2) < cover.getBelongingFactor(n, i1) ? -1 : 1);
+				if (maxNodeColors < communityIndices.size()) {
+					double sum = 0;
+					for (int i = 0; i < maxNodeColors; i++) {
+						Color c = cover.getCommunityColor(communityIndices.get(i));
+						String hexColor = String.format("#%02x%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+						belongingColors.put(hexColor, cover.getBelongingFactor(node, communityIndices.get(i)));
+						sum += cover.getBelongingFactor(node, communityIndices.get(i));
+					}
+					sum = 1-sum;
+					colorCompArray = new float[4];
+					for (int i = maxNodeColors; i < communityIndices.size(); i++) {
+						Color comColor = cover.getCommunityColor(communityIndices.get(i));
+						comColor.getRGBComponents(curColorCompArray);
+						for (int j = 0; j < 4; j++) {
+							colorCompArray[j] += curColorCompArray[j] * (cover.getBelongingFactor(node, communityIndices.get(i)) / sum);
+						}
+					}
+					Color c = new Color(colorCompArray[0], colorCompArray[1], colorCompArray[2], colorCompArray[3]);
+					String hexColor = String.format("#%02x%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+					belongingColors.put(hexColor, sum);
+				} else {
+					for (int index : communityIndices) {
+						Color c = cover.getCommunityColor(index);
+						String hexColor = String.format("#%02x%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+						belongingColors.put(hexColor, cover.getBelongingFactor(node, index));
+					}
+				}
+				node.setAttribute("ui.belonging-color", belongingColors);
+			}
 		}
 	}
 	

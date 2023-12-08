@@ -75,6 +75,11 @@ public class JsonVisualOutputAdapter extends AbstractVisualOutputAdapter {
 			//Label
 			tmp.put("label", n.getLabel("label").toString());
 
+			//Multicolor Nodes
+			if (n.getAttribute("ui.belonging-color") != null) {
+				tmp.put("multicolor", n.getAttribute("ui.belonging-color"));
+			}
+
 			JSONObject jsonNode = (JSONObject) JSONValue.parse(JSONValue.toJSONString(tmp));
 
 			nodes.add(jsonNode);

@@ -2509,7 +2509,8 @@ public class ServiceClass extends RESTService {
 	    		@DefaultValue("TRUE") @QueryParam("doLabelNodes") String doLabelNodesStr,
 	    		@DefaultValue("FALSE") @QueryParam("doLabelEdges") String doLabelEdgesStr,
 	    		@DefaultValue("20") @QueryParam("minNodeSize") String minNodeSizeStr,
-	    		@DefaultValue("45") @QueryParam("maxNodeSize") String maxNodeSizeStr) {
+	    		@DefaultValue("45") @QueryParam("maxNodeSize") String maxNodeSizeStr,
+				@DefaultValue("10") @QueryParam("maxColorCount") String maxColorCountStr) {
 	    	try {
 	    		
 	    		String username = getUserName();
@@ -2534,6 +2535,16 @@ public class ServiceClass extends RESTService {
 	    			requestHandler.log(Level.WARNING, "user: " + username, e);
 	    			return requestHandler.writeError(Error.PARAMETER_INVALID, "Max node size is not valid.");
 	    		}
+	    		int maxColorCount;
+				try {
+					maxColorCount = Integer.parseInt(maxColorCountStr);
+					if (maxColorCount < 1) {
+						throw new IllegalArgumentException();
+					}
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Max color count is not valid.");
+				}
 	    		VisualOutputFormat format;
 	    		GraphLayoutType layout;
 	    		boolean doLabelNodes;
@@ -2579,7 +2590,7 @@ public class ServiceClass extends RESTService {
 	    					"Cover does not exist: cover id " + coverIdStr + ", graph id " + graphIdStr);
 	    		}
 	    		
-	    		layoutHandler.doLayout(cover, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize, painting);
+	    		layoutHandler.doLayout(cover, layout, doLabelNodes, doLabelEdges, minNodeSize, maxNodeSize, painting, maxColorCount);
 	    		database.updateCover(cover);
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get visualization of cover " + coverIdStr + " in " +visualOutputFormatStr + " format." );
 				return requestHandler.writeCover(cover, format);

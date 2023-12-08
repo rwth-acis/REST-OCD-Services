@@ -19,7 +19,7 @@ public class RandomColorPainterTest {
 	public void testOnSawmill() throws AdapterException, IOException, InstantiationException, IllegalAccessException, InterruptedException {
 		Cover cover = ViewerTestGraphFactory.getSlpaSawmillCover();
 		LayoutHandler handler = new LayoutHandler();
-		handler.doLayout(cover, GraphLayoutType.ORGANIC, true, false, 20, 45, CoverPaintingType.RANDOM_COLORS);
+		handler.doLayout(cover, GraphLayoutType.ORGANIC, true, false, 20, 45, CoverPaintingType.RANDOM_COLORS, 10);
 		SvgVisualOutputAdapter adapter = new SvgVisualOutputAdapter();
 		adapter.setWriter(new FileWriter(ViewerTestConstants.slpaSawmillSvgOutputPath));
 		adapter.writeGraph(cover.getGraph());
@@ -29,7 +29,7 @@ public class RandomColorPainterTest {
 	public void testOnDolphins() throws AdapterException, IOException, InstantiationException, IllegalAccessException, InterruptedException {
 		Cover cover = ViewerTestGraphFactory.getSlpaDolphinsCover();
 		LayoutHandler handler = new LayoutHandler();
-		handler.doLayout(cover, GraphLayoutType.ORGANIC, true, false, 20, 45, CoverPaintingType.RANDOM_COLORS);
+		handler.doLayout(cover, GraphLayoutType.ORGANIC, true, false, 20, 45, CoverPaintingType.RANDOM_COLORS, 10);
 		SvgVisualOutputAdapter adapter = new SvgVisualOutputAdapter();
 		adapter.setWriter(new FileWriter(ViewerTestConstants.slpaDolphinsSvgOutputPath));
 		adapter.writeGraph(cover.getGraph());
