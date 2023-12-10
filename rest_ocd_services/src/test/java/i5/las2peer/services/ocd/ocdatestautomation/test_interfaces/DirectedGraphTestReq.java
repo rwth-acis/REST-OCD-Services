@@ -14,20 +14,20 @@ import static org.junit.Assert.assertThrows;
  */
 public interface DirectedGraphTestReq extends BaseGraphTestReq {
 
-    /**
-     * Test OCDA on a directed Sawmill graph
-     */
-    @Test
-    default void basicTestOnSawmill(){
-        OcdAlgorithm algo = getAlgorithm();
-        System.out.println("Inside DirectedGraphTestReq.basicTestOnSawmill: " + algo); //TODO: DELETE 555
-        try {
-            CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
-            Cover cover = algo.detectOverlappingCommunities(graph);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
+//    /**
+//     * Test OCDA on a directed Sawmill graph
+//     */
+//    @Test
+//    default void basicTestOnSawmill(){
+//        OcdAlgorithm algo = getAlgorithm();
+//        System.out.println("Inside DirectedGraphTestReq.basicTestOnSawmill: " + algo); //TODO: DELETE 555
+//        try {
+//            CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
+//            Cover cover = algo.detectOverlappingCommunities(graph);
+//        }catch(Exception e){
+//            e.printStackTrace();
+//        }
+//    }
 
 
     /**

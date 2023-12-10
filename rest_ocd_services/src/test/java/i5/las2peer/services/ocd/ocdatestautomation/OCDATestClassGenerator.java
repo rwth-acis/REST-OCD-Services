@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.ocdatestautomation;
 
+import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser;
 import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.*;
 
@@ -23,6 +24,11 @@ public class OCDATestClassGenerator {
      *
      * @param ocdaCode The file containing the OCD algorithm code. This file is parsed to determine the algorithm's
      *                  characteristics and compatible graph types.
+     * @param isMainTestClass  Boolean determining if the generated class is used as a main test class which will
+     *                         be filled with unit tests, or if it is not a main test class and instead the unit
+     *                         tests from this class will be merged into the main class (after using GPT to
+     *                         generate unit tests).
+     *
      *
      * @implNote The method performs several key functions:
      * 1. Extracts the OCD algorithm name from the class file.
@@ -34,10 +40,19 @@ public class OCDATestClassGenerator {
      * The generated test class includes standard setup for unit tests, such as a setup method annotated with @BeforeEach.
      * The generated code section is marked with "ChatGPT Code" to indicate where the GPT should complete the unit tests.
      */
-    public static void generateAndWriteOCDTestClass(File ocdaCode){
+    public static void generateAndWriteOCDTestClass(File ocdaCode, boolean isMainTestClass){
 
         // Extract OCD algorithm name from the class file
         String ocdaName = OCDAParser.getClassName(ocdaCode);
+
+        // Name of the generated file can be annotated with string Generated, for readability. This can e.g. be used
+        // for temporarily generated test classes the contents of which should be merged into the
+        // main test class
+        String ocdaTestClassName = ocdaName;
+        if (!isMainTestClass) {
+            ocdaTestClassName = "Generated" + ocdaName;
+        }
+
 
         // Extract compatible graph types for the given algorithm
         List<String> compatibilities = OCDAParser.extractCompatibilities(ocdaCode);
@@ -93,9 +108,14 @@ public class OCDATestClassGenerator {
 
         /* Generate partially completed test class */
 
+        // package depends on where the auto-generated class should be placed.
+        String testClassPackage = TEST_CLASS_PACKAGE_STRING;
+        if (!isMainTestClass) {
+            testClassPackage = AUTO_GENERATED_TEST_CLASS_PACKAGE;
+        }
 
         // Append package to the test class
-        stringBuilder.append("package " + TEST_CLASS_PACKAGE_STRING + ";").append("\n\n");
+        stringBuilder.append("package " + testClassPackage + ";").append("\n\n");
 
         // Append import statements to the test class
         mergedImports.forEach(importStatement -> stringBuilder.append(importStatement).append("\n"));
@@ -103,7 +123,7 @@ public class OCDATestClassGenerator {
         // Add interface implementation and partially completed unit tests to the test class,
         // based on compatible graph types.
         stringBuilder.append("\n\n" +
-                "public class " +  ocdaName +"Test implements "
+                "public class " +  ocdaTestClassName +"Test implements "
                 + baseInterfaceNamesToImplement + " {\n" +
                 "\n" +
                 "\tOcdAlgorithm algo;\n" +
@@ -126,15 +146,19 @@ public class OCDATestClassGenerator {
         );
 
         // Write test class to a file
-        generateAndWriteFile("gpt","classfiles/"+ocdaName+"Test.java", stringBuilder.toString());
+        generateAndWriteFile("gpt","classfiles/"+ocdaTestClassName+"Test.java", stringBuilder.toString());
 
 
     }
 
 
     public static void main(String[] args) {
-        File ocdaCode = new File(getOCDAPath("SskAlgorithm.java"));
+        File ocdaCode = new File(FileHelpers.getOCDAPath("SskAlgorithm.java"));
+
+        // generate a test class with partially completed unit tests to which the GPT-generated tests  should be compared to
+        generateAndWriteOCDTestClass(ocdaCode, true);
+
         // Generate OCD algorithm test class with partially completed unit tests
-        generateAndWriteOCDTestClass(ocdaCode);
+        generateAndWriteOCDTestClass(ocdaCode, false);
     }
 }

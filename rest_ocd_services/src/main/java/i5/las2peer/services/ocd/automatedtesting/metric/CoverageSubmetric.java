@@ -59,21 +59,35 @@ public class CoverageSubmetric {
 
         HashMap<String, CoverageData> parsedJacocoReport = JacocoReportParser.parseJacocoXmlReportForClass(ocdaName);
 
+        branchCoverage = parsedJacocoReport.get("BRANCH").computeCoverage();
+        instructionCoverage = parsedJacocoReport.get("INSTRUCTION").computeCoverage();
+        lineCoverage = parsedJacocoReport.get("LINE").computeCoverage();
+        methodCoverage = parsedJacocoReport.get("METHOD").computeCoverage();
+
+
+        return getCoverageSubmetricValue();
+
+    }
+
+    /**
+     * Calculates the total coverage sub-metric value based on the evaluation of each coverage type.
+     *
+     * @return The calculated total coverage sub-metric value.
+     */
+    public static double getCoverageSubmetricValue(){
         double totalCoverage = 0;
         double totalWeight = branchCoverageWeight + instructionCoverageWeight +
                 lineCoverageWeight + methodCoverageWeight;
 
         /* calculate value for each coverage type */
-        totalCoverage += parsedJacocoReport.get("BRANCH").computeCoverage() * branchCoverageWeight;
-        totalCoverage += parsedJacocoReport.get("INSTRUCTION").computeCoverage() * instructionCoverageWeight;
-        totalCoverage += parsedJacocoReport.get("LINE").computeCoverage() * lineCoverageWeight;
-        totalCoverage += parsedJacocoReport.get("METHOD").computeCoverage() * methodCoverageWeight;
-
+        totalCoverage += branchCoverage * branchCoverageWeight;
+        totalCoverage += instructionCoverage * instructionCoverageWeight;
+        totalCoverage += lineCoverage * lineCoverageWeight;
+        totalCoverage += methodCoverage * methodCoverageWeight;
 
         return totalWeight > 0 ? totalCoverage / totalWeight : 1;
-
-
     }
+
 
 
     /**

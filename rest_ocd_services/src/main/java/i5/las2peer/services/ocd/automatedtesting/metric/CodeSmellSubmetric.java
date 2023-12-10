@@ -29,7 +29,7 @@ public class CodeSmellSubmetric {
 
     public static void main(String[] args) {
 
-        System.out.println("submetric value is " + evaluateCodeSmellSubmetric("SskAlgorithmTest"));
+        System.out.println("submetric value is " + evaluateCodeSmellSubmetric("GeneratedSskAlgorithmTest.java"));
 
     }
 
@@ -73,6 +73,16 @@ public class CodeSmellSubmetric {
         }
 
         return noCodeSmellRatio;
+    }
+
+
+    /**
+     * Calculates the total Code smell sub-metric value based on the evaluation lack of code smells.
+     *
+     * @return The calculated total Code Smell sub-metric value.
+     */
+    public static double getCodeSmellSubmetricValue(){
+         return noCodeSmellRatio;
     }
 
 
