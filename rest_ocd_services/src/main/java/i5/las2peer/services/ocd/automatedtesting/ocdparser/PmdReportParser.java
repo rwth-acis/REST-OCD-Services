@@ -62,7 +62,7 @@ public class PmdReportParser {
                 }
             }
 
-            System.out.println("codeSmells are: " + ruleViolations);//TODO:DELETE
+            //System.out.println("codeSmells are: " + ruleViolations);//TODO:DELETE
         } catch (Exception e) {
             e.printStackTrace();
         }

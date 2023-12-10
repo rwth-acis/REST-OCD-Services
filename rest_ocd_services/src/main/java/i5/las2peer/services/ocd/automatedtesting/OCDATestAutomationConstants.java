@@ -36,7 +36,7 @@ public class OCDATestAutomationConstants {
     /*  Constants related to graph types */
     // Method names to fetch graphs to be used in auto-generated tests
     //TODO: add/replace method names
-    public static String UNDIRECTED_GRAPH_METHOD_NAME = "getSawmillGraph";
+    public static String UNDIRECTED_GRAPH_METHOD_NAME = "getUndirectedBipartiteGraph";
     public static String DIRECTED_GRAPH_METHOD_NAME = "getDirectedAperiodicTwoCommunitiesGraph";
     public static String WEIGHTED_GRAPH_METHOD_NAME = "getTwoCommunitiesWeightedGraph";
 
@@ -59,6 +59,22 @@ public class OCDATestAutomationConstants {
 
     // Name of the method to set algorithm parameters
     public static String SET_OCD_PARAMETERS_METHOD_NAME = "setParameters";
+
+    /* File paths */
+
+    // Location of auto-generated GPT files that should be checked if they can be successfully parsed
+    public static String GPT_GENERATED_TEST_CLASS_CODE_LOCATION = "gpt/classfiles/";
+
+    // Location of auto-generated GPT files that were successfully parsed and move do be checked for successful execution
+    public static String PARSED_GPT_GENERATED_CODE_LOCATION = "rest_ocd_services/src/test/java/i5/las2peer/services/ocd/ocdatestautomation/testrunner/generatedclasses/";
+
+    // Location of OCD algorithms in the main and test source sets
+    public static String OCDA_LOCATION_IN_MAIN_SOURCE_SET = "rest_ocd_services/src/main/java/i5/las2peer/services/ocd/algorithms/";
+    public static String OCDA_LOCATION_IN_TEST_SOURCE_SET = "rest_ocd_services/src/test/java/i5/las2peer/services/ocd/algorithms/";
+
+
+
+
 
 
     /**

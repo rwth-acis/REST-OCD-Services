@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.automatedtesting;
 
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
+import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
 import i5.las2peer.services.ocd.automatedtesting.helpers.OCDATestExceptionHandler;
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser;
 import i5.las2peer.services.ocd.graphs.Cover;
@@ -21,8 +22,8 @@ public class PromptGenerator {
 
 
     public static void main(String[] args) {
-        File ocdaCode = new File(getOCDAPath("SskAlgorithm.java"));
-        File ocdaTestCode = new File(getOCDATestPath("SskAlgorithmTest.java"));
+        File ocdaCode = new File(FileHelpers.getOCDAPath("SskAlgorithm.java"));
+        File ocdaTestCode = new File(FileHelpers.getOCDATestPath("SskAlgorithmTest.java"));
 
 
 
