@@ -18,7 +18,10 @@ public class MultiplexGraph {
 	public static final String idColumnName = "ID";
 	public static final String userColumnName = "USER_NAME";
 	public static final String nameColumnName = "NAME";
+	public static final String nodeCountColumnName = "NODE_COUNT";
+	public static final String edgeCountColumnName = "EDGE_COUNT";
 	public static final String layerCountColumnName = "LAYER_COUNT";
+	public static final String layerKeysColumnName = "LAYER_KEYS";
 	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
 	public static final String typesColumnName = "TYPES";
 	public static final String collectionName = "multiplexgraph";
@@ -42,9 +45,24 @@ public class MultiplexGraph {
 	private String name = "";
 
 	/**
+	 * The number of nodes in the graph.
+	 */
+	private long graphNodeCount;
+
+	/**
+	 * The number of edges in the graph.
+	 */
+	private long graphEdgeCount;
+
+	/**
 	 * The number of layers of the graph.
 	 */
-	private long layerCount;
+	private int layerCount;
+
+	/**
+	 * The keys of the layers of the graph.
+	 */
+	private List<String> layerKeys = new ArrayList<String>();
 
 	/**
 	 * The graph's types.
@@ -62,9 +80,9 @@ public class MultiplexGraph {
 	 */
 	private List<Cover> covers = new ArrayList<Cover>();
 
-	private Map<String, CustomGraph> mapCustomGraphs = new HashMap<String, CustomGraph>();
+	private Map<String, MultiplexCustomGraph> mapMultiplexCustomGraphs = new HashMap<String, MultiplexCustomGraph>();
 
-	//private Map<CustomGraph, String> mapCustomGraphIds = new HashMap<CustomGraph, String>();
+	//private Map<MultiplexCustomGraph, String> mapMultiplexCustomGraphIds = new HashMap<MultiplexCustomGraph, String>();
 
 	//////////////////////////////////////////////////////////////////
 	///////// Constructor
@@ -139,7 +157,49 @@ public class MultiplexGraph {
 		return this.creationMethod;
 	}
 
-	public int getLayerCount(){return this.mapCustomGraphs.size();}
+	/**
+	 * Getter for the number of nodes.
+	 *
+	 * @return The number of nodes.
+	 */
+	public long getNodeCount(){return this.graphNodeCount;}
+
+	/**
+	 * Getter for the number of nodes.
+	 *
+	 * @param nodeCount The number of nodes.
+	 */
+	public void setNodeCount(long nodeCount){this.graphNodeCount = nodeCount;}
+	/**
+	 * Getter for the number of edges.
+	 *
+	 * @return The number of edges.
+	 */
+	public long getEdgeCount(){return this.graphEdgeCount;}
+	/**
+	 * Getter for the number of edges.
+	 *
+	 * @param edgeCount The number of edges.
+	 */
+	public void setEdgeCount(long edgeCount){this.graphEdgeCount = edgeCount;}
+	/**
+	 * Getter for the number of layers.
+	 *
+	 * @return The number of layers.
+	 */
+	public int getLayerCount(){return this.layerCount;}
+
+	/**
+	 * Getter for the layer keys.
+	 * @return	The layer keys.
+	 */
+	public List<String> getLayerKeys(){return this.layerKeys;}
+
+	/**
+	 * Adds a layer key
+	 * @param layerKey	The layer key
+	 */
+	public void addLayerKey(String layerKey){this.layerKeys.add(layerKey);}
 
 
 	////////// Graph Types //////////
@@ -151,6 +211,26 @@ public class MultiplexGraph {
 	 */
 	public boolean isOfType(GraphType type) {
 		return this.types.contains(type.getId());
+	}
+
+	/**
+	 * Adds a graph type to the graph.
+	 *
+	 * @param type
+	 *            The graph type.
+	 */
+	public void addType(GraphType type) {
+		this.types.add(type.getId());
+	}
+
+	/**
+	 * Removes a graph type from the graph.
+	 *
+	 * @param type
+	 *            The graph type.
+	 */
+	public void removeType(GraphType type) {
+		this.types.remove(type.getId());
 	}
 
 	/**
@@ -180,20 +260,21 @@ public class MultiplexGraph {
 		return isOfType(GraphType.WEIGHTED);
 	}
 
-	public void addLayer(String layerName, CustomGraph customGraph) {
-		this.mapCustomGraphs.put(layerName, customGraph);
+	public void addLayer(String layerName, MultiplexCustomGraph multiplexCustomGraph) {
+		this.mapMultiplexCustomGraphs.put(layerName, multiplexCustomGraph);
 		layerCount++;
 	}
 
-	public Map<String, CustomGraph> getCustomGraphs() {
-		return mapCustomGraphs;
+	public Map<String, MultiplexCustomGraph> getMultiplexCustomGraphs() {
+		return mapMultiplexCustomGraphs;
 	}
 
-	//public void setCustomGraphs(Map<String, CustomGraph> customGraphs) {
-	//	this.mapCustomGraphs = customGraphs;
+
+	//public void setMultiplexCustomGraphs(Map<String, MultiplexCustomGraph> multiplexCustomGraphs) {
+	//	this.mapMultiplexCustomGraphs = multiplexCustomGraphs;
 	//}
-	//protected CustomGraph getCustomGraph(CustomGraph customgraph) {
-	//	return mapCustomGraphs.get(customgraph.getId());
+	//protected MultiplexCustomGraph getMultiplexCustomGraph(MultiplexCustomGraph multiplexCustomGraph) {
+	//	return mapMultiplexCustomGraphs.get(multiplexCustomGraph.getId());
 	//}
 
 	public void persist(ArangoDatabase db, String transId) throws InterruptedException {
@@ -205,16 +286,16 @@ public class MultiplexGraph {
 		bd.addAttribute(userColumnName, this.userName);
 		bd.addAttribute(nameColumnName, this.name);
 		bd.addAttribute(typesColumnName, this.types);
+		bd.addAttribute(nodeCountColumnName, this.graphNodeCount);
+		bd.addAttribute(edgeCountColumnName, this.graphEdgeCount);
+		bd.addAttribute(layerCountColumnName, this.layerCount);
+		bd.addAttribute(layerKeysColumnName, this.layerKeys);
 		this.creationMethod.persist(db, createOptions);
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		collection.insertDocument(bd, createOptions);
 		this.key = bd.getKey();
 
 		bd = new BaseDocument();
-
-		for (CustomGraph customGraph : this.mapCustomGraphs.values()) {
-			customGraph.persist(db, transId);
-		}
 		collection.updateDocument(this.key, bd, updateOptions);
 	}
 }

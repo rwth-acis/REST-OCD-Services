@@ -2,7 +2,7 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.adapters.Adapters;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.MultiplexCustomGraph;
 import i5.las2peer.services.ocd.graphs.MultiplexGraph;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -54,11 +54,11 @@ public class MultiplexWeightedEdgeListGraphInputAdapter extends AbstractMultiple
 			while(line.size() == 4) {
 				//read layer
 				String layerName = line.get(0);
-				if (!multiplexGraph.getCustomGraphs().containsKey(layerName)) {
-					multiplexGraph.addLayer(layerName, new CustomGraph());
+				if (!multiplexGraph.getMultiplexCustomGraphs().containsKey(layerName)) {
+					multiplexGraph.addLayer(layerName, new MultiplexCustomGraph());
 					graphReverseNodeNames.put(layerName, new HashMap<String, Node>());
 				}
-				CustomGraph graph = multiplexGraph.getCustomGraphs().get(layerName);
+				MultiplexCustomGraph graph = multiplexGraph.getMultiplexCustomGraphs().get(layerName);
 				Map<String, Node>reverseNodeNames = graphReverseNodeNames.get(layerName);
 
 				//read edge

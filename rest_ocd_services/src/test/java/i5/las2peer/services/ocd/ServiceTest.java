@@ -4,16 +4,26 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
 
-import i5.las2peer.services.ocd.utils.DatabaseConfig;
-import i5.las2peer.services.ocd.utils.Database;
+import i5.las2peer.api.Context;
+import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
+import i5.las2peer.services.ocd.graphs.*;
+import i5.las2peer.services.ocd.utils.*;
 
-
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
 import javax.xml.parsers.ParserConfigurationException;
 
+import i5.las2peer.services.ocd.utils.Error;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -27,10 +37,7 @@ import i5.las2peer.security.MessageReceiver;
 import i5.las2peer.security.ServiceAgentImpl;
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-import i5.las2peer.services.ocd.utils.RequestHandler;
-import i5.las2peer.services.ocd.utils.ThreadHandler;
 import i5.las2peer.testing.MockAgentFactory;
 import i5.las2peer.tools.LocalNodeStarter;
 import i5.las2peer.connectors.webConnector.WebConnector;

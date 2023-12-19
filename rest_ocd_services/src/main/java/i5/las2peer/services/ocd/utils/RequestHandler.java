@@ -438,6 +438,33 @@ public class RequestHandler {
 		doc.appendChild(graphsElt);
 		return writeDoc(doc);
 	}
+	/**
+	 * Creates an XML document containing meta information about multiple
+	 * graphs. This is an efficient method that does not load more data
+	 * than necessary (e.g. no node/edge info is loaded)
+	 *
+	 * @param graphMetass The list of graph meta instances that hold graph meta information.
+	 * @return The document.
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeMultiplexGraphMetasEfficiently(List<MultiplexGraphMeta> graphMetass) throws AdapterException, ParserConfigurationException,
+			IOException, SAXException, InstantiationException, IllegalAccessException {
+		Document doc = getDocument();
+		Element graphsElt = doc.createElement("Graphs");
+		for (MultiplexGraphMeta graphMeta : graphMetass) {
+			//String metaDocStr = writeMultiplexGraphEfficiently(graphMeta);
+			//Node metaDocNode = parseDocumentToNode(metaDocStr);
+			//Node importNode = doc.importNode(metaDocNode, true);
+			//graphsElt.appendChild(importNode);
+		}
+		doc.appendChild(graphsElt);
+		return writeDoc(doc);
+	}
 
 	/**
 	 * Creates an XML document containing meta information about multiple

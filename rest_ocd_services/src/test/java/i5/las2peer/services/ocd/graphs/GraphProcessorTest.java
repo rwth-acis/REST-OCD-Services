@@ -8,7 +8,7 @@ import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.MultiplexCustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
@@ -204,6 +204,48 @@ public class GraphProcessorTest {
 		assertTrue(graph.isOfType(GraphType.DIRECTED));
 		assertTrue(graph.isOfType(GraphType.NEGATIVE_WEIGHTS));		
 		assertTrue(graph.isOfType(GraphType.CONTENT_LINKED));		
+	}
+
+
+	@Test
+	public void testDetermineMultiplexGraphTypes() {
+		System.out.println("Test Determine Graph Types on multiplex graph");
+		/*
+		 * Empty graph.
+		 */
+		MultiplexGraph multiplexGraph = new MultiplexGraph();
+		GraphProcessor processor = new GraphProcessor();
+		processor.determineGraphTypes(multiplexGraph);
+		assertEquals(1, multiplexGraph.getTypes().size());
+		System.out.println("Multiplex graph without layers.");
+		assertTrue(multiplexGraph.isOfType(GraphType.MULTIPLEX));
+		System.out.println(multiplexGraph.getTypes());
+
+		// add layers each layer with a different graph type
+		// add custom graph with one directed edge
+		MultiplexCustomGraph directedGraph = new MultiplexCustomGraph();
+		Node node0 = directedGraph.addNode("0");
+		Node node1 = directedGraph.addNode("1");
+		directedGraph.addEdge(UUID.randomUUID().toString(), node0, node1);
+		multiplexGraph.addLayer("directed", directedGraph);
+
+		// add undirected custom graph with one weighted edge
+		MultiplexCustomGraph weightedGraph = new MultiplexCustomGraph();
+		Node node2 = weightedGraph.addNode("0");
+		Node node3 = weightedGraph.addNode("1");
+		Edge edge23 =weightedGraph.addEdge(UUID.randomUUID().toString(), node2, node3);
+		Edge edge32 = weightedGraph.addEdge(UUID.randomUUID().toString(), node3, node2);
+		weightedGraph.setEdgeWeight(edge23, 1);
+		weightedGraph.setEdgeWeight(edge32, 3);
+		multiplexGraph.addLayer("weighted", weightedGraph);
+
+		processor.determineGraphTypes(multiplexGraph);
+		System.out.println(multiplexGraph.getTypes());
+		assertTrue("Multiplex graph should include DIRECTED type", multiplexGraph.isOfType(GraphType.DIRECTED));
+		assertTrue("Multiplex graph should include WEIGHTED type", multiplexGraph.isOfType(GraphType.WEIGHTED));
+
+		int expectedTypesCount = 3;
+		assertEquals("There should be no duplicate types", expectedTypesCount, multiplexGraph.getTypes().size());
 	}
 	
 	@Test

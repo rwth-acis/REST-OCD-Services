@@ -112,7 +112,12 @@ public class Database {
 			System.out.println("No database was deleted");
 		}
 	}
-	
+
+	/**
+	 * creates an ArangoCollection for each object that is to be stored in the ArangoDatabase db if it does not yet exist.
+	 * 		The collectionName attributes are used for this purpose.
+	 * 		The names of the collections are also included in the collectionNames list.
+	 */
 	public void createCollections() {
 		ArangoCollection collection;
 		collectionNames.add(CustomGraph.collectionName);		//0
@@ -220,7 +225,7 @@ public class Database {
 	 *            MultiplexGraph
 	 * @return persistence key of the stored graph
 	 */
-	public String storeMultiplexGraph(MultiplexGraph graph) {
+	public String storeGraph(MultiplexGraph graph) {
 		String transId = getTransactionId(MultiplexGraph.class, true);
 		try {
 			graph.persist(db, transId);
@@ -355,8 +360,9 @@ public class Database {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 			String queryStr = "FOR g IN " + CustomGraph.collectionName + " FOR gcl IN " + GraphCreationLog.collectionName +
 					" FILTER g." + CustomGraph.userColumnName + " == @username AND gcl._key == g." + CustomGraph.creationMethodKeyColumnName +
-					" AND gcl." + GraphCreationLog.statusIdColumnName +" IN " +
-					executionStatusIds + " LIMIT " + firstIndex + "," + length + " RETURN "+
+					" AND gcl." + GraphCreationLog.statusIdColumnName +" IN " + executionStatusIds +
+					" AND 8 NOT IN g." + CustomGraph.typesColumnName +
+					" LIMIT " + firstIndex + "," + length + " RETURN "+
 					"{\"key\" : g._key," +
 					"\"userName\" : g." + CustomGraph.userColumnName + "," +
 					"\"name\" : g." + CustomGraph.nameColumnName + "," +
@@ -381,6 +387,57 @@ public class Database {
 			e.printStackTrace();
 		}
 		return customGraphMetas;
+	}
+
+	/**
+	 * Return specified multiplex graphs' meta information of a user using an efficient approach.
+	 * This approach only necessary metadata about graphs.
+	 *
+	 * @param username
+	 * 			  the users username
+	 * @param firstIndex
+	 *            id of the first graph
+	 * @param length
+	 *            number of graphs
+	 * @param executionStatusIds
+	 * 			  the execution status ids of the graphs
+	 * @return the list of graphs
+	 */
+	public ArrayList<MultiplexGraphMeta> getMultiplexGraphMetaDataEfficiently(String username, int firstIndex, int length,
+																  List<Integer> executionStatusIds){
+		String transId = getTransactionId(MultiplexGraph.class, false);
+		ObjectMapper objectMapper = new ObjectMapper(); // needed to instantiate MultiplexGraphMeta from JSON
+		ArrayList<MultiplexGraphMeta> multiplexGraphMetas = new ArrayList<MultiplexGraphMeta>();
+
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR g IN " + MultiplexGraph.collectionName + " FOR gcl IN " + GraphCreationLog.collectionName +
+					" FILTER g." + MultiplexGraph.userColumnName + " == @username AND gcl._key == g." + MultiplexGraph.creationMethodKeyColumnName +
+					" AND gcl." + GraphCreationLog.statusIdColumnName +" IN " +
+					executionStatusIds + " LIMIT " + firstIndex + "," + length + " RETURN "+
+					"{\"key\" : g._key," +
+					"\"userName\" : g." + MultiplexGraph.userColumnName + "," +
+					"\"name\" : g." + MultiplexGraph.nameColumnName + "," +
+					"\"layerCount\" : g." + MultiplexGraph.layerCountColumnName + "," +
+					"\"types\" : g." + MultiplexGraph.typesColumnName  +  "," +
+					"\"creationTypeId\" : gcl." + GraphCreationLog.typeColumnName + "," +
+					"\"creationStatusId\" : gcl." + GraphCreationLog.statusIdColumnName + "}";
+
+			Map<String, Object> bindVars = Collections.singletonMap("username",username);
+			ArangoCursor<String> customGraphMetaJson = db.query(queryStr, bindVars, queryOpt, String.class);
+
+			/* Create MultiplexGraphMeta instances based on the queried results and add them to the list to return */
+			while(customGraphMetaJson.hasNext()) {
+                /* Instantiate MultiplexGraphMeta from the json string acquired from a query.
+                Then add it to the list that will be returned*/
+				multiplexGraphMetas.add(objectMapper.readValue(customGraphMetaJson.next(), MultiplexGraphMeta.class));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			e.printStackTrace();
+		}
+		return multiplexGraphMetas;
 	}
 
 	
@@ -605,7 +662,7 @@ public class Database {
 		}
 		return cover;
 	}
-	
+
 	public List<Cover> getCoversByName(String name, CustomGraph g){
 		String transId = getTransactionId(Cover.class, false);
 		List<Cover> queryResults = new ArrayList<Cover>();
@@ -1747,7 +1804,14 @@ public class Database {
 			}
 		}
 	}
-	
+
+	/**
+	 * Used to create a matching transaction for each method. The transaction specifies which collections maybe used
+	 * within the transaction and whether read or write access is required
+	 * @param c The class for which the transaction is to be initiated. The class type dictates which collections are involved in the transaction.
+	 * @param write A boolean indicating wheter the transaction is a write transaction (TRUE) or a read transaction (FALSE).
+	 * @return The transaction ID for the initiated database transaction
+	 */
 	public String getTransactionId(Class c, boolean write) {
 		String [] collections;
 		if(c == CustomGraph.class) {
@@ -1781,7 +1845,7 @@ public class Database {
 			collections = collectionNames.subList(11,13).toArray(new String[1]);
 		}
 		else if(c == MultiplexGraph.class) {
-			collections = new String[] {collectionNames.get(0),collectionNames.get(3),collectionNames.get(14)};
+			collections = new String[] {collectionNames.get(0),collectionNames.get(3),collectionNames.get(13)};
 		}
 		else {
 			collections = collectionNames.subList(0, 13).toArray(new String[10]);

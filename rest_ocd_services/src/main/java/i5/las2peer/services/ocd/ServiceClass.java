@@ -372,10 +372,10 @@ public class ServiceClass extends RESTService {
 				Check if user has a limit regarding number of graph throw an error if the limit is violated.
                 */
 
-				if (userLimitsHandler.reachedGraphCountLimit(username)){
-					requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
-					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
-				}
+				//if (userLimitsHandler.reachedGraphCountLimit(username)){
+				//	requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
+				//	return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
+				//}
 
 				GraphInputFormat format;
 				try {
@@ -434,16 +434,26 @@ public class ServiceClass extends RESTService {
 					GraphCreationLog log = new GraphCreationLog(benchmarkType, new HashMap<String, String>());
 					log.setStatus(ExecutionStatus.COMPLETED);
 					graph.setCreationMethod(log);
-					//GraphProcessor processor = new GraphProcessor();
-					//processor.determineGraphTypes(graph);
-					//if (doMakeUndirected) {
-					//	Set<GraphType> graphTypes = graph.getTypes();
-					//	if (graphTypes.remove(GraphType.DIRECTED)) {
-					//		processor.makeCompatible(graph, graphTypes);
-					//	}
-					//}
+					GraphProcessor processor = new GraphProcessor();
+					processor.determineGraphTypes(graph);
+					if (doMakeUndirected) {
+						for (MultiplexCustomGraph multiplexCustomGraph :graph.getMultiplexCustomGraphs().values()) {
+							Set<GraphType> graphTypes = multiplexCustomGraph.getTypes();
+							if (graphTypes.remove(GraphType.DIRECTED)) {
+								processor.makeCompatible(multiplexCustomGraph, graphTypes);
+							}
+						}
+						graph.removeType(GraphType.DIRECTED);
+					}
 					try {
-						database.storeMultiplexGraph(graph);
+						for (MultiplexCustomGraph multiplexCustomGraph :graph.getMultiplexCustomGraphs().values()) {
+							multiplexCustomGraph.setUserName(username);
+							multiplexCustomGraph.setCreationMethod(log);
+							multiplexCustomGraph.addType(GraphType.MULTIPLEX_LAYER);
+							database.storeGraph(multiplexCustomGraph);
+							graph.addLayerKey(multiplexCustomGraph.getKey());
+						}
+						database.storeGraph(graph);
 						generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + graph.getKey() + " in format " + graphInputFormatStr);
 					} catch (Exception e) {
 						return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
@@ -669,6 +679,7 @@ public class ServiceClass extends RESTService {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				List<CustomGraphMeta> queryResults;
+				List<MultiplexGraphMeta> queryResultsMultiplex;
 				List<Integer> executionStatusIds = new ArrayList<Integer>();
 				if (!executionStatusesStr.equals("")) {
 					try {
@@ -718,7 +729,7 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
 				}
 				queryResults = database.getGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
-
+				queryResultsMultiplex = database.getMultiplexGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
 				String responseStr;
 				if (includeMeta) {
 					responseStr = requestHandler.writeGraphMetasEfficiently(queryResults);

@@ -70,6 +70,7 @@ public class CustomGraph extends MultiGraph {
 	private static final String coverKeysColumnName = "COVER_KEYS";
 	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
 	public static final String typesColumnName = "TYPES";
+
 	public static final String collectionName = "customgraph";		//do not choose the name "graph" here because it is reserved for querys
 	
 	/*
@@ -154,7 +155,6 @@ public class CustomGraph extends MultiGraph {
 	/**
 	 * The graph's properties.
 	 */
-
 	private List<Double> properties;
 	
 	/**

@@ -66,6 +66,37 @@ public class GraphProcessor {
 	}
 
 	/**
+	 * Sets the graph types of a given multiplex graph and the customgraphs it stores.
+	 *
+	 * @param multiplexGraph
+	 *            A multiplex graph
+	 */
+	public void determineGraphTypes(MultiplexGraph multiplexGraph) {
+		multiplexGraph.addType(GraphType.MULTIPLEX);
+		if (multiplexGraph.getMultiplexCustomGraphs().size() == 0) {
+			return;
+		}
+		for (CustomGraph graph : multiplexGraph.getMultiplexCustomGraphs().values()){
+			determineGraphTypes(graph);
+			if (graph.isOfType(GraphType.DIRECTED) && !multiplexGraph.isOfType(GraphType.DIRECTED)) {
+				multiplexGraph.addType(GraphType.DIRECTED);
+			}
+			if (graph.isOfType(GraphType.WEIGHTED) && !multiplexGraph.isOfType(GraphType.WEIGHTED)) {
+				multiplexGraph.addType(GraphType.WEIGHTED);
+			}
+			if (graph.isOfType(GraphType.ZERO_WEIGHTS) && !multiplexGraph.isOfType(GraphType.ZERO_WEIGHTS)) {
+				multiplexGraph.addType(GraphType.ZERO_WEIGHTS);
+			}
+			if (graph.isOfType(GraphType.NEGATIVE_WEIGHTS) && !multiplexGraph.isOfType(GraphType.NEGATIVE_WEIGHTS)) {
+				multiplexGraph.addType(GraphType.NEGATIVE_WEIGHTS);
+			}
+			if (graph.isOfType(GraphType.SELF_LOOPS) && !multiplexGraph.isOfType(GraphType.SELF_LOOPS)) {
+				multiplexGraph.addType(GraphType.SELF_LOOPS);
+			}
+		}
+	}
+
+	/**
 	 * Transforms a graph into an undirected Graph. For each edge a reverse edge
 	 * leading the opposite way is added, if missing. The reverse edge is
 	 * assigned the same weight as the original one. If edges in both ways do

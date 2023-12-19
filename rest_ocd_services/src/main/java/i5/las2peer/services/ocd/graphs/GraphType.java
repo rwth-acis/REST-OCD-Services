@@ -51,7 +51,11 @@ public enum GraphType implements EnumDisplayNames {
 	/**
 	 * Indicates that a graph contains of multiple layers.
 	 */
-	MULTIPLEX("Multiplex", 7);
+	MULTIPLEX("Multiplex", 7),
+	/**
+	 * Indicates that the customGraph is a layer of a multiplex graph.
+	 */
+	MULTIPLEX_LAYER("Multiplex Layer", 8);
 	/**
 	 * For persistence and other purposes.
 	 */

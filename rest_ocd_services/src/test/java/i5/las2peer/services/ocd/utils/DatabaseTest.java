@@ -34,6 +34,8 @@ import i5.las2peer.services.ocd.centrality.measures.BridgingCentrality;
 import i5.las2peer.services.ocd.centrality.measures.DegreeCentrality;
 import i5.las2peer.services.ocd.centrality.measures.PageRank;
 import i5.las2peer.services.ocd.centrality.measures.EigenvectorCentrality;
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
 
 
 
@@ -363,4 +365,38 @@ public class DatabaseTest {
 			graph.addEdge(UUID.randomUUID().toString(),n[b], n[a]);
 		}
 
+
+
+	///////////////////////////////// Test Multiplex Extension ////////////////////////////////////////
+	/**
+	 * Tests the creation of a transactionId for a multiplex graph once with read and once with write access
+	 */
+	@Test
+	public void testGetTransactionIdForMultiplexGraph() {
+		String transactionIdRead = database.getTransactionId(MultiplexGraph.class, false);
+		String transactionIdWrite = database.getTransactionId(MultiplexGraph.class, true);
+
+		assertNotNull("Transaction ID for read should not be null", transactionIdRead);
+		assertNotNull("Transaction ID for write should not be null", transactionIdWrite);
+	}
+
+	/**
+	 * Tests  if a multiplexgraph collection was created as it should
+	 */
+	@Test
+	public void testMultiplexGraphCollectionCreated() {
+		ArangoDatabase db = database.db;
+		ArangoCollection collection = db.collection("multiplexgraph");
+		assertTrue("MultiplexGraph collection should exist", collection.exists());
+	}
+
+	/**
+	 * Tests storing a multiplex graph
+	 */
+	@Test
+	public void testStoreMultiplexGraph() {
+		MultiplexGraph multiplexGraph = new MultiplexGraph();
+		String storageKey = database.storeGraph(multiplexGraph);
+		assertNotNull("Storage key should not be null if multiplex graph is stored", storageKey);
+	}
 }
