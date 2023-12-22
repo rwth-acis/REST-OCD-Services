@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.adapters.metaOutput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraphMeta;
+import i5.las2peer.services.ocd.graphs.MultiplexGraphMeta;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -83,6 +84,15 @@ public class MetaXmlGraphMetaOutputAdapter extends AbstractGraphMetaOutputAdapte
             creationMethodStatus.appendChild(doc.createTextNode(graphMeta.getCreationStatusName()));
             creationMethodElt.appendChild(creationMethodStatus);
             graphElt.appendChild(creationMethodElt);
+            /*
+             * Handle Multiplex Graph Meta
+             */
+            if (graphMeta instanceof MultiplexGraphMeta) {
+                MultiplexGraphMeta multiplexGraphMeta = (MultiplexGraphMeta) graphMeta;
+                Element layerCountElt = doc.createElement("LayerCount");
+                layerCountElt.appendChild(doc.createTextNode(Integer.toString(multiplexGraphMeta.getLayerCount())));
+                graphElt.appendChild(layerCountElt);
+            }
             /*
              * XML output
              */

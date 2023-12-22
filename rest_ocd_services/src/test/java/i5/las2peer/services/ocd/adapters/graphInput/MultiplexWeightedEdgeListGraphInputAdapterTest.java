@@ -27,8 +27,8 @@ public class MultiplexWeightedEdgeListGraphInputAdapterTest {
 		Reader reader = new StringReader(graphStr);
 		inputAdapter.setReader(reader);
 		MultiplexGraph multiplexGraph = inputAdapter.readGraph();
-		CustomGraph customGraph1 = multiplexGraph.getMultiplexCustomGraphs().get("1");
-		CustomGraph customGraph2 = multiplexGraph.getMultiplexCustomGraphs().get("2");
+		CustomGraph customGraph1 = multiplexGraph.getCustomGraphs().get("1");
+		CustomGraph customGraph2 = multiplexGraph.getCustomGraphs().get("2");
 
 		assertEquals(2, multiplexGraph.getLayerCount());
 		assertEquals(4, customGraph1.getNodeCount());
@@ -48,7 +48,7 @@ public class MultiplexWeightedEdgeListGraphInputAdapterTest {
 		Reader reader = new StringReader(graphStr);
 		inputAdapter.setReader(reader);
 		MultiplexGraph multiplexGraph = inputAdapter.readGraph();
-		CustomGraph customGraph1 = multiplexGraph.getMultiplexCustomGraphs().get("1");
+		CustomGraph customGraph1 = multiplexGraph.getCustomGraphs().get("1");
 
 		assertEquals(1, multiplexGraph.getLayerCount());
 		assertEquals(4, customGraph1.getNodeCount());

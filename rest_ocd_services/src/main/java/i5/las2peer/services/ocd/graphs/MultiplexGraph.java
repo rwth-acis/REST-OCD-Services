@@ -80,9 +80,9 @@ public class MultiplexGraph {
 	 */
 	private List<Cover> covers = new ArrayList<Cover>();
 
-	private Map<String, MultiplexCustomGraph> mapMultiplexCustomGraphs = new HashMap<String, MultiplexCustomGraph>();
+	private Map<String, CustomGraph> mapCustomGraphs = new HashMap<String, CustomGraph>();
 
-	//private Map<MultiplexCustomGraph, String> mapMultiplexCustomGraphIds = new HashMap<MultiplexCustomGraph, String>();
+	//private Map<CustomGraph, String> mapCustomGraphIds = new HashMap<CustomGraph, String>();
 
 	//////////////////////////////////////////////////////////////////
 	///////// Constructor
@@ -260,22 +260,22 @@ public class MultiplexGraph {
 		return isOfType(GraphType.WEIGHTED);
 	}
 
-	public void addLayer(String layerName, MultiplexCustomGraph multiplexCustomGraph) {
-		this.mapMultiplexCustomGraphs.put(layerName, multiplexCustomGraph);
+	public void addLayer(String layerName, CustomGraph customGraph) {
+		this.mapCustomGraphs.put(layerName, customGraph);
 		layerCount++;
 	}
 
-	public Map<String, MultiplexCustomGraph> getMultiplexCustomGraphs() {
-		return mapMultiplexCustomGraphs;
+	public Map<String, CustomGraph> getCustomGraphs() {
+		return mapCustomGraphs;
 	}
 
 
-	//public void setMultiplexCustomGraphs(Map<String, MultiplexCustomGraph> multiplexCustomGraphs) {
-	//	this.mapMultiplexCustomGraphs = multiplexCustomGraphs;
+	//public void setCustomGraphs(Map<String, CustomGraph> customGraphs) {
+	//	this.mapCustomGraphs = customGraphs;
 	//}
-	//protected MultiplexCustomGraph getMultiplexCustomGraph(MultiplexCustomGraph multiplexCustomGraph) {
-	//	return mapMultiplexCustomGraphs.get(multiplexCustomGraph.getId());
-	//}
+	protected CustomGraph getCustomGraph(CustomGraph customGraph) {
+		return mapCustomGraphs.get(customGraph.getId());
+	}
 
 	public void persist(ArangoDatabase db, String transId) throws InterruptedException {
 		ArangoCollection collection = db.collection(collectionName);

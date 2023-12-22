@@ -438,6 +438,7 @@ public class RequestHandler {
 		doc.appendChild(graphsElt);
 		return writeDoc(doc);
 	}
+
 	/**
 	 * Creates an XML document containing meta information about multiple
 	 * graphs. This is an efficient method that does not load more data
@@ -457,10 +458,10 @@ public class RequestHandler {
 		Document doc = getDocument();
 		Element graphsElt = doc.createElement("Graphs");
 		for (MultiplexGraphMeta graphMeta : graphMetass) {
-			//String metaDocStr = writeMultiplexGraphEfficiently(graphMeta);
-			//Node metaDocNode = parseDocumentToNode(metaDocStr);
-			//Node importNode = doc.importNode(metaDocNode, true);
-			//graphsElt.appendChild(importNode);
+			String metaDocStr = writeGraphEfficiently(graphMeta);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
+			Node importNode = doc.importNode(metaDocNode, true);
+			graphsElt.appendChild(importNode);
 		}
 		doc.appendChild(graphsElt);
 		return writeDoc(doc);
@@ -671,6 +672,25 @@ public class RequestHandler {
 	 * @throws AdapterException if adapter failed
 	 */
 	public String writeGraphEfficiently(CustomGraphMeta graphMeta)
+			throws AdapterException{
+		GraphMetaOutputAdapter adapter = new MetaXmlGraphMetaOutputAdapter();
+		Writer writer = new StringWriter();
+		adapter.setWriter(writer);
+		adapter.writeGraph(graphMeta);
+		return writer.toString();
+	}
+
+	/**
+	 * Creates a graph output in a MetaXml format. This method uses efficient approach.
+	 * Only necessary information is loaded (e.g. no node/edge info)
+	 *            The graph.
+	 *
+	 * @param graphMeta
+	 *         Graph meta information
+	 * @return The graph output.
+	 * @throws AdapterException if adapter failed
+	 */
+	public String writeMultiplexGraphEfficiently(MultiplexGraphMeta graphMeta)
 			throws AdapterException{
 		GraphMetaOutputAdapter adapter = new MetaXmlGraphMetaOutputAdapter();
 		Writer writer = new StringWriter();

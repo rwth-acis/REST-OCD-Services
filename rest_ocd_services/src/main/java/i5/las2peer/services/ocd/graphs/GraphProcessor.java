@@ -73,10 +73,10 @@ public class GraphProcessor {
 	 */
 	public void determineGraphTypes(MultiplexGraph multiplexGraph) {
 		multiplexGraph.addType(GraphType.MULTIPLEX);
-		if (multiplexGraph.getMultiplexCustomGraphs().size() == 0) {
+		if (multiplexGraph.getCustomGraphs().size() == 0) {
 			return;
 		}
-		for (CustomGraph graph : multiplexGraph.getMultiplexCustomGraphs().values()){
+		for (CustomGraph graph : multiplexGraph.getCustomGraphs().values()){
 			determineGraphTypes(graph);
 			if (graph.isOfType(GraphType.DIRECTED) && !multiplexGraph.isOfType(GraphType.DIRECTED)) {
 				multiplexGraph.addType(GraphType.DIRECTED);

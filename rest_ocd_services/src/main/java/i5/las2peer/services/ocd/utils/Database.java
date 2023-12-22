@@ -371,7 +371,6 @@ public class Database {
 					"\"types\" : g." + CustomGraph.typesColumnName  +  "," +
 					"\"creationTypeId\" : gcl." + GraphCreationLog.typeColumnName + "," +
 					"\"creationStatusId\" : gcl." + GraphCreationLog.statusIdColumnName + "}";
-
 			Map<String, Object> bindVars = Collections.singletonMap("username",username);
 			ArangoCursor<String> customGraphMetaJson = db.query(queryStr, bindVars, queryOpt, String.class);
 
@@ -386,6 +385,7 @@ public class Database {
 			db.abortStreamTransaction(transId);
 			e.printStackTrace();
 		}
+		System.out.println("customGraphMetas getGraphMetaDataEfficiently: " + customGraphMetas);
 		return customGraphMetas;
 	}
 
@@ -406,7 +406,7 @@ public class Database {
 	public ArrayList<MultiplexGraphMeta> getMultiplexGraphMetaDataEfficiently(String username, int firstIndex, int length,
 																  List<Integer> executionStatusIds){
 		String transId = getTransactionId(MultiplexGraph.class, false);
-		ObjectMapper objectMapper = new ObjectMapper(); // needed to instantiate MultiplexGraphMeta from JSON
+		ObjectMapper objectMapper = new ObjectMapper();
 		ArrayList<MultiplexGraphMeta> multiplexGraphMetas = new ArrayList<MultiplexGraphMeta>();
 
 		try {
@@ -418,19 +418,17 @@ public class Database {
 					"{\"key\" : g._key," +
 					"\"userName\" : g." + MultiplexGraph.userColumnName + "," +
 					"\"name\" : g." + MultiplexGraph.nameColumnName + "," +
-					"\"layerCount\" : g." + MultiplexGraph.layerCountColumnName + "," +
+					"\"nodeCount\" : g." + MultiplexGraph.nodeCountColumnName + "," +
+					"\"edgeCount\" : g." + MultiplexGraph.edgeCountColumnName + "," +
 					"\"types\" : g." + MultiplexGraph.typesColumnName  +  "," +
 					"\"creationTypeId\" : gcl." + GraphCreationLog.typeColumnName + "," +
-					"\"creationStatusId\" : gcl." + GraphCreationLog.statusIdColumnName + "}";
+					"\"creationStatusId\" : gcl." + GraphCreationLog.statusIdColumnName + "," +
+					"\"layerCount\" : g." + MultiplexGraph.layerCountColumnName + "}";
 
 			Map<String, Object> bindVars = Collections.singletonMap("username",username);
-			ArangoCursor<String> customGraphMetaJson = db.query(queryStr, bindVars, queryOpt, String.class);
-
-			/* Create MultiplexGraphMeta instances based on the queried results and add them to the list to return */
-			while(customGraphMetaJson.hasNext()) {
-                /* Instantiate MultiplexGraphMeta from the json string acquired from a query.
-                Then add it to the list that will be returned*/
-				multiplexGraphMetas.add(objectMapper.readValue(customGraphMetaJson.next(), MultiplexGraphMeta.class));
+			ArangoCursor<String> multiplexGraphMetaJson = db.query(queryStr, bindVars, queryOpt, String.class);
+			while(multiplexGraphMetaJson.hasNext()) {
+				multiplexGraphMetas.add(objectMapper.readValue(multiplexGraphMetaJson.next(), MultiplexGraphMeta.class));
 			}
 			db.commitStreamTransaction(transId);
 		}catch(Exception e) {
@@ -1845,7 +1843,7 @@ public class Database {
 			collections = collectionNames.subList(11,13).toArray(new String[1]);
 		}
 		else if(c == MultiplexGraph.class) {
-			collections = new String[] {collectionNames.get(0),collectionNames.get(3),collectionNames.get(13)};
+			collections = new String[] {collectionNames.get(0),collectionNames.get(1),collectionNames.get(2),collectionNames.get(3),collectionNames.get(4),collectionNames.get(13)};
 		}
 		else {
 			collections = collectionNames.subList(0, 13).toArray(new String[10]);

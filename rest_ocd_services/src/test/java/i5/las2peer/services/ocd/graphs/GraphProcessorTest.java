@@ -8,7 +8,7 @@ import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.MultiplexCustomGraph;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphProcessor;
 import i5.las2peer.services.ocd.graphs.GraphType;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
@@ -223,14 +223,14 @@ public class GraphProcessorTest {
 
 		// add layers each layer with a different graph type
 		// add custom graph with one directed edge
-		MultiplexCustomGraph directedGraph = new MultiplexCustomGraph();
+		CustomGraph directedGraph = new CustomGraph();
 		Node node0 = directedGraph.addNode("0");
 		Node node1 = directedGraph.addNode("1");
 		directedGraph.addEdge(UUID.randomUUID().toString(), node0, node1);
 		multiplexGraph.addLayer("directed", directedGraph);
 
 		// add undirected custom graph with one weighted edge
-		MultiplexCustomGraph weightedGraph = new MultiplexCustomGraph();
+		CustomGraph weightedGraph = new CustomGraph();
 		Node node2 = weightedGraph.addNode("0");
 		Node node3 = weightedGraph.addNode("1");
 		Edge edge23 =weightedGraph.addEdge(UUID.randomUUID().toString(), node2, node3);

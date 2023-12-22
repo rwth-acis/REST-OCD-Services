@@ -437,21 +437,21 @@ public class ServiceClass extends RESTService {
 					GraphProcessor processor = new GraphProcessor();
 					processor.determineGraphTypes(graph);
 					if (doMakeUndirected) {
-						for (MultiplexCustomGraph multiplexCustomGraph :graph.getMultiplexCustomGraphs().values()) {
-							Set<GraphType> graphTypes = multiplexCustomGraph.getTypes();
+						for (CustomGraph customGraph :graph.getCustomGraphs().values()) {
+							Set<GraphType> graphTypes = customGraph.getTypes();
 							if (graphTypes.remove(GraphType.DIRECTED)) {
-								processor.makeCompatible(multiplexCustomGraph, graphTypes);
+								processor.makeCompatible(customGraph, graphTypes);
 							}
 						}
 						graph.removeType(GraphType.DIRECTED);
 					}
 					try {
-						for (MultiplexCustomGraph multiplexCustomGraph :graph.getMultiplexCustomGraphs().values()) {
-							multiplexCustomGraph.setUserName(username);
-							multiplexCustomGraph.setCreationMethod(log);
-							multiplexCustomGraph.addType(GraphType.MULTIPLEX_LAYER);
-							database.storeGraph(multiplexCustomGraph);
-							graph.addLayerKey(multiplexCustomGraph.getKey());
+						for (CustomGraph customGraph :graph.getCustomGraphs().values()) {
+							customGraph.setUserName(username);
+							customGraph.setCreationMethod(log);
+							customGraph.addType(GraphType.MULTIPLEX_LAYER);
+							database.storeGraph(customGraph);
+							graph.addLayerKey(customGraph.getKey());
 						}
 						database.storeGraph(graph);
 						generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + graph.getKey() + " in format " + graphInputFormatStr);
@@ -679,7 +679,6 @@ public class ServiceClass extends RESTService {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				List<CustomGraphMeta> queryResults;
-				List<MultiplexGraphMeta> queryResultsMultiplex;
 				List<Integer> executionStatusIds = new ArrayList<Integer>();
 				if (!executionStatusesStr.equals("")) {
 					try {
@@ -729,13 +728,90 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
 				}
 				queryResults = database.getGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
-				queryResultsMultiplex = database.getMultiplexGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
 				String responseStr;
 				if (includeMeta) {
 					responseStr = requestHandler.writeGraphMetasEfficiently(queryResults);
 				} else {
 					responseStr = requestHandler.writeGraphIdsEfficiently(queryResults);
 				}
+				return Response.ok(responseStr).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
+		 * Returns the ids (or meta information) of multiple graphs.
+		 *
+		 * @param firstIndexStr
+		 *            Optional query parameter. The result list index of the
+		 *            first id to return. Defaults to 0.
+		 * @param lengthStr
+		 *            Optional query parameter. The number of ids to return.
+		 *            Defaults to Long.MAX_VALUE.
+		 * @param executionStatusesStr
+		 *            Optional query parameter. If set only those graphs are
+		 *            returned whose creation method has one of the given
+		 *            ExecutionStatus names. Multiple status names are separated
+		 *            using the "-" delimiter.
+		 * @return The graphs. Or an error xml.
+		 */
+
+		@GET
+		@Path("multiplexgraphs")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"show"}, value = "Get Multiplexgraphs Info", notes = "Returns the meta information of multiple graphs.")
+		public Response getMultiplexGraphs(@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
+								  @DefaultValue("") @QueryParam("length") String lengthStr,
+								  @DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				List<MultiplexGraphMeta> queryResults;
+				List<Integer> executionStatusIds = new ArrayList<Integer>();
+				if (!executionStatusesStr.equals("")) {
+					try {
+						List<String> executionStatusesStrList = requestHandler
+								.parseQueryMultiParam(executionStatusesStr);
+						for (String executionStatusStr : executionStatusesStrList) {
+							ExecutionStatus executionStatus = ExecutionStatus.valueOf(executionStatusStr);
+							executionStatusIds.add(executionStatus.getId());
+						}
+					} catch (Exception e) {
+						requestHandler.log(Level.WARNING, "user: " + username, e);
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Specified execution status does not exist.");
+					}
+				} else {
+					for (ExecutionStatus executionStatus : ExecutionStatus.values()) {
+						executionStatusIds.add(executionStatus.getId());
+					}
+				}
+
+				int firstIndex = 0;
+				try {
+					firstIndex = Integer.parseInt(firstIndexStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "First index is not valid.");
+				}
+
+				int length = 0;
+				try {
+					if (!lengthStr.equals("")) {
+						length = Integer.parseInt(lengthStr);
+					}
+					else {
+						length = Integer.MAX_VALUE;
+					}
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
+				}
+				queryResults = database.getMultiplexGraphMetaDataEfficiently(username, firstIndex, length, executionStatusIds);
+				String responseStr = requestHandler.writeMultiplexGraphMetasEfficiently(queryResults);
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
