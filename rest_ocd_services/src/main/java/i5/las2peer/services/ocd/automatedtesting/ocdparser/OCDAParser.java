@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 import com.github.javaparser.*;
@@ -76,7 +77,7 @@ public class OCDAParser {
      *
      * @param file The Java file to be parsed. This should be a valid file object pointing to a Java source file.
      * @return     A list of error messages, each providing details about a specific parsing issue.
-     *             The error messages include the line number (if available) and a description of the problem.
+     *             The error messages include the location (if available) and a description of the problem.
      *             Returns an empty list if the file is parsed successfully without any errors.
      * @throws     RuntimeException if an exception occurs during the file parsing process. This exception
      *             includes details about the cause, such as file access issues or interruptions in the parsing process.
@@ -100,6 +101,23 @@ public class OCDAParser {
 
         // Return an empty list if there are no parsing errors
         return List.of();
+    }
+
+    /**
+     * Extracts the content of a specific line from a file.
+     *
+     * @param file The file from which to extract the line content.
+     * @param lineNumber The line number to be extracted (1-based index).
+     * @return The content of the specified line or an empty string if the line does not exist.
+     *         Returns "Error retrieving line content" if an IOException occurs.
+     */
+    private static String extractLineContent(File file, int lineNumber) {
+        try (Stream<String> lines = Files.lines(file.toPath())) {
+            return lines.skip(lineNumber - 1).findFirst().orElse("");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Error retrieving line content";
+        }
     }
 
     public static void main(String[] args) {

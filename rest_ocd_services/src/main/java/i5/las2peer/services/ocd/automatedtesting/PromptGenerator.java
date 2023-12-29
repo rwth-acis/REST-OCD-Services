@@ -22,7 +22,8 @@ public class PromptGenerator {
 
 
     public static void main(String[] args) {
-        File ocdaCode = new File(FileHelpers.getOCDAPath("SskAlgorithm.java"));
+        String ocdaName = "SskAlgorithm";
+        File ocdaCode = new File(FileHelpers.getOCDAPath(ocdaName + ".java"));
         File ocdaTestCode = new File(FileHelpers.getOCDATestPath("SskAlgorithmTest.java"));
 
 
@@ -30,9 +31,16 @@ public class PromptGenerator {
         // Generate prompt that asks GPT to complete partially completed unit tests (the prompt includes unit tests)
         generateAndWriteGraphTypeRelatedTestPrompt(ocdaCode);
 
+
         // Generate prompt that asks GPT to generate a test for a specific OCD method. As a response to this, GPT will
         // ask for a method that should be tested. When this prompt is used, OCDA file should also be given as input.
-        generateAndWriteOCDAMethodTestPrompt(ocdaCode);
+        //System.out.println(generateAndWriteOCDAMethodTestPromptForCustomGPT(ocdaCode));
+
+        // Generate prompt that includes partially completed unit tests for specified OCDA methods and the OCDA code
+        // this is used when communicating with GPT API
+        List<String> methodNames = Arrays.asList("Item1", "calculateTransitiveLinkWeight", "calculateMemberships");
+        String prompt = generateAndWriteOCDAMethodTestPromptForGPTAPI(ocdaName, methodNames);
+        System.out.println("specific OCDA method prompt:\n" + prompt);
 
 
     }
@@ -48,7 +56,6 @@ public class PromptGenerator {
 
         String ocdaName = OCDAParser.getClassName(ocdaCode);
         List<String> compatibilities = OCDAParser.extractCompatibilities(ocdaCode);
-
         String multiLineString =
                 "import static org.junit.jupiter.api.Assertions.*;\n" +
                 "import org.junit.jupiter.api.BeforeEach;\n" +
@@ -59,6 +66,7 @@ public class PromptGenerator {
                 "import " + OCDATestExceptionHandler.class.getName() + ";\n" +
                 "import " + OcdAlgorithm.class.getName() + ";\n" +
                 "import " + OcdAlgorithm.class.getPackage().getName() + "." + ocdaName + ";\n" +
+                "import static " + OcdAlgorithm.class.getPackage().getName() + "." + ocdaName + ".*;\n" +  // this is needed for OCDA parameter name constants
                 "import " + Cover.class.getName() + ";\n" +
                 "import " + CustomGraph.class.getName() + ";\n" +
                 "import " + GRAPH_FACTORY_CLASS_NAME + ";\n" +
@@ -94,7 +102,6 @@ public class PromptGenerator {
                 .append("\n");
 
 
-
         // Extract OCD algorithm parameter definitions from the algorithm code, together with their Javadoc comments.
         // Then append it to the prompt string
         stringBuilder
@@ -117,8 +124,8 @@ public class PromptGenerator {
 
 
         // Write prompt for completing partially generated test classes
-        generateAndWriteFile("gpt","prompts/"+OCDAParser.getClassName(ocdaCode)
-                +"_unit_test_completion_prompt.txt", stringBuilder.toString());
+        generateAndWriteFile("gpt/prompts/" + OCDAParser.getClassName(ocdaCode)
+                +"_unit_test_completion_prompt.txt", stringBuilder.toString(), false);
         return stringBuilder.toString();
 
     }
@@ -167,6 +174,38 @@ public class PromptGenerator {
 
 
         return unitTestTemplatesBuilder.toString();
+    }
+
+
+    /**
+     * Generates a partially completed unit test string for a specified OCD algorithm method.
+     * This method constructs a test method template with a TODO comment indicating where further
+     * test implementation should be added. The generated test method includes basic structure and
+     * exception handling, designed to be completed with specific test logic.
+     *
+     * @param ocdaMethodName The name of the OCD algorithm method for which the unit test is to be generated.
+     * @return A string representing the partially completed unit test method.
+     */
+    public static String generateOCDAMethodUnitTestString(String ocdaMethodName){
+        StringBuilder unitTestStringBuilder = new StringBuilder();
+
+        unitTestStringBuilder.append(
+                "\t/**\n" +
+                        "\t * " + AUTO_GENERATED_COMMENT_STRING + "\n" +
+                        "\t */\n" +
+                        "\t@Test\n" +
+                        "\tpublic void " + ocdaMethodName + "Test() throws Exception {\n" +
+                        "\t\ttry {\n" +
+                        "\n" +
+                        "\t\t\t //TODO: To be completed by ChatGPT. Respect access modifiers and don't leave any variable unpopulated.\n" +
+                        "\n" +
+                        "\t\t} catch (Exception e){\n" +
+                        "\t\t\t fail(\"The test failed: \" + e.getMessage()); // Don't modify\n" +
+                        "\t\t}\n" +
+                        "\t}\n"
+        );
+
+        return unitTestStringBuilder.toString();
     }
 
     /**
@@ -267,11 +306,9 @@ public class PromptGenerator {
      * @param ocdaCode     A File object representing the OCD algorithm code.
      * @return A string representing the generated prompt, including import statements and the algorithm's class name.
      */
-    public static String generateAndWriteOCDAMethodTestPrompt(File ocdaCode){
+    public static String generateAndWriteOCDAMethodTestPromptForCustomGPT(File ocdaCode){
         // Initialize an empty StringBuilder to concatenate strings
         StringBuilder stringBuilder = new StringBuilder();
-
-
 
         // Merge import statements from the OCD algorithm class and its test class, since the algorithm class
         // imports might be needed for the test class if the user wants to test OCD algorithm methods.
@@ -299,13 +336,73 @@ public class PromptGenerator {
                 .append("\n\n");
 
 
-        // Write prompt for asking GPT to generate unit tests for specific OCD algorithm methods
-        // As a response to this prompt GPT should ask the name of the method
-        generateAndWriteFile("gpt","prompts/"+OCDAParser.getClassName(ocdaCode)
-                +"_method_test_generation_prompt.txt", stringBuilder.toString());
 
         return stringBuilder.toString();
 
+    }
+
+    /**
+     * Generates and writes a prompt for test generation for a specific OCD algorithm methods.
+     * The generated prompt includes the signatures of the methods for which the tests should be generated,
+     * partially completed unit tests for these methods (that GPT must complete) and the full OCD algorithm
+     * code from which additional information can be extracted (as needed).
+     *
+     * As a response, the user will be prompted to provide a method name for which the test should be generated.
+     *
+     * @param ocdaName     A File object representing the OCD algorithm code.
+     * @return A string representing the generated prompt, including import statements and the algorithm's class name.
+     */
+    public static String generateAndWriteOCDAMethodTestPromptForGPTAPI(String ocdaName, List<String> methodNames){
+
+        // OCD algorithm code
+        File ocdaCode = FileHelpers.getAlgorithmFile(ocdaName);
+
+        // Initialize an empty StringBuilder to concatenate strings
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("Assume Role 2 and please complete partially completed unit tests for the following methods of " + ocdaName + ":\n");
+        methodNames.forEach(methodName -> {
+            stringBuilder.append(OCDAParser.getMethodSignature(ocdaCode,methodName)).append("\n");
+        });
+        stringBuilder.append("\n\n");
+
+
+        // Append test class with partially completed unit tests for specified OCDA methods
+        stringBuilder
+                .append("### Test class with partially completed unit tests for the methods I want to test\n")
+                .append("```\n");
+        String ocdaTestClassPath = "gpt/classfiles/Generated" + ocdaName + "Test.java";
+        File ocdaTestClass = new File(ocdaTestClassPath);
+        stringBuilder
+                .append(FileHelpers.readFileAsString(ocdaTestClass))
+                .append("```\n");
+
+        // Add OCD algorithm code to the prompt
+        stringBuilder
+                .append("### Full OCD algorithm code\n")
+                .append("```\n");
+        stringBuilder
+                .append(FileHelpers.readFileAsString(ocdaCode))
+                .append("```\n");
+
+
+
+        return stringBuilder.toString();
+
+    }
+
+
+
+
+    /**
+     * Generates a list of import statements for the test class of a specified OCD algorithm. The import statements
+     * include the imports from the algorithm code, as well as typical imports needed in OCDA test classes.
+     * @param ocdaCode      OCD algorithm code for the test class of which the import statements should be generated
+     * @return              A list of import statement strings
+     */
+    public static List<String> getOCDATestClassImportStatements(File ocdaCode) {
+        return mergeAndSortLists(extractSortedImports(ocdaCode),
+                generateTestClassImports(ocdaCode));
     }
 
 
