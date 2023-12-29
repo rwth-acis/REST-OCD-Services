@@ -10,6 +10,8 @@ import java.text.DecimalFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import static i5.las2peer.services.ocd.automatedtesting.helpers.OCDWriter.generateAndWriteFile;
 
@@ -28,6 +30,7 @@ public class OCDATestCodeQualityMetric {
      * Whether to include desirable submetrics in the report
      */
     public static boolean includeCodeSmellSubmetric = false;
+    public static boolean includeCoverageSubmetric = false;
 
 
 
@@ -66,7 +69,7 @@ public class OCDATestCodeQualityMetric {
 
 
         /* Generate a report based on submetric evaluation */
-        String qualityReport = generateAndWriteQualityReport(ocdaName, true);
+        String qualityReport = generateAndWriteQualityReport(ocdaName, true, "");
         System.out.println(qualityReport);
 
 
@@ -81,9 +84,11 @@ public class OCDATestCodeQualityMetric {
      *
      * @param ocdaName The name of the OCD algorithm being tested.
      * @param includeIssues Flag indicating whether to include identified issues in the report.
+     * @param PathToFile    String representation of the file path of the evaluated code.
+     *                      If non-empty it will be included in the report.
      * @return A string representation of the quality report.
      */
-    public static String generateAndWriteQualityReport(String ocdaName, boolean includeIssues){
+    public static String generateAndWriteQualityReport(String ocdaName, boolean includeIssues, String PathToFile){
         // Initialize an empty StringBuilder to concatenate strings
         StringBuilder stringBuilder = new StringBuilder();
         String reportSeparator = "------------------------------------------------------------------------\n";
@@ -108,7 +113,7 @@ public class OCDATestCodeQualityMetric {
                     .append("\n")
                     .append("\tRatio of compatible graph types tested:\t\t\t" + roundToDecimalPlaces(OCDSubmetric.getCompatibleGraphTypeTestRatio(),2))
                     .append("\n")
-                    .append("\tRatio of algorithm paramters used in tests:\t\t" + roundToDecimalPlaces(OCDSubmetric.getAlgorithmParameterUsageRatio(),2))
+                    .append("\tRatio of algorithm parameters used in tests:\t\t" + roundToDecimalPlaces(OCDSubmetric.getAlgorithmParameterUsageRatio(),2))
                     .append("\n")
                     .append("total sub-metric value: " + roundToDecimalPlaces(OCDSubmetric.getOCDSumetricValue(),2))
                     .append("\n");
@@ -130,21 +135,24 @@ public class OCDATestCodeQualityMetric {
 
             stringBuilder.append(reportSeparator);
 
-            stringBuilder
-                    .append(CoverageSubmetric.class.getSimpleName() + " sub-metric: ")
-                    .append("\n")
-                    .append("\tMethod coverage:\t\t\t" + roundToDecimalPlaces(CoverageSubmetric.getMethodCoverage(),2))
-                    .append("\n")
-                    .append("\tBranch coverage:\t\t\t" + roundToDecimalPlaces(CoverageSubmetric.getBranchCoverage(),2))
-                    .append("\n")
-                    .append("\tLine coverage:\t\t\t\t" + roundToDecimalPlaces(CoverageSubmetric.getLineCoverage(),2))
-                    .append("\n")
-                    .append("\tInstruction coverage:\t\t" + roundToDecimalPlaces(CoverageSubmetric.getInstructionCoverage(),2))
-                    .append("\n")
-                    .append("total sub-metric value: " + roundToDecimalPlaces(CoverageSubmetric.getCoverageSubmetricValue(),2))
-                    .append("\n");
+            if (includeCoverageSubmetric) {
 
-            stringBuilder.append(reportSeparator);
+                stringBuilder
+                        .append(CoverageSubmetric.class.getSimpleName() + " sub-metric: ")
+                        .append("\n")
+                        .append("\tMethod coverage:\t\t\t" + roundToDecimalPlaces(CoverageSubmetric.getMethodCoverage(), 2))
+                        .append("\n")
+                        .append("\tBranch coverage:\t\t\t" + roundToDecimalPlaces(CoverageSubmetric.getBranchCoverage(), 2))
+                        .append("\n")
+                        .append("\tLine coverage:\t\t\t\t" + roundToDecimalPlaces(CoverageSubmetric.getLineCoverage(), 2))
+                        .append("\n")
+                        .append("\tInstruction coverage:\t\t" + roundToDecimalPlaces(CoverageSubmetric.getInstructionCoverage(), 2))
+                        .append("\n")
+                        .append("total sub-metric value: " + roundToDecimalPlaces(CoverageSubmetric.getCoverageSubmetricValue(), 2))
+                        .append("\n");
+
+                stringBuilder.append(reportSeparator);
+            }
 
 
             if (includeCodeSmellSubmetric == true) {
@@ -203,11 +211,18 @@ public class OCDATestCodeQualityMetric {
             }
         }
 
+        // If path of a file to which the report refers is mentioned, include it in the report
+        if (!PathToFile.equals("")) {
+            stringBuilder.append("\n");
+            stringBuilder.append("Evaluated Code Location: " + PathToFile);
+            stringBuilder.append("\n");
+        }
+
 
 
         // Write report about automated testing quality results for the specified OCD algorithm
-        generateAndWriteFile("gpt","reports/"+ocdaName
-                +"_automated_testing_report.txt", stringBuilder.toString());
+        generateAndWriteFile("gpt/reports/"+ocdaName
+                +"_automated_testing_report.txt", stringBuilder.toString(),false);
         return stringBuilder.toString();
     }
 
@@ -221,8 +236,9 @@ public class OCDATestCodeQualityMetric {
      *
      * @param ocdaName The name of the OCD algorithm for which the tests are generated.
      * @param gptOutput The file containing the output generated by GPT.
+     * @return A list containing any issues regarding prompt validity sub-metric.
      */
-    public static void evaluateEssentialSubmetrics(String ocdaName, File gptOutput){
+    public static List<String> evaluateEssentialSubmetrics(String ocdaName, File gptOutput){
 
         // Evaluate whether the file outputted by GPT is parsable
         CodeValiditySubmetric.evaluateIsCodeParsable(gptOutput);
@@ -265,7 +281,7 @@ public class OCDATestCodeQualityMetric {
 
                 // Fix comments in the lines that shouldn't be modified by ChatGPT. This is needed due to inline
                 // comments getting moved to a line above when java parser is used for unit test extraction
-                TestClassMerger.modifyComments(ocdaTestClass);
+                TestClassMerger.processComments(ocdaTestClass);
 
 
                 // Delete auto-generated test file, after the tests have been merged into the main test file
@@ -284,6 +300,9 @@ public class OCDATestCodeQualityMetric {
             System.out.println("Parsing Errors Found!");
             //CodeValiditySubmetric.getPromptImprovementRemarks().forEach(s -> System.out.println(s)); //TODO:DELETE
         }
+
+
+        return CodeValiditySubmetric.getPromptImprovementRemarks();
 
     }
 
@@ -305,7 +324,7 @@ public class OCDATestCodeQualityMetric {
      *    or altered.
      * 4. Evaluates the ratio of lines that were marked as not to be removed but were removed, among all marked lines.
      */
-    private static void evaluateNecessarySubmetrics(File gptOutputParsed, File gptInput, File ocdaCode){
+    public static void evaluateNecessarySubmetrics(File gptOutputParsed, File gptInput, File ocdaCode){
 
         // Evaluate ratio of compatible graphs types that are tested in the test class of the algorithm as
         // described in the initial prompt given to ChatGPT
@@ -389,19 +408,26 @@ public class OCDATestCodeQualityMetric {
         }
 
         // Sum of weights of each submetric that are included in the total metric calculation
-        double submetricWeightSums = ocdSubmetricWeight + codeModificationSubmetricWeight + coverageSubmetricWeight;
+        double submetricWeightSums = ocdSubmetricWeight + codeModificationSubmetricWeight;
 
         // Weighted sum of the evaluated submetric values
         double submetricValueWeightedSums =
                 OCDSubmetric.getOCDSumetricValue() * ocdSubmetricWeight +
-                CodeModificationSubmetric.getCodeModificationSubmetricValue() * codeModificationSubmetricWeight +
-                CoverageSubmetric.getCoverageSubmetricValue() * coverageSubmetricWeight;
+                CodeModificationSubmetric.getCodeModificationSubmetricValue() * codeModificationSubmetricWeight;
+
+
+
+        if (includeCoverageSubmetric) {
+            submetricWeightSums += coverageSubmetricWeight;
+            submetricValueWeightedSums += CoverageSubmetric.getCoverageSubmetricValue() * coverageSubmetricWeight;
+        }
 
         // Add code smell sbumetric if it should be included in the report
         if (includeCodeSmellSubmetric) {
             submetricWeightSums += codeSmellSubmetricWeight;
             submetricValueWeightedSums += CodeSmellSubmetric.getCodeSmellSubmetricValue() * codeSmellSubmetricWeight;
         }
+
 
         // If parsing and execution of the generated code didn't fail, the weighted average sum of the sub-metrics is
         // returned. Otherwise, 0 is returned since this implies the auto-generated code is either not parsable
@@ -422,24 +448,14 @@ public class OCDATestCodeQualityMetric {
      * @param number The number to be rounded.
      * @param decimalPlaces The number of decimal places to round the number to.
      * @return The number rounded to the specified number of decimal places.
-     * @throws IllegalArgumentException If the number of decimal places is negative.
      */
     public static double roundToDecimalPlaces(double number, int decimalPlaces) {
         if (decimalPlaces < 0) {
             throw new IllegalArgumentException("Decimal places must be non-negative");
         }
 
-        String pattern = "#";
-        if (decimalPlaces > 0) {
-            pattern += ".";
-            for (int i = 0; i < decimalPlaces; i++) {
-                pattern += "#";
-            }
-        }
-
-        DecimalFormat df = new DecimalFormat(pattern);
-        String formattedNumber = df.format(number);
-
-        return Double.parseDouble(formattedNumber);
+        BigDecimal bd = BigDecimal.valueOf(number);
+        bd = bd.setScale(decimalPlaces, RoundingMode.HALF_UP);
+        return bd.doubleValue();
     }
 }

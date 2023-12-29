@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.automatedtesting.metric;
 
 import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
+import i5.las2peer.services.ocd.automatedtesting.helpers.FormattingHelpers;
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser;
 
 import java.io.File;
@@ -115,9 +116,18 @@ public class OCDSubmetric {
 
                 for (String algorithmParameterName : algorithmParameterNames) {
 
-                    // whether each method call include setting the specified algorithm parameter
+                    // OCDA parameter can be set using parameter name constant as well, hence it must be considered
+                    String algorithmParameterNameConstant = FormattingHelpers.convertCamelCaseToUpperCaseWithUnderscores(algorithmParameterName);
+
+
+                    // parameter setting uses either parameter name (e.g. "accuracy") or parameter name constant (e.g. ACCURACY_NAME)
                     boolean unitTestContainsOCDAParameter = filteredMethodCalls.stream()
-                            .anyMatch(unitTestParameterSetting -> unitTestParameterSetting.contains(algorithmParameterName));
+                            .anyMatch(unitTestParameterSetting ->
+                                    unitTestParameterSetting.contains("\"" + algorithmParameterName + "\"") ||
+                                            (unitTestParameterSetting.contains(algorithmParameterNameConstant) &&
+                                                    !unitTestParameterSetting.contains("\"" + algorithmParameterNameConstant + "\""))
+                            );
+
 
                     if (!unitTestContainsOCDAParameter) {
                         //System.out.println("Missing algorithm parameter: unit test " + graphTypeTestName + " must set algorithm parameter " + algorithmParameterName);//TODO:DELETE
@@ -282,7 +292,7 @@ public class OCDSubmetric {
     /**
      * Resets variables of this submetric to be reused
      */
-    public void resetOCDSubmetricVariables(){
+    public static void resetOCDSubmetricVariables(){
         promptImprovementRemarks = new ArrayList<>();
         compatibleGraphTypeTestRatio = 1;
     }

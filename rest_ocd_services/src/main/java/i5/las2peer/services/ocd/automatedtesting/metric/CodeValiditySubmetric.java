@@ -62,7 +62,7 @@ public class CodeValiditySubmetric {
         } else {
             noParsingErrorFound = false;
             for (String parsingError : parsingErrors) {
-                promptImprovementRemarks.add("Fix the following on " + parsingError);
+                promptImprovementRemarks.add(parsingError);
             }
         }
 
