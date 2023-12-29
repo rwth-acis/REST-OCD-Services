@@ -350,6 +350,53 @@ task runCustomTests(type: JavaExec) {
     main = 'i5.las2peer.services.ocd.ocdatestautomation.testrunner.CustomTestExecutor'
 }
 
+// Run initializeGraphTypeTestRelatedFiles method, which creates partially completed unit tests
+// that should be completed by GPT. these unit tests are for compatible graph types of the OCDA.
+// Additionally, a reference file is created which is used when
+// evaluating auto-generated unit tests (e.g. to see if something that wasn't supposed to be altered
+// was modified).
+task runInitializeGraphTypeTestRelatedFiles(type: JavaExec) {
+    doFirst {
+        // Check if 'ocdaName' property is provided at runtime
+        if (!project.hasProperty('ocdaName')) {
+            throw new GradleException("Property 'ocdaName' is required for this task")
+        }
+        // Set the argument with the provided property value
+        args = ['initializeGraphTypeTestRelatedFiles', project.property('ocdaName')]
+
+        println("Classpath: " + sourceSets.test.runtimeClasspath.getAsPath()) //TODO:DELETE
+    }
+
+    classpath = sourceSets.test.runtimeClasspath
+    main = 'i5.las2peer.services.ocd.ocdatestautomation.OCDATestClassGenerator'
+}
+
+// Run initializeOCDAMethodTestFiles method, which creates partially completed unit tests
+// that should be completed by GPT. These unit tests are for the specified methods from the
+// OCDA class. Additionally, a reference file is created which is used when
+// evaluating auto-generated unit tests (e.g. to see if something that wasn't supposed to be altered
+// was modified).
+task runInitializeOCDAMethodTestFiles(type: JavaExec) {
+    doFirst {
+        if (!project.hasProperty('ocdaName')) {
+            throw new GradleException("Property 'ocdaName' is required for this task")
+        }
+        if (!project.hasProperty('methodNames')) {
+            throw new GradleException("Property 'methodNames' is required for this task")
+        }
+        String methodNamesArg = project.property('methodNames').split(',').join(' ')
+        args = ['initializeOCDAMethodTestFiles', project.property('ocdaName')] + methodNamesArg.tokenize()
+
+        println("Classpath: " + sourceSets.test.runtimeClasspath.getAsPath()) // Debugging line
+    }
+
+    classpath = sourceSets.test.runtimeClasspath
+    main = 'i5.las2peer.services.ocd.ocdatestautomation.OCDATestClassGenerator'
+}
+
+
+
+
 
 
 // Executes WebOCD tests without database tests. This task is used for github actions.
