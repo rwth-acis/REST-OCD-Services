@@ -65,6 +65,10 @@ public class OCDATestAutomationConstants {
     // Location of auto-generated GPT files that should be checked if they can be successfully parsed
     public static String GPT_GENERATED_TEST_CLASS_CODE_LOCATION = "gpt/classfiles/";
 
+    // Location of gpt output prompt that includes unit tests which should be extracted.
+    public static String GPT_GENERATED_UNPROCESSED_UNIT_TESTS_LOCATION = "gpt/unit_tests_unprocessed/";
+
+
     // Location of auto-generated GPT files that were successfully parsed and move do be checked for successful execution
     public static String PARSED_GPT_GENERATED_CODE_LOCATION = "rest_ocd_services/src/test/java/i5/las2peer/services/ocd/ocdatestautomation/testrunner/generatedclasses/";
 

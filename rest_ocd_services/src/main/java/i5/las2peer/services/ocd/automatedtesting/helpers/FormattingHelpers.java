@@ -45,6 +45,24 @@ public class FormattingHelpers {
     }
 
     /**
+     * Converts a camelCase string to an uppercase string with underscores between words,
+     * and appends "_NAME" at the end.
+     *
+     * @param camelCaseStr The camelCase string to be converted.
+     * @return A converted string in uppercase with underscores and "_NAME" appended.
+     */
+    public static String convertCamelCaseToUpperCaseWithUnderscores(String camelCaseStr) {
+        String regex = "([a-z])([A-Z]+)";
+        String replacement = "$1_$2";
+
+        // Replace the camelCase format with underscores and convert to uppercase
+        String upperCaseWithUnderscores = camelCaseStr.replaceAll(regex, replacement).toUpperCase();
+
+        // Append "_NAME" at the end
+        return upperCaseWithUnderscores + "_NAME";
+    }
+
+    /**
      * Creates a variable name for a graph instantiation to be used in unit tests based on the provided graph type string.
      * This method processes a graph type string (expected to be in a format like "GraphType.DIRECTED") and converts the
      * portion after the dot into camelCase, appending "Graph" at the end. For instance, "GraphType.DIRECTED" would be
