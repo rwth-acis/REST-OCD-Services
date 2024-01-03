@@ -25,7 +25,11 @@ import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.comments.JavadocComment;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.PackageDeclaration;
 import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
+import i5.las2peer.services.ocd.automatedtesting.helpers.FormattingHelpers;
 
 public class OCDAParser {
 
@@ -65,6 +69,27 @@ public class OCDAParser {
      */
     public static String getClassName(File file) {
         return getClassName(parseJavaFile(file));
+    }
+
+    /**
+     * @return fully qualified class name from the CompilationUnit
+     */
+    private static String getFullyQualifiedClassName(CompilationUnit cu) {
+        String packageName = cu.findFirst(PackageDeclaration.class)
+                .map(PackageDeclaration::getNameAsString)
+                .orElse("");
+        String className = cu.findFirst(ClassOrInterfaceDeclaration.class)
+                .map(ClassOrInterfaceDeclaration::getNameAsString)
+                .orElse("No class name found");
+
+        return packageName.isEmpty() ? className : packageName + "." + className;
+    }
+
+    /**
+     * @return fully qualified class name from the class file
+     */
+    public static String getFullyQualifiedClassName(File file) {
+        return getFullyQualifiedClassName(parseJavaFile(file));
     }
 
 
@@ -457,15 +482,16 @@ public class OCDAParser {
     }
 
     /**
-     * Extracts and lists all non-final class-level variable declarations along with their properly formatted Javadoc
-     * comments from a Java class file. This method uses JavaParser to analyze the source code and find field
-     * declarations and their associated comments.
+     * Extracts and lists all non-final class-level variable declarations from a Java class file, optionally with
+     * their properly formatted Javadoc comments. This method uses JavaParser to analyze the source code and find
+     * field declarations and their associated comments.
      *
      * @param javaFile The Java class file to parse.
-     * @return A List of Strings, each representing a non-final class-level variable declaration
-     *         with properly formatted Javadoc comment.
+     * @param includeComments Flag to determine whether to include Javadoc comments.
+     * @return A List of Strings, each representing a non-final class-level variable declaration,
+     *         optionally with properly formatted Javadoc comment.
      */
-    public static List<String> listNonFinalClassVariablesWithComments(File javaFile) {
+    public static List<String> listNonFinalClassVariables(File javaFile, boolean includeComments) {
         List<String> classVariablesWithComments = new ArrayList<>();
         try {
             CompilationUnit cu = parseJavaFile(javaFile);
@@ -477,11 +503,14 @@ public class OCDAParser {
                     continue;
                 }
 
-                // Extract the Javadoc comment if present, with proper formatting
-                String javadocComment = field.getComment()
-                        .filter(c -> c.isJavadocComment())
-                        .map(c -> ((JavadocComment) c).toString())
-                        .orElse("");
+                String javadocComment = "";
+                if (includeComments) {
+                    // Extract the Javadoc comment if present, with proper formatting
+                    javadocComment = field.getComment()
+                            .filter(c -> c.isJavadocComment())
+                            .map(c -> ((JavadocComment) c).toString())
+                            .orElse("");
+                }
 
                 // Extract the field declaration
                 String modifiers = field.getModifiers().stream()
@@ -496,7 +525,7 @@ public class OCDAParser {
                 String fieldDeclaration = (modifiers.isEmpty() ? "" : modifiers + " ") + type + " " + vars + ";";
 
                 // Combine Javadoc comment and field declaration
-                classVariablesWithComments.add(javadocComment.trim() + "\n" + fieldDeclaration.trim());
+                classVariablesWithComments.add(javadocComment.trim() + (includeComments ? "\n" : "") + fieldDeclaration.trim());
             }
         } catch (Exception e) {
             throw new RuntimeException("Error parsing class variables with comments: " + e.getMessage(), e);
@@ -680,4 +709,19 @@ public class OCDAParser {
     }
 
 
+    /**
+     * Extracts the default parameter values from a list of OCD algorithm parameter declarations.
+     * Each parameter declaration is parsed to determine the variable name and its default value.
+     *
+     * @param ocdaParameterDeclarationsList A list of strings representing the parameter declarations in the OCD algorithm.
+     * @return A map of parameter names to their corresponding default values.
+     */
+    public static Map<String, String> getDefaultParameterValues(List<String> ocdaParameterDeclarationsList) {
+
+        Map<String, String> defaultParameterValues = new HashMap<>();
+        ocdaParameterDeclarationsList.forEach(ocdaParameterDeclaration -> {
+            defaultParameterValues.put(FormattingHelpers.extractVariableName(ocdaParameterDeclaration), FormattingHelpers.extractVariableValue(ocdaParameterDeclaration));
+        });
+        return defaultParameterValues;
+    }
 }

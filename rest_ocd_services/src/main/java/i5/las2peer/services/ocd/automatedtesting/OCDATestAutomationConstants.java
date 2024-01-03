@@ -76,6 +76,9 @@ public class OCDATestAutomationConstants {
     public static String OCDA_LOCATION_IN_MAIN_SOURCE_SET = "rest_ocd_services/src/main/java/i5/las2peer/services/ocd/algorithms/";
     public static String OCDA_LOCATION_IN_TEST_SOURCE_SET = "rest_ocd_services/src/test/java/i5/las2peer/services/ocd/algorithms/";
 
+    // Number of diverse parameter values that should be generated (using GPT) for OCD accuracy tests
+    public static String OCDA_PARAMETER_GENERATION_COUNT_FOR_OCD_ACCURACY_TESTS = "5";
+
 
 
 

@@ -1,11 +1,15 @@
 package i5.las2peer.services.ocd.automatedtesting.helpers;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
+
+import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
 
 public class OCDWriter {
 
@@ -74,6 +78,87 @@ public class OCDWriter {
             writer.newLine(); // Add an empty line between log entries
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+
+
+    /**
+     * Writes or updates the parameter data for a specific OCD algorithm in a JSON file. If the file exists, the method
+     * updates the existing JSON object with the new data for the specified algorithm. If the file does not exist,
+     * it creates a new JSON object and writes it to the file.
+     *
+     * @param filePath The file path where the JSON data is stored.
+     * @param algorithmName The name of the algorithm for which data is being written or updated.
+     * @param finalParametersJsonString The JSON string representing the data to be written for the algorithm.
+     */
+    public static void writeAlgorithmDataToFile(String filePath, String algorithmName, String finalParametersJsonString) {
+        try {
+            JSONArray algorithmData = (JSONArray) new JSONParser().parse(finalParametersJsonString);
+            JSONObject rootObject = new JSONObject();
+
+            // Check if the file exists and is not empty
+            Path path = Paths.get(filePath);
+            if (Files.exists(path) && Files.size(path) > 0) {
+                rootObject = (JSONObject) new JSONParser().parse(new FileReader(filePath));
+            }
+
+            // Update the algorithm data
+            rootObject.put(algorithmName, algorithmData);
+
+            // Write to the file
+            try (FileWriter file = new FileWriter(filePath)) {
+                file.write(rootObject.toJSONString());
+            }
+        } catch (IOException e) {
+            System.err.println("IO Error: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error parsing or writing JSON: " + e.getMessage());
+        }
+    }
+
+
+    /**
+     * Reads and returns the data for a specific algorithm from a JSON file. This method parses the JSON file and
+     * retrieves the data associated with the specified algorithm.
+     *
+     * @param filePath      The file path where the JSON data is stored.
+     * @param algorithmName The name of the algorithm for which data is being retrieved.
+     * @return A Map containing the algorithm data if found, or null if an error occurs, if the file is empty,
+     *         incomplete, or if the algorithm data does not exist.
+     */
+    public static Map<String, List<String>> readAlgorithmDataFromFile(String filePath, String algorithmName) {
+        try {
+            // Check if the file exists and is not empty
+            if (!Files.exists(Paths.get(filePath)) || Files.size(Paths.get(filePath)) == 0) {
+                System.out.println("File is empty or does not exist.");
+                return null;
+            }
+
+            JSONParser parser = new JSONParser();
+            JSONObject rootObject = (JSONObject) parser.parse(new FileReader(filePath));
+
+            if (rootObject == null || !rootObject.containsKey(algorithmName)) {
+                System.out.println("Algorithm data not found or JSON is incomplete.");
+                return null;
+            }
+
+            JSONArray algorithmDataArray = (JSONArray) rootObject.get(algorithmName);
+            Map<String, List<String>> algorithmData = new HashMap<>();
+
+            for (Object item : algorithmDataArray) {
+                JSONObject paramObject = (JSONObject) item;
+                for (Object key : paramObject.keySet()) {
+                    String paramName = (String) key;
+                    String paramValue = (String) paramObject.get(key);
+
+                    algorithmData.computeIfAbsent(paramName, k -> new ArrayList<>()).add(paramValue);
+                }
+            }
+            return algorithmData;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

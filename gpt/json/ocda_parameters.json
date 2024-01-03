@@ -1,0 +1,66 @@
+{
+  "algorithm 2": [
+    {
+      "leadershipIterationBound": "8822",
+      "membershipsIterationBound": "225",
+      "leadershipPrecisionFactor": "0.00105",
+      "membershipsPrecisionFactor": "0.00931"
+    },
+    {
+      "leadershipIterationBound": "4106",
+      "membershipsIterationBound": "1000",
+      "leadershipPrecisionFactor": "0.00564",
+      "membershipsPrecisionFactor": "6.9E-4"
+    },
+    {
+      "leadershipIterationBound": "4363",
+      "membershipsIterationBound": "190",
+      "leadershipPrecisionFactor": "0.00552",
+      "membershipsPrecisionFactor": "0.00264"
+    },
+    {
+      "leadershipIterationBound": "2405",
+      "membershipsIterationBound": "8254",
+      "leadershipPrecisionFactor": "0.00261",
+      "membershipsPrecisionFactor": "0.00583"
+    },
+    {
+      "leadershipIterationBound": "8558",
+      "membershipsIterationBound": "3201",
+      "leadershipPrecisionFactor": "0.00116",
+      "membershipsPrecisionFactor": "0.00309"
+    }
+  ],
+  "SskAlgorithm": [
+    {
+      "leadershipIterationBound": "8822",
+      "membershipsIterationBound": "225",
+      "leadershipPrecisionFactor": "0.00105",
+      "membershipsPrecisionFactor": "0.00931"
+    },
+    {
+      "leadershipIterationBound": "4106",
+      "membershipsIterationBound": "1000",
+      "leadershipPrecisionFactor": "0.00564",
+      "membershipsPrecisionFactor": "6.9E-4"
+    },
+    {
+      "leadershipIterationBound": "4363",
+      "membershipsIterationBound": "190",
+      "leadershipPrecisionFactor": "0.00552",
+      "membershipsPrecisionFactor": "0.00264"
+    },
+    {
+      "leadershipIterationBound": "2405",
+      "membershipsIterationBound": "8254",
+      "leadershipPrecisionFactor": "0.00261",
+      "membershipsPrecisionFactor": "0.00583"
+    },
+    {
+      "leadershipIterationBound": "8558",
+      "membershipsIterationBound": "3201",
+      "leadershipPrecisionFactor": "0.00116",
+      "membershipsPrecisionFactor": "0.00309"
+    }
+  ]
+}

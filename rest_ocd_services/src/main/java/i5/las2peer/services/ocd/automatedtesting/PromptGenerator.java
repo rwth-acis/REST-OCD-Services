@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.automatedtesting;
 
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
+import i5.las2peer.services.ocd.automatedtesting.helpers.FormattingHelpers;
 import i5.las2peer.services.ocd.automatedtesting.helpers.OCDATestExceptionHandler;
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser;
 import i5.las2peer.services.ocd.graphs.Cover;
@@ -10,6 +11,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 
 import java.io.File;
 import java.util.*;
+import org.json.simple.JSONObject;
 
 import static i5.las2peer.services.ocd.automatedtesting.OCDATestAutomationConstants.*;
 import static i5.las2peer.services.ocd.automatedtesting.helpers.FormattingHelpers.*;
@@ -109,7 +111,7 @@ public class PromptGenerator {
                 .append("\n\n")
                 .append("My algorithm has the following algorithm parameters and default paramter values:")
                 .append("\n\n");
-        for (String ocdParameter : OCDAParser.listNonFinalClassVariablesWithComments(ocdaCode)){
+        for (String ocdParameter : OCDAParser.listNonFinalClassVariables(ocdaCode, true)){
             stringBuilder
                     .append(ocdParameter)
                     .append("\n\n\n");
@@ -126,6 +128,95 @@ public class PromptGenerator {
         // Write prompt for completing partially generated test classes
         generateAndWriteFile("gpt/prompts/" + OCDAParser.getClassName(ocdaCode)
                 +"_unit_test_completion_prompt.txt", stringBuilder.toString(), false);
+        return stringBuilder.toString();
+
+    }
+
+    public static String generateAndOCDAParameterGenerationPrompt(File ocdaCode){
+        StringBuilder stringBuilder = new StringBuilder();
+
+
+        /* Add OCD algorithm parameter definitions to the prompt */
+
+        // Extract OCD algorithm parameter definitions from the algorithm code, together with their Javadoc comments.
+        // Then append it to the prompt string
+        stringBuilder
+                .append("### Algorithm parameter definitions")
+                .append("\n\n")
+                .append("My algorithm has the following algorithm parameters and default paramter values:")
+                .append("\n\n");
+        for (String ocdParameter : OCDAParser.listNonFinalClassVariables(ocdaCode, true)){
+            stringBuilder
+                    .append(ocdParameter)
+                    .append("\n\n\n");
+        }
+
+        /* add setParameters implementation of the OCD algorithm to the prompt */
+
+        // Replace OCD algorithm parameter name constants in setParameters implementation with actual parameter names.
+        //This is to make it less confusing for GPT (e.g. LEADERSHIP_ITERATION_BOUND_NAME is replaced
+        //with "leadershipIterationBound")
+
+        // Get setParameters method implementation for the specified OCD algorithm
+        String setParametersImplementation = getMethodImplementation(ocdaCode, SET_OCD_PARAMETERS_METHOD_NAME);
+
+        // Identify parameter declarations in the OCD algorithm
+        List<String> ocdaParameterDeclarationsList = OCDAParser.listNonFinalClassVariables(ocdaCode, false);
+
+        // List that will be filled with OCDA parameter names for easier access
+        List<String> ocdaParameterList = new ArrayList<>();
+
+        for (String parameterDeclaration : ocdaParameterDeclarationsList){
+            // Name of the OCD algorithm parameter (e.g. leadershipIterationBound)
+            String parameterVariableName = FormattingHelpers.extractVariableName(parameterDeclaration);
+            ocdaParameterList.add(parameterVariableName );
+
+            // Name of the constant that holds OCDA parameter name, used in setParameters implementation
+            String parameterVariableNameConstant = FormattingHelpers.convertCamelCaseToUpperCaseWithUnderscores(parameterVariableName);
+
+            setParametersImplementation = FormattingHelpers.replaceConstantWithVariable(parameterVariableNameConstant,parameterVariableName,setParametersImplementation);
+
+            //System.out.println(parameterDeclaration + " | " + parameterVariableName + " | " + parameterVariableNameConstant);
+
+        }
+
+        // Add setParameters implementation to the prompt
+        stringBuilder.append("### Implementation of the setParameters method")
+                .append("\n\n")
+                .append(setParametersImplementation)
+                .append("\n\n");
+
+        /* JSON with placeholders for parameter values to be completed by GPT */
+
+        // Create a JSON that holds OCDA parameter and a list of placeholders for each parameter that should
+        // be replaced by GPT with actual reasonable values
+        Map<String, List<String>> placeholdersMap = new HashMap<>();
+
+        // Number of different parameter values for which the placeholders should be created
+        int parameterCount = Integer.parseInt(OCDA_PARAMETER_GENERATION_COUNT_FOR_OCD_ACCURACY_TESTS);
+
+        for (String key : ocdaParameterList) {
+            List<String> placeholders = new ArrayList<>();
+            for (int i = 1; i <= parameterCount; i++) {
+                placeholders.add(key + "_PLACEHOLDER_VALUE_" + i);
+            }
+            placeholdersMap.put(key, placeholders);
+        }
+
+        JSONObject json = new JSONObject(placeholdersMap);
+
+
+
+        /* Add created JSON to the prompt */
+        stringBuilder
+                .append("### JSON with placeholders for algorithm parameter values that you must replace values")
+                .append("\n\n")
+                .append(json.toJSONString());
+
+        // Write prompt for generating OCDA parameters
+        generateAndWriteFile("gpt/prompts/" + OCDAParser.getClassName(ocdaCode)
+                +"_ocda_parameter_generation_prompt.txt", stringBuilder.toString(), false);
+
         return stringBuilder.toString();
 
     }

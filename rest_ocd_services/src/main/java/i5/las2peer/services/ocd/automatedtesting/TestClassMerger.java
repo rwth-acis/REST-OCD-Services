@@ -15,12 +15,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.HashSet;
-import java.util.Set;
 
 public class TestClassMerger {
 
@@ -116,7 +113,17 @@ public class TestClassMerger {
     }
 
 
-
+    /**
+     * Merges a single unit test (as string) into a target test class file.
+     * It adds the tests to the class, replacing any existing tests with the same name.
+     *
+     * @param targetClassFile File object representing the target test class where tests will be added.
+     * @param unitTestString Unit test method strings to be added.
+     */
+    public static void mergeUnitTestIntoClass(File targetClassFile, String unitTestString) {
+        List<String> oneElementList = Arrays.asList(unitTestString);
+        mergeUnitTestsIntoClass(targetClassFile, oneElementList);
+    }
 
     /**
      * This method modifies a Java file by moving the "// Don't modify" comments from being standalone lines
