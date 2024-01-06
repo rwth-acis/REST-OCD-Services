@@ -154,7 +154,11 @@ public enum CoverCreationType implements EnumDisplayNames {
 
 	/** Type corresponding to the ParticleSwarmLabelPropagationAlgorithm Algorithm.
 	 */
-	PSO_LPA_ALGORITHM("Particle Swarm Label Propagation Algorithm", ParticleSwarmLabelPropagationAlgorithm.class, 28);
+	PSO_LPA_ALGORITHM("Particle Swarm Label Propagation Algorithm", ParticleSwarmLabelPropagationAlgorithm.class, 28),
+
+	/** Type corresponding to the BalancedMultiLabelPropagationAlgorithm Algorithm.
+	 */
+	BMLPA_ALGORITHM("Balanced Multi-Label Propagation Algorithm", BalancedMultiLabelPropagationAlgorithm.class, 29);
 
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.

@@ -146,10 +146,14 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
 
     @Override
     public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException {
-
         return runLabelPropagation(graph,runParticleSwarmOptimization(graph));
     }
 
+    /**
+     * Runs the PSO part of the algorithm
+     * @param graph the graph PSO_LPA runs on
+     * @return a non overlapping community distribution
+     */
     private HashMap<String, Integer> runParticleSwarmOptimization(CustomGraph graph)  throws InterruptedException {
         HashMap<String, Float>[] populationPosition = populationPositionInitialization(graph);
         HashMap<String, Float>[] populationVelocity = new HashMap[populationSize];
@@ -175,7 +179,7 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         int iteration = 0;
         while (maxPSOIterations > iteration) {
             updateVelocity(populationVelocity, populationPosition, populationExperiencePosition, optimalPosition);
-            updatePosition(graph, populationVelocity, populationPosition);
+            updatePosition(populationVelocity, populationPosition);
             temp = -1;
             for (int i = 0; i < populationSize; i++){
                 double fitness =  calculateFitness(graph, populationPosition[i]);
@@ -201,6 +205,11 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         return finalPosition;
     }
 
+    /**
+     * Initializes the population
+     * @param graph the graph PSO_LPA runs on
+     * @return an array with all initialized particles
+     */
     private HashMap<String, Float>[] populationPositionInitialization(CustomGraph graph) {
         HashMap<String, Float>[] populationPosition = new HashMap[populationSize];
         for (int l = 0; l < populationSize; l++) {
@@ -232,6 +241,13 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         return populationPosition;
     }
 
+    /**
+     * Updates the velocity of all particles
+     * @param velocity the current velocities
+     * @param position the current positions
+     * @param expPosition the best position of each particle
+     * @param optimalPosition the best position of all particles
+     */
     private void updateVelocity(HashMap<String, Float>[] velocity, HashMap<String, Float>[] position, HashMap<String, Float>[] expPosition, HashMap<String, Float> optimalPosition){
         for (int i = 0; i < populationSize; i++) {
             int p = i;
@@ -244,7 +260,12 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         }
     }
 
-    private void updatePosition(CustomGraph graph,HashMap<String, Float>[] velocity, HashMap<String, Float>[] position){
+    /**
+     * Updates the position of all particles
+     * @param velocity the current velocities
+     * @param position the current positions
+     */
+    private void updatePosition(HashMap<String, Float>[] velocity, HashMap<String, Float>[] position){
         for (int i = 0; i < populationSize; i++) {
             int p = i;
             position[p].replaceAll((k,v) ->
@@ -253,6 +274,13 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         }
     }
 
+    /**
+     * Calculates the fitness of a particles using the Modularity score
+     * Changed version of the existing ModularityMetric
+     * @param graph the graph PSO_LPA runs on
+     * @param cover the position of a single particle
+     * @return the modularity score of the cover
+     */
     public static double calculateFitness(CustomGraph graph, Map<String, Float> cover) throws InterruptedException {
 		int edgeCount = graph.getEdgeCount()/2;
 		double modularity = 0;
@@ -262,14 +290,11 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
 		for(int i = 0; i < graph.getNodeCount(); i++) {
 			Node n1 = nodes[i];
 			double deg1 = graph.getNeighbours(n1).size();
-			List<Integer> com1 = new ArrayList<>();
-			com1.add(Math.round(cover.get(n1.getId())));
+			int com1 = Math.round(cover.get(n1.getId()));
 			for(int j = i+1; j < graph.getNodeCount(); j++) {
 				Node n2 = nodes[j];
-                List<Integer> com2 = new ArrayList<>();
-                com2.add(Math.round(cover.get(n2.getId())));
-			    com2.retainAll(com1);
-				if(com2.size() != 0) {
+			    int com2 = Math.round(cover.get(n2.getId()));
+				if(com1 == com2) {
 					double deg2 = graph.getNeighbours(n2).size();
 					modularity -= deg1*deg2/(2*edgeCount);
 					if(adjacency.get(i, j) > 0){
@@ -278,11 +303,15 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
 				}
 			}
 		}
-
 		return modularity/edgeCount;
 	}
 
-
+    /**
+     * Runs the BMLPA part of the algorithm
+     * @param graph the graph PSO_LPA runs on
+     * @param initialization the best position found by PSO
+     * @return the final cover of the PSO_LPA
+     */
     private Cover runLabelPropagation(CustomGraph graph, HashMap<String, Integer> initialization) throws InterruptedException {
         Map<String, Map<Integer,Float>> oldCover = new HashMap();
         Map<String, Map<Integer,Float>> newCover;
@@ -382,6 +411,13 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         return new Cover(graph, membershipMatrix);
     }
 
+    /**
+     * Propagates a labels of neighbor nodes to a node
+     * @param graph the graph PSO_LPA runs on
+     * @param x id of current node
+     * @param source old community distribution
+     * @param dest new community distribution
+     */
     private void propagate_bbc(CustomGraph graph, String x, Map<String, Map<Integer,Float>> source, Map<String, Map<Integer,Float>> dest){
         dest.put(x, new HashMap<>());
         Iterator<Node> nodes = graph.getNode(x).neighborNodes().iterator();
@@ -402,7 +438,10 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         dest.put(x,temp);
     }
 
-
+    /**
+     * Normalized the community belonging coefficients
+     * @param l community belonging coefficients of a node
+     */
     private void normalize(Map<Integer,Float> l){
         float sum = 0;
         for (Map.Entry<Integer,Float> x : l.entrySet())
@@ -411,6 +450,11 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
             l.put(x.getKey(),x.getValue()/sum);
     }
 
+    /**
+     * Gets a Set of all community ids in the community distribution
+     * @param l current community distribution
+     * @return a Set of all community ids
+     */
     private Set<Integer> getId(Map<String, Map<Integer,Float>> l){
         Set<Integer> ids = new HashSet<>();
         for (Map.Entry<String, Map<Integer,Float>> x : l.entrySet())
@@ -418,6 +462,11 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         return ids;
     }
 
+    /**
+     * Gets a Set of all community ids of a single node
+     * @param l community belonging coefficients of a node
+     * @return a Set of all community ids of the node
+     */
     private Set<Integer> getSubId(Map<Integer,Float> x){
         Set<Integer> ids = new HashSet<>();
         for (Map.Entry<Integer,Float> cb : x.entrySet())
@@ -425,6 +474,11 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         return ids;
     }
 
+    /**
+     * Counts the numbers of nodes in each community
+     * @param l current community distribution
+     * @return Number of nodes in each community
+     */
     private Map<Integer,Integer> count(Map<String, Map<Integer,Float>> l){
         Map<Integer,Integer> counts = new HashMap<>();
         for (Map.Entry<String, Map<Integer,Float>> x : l.entrySet()){
@@ -436,6 +490,12 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         return counts;
     }
 
+    /**
+     * Combines two Maps, each being the Number of nodes in each community
+     * @param cs1 Number of nodes in each community in the old cover
+     * @param cs2 Number of nodes in each community in the new cover
+     * @return Combined Map of Min Numbers of nodes in each community in each cover
+     */
     private Map<Integer,Integer> mc(Map<Integer,Integer> cs1, Map<Integer,Integer> cs2){
         Map<Integer, Integer> cs = new HashMap<>();
         for (Map.Entry<Integer, Integer> c1 : cs1.entrySet()){

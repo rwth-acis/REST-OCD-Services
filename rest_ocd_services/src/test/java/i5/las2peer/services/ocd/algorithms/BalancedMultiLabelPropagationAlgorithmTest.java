@@ -17,19 +17,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ParticleSwarmLabelPropagationAlgorithmTest {
+public class BalancedMultiLabelPropagationAlgorithmTest {
 
     @Ignore
     @Test
     public void testEntireAlgorithm() throws OcdAlgorithmException, InterruptedException {
         CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
-        ParticleSwarmLabelPropagationAlgorithm algo = new ParticleSwarmLabelPropagationAlgorithm();
+        BalancedMultiLabelPropagationAlgorithm algo = new BalancedMultiLabelPropagationAlgorithm();
         Map<String, String> parameters = new HashMap<String, String>();
-        parameters.put(ParticleSwarmLabelPropagationAlgorithm.PSO_INERTIA_FACTOR_NAME, "0.5");
-        parameters.put(ParticleSwarmLabelPropagationAlgorithm.PSO_LEARNING_FACTOR_GLOBAL_NAME, "0.8");
-        parameters.put(ParticleSwarmLabelPropagationAlgorithm.PSO_LEARNING_FACTOR_POPULATION_NAME, "0.8");
-        parameters.put(ParticleSwarmLabelPropagationAlgorithm.LPA_MAX_ITERATION_NAME, "10");
-        parameters.put(ParticleSwarmLabelPropagationAlgorithm.LPA_THRESHOLD_NAME, "0.2");
+        parameters.put(BalancedMultiLabelPropagationAlgorithm.LPA_MAX_ITERATION_NAME, "10");
+        parameters.put(BalancedMultiLabelPropagationAlgorithm.LPA_THRESHOLD_NAME, "0.2");
         algo.setParameters(parameters);
         Cover cover = algo.detectOverlappingCommunities(graph);
         System.out.println(cover);
