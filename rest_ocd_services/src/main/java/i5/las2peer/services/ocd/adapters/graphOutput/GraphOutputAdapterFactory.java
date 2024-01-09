@@ -7,10 +7,10 @@ import i5.las2peer.services.ocd.utils.SimpleFactory;
  * @author Sebastian
  *
  */
-public class GraphOutputAdapterFactory implements SimpleFactory<GraphOutputAdapter, GraphOutputFormat>{
+public class GraphOutputAdapterFactory implements SimpleFactory<CommonGraphOutputAdapter, GraphOutputFormat>{
 
 	@Override
-	public GraphOutputAdapter getInstance(GraphOutputFormat outputFormat) throws InstantiationException, IllegalAccessException {
+	public CommonGraphOutputAdapter getInstance(GraphOutputFormat outputFormat) throws InstantiationException, IllegalAccessException {
 		return outputFormat.getAdapterClass().newInstance();
 	}
 

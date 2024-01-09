@@ -285,6 +285,19 @@ public class Database {
 		}
 		return graph;
 	}
+
+	private MultiplexGraph getMultiplexGraph(String key) {
+		String transId = getTransactionId(MultiplexGraph.class, false);
+		MultiplexGraph graph;
+		try {
+			graph = MultiplexGraph.load(key, db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return graph;
+	}
 	
 	/**
 	 * Returns a persisted CustomGraph if it has the right username
@@ -306,6 +319,29 @@ public class Database {
 			g = null;
 		}
 		
+		return g;
+	}
+
+	/**
+	 * Returns a persisted CustomGraph if it has the right username
+	 *
+	 * @param username
+	 *            owner of the graph
+	 * @param key
+	 *            key of the graph
+	 * @return the found CustomGraph instance or null if the CustomGraph does not exists or the username is wrong
+	 */
+	public MultiplexGraph getMultiplexGraph(String username, String key) {
+		MultiplexGraph g = getMultiplexGraph(key);
+
+		if (g == null) {
+			logger.log(Level.WARNING, "user: " + username + " Graph does not exist: graph key " + key);
+		}
+		else if(!username.equals(g.getUserName())) {
+			logger.log(Level.WARNING, "user: " + username + " is not allowed to use Graph: " + key + " with user: " + g.getUserName());
+			g = null;
+		}
+
 		return g;
 	}
 	
@@ -385,7 +421,49 @@ public class Database {
 			db.abortStreamTransaction(transId);
 			e.printStackTrace();
 		}
-		System.out.println("customGraphMetas getGraphMetaDataEfficiently: " + customGraphMetas);
+		return customGraphMetas;
+	}
+	/**
+	 * Return specified graphs' meta information of a user using an efficient approach. This approach only necessary
+	 * metadata about graphs. E.g. no information about nodes/edges (other than their count) is loaded.
+	 *
+	 * @param username
+	 * 			  the users username
+	 * @param key
+	 *            the key of the multiplex graph the customgraphs belong to as layers
+	 * @return the list of graphs
+	 */
+	public ArrayList<CustomGraphMeta> getMultiplexGraphMetaDataOfLayersEfficiently(String username, String key){
+		System.out.println("key in database:" + key);
+		String transId = getTransactionId(MultiplexGraph.class, false);
+		ObjectMapper objectMapper = new ObjectMapper(); // needed to instantiate CustomGraphMeta from JSON
+		ArrayList<CustomGraphMeta> customGraphMetas = new ArrayList<CustomGraphMeta>();
+
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR g IN " + CustomGraph.collectionName + " FOR gcl IN " + GraphCreationLog.collectionName + " FOR mg IN " + MultiplexGraph.collectionName +
+					" FILTER g." + CustomGraph.userColumnName + " == @username AND gcl._key == g." + CustomGraph.creationMethodKeyColumnName +
+					" AND mg._key == \"" + key + "\" AND g._key IN mg." + MultiplexGraph.layerKeysColumnName +
+					" AND 8 IN g." + CustomGraph.typesColumnName +
+					" RETURN "+
+					"{\"key\" : g._key," +
+					"\"userName\" : g." + CustomGraph.userColumnName + "," +
+					"\"name\" : g." + CustomGraph.nameColumnName + "," +
+					"\"nodeCount\" : g." + CustomGraph.nodeCountColumnName + "," +
+					"\"edgeCount\" : g." + CustomGraph.edgeCountColumnName + "," +
+					"\"types\" : g." + CustomGraph.typesColumnName  +  "," +
+					"\"creationTypeId\" : gcl." + GraphCreationLog.typeColumnName + "," +
+					"\"creationStatusId\" : gcl." + GraphCreationLog.statusIdColumnName + "}";
+			Map<String, Object> bindVars = Collections.singletonMap("username",username);
+			ArangoCursor<String> customGraphMetaJson = db.query(queryStr, bindVars, queryOpt, String.class);
+			while(customGraphMetaJson.hasNext()) {
+				customGraphMetas.add(objectMapper.readValue(customGraphMetaJson.next(), CustomGraphMeta.class));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			e.printStackTrace();
+		}
 		return customGraphMetas;
 	}
 

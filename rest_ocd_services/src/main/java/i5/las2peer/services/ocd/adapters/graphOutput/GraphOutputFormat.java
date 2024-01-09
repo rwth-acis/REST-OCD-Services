@@ -32,11 +32,15 @@ public enum GraphOutputFormat implements EnumDisplayNames{
 	/**
 	 * Format corresponding to the PropertiesXMLGraphOutputAdapter.
 	 */
-	PROPERTIES_XML ("Properties XML", PropertiesXmlGraphOutputAdapter.class, 3);
+	PROPERTIES_XML ("Properties XML", PropertiesXmlGraphOutputAdapter.class, 3),
+	/**
+	 * Format corresponding to the MetaXmlMultiplexGraphOutputAdapter.
+	 */
+	MULTIPLEX_META_XML ("Multiplex Meta XML", MetaXmlMultiplexGraphOutputAdapter.class, 4);;
 	/**
 	 * The adapter class corresponding to the format.
 	 */
-	private final Class<? extends GraphOutputAdapter> adapterClass;
+	private final Class<? extends CommonGraphOutputAdapter> adapterClass;
 	
 	/**
 	 * Reserved for persistence or other purposes.
@@ -53,7 +57,7 @@ public enum GraphOutputFormat implements EnumDisplayNames{
 	 * @param adapterClass Defines the adapterClass attribute.
 	 * @param id Defines the id attribute.
 	 */
-	private GraphOutputFormat(String displayName, Class<? extends GraphOutputAdapter> adapterClass, int id) {
+	private GraphOutputFormat(String displayName, Class<? extends CommonGraphOutputAdapter> adapterClass, int id) {
 		this.displayName = displayName;
 		this.adapterClass = adapterClass;
 		this.id = id;
@@ -63,7 +67,7 @@ public enum GraphOutputFormat implements EnumDisplayNames{
 	 * Returns the GraphOutputAdapter subclass corresponding to the type.
 	 * @return The corresponding class.
 	 */
-	protected Class<? extends GraphOutputAdapter> getAdapterClass() {
+	protected Class<? extends CommonGraphOutputAdapter> getAdapterClass() {
 		return this.adapterClass;
 	}
 	

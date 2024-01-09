@@ -757,7 +757,6 @@ public class ServiceClass extends RESTService {
 		 *            using the "-" delimiter.
 		 * @return The graphs. Or an error xml.
 		 */
-
 		@GET
 		@Path("multiplexgraphs")
 		@Produces(MediaType.TEXT_XML)
@@ -820,6 +819,31 @@ public class ServiceClass extends RESTService {
 		}
 
 		/**
+		 * Returns the ids (or meta information) of multiple graphs.
+		 *
+		 * @param keyMultiplexStr key of the multiplex graph we want to get the customgraph layers of
+		 * @return The graphs. Or an error xml.
+		 */
+		@GET
+		@Path("multiplexlayers")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"show"}, value = "Get Infos of a MultiplexGraphs layers/CustomGraphs", notes = "Returns the meta information of the layers of a multiplexgraph.")
+		public Response getLayersOfMultiplexGraph(@DefaultValue("0") @QueryParam("keyMultiplex") String keyMultiplexStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				List<CustomGraphMeta> queryResults;
+				queryResults = database.getMultiplexGraphMetaDataOfLayersEfficiently(username, keyMultiplexStr);
+				String responseStr = requestHandler.writeGraphMetasEfficiently(queryResults);
+				return Response.ok(responseStr).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
 		 * Returns a graph in a specified output format.
 		 * 
 		 * @param graphIdStr
@@ -857,6 +881,51 @@ public class ServiceClass extends RESTService {
 
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get cover " + graphIdStr + " in format " + graphOutputFormatStr );
 				return Response.ok(requestHandler.writeGraph(graph, format)).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+
+		}
+
+		/**
+		 * Returns a graph in a specified output format.
+		 *
+		 * @param graphIdStr
+		 *            The graph id.
+		 * @param graphOutputFormatStr
+		 *            The name of the graph output format.
+		 * @return The graph output. Or an error xml.
+		 */
+		@GET
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@Path("multiplexgraphs/{graphId}")
+		@ApiOperation(tags = {"export"}, value = "Export Graph", notes = "Returns a graph in a specified output format.")
+		public Response getMultiplexGraph(@DefaultValue("GRAPH_ML") @QueryParam("outputFormat") String graphOutputFormatStr,
+								 @PathParam("graphId") String graphIdStr) {
+			try {
+
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				GraphOutputFormat format;
+				try {
+
+					format = GraphOutputFormat.valueOf(graphOutputFormatStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified graph output format does not exist.");
+				}
+
+				MultiplexGraph graph = database.getMultiplexGraph(username, graphIdStr); //done
+
+				if (graph == null)
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Graph does not exist: graph key " + graphIdStr);	//done
+
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get cover " + graphIdStr + " in format " + graphOutputFormatStr );
+				return Response.ok(requestHandler.writeMultiplexGraph(graph, format)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");

@@ -17,7 +17,8 @@ import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
 import i5.las2peer.services.ocd.adapters.graphInput.CommonGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
-import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapter;
+import i5.las2peer.services.ocd.adapters.graphOutput.CommonGraphOutputAdapter;
+import i5.las2peer.services.ocd.adapters.graphOutput.MultiplexGraphOutputAdapter;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
 import i5.las2peer.services.ocd.adapters.metaOutput.*;
@@ -654,12 +655,34 @@ public class RequestHandler {
 	 */
 	public String writeGraph(CustomGraph graph, GraphOutputFormat outputFormat)
 			throws AdapterException, InstantiationException, IllegalAccessException {
-		GraphOutputAdapter adapter = graphOutputAdapterFactory.getInstance(outputFormat);
+		CommonGraphOutputAdapter adapter = graphOutputAdapterFactory.getInstance(outputFormat);
 		Writer writer = new StringWriter();
 		adapter.setWriter(writer);
 		adapter.writeGraph(graph);
 		return writer.toString();
 	}
+
+	/**
+	 * Creates a graph output in a specified format.
+	 *
+	 * @param graph
+	 *            The graph.
+	 * @param outputFormat
+	 *            The format.
+	 * @return The graph output.
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeMultiplexGraph(MultiplexGraph graph, GraphOutputFormat outputFormat)
+			throws AdapterException, InstantiationException, IllegalAccessException {
+		CommonGraphOutputAdapter adapter = graphOutputAdapterFactory.getInstance(outputFormat);
+		Writer writer = new StringWriter();
+		adapter.setWriter(writer);
+		adapter.writeGraph(graph);
+		return writer.toString();
+	}
+
 
 	/**
 	 * Creates a graph output in a MetaXml format. This method uses efficient approach.

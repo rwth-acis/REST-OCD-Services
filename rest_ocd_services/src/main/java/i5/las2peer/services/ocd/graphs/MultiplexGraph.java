@@ -1,9 +1,13 @@
 package i5.las2peer.services.ocd.graphs;
 
 import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
+import com.arangodb.entity.BaseEdgeDocument;
 import com.arangodb.model.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.*;
 
 /**
@@ -33,6 +37,11 @@ public class MultiplexGraph {
 	 * System generated persistence key.
 	 */
 	private String key = "";
+
+	/**
+	 * System generated persistence id.
+	 */
+	private long id;
 
 	/**
 	 * The name of the user owning the graph.
@@ -162,7 +171,7 @@ public class MultiplexGraph {
 	 *
 	 * @return The number of nodes.
 	 */
-	public long getNodeCount(){return this.graphNodeCount;}
+	public int getNodeCount(){return (int)this.graphNodeCount;}
 
 	/**
 	 * Getter for the number of nodes.
@@ -175,7 +184,7 @@ public class MultiplexGraph {
 	 *
 	 * @return The number of edges.
 	 */
-	public long getEdgeCount(){return this.graphEdgeCount;}
+	public int getEdgeCount(){return (int)this.graphEdgeCount;}
 	/**
 	 * Getter for the number of edges.
 	 *
@@ -277,6 +286,42 @@ public class MultiplexGraph {
 		return mapCustomGraphs.get(customGraph.getId());
 	}
 
+	public static MultiplexGraph load(String key, ArangoDatabase db, String transId) {
+		MultiplexGraph graph = null;
+		ArangoCollection collection = db.collection(collectionName);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
+
+		if (bd != null) {
+			graph = new MultiplexGraph();
+			ObjectMapper om = new ObjectMapper();
+			Object objId = bd.getAttribute(idColumnName);
+			if(objId!= null) {
+				graph.id = Long.parseLong(objId.toString());
+			}
+			graph.key = key;
+			graph.userName = bd.getAttribute(userColumnName).toString();
+			//graph.path = bd.getAttribute(pathColumnName).toString();
+			graph.name = bd.getAttribute(nameColumnName).toString();
+			Object objTypes = bd.getAttribute(typesColumnName);
+			graph.types = om.convertValue(objTypes, Set.class);
+			//Object objProperties = bd.getAttribute(propertiesColumnName);
+			//graph.properties = om.convertValue(objProperties, List.class);
+			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+			graph.graphNodeCount = om.convertValue(bd.getAttribute(nodeCountColumnName), Long.class);
+			graph.graphEdgeCount = om.convertValue(bd.getAttribute(edgeCountColumnName), Long.class);
+			graph.layerCount = om.convertValue(bd.getAttribute(layerCountColumnName), Integer.class);
+			graph.creationMethod = GraphCreationLog.load(creationMethodKey, db, readOpt);
+			Object objLayerKeys = bd.getAttribute(layerKeysColumnName);
+			graph.layerKeys = om.convertValue(objLayerKeys, List.class);
+		}
+		else {
+			System.out.println("Empty Graph document");
+			System.out.println(" DB name: " + db.dbName().get());
+		}
+		return graph;
+	}
 	public void persist(ArangoDatabase db, String transId) throws InterruptedException {
 		ArangoCollection collection = db.collection(collectionName);
 		BaseDocument bd = new BaseDocument();
