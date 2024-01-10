@@ -680,6 +680,8 @@ public class RequestHandler {
 		Writer writer = new StringWriter();
 		adapter.setWriter(writer);
 		adapter.writeGraph(graph);
+		System.out.println("Requesthandler: writeMultiplexGraph");
+		System.out.println(writer.toString());
 		return writer.toString();
 	}
 

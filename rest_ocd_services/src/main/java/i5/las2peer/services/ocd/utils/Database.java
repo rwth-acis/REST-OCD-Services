@@ -296,6 +296,8 @@ public class Database {
 			db.abortStreamTransaction(transId);
 			throw e;
 		}
+		System.out.println("Database getMultiplexGraph(key): graph.name");
+		System.out.println(graph.getName());
 		return graph;
 	}
 	
@@ -318,7 +320,7 @@ public class Database {
 			logger.log(Level.WARNING, "user: " + username + " is not allowed to use Graph: " + key + " with user: " + g.getUserName());
 			g = null;
 		}
-		
+
 		return g;
 	}
 
@@ -341,7 +343,6 @@ public class Database {
 			logger.log(Level.WARNING, "user: " + username + " is not allowed to use Graph: " + key + " with user: " + g.getUserName());
 			g = null;
 		}
-
 		return g;
 	}
 	
@@ -686,6 +687,74 @@ public class Database {
 			}
 		}
 
+	}
+
+
+	/**
+	 * Deletes a MultiplexGraph from the database
+	 *
+	 * @param username
+	 *            owner of the graph
+	 * @param graphKey
+	 *            key of the graph
+	 * @param threadHandler
+	 * 			  the threadhandler
+	 * @throws Exception if cover deletion failed
+	 */
+	public void deleteMultiplexGraph(String username, String graphKey, ThreadHandler threadHandler) throws Exception {	//SC
+		CustomGraphId id = new CustomGraphId(graphKey, username);
+
+		synchronized (threadHandler) {
+			threadHandler.interruptBenchmark(id);
+
+			List<Cover> coverList = getCovers(username, graphKey);
+			for (Cover cover : coverList) {
+				try {
+					deleteCover(cover, threadHandler);
+				} catch (Exception e) {
+					throw e;
+				}
+			}
+
+			try {
+				MultiplexGraph graph = getMultiplexGraph(username, graphKey);
+
+				String transId = this.getTransactionId(null, true);
+				DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+				DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+				AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+				try {
+					ArangoCollection graphCollection = db.collection(MultiplexGraph.collectionName);
+					BaseDocument bd = graphCollection.getDocument(graphKey, BaseDocument.class, readOpt);
+					String gclKey = bd.getAttribute(MultiplexGraph.creationMethodKeyColumnName).toString();
+
+					ArangoCollection gclCollection = db.collection(GraphCreationLog.collectionName);
+					gclCollection.deleteDocument(gclKey, null, deleteOpt);		//delete the GraphCreationLog
+
+					for(String layerKey : (List<String>)bd.getAttribute(MultiplexGraph.layerKeysColumnName)) {
+						deleteGraph(username, layerKey, threadHandler);
+					}																	//delete all layers
+
+					String query = "FOR c IN " + Cover.collectionName + " FILTER c." + Cover.graphKeyColumnName
+							+ " == \"" + graphKey +"\" RETURN c._key";
+					ArangoCursor<String> coverKeys = db.query(query, queryOpt, String.class);
+					for(String coverKey : coverKeys) {						//delete all covers	should not be used
+						deleteCover(coverKey, transId);
+					}
+
+					graphCollection.deleteDocument(graphKey, null, deleteOpt);		//delete the graph
+					db.commitStreamTransaction(transId);
+				}catch(Exception e) {
+					db.abortStreamTransaction(transId);
+					throw e;
+				}
+
+			} catch (IOException e) {
+				throw new RuntimeException("Could not delete folder of content graph");
+			} catch(Exception e) {
+				throw e;
+			}
+		}
 	}
 	
 	

@@ -302,7 +302,6 @@ public class MultiplexGraph {
 			}
 			graph.key = key;
 			graph.userName = bd.getAttribute(userColumnName).toString();
-			//graph.path = bd.getAttribute(pathColumnName).toString();
 			graph.name = bd.getAttribute(nameColumnName).toString();
 			Object objTypes = bd.getAttribute(typesColumnName);
 			graph.types = om.convertValue(objTypes, Set.class);
@@ -320,6 +319,8 @@ public class MultiplexGraph {
 			System.out.println("Empty Graph document");
 			System.out.println(" DB name: " + db.dbName().get());
 		}
+		System.out.println("MultiplexGraph load");
+		System.out.println(graph.getName());
 		return graph;
 	}
 	public void persist(ArangoDatabase db, String transId) throws InterruptedException {

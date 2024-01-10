@@ -9,10 +9,7 @@ import org.graphstream.graph.Node;
 
 import java.io.Reader;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * A graph input adapter for unweighted edge list format.
@@ -47,7 +44,8 @@ public class MultiplexUnweightedEdgeListGraphInputAdapter extends
 		try {
 			Map<String, Map<String, Node>> graphReverseNodeNames = new HashMap<String, Map<String, Node>>();
 			List<String> line = Adapters.readLine(reader);
-
+			Set<String> totalNumberOfNodes = new HashSet<String>();
+			int totalNumberOfEdges = 0;
 			while (line.size() == 3) {
 				//read layer
 				String layerName = line.get(0);
@@ -81,10 +79,16 @@ public class MultiplexUnweightedEdgeListGraphInputAdapter extends
 				Edge edge = graph.addEdge(UUID.randomUUID().toString(), sourceNode, targetNode);
 				graph.setEdgeWeight(edge, 1);
 				line = Adapters.readLine(reader);
+
+				totalNumberOfEdges++;
+				totalNumberOfNodes.add(sourceNodeName);
+				totalNumberOfNodes.add(targetNodeName);
 			}
 			if(line.size() > 0) {
 				throw new AdapterException("Invalid input format");
 			}
+			multiplexGraph.setNodeCount(totalNumberOfNodes.size());
+			multiplexGraph.setEdgeCount(totalNumberOfEdges);
 			return multiplexGraph;
 		} catch (Exception e) {
 			throw new AdapterException(e);

@@ -906,23 +906,23 @@ public class ServiceClass extends RESTService {
 		public Response getMultiplexGraph(@DefaultValue("GRAPH_ML") @QueryParam("outputFormat") String graphOutputFormatStr,
 								 @PathParam("graphId") String graphIdStr) {
 			try {
-
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				GraphOutputFormat format;
 				try {
-
 					format = GraphOutputFormat.valueOf(graphOutputFormatStr);
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Specified graph output format does not exist.");
 				}
-
-				MultiplexGraph graph = database.getMultiplexGraph(username, graphIdStr); //done
-
+				System.out.println("serviceclass: format");
+				System.out.println(format);
+				MultiplexGraph graph = database.getMultiplexGraph(username, graphIdStr);
+				System.out.println("serviceclass: graph.name");
+				System.out.println(graph.getName());
 				if (graph == null)
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
-							"Graph does not exist: graph key " + graphIdStr);	//done
+							"Graph does not exist: graph key " + graphIdStr);
 
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get cover " + graphIdStr + " in format " + graphOutputFormatStr );
 				return Response.ok(requestHandler.writeMultiplexGraph(graph, format)).build();
@@ -956,6 +956,44 @@ public class ServiceClass extends RESTService {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				try {
 					database.deleteGraph(username, graphIdStr, threadHandler);	//done
+
+				} catch (Exception e) {
+					if(e.getMessage() != null) {
+						requestHandler.writeError(Error.INTERNAL, "Graph could not be deleted: " + e.getMessage());
+					}
+					requestHandler.writeError(Error.INTERNAL, "Graph not found");
+				}
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete graph " + graphIdStr);
+				return Response.ok(requestHandler.writeConfirmationXml()).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
+		 * Deletes a graph. All covers based on the graph are removed as well.
+		 * If a benchmark is currently calculating the graph the execution is
+		 * terminated. If an algorithm is currently calculating a cover based on
+		 * the graph it is terminated. If a metric is currently running on a
+		 * cover based on the graph it is terminated.
+		 *
+		 * @param graphIdStr
+		 *            The graph key.
+		 * @return A confirmation xml. Or an error xml.
+		 */
+		@DELETE
+		@Path("multiplexgraph/{graphId}")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"delete"}, value = "Delete Graph", notes = "Deletes a graph.")
+		public Response deleteMultiplexGraph(@PathParam("graphId") String graphIdStr) {
+			try {
+
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				try {
+					database.deleteMultiplexGraph(username, graphIdStr, threadHandler);	//done
 
 				} catch (Exception e) {
 					if(e.getMessage() != null) {
