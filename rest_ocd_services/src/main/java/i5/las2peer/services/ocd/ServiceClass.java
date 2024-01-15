@@ -2497,6 +2497,9 @@ public class ServiceClass extends RESTService {
 	     *            Optional query parameter. Defines the maximum size of a
 	     *            node. Must be at least as high as the defined minimum
 	     *            size.
+		 * @param maxColorCountStr
+		 * 	          Optional query parameter. Defines the maximum number of
+		 * 	          colors per node. Must be greater than 0.
 	     * @return The visualization. Or an error xml.
 	     */
 	    @GET

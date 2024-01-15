@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class BalancedMultiLabelPropagationAlgorithm  implements OcdAlgorithm {
 
-    private float filter = 0.5f;
+    private float filter = 0.6f;
     private int maxLPAIterations = 50;
 
     protected static final String LPA_THRESHOLD_NAME = "lpaThreshold";
@@ -23,7 +23,7 @@ public class BalancedMultiLabelPropagationAlgorithm  implements OcdAlgorithm {
 
     @Override
     public CoverCreationType getAlgorithmType() {
-        return CoverCreationType.PSO_LPA_ALGORITHM;
+        return CoverCreationType.BMLPA_ALGORITHM;
     }
 
     @Override
@@ -108,7 +108,6 @@ public class BalancedMultiLabelPropagationAlgorithm  implements OcdAlgorithm {
                 }
             }
         }
-        System.out.println(cores);
         return cores;
     }
 
@@ -140,7 +139,7 @@ public class BalancedMultiLabelPropagationAlgorithm  implements OcdAlgorithm {
             for (Map.Entry<String, Map<Integer,Float>> x : oldCover.entrySet())
                 propagate_bbc(graph, x.getKey(), oldCover, newCover);
             Map<Integer, Integer> min;
-            if (getId(oldCover) == getId(newCover))
+            if (getId(oldCover).equals(getId(newCover)))
                 min = mc(count(oldCover), count(newCover));
             else
                 min = count(newCover);
@@ -153,7 +152,6 @@ public class BalancedMultiLabelPropagationAlgorithm  implements OcdAlgorithm {
             }
             i++;
         }
-        System.out.println(i);
         Map<Integer, Set<String>> coms = new HashMap<>();
         Map<Integer, Set<Integer>> sub = new HashMap<>();
         for (Map.Entry<String, Map<Integer,Float>> x : oldCover.entrySet()) {
@@ -166,13 +164,19 @@ public class BalancedMultiLabelPropagationAlgorithm  implements OcdAlgorithm {
             }
         }
 
-        for (Map.Entry<Integer, Set<Integer>> ci : sub.entrySet())
-            if (ci.getValue().size() > 1)
+        Set<Integer> removed = new HashSet<>();
+        for (Map.Entry<Integer, Set<Integer>> ci : sub.entrySet()) {
+            Set<Integer> value = ci.getValue();
+            value.removeAll(removed);
+            if (value.size() > 1) {
+                removed.add(ci.getKey());
                 coms.remove(ci.getKey());
+            }
+        }
 
         Map<Integer, Set<String>> splitCommunities = new HashMap<>();
         Map<Integer, Integer> commSplits = new HashMap<>();
-        int k = coms.size()+1;
+        int k = Collections.max(coms.keySet())+1;
         for (Map.Entry<Integer, Set<String>> cEntry : coms.entrySet()) {
             int id = cEntry.getKey();
             while (cEntry.getValue().size() > 0){
@@ -238,14 +242,16 @@ public class BalancedMultiLabelPropagationAlgorithm  implements OcdAlgorithm {
                 dest.get(x).put(cb.getKey(),dest.get(x).get(cb.getKey())+cb.getValue());
             }
         }
-        float bMax = Collections.max(dest.get(x).values());
-        Map<Integer, Float> temp = new HashMap<>();
-        for (Map.Entry<Integer, Float> cb : dest.get(x).entrySet()){
-            if (cb.getValue()/bMax >= filter)
-                temp.put(cb.getKey(), cb.getValue());
+        if (dest.get(x).size() > 0) {
+            float bMax = Collections.max(dest.get(x).values());
+            Map<Integer, Float> temp = new HashMap<>();
+            for (Map.Entry<Integer, Float> cb : dest.get(x).entrySet()) {
+                if (cb.getValue() / bMax >= filter)
+                    temp.put(cb.getKey(), cb.getValue());
+            }
+            normalize(temp);
+            dest.put(x, temp);
         }
-        normalize(temp);
-        dest.put(x,temp);
     }
 
     /**
@@ -274,7 +280,7 @@ public class BalancedMultiLabelPropagationAlgorithm  implements OcdAlgorithm {
 
     /**
      * Gets a Set of all community ids of a single node
-     * @param l community belonging coefficients of a node
+     * @param x community belonging coefficients of a node
      * @return a Set of all community ids of the node
      */
     private Set<Integer> getSubId(Map<Integer,Float> x){

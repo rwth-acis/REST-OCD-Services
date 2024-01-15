@@ -30,25 +30,21 @@ import org.web3j.abi.datatypes.Int;
 public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
 
     private int populationSize = 20;
-    private float initChance = 0.5f;
-    private float inertiaFactor = 0.5f;
-    private float learningFactor1 = 0.5f;
-    private float learningFactor2 = 0.5f;
-    //private float changeChance = 0.5f;
-    //private float addComChance = 0.1f;
-    private int maxPSOIterations = 50;
-    private float filter = 0.5f;
+    private float initChance = 0.6f;
+    private float inertiaFactor = 0.4f;
+    private float learningFactor1 = 0.4f;
+    private float learningFactor2 = 0.4f;
+    private int maxPSOIterations = 40;
+    private float filter = 0.6f;
     private int maxLPAIterations = 50;
     private static Random rng = new Random();
 
     protected static final String PSO_POPULATION_SIZE_NAME = "psoPopulationSize";
     protected static final String PSO_INERTIA_FACTOR_NAME = "psoInertiaFactor";
-    protected static final String PSO_LEARNING_FACTOR_POPULATION_NAME = "psoLearningFactorPopulation";
+    protected static final String PSO_LEARNING_FACTOR_PERSONAL_NAME = "psoLearningFactorPersonal";
     protected static final String PSO_LEARNING_FACTOR_GLOBAL_NAME = "psoLearningFactorGlobal";
     protected static final String PSO_MAX_ITERATION_NAME = "psoMaxIteration";
     protected static final String PSO_INIT_SPREADING_CHANCE_NAME = "psoInitSpreadingChance";
-    //protected static final String PSO_SPREADING_CHANCE_NAME = "psoSpreadingChance";
-    //protected static final String PSO_NEW_COMMUNITY_NAME = "psoNewCommChance";
 
     protected static final String LPA_THRESHOLD_NAME = "lpaThreshold";
     protected static final String LPA_MAX_ITERATION_NAME = "lpaMaxIteration";
@@ -64,12 +60,10 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(PSO_POPULATION_SIZE_NAME, Integer.toString(populationSize));
         parameters.put(PSO_INERTIA_FACTOR_NAME, Float.toString(inertiaFactor));
-        parameters.put(PSO_LEARNING_FACTOR_POPULATION_NAME, Float.toString(learningFactor1));
+        parameters.put(PSO_LEARNING_FACTOR_PERSONAL_NAME, Float.toString(learningFactor1));
         parameters.put(PSO_LEARNING_FACTOR_GLOBAL_NAME, Float.toString(learningFactor2));
         parameters.put(PSO_MAX_ITERATION_NAME, Integer.toString(maxPSOIterations));
         parameters.put(PSO_INIT_SPREADING_CHANCE_NAME, Float.toString(initChance));
-        //parameters.put(PSO_SPREADING_CHANCE_NAME, Float.toString(changeChance));
-        //parameters.put(PSO_NEW_COMMUNITY_NAME, Float.toString(addComChance));
         parameters.put(LPA_THRESHOLD_NAME, Float.toString(filter));
         parameters.put(LPA_MAX_ITERATION_NAME, Integer.toString(maxLPAIterations));
         return parameters;
@@ -89,7 +83,7 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
                     if (inertiaFactor < 0 || inertiaFactor > 1)
                         throw new IllegalArgumentException();
                     break;
-                case PSO_LEARNING_FACTOR_POPULATION_NAME:
+                case PSO_LEARNING_FACTOR_PERSONAL_NAME:
                     learningFactor1 = Float.parseFloat(entry.getValue());
                     if (learningFactor1 < 0)
                         throw new IllegalArgumentException();
@@ -109,18 +103,6 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
                     if (initChance < 0 || initChance > 1)
                         throw new IllegalArgumentException();
                     break;
-                    /*
-                case PSO_SPREADING_CHANCE_NAME:
-                    changeChance = Float.parseFloat(entry.getValue());
-                    if (changeChance < 0 || changeChance > 1)
-                        throw new IllegalArgumentException();
-                    break;
-                case PSO_NEW_COMMUNITY_NAME:
-                    addComChance = Float.parseFloat(entry.getValue());
-                    if (addComChance < 0 || addComChance > 1)
-                        throw new IllegalArgumentException();
-                    break;
-                     */
                 case LPA_THRESHOLD_NAME:
                     filter = Float.parseFloat(entry.getValue());
                     if (filter < 0 || filter > 1)
@@ -201,7 +183,6 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
         {
             finalPosition.put(e.getKey(),Math.round(e.getValue()));
         }
-
         return finalPosition;
     }
 
@@ -328,7 +309,7 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
             for (Map.Entry<String, Map<Integer,Float>> x : oldCover.entrySet())
                 propagate_bbc(graph, x.getKey(), oldCover, newCover);
             Map<Integer, Integer> min;
-            if (getId(oldCover) == getId(newCover))
+            if (getId(oldCover).equals(getId(newCover)))
                 min = mc(count(oldCover), count(newCover));
             else
                 min = count(newCover);
@@ -353,14 +334,19 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
                 sub.get(c).retainAll(ids);
             }
         }
-
-        for (Map.Entry<Integer, Set<Integer>> ci : sub.entrySet())
-            if (ci.getValue().size() > 1)
+        Set<Integer> removed = new HashSet<>();
+        for (Map.Entry<Integer, Set<Integer>> ci : sub.entrySet()) {
+            Set<Integer> value = ci.getValue();
+            value.removeAll(removed);
+            if (value.size() > 1) {
+                removed.add(ci.getKey());
                 coms.remove(ci.getKey());
+            }
+        }
 
         Map<Integer, Set<String>> splitCommunities = new HashMap<>();
         Map<Integer, Integer> commSplits = new HashMap<>();
-        int k = coms.size()+1;
+        int k = Collections.max(coms.keySet())+1;
         for (Map.Entry<Integer, Set<String>> cEntry : coms.entrySet()) {
             int id = cEntry.getKey();
             while (cEntry.getValue().size() > 0){
@@ -396,8 +382,7 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
             remap.put(id,index);
             index++;
         }
-        for (Map.Entry<Integer,Integer> e : remap.entrySet())
-            System.out.println(e.getKey() +"->"+e.getValue());
+
         Matrix membershipMatrix = new Basic2DMatrix(graph.getNodeCount(), splitCommunities.size());
 
         for (Map.Entry<Integer, Set<String>> cEntry : splitCommunities.entrySet()) {
@@ -428,14 +413,16 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
                 dest.get(x).put(cb.getKey(),dest.get(x).get(cb.getKey())+cb.getValue());
             }
         }
-        float bMax = Collections.max(dest.get(x).values());
-        Map<Integer, Float> temp = new HashMap<>();
-        for (Map.Entry<Integer, Float> cb : dest.get(x).entrySet()){
-            if (cb.getValue()/bMax >= filter)
-                temp.put(cb.getKey(), cb.getValue());
+        if (dest.get(x).size() > 0) {
+            float bMax = Collections.max(dest.get(x).values());
+            Map<Integer, Float> temp = new HashMap<>();
+            for (Map.Entry<Integer, Float> cb : dest.get(x).entrySet()) {
+                if (cb.getValue() / bMax >= filter)
+                    temp.put(cb.getKey(), cb.getValue());
+            }
+            normalize(temp);
+            dest.put(x, temp);
         }
-        normalize(temp);
-        dest.put(x,temp);
     }
 
     /**
@@ -464,7 +451,7 @@ public class ParticleSwarmLabelPropagationAlgorithm  implements OcdAlgorithm {
 
     /**
      * Gets a Set of all community ids of a single node
-     * @param l community belonging coefficients of a node
+     * @param x community belonging coefficients of a node
      * @return a Set of all community ids of the node
      */
     private Set<Integer> getSubId(Map<Integer,Float> x){

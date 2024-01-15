@@ -114,6 +114,7 @@ public class LayoutHandler {
 	 * @param minNodeSize Defines the minimum size of a node. Must be greater than 0.
 	 * @param maxNodeSize Defines the maximum size of a node. Must be at least as high as the defined minimum size.
 	 * @param paintingType The painting type defining which cover painter to use.
+	 * @param maxNodeColors The maximum number of colors per node.
 	 * @throws InstantiationException if instantiation failed
 	 * @throws IllegalAccessException if an illegal access occurred on the instance
 	 * @throws InterruptedException If the executing thread was interrupted.
@@ -284,7 +285,10 @@ public class LayoutHandler {
 	 * The color of an overlapping node is obtained by a weighted mix
 	 * of the corresponding community colors in accordance with the node's
 	 * membership degrees / belonging factors.
+	 * The Multicolor of an overlapping node is a map with the colors and belonging factors
+	 * of the communities with the most membership.
 	 * @param cover The cover.
+	 * @param maxNodeColors The maximum number of colors per node.
 	 */
 	private void paintNodes(Cover cover, int maxNodeColors) {
 		CustomGraph graph = cover.getGraph();
