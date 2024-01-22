@@ -317,7 +317,15 @@ public class LayoutHandler {
 			if (maxNodeColors > 0) {
 				final Node n = node;
 				HashMap<String, Double> belongingColors = new HashMap<>();
-				communityIndices.sort((i1, i2) -> cover.getBelongingFactor(n, i2) < cover.getBelongingFactor(n, i1) ? -1 : 1);
+				communityIndices.sort((i1, i2) -> {
+					double factor1 = cover.getBelongingFactor(n, i1);
+					double factor2 = cover.getBelongingFactor(n, i2);
+					if (factor1 == factor2) {
+						return 0;
+					} else {
+						return factor1 < factor2 ? -1 : 1;
+					}
+				});
 				if (maxNodeColors < communityIndices.size()) {
 					double sum = 0;
 					for (int i = 0; i < maxNodeColors; i++) {
