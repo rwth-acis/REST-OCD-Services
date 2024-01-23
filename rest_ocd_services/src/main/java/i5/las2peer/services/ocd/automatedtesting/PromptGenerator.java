@@ -109,7 +109,7 @@ public class PromptGenerator {
         stringBuilder
                 .append("### Algorithm parameter definitions")
                 .append("\n\n")
-                .append("My algorithm has the following algorithm parameters and default paramter values:")
+                .append("My algorithm has the following algorithm parameters and default parameter values:")
                 .append("\n\n");
         for (String ocdParameter : OCDAParser.listNonFinalClassVariables(ocdaCode, true)){
             stringBuilder
@@ -132,7 +132,7 @@ public class PromptGenerator {
 
     }
 
-    public static String generateAndOCDAParameterGenerationPrompt(File ocdaCode){
+    public static String generateAndWriteOCDAParameterGenerationPrompt(File ocdaCode){
         StringBuilder stringBuilder = new StringBuilder();
 
 
@@ -143,7 +143,7 @@ public class PromptGenerator {
         stringBuilder
                 .append("### Algorithm parameter definitions")
                 .append("\n\n")
-                .append("My algorithm has the following algorithm parameters and default paramter values:")
+                .append("My algorithm has the following algorithm parameters and default parameter values:")
                 .append("\n\n");
         for (String ocdParameter : OCDAParser.listNonFinalClassVariables(ocdaCode, true)){
             stringBuilder
@@ -290,8 +290,9 @@ public class PromptGenerator {
                         "\n" +
                         "\t\t\t //TODO: To be completed by ChatGPT. Respect access modifiers and don't leave any variable unpopulated.\n" +
                         "\n" +
-                        "\t\t} catch (Exception e){\n" +
-                        "\t\t\t fail(\"The test failed: \" + e.getMessage()); // Don't modify\n" +
+                        "\t\t} catch (Throwable t){\n" +
+                        "\t\t\t fail(\"Test failed due to an exception or assertion error: \" + t.getMessage()); // Don't modify\n" +
+                        "\t\t\t throw t; // Don't modify\n" +
                         "\t\t}\n" +
                         "\t}\n"
         );
@@ -328,8 +329,9 @@ public class PromptGenerator {
                         "\t\t\t" + generateCoverInstantiationString(compatibleGraphTypeString) + " // Don't modify\n" +
                         "\t\t\t" +"assert cover.getCommunities().size() >= 1; // Don't modify\n" +
                         "\n" +
-                        "\t\t} catch (Exception e){\n" +
-                        "\t\t\t" + OCDATestExceptionHandler.class.getSimpleName()+".handleException(e); // Don't modify\n" +
+                        "\t\t} catch (Throwable t){\n" +
+                        "\t\t\t" + "fail(\"Test failed due to an exception or assertion error: \" + t.getMessage()); // Don't modify\n" +
+                        "\t\t\t" + "throw t; // Don't modify\n" +
                         "\t\t}\n" +
                         "\t}\n"
         );

@@ -346,6 +346,9 @@ task runCustomTests(type: JavaExec) {
         systemProperty 'testClassName', project.property('testClass')
     }
 
+    // Enable assertions
+    jvmArgs '-ea'
+
     classpath = sourceSets.test.runtimeClasspath
     main = 'i5.las2peer.services.ocd.ocdatestautomation.testrunner.CustomTestExecutor'
 }

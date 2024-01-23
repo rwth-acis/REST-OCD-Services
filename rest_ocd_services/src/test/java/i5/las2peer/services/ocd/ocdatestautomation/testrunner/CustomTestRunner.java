@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.ocdatestautomation.testrunner;
 
+import i5.las2peer.services.ocd.graphs.CustomGraph;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
@@ -9,7 +10,10 @@ import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
 import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,7 +47,23 @@ public class CustomTestRunner {
                 .map(failure -> {
                     TestIdentifier testIdentifier = failure.getTestIdentifier();
                     Throwable exception = failure.getException();
-                    String errorMessage = testIdentifier.getDisplayName() + " failed: " + exception.getMessage();
+                    // Generate error message about the failure
+                    String errorMessage = testIdentifier.getDisplayName() + " failed: ";
+                    // If exception string has a message use it, otherwise use stacktrace
+                    List<String> exceptionString = Arrays.asList(exception.getMessage().split("\\s+"));
+                    // Check if error string is null. Also take care of the case where graph on which the algorithm is executed is null, in which case the message also ends with null
+                    if (!exceptionString.get(exceptionString.size() - 1).equals("null") || exceptionString.stream().anyMatch(s -> s.contains(CustomGraph.class.getSimpleName()))) {
+                         errorMessage += exception.getMessage();
+                    } else {
+                        // If there is no message, get the first line of the stack trace
+                        StackTraceElement[] stackTrace = exception.getStackTrace();
+                        if (stackTrace.length > 0) {
+                            errorMessage += stackTrace[0].toString();
+                        } else {
+                            errorMessage += "unknown reason!"; // No stack trace available
+                        }
+                    }
+
                     return errorMessage;
                 })
                 .collect(Collectors.toList());
