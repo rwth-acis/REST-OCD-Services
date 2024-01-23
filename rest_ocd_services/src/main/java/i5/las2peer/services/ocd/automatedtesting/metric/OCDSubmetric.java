@@ -85,8 +85,13 @@ public class OCDSubmetric {
         // Get all variable declarations in the OCDA class file
         List<String> variableDeclarations = OCDAParser.listClassVariables(ocdaCode);
 
-        // Extract variable names from the variable declarations of the OCDA class
-        List<String> algorithmParameterNames = extractParameterNamesFromDeclarations(OCDAParser.listClassVariables(ocdaCode));
+        // Extract OCD algorithm parameter names from the OCD algorithm code file
+        List<String> algorithmParameterNames = extractParameterNamesFromDeclarations(ocdaCode);
+
+        // If algorithm has no parameters, then return 1 since all parameters that exist (i.e. none) are trivially set
+        if (algorithmParameterNames.size() < 1){
+            return 1.0;
+        }
 
         // Compatible graph types of the algorithm
         List<String> compatibleGraphTypes = OCDAParser.extractCompatibilitiesAndAddUndirectedGraphType(ocdaCode);
@@ -167,7 +172,7 @@ public class OCDSubmetric {
      * @param variableDeclarations A list of String representations of variable declarations.
      * @return A list of algorithm variable names extracted from the provided variable declarations.
      */
-    public static List<String> extractParameterNamesFromDeclarations(List<String> variableDeclarations){
+    public static List<String> extractNonFinalVariableNamesFromDeclarations(List<String> variableDeclarations){
 
         // Filter the variable declaration list to remove any variables that are declared as final String. This
         // should remove constants and only keep the algorithm variables that should be set within a test.
@@ -185,6 +190,36 @@ public class OCDSubmetric {
 
         return algorithmVariableNames;
     }
+
+
+    /**
+     * Extracts OCD algorithm parameter names from the declarations in the OCD algorithm class.
+     *
+     * @param ocdaCode A File object representing the source code of the OCD algorithm class.
+     * @return A List of strings containing the extracted OCD algorithm parameter names.
+     */
+    public static List<String> extractParameterNamesFromDeclarations(File ocdaCode){
+        List<String> ocdaParameterNames = new ArrayList<>();
+
+        // Get non-final parameters declared in OCD algorithm class
+        List<String> ocdaVaraibleNames = OCDSubmetric.extractNonFinalVariableNamesFromDeclarations(OCDAParser.listClassVariables(ocdaCode));
+
+        // Identify variable declarations in the OCDA class that are parameters of OCDA.
+        // Parameters are identified based on the getParameters method that every OCDA implements
+        ArrayList<String> getParametersMethodCalls = OCDAParser.listMethodCallsInMethod(ocdaCode,"getParameters",false);
+        ArrayList<String> ocdaParameterNameConstants = (ArrayList<String>) OCDAParser.extractOCDAParameterConstants(getParametersMethodCalls);
+
+        // If variable declaration is part of the getParameters method, then it is OCDA parameter
+        for (String variableName : ocdaVaraibleNames) {
+            String variableNameCamelCase = FormattingHelpers.convertCamelCaseToUpperCaseWithUnderscores(variableName);
+            if (ocdaParameterNameConstants.contains(variableNameCamelCase)) {
+                ocdaParameterNames.add(variableName);
+            }
+        }
+
+        return ocdaParameterNames;
+    }
+
 
 
     /**

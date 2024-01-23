@@ -724,4 +724,26 @@ public class OCDAParser {
         });
         return defaultParameterValues;
     }
+
+    /**
+     * Extracts constants that hold names of OCD algorithm parameter names from a list of method call entries of
+     * OCD algorithm parameter getter method.
+     *
+     * @param entries An ArrayList of method call entries from getParameters method of OCDA.
+     * @return A List of strings containing the extracted OCDA parameter names.
+     */
+    public static List<String> extractOCDAParameterConstants(ArrayList<String> entries) {
+        List<String> keys = new ArrayList<>();
+        for (String entry : entries) {
+            if (entry.contains("parameters.put(")) {
+                int startIndex = entry.indexOf('(') + 1; // Start after '('
+                int endIndex = entry.indexOf(','); // Stop at ','
+                if (startIndex < endIndex && startIndex > 0 && endIndex > 0) {
+                    String key = entry.substring(startIndex, endIndex).trim();
+                    keys.add(key);
+                }
+            }
+        }
+        return keys;
+    }
 }
