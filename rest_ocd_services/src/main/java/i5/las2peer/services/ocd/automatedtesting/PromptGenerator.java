@@ -324,6 +324,7 @@ public class PromptGenerator {
                         "\t\ttry {\n" +
                         "\t\t\t" + generateGraphInstantiationString(compatibleGraphTypeString) + " // Don't modify\n" +
                         "\n" +
+                        "\t\t\t Map<String, String> parameters = new HashMap<>(); // Don't modify\n" +
                         "\t\t\t//TODO: Set algorithm parameters here. To be completed by ChatGPT\n" +
                         "\n" +
                         "\t\t\t" + generateCoverInstantiationString(compatibleGraphTypeString) + " // Don't modify\n" +
