@@ -22,6 +22,7 @@ import i5.las2peer.services.ocd.adapters.graphOutput.MultiplexGraphOutputAdapter
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
 import i5.las2peer.services.ocd.adapters.metaOutput.*;
+import i5.las2peer.services.ocd.algorithms.ABACUSAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
@@ -680,8 +681,6 @@ public class RequestHandler {
 		Writer writer = new StringWriter();
 		adapter.setWriter(writer);
 		adapter.writeGraph(graph);
-		System.out.println("Requesthandler: writeMultiplexGraph");
-		System.out.println(writer.toString());
 		return writer.toString();
 	}
 
@@ -880,10 +879,34 @@ public class RequestHandler {
 		Element namesElt = doc.createElement("Names");
 		for(CoverCreationType e : CoverCreationType.class.getEnumConstants()) {
 			if(e.correspondsAlgorithm()) {
+				System.out.println("requestHandler.writeAlgorithmNames()" + e.getDisplayName());
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
 				nameElt.setAttribute("displayName", e.getDisplayName());
 				namesElt.appendChild(nameElt);
+			}
+		}
+		doc.appendChild(namesElt);
+		return writeDoc(doc);
+	}
+
+	/**
+	 * Creates an XML document containing all ocd algorithm names.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parsing failed
+	 */
+	public String writeMultiplexAlgorithmNames() throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element namesElt = doc.createElement("Names");
+		for(CoverCreationType e : CoverCreationType.class.getEnumConstants()) {
+			if(e.correspondsAlgorithm()) {
+				if(e.getDisplayName() == "ABACUS Algorithm") {
+					System.out.println("requestHandler.writeMultiplexAlgorithmNames()" + e.getDisplayName());
+					Element nameElt = doc.createElement("Name");
+					nameElt.appendChild(doc.createTextNode(e.name()));
+					nameElt.setAttribute("displayName", e.getDisplayName());
+					namesElt.appendChild(nameElt);
+				}
 			}
 		}
 		doc.appendChild(namesElt);

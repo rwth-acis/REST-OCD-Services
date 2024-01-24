@@ -296,8 +296,6 @@ public class Database {
 			db.abortStreamTransaction(transId);
 			throw e;
 		}
-		System.out.println("Database getMultiplexGraph(key): graph.name");
-		System.out.println(graph.getName());
 		return graph;
 	}
 	
@@ -435,7 +433,6 @@ public class Database {
 	 * @return the list of graphs
 	 */
 	public ArrayList<CustomGraphMeta> getMultiplexGraphMetaDataOfLayersEfficiently(String username, String key){
-		System.out.println("key in database:" + key);
 		String transId = getTransactionId(MultiplexGraph.class, false);
 		ObjectMapper objectMapper = new ObjectMapper(); // needed to instantiate CustomGraphMeta from JSON
 		ArrayList<CustomGraphMeta> customGraphMetas = new ArrayList<CustomGraphMeta>();
@@ -708,6 +705,7 @@ public class Database {
 			threadHandler.interruptBenchmark(id);
 
 			List<Cover> coverList = getCovers(username, graphKey);
+			System.out.println("Database: 1 : coverlist : " + coverList);
 			for (Cover cover : coverList) {
 				try {
 					deleteCover(cover, threadHandler);
@@ -715,10 +713,8 @@ public class Database {
 					throw e;
 				}
 			}
-
+			System.out.println("Database: 2 : coverlist : " + coverList);
 			try {
-				MultiplexGraph graph = getMultiplexGraph(username, graphKey);
-
 				String transId = this.getTransactionId(null, true);
 				DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 				DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
@@ -1991,9 +1987,10 @@ public class Database {
 		}
 		else if(c == MultiplexGraph.class) {
 			collections = new String[] {collectionNames.get(0),collectionNames.get(1),collectionNames.get(2),collectionNames.get(3),collectionNames.get(4),collectionNames.get(13)};
+			System.out.println("Database: getTransactionId: " + collections);
 		}
 		else {
-			collections = collectionNames.subList(0, 13).toArray(new String[10]);
+			collections = collectionNames.subList(0, 14).toArray(new String[10]);
 		}
 		StreamTransactionEntity tx;
 		if(write) {

@@ -550,10 +550,10 @@ public class ServiceClass extends RESTService {
 			Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
 			*/
 
-			if (userLimitsHandler.reachedGraphCountLimit(username)){
-				requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
-				return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
-			}
+			//if (userLimitsHandler.reachedGraphCountLimit(username)){
+			//	requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
+			//	return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
+			//}
 
 			File graphDir = new File("tmp" + File.separator + username);
 			if (!graphDir.exists()) {
@@ -915,16 +915,12 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Specified graph output format does not exist.");
 				}
-				System.out.println("serviceclass: format");
-				System.out.println(format);
 				MultiplexGraph graph = database.getMultiplexGraph(username, graphIdStr);
-				System.out.println("serviceclass: graph.name");
-				System.out.println(graph.getName());
 				if (graph == null)
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Graph does not exist: graph key " + graphIdStr);
 
-				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get cover " + graphIdStr + " in format " + graphOutputFormatStr );
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get multiplex graph " + graphIdStr + " in format " + graphOutputFormatStr );
 				return Response.ok(requestHandler.writeMultiplexGraph(graph, format)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -952,7 +948,7 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"delete"}, value = "Delete Graph", notes = "Deletes a graph.")
 		public Response deleteGraph(@PathParam("graphId") String graphIdStr) {
 			try {
-
+				System.out.println("ServiceClass: deleteGraph");
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				try {
 					database.deleteGraph(username, graphIdStr, threadHandler);	//done
@@ -990,18 +986,21 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"delete"}, value = "Delete Graph", notes = "Deletes a graph.")
 		public Response deleteMultiplexGraph(@PathParam("graphId") String graphIdStr) {
 			try {
-
+				System.out.println("ServiceClass: 1");
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				try {
-					database.deleteMultiplexGraph(username, graphIdStr, threadHandler);	//done
-
+					database.deleteMultiplexGraph(username, graphIdStr, threadHandler);
+					System.out.println("ServiceClass: 2");
 				} catch (Exception e) {
 					if(e.getMessage() != null) {
 						requestHandler.writeError(Error.INTERNAL, "Graph could not be deleted: " + e.getMessage());
+						System.out.println("ServiceClass: 3");
 					}
 					requestHandler.writeError(Error.INTERNAL, "Graph not found");
+					System.out.println("ServiceClass: 4");
 				}
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete graph " + graphIdStr);
+				System.out.println("ServiceClass: 5");
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -1046,10 +1045,10 @@ public class ServiceClass extends RESTService {
 				/*
 				Check if user has a limit regarding  covers and throw an error if the limit is violated.
 				 */
-				if (userLimitsHandler.reachedCoverCountLimit(username)){
-					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
-					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
-				}
+				//if (userLimitsHandler.reachedCoverCountLimit(username)){
+				//	requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
+				//	return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
+				//}
 
 				CoverInputFormat format;
 				try {
@@ -2295,14 +2294,14 @@ public class ServiceClass extends RESTService {
 								/*
 				Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
 				 */
-				if (userLimitsHandler.reachedGraphCountLimit(username)){
-					requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
-					return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
-				}
-				if (userLimitsHandler.reachedCoverCountLimit(username)){
-					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
-					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
-				}
+				//if (userLimitsHandler.reachedGraphCountLimit(username)){
+				//	requestHandler.log(Level.WARNING, "user: " + username + " reached graph count limit.");
+				//	return requestHandler.writeError(Error.INTERNAL, "Graph count limit reached. Delete a graph before generating a new one, or contact administrator to adjust limits.");
+				//}
+				//if (userLimitsHandler.reachedCoverCountLimit(username)){
+				//	requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
+				//	return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
+				//}
 
 
 	    		GraphCreationType benchmarkType;
@@ -3327,7 +3326,28 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"names"}, value = "Algorithms information", notes = "Returns all algorithm type names.")
 		public Response getAlgorithmNames() {
 			try {
+				System.out.println("ServiceClass: getAlgorithmNames: " + requestHandler.writeAlgorithmNames());
 				return Response.ok(requestHandler.writeAlgorithmNames()).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
+		 * Returns all algorithm type names.
+		 *
+		 * @return The types in a names xml. Or an error xml.
+		 */
+		@GET
+		@Path("multiplexalgorithms")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"names"}, value = "Algorithms information", notes = "Returns all algorithm type names.")
+		public Response getMultiplexAlgorithmNames() {
+			try {
+				return Response.ok(requestHandler.writeMultiplexAlgorithmNames()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");

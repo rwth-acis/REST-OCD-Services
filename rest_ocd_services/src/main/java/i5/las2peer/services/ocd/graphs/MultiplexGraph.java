@@ -290,7 +290,11 @@ public class MultiplexGraph {
 		MultiplexGraph graph = null;
 		ArangoCollection collection = db.collection(collectionName);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
-		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		//AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		System.out.println("MultiplexGraph load: collection: " + collection);
+		System.out.println("MultiplexGraph load: key: " + key);
+		System.out.println("MultiplexGraph load: BaseDocument.class: " + BaseDocument.class);
+		System.out.println("MultiplexGraph load: readOpt: " + readOpt);
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
 
 		if (bd != null) {
