@@ -30,6 +30,12 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.PackageDeclaration;
 import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
 import i5.las2peer.services.ocd.automatedtesting.helpers.FormattingHelpers;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.comments.JavadocComment;
+import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.type.Type;
 
 public class OCDAParser {
 
@@ -498,40 +504,114 @@ public class OCDAParser {
             List<FieldDeclaration> fields = cu.findAll(FieldDeclaration.class);
 
             for (FieldDeclaration field : fields) {
-                // Check if field is final and skip if it is
-                if (field.getModifiers().contains(Modifier.finalModifier())) {
+                if (isFieldFinal(field)) {
                     continue;
                 }
 
-                String javadocComment = "";
-                if (includeComments) {
-                    // Extract the Javadoc comment if present, with proper formatting
-                    javadocComment = field.getComment()
-                            .filter(c -> c.isJavadocComment())
-                            .map(c -> ((JavadocComment) c).toString())
-                            .orElse("");
-                }
-
-                // Extract the field declaration
-                String modifiers = field.getModifiers().stream()
-                        .map(Modifier::toString)
-                        .collect(Collectors.joining(" ")).trim();
-
-                Type type = field.getCommonType();
-                String vars = field.getVariables().stream()
-                        .map(v -> v.getNameAsString() + (v.getInitializer().isPresent() ? " = " + v.getInitializer().get() : ""))
-                        .collect(Collectors.joining(", "));
-
-                String fieldDeclaration = (modifiers.isEmpty() ? "" : modifiers + " ") + type + " " + vars + ";";
-
-                // Combine Javadoc comment and field declaration
-                classVariablesWithComments.add(javadocComment.trim() + (includeComments ? "\n" : "") + fieldDeclaration.trim());
+                classVariablesWithComments.addAll(
+                        collectFieldDeclarations(field, includeComments, null)
+                );
             }
         } catch (Exception e) {
             throw new RuntimeException("Error parsing class variables with comments: " + e.getMessage(), e);
         }
         return classVariablesWithComments;
     }
+
+    /**
+     * Extracts and lists class-level variable declarations (non-final) for specified variable names from a Java class file,
+     * optionally with their properly formatted Javadoc comments.
+     *
+     * @param javaFile       The Java class file to parse.
+     * @param includeComments Flag to determine whether to include Javadoc comments.
+     * @param ocdaParameters The list of variable names to include in the result.
+     * @return A List of Strings, each representing a class-level variable declaration,
+     *         optionally with properly formatted Javadoc comment, for the specified variable names.
+     */
+    public static List<String> listSelectedClassVariables(File javaFile, boolean includeComments, List<String> ocdaParameters) {
+        List<String> selectedVariablesWithComments = new ArrayList<>();
+        try {
+            CompilationUnit cu = parseJavaFile(javaFile);
+            List<FieldDeclaration> fields = cu.findAll(FieldDeclaration.class);
+
+            for (FieldDeclaration field : fields) {
+                if (isFieldFinal(field)) {
+                    continue;
+                }
+
+                selectedVariablesWithComments.addAll(
+                        collectFieldDeclarations(field, includeComments, ocdaParameters)
+                );
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing selected class variables with comments: " + e.getMessage(), e);
+        }
+        return selectedVariablesWithComments;
+    }
+
+    /**
+     * Collects field declarations for a given field, optionally including Javadoc comments, and filters them based on
+     * a list of specified variable names.
+     *
+     * @param field           The field from which variable declarations are collected.
+     * @param includeComments If true, includes Javadoc comments for each field.
+     * @param ocdaParameters  A list of variable names to filter the field declarations. If null, all variables are included.
+     * @return A list of strings, each representing a variable declaration (optionally with its Javadoc comment) from the specified field.
+     */
+    private static List<String> collectFieldDeclarations(FieldDeclaration field, boolean includeComments, List<String> ocdaParameters) {
+        List<String> fieldDeclarations = new ArrayList<>();
+        for (VariableDeclarator variable : field.getVariables()) {
+            // If ocdaParameters is not null, check if the variable name is contained in the list
+            if (ocdaParameters == null || ocdaParameters.contains(variable.getNameAsString())) {
+                String fieldDeclaration = createFieldDeclaration(field, variable, includeComments);
+                fieldDeclarations.add(fieldDeclaration);
+            }
+        }
+        return fieldDeclarations;
+    }
+
+    /**
+     * Checks if a given field is declared as final.
+     *
+     * @param field The field to check.
+     * @return true if the field is final, false otherwise.
+     */
+    private static boolean isFieldFinal(FieldDeclaration field) {
+        return field.getModifiers().contains(Modifier.finalModifier());
+    }
+
+    /**
+     * Creates a string representation of a field declaration, including its modifiers, type, name, initializer, and
+     * optionally its Javadoc comment.
+     *
+     * @param field           The field from which the declaration is created.
+     * @param variable        The variable inside the field to include in the declaration.
+     * @param includeComments If true, includes the Javadoc comment for the field.
+     * @return A string representing the field declaration, optionally including its Javadoc comment.
+     */
+    private static String createFieldDeclaration(FieldDeclaration field, VariableDeclarator variable, boolean includeComments) {
+        String javadocComment = includeComments ? getJavadocComment(field) : "";
+        String modifiers = field.getModifiers().stream().map(Modifier::toString).collect(Collectors.joining(" ")).trim();
+        Type type = field.getCommonType();
+        String vars = variable.getNameAsString() + (variable.getInitializer().isPresent() ? " = " + variable.getInitializer().get() : "");
+        String fieldDeclaration = (modifiers.isEmpty() ? "" : modifiers + " ") + type + " " + vars + ";";
+
+        return javadocComment.trim() + (includeComments && !javadocComment.isEmpty() ? "\n" : "") + fieldDeclaration.trim();
+    }
+
+    /**
+     * Retrieves the Javadoc comment associated with a field, if it exists.
+     *
+     * @param field The field from which to retrieve the Javadoc comment.
+     * @return The Javadoc comment as a string, or an empty string if no Javadoc comment is present.
+     */
+    private static String getJavadocComment(FieldDeclaration field) {
+        return field.getComment()
+                .filter(c -> c.isJavadocComment())
+                .map(c -> ((JavadocComment) c).toString())
+                .orElse("");
+    }
+
 
 
     /**

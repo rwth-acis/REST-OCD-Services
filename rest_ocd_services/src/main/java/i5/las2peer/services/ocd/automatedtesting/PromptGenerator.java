@@ -16,6 +16,7 @@ import org.json.simple.JSONObject;
 import static i5.las2peer.services.ocd.automatedtesting.OCDATestAutomationConstants.*;
 import static i5.las2peer.services.ocd.automatedtesting.helpers.FormattingHelpers.*;
 import static i5.las2peer.services.ocd.automatedtesting.helpers.OCDWriter.generateAndWriteFile;
+import static i5.las2peer.services.ocd.automatedtesting.metric.OCDSubmetric.extractParameterNamesFromDeclarations;
 import static i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser.*;
 
 public class PromptGenerator {
@@ -111,7 +112,15 @@ public class PromptGenerator {
                 .append("\n\n")
                 .append("My algorithm has the following algorithm parameters and default parameter values:")
                 .append("\n\n");
-        for (String ocdParameter : OCDAParser.listNonFinalClassVariables(ocdaCode, true)){
+
+        // Extract OCDA parameters of from the algorithm code
+        List<String> ocdaParams = extractParameterNamesFromDeclarations(ocdaCode);
+
+        // Extract full OCDA parameter declarations from the algorithm code, together with Javadoc comments (if present)
+        List<String> ocdaParamsFullDeclarations =  OCDAParser.listSelectedClassVariables(ocdaCode,true,ocdaParams);
+
+        // Add OCDA parameters to the prompt
+        for (String ocdParameter : ocdaParamsFullDeclarations){
             stringBuilder
                     .append(ocdParameter)
                     .append("\n\n\n");
@@ -324,8 +333,9 @@ public class PromptGenerator {
                         "\t\ttry {\n" +
                         "\t\t\t" + generateGraphInstantiationString(compatibleGraphTypeString) + " // Don't modify\n" +
                         "\n" +
-                        "\t\t\t Map<String, String> parameters = new HashMap<>(); // Don't modify\n" +
+                        "\t\t\tMap<String, String> parameters = new HashMap<>(); // Don't modify\n" +
                         "\t\t\t//TODO: Set algorithm parameters here. To be completed by ChatGPT\n" +
+                        "\t\t\tgetAlgorithm().setParameters(parameters); // Don't modify\n" +
                         "\n" +
                         "\t\t\t" + generateCoverInstantiationString(compatibleGraphTypeString) + " // Don't modify\n" +
                         "\t\t\t" +"assert cover.getCommunities().size() >= 1; // Don't modify\n" +
