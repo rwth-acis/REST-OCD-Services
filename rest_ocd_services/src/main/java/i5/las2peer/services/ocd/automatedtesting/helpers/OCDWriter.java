@@ -55,15 +55,16 @@ public class OCDWriter {
      *
      * @param textToLog     The text to be logged.
      * @param printToConsole True to print the logged text to the console, false otherwise.
+     * @param ocdaName       Name of the OCD algorithm for which the communication is logged.
      */
-    public static void logGptCommunication(String textToLog, Boolean printToConsole){
+    public static void logGptCommunication(String textToLog, Boolean printToConsole, String ocdaName){
         // Get the current date and time
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String currentDate = dateFormat.format(new Date());
 
 
         // Define the file path where the logged communication is written
-        String filePath = "gpt/logs/gpt-communication.txt";
+        String filePath = "gpt/logs/" + ocdaName + "-gpt-communication.txt";
 
         // Write the current date and generatedPrompt to the file
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
