@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.jena.atlas.iterator.Iter;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -22,7 +21,6 @@ import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 import org.la4j.vector.dense.BasicVector;
 
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
@@ -225,11 +223,14 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 			vec2 = new BasicVector(vec1);
 			vec1 = disassortativityMatrix.multiply(vec1);
 		}
-		if (iteration >= randomWalkIterationBound) {
-			throw new OcdAlgorithmException(
-					"Random walk iteration bound exceeded: iteration "
-							+ iteration);
-		}
+		// this part of the code causes an exception when the randomWalkIterationBound is reached and terminates
+		// the algorithm execution. Disabling this part will prevent the algorithm termination and instead use
+		// the results found within the first randomWalkIterationBound many iterations.
+//		if (iteration >= randomWalkIterationBound) {
+//			throw new OcdAlgorithmException(
+//					"Random walk iteration bound exceeded: iteration "
+//							+ iteration);
+//		}
 		return vec1;
 	}
 
