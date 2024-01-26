@@ -1,32 +1,18 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecuteResultHandler;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.lang3.SystemUtils;
-
-import java.util.Scanner;
-
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
-import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkException;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.graphs.GraphType;
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
-
-import java.security.SecureRandom;
 
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -59,9 +45,9 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 	/*
 	 * PARAMETER NAMES
 	 */
-	protected final String TRIALCOUNT_NAME = "trialCount";
-	protected final String COMMUNITYCOUNT_NAME = "communityCount";
-	protected final String MINLIKELIHOODDIFFERENCE_NAME = "minLikelihoodDifference";
+	protected final String TRIAL_COUNT_NAME = "trialCount";
+	protected final String COMMUNITY_COUNT_NAME = "communityCount";
+	protected final String MIN_LIKELIHOOD_DIFFERENCE_NAME = "minLikelihoodDifference";
 	
 
 	@Override
@@ -71,23 +57,23 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 
 	@Override
 	public void setParameters(Map<String, String> parameters) {
-		if (parameters.containsKey(TRIALCOUNT_NAME)) {
-			trialCount = Integer.parseInt(parameters.get(TRIALCOUNT_NAME));
-			parameters.remove(TRIALCOUNT_NAME);
+		if (parameters.containsKey(TRIAL_COUNT_NAME)) {
+			trialCount = Integer.parseInt(parameters.get(TRIAL_COUNT_NAME));
+			parameters.remove(TRIAL_COUNT_NAME);
 			if (trialCount <= 0) {
 				throw new IllegalArgumentException();
 			}
 		}
-		if (parameters.containsKey(COMMUNITYCOUNT_NAME)) {
-			communityCount = Integer.parseInt(parameters.get(COMMUNITYCOUNT_NAME));
-			parameters.remove(COMMUNITYCOUNT_NAME);
+		if (parameters.containsKey(COMMUNITY_COUNT_NAME)) {
+			communityCount = Integer.parseInt(parameters.get(COMMUNITY_COUNT_NAME));
+			parameters.remove(COMMUNITY_COUNT_NAME);
 			if (communityCount <= 0) {
 				throw new IllegalArgumentException();
 			}
 		}
-		if (parameters.containsKey(MINLIKELIHOODDIFFERENCE_NAME)) {
-			minLikelihoodDifference = Double.parseDouble(parameters.get(MINLIKELIHOODDIFFERENCE_NAME));
-			parameters.remove(MINLIKELIHOODDIFFERENCE_NAME);
+		if (parameters.containsKey(MIN_LIKELIHOOD_DIFFERENCE_NAME)) {
+			minLikelihoodDifference = Double.parseDouble(parameters.get(MIN_LIKELIHOOD_DIFFERENCE_NAME));
+			parameters.remove(MIN_LIKELIHOOD_DIFFERENCE_NAME);
 			if (minLikelihoodDifference <= 0) {
 				throw new IllegalArgumentException();
 			}
@@ -100,9 +86,9 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 	@Override
 	public Map<String, String> getParameters() {
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(TRIALCOUNT_NAME, Integer.toString(trialCount));
-		parameters.put(COMMUNITYCOUNT_NAME, Integer.toString(communityCount));
-		parameters.put(MINLIKELIHOODDIFFERENCE_NAME, Double.toString(minLikelihoodDifference));
+		parameters.put(TRIAL_COUNT_NAME, Integer.toString(trialCount));
+		parameters.put(COMMUNITY_COUNT_NAME, Integer.toString(communityCount));
+		parameters.put(MIN_LIKELIHOOD_DIFFERENCE_NAME, Double.toString(minLikelihoodDifference));
 		return parameters;
 	}
 

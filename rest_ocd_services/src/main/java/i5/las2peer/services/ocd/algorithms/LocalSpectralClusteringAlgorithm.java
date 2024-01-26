@@ -11,29 +11,18 @@ import i5.las2peer.services.ocd.algorithms.utils.LEMONArrayListIndexComparator;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
-import org.la4j.matrix.sparse.CRSMatrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 import org.la4j.vector.dense.BasicVector;
 import org.la4j.decomposition.SingularValueDecompositor;
-import org.la4j.decomposition.EigenDecompositor;
 
 import java.util.*;
 
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
-import org.apache.commons.math3.optim.PointValuePair;
 import org.apache.commons.math3.optim.linear.LinearConstraint;
-import org.apache.commons.math3.optim.linear.LinearConstraintSet;
 import org.apache.commons.math3.optim.linear.LinearObjectiveFunction;
-import org.apache.commons.math3.optim.linear.NoFeasibleSolutionException;
-import org.apache.commons.math3.optim.linear.NonNegativeConstraint;
-import org.apache.commons.math3.optim.linear.PivotSelectionRule;
-import org.apache.commons.math3.optim.linear.Relationship;
-import org.apache.commons.math3.optim.linear.SimplexSolver;
-import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
 
 //import scpsolver.problems.LinearProgram;
 //import scpsolver.problems.LPSolution;
@@ -45,8 +34,6 @@ import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
 //import scpsolver.constraints.*;
 
 
-import org.ojalgo.OjAlgoUtils;
-import org.ojalgo.netio.BasicLogger;
 import org.ojalgo.optimisation.Expression;
 import org.ojalgo.optimisation.ExpressionsBasedModel;
 import org.ojalgo.optimisation.Optimisation;
@@ -61,22 +48,22 @@ import org.ojalgo.optimisation.Variable;
  */
 public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 
-	/*
+	/**
 	 * The index list of the graph node seed set
 	 */
 	private ArrayList<String> commaSeparatedSeedSet = new ArrayList<String>(Arrays.asList("NodeName"));
 
-	/*
+	/**
 	 * The minimum possible community size
 	 */
 	private int minimumCommunitySize = 1;
 
-	/*
+	/**
 	 * The maximum possible community size
 	 */
 	private int maximumCommunitySize = 100;
 
-	/*
+	/**
 	 * The number of nodes to be added with each expansion step
 	 * 
 	 * Setting this higher can increase performance but too high values might
@@ -84,7 +71,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 */
 	private int expansionStepSize = 6;
 
-	/*
+	/**
 	 * Specifies whether the initial probabilities for the starting nodes should be
 	 * based on their degree (true) or all be equal (false)
 	 */
@@ -92,7 +79,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 	// ADVANCED PARAMETERS
 
-	/*
+	/**
 	 * Specifies the subspace dimension size.
 	 * 
 	 * Essentially alters the number of successive random walks and eigenvectors.
@@ -101,7 +88,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 */
 	private int subspaceDimension = 3;
 
-	/*
+	/**
 	 * The number of steps a random Walk will take.
 	 * 
 	 * Can yield better communities, but setting it too high might achieve the
@@ -123,9 +110,9 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 	protected static final String BIASED_NAME = "biased";
 
-	protected static final String subspaceDimensionENSION_NAME = "subspaceDimension";
+	protected static final String SUBSPACE_DIMENSION_NAME = "subspaceDimension";
 
-	protected static final String randomrandomWalkSteps_NAME = "randomWalkSteps";
+	protected static final String RANDOM_WALK_STEPS_NAME = "randomWalkSteps";
 
 	/**
 	 * Creates a standard instance of the algorithm. All attributes are assigned
@@ -154,8 +141,8 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 		parameters.put(MAXIMUM_COMMUNITY_SIZE_NAME, Integer.toString(maximumCommunitySize));
 		parameters.put(EXPANSION_STEP_SIZE_NAME, Integer.toString(expansionStepSize));
 		parameters.put(BIASED_NAME, Boolean.toString(biased));
-		parameters.put(subspaceDimensionENSION_NAME, Integer.toString(subspaceDimension));
-		parameters.put(randomrandomWalkSteps_NAME, Integer.toString(randomWalkSteps));
+		parameters.put(SUBSPACE_DIMENSION_NAME, Integer.toString(subspaceDimension));
+		parameters.put(RANDOM_WALK_STEPS_NAME, Integer.toString(randomWalkSteps));
 		return parameters;
 	}
 
@@ -211,19 +198,19 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			// }
 			parameters.remove(BIASED_NAME);
 		}
-		if (parameters.containsKey(subspaceDimensionENSION_NAME)) {
-			subspaceDimension = Integer.parseInt(parameters.get(subspaceDimensionENSION_NAME));
+		if (parameters.containsKey(SUBSPACE_DIMENSION_NAME)) {
+			subspaceDimension = Integer.parseInt(parameters.get(SUBSPACE_DIMENSION_NAME));
 			if (subspaceDimension <= 0) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(subspaceDimensionENSION_NAME);
+			parameters.remove(SUBSPACE_DIMENSION_NAME);
 		}
-		if (parameters.containsKey(randomrandomWalkSteps_NAME)) {
-			randomWalkSteps = Integer.parseInt(parameters.get(randomrandomWalkSteps_NAME));
+		if (parameters.containsKey(RANDOM_WALK_STEPS_NAME)) {
+			randomWalkSteps = Integer.parseInt(parameters.get(RANDOM_WALK_STEPS_NAME));
 			if (randomWalkSteps <= 0) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(randomrandomWalkSteps_NAME);
+			parameters.remove(RANDOM_WALK_STEPS_NAME);
 		}
 		if (parameters.size() > 0) {
 			// DEBUG: System.out.println("params: " + parameters.toString());
