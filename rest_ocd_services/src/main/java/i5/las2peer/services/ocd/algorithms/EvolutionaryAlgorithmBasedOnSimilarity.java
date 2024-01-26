@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.*;
 
 import i5.las2peer.services.ocd.algorithms.mea.MeaAlgorithm;
+import i5.las2peer.services.ocd.automatedtesting.helpers.PathResolver;
 import org.apache.commons.exec.DefaultExecutor;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -30,7 +31,7 @@ public class EvolutionaryAlgorithmBasedOnSimilarity implements OcdAlgorithm {
 	/**
 	 * Path of the directory reserved for the application.
 	 */
-	private static final String DirectoryPath = "ocd/mea/";
+	public static final String DirectoryPath = PathResolver.resolvePath("ocd/mea") + File.separator;
 	/**
 	 * Used for synchronization purposes. Executes the application execution.
 	 */

@@ -1,7 +1,9 @@
 package i5.las2peer.services.ocd.algorithms.mea;
 
+import i5.las2peer.services.ocd.algorithms.EvolutionaryAlgorithmBasedOnSimilarity;
 import org.apache.jena.sparql.exec.http.Params;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -264,7 +266,7 @@ public class Population {
     public static void dump_pop(String name, Population pop){
         //System.out.println(name + " " + pop.id);
         try {
-            FileWriter fileWriter = new FileWriter("ocd/mea/"+name);
+            FileWriter fileWriter = new FileWriter(EvolutionaryAlgorithmBasedOnSimilarity.DirectoryPath + name);
             PrintWriter printWriter = new PrintWriter(fileWriter);
 
             printWriter.printf("#id      %d\n",pop.id);
