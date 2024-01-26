@@ -30,7 +30,6 @@ import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.vector.Vector;
 import org.la4j.vector.dense.BasicVector;
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
@@ -55,17 +54,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	 * number of ants/subproblems to solve. Must be at least 2 (Otherwise it will result in a division by 0). 
 	 */
-	private static int M = 2;
+	private static int numberOfAnts = 2;
 	
 	/**
 	 * Number of groups to cluster the ants in. The value should be in between 2 and M. Must be at least 2 
 	 */
-	private static int K = 2; 
+	private static int numberOfGroups = 2;
 	  
 	/**
 	 * Rate of the pheromone persistence
 	 */
-	private static double rho = 0.8;
+	private static double persistenceFactor = 0.8;
 
 	/**
 	 * Contains pheromones matrix of each group of ants to get hold of the current pheromones in the graph. 
@@ -93,7 +92,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/**
 	* The number of nearest neighbors considered in a neighborhood
 	*/
-	private static int nearNbors = 1; 
+	private static int numberOfNeighbors = 1;
 	
 	/**
 	 * reference point for the minimal objective function values found so far 
@@ -108,17 +107,17 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	/*
 	 * PARAMETER NAMES
 	 */
-	protected static final String MAX_ITERATIONS = "number of iterations";
-	
-	protected static final String NUMBER_OF_ANTS = "number of ants/subproblems";
-			
-	protected static final String PERSISTANCE_FACTOR = "persistence of the pheromones on the graph";
-	
-	protected static final String NUMMER_OF_NEIGHBORS = "number of nearest neighbors to be considered in a neighborhood";
-	
-	protected static final String INITIAL_PHEROMONES = "intial pheormone concentration";
-	
-	protected static final String NUMBER_OF_GROUP = "number of groups";
+	public static final String MAX_ITERATIONS_NAME = "maxIterations";
+
+	public static final String NUMBER_OF_ANTS_NAME = "numberOfAnts";
+
+	public static final String PERSISTENCE_FACTOR_NAME = "persistenceFactor";
+
+	public static final String NUMBER_OF_NEIGHBORS_NAME = "numberOfNeighbors";
+
+	public static final String INITIAL_PHEROMONES_NAME = "initialPheromones";
+
+	public static final String NUMBER_OF_GROUPS_NAME = "numberOfGroups";
 	
 	public AntColonyOptimizationAlgorithm() {}
 	
@@ -141,60 +140,60 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	@Override
 	public Map<String,String> getParameters(){
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(MAX_ITERATIONS, Integer.toString(maxIterations));
-		parameters.put(NUMBER_OF_ANTS, Integer.toString(M));
-		parameters.put(PERSISTANCE_FACTOR, Double.toString(rho));
-		parameters.put(NUMMER_OF_NEIGHBORS, Integer.toString(nearNbors));
-		parameters.put(INITIAL_PHEROMONES, Integer.toString(initialPheromones));
-		parameters.put(NUMBER_OF_GROUP, Integer.toString(K));
+		parameters.put(MAX_ITERATIONS_NAME, Integer.toString(maxIterations));
+		parameters.put(NUMBER_OF_ANTS_NAME, Integer.toString(numberOfAnts));
+		parameters.put(PERSISTENCE_FACTOR_NAME, Double.toString(persistenceFactor));
+		parameters.put(NUMBER_OF_NEIGHBORS_NAME, Integer.toString(numberOfNeighbors));
+		parameters.put(INITIAL_PHEROMONES_NAME, Integer.toString(initialPheromones));
+		parameters.put(NUMBER_OF_GROUPS_NAME, Integer.toString(numberOfGroups));
 		return parameters;
 	}
 	@Override
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
-		if(parameters.containsKey(MAX_ITERATIONS)) {
-			maxIterations = Integer.parseInt(parameters.get(MAX_ITERATIONS));
+		if(parameters.containsKey(MAX_ITERATIONS_NAME)) {
+			maxIterations = Integer.parseInt(parameters.get(MAX_ITERATIONS_NAME));
 			if(maxIterations <= 0) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(MAX_ITERATIONS);
+			parameters.remove(MAX_ITERATIONS_NAME);
 		}
-		if(parameters.containsKey(NUMBER_OF_ANTS)) {
-			M = Integer.parseInt(parameters.get(NUMBER_OF_ANTS));
-			if(M <= 1) {
+		if(parameters.containsKey(NUMBER_OF_ANTS_NAME)) {
+			numberOfAnts = Integer.parseInt(parameters.get(NUMBER_OF_ANTS_NAME));
+			if(numberOfAnts <= 1) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(NUMBER_OF_ANTS);
+			parameters.remove(NUMBER_OF_ANTS_NAME);
 		}
-		if(parameters.containsKey(PERSISTANCE_FACTOR)) {
-			rho = Double.parseDouble(parameters.get(PERSISTANCE_FACTOR));
-			if(rho < 0 || rho > 1) {
+		if(parameters.containsKey(PERSISTENCE_FACTOR_NAME)) {
+			persistenceFactor = Double.parseDouble(parameters.get(PERSISTENCE_FACTOR_NAME));
+			if(persistenceFactor < 0 || persistenceFactor > 1) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(PERSISTANCE_FACTOR);
+			parameters.remove(PERSISTENCE_FACTOR_NAME);
 		}
 		
-		if(parameters.containsKey(NUMMER_OF_NEIGHBORS)) {
-			nearNbors = Integer.parseInt(parameters.get(NUMMER_OF_NEIGHBORS));
-			if(nearNbors < 1 || nearNbors > M) {
+		if(parameters.containsKey(NUMBER_OF_NEIGHBORS_NAME)) {
+			numberOfNeighbors = Integer.parseInt(parameters.get(NUMBER_OF_NEIGHBORS_NAME));
+			if(numberOfNeighbors < 1 || numberOfNeighbors > numberOfAnts) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(NUMMER_OF_NEIGHBORS);
+			parameters.remove(NUMBER_OF_NEIGHBORS_NAME);
 		}
 	
-		if(parameters.containsKey(INITIAL_PHEROMONES)) {
-			initialPheromones = Integer.parseInt(parameters.get(INITIAL_PHEROMONES));
+		if(parameters.containsKey(INITIAL_PHEROMONES_NAME)) {
+			initialPheromones = Integer.parseInt(parameters.get(INITIAL_PHEROMONES_NAME));
 			if(initialPheromones < 100) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(INITIAL_PHEROMONES);
+			parameters.remove(INITIAL_PHEROMONES_NAME);
 		}
 		
-		if(parameters.containsKey(NUMBER_OF_GROUP)) {
-			K = Integer.parseInt(parameters.get(NUMBER_OF_GROUP));
-			if(K < 1) {
+		if(parameters.containsKey(NUMBER_OF_GROUPS_NAME)) {
+			numberOfGroups = Integer.parseInt(parameters.get(NUMBER_OF_GROUPS_NAME));
+			if(numberOfGroups < 1) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(NUMBER_OF_GROUP);
+			parameters.remove(NUMBER_OF_GROUPS_NAME);
 		}
 		
 		if(parameters.size() > 0) {
@@ -403,7 +402,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		//set reference point
 		refPoint = fitness; 
 		int preGroup = 0; // group of the previous ant 		
-		for(int i = 0; i < M; i++) {
+		for(int i = 0; i < numberOfAnts; i++) {
 			// creating ants 
 			Ant a1 = new Ant(i);
 			ants.add(a1);
@@ -415,14 +414,14 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			a1.setFitness(fitness);
 			
 			// setting weight vectors
-			double rVal = (double)i/(M-1);
+			double rVal = (double)i/(numberOfAnts -1);
 			double[] hlp = {rVal,1-rVal};
 			Vector weight = new BasicVector(hlp);
 			a1.setWeight(weight);
 			
 			//initialization of the groups
-			double eucl1 = Math.sqrt(Math.pow((double) preGroup/(K-1) - weight.get(0), 2) + Math.pow(1-(double)preGroup/(K-1) - weight.get(1), 2));
-			double eucl2 = Math.sqrt(Math.pow((double)(preGroup+1)/(K-1) - weight.get(0), 2) + Math.pow(1 - (double)(preGroup+1)/(K-1) - weight.get(1), 2));
+			double eucl1 = Math.sqrt(Math.pow((double) preGroup/(numberOfGroups -1) - weight.get(0), 2) + Math.pow(1-(double)preGroup/(numberOfGroups -1) - weight.get(1), 2));
+			double eucl2 = Math.sqrt(Math.pow((double)(preGroup+1)/(numberOfGroups -1) - weight.get(0), 2) + Math.pow(1 - (double)(preGroup+1)/(numberOfGroups -1) - weight.get(1), 2));
 			if(eucl1 <= eucl2) {
 				a1.setGroup(preGroup);	  
 			} else {
@@ -433,12 +432,12 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 			// neighborhood computations
 			Collection<Integer> neighbors = new HashSet<Integer>();
 			int dis = 1; // distance to the value 
-			for(int j = 1; j <= nearNbors;) {
+			for(int j = 1; j <= numberOfNeighbors;) {
 				if(i-dis >= 0) {
 					neighbors.add(i-dis); 
 					j++; 
 				}
-				if((i+dis) < M && nearNbors >= j) {
+				if((i+dis) < numberOfAnts && numberOfNeighbors >= j) {
 					neighbors.add(i+dis); 
 					j++;
 				}	
@@ -506,7 +505,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		
 		// set pheromone matrices
 		Matrix pheromone = new Basic2DMatrix(p);
-		for(int i = 0; i < K; i++) {
+		for(int i = 0; i < numberOfGroups; i++) {
 			pheromones.add(pheromone); 
 		}
 		return ants; 
@@ -530,7 +529,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 	protected void update(CustomGraph graph, List<Ant> ants, int nodeNr) throws InterruptedException {	
 		double g_min = 0; // Minimum Tchebyeheff Decomposition
 		double newSolNr = 0; // number of solutions added in EP
-		for(int i = 0; i < M; i++) {
+		for(int i = 0; i < numberOfAnts; i++) {
 			Ant ant = ants.get(i); 
 			constructSolution(graph, ant, nodeNr);
 			ant.setFalseNew_sol();
@@ -618,7 +617,7 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		// neighborhood interaction
 		List<Double> tcList = new ArrayList<Double>(); 
 		List<Ant> used = new ArrayList<Ant>(); 
-		for(int i = 0; i < M; i++) {
+		for(int i = 0; i < numberOfAnts; i++) {
 			Ant ant = ants.get(i);
 			Vector weight = ant.getWeight();
 			Vector fit = ant.getFitness();
@@ -650,15 +649,15 @@ public class AntColonyOptimizationAlgorithm implements OcdAlgorithm {
 		
 	    // set pheromone matrix
 		double[] limits = new double[2]; 
-		limits[1] = (newSolNr + 1)/((1 - rho)*(1 + g_min)); 
+		limits[1] = (newSolNr + 1)/((1 - persistenceFactor)*(1 + g_min));
 		limits[0] =	0.001 * limits[1]; 	
-		for(int k = 0; k < K; k++) {
+		for(int k = 0; k < numberOfGroups; k++) {
 			Matrix m = new Basic2DMatrix(nodeNr, nodeNr);
-			Matrix persist = pheromones.get(k).multiply(rho); // persistence of the pheromones on a path
+			Matrix persist = pheromones.get(k).multiply(persistenceFactor); // persistence of the pheromones on a path
 			for(int i = 0; i < nodeNr; i++) { // end of edge
 				for(int j = i+1; j < nodeNr; j++) { // end of edge
 					double delta = 0; 
-					for(int l = 0; l < M; l++) {
+					for(int l = 0; l < numberOfAnts; l++) {
 						Ant ant = ants.get(l);
 						if(ant.getGroup() == k && ant.getNew_sol()) {
 							Vector sol = ant.getSolution(); 
