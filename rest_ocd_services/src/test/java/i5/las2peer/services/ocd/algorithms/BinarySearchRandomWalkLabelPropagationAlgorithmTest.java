@@ -73,8 +73,8 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest implements Dire
 		//System.out.println(transitionMatrix.transpose());
 		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
-		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.RANDOM_WALK_PRECISION_FACTOR_NAME, Integer.toString(1000));
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.RANDOM_WALK_ITERATION_BOUND_NAME, Double.toString(0.001));
 		algo.setParameters(parameters);
 		Vector vec = algo.executeRandomWalk(transitionMatrix);
 		//System.out.println("Steady State Vector:");
@@ -88,8 +88,8 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest implements Dire
 		CustomGraph graph = OcdTestGraphFactory.getAperiodicTwoCommunitiesGraph();
 		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
-		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.RANDOM_WALK_PRECISION_FACTOR_NAME, Integer.toString(1000));
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.RANDOM_WALK_ITERATION_BOUND_NAME, Double.toString(0.001));
 		algo.setParameters(parameters);
 		Matrix disassortativityMatrix = algo.getTransposedDisassortativityMatrix(graph);
 		//System.out.println("DA M:\n" + disassortativityMatrix);
@@ -113,8 +113,8 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithmTest implements Dire
 		CustomGraph graph = OcdTestGraphFactory.getSawmillGraph();
 		BinarySearchRandomWalkLabelPropagationAlgorithm algo = new BinarySearchRandomWalkLabelPropagationAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
-		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.RANDOM_WALK_PRECISION_FACTOR_NAME, Integer.toString(1000));
+		parameters.put(BinarySearchRandomWalkLabelPropagationAlgorithm.RANDOM_WALK_ITERATION_BOUND_NAME, Double.toString(0.001));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());	

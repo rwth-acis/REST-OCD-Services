@@ -50,7 +50,7 @@ public class FuzzyCMeansSpectralClusteringTest implements UndirectedGraphTestReq
 		
 		// Set parameters
 		Map<String, String> inputParams = new HashMap<String, String>();
-		inputParams.put("K", "8");
+		inputParams.put("k", "8");
 		inputParams.put("optimizeClusterQuantity", "true");
 		inputParams.put("fuzziness", "1.7");
 		inputParams.put("customThreshold", "0.2");

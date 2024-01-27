@@ -78,8 +78,8 @@ public class RandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTes
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(0.05));
-		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
-		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.RANDOM_WALK_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.RANDOM_WALK_PRECISION_FACTOR_NAME, Double.toString(0.001));
 		algo.setParameters(parameters);
 		Vector vec = algo.executeRandomWalk(transitionMatrix);
 		//System.out.println("Steady State Vector:");
@@ -94,8 +94,8 @@ public class RandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTes
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(0.1));
-		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
-		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.RANDOM_WALK_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.RANDOM_WALK_PRECISION_FACTOR_NAME, Double.toString(0.001));
 		algo.setParameters(parameters);
 		Matrix disassortativityMatrix = algo.getTransposedDisassortativityMatrix(graph);
 		//System.out.println("DA M:\n" + disassortativityMatrix);
@@ -120,8 +120,8 @@ public class RandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTes
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(0.2));
-		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
-		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.RANDOM_WALK_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.RANDOM_WALK_PRECISION_FACTOR_NAME, Double.toString(0.001));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());
@@ -134,8 +134,8 @@ public class RandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTes
 		RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(0.2));
-		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
-		parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.RANDOM_WALK_ITERATION_BOUND_NAME, Integer.toString(1000));
+		parameters.put(RandomWalkLabelPropagationAlgorithm.RANDOM_WALK_PRECISION_FACTOR_NAME, Double.toString(0.001));
 		algo.setParameters(parameters);
 		Cover cover = algo.detectOverlappingCommunities(graph);
 		System.out.println(cover.toString());	
@@ -166,8 +166,8 @@ public class RandomWalkLabelPropagationAlgorithmTest implements DirectedGraphTes
 			RandomWalkLabelPropagationAlgorithm algo = new RandomWalkLabelPropagationAlgorithm();
 			Map<String, String> parameters = new HashMap<String, String>();
 			parameters.put(RandomWalkLabelPropagationAlgorithm.PROFITABILITY_DELTA_NAME, Double.toString(profitabililtyDeltas[i]));
-			parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(1000));
-			parameters.put(RandomWalkLabelPropagationAlgorithm.LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(0.001));
+			parameters.put(RandomWalkLabelPropagationAlgorithm.RANDOM_WALK_ITERATION_BOUND_NAME, Integer.toString(1000));
+			parameters.put(RandomWalkLabelPropagationAlgorithm.RANDOM_WALK_PRECISION_FACTOR_NAME, Double.toString(0.001));
 			algo.setParameters(parameters);
 			Cover cover = algo.detectOverlappingCommunities(graph);
 			metric.measure(cover);
