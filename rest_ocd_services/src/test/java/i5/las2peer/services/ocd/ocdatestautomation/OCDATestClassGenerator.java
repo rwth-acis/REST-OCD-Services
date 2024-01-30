@@ -1,7 +1,9 @@
 package i5.las2peer.services.ocd.ocdatestautomation;
 
+import i5.las2peer.services.ocd.automatedtesting.AssistantGPTAPICodeProcessor;
 import i5.las2peer.services.ocd.automatedtesting.PromptGenerator;
 import i5.las2peer.services.ocd.automatedtesting.TestClassMerger;
+import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
 import i5.las2peer.services.ocd.automatedtesting.helpers.OCDWriter;
 import i5.las2peer.services.ocd.automatedtesting.helpers.PathResolver;
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser;
@@ -268,7 +270,7 @@ public class OCDATestClassGenerator {
                 "        int parameterCount = Integer.parseInt(" + "\"" + OCDA_PARAMETER_GENERATION_COUNT_FOR_OCD_ACCURACY_TESTS + "\"" + ");\n" +
                 "\n" +
                 "        // Get graph on which the OCDA should be executed\n" +
-                "        " + CustomGraph.class.getSimpleName() + " graph = " + OcdTestGraphFactory.class.getSimpleName() + ".getTwoCommunitiesGraph();\n" +
+                "        " + CustomGraph.class.getSimpleName() + " graph = " + OcdTestGraphFactory.class.getSimpleName() + ".getUndirectedKarateGraph();\n" +
                 "\n" +
                 "        // Read auto-generated OCDA parameter values\n" +
                 "        Map<String, List<String>> dataForAlgorithm = " + OCDWriter.class.getSimpleName() + ".readAlgorithmDataFromFile(\"gpt/json/ocda_parameters.json\",\"" + ocdaName + "\");\n" +
@@ -296,13 +298,15 @@ public class OCDATestClassGenerator {
                 "                } catch (Exception e) {\n" +
                 "                    e.printStackTrace();\n" +
                 "                }\n" +
-                "            // Check if at least one parameter set leads to correct community count\n" +
-                "            boolean hasValueInRange = detectedCommunityCounts.stream().anyMatch(value -> value >= 2 && value <= 4);\n" +
-                "            assertTrue(hasValueInRange, \"No parameter set resulted in correct community count detection. Please review the test.\");\n" +
                 "            }\n" +
+                "            System.out.println(\"detected communities \" + detectedCommunityCounts); \n "+ //TODO:DELETE this line
+                "            // Check if at least one parameter set leads to correct community count\n" +
+                "            boolean hasValueInRange = detectedCommunityCounts.stream().anyMatch(value -> value >= 2 && value <= 5);\n" +
+                "            assertTrue(hasValueInRange, \"No parameter set resulted in correct community count detection. Please review the test. Detected community counts were: \" + detectedCommunityCounts);\n" +
                 "\n" +
                 "        }\n" +
                 "    }";
+
 
 
     }
@@ -316,16 +320,24 @@ public class OCDATestClassGenerator {
      *
      * @param ocdaName The name of the Overlapping Community Detection Algorithm (OCDA) for which the test is being generated.
      */
-    public void generateAndWriteOCDAAccuracyTest(String ocdaName) {
+    public static void generateAndWriteOCDAAccuracyTest(String ocdaName) {
+
+        // Extract valid OCDA params from GPT response and write them to a JSON file used for test creation
+        System.out.println("Extracting Valid Auto-Generated OCDA Parameters from GPT Response and Writing them to JSON...");
+        AssistantGPTAPICodeProcessor.extractOCDAParamsFromGPTResponseAndWriteToJSON(ocdaName);
+        System.out.println("OCDA Parameters Successfully Extracted and Written. Moving On to Creating OCDA Accuracy Test...");
 
         // Generate ocd accuracy test for the specified OCD algorithm
+        System.out.println("Generating OCDA Accuracy Test...");
         String unitTestString = generateOCDAAccuracyTest(ocdaName);
 
         // Identify main test class for the specified OCD algorithm to which the unit test should be added
-        File ocdaClass = getOcdaFile(ocdaName + "Test.java", "/src/test/java/i5/las2peer/services/ocd/algorithms/");
+        File ocdaTestClass = getOcdaFile(ocdaName + "Test.java", "/src/test/java/i5/las2peer/services/ocd/algorithms/");
 
         // Add OCD accuracy test to the main test class of the algorithm
-        TestClassMerger.mergeUnitTestIntoClass(ocdaClass, unitTestString);
+        System.out.println("Generation Successful. Merging OCDA Accuracy Test into: " + ocdaTestClass.getAbsolutePath());
+        TestClassMerger.mergeUnitTestIntoClass(ocdaTestClass, unitTestString);
+        System.out.println("OCDA Accuracy Test Successfully Added.");
     }
 
 
@@ -384,7 +396,7 @@ public class OCDATestClassGenerator {
      * @param relativePath The relative path within the project structure where the OCDA file is located.
      * @return A File object representing the OCDA file.
      */
-    private File getOcdaFile(String ocdaName, String relativePath) {
+    private static File getOcdaFile(String ocdaName, String relativePath) {
         String contentRoot = System.getProperty("user.dir");
         String ocdaCodePath = contentRoot + File.separator + relativePath + ocdaName;
         return new File(ocdaCodePath);

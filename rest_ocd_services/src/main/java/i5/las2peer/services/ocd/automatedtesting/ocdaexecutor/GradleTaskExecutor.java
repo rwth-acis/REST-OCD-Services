@@ -100,6 +100,20 @@ public class GradleTaskExecutor {
     }
 
     /**
+     * Executes 'runGenerateAndWriteOCDAAccuracyTest' Gradle task for a given OCD algorithm name.
+     * This method is used to programmatically run a gradle task that will generate OCD accuracy
+     * test for a specified algorithm. The test is then merged into the main test class of the
+     * algorithm. Before generating OCD accuracy tests, parameter values should be added to
+     * ocda_parameters.json. The values should be created using GPT or a similar tool.
+     * @param ocdaName      The name of the OCDA algorithm for which the test is generated.
+     */
+    public static void runGenerateAndWriteOCDAAccuracyTest(String ocdaName){
+
+        String gradlew = getGradlewCommand();
+        executeGradleTask(Arrays.asList(gradlew, "runGenerateAndWriteOCDAAccuracyTest", "-PocdaName=" + ocdaName));
+    }
+
+    /**
      * Helper method to get the Gradle wrapper command based on the OS.
      *
      * @return The Gradle wrapper command.

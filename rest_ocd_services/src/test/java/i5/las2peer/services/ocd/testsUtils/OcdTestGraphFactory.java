@@ -1491,6 +1491,25 @@ public class OcdTestGraphFactory {
 		graph.setCreationMethod(log);
 		return graph;
 	}
+
+	/*
+	 * Returns undirected karate graph, used in OCDA accuracy tests
+	 */
+	public static CustomGraph getUndirectedKarateGraph(){
+		CustomGraph graph = new CustomGraph();
+		try {
+			GraphInputAdapter inputAdapter = new GmlGraphInputAdapter();
+			inputAdapter.setReader(new FileReader(OcdTestConstants.zacharyGmlInputPath));
+			graph = inputAdapter.readGraph();
+			GraphProcessor graphProcessor = new GraphProcessor();
+			graphProcessor.makeUndirected(graph);
+
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return graph;
+	}
 	
 	public static CustomGraph getLinkgraph() {
 		// Creates new graph

@@ -65,7 +65,7 @@ public class OCDAMethodHelpers {
                     algo.setParameters(new HashMap<>(usedParameters));
                 } catch (Exception e) {
                     // If parameter setting caused an exception, reset parameter value back to default
-                    System.out.println("couldn't set parameter " + ocdaParameter + " with value " + newParameterValue + ". Setting it back to " + oldParameterValue);
+                    System.out.println("Validating OCDA parameters: couldn't set parameter " + ocdaParameter + " with value " + newParameterValue + ". Setting it back to " + oldParameterValue + ".");
                     usedParameters.put(ocdaParameter, oldParameterValue);
                 }
             }

@@ -40,11 +40,11 @@ public class OCDATestAutomationConstants {
     public static String DIRECTED_GRAPH_METHOD_NAME = "getDirectedAperiodicTwoCommunitiesGraph";
     public static String WEIGHTED_GRAPH_METHOD_NAME = "getTwoCommunitiesWeightedGraph";
 
-    public static String ZERO_WEIGHTS_GRAPH_METHOD_NAME = "todoZeroWeights"; //TODO: replace string with appropriate method name
+    public static String ZERO_WEIGHTS_GRAPH_METHOD_NAME = "getZeroAndNonZeroWeightMixGraph";
 
-    public static String NEGATIVE_WEIGHTS_GRAPH_METHOD_NAME = "todoNegativeWeights"; //TODO: replace string with appropriate method name
+    public static String NEGATIVE_WEIGHTS_GRAPH_METHOD_NAME = "getMixedWeightsGraph";
 
-    public static String SELF_LOOPS_GRAPH_METHOD_NAME = "todoSelfLoops"; //TODO: replace string with appropriate method name
+    public static String SELF_LOOPS_GRAPH_METHOD_NAME = "getBipartiteGraphWithSelfLoops";
 
     // Name of the class where the test graphs are stored or generated
     public static String GRAPH_FACTORY_CLASS_NAME = "i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory";
@@ -79,8 +79,12 @@ public class OCDATestAutomationConstants {
     // Number of diverse parameter values that should be generated (using GPT) for OCD accuracy tests
     public static String OCDA_PARAMETER_GENERATION_COUNT_FOR_OCD_ACCURACY_TESTS = "5";
 
+    // Suffix of the name where GPT generated tests are stored for further processing. Prefix is the algorithm name. E.g. SskAlgorithm_gpt_generated_tests.txt
+    public static String GPT_GENERATED_TEST_FILE_NAME_SUFFIX = "_gpt_generated_tests.txt";
 
 
+    // Suffix of the name where GPT generated CODA parameters are stored for further processing. Prefix is the algorithm name. E.g. SskAlgorithm_gpt_generated_ocda_parameters.txt
+    public static String GPT_GENERATED_OCDA_PARAMETERS_FILE_NAME_SUFFIX = "_gpt_generated_ocda_parameters.txt";
 
 
 

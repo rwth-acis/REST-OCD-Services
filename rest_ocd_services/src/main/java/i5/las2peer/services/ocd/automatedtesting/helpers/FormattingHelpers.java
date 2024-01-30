@@ -17,6 +17,12 @@ import java.util.regex.Pattern;
 public class FormattingHelpers {
 
 
+    private static final Pattern VARIABLE_DECLARATION_PATTERN = Pattern.compile(
+            "(?:public|protected|private|static|final|transient|volatile)?\\s+" + // Modifiers
+                    "([\\w<>\\[\\],\\s]+)\\s+" + // Type (group 1)
+                    "(\\w+)\\s*" + // Name (group 2)
+                    "(?:=\\s*(.+))?;"); // Value (group 3, optional)
+
     /**
      * Capitalizes the first letter of a given string.
      *
@@ -114,7 +120,7 @@ public class FormattingHelpers {
     public static String extractVariableName(String variableDeclaration) {
         Matcher matcher = getVariableDeclarationMatcher(variableDeclaration);
         if (matcher.matches()) {
-            return matcher.group(1); // The variable name is in the first capturing group
+            return matcher.group(2); // The variable name is in the second capturing group
         } else {
             throw new IllegalArgumentException("Invalid variable declaration format.");
         }
@@ -124,13 +130,13 @@ public class FormattingHelpers {
      * Extracts the value of a variable from its declaration.
      *
      * @param variableDeclaration The string representing the variable declaration.
-     * @return The extracted value of the variable.
+     * @return The extracted value of the variable, or an empty string if no value is assigned.
      * @throws IllegalArgumentException If the provided string does not match the expected format.
      */
     public static String extractVariableValue(String variableDeclaration) {
         Matcher matcher = getVariableDeclarationMatcher(variableDeclaration);
         if (matcher.matches()) {
-            return matcher.group(2).trim(); // The variable value is in the second capturing group
+            return matcher.group(3) != null ? matcher.group(3).trim() : ""; // The variable value is in the third capturing group
         } else {
             throw new IllegalArgumentException("Invalid variable declaration format.");
         }
@@ -143,9 +149,7 @@ public class FormattingHelpers {
      * @return A Matcher object for the variable declaration pattern.
      */
     private static Matcher getVariableDeclarationMatcher(String variableDeclaration) {
-        String regex = "\\b(?:public|protected|private|static|final|transient|volatile)?\\s*\\w+\\s+(\\w+)\\s*(?:=\\s*(.+?);)?.*";
-        Pattern pattern = Pattern.compile(regex);
-        return pattern.matcher(variableDeclaration);
+        return VARIABLE_DECLARATION_PATTERN.matcher(variableDeclaration);
     }
 
 

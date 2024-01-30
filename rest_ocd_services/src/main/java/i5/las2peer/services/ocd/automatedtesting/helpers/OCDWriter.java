@@ -93,22 +93,24 @@ public class OCDWriter {
      * @param algorithmName The name of the algorithm for which data is being written or updated.
      * @param finalParametersJsonString The JSON string representing the data to be written for the algorithm.
      */
-    public static void writeAlgorithmDataToFile(String filePath, String algorithmName, String finalParametersJsonString) {
+    public static void writeAlgorithmParameterDataToFile(String filePath, String algorithmName, String finalParametersJsonString) {
         try {
+            String resolvedFilePath = PathResolver.resolvePath(filePath);
             JSONArray algorithmData = (JSONArray) new JSONParser().parse(finalParametersJsonString);
             JSONObject rootObject = new JSONObject();
 
             // Check if the file exists and is not empty
-            Path path = Paths.get(filePath);
+            Path path = Paths.get(resolvedFilePath);
+
             if (Files.exists(path) && Files.size(path) > 0) {
-                rootObject = (JSONObject) new JSONParser().parse(new FileReader(filePath));
+                rootObject = (JSONObject) new JSONParser().parse(new FileReader(resolvedFilePath));
             }
 
             // Update the algorithm data
             rootObject.put(algorithmName, algorithmData);
 
             // Write to the file
-            try (FileWriter file = new FileWriter(filePath)) {
+            try (FileWriter file = new FileWriter(resolvedFilePath)) {
                 file.write(rootObject.toJSONString());
             }
         } catch (IOException e) {

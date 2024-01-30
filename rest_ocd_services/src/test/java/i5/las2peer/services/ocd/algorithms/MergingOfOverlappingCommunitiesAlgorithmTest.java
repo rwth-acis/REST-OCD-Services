@@ -11,7 +11,9 @@ import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.OCDAParameter
 import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.UndirectedGraphTestReq;
 import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.WeightedGraphTestReq;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
-
+import i5.las2peer.services.ocd.automatedtesting.helpers.OCDWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.UUID;
@@ -19,8 +21,15 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.HashMap;
+import java.util.Map;
 import org.graphstream.graph.Node;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 public class MergingOfOverlappingCommunitiesTest implements UndirectedGraphTestReq, WeightedGraphTestReq
 		, OCDAParameterTestReq {
