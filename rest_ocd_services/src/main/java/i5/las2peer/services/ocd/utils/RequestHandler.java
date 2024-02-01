@@ -879,7 +879,6 @@ public class RequestHandler {
 		Element namesElt = doc.createElement("Names");
 		for(CoverCreationType e : CoverCreationType.class.getEnumConstants()) {
 			if(e.correspondsAlgorithm()) {
-				System.out.println("requestHandler.writeAlgorithmNames()" + e.getDisplayName());
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
 				nameElt.setAttribute("displayName", e.getDisplayName());
@@ -899,14 +898,11 @@ public class RequestHandler {
 		Document doc = getDocument();
 		Element namesElt = doc.createElement("Names");
 		for(CoverCreationType e : CoverCreationType.class.getEnumConstants()) {
-			if(e.correspondsAlgorithm()) {
-				if(e.getDisplayName() == "ABACUS Algorithm") {
-					System.out.println("requestHandler.writeMultiplexAlgorithmNames()" + e.getDisplayName());
-					Element nameElt = doc.createElement("Name");
-					nameElt.appendChild(doc.createTextNode(e.name()));
-					nameElt.setAttribute("displayName", e.getDisplayName());
-					namesElt.appendChild(nameElt);
-				}
+			if(e.correspondsMultiplexAlgorithm()) {
+				Element nameElt = doc.createElement("Name");
+				nameElt.appendChild(doc.createTextNode(e.name()));
+				nameElt.setAttribute("displayName", e.getDisplayName());
+				namesElt.appendChild(nameElt);
 			}
 		}
 		doc.appendChild(namesElt);

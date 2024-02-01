@@ -291,10 +291,6 @@ public class MultiplexGraph {
 		ArangoCollection collection = db.collection(collectionName);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		//AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
-		System.out.println("MultiplexGraph load: collection: " + collection);
-		System.out.println("MultiplexGraph load: key: " + key);
-		System.out.println("MultiplexGraph load: BaseDocument.class: " + BaseDocument.class);
-		System.out.println("MultiplexGraph load: readOpt: " + readOpt);
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
 
 		if (bd != null) {
@@ -323,8 +319,6 @@ public class MultiplexGraph {
 			System.out.println("Empty Graph document");
 			System.out.println(" DB name: " + db.dbName().get());
 		}
-		System.out.println("MultiplexGraph load");
-		System.out.println(graph.getName());
 		return graph;
 	}
 	public void persist(ArangoDatabase db, String transId) throws InterruptedException {

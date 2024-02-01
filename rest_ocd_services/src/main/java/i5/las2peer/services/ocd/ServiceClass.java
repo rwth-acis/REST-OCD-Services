@@ -34,6 +34,7 @@ import i5.las2peer.services.ocd.utils.*;
 import i5.las2peer.services.ocd.utils.Error;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.graphstream.algorithm.ConnectedComponents;
 import org.json.simple.JSONObject;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -57,7 +58,9 @@ import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
 import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputFormat;
 import i5.las2peer.services.ocd.algorithms.ContentBasedWeightingAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
+import i5.las2peer.services.ocd.algorithms.OcdMultiplexAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
+import i5.las2peer.services.ocd.algorithms.OcdMultiplexAlgorithmFactory;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
@@ -195,6 +198,11 @@ public class ServiceClass extends RESTService {
 	 * The factory used for creating algorithms.
 	 */
 	private final static OcdAlgorithmFactory algorithmFactory = new OcdAlgorithmFactory();
+
+	/**
+	 * The factory used for creating algorithms.
+	 */
+	private final static OcdMultiplexAlgorithmFactory multiplexAlgorithmFactory = new OcdMultiplexAlgorithmFactory();
 
 	/**
 	 * The factory used for creating centrality simulations.
@@ -948,7 +956,6 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"delete"}, value = "Delete Graph", notes = "Deletes a graph.")
 		public Response deleteGraph(@PathParam("graphId") String graphIdStr) {
 			try {
-				System.out.println("ServiceClass: deleteGraph");
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				try {
 					database.deleteGraph(username, graphIdStr, threadHandler);	//done
@@ -979,28 +986,23 @@ public class ServiceClass extends RESTService {
 		 * @return A confirmation xml. Or an error xml.
 		 */
 		@DELETE
-		@Path("multiplexgraph/{graphId}")
+		@Path("multiplexgraphs/{graphId}")
 		@Produces(MediaType.TEXT_XML)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@ApiOperation(tags = {"delete"}, value = "Delete Graph", notes = "Deletes a graph.")
 		public Response deleteMultiplexGraph(@PathParam("graphId") String graphIdStr) {
 			try {
-				System.out.println("ServiceClass: 1");
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				try {
 					database.deleteMultiplexGraph(username, graphIdStr, threadHandler);
-					System.out.println("ServiceClass: 2");
 				} catch (Exception e) {
 					if(e.getMessage() != null) {
 						requestHandler.writeError(Error.INTERNAL, "Graph could not be deleted: " + e.getMessage());
-						System.out.println("ServiceClass: 3");
 					}
 					requestHandler.writeError(Error.INTERNAL, "Graph not found");
-					System.out.println("ServiceClass: 4");
 				}
 				generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete graph " + graphIdStr);
-				System.out.println("ServiceClass: 5");
 				return Response.ok(requestHandler.writeConfirmationXml()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -1468,6 +1470,172 @@ public class ServiceClass extends RESTService {
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + algorithm.getClass().getSimpleName() + " on graph " + graph.getKey() + ". Created cover " + cover.getKey());
 				}
 				return Response.ok(requestHandler.writeId(cover)).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
+		 * Creates a new cover by running an algorithm on an existing graph.
+		 *
+		 * @param graphIdStr
+		 *            The id of the graph to run the algorithm on, must have the
+		 *            creation method status completed.
+		 * @param nameStr
+		 *            The name for the cover.
+		 * @param multiplexCreationTypeStr
+		 *            The name of a cover creation type corresponding to an ocd
+		 *            algorithm. Defines the multiplex algorithm to execute.
+		 * @param creationTypeStr
+		 *            The name of a cover creation type corresponding to an ocd
+		 *            algorithm. Defines the algorithm to execute.
+		 * @param multiplexContent
+		 *            A parameter xml defining any non-default parameters passed
+		 *            to the multiplex algorithm.
+		 * @param content
+		 *            A parameter xml defining any non-default parameters passed
+		 *            to the algorithm.
+		 * @param componentNodeCountFilter
+		 *            Option query parameter. The component node count filter
+		 *            applied by the OcdAlgorithmExecutor.
+		 * @return The id of the cover being calculated which is reserved for
+		 *         the algorithm result. Or an error xml.
+		 */
+		@POST
+		@Path("covers/multiplexgraphs/{graphId}/algorithms")
+		@Produces(MediaType.TEXT_XML)
+		@Consumes(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"execution"}, value = "Run OCD Algorithm", notes = "Creates a new cover by running an algorithm on an existing graph.  \n " +
+				"The provided data represents the algorithm parameters and needs to be an XML with the root \"Parameters\" enclosing \"Parameter\" nodes which have both \"Name\" and \"Value\" nodes." +
+				"\n To see which parameters of what type are needed for an algorithm, fetch its default parameters")
+		public Response runABACUSAlgorithm(@FormDataParam("graphId") String graphIdStr,
+										   @FormDataParam("name") String nameStr,
+										   @FormDataParam("multiplexalgorithm") String multiplexCreationTypeStr,
+										   @FormDataParam("algorithm") String creationTypeStr,
+										   @FormDataParam("componentNodeCountFilter") int componentNodeCountFilter,
+										   @FormDataParam("multiplexContent") String multiplexContent,
+										   @FormDataParam("content") String content) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				CoverCreationType multiplexAlgorithmType;
+				CoverCreationType algorithmType;
+
+				/*
+				Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
+				 */
+				if (userLimitsHandler.reachedCoverCountLimit(username)){
+					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
+					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
+				}
+				try {
+					multiplexAlgorithmType = CoverCreationType.valueOf(multiplexCreationTypeStr);
+					if (multiplexAlgorithmType == CoverCreationType.UNDEFINED
+							|| multiplexAlgorithmType == CoverCreationType.GROUND_TRUTH) {
+						requestHandler.log(Level.WARNING, "user: " + username + ", "
+								+ "Specified multiplex algorithm type is not valid for this request: " + multiplexAlgorithmType.name());
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Specified multiplex algorithm type is not valid for this request: " + multiplexAlgorithmType.name());
+					}
+					if(multiplexAlgorithmType != CoverCreationType.ABACUS_ALGORITHM) {
+						return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified multiplex algorithm is not ABACUS.");
+					}
+					algorithmType = CoverCreationType.valueOf(creationTypeStr);
+					if (algorithmType == CoverCreationType.UNDEFINED
+							|| algorithmType == CoverCreationType.GROUND_TRUTH) {
+						requestHandler.log(Level.WARNING, "user: " + username + ", "
+								+ "Specified algorithm type is not valid for this request: " + algorithmType.name());
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Specified algorithm type is not valid for this request: " + algorithmType.name());
+					}
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified multiplex algorithm does not exist.");
+				}
+
+				Map<String, String> multiplexParameters;
+				OcdMultiplexAlgorithm multiplexAlgorithm;
+				Map<String, String> parameters;
+				OcdAlgorithm algorithm;
+				try {
+					multiplexParameters = requestHandler.parseParameters(multiplexContent);
+					multiplexAlgorithm = multiplexAlgorithmFactory.getInstance(multiplexAlgorithmType, new HashMap<String, String>(multiplexParameters));
+					parameters = requestHandler.parseParameters(content);
+					algorithm = algorithmFactory.getInstance(algorithmType, new HashMap<String, String>(parameters));
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Parameters are not valid.");
+				}
+				Cover cover;
+				CoverCreationLog log;
+				synchronized (threadHandler) {
+					MultiplexGraph graph = database.getMultiplexGraph(username, graphIdStr);
+					if (graph == null) {
+						requestHandler.log(Level.WARNING,
+								"user: " + username + ", " + "Graph does not exist: graph id " + graphIdStr);
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Graph does not exist: graph id " + graphIdStr);
+					}
+					if (graph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+						requestHandler.log(Level.WARNING,
+								"user: " + username + ", "
+										+ "Invalid graph creation method status for metric execution: "
+										+ graph.getCreationMethod().getStatus().name());
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Invalid graph creation method status for metric execution: "
+										+ graph.getCreationMethod().getStatus().name());
+					}
+					/*
+					 * Run OCDA for single layers on layers of the multiplex graph
+					 */
+					for (CustomGraph customGraph : graph.getCustomGraphs().values()) {
+						synchronized (threadHandler) {
+							String key = customGraph.getKey();
+							customGraph = database.getGraph(username, key);
+							if (customGraph == null) {
+								requestHandler.log(Level.WARNING,
+										"user: " + username + ", " + "Graph does not exist: graph id " + key);
+								return requestHandler.writeError(Error.PARAMETER_INVALID,
+										"Graph does not exist: graph id " + key);
+							}
+							if (customGraph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+								requestHandler.log(Level.WARNING,
+										"user: " + username + ", "
+												+ "Invalid graph creation method status for metric execution: "
+												+ customGraph.getCreationMethod().getStatus().name());
+								return requestHandler.writeError(Error.PARAMETER_INVALID,
+										"Invalid graph creation method status for metric execution: "
+												+ customGraph.getCreationMethod().getStatus().name());
+							}
+							cover = new Cover(customGraph, new CCSMatrix(graph.getNodeCount(), 0));
+							log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
+							cover.setCreationMethod(log);
+							cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
+							database.storeCover(cover);
+							/*
+							* Registers and starts algorithm
+							*/
+							threadHandler.runAlgorithm(cover, algorithm, componentNodeCountFilter);
+							generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + algorithm.getClass().getSimpleName() + " on graph " + customGraph.getKey() + ". Created cover " + cover.getKey());
+						}
+					}
+					CustomGraph coverGraph = new CustomGraph();
+					//set nodes of coverGraph to nodes of multiplexgraph
+					cover = new Cover(coverGraph, new CCSMatrix(graph.getNodeCount(), 0));
+					log = new CoverCreationLog(multiplexAlgorithmType, multiplexParameters, multiplexAlgorithm.compatibleGraphTypes());
+					cover.setCreationMethod(log);
+					cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
+					database.storeCover(cover);
+					/*
+					 * Registers and starts multiplex algorithm
+					 */
+					threadHandler.runMultiplexAlgorithm(cover, multiplexAlgorithm, componentNodeCountFilter);
+					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + multiplexAlgorithm.getClass().getSimpleName() + " on graph " + graph.getKey() + ". Created cover " + cover.getKey());
+
+				}
+				return Response.ok(requestHandler.writeId(cover)).build(); //do I need it for the layers as well?
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
@@ -3066,6 +3234,47 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
+
+		/**
+		 * Returns the default parameters of an algorithm.
+		 *
+		 * @param coverCreationTypeStr
+		 *            A cover creation type corresponding to an ocd algorithm.
+		 * @return A parameter xml. Or an error xml.
+		 */
+		@GET
+		@Path("multiplexalgorithms/{CoverCreationType}/parameters/default")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"defaults"}, value = "Return Default Algo Params", notes = "Returns the default parameters of an algorithm.")
+		public Response getMultiplexAlgorithmDefaultParams(@PathParam("CoverCreationType") String coverCreationTypeStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				CoverCreationType creationType;
+				try {
+					creationType = CoverCreationType.valueOf(coverCreationTypeStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified cover creation type does not exist.");
+				}
+				if (!algorithmFactory.isInstantiatable(creationType)) {
+					requestHandler.log(Level.WARNING, "user: " + username + ", "
+							+ "Specified cover creation type is not instantiatable: " + creationType.name());
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified cover creation type is not instantiatable: " + creationType.name());
+				} else {
+					OcdMultiplexAlgorithm defaultInstance = multiplexAlgorithmFactory.getInstance(creationType,
+							new HashMap<String, String>());
+					//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get default parameters of " + coverCreationTypeStr );
+					return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
+				}
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
 		
 		/**
 	     * Returns the default parameters of a CentralityAlgorithm.
@@ -3326,7 +3535,6 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"names"}, value = "Algorithms information", notes = "Returns all algorithm type names.")
 		public Response getAlgorithmNames() {
 			try {
-				System.out.println("ServiceClass: getAlgorithmNames: " + requestHandler.writeAlgorithmNames());
 				return Response.ok(requestHandler.writeAlgorithmNames()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);

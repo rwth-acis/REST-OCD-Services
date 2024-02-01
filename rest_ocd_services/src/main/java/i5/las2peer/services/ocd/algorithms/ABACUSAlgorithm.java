@@ -21,7 +21,7 @@ import java.util.Set;
  * https://doi.org/10.1109/ACCESS.2018.2879648
  * Handles undirected and unweighted graphs.
  */
-public class ABACUSAlgorithm implements OcdAlgorithm {
+public class ABACUSAlgorithm implements OcdMultiplexAlgorithm {
 
     /**
      * The threshold value used as input for the frequent closed item set mining algorithm
@@ -42,11 +42,11 @@ public class ABACUSAlgorithm implements OcdAlgorithm {
     }
 
     @Override
-    public Cover detectOverlappingCommunities(CustomGraph graph) throws InterruptedException {
-        //run CDAlgorithm on all layers
+    public Cover detectOverlappingCommunities(MultiplexGraph graph) throws InterruptedException {
         //run FCIM on results
         Matrix membershipMatrix = new Basic2DMatrix(0,0);
-        return new Cover(graph, membershipMatrix);
+        CustomGraph coverGraph = new CustomGraph();
+        return new Cover(coverGraph, membershipMatrix);
     }
 
     @Override

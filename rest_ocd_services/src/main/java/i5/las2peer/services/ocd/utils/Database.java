@@ -698,14 +698,11 @@ public class Database {
 	 * 			  the threadhandler
 	 * @throws Exception if cover deletion failed
 	 */
-	public void deleteMultiplexGraph(String username, String graphKey, ThreadHandler threadHandler) throws Exception {	//SC
+	public void deleteMultiplexGraph(String username, String graphKey, ThreadHandler threadHandler) throws Exception {
 		CustomGraphId id = new CustomGraphId(graphKey, username);
-
 		synchronized (threadHandler) {
 			threadHandler.interruptBenchmark(id);
-
 			List<Cover> coverList = getCovers(username, graphKey);
-			System.out.println("Database: 1 : coverlist : " + coverList);
 			for (Cover cover : coverList) {
 				try {
 					deleteCover(cover, threadHandler);
@@ -713,7 +710,6 @@ public class Database {
 					throw e;
 				}
 			}
-			System.out.println("Database: 2 : coverlist : " + coverList);
 			try {
 				String transId = this.getTransactionId(null, true);
 				DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
@@ -1987,7 +1983,6 @@ public class Database {
 		}
 		else if(c == MultiplexGraph.class) {
 			collections = new String[] {collectionNames.get(0),collectionNames.get(1),collectionNames.get(2),collectionNames.get(3),collectionNames.get(4),collectionNames.get(13)};
-			System.out.println("Database: getTransactionId: " + collections);
 		}
 		else {
 			collections = collectionNames.subList(0, 14).toArray(new String[10]);

@@ -14,7 +14,7 @@ import java.util.Set;
  * @author Sebastian
  *
  */
-public interface OcdAlgorithm extends Parameterizable, CoverCreationMethod {
+public interface OcdMultiplexAlgorithm extends Parameterizable, CoverCreationMethod {
 
 	/**
 	 * @throws OcdMetricException 
@@ -28,7 +28,7 @@ public interface OcdAlgorithm extends Parameterizable, CoverCreationMethod {
 	 * @throws InterruptedException If the executing thread was interrupted.
 	 * @throws OcdMetricException If the metric execution failed.
 	 */
-	public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException;
+	public Cover detectOverlappingCommunities(MultiplexGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException;
 	
 	/**
 	 * Returns a log representing the concrete algorithm execution.

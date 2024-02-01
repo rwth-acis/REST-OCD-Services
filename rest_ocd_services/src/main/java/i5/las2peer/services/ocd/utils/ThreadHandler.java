@@ -1,6 +1,7 @@
 package i5.las2peer.services.ocd.utils;
 
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
+import i5.las2peer.services.ocd.algorithms.OcdMultiplexAlgorithm;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
@@ -91,6 +92,23 @@ public class ThreadHandler {
 			Future<CoverCreationLog> future = executor.<CoverCreationLog>submit(runnable, log);
 			algorithms.put(coverId, future);
 		}
+	}
+
+	/**
+	 * Runs an multiplex algorithm.
+	 * @param cover The cover that is already persisted but not holding any valid information aside the graph and id.
+	 * @param algorithm The algorithm to calculate the cover with.
+	 * @param componentNodeCountFilter The node count filter used by the OcdAlgorithmExecutor.
+	 */
+	public void runMultiplexAlgorithm(Cover cover, OcdMultiplexAlgorithm algorithm, int componentNodeCountFilter) {
+		//CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
+		//CoverId coverId = new CoverId(cover.getKey(), gId);
+		//AlgorithmRunnable runnable = new AlgorithmRunnable(cover, algorithm, componentNodeCountFilter, this);
+		//CoverCreationLog log = cover.getCreationMethod();
+		//synchronized (algorithms) {
+		//	Future<CoverCreationLog> future = executor.<CoverCreationLog>submit(runnable, log);
+		//	algorithms.put(coverId, future);
+		//}
 	}
 	
 	/**

@@ -9,6 +9,7 @@ import i5.las2peer.services.ocd.algorithms.LinkCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.MergingOfOverlappingCommunitiesAlgorithm;
 import i5.las2peer.services.ocd.algorithms.NISEAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
+import i5.las2peer.services.ocd.algorithms.OcdMultiplexAlgorithm;
 import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SignedDMIDAlgorithm;
 import i5.las2peer.services.ocd.algorithms.SignedProbabilisticMixtureAlgorithm;
@@ -257,6 +258,19 @@ public enum CoverCreationType implements EnumDisplayNames {
 	 */
 	public boolean correspondsAlgorithm() {
 		if(OcdAlgorithm.class.isAssignableFrom(this.getCreationMethodClass())) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	/**
+	 * States whether the corresponding creation method class is actually an OcdMultiplexAlgorithm.
+	 * @return TRUE if the class is an OcdMultiplexAlgorithm, otherwise FALSE.
+	 */
+	public boolean correspondsMultiplexAlgorithm() {
+		if(OcdMultiplexAlgorithm.class.isAssignableFrom(this.getCreationMethodClass())) {
 			return true;
 		}
 		else {

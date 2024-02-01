@@ -1683,10 +1683,6 @@ public class CustomGraph extends MultiGraph {
 		ArangoCollection collection = db.collection(collectionName);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
 		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
-		System.out.println("Graph load: collection: " + collection);
-		System.out.println("Graph load: key: " + key);
-		System.out.println("Graph load: BaseDocument.class: " + BaseDocument.class);
-		System.out.println("Graph load: readOpt: " + readOpt);
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
 		
 		if (bd != null) {
