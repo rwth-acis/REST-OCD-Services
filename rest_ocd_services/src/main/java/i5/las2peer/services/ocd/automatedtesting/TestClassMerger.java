@@ -330,8 +330,10 @@ public class TestClassMerger {
 
     /**
      * Modifies Java constants in a file by ensuring that constant variables are not used as string literals
-     * in a specific pattern. This method searches for lines containing 'parameters.put(' followed by a
-     * capitalized constant as a string literal and removes the quotes around the constant.
+     * in a specific pattern and appends '_NAME' to constants that don't end with '_NAME'.
+     * This method searches for lines containing 'parameters.put(' followed by a
+     * capitalized constant as a string literal, removes the quotes around the constant,
+     * and ensures the constant ends with '_NAME'.
      *
      * @param file The File object to be modified.
      * @throws IOException If an I/O error occurs.
@@ -341,6 +343,7 @@ public class TestClassMerger {
         List<String> lines = Files.readAllLines(path);
         List<String> modifiedLines = new ArrayList<>();
 
+        // First pass: Remove quotes around constants
         Pattern pattern = Pattern.compile("parameters\\.put\\(\"\\s*([A-Z_]+)\\s*\",");
         Matcher matcher;
 
@@ -358,7 +361,27 @@ public class TestClassMerger {
             }
         }
 
-        Files.write(path, modifiedLines);
+        // Second pass: Ensure all constants end with '_NAME'
+        List<String> finalLines = new ArrayList<>();
+        Pattern appendPattern = Pattern.compile("parameters\\.put\\(\\s*([A-Z_]+)(?<!_NAME)\\s*,");
+
+        for (String line : modifiedLines) {
+            matcher = appendPattern.matcher(line);
+            StringBuffer sb = new StringBuffer();
+            while (matcher.find()) {
+                String constantName = matcher.group(1) + "_NAME";
+                matcher.appendReplacement(sb, "parameters.put(" + constantName + ",");
+                System.out.println("Incorrect constant " + matcher.group(1) +" identified. Replacing with " + constantName);
+            }
+            matcher.appendTail(sb);
+            String finalLine = sb.toString();
+
+            finalLines.add(finalLine);
+
+
+        }
+
+        Files.write(path, finalLines);
     }
 
 
