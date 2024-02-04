@@ -5,6 +5,7 @@ import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
 import i5.las2peer.services.ocd.automatedtesting.helpers.FormattingHelpers;
 import i5.las2peer.services.ocd.automatedtesting.helpers.OCDATestExceptionHandler;
 import i5.las2peer.services.ocd.automatedtesting.helpers.OCDWriter;
+import i5.las2peer.services.ocd.automatedtesting.ocdaexecutor.GradleTaskExecutor;
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
@@ -64,8 +65,7 @@ public class PromptGenerator {
                 "import static org.junit.jupiter.api.Assertions.*;\n" +
                 "import org.junit.jupiter.api.BeforeEach;\n" +
                 "import org.junit.jupiter.api.Test;\n" +
-                "import java.util.HashMap;\n" +
-                "import java.util.Map;\n" +
+                "import java.util.*;\n" +
                 "import org.la4j.matrix.dense.Basic2DMatrix;\n" +
                 "import " + OCDATestExceptionHandler.class.getName() + ";\n" +
                 "import " + OcdAlgorithm.class.getName() + ";\n" +
@@ -97,6 +97,14 @@ public class PromptGenerator {
 
         // Initialize an empty StringBuilder to concatenate strings
         StringBuilder stringBuilder = new StringBuilder();
+
+        // Get name of OCDA
+        String ocdaName = OCDAParser.getClassName(ocdaCode);
+
+        // Add initial sentence to prompt that mentions OCDA
+        stringBuilder
+                .append("I want you to complete partially completed unit tests related to graph types for algorithm " + ocdaName + ". Don't forget to include Javadoc comment on each unit test.")
+                .append("\n\n");
 
         // Add partially completed unit tests for each compatible graph type to the prompt string
         stringBuilder
@@ -383,7 +391,7 @@ public class PromptGenerator {
                         "\t\t\tgetAlgorithm().setParameters(parameters); // Don't modify\n" +
                         "\n" +
                         "\t\t\t" + generateCoverInstantiationString(compatibleGraphTypeString) + " // Don't modify\n" +
-                        "\t\t\t" +"assert cover.getCommunities().size() >= 1; // Don't modify\n" +
+                        "\t\t\t" +"assertTrue(cover.getCommunities().size() >= 1); // Don't modify\n" +
                         "\n" +
                         "\t\t} catch (Throwable t){\n" +
                         "\t\t\t" + "fail(\"Test failed due to an exception or assertion error: \" + t.getMessage()); // Don't modify\n" +
@@ -509,18 +517,28 @@ public class PromptGenerator {
         // Initialize an empty StringBuilder to concatenate strings
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append("Assume Role 2 and please complete partially completed unit tests for the following methods of " + ocdaName + ":\n");
+        stringBuilder.append("Assume Role 2 and please complete partially completed unit tests for the specified methods of " + ocdaName + ":\n");
+
+        // Add method names for to the prompt for which tests should be generated
+        stringBuilder.append("### Method Names\n");
+        stringBuilder.append(String.join(",", methodNames));
+        stringBuilder.append("\n\n");
+
+        // Add method signatures to the prompt for which tests should be generated
+        stringBuilder.append("### Method Signatures\n");
         methodNames.forEach(methodName -> {
             stringBuilder.append(OCDAParser.getMethodSignature(ocdaCode,methodName)).append("\n");
         });
         stringBuilder.append("\n\n");
 
-
         // Append test class with partially completed unit tests for specified OCDA methods
         stringBuilder
                 .append("### Test class with partially completed unit tests for the methods I want to test\n")
                 .append("```\n");
-        String ocdaTestClassPath = "gpt/classfiles/Generated" + ocdaName + "Test.java";
+        String ocdaTestClassPath = OCDATestAutomationConstants.GPT_GENERATED_TEST_CLASS_CODE_LOCATION + "Generated" + ocdaName + "Test.java";
+
+        // Generate OCDA test class with partially completed unit tests
+        GradleTaskExecutor.runInitializeOCDAMethodTestFiles(ocdaName,methodNames);
         File ocdaTestClass = new File(ocdaTestClassPath);
         stringBuilder
                 .append(FileHelpers.readFileAsString(ocdaTestClass))
@@ -534,7 +552,12 @@ public class PromptGenerator {
                 .append(FileHelpers.readFileAsString(ocdaCode))
                 .append("```\n");
 
+        // Create an empty file where GPT response should be written for processing
+        createGPTResponseFileForTests(OCDAParser.getClassName(ocdaCode), "");
 
+        // Write prompt for completing partially generated test classes
+        generateAndWriteFile("gpt/prompts/" + OCDAParser.getClassName(ocdaCode)
+                +"_unit_test_completion_prompt.txt", stringBuilder.toString(), false);
 
         return stringBuilder.toString();
 
