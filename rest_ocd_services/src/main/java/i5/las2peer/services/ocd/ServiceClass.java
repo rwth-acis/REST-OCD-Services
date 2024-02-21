@@ -3535,6 +3535,7 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"names"}, value = "Algorithms information", notes = "Returns all algorithm type names.")
 		public Response getAlgorithmNames() {
 			try {
+				System.out.println(Response.ok(requestHandler.writeAlgorithmNames()).build());
 				return Response.ok(requestHandler.writeAlgorithmNames()).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -3560,6 +3561,19 @@ public class ServiceClass extends RESTService {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
+		}
+
+		@GET
+		@Path("testforbot")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"names"}, value = "Algorithms information", notes = "Returns all algorithm type names.")
+		public Response testforbot() {
+			System.out.println("testforbot");
+			String jsonResponse = "{\"text\": \"test successfull\", \"closeContext\": \"\"}";
+			System.out.println(Response.ok(jsonResponse).build());
+			return Response.ok(jsonResponse).build();
 		}
 		
 		/**
