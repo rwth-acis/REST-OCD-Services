@@ -50,6 +50,18 @@ public class PathResolver {
         return Paths.get(rootDirectory, relativePath).toString();
     }
 
+    /**
+     * Prepend project root path if the system's projectRoot variable is set. This is used for certain gradle
+     * tasks to avoid issues due to hierarchical structure of the WebOCD Gradle project.
+     * @param initialPath
+     * @return
+     */
+    public static String addProjectRootPathIfSet(String initialPath){
+        String pathWithProjectRoot = System.getProperty("projectRoot") != null ? System.getProperty("projectRoot") + File.separator : "";
+        return pathWithProjectRoot + initialPath;
+
+    }
+
     // Example usage
     public static void main(String[] args) {
         String filePath = resolvePath("gpt/classfiles/GeneratedSskAlgorithmTest.java");

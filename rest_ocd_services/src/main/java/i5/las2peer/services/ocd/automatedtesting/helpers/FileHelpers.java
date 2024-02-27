@@ -59,6 +59,33 @@ public class FileHelpers {
         return contentRoot + File.separator + relativeFilePath;
     }
 
+    /**
+     * Cleans a file path by removing consecutive duplicate directory names.
+     * This method helps in rectifying file paths where a directory name might have
+     * been mistakenly repeated. For example, if the original path is
+     * "folder\\folder\\subfolder\\file.txt", it will be cleaned to "folder\\subfolder\\file.txt".
+     *
+     * @param filePath The original file path that may contain duplicate directory names.
+     * @return A cleaned file path with consecutive duplicate directory names removed.
+     */
+    public static String cleanDuplicateDirectories(String filePath) {
+        // Normalize file separators to system-dependent separator
+        String normalizedPath = filePath.replace("/", File.separator).replace("\\", File.separator);
+        String[] parts = normalizedPath.split(File.separator.equals("\\") ? "\\\\" : File.separator);
+        StringBuilder cleanedPath = new StringBuilder(parts.length > 0 ? parts[0] : "");
+
+        // Iterate through path parts and append if not a duplicate of the previous
+        for (int i = 1; i < parts.length; i++) {
+            if (!parts[i].equals(parts[i - 1])) {
+                cleanedPath.append(File.separator).append(parts[i]);
+            }
+        }
+
+        return cleanedPath.toString();
+    }
+
+
+
 
     /**
      * Returns the file path to the main OCD algorithm code.
@@ -70,7 +97,7 @@ public class FileHelpers {
      */
     public static String getOCDAPath(String ocdaFileName){
         String relativeFilePath = OCDA_LOCATION_IN_MAIN_SOURCE_SET + ocdaFileName;
-        return constructFilePath(relativeFilePath);
+        return cleanDuplicateDirectories(constructFilePath(relativeFilePath));
     }
 
 
@@ -142,6 +169,8 @@ public class FileHelpers {
         // Create and return the File object
         return new File(filePath);
     }
+
+
 
     /**
      * Reads a file and returns its content as a string.

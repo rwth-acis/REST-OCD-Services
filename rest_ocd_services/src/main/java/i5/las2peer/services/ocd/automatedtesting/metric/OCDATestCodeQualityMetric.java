@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.automatedtesting.metric;
 import i5.las2peer.services.ocd.automatedtesting.OCDATestAutomationConstants;
 import i5.las2peer.services.ocd.automatedtesting.TestClassMerger;
 import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
+import i5.las2peer.services.ocd.automatedtesting.helpers.PathResolver;
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser;
 
 import java.io.File;
@@ -221,7 +222,7 @@ public class OCDATestCodeQualityMetric {
 
 
         // Write report about automated testing quality results for the specified OCD algorithm
-        generateAndWriteFile("gpt/reports/"+ocdaName
+        generateAndWriteFile(PathResolver.addProjectRootPathIfSet("gpt/reports/") +ocdaName
                 +"_automated_testing_report.txt", stringBuilder.toString(),false);
         return stringBuilder.toString();
     }

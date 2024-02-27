@@ -1,10 +1,7 @@
 package i5.las2peer.services.ocd.automatedtesting;
 
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
-import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
-import i5.las2peer.services.ocd.automatedtesting.helpers.FormattingHelpers;
-import i5.las2peer.services.ocd.automatedtesting.helpers.OCDATestExceptionHandler;
-import i5.las2peer.services.ocd.automatedtesting.helpers.OCDWriter;
+import i5.las2peer.services.ocd.automatedtesting.helpers.*;
 import i5.las2peer.services.ocd.automatedtesting.ocdaexecutor.GradleTaskExecutor;
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser;
 import i5.las2peer.services.ocd.graphs.Cover;
@@ -27,28 +24,45 @@ public class PromptGenerator {
 
 
     public static void main(String[] args) {
-        String ocdaName = "SskAlgorithm";
-        File ocdaCode = new File(FileHelpers.getOCDAPath(ocdaName + ".java"));
-        File ocdaTestCode = new File(FileHelpers.getOCDATestPath("SskAlgorithmTest.java"));
-
-
-
-        // Generate prompt that asks GPT to complete partially completed unit tests (the prompt includes unit tests)
-        generateAndWriteGraphTypeRelatedTestPrompt(ocdaCode);
-
-
-        // Generate prompt that asks GPT to generate a test for a specific OCD method. As a response to this, GPT will
-        // ask for a method that should be tested. When this prompt is used, OCDA file should also be given as input.
-        //System.out.println(generateAndWriteOCDAMethodTestPromptForCustomGPT(ocdaCode));
-
-        // Generate prompt that includes partially completed unit tests for specified OCDA methods and the OCDA code
-        // this is used when communicating with GPT API
-        List<String> methodNames = Arrays.asList("Item1", "calculateTransitiveLinkWeight", "calculateMemberships");
-        String prompt = generateAndWriteOCDAMethodTestPromptForGPTAPI(ocdaName, methodNames);
-        System.out.println("specific OCDA method prompt:\n" + prompt);
-
-
+        if (args.length > 0) {
+            String ocdaName = args[1];
+            String ocdaCodePath = FileHelpers.cleanDuplicateDirectories(FileHelpers.getOCDAPath(ocdaName + ".java"));
+            File ocdaCode = new File(ocdaCodePath);
+            switch (args[0]) {
+                case "generateAndWriteGraphTypeRelatedTestPrompt":
+                    if (args.length > 1) {
+                        String result = generateAndWriteGraphTypeRelatedTestPrompt(ocdaCode);
+                        System.out.println(result);
+                    } else {
+                        System.out.println("OCDA name not provided for Graph Type Related Test Prompt.");
+                    }
+                    break;
+                case "generateAndWriteOCDAParameterGenerationPrompt":
+                    if (args.length > 1) {
+                        String result = generateAndWriteOCDAParameterGenerationPrompt(ocdaCode);
+                        System.out.println(result);
+                    } else {
+                        System.out.println("OCDA name not provided for OCDA Parameter Generation Prompt.");
+                    }
+                    break;
+                case "runGenerateAndWriteOCDAMethodTestPrompt":
+                    if (args.length > 2) { // Expecting at least one method name
+                        List<String> methodNames = Arrays.asList(args).subList(2, args.length);
+                        String result = generateAndWriteOCDAMethodTestPromptForGPTAPI(ocdaName, methodNames);
+                       // System.out.println(result);
+                    } else {
+                        System.out.println("OCDA name or method names not provided for GPT API Method Test Prompt.");
+                    }
+                    break;
+                default:
+                    System.out.println("Invalid argument: " + args[0]);
+                    break;
+            }
+        } else {
+            System.out.println("No arguments provided.");
+        }
     }
+
 
     /**
      * Generates a list of import statements for the test class of the OCD algorithm.
@@ -143,9 +157,11 @@ public class PromptGenerator {
 
 
 
+        // Path to write, which starts with root (i.e. not in child project) if root variable is set in gradle task
+        String pathToWrite = PathResolver.addProjectRootPathIfSet("gpt/prompts/" + OCDAParser.getClassName(ocdaCode) +"_unit_test_completion_prompt.txt");
+
         // Write prompt for completing partially generated test classes
-        generateAndWriteFile("gpt/prompts/" + OCDAParser.getClassName(ocdaCode)
-                +"_unit_test_completion_prompt.txt", stringBuilder.toString(), false);
+        generateAndWriteFile(pathToWrite , stringBuilder.toString(), false);
 
         // Create an empty file where GPT response should be written for processing
         createGPTResponseFileForTests(OCDAParser.getClassName(ocdaCode), "");
@@ -161,7 +177,7 @@ public class PromptGenerator {
      *                     created (i.e. OCDA for which the tests are generated).
      */
     public static void createGPTResponseFileForTests(String ocdaName, String content){
-        String gptResponseFilePath = FileHelpers.getAutoGeneratedUnprocessedUnitTestPath(ocdaName + OCDATestAutomationConstants.GPT_GENERATED_TEST_FILE_NAME_SUFFIX);
+        String gptResponseFilePath = PathResolver.addProjectRootPathIfSet(FileHelpers.getAutoGeneratedUnprocessedUnitTestPath(ocdaName + OCDATestAutomationConstants.GPT_GENERATED_TEST_FILE_NAME_SUFFIX));
         OCDWriter.generateAndWriteFile(gptResponseFilePath, content, false);
     }
 
@@ -172,7 +188,7 @@ public class PromptGenerator {
      *                     created (i.e. OCDA for which the tests are generated).
      */
     public static void createGPTResponseFileForOCDAParameters(String ocdaName, String content){
-        String gptResponseFilePath = FileHelpers.getAutoGeneratedUnprocessedUnitTestPath(ocdaName + OCDATestAutomationConstants.GPT_GENERATED_OCDA_PARAMETERS_FILE_NAME_SUFFIX);
+        String gptResponseFilePath = PathResolver.addProjectRootPathIfSet(FileHelpers.getAutoGeneratedUnprocessedUnitTestPath(ocdaName + OCDATestAutomationConstants.GPT_GENERATED_OCDA_PARAMETERS_FILE_NAME_SUFFIX));
         OCDWriter.generateAndWriteFile(gptResponseFilePath, content, false);
     }
 
@@ -272,9 +288,12 @@ public class PromptGenerator {
                 .append("\n\n")
                 .append(json.toJSONString());
 
+
+        // Path to write, which starts with root (i.e. not in child project) if root variable is set in gradle task
+        String pathToWrite = PathResolver.addProjectRootPathIfSet("gpt/prompts/" + OCDAParser.getClassName(ocdaCode) +"_ocda_parameter_generation_prompt.txt");
+
         // Write prompt for generating OCDA parameters
-        generateAndWriteFile("gpt/prompts/" + OCDAParser.getClassName(ocdaCode)
-                +"_ocda_parameter_generation_prompt.txt", stringBuilder.toString(), false);
+        generateAndWriteFile(pathToWrite , stringBuilder.toString(), false);
 
         // Create an empty file where GPT response should be written for processing
         createGPTResponseFileForOCDAParameters(OCDAParser.getClassName(ocdaCode), "");
@@ -512,7 +531,9 @@ public class PromptGenerator {
     public static String generateAndWriteOCDAMethodTestPromptForGPTAPI(String ocdaName, List<String> methodNames){
 
         // OCD algorithm code
-        File ocdaCode = FileHelpers.getAlgorithmFile(ocdaName);
+        String ocdaCodePath = FileHelpers.cleanDuplicateDirectories(FileHelpers.getOCDAPath(ocdaName + ".java"));
+        File ocdaCode = new File(ocdaCodePath);
+
 
         // Initialize an empty StringBuilder to concatenate strings
         StringBuilder stringBuilder = new StringBuilder();
@@ -555,9 +576,12 @@ public class PromptGenerator {
         // Create an empty file where GPT response should be written for processing
         createGPTResponseFileForTests(OCDAParser.getClassName(ocdaCode), "");
 
+
+        // Path to write, which starts with root (i.e. not in child project) if root variable is set in gradle task
+        String pathToWrite = PathResolver.addProjectRootPathIfSet("gpt/prompts/" + OCDAParser.getClassName(ocdaCode) +"_unit_test_completion_prompt.txt");
+
         // Write prompt for completing partially generated test classes
-        generateAndWriteFile("gpt/prompts/" + OCDAParser.getClassName(ocdaCode)
-                +"_unit_test_completion_prompt.txt", stringBuilder.toString(), false);
+        generateAndWriteFile(pathToWrite, stringBuilder.toString(), false);
 
         return stringBuilder.toString();
 
