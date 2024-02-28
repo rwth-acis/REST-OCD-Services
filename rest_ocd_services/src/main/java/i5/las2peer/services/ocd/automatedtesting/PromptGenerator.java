@@ -81,7 +81,7 @@ public class PromptGenerator {
                 "import org.junit.jupiter.api.Test;\n" +
                 "import java.util.*;\n" +
                 "import org.la4j.matrix.dense.Basic2DMatrix;\n" +
-                "import " + OCDATestExceptionHandler.class.getName() + ";\n" +
+                "import " + OCDWriter.class.getName() + ";\n" +
                 "import " + OcdAlgorithm.class.getName() + ";\n" +
                 "import " + OcdAlgorithm.class.getPackage().getName() + "." + ocdaName + ";\n" +
                 "import static " + OcdAlgorithm.class.getPackage().getName() + "." + ocdaName + ".*;\n" +  // this is needed for OCDA parameter name constants

@@ -112,7 +112,7 @@ public class FileHelpers {
      */
     public static String getOCDATestPath(String ocdaTestFileName){
         String relativeFilePath = OCDA_LOCATION_IN_TEST_SOURCE_SET + ocdaTestFileName;
-        return constructFilePath(relativeFilePath);
+        return cleanDuplicateDirectories(constructFilePath(relativeFilePath));
     }
 
 
