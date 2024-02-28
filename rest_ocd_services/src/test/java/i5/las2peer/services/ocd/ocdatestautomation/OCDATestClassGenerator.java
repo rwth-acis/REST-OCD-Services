@@ -12,6 +12,8 @@ import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.*;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,7 +34,7 @@ public class OCDATestClassGenerator {
      *
      * @param ocdaCode The file containing the OCD algorithm code. This file is parsed to determine the algorithm's
      *                  characteristics and compatible graph types.
-     * @param isMainTestClass  Boolean determining if the generated class is used as a main test class which will
+     * @param isReferenceTestClass  Boolean determining if the generated class is used as a main test class which will
      *                         be filled with unit tests, or if it is not a main test class and instead the unit
      *                         tests from this class will be merged into the main class (after using GPT to
      *                         generate unit tests).
@@ -48,7 +50,7 @@ public class OCDATestClassGenerator {
      * The generated test class includes standard setup for unit tests, such as a setup method annotated with @BeforeEach.
      * The generated code section is marked with "ChatGPT Code" to indicate where the GPT should complete the unit tests.
      */
-    public static void generateAndWriteOCDTestClass(File ocdaCode, boolean isMainTestClass){
+    public static void generateAndWriteOCDTestClass(File ocdaCode, boolean isReferenceTestClass){
 
         // Extract OCD algorithm name from the class file
         String ocdaName = OCDAParser.getClassName(ocdaCode);
@@ -57,7 +59,7 @@ public class OCDATestClassGenerator {
         // for temporarily generated test classes the contents of which should be merged into the
         // main test class
         String ocdaTestClassName = ocdaName;
-        if (!isMainTestClass) {
+        if (!isReferenceTestClass) {
             ocdaTestClassName = "Generated" + ocdaName;
         }
 
@@ -118,7 +120,7 @@ public class OCDATestClassGenerator {
 
         // package depends on where the auto-generated class should be placed.
         String testClassPackage = TEST_CLASS_PACKAGE_STRING;
-        if (!isMainTestClass) {
+        if (!isReferenceTestClass) {
             testClassPackage = AUTO_GENERATED_TEST_CLASS_PACKAGE;
         }
 
@@ -154,10 +156,47 @@ public class OCDATestClassGenerator {
         );
 
 
-        // Write test class to a file
+        // Write test class to a file for GPT processing
         generateAndWriteFile(PathResolver.resolvePath("gpt/classfiles/"+ocdaTestClassName+"Test.java"), stringBuilder.toString(),false);
 
+        // Create a test class for OCDA if it doesn't exist and populate it with base test interfaces and skeleton
+        // code that should be enriched by GPT
+        initializeTestClass(ocdaName,stringBuilder.toString());
 
+    }
+
+
+    /**
+     * Initialize a test class for specified OCDA with a specified content
+     * @param ocdaName      Name of the OCDA for which the test class should be created
+     * @param content       Content of the test class
+     */
+    public static void initializeTestClass(String ocdaName, String content){
+        String ocdaTestClassPath = FileHelpers.getOCDATestPath(ocdaName + "Test.java");
+        File ocdaTestClass = new File(ocdaTestClassPath);
+        // Check if the file exists
+        if (!ocdaTestClass.exists()) {
+            try {
+                // Try creating the file. If the directories leading up to the file do not exist,
+                // they will need to be created first (this shouldn't generally happen since there
+                // are other OCDA).
+                File parentDir = ocdaTestClass.getParentFile();
+                if (parentDir != null && !parentDir.exists()) {
+                    parentDir.mkdirs(); // Make the directory (and any parent directories as needed)
+                }
+                ocdaTestClass.createNewFile(); // Create the new file
+
+                // Initialize test class with basic method and interface implementations
+                generateAndWriteFile(ocdaTestClassPath, content,false);
+
+
+                System.out.println("File created: " + ocdaTestClass.getAbsolutePath());
+            } catch (IOException e) {
+                System.err.println("An error occurred while creating the file: " + e.getMessage());
+            }
+        } else {
+            System.out.println("File already exists: " + ocdaTestClass.getAbsolutePath());
+        }
     }
 
 
