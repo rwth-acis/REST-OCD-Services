@@ -195,8 +195,7 @@ public class TestClassMerger {
     public static List<String> extractUnitTestsFromText(String text) {
         List<String> unitTests = new ArrayList<>();
 
-        // Updated pattern to match JavaDoc and @Test annotation more reliably
-        String patternString = "(?s)/\\*\\*.*?\\*/\\s*@Test.*?public void.*?\\(.*?\\).*?\\{";
+        String patternString = "(?s)(/\\*\\*.*?\\*/\\s*)?@Test.*?public void.*?\\(.*?\\).*?\\{";
         Pattern pattern = Pattern.compile(patternString);
         Matcher matcher = pattern.matcher(text);
 
