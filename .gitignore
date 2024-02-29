@@ -13,6 +13,7 @@ etc/ivy/ivy.jar
 /.idea
 restMapping.xml
 /out
+/ocd/arangoDB/db/*
 /ocd/doca/cover.txt
 /ocd/doca/network.txt
 /ocd/eclipselink/serviceCreateDLL.jdbc
