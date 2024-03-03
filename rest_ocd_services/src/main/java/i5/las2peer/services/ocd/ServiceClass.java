@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -28,6 +30,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.automatedtesting.AssistantGPTAPICodeProcessor;
+import i5.las2peer.services.ocd.automatedtesting.PromptGenerator;
+import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
+import i5.las2peer.services.ocd.automatedtesting.helpers.OCDWriter;
 import i5.las2peer.services.ocd.centrality.data.*;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.*;
@@ -41,13 +47,10 @@ import org.la4j.matrix.sparse.CCSMatrix;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.ManualDeployment;
 import i5.las2peer.api.security.UserAgent;
-import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
 import i5.las2peer.api.logging.MonitoringEvent;
-import i5.las2peer.logging.L2pLogger;
 import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.execution.ExecutionContext;
 import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -104,7 +107,6 @@ import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
 import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
-import i5.las2peer.services.ocd.utils.Error;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 import i5.las2peer.services.ocd.utils.InvocationHandler;
 import i5.las2peer.services.ocd.utils.ThreadHandler;
@@ -123,7 +125,7 @@ import io.swagger.annotations.Contact;
 import io.swagger.annotations.Info;
 import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
-
+import org.json.simple.parser.JSONParser;
 
 /**
  * 
@@ -684,6 +686,207 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
+
+		@GET
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@Path("prompts/graphtype")
+		@ApiOperation(tags = {"export"}, value = "Generate and Write Graph Type Related OCDA Unit Test Prompt", notes = "Generates and writes a test prompt for completing partially completed graph type related unit tests for the specified OCD algorithm.")
+		public Response generateAndWriteGraphTypeRelatedTestPrompt(@QueryParam("ocdaName") String ocdaName) {
+			try {
+
+				File ocdaClassFile = FileHelpers.getAlgorithmFile(ocdaName);
+				String generatedPrompt = PromptGenerator.generateAndWriteGraphTypeRelatedTestPrompt(ocdaClassFile);
+
+				// Log Prompt
+				OCDWriter.logGptCommunication( generatedPrompt,true, ocdaName,"Graph Type Related Test Prompt for GPT");
+
+				return Response.ok(generatedPrompt).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+
+		@POST
+		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@Path("prompts/ocdamethod")
+		@ApiOperation(tags = {"export"}, value = "Generate and Write Test Prompt", notes = "Generates and writes a test prompt related to the specified OCDA name.")
+		public Response generateAndWriteSpecificOCDAMethodPrompt(@QueryParam("ocdaName") String ocdaName, String requestBody) {
+			try {
+
+				// Split and trim the OCD algorithm method names for which method signatures should be identified
+				List<String> methodNames = Arrays.stream(requestBody.split(","))
+						.map(String::trim)
+						.collect(Collectors.toList());
+
+
+				// Generate prompt string that includes import statements of the OCDA test class and the
+				// OCD algorithm code.
+				String generatedPrompt = PromptGenerator.generateAndWriteOCDAMethodTestPromptForGPTAPI(ocdaName, methodNames)
+						+ "\n";
+
+				// Log Prompt
+				OCDWriter.logGptCommunication(generatedPrompt,true, ocdaName, "Specific OCDA Method Test Prompt for GPT");
+
+				return Response.ok(generatedPrompt).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		@GET
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@Path("prompts/ocdaparameters")
+		@ApiOperation(tags = {"export"}, value = "Generate and Write Diverse OCDA Parameter Generation Prompt for OCDA Accuracy Test Creation", notes = "Generates and writes a test prompt for completing partially completed graph type related unit tests for the specified OCD algorithm.")
+		public Response generateAndWriteOCDAParameterGenerationPrompt(@QueryParam("ocdaName") String ocdaName) {
+			try {
+
+				File ocdaClassFile = FileHelpers.getAlgorithmFile(ocdaName);
+				String generatedPrompt = PromptGenerator.generateAndWriteOCDAParameterGenerationPrompt(ocdaClassFile);
+
+				// Log Prompt
+				OCDWriter.logGptCommunication(generatedPrompt,true, ocdaName, "OCDA Parameter Generation Prompt for GPT");
+
+				return Response.ok(generatedPrompt).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
+		 * Processes the input string from the request body as GPT response for a request of graph type related tests
+		 * and returns either an empty string if no issues are found or a prompt string with issues to fix.
+		 *
+		 * @param ocdaName The name of the overlapping community detection algorithm.
+		 * @param gptResponse The string content of GPT response to be processed, sent in the request body.
+		 * @return Empty string if no issues are found or a prompt string with issues to fix.
+		 */
+		@POST
+		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.TEXT_PLAIN)
+		@Path("process-input")
+		public Response processInputStringWithGraphTypeRelatedTests(@QueryParam("ocdaName") String ocdaName, String gptResponse) {
+			try {
+
+				// Log GPT Response
+				OCDWriter.logGptCommunication(gptResponse,false, ocdaName, "GPT response");
+
+				// Write GPT response into a file to be processed
+				PromptGenerator.createGPTResponseFileForTests(ocdaName, gptResponse);
+
+
+				// Process GPT-Generated code and return any issues in it to be used in subsequent prompts
+				String processedString = AssistantGPTAPICodeProcessor.processGraphTypeRelatedGPTTestCodeAndGenerateSubsequentPrompt(ocdaName);
+
+				// Log prompt sent to GPT after processing its previous response
+				if (processedString.equals("")){
+					OCDWriter.logGptCommunication(processedString, true, ocdaName, "Issue Fixing Prompt to GPT is Empty as no issues were found");
+				} else {
+					OCDWriter.logGptCommunication(processedString, true, ocdaName, "Issue Fixing Prompt to GPT");
+				}
+
+				return Response.ok(processedString).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
+		 * Processes the input string from the request body as GPT response for a request of arbitrary OCDA method tests
+		 * and returns either an empty string if no issues are found or a prompt string with issues to fix.
+		 *
+		 *
+		 * @param ocdaName The name of the overlapping community detection algorithm.
+		 * @param gptResponse The string content of GPT response to be processed, sent in the request body.
+		 * @return Empty string if no issues are found or a prompt string with issues to fix.
+		 */
+		@POST
+		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Path("process-specific-ocda-tests")
+		public Response processInputStringWithSpecificOCDAMethodTests(@QueryParam("ocdaName") String ocdaName, String gptResponse) {
+			try {
+
+				JSONParser parser = new JSONParser();
+
+				// Parse the JSON string that includes method names and GPT response with completed unit tests
+				JSONObject jsonObj = (JSONObject) parser.parse(gptResponse);
+
+				// Extract the value for "methodNames" and split it into a List<String>
+				String methodNamesStr = (String) jsonObj.getOrDefault("methodNames", "");
+				List<String> methodNames = Arrays.asList(methodNamesStr.split(","));
+
+				// Extract the GPT generated code from JSON and store it in a String
+				String gptGeneratedCode = (String) jsonObj.getOrDefault("gptGeneratedCode", "");
+
+				// Log GPT Response
+				OCDWriter.logGptCommunication(gptGeneratedCode,false, ocdaName, "GPT response");
+
+				// Write GPT generated code from the response into a file to be processed
+				PromptGenerator.createGPTResponseFileForTests(ocdaName, gptGeneratedCode);
+
+
+				// Process GPT-Generated code and return any issues in it to be used in subsequent prompts
+				String processedString = AssistantGPTAPICodeProcessor.processOCDAMethodGPTTestCodeAndGenerateSubsequentPrompt(ocdaName,methodNames);
+
+
+				// Log prompt sent to GPT after processing its previous response
+				if (processedString.equals("")){
+					OCDWriter.logGptCommunication(processedString, true, ocdaName, "Issue Fixing Prompt to GPT is Empty as no issues were found");
+				} else {
+					OCDWriter.logGptCommunication(processedString, true, ocdaName, "Issue Fixing Prompt to GPT");
+				}
+
+				return Response.ok(processedString).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
+		 * Processes the input string from the request body that holds JSON with OCDA parameter values for a specified
+		 * OCD algorithm. Then create and write OCDA Accuracy test based on valid parameters generated by GPT.
+		 *
+		 * @param ocdaName The name of the overlapping community detection algorithm.
+		 * @param gptResponse The string content of GPT response to be processed, sent in the request body.
+		 * @return Empty string if no issues are found or a prompt string with issues to fix.
+		 */
+		@POST
+		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.TEXT_PLAIN)
+		@Path("process-ocda-parameters")
+		public Response processInputStringWithOCDAParameterJSON(@QueryParam("ocdaName") String ocdaName, String gptResponse) {
+			try {
+
+				// Log GPT Response
+				OCDWriter.logGptCommunication(gptResponse,false, ocdaName, "GPT response to Parameter Generation Request for OCDA Accuracy Test");
+
+				// Write GPT response into a file to be processed
+				PromptGenerator.createGPTResponseFileForTests(ocdaName, gptResponse);
+
+
+				// Process GPT-Generated code and return any issues in it to be used in subsequent prompts
+				AssistantGPTAPICodeProcessor.processGPTAssistantResponseForOCDAAccuracyTests(gptResponse,ocdaName);
+
+				return Response.ok().build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
 
 		/**
 		 * Returns a graph in a specified output format.
