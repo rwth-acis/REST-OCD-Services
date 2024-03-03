@@ -175,7 +175,7 @@ public class OCDATestClassGenerator {
         String ocdaTestClassPath = FileHelpers.getOCDATestPath(ocdaName + "Test.java");
         File ocdaTestClass = new File(ocdaTestClassPath);
         // Check if the file exists
-        if (!ocdaTestClass.exists()) {
+        if (!ocdaTestClass.exists() || ocdaTestClass.length() == 0) {
             try {
                 // Try creating the file. If the directories leading up to the file do not exist,
                 // they will need to be created first (this shouldn't generally happen since there
