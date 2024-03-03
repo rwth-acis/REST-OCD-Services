@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class MergingOfOverlappingCommunitiesTest implements UndirectedGraphTestReq, WeightedGraphTestReq
+public class MergingOfOverlappingCommunitiesAlgorithmTest implements UndirectedGraphTestReq, WeightedGraphTestReq
 		, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;

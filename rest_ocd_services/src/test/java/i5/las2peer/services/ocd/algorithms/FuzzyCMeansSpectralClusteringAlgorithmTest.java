@@ -27,7 +27,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FuzzyCMeansSpectralClusteringTest implements UndirectedGraphTestReq, WeightedGraphTestReq
+public class FuzzyCMeansSpectralClusteringAlgorithmTest implements UndirectedGraphTestReq, WeightedGraphTestReq
 		, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;

@@ -27,7 +27,7 @@ import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 import org.graphstream.graph.Node;
 
-public class AntColonyOptimizationTest implements  UndirectedGraphTestReq, ZeroWeightsGraphTestReq, SelfLoopsGraphTestReq, OCDAParameterTestReq {
+public class AntColonyOptimizationAlgorithmTest implements  UndirectedGraphTestReq, ZeroWeightsGraphTestReq, SelfLoopsGraphTestReq, OCDAParameterTestReq {
 
 	OcdAlgorithm algo;
 
