@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.automatedtesting.metric;
 import i5.las2peer.services.ocd.automatedtesting.OCDATestAutomationConstants;
 import i5.las2peer.services.ocd.automatedtesting.TestClassMerger;
 import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
+import i5.las2peer.services.ocd.automatedtesting.helpers.OCDWriter;
 import i5.las2peer.services.ocd.automatedtesting.helpers.PathResolver;
 import i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser;
 
@@ -77,155 +78,112 @@ public class OCDATestCodeQualityMetric {
     }
 
 
+
     /**
-     * Generates and writes a quality report detailing the total metric value and individual submetric evaluations.
-     * The report includes essential information about each submetric, such as code validity, OCD submetrics,
-     * code modification, and coverage metrics, as well as their individual contributions to the total metric value.
+     * Generates and returns a quality report in Markdown format detailing the total metric value and individual
+     * submetric evaluations. The report includes essential information about each submetric, such as code validity,
+     * OCD submetrics, code modification, and coverage metrics, as well as their individual contributions to the total
+     * metric value.
      * If desired, the report can also include issues identified during the evaluation process.
      *
      * @param ocdaName The name of the OCD algorithm being tested.
      * @param includeIssues Flag indicating whether to include identified issues in the report.
      * @param PathToFile    String representation of the file path of the evaluated code.
      *                      If non-empty it will be included in the report.
-     * @return A string representation of the quality report.
+     * @return A Markdown formatted string representation of the quality report.
      */
-    public static String generateAndWriteQualityReport(String ocdaName, boolean includeIssues, String PathToFile){
-        // Initialize an empty StringBuilder to concatenate strings
+    public static String generateAndWriteQualityReport(String ocdaName, boolean includeIssues, String PathToFile) {
         StringBuilder stringBuilder = new StringBuilder();
-        String reportSeparator = "------------------------------------------------------------------------\n";
 
-
-        stringBuilder.append("==================== "
-                + "Automated Test Generation Quality Report For "  + ocdaName
-                + " ====================").append("\n\n");
+        stringBuilder.append("### Automated Test Generation Quality Report For `").append(ocdaName).append("`").append("\n\n");
 
         // Essential submetrics
-        stringBuilder.append("No Parsing errors found:\t"+ CodeValiditySubmetric.isNoParsingErrorFound()).append("\n");
-        stringBuilder.append("No Runtime errors found:\t" + CodeValiditySubmetric.isNoRuntimeErrorFound()).append("\n");
-        stringBuilder.append("\n");
-
-        stringBuilder.append(reportSeparator);
+        stringBuilder.append("#### Code Validity Submetric\n");
+        stringBuilder.append("* No Parsing errors found: `").append(CodeValiditySubmetric.isNoParsingErrorFound() ? "true" : "false").append("`").append("\n");
+        stringBuilder.append("* No Runtime errors found: `").append(CodeValiditySubmetric.isNoRuntimeErrorFound() ? "true" : "false").append("`").append("\n\n");
 
 
         if (CodeValiditySubmetric.isNoParsingErrorFound() && CodeValiditySubmetric.isNoRuntimeErrorFound()) {
-            // add OCD sub-metric information to the report
-            stringBuilder
-                    .append(OCDSubmetric.class.getSimpleName() + " sub-metric: ")
-                    .append("\n")
-                    .append("\tRatio of compatible graph types tested:\t\t\t" + roundToDecimalPlaces(OCDSubmetric.getCompatibleGraphTypeTestRatio(),2))
-                    .append("\n")
-                    .append("\tRatio of algorithm parameters used in tests:\t\t" + roundToDecimalPlaces(OCDSubmetric.getAlgorithmParameterUsageRatio(),2))
-                    .append("\n")
-                    .append("total sub-metric value: " + roundToDecimalPlaces(OCDSubmetric.getOCDSumetricValue(),2))
-                    .append("\n");
+            // OCD Sub-metric
+            stringBuilder.append("#### OCD Submetric = " + roundToDecimalPlaces(OCDSubmetric.getOCDSumetricValue(),2) + "\n");
+            stringBuilder.append("```text\n"); // Start code block to maintain formatting
+            stringBuilder.append("  Ratio of compatible graph types tested: ").append(roundToDecimalPlaces(OCDSubmetric.getCompatibleGraphTypeTestRatio(),2)).append("\n");
+            stringBuilder.append("  Ratio of algorithm parameters used in tests: ").append(roundToDecimalPlaces(OCDSubmetric.getAlgorithmParameterUsageRatio(),2)).append("\n");
+            stringBuilder.append("```\n\n"); // End code block
 
-            stringBuilder.append(reportSeparator);
+            // Code Modification Sub-metric
+            stringBuilder.append("#### Code Modification Submetric = " + roundToDecimalPlaces(CodeModificationSubmetric.getCodeModificationSubmetricValue(),2)  + " \n");
+            stringBuilder.append("```text\n"); // Start code block to maintain formatting
+            stringBuilder.append("  Ratio of auto-generated tests annotated as auto-generated: ").append(roundToDecimalPlaces(CodeModificationSubmetric.getAutogeneratedTestAnnotationRatio(),2)).append("\n");
+            stringBuilder.append("  Ratio of lines that were correctly left unmodified:          ").append(roundToDecimalPlaces(CodeModificationSubmetric.getCorrectlyUnmodifiedMethodLineRatio(),2)).append("\n");
+            stringBuilder.append("```\n\n"); // End code block
 
-            // Add code modification sub-metric information to the report
-            stringBuilder
-                    .append(CodeModificationSubmetric.class.getSimpleName() + " sub-metric: ")
-                    .append("\n")
-                    .append("\tRatio of auto-generated tests annotated as auto-generated:\t" + roundToDecimalPlaces(CodeModificationSubmetric.getAutogeneratedTestAnnotationRatio(),2))
-                    .append("\n")
-                    .append("\tRatio of lines that were correctly left unmodified:\t\t\t"+ roundToDecimalPlaces(CodeModificationSubmetric.getCorrectlyUnmodifiedMethodLineRatio(),2))
-                    .append("\n")
-                    .append("total sub-metric value: " + roundToDecimalPlaces(CodeModificationSubmetric.getCodeModificationSubmetricValue(),2))
-                    .append("\n");
-
-
-
-            stringBuilder.append(reportSeparator);
-
+            // Coverage Sub-metric
             if (includeCoverageSubmetric) {
-
-                stringBuilder
-                        .append(CoverageSubmetric.class.getSimpleName() + " sub-metric: ")
-                        .append("\n")
-                        .append("\tMethod coverage:\t\t\t" + roundToDecimalPlaces(CoverageSubmetric.getMethodCoverage(), 2))
-                        .append("\n")
-                        .append("\tBranch coverage:\t\t\t" + roundToDecimalPlaces(CoverageSubmetric.getBranchCoverage(), 2))
-                        .append("\n")
-                        .append("\tLine coverage:\t\t\t\t" + roundToDecimalPlaces(CoverageSubmetric.getLineCoverage(), 2))
-                        .append("\n")
-                        .append("\tInstruction coverage:\t\t" + roundToDecimalPlaces(CoverageSubmetric.getInstructionCoverage(), 2))
-                        .append("\n")
-                        .append("total sub-metric value: " + roundToDecimalPlaces(CoverageSubmetric.getCoverageSubmetricValue(), 2))
-                        .append("\n");
-
-                stringBuilder.append(reportSeparator);
+                stringBuilder.append("#### Coverage Submetric = " + roundToDecimalPlaces(CoverageSubmetric.getCoverageSubmetricValue(), 2) + "\n");
+                stringBuilder.append("```text\n"); // Start code block to maintain formatting
+                stringBuilder.append("  Method coverage: ").append(roundToDecimalPlaces(CoverageSubmetric.getMethodCoverage(), 2)).append("\n");
+                stringBuilder.append("  Branch coverage: ").append(roundToDecimalPlaces(CoverageSubmetric.getBranchCoverage(), 2)).append("\n");
+                stringBuilder.append("  Line coverage: ").append(roundToDecimalPlaces(CoverageSubmetric.getLineCoverage(), 2)).append("\n");
+                stringBuilder.append("  Instruction coverage: ").append(roundToDecimalPlaces(CoverageSubmetric.getInstructionCoverage(), 2)).append("\n");
+                stringBuilder.append("```\n\n"); // End code block
             }
 
+            // Code Smell Sub-metric
+            if (includeCodeSmellSubmetric) {
+                stringBuilder.append("#### Code Smell Submetric = " +roundToDecimalPlaces(CodeSmellSubmetric.getCodeSmellSubmetricValue(),2) + "\n");
+                stringBuilder.append("```text\n"); // Start code block to maintain formatting
+                stringBuilder.append("* Ratio representing lack of code smells: ").append(CodeSmellSubmetric.getNoCodeSmellRatio()).append("\n");
+                stringBuilder.append("```\n\n"); // End code block
 
-            if (includeCodeSmellSubmetric == true) {
-                stringBuilder
-                        .append(CodeSmellSubmetric.class.getSimpleName() + " sub-metric:")
-                        .append("\n")
-                        .append("\tRatio representing lack of code smells:\t" + CodeSmellSubmetric.getNoCodeSmellRatio())
-                        .append("\n")
-                        .append("total sub-metric value: " + roundToDecimalPlaces(CodeSmellSubmetric.getCodeSmellSubmetricValue(),2))
-                        .append("\n");
-
-                stringBuilder.append(reportSeparator);
             }
 
-        stringBuilder.append(reportSeparator);
-        stringBuilder.append("Total Metric Value Based On Sub-Metrics: " + roundToDecimalPlaces(getTotalMetricValue(),2));
-        stringBuilder.append("\n");
-        //stringBuilder.append(reportSeparator);
-
+            stringBuilder.append("### Total Metric Value = " + roundToDecimalPlaces(getTotalMetricValue(),2) + "\n");
         } else {
             // Auto-generated code is invalid
-            stringBuilder.append("Auto-generated code is invalid: total Metric Value Based On Sub-Metrics: " + roundToDecimalPlaces(getTotalMetricValue(),2));
+            stringBuilder.append("**Auto-generated code is invalid: Total Metric Value Based On Sub-Metrics:** ").append(roundToDecimalPlaces(getTotalMetricValue(),2)).append("\n");
         }
 
-
         if (includeIssues) {
-            // Get list of issues, which was stored for each evaluated sub-metric during evaluation
+            stringBuilder.append("### Issues Negatively Affecting Metric Value\n");
             LinkedHashMap<String, List<String>> issuesList = getPromptImprovementInstructions();
-            stringBuilder.append("\n\n\n******************** "
-                    + "Issues Negatively Affecting Metric Value "
-                    + " ********************").append("\n\n");
-
-            // Iterating over the LinkedHashMap
             for (Map.Entry<String, List<String>> entry : issuesList.entrySet()) {
                 String key = entry.getKey();
                 List<String> values = entry.getValue();
 
-                if (!includeCodeSmellSubmetric && CodeSmellSubmetric.class.getSimpleName().equals(key)){
+                if (!includeCodeSmellSubmetric && CodeSmellSubmetric.class.getSimpleName().equals(key)) {
                     continue;
                 }
 
-
-                // Printing the key
-                if (values.size() == 0) {
-                    stringBuilder.append(key + " issues: None\n");
+                stringBuilder.append("#### ").append(key).append(" Issues\n");
+                if (values.isEmpty()) {
+                    stringBuilder.append("    None\n\n"); // Indent "None" if the issues list is empty
                 } else {
-                    stringBuilder.append(key + " issues:\n");
+                    for (String value : values) {
+                        stringBuilder.append("     ").append(value).append("\n"); // Indent each bullet point
+                    }
+                    stringBuilder.append("\n"); // Add a new line for spacing after listing all issues
                 }
-
-                // Iterating over and printing the values associated with the key
-                for (String value : values) {
-                    stringBuilder.append("\t" + value);
-                    stringBuilder.append("\n");
-                }
-                stringBuilder.append("\n");
             }
         }
 
-        // If path of a file to which the report refers is mentioned, include it in the report
-        if (!PathToFile.equals("")) {
-            stringBuilder.append("\n");
-            stringBuilder.append("Evaluated Code Location: " + PathToFile);
-            stringBuilder.append("\n");
-        }
 
 
+//        if (!PathToFile.equals("")) {
+//            stringBuilder.append("## Evaluated Code Location\n");
+//            stringBuilder.append("`").append(PathToFile).append("`").append("\n");
+//        }
 
         // Write report about automated testing quality results for the specified OCD algorithm
         generateAndWriteFile(PathResolver.addProjectRootPathIfSet("gpt/reports/") +ocdaName
-                +"_automated_testing_report.txt", stringBuilder.toString(),false);
+                +"_automated_testing_report.md", stringBuilder.toString(),false);
+
+        // Add report to the GPT communication log
+        OCDWriter.logGptCommunication(stringBuilder.toString(), false, ocdaName, "GPT Code Evaluation Report");
+
         return stringBuilder.toString();
     }
+
 
 
 

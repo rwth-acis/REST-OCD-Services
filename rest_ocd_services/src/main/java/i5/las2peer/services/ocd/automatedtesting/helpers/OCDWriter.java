@@ -51,32 +51,73 @@ public class OCDWriter {
 
 
     /**
-     * Logs communication with GPT to a file with a timestamp and optionally prints to the console.
+     * Logs communication with GPT to a Markdown file with a timestamp, optionally wrapping text in a Java code block.
      *
-     * @param textToLog     The text to be logged.
-     * @param printToConsole True to print the logged text to the console, false otherwise.
+     * @param textToLog      The text to be logged.
+     * @param wrapInCodeBlock If true, wraps the logged text in a Java code block, otherwise treats it as regular text.
      * @param ocdaName       Name of the OCD algorithm for which the communication is logged.
+     * @param optionalText   Optional text to display right after the timestamp.
      */
-    public static void logGptCommunication(String textToLog, Boolean printToConsole, String ocdaName){
+    public static void logGptCommunication(String textToLog, boolean wrapInCodeBlock, String ocdaName, String optionalText) {
         // Get the current date and time
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String currentDate = dateFormat.format(new Date());
 
-
         // Define the file path where the logged communication is written
-        String filePath = "gpt/logs/" + ocdaName + "-gpt-communication.txt";
+        String directoryPath = PathResolver.resolvePath("gpt/logs");
+        String fileName = ocdaName + "-gpt-communication.md";
+        String filePath = directoryPath + "/" + fileName;
 
-        // Write the current date and generatedPrompt to the file
+        // Ensure directory exists; if not, create it
+        File directory = new File(directoryPath);
+        if (!directory.exists()) {
+            directory.mkdirs(); // This will create the directory including any necessary but nonexistent parent directories.
+        }
+
+        // Check if the file exists, and if not, create it
+        File file = new File(filePath);
+        if (!file.exists()) {
+            try {
+                file.createNewFile(); // This will create the file if it doesn't exist
+            } catch (IOException e) {
+                e.printStackTrace(); // Prints the exception if there is one
+                return; // Exit the method if file creation fails
+            }
+        }
+
+        StringBuilder formattedText = new StringBuilder();
+
+        // Ensure there's a newline before starting the log for proper Markdown separation
+        formattedText.append("\n\n"); // Ensure separation from previous content
+
+        // Write the current date as a header
+        formattedText.append("### ").append(currentDate).append("\n");
+
+        // Write the optional text if provided
+        if (optionalText != null && !optionalText.isEmpty()) {
+            formattedText.append("### ").append(optionalText).append("\n\n"); // Ensure proper spacing
+        }
+
+        // Append the OCDA name
+        formattedText.append("**OCDA Name:** ").append(ocdaName).append("\n\n");
+
+        // Check if the text should be wrapped in a Java code block
+        if (wrapInCodeBlock) {
+            formattedText.append("```java\n").append(textToLog).append("\n```\n");
+        } else {
+            // Process each line in case there are Markdown headers within the text
+            String[] lines = textToLog.split("\n");
+            for (String line : lines) {
+                formattedText.append(line).append("\n");
+            }
+        }
+
+        // Ensure there's a newline after ending the log for proper Markdown separation
+        formattedText.append("\n---\n"); // Add horizontal rule with spacing for separation
+
+        // Write the formatted text to the file
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
-            // Write the current date
-            writer.write(currentDate);
-            writer.newLine(); // Move to the next line
-
-            // Write the generatedPrompt
-            writer.write(textToLog);
-            writer.newLine(); // Move to the next line
-
-            writer.newLine(); // Add an empty line between log entries
+            writer.write(formattedText.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
