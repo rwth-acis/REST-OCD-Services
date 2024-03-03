@@ -42,9 +42,9 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * PARAMETER NAMES
 	 */
 
-	protected static final String ITERATION_STEP_NAME = "iterationStep";
+	public static final String ITERATION_STEP_NAME = "iterationStep";
 
-	protected static final String DISASSORTATIVITY_EFFECTIVE_DEGREE_WEIGHT_NAME = "disassortativityEffectiveDegreeWeight";
+	public static final String DISASSORTATIVITY_EFFECTIVE_DEGREE_WEIGHT_NAME = "disassortativityEffectiveDegreeWeight";
 
 	/**
 	 * Creates a standard instance of the algorithm. All attributes are assigned
@@ -128,7 +128,7 @@ public class SignedDMIDAlgorithm implements OcdAlgorithm {
 	 * leaders.
 	 * @throws InterruptedException if the thread was interrupted
 	 */
-	protected List<Node> getGlobalLeader(Map<Node, Integer> localLeader) throws InterruptedException {
+	public List<Node> getGlobalLeader(Map<Node, Integer> localLeader) throws InterruptedException {
 		double averageFollowerDegree = 0;
 		for (int followerDegree : localLeader.values()) {
 			if (Thread.interrupted()) {

@@ -59,11 +59,11 @@ public class NISEAlgorithm implements OcdAlgorithm {
 	 * PARAMETER NAMES
 	 */
 	
-	protected static final String SEED_COUNT_NAME = "seedCount";
-		
-	protected static final String PROBABILITY_NAME = "probability";
-	
-	protected static final String ACCURACY_NAME = "accuracy";
+	public static final String SEED_COUNT_NAME = "seedCount";
+
+	public static final String PROBABILITY_NAME = "probability";
+
+	public static final String ACCURACY_NAME = "accuracy";
 	
 	/**
 	 * Creates a standard instance of the algorithm.

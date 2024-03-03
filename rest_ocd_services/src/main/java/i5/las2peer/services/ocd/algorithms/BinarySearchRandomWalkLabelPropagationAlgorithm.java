@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.graphstream.graph.implementations.MultiNode;
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -22,7 +21,6 @@ import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 import org.la4j.vector.dense.BasicVector;
 
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
@@ -53,9 +51,9 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	 * PARAMETER NAMES
 	 */
 	
-	protected static final String LEADERSHIP_PRECISION_FACTOR_NAME = "leadershipPrecisionFactor";
-	
-	protected static final String LEADERSHIP_ITERATION_BOUND_NAME = "leadershipIterationBound";
+	public static final String RANDOM_WALK_ITERATION_BOUND_NAME = "randomWalkIterationBound";
+
+	public static final String RANDOM_WALK_PRECISION_FACTOR_NAME = "randomWalkPrecisionFactor";
 	
 	/**
 	 * Creates a standard instance of the algorithm. All attributes are assigned
@@ -80,23 +78,23 @@ public class BinarySearchRandomWalkLabelPropagationAlgorithm implements OcdAlgor
 	@Override
 	public Map<String, String> getParameters() {
 		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put(LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(randomWalkIterationBound));
-		parameters.put(LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(randomWalkPrecisionFactor));
+		parameters.put(RANDOM_WALK_PRECISION_FACTOR_NAME, Integer.toString(randomWalkIterationBound));
+		parameters.put(RANDOM_WALK_ITERATION_BOUND_NAME, Double.toString(randomWalkPrecisionFactor));
 		return parameters;
 	}
 	
 	@Override
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
-		if(parameters.containsKey(LEADERSHIP_ITERATION_BOUND_NAME)) {
-			randomWalkIterationBound = Integer.parseInt(parameters.get(LEADERSHIP_ITERATION_BOUND_NAME));
+		if(parameters.containsKey(RANDOM_WALK_ITERATION_BOUND_NAME)) {
+			randomWalkIterationBound = Integer.parseInt(parameters.get(RANDOM_WALK_ITERATION_BOUND_NAME));
 			if(randomWalkIterationBound <= 0) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(LEADERSHIP_ITERATION_BOUND_NAME);
+			parameters.remove(RANDOM_WALK_ITERATION_BOUND_NAME);
 		}
-		if(parameters.containsKey(LEADERSHIP_PRECISION_FACTOR_NAME)) {
-			randomWalkPrecisionFactor = Double.parseDouble(parameters.get(LEADERSHIP_PRECISION_FACTOR_NAME));
-			parameters.remove(LEADERSHIP_PRECISION_FACTOR_NAME);
+		if(parameters.containsKey(RANDOM_WALK_PRECISION_FACTOR_NAME)) {
+			randomWalkPrecisionFactor = Double.parseDouble(parameters.get(RANDOM_WALK_PRECISION_FACTOR_NAME));
+			parameters.remove(RANDOM_WALK_PRECISION_FACTOR_NAME);
 			if(randomWalkPrecisionFactor <= 0 || randomWalkPrecisionFactor == Double.POSITIVE_INFINITY) {
 				throw new IllegalArgumentException();
 			}

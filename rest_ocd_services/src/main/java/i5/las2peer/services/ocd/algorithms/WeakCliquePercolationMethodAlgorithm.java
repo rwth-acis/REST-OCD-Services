@@ -38,7 +38,7 @@ public class WeakCliquePercolationMethodAlgorithm implements OcdAlgorithm {
 	 * PARAMETER NAMES
 	 */
 	
-	protected static final String THRESHOLD_NAME = "threshold";
+	public static final String THRESHOLD_NAME = "threshold";
 	
 	
 	/**

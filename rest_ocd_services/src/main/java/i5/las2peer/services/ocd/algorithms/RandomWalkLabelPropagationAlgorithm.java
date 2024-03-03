@@ -51,16 +51,16 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	 * value is 0.1.  Must be in (0, 1).
 	 */
 	private double profitabilityDelta = 0.1;
-	
+
 	/*
 	 * PARAMETER NAMES
 	 */
-	
-	protected static final String PROFITABILITY_DELTA_NAME = "profitabilityDelta";
-			
-	protected static final String LEADERSHIP_PRECISION_FACTOR_NAME = "leadershipPrecisionFactor";
-	
-	protected static final String LEADERSHIP_ITERATION_BOUND_NAME = "leadershipIterationBound";
+
+	public static final String PROFITABILITY_DELTA_NAME = "profitabilityDelta";
+
+	public static final String RANDOM_WALK_PRECISION_FACTOR_NAME = "randomWalkPrecisionFactor";
+
+	public static final String RANDOM_WALK_ITERATION_BOUND_NAME = "randomWalkIterationBound";
 
 	/**
 	 * Creates a standard instance of the algorithm. All attributes are assigned
@@ -73,16 +73,16 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	public CoverCreationType getAlgorithmType() {
 		return CoverCreationType.RANDOM_WALK_LABEL_PROPAGATION_ALGORITHM;
 	}
-	
+
 	@Override
 	public Map<String, String> getParameters() {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put(PROFITABILITY_DELTA_NAME, Double.toString(profitabilityDelta));
-		parameters.put(LEADERSHIP_ITERATION_BOUND_NAME, Integer.toString(randomWalkIterationBound));
-		parameters.put(LEADERSHIP_PRECISION_FACTOR_NAME, Double.toString(randomWalkPrecisionFactor));
+		parameters.put(RANDOM_WALK_ITERATION_BOUND_NAME, Integer.toString(randomWalkIterationBound));
+		parameters.put(RANDOM_WALK_PRECISION_FACTOR_NAME, Double.toString(randomWalkPrecisionFactor));
 		return parameters;
 	}
-	
+
 	@Override
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
 		if(parameters.containsKey(PROFITABILITY_DELTA_NAME)) {
@@ -92,16 +92,16 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 			}
 			parameters.remove(PROFITABILITY_DELTA_NAME);
 		}
-		if(parameters.containsKey(LEADERSHIP_ITERATION_BOUND_NAME)) {
-			randomWalkIterationBound = Integer.parseInt(parameters.get(LEADERSHIP_ITERATION_BOUND_NAME));
+		if(parameters.containsKey(RANDOM_WALK_ITERATION_BOUND_NAME)) {
+			randomWalkIterationBound = Integer.parseInt(parameters.get(RANDOM_WALK_ITERATION_BOUND_NAME));
 			if(randomWalkIterationBound <= 0) {
 				throw new IllegalArgumentException();
 			}
-			parameters.remove(LEADERSHIP_ITERATION_BOUND_NAME);
+			parameters.remove(RANDOM_WALK_ITERATION_BOUND_NAME);
 		}
-		if(parameters.containsKey(LEADERSHIP_PRECISION_FACTOR_NAME)) {
-			randomWalkPrecisionFactor = Double.parseDouble(parameters.get(LEADERSHIP_PRECISION_FACTOR_NAME));
-			parameters.remove(LEADERSHIP_PRECISION_FACTOR_NAME);
+		if(parameters.containsKey(RANDOM_WALK_PRECISION_FACTOR_NAME)) {
+			randomWalkPrecisionFactor = Double.parseDouble(parameters.get(RANDOM_WALK_PRECISION_FACTOR_NAME));
+			parameters.remove(RANDOM_WALK_PRECISION_FACTOR_NAME);
 			if(randomWalkPrecisionFactor <= 0 || randomWalkPrecisionFactor == Double.POSITIVE_INFINITY) {
 				throw new IllegalArgumentException();
 			}
@@ -129,9 +129,9 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Executes the random walk phase of the algorithm and returns global
 	 * leaders.
-	 * 
+	 *
 	 * @param graph The graph whose leaders will be detected.
-	 * 
+	 *
 	 * @return A list containing all nodes which are global leaders.
 	 * @throws OcdAlgorithmException if the execution failed
 	 * @throws InterruptedException if the thread was interrupted
@@ -150,9 +150,9 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Returns the transposed normalized disassortativity matrix for the random
 	 * walk phase.
-	 * 
+	 *
 	 * @param graph The graph whose disassortativity matrix will be derived.
-	 * 
+	 *
 	 * @return The transposed normalized disassortativity matrix.
 	 * @throws InterruptedException if the thread was interrupted
 	 */
@@ -198,10 +198,10 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Executes the random walk for the random walk phase. The vector is
 	 * initialized with a uniform distribution.
-	 * 
+	 *
 	 * @param disassortativityMatrix The disassortativity matrix on which the
 	 * random walk will be performed.
-	 * 
+	 *
 	 * @return The resulting disassortativity vector.
 	 * @throws OcdAlgorithmException if the execution failed
 	 * @throws InterruptedException if the thread was interrupted
@@ -236,12 +236,12 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 
 	/**
 	 * Calculates the leadership values of all nodes for the random walk phase.
-	 * 
+	 *
 	 * @param graph The graph containing the nodes.
-	 * 
+	 *
 	 * @param disassortativityVector The disassortativity vector calculated
 	 * earlier in the random walk phase.
-	 * 
+	 *
 	 * @return A vector containing the leadership value of each node in the
 	 * entry given by the node index.
 	 * @throws InterruptedException if the thread was interrupted
@@ -270,12 +270,12 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 
 	/**
 	 * Returns the follower degree of each node for the random walk phase.
-	 * 
+	 *
 	 * @param graph The graph containing the nodes.
-	 * 
+	 *
 	 * @param leadershipVector The leadership vector previous calculated during
 	 * the random walk phase.
-	 * 
+	 *
 	 * @return A mapping from the nodes to the corresponding follower degrees.
 	 * @throws InterruptedException if the thread was interrupted
 	 */
@@ -346,10 +346,10 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 
 	/**
 	 * Returns a list of global leaders for the random walk phase.
-	 * 
+	 *
 	 * @param followerMap The mapping from nodes to their follower degrees
 	 * previously calculated in the random walk phase.
-	 * 
+	 *
 	 * @return A list containing all nodes which are considered to be global
 	 * leaders.
 	 * @throws InterruptedException if the thread was interrupted
@@ -377,12 +377,12 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 
 	/**
 	 * Executes the label propagation phase.
-	 * 
+	 *
 	 * @param graph The graph which is being analyzed.
-	 * 
+	 *
 	 * @param leaders The list of global leader nodes detected during the random
 	 * walk phase.
-	 * 
+	 *
 	 * @return A cover containing the detected communities.
 	 * @throws InterruptedException if the thread was interrupted
 	 */
@@ -410,15 +410,15 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Executes the label propagation for a single leader to identify its
 	 * community members.
-	 * 
+	 *
 	 * @param graph The graph which is being analyzed.
-	 * 
+	 *
 	 * @param leader The leader node whose community members will be identified.
-	 * 
+	 *
 	 * @param profitabilityThreshold The threshold value that determines whether
 	 * it is profitable for a node to join the community of the leader / assume
 	 * its behavior.
-	 * 
+	 *
 	 * @return A mapping containing the iteration count for each node that is a
 	 * community member. The iteration count indicates, in which iteration the
 	 * corresponding node has joint the community.
@@ -458,7 +458,7 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 				while (nodeSuccessorsIt.hasNext()) {
 					nodeSuccessor = nodeSuccessorsIt.next();
 					Integer joinIteration = memberships.get(nodeSuccessor);
-					if (nodeSuccessor.equals(leader) || 
+					if (nodeSuccessor.equals(leader) ||
 							( joinIteration != null && joinIteration < iterationCount)) {
 						profitability++;
 					}
@@ -474,21 +474,21 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Returns all predecessors of the nodes which adopted the leader's behavior
 	 * (and the leader itself) for the label propagation of each leader.
-	 * 
+	 *
 	 * @param graph The graph which is being analyzed.
-	 * 
+	 *
 	 * @param memberships The nodes which have adopted leader behavior. Note
 	 * that the membership degrees are not examined, any key value is considered
 	 * a node with leader behavior.
-	 * 
+	 *
 	 * @param leader The node which is leader of the community currently under
 	 * examination.
-	 * 
+	 *
 	 * @return A set containing all nodes that have not yet assumed leader
 	 * behavior, but are predecessors of a node with leader behavior.
 	 * @throws InterruptedException if the thread was interrupted
 	 */
-	protected Set<Node> getBehaviorPredecessors(CustomGraph graph,
+	public Set<Node> getBehaviorPredecessors(CustomGraph graph,
 			Map<Node, Integer> memberships, Node leader) throws InterruptedException {
 		Set<Node> neighbors = new HashSet<Node>();
 		Iterator<Node> leaderPredecessorsIt = graph.getPredecessorNeighbours(leader).iterator();
@@ -520,12 +520,12 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Indicates for the label propagation phase whether all nodes have been
 	 * assigned to at least one community.
-	 * 
+	 *
 	 * @param graph The graph which is being analyzed.
-	 * 
+	 *
 	 * @param communities A mapping from the leader nodes to the membership
 	 * degrees of that leaders community.
-	 * 
+	 *
 	 * @return TRUE when each node has been assigned to at least one community,
 	 * and FALSE otherwise.
 	 * @throws InterruptedException if the thread was interrupted
@@ -560,12 +560,12 @@ public class RandomWalkLabelPropagationAlgorithm implements OcdAlgorithm {
 	/**
 	 * Returns a cover containing the membership degrees of all nodes.,
 	 * calculated from
-	 * 
+	 *
 	 * @param graph The graph which is being analyzed.
-	 * 
+	 *
 	 * @param communities A mapping from the leader nodes to the iteration count
 	 * mapping of their community members.
-	 * 
+	 *
 	 * @return A cover containing each nodes membership degree
 	 * @throws InterruptedException if the thread was interrupted
 	 */

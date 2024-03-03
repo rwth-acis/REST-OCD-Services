@@ -57,13 +57,13 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * PARAMETER NAMES
 	 */
 	
-	protected static final String LEADERSHIP_PRECISION_FACTOR_NAME = "leadershipPrecisionFactor";
-	
-	protected static final String LEADERSHIP_ITERATION_BOUND_NAME = "leadershipIterationBound";
-	
-	protected static final String MEMBERSHIPS_PRECISION_FACTOR_NAME = "membershipsPrecisionFactor";
-			
-	protected static final String MEMBERSHIPS_ITERATION_BOUND_NAME = "membershipsIterationBound";
+	public static final String LEADERSHIP_PRECISION_FACTOR_NAME = "leadershipPrecisionFactor";
+
+	public static final String LEADERSHIP_ITERATION_BOUND_NAME = "leadershipIterationBound";
+
+	public static final String MEMBERSHIPS_PRECISION_FACTOR_NAME = "membershipsPrecisionFactor";
+
+	public static final String MEMBERSHIPS_ITERATION_BOUND_NAME = "membershipsIterationBound";
 	
 	/**
 	 * Creates a standard instance of the algorithm.
@@ -147,7 +147,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @return The membership matrix.
 	 * @throws InterruptedException if the thread was interrupted
 	 */
-	protected Matrix calculateMemberships(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
+	public Matrix calculateMemberships(CustomGraph graph, Map<Node, Integer> leaders) throws InterruptedException {
 		Matrix coefficients = initMembershipCoefficientMatrix(graph, leaders);
 		Matrix memberships;
 		Matrix updatedMemberships = initMembershipMatrix(graph, leaders);
@@ -198,7 +198,7 @@ public class SskAlgorithm implements OcdAlgorithm {
 	 * @return The maximum difference.
 	 * @throws InterruptedException if the thread was interrupted
 	 */
-	protected double getMaxDifference(Matrix matA, Matrix matB) throws InterruptedException {
+	public double getMaxDifference(Matrix matA, Matrix matB) throws InterruptedException {
 		Matrix diffMatrix = matA.subtract(matB);
 		double maxDifference = 0;
 		double curDifference;

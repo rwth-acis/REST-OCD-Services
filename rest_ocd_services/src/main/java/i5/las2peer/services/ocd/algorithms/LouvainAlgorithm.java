@@ -62,7 +62,7 @@ public class LouvainAlgorithm implements OcdAlgorithm {
    * PARAMETER NAMES
    */
   
-  protected static final String MAX_LAYERS_NAME = "maxLayers";
+  public static final String MAX_LAYERS_NAME = "maxLayers";
 	
   private final List<LouvainGraph> graphs = new ArrayList<>();
   private final Maximiser m = new Maximiser();

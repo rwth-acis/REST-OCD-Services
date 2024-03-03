@@ -24,8 +24,6 @@ import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.la4j.decomposition.EigenDecompositor;
 
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
 import org.graphstream.graph.Edge;
 
 
@@ -45,7 +43,7 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 	/**
 	 * Maximum number of clusters the algorithm should consider
 	 */
-	private int K = 20;
+	private int k = 20;
 	
 
 	/**
@@ -79,17 +77,17 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 	/*
 	 * PARAMETER NAMES
 	 */
-	protected static final String K_NAME = "K";
+	public static final String K_NAME = "k";
 	
-	protected static final String OPTIMIZE_CLUSTER_QUANTITY_NAME = "optimizeClusterQuantity";
-	
-	protected static final String FUZZINESS_NAME = "fuzziness";
-	
-	protected static final String THRESHOLD_NAME = "customThreshold";
-	
-	protected static final String EPSILON_NAME = "epsilon";
-	
-	protected static final String MAX_ITERATIONS_NAME = "maxIterations";
+	public static final String OPTIMIZE_CLUSTER_QUANTITY_NAME = "optimizeClusterQuantity";
+
+	public static final String FUZZINESS_NAME = "fuzziness";
+
+	public static final String CUSTOM_THRESHOLD_NAME = "customThreshold";
+
+	public static final String EPSILON_NAME = "epsilon";
+
+	public static final String MAX_ITERATIONS_NAME = "maxIterations";
 	
 	
 	/**
@@ -107,9 +105,9 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 	public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
 		
 		if (parameters.containsKey(K_NAME)) {
-			K = Integer.parseInt(parameters.get(K_NAME));
-			if (K < 2) {
-				throw new IllegalArgumentException("K should be at least 2");
+			k = Integer.parseInt(parameters.get(K_NAME));
+			if (k < 2) {
+				throw new IllegalArgumentException("k should be at least 2");
 			}
 			parameters.remove(K_NAME);
 		}
@@ -127,9 +125,9 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 			parameters.remove(FUZZINESS_NAME);
 		}
 		
-		if (parameters.containsKey(THRESHOLD_NAME)) {
-			customThreshold =  Double.parseDouble(parameters.get(THRESHOLD_NAME));
-			parameters.remove(THRESHOLD_NAME);	
+		if (parameters.containsKey(CUSTOM_THRESHOLD_NAME)) {
+			customThreshold =  Double.parseDouble(parameters.get(CUSTOM_THRESHOLD_NAME));
+			parameters.remove(CUSTOM_THRESHOLD_NAME);
 		}
 		
 		if (parameters.containsKey(EPSILON_NAME)) {
@@ -157,10 +155,10 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 		
 		Map<String, String> parameters = new HashMap<String, String>();
 		
-		parameters.put(K_NAME, Integer.toString(K));
+		parameters.put(K_NAME, Integer.toString(k));
 		parameters.put(OPTIMIZE_CLUSTER_QUANTITY_NAME, Boolean.toString(optimizeClusterQuantity));
 		parameters.put(FUZZINESS_NAME, Double.toString(fuzziness));
-		parameters.put(THRESHOLD_NAME, Double.toString(customThreshold));
+		parameters.put(CUSTOM_THRESHOLD_NAME, Double.toString(customThreshold));
 		parameters.put(EPSILON_NAME, Double.toString(epsilon));
 		parameters.put(MAX_ITERATIONS_NAME, Integer.toString(maxIterations));
 		
@@ -205,10 +203,10 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 		}
 		// this condition is needed to avoid a null pointer exception caused when there are
 		// not enough nodes in the graph compared to the specified K.
-		if(K > graph.getNodeCount()){
-			K = graph.getNodeCount();
+		if(k > graph.getNodeCount()){
+			k = graph.getNodeCount();
 		}
-		int optimal_K = K;
+		int optimal_K = k;
 
 		double modularity = -100000.0; // initially modularity value is set to unrealisticly low number
 		double new_modularity = -100000.0;
@@ -226,7 +224,7 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 				// If cluster quantity optimization is desired, try out different K values to
 				// find the one that results in the highest modularity
-				for (int i = 2; i <= K; i++) {
+				for (int i = 2; i <= k; i++) {
 
 					if (Thread.interrupted()) {
 						throw new InterruptedException();
@@ -254,12 +252,12 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 				}
 			} else {
 				// if cluster quantity optimizaiton is not desired, only find the memberhsip matrix and modularity for one K
-				optimal_K = K;
+				optimal_K = k;
 
 				FuzzyKMeansClusterer<CoordinatePoint> clusterer = getClustererOutput(sorted_eigenvectors_eigenvalues[0],
-						K, fuzziness);
+						k, fuzziness);
 				membership_matrix = realMatrixToMatrix(
-						getClustererOutput(sorted_eigenvectors_eigenvalues[0], K, fuzziness).getMembershipMatrix());
+						getClustererOutput(sorted_eigenvectors_eigenvalues[0], k, fuzziness).getMembershipMatrix());
 
 				modularity = modularityFunction(membership_matrix, A, customThreshold); 
 				
@@ -280,7 +278,7 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 
 				// If cluster quantity optimization is desired, try out different K values to
 				// find the one that results in the highest modularity function output
-				for (int i = 2; i <= K; i++) {
+				for (int i = 2; i <= k; i++) {
 
 					if (Thread.interrupted()) {
 						throw new InterruptedException();
@@ -315,7 +313,7 @@ public class FuzzyCMeansSpectralClusteringAlgorithm implements OcdAlgorithm {
 				// if cluster quantity optimizaiton is not desired, only find the memberhsip
 				// matrix and modularity for one K
 
-				FuzzyKMeansClusterer<CoordinatePoint> clusterer = getClustererOutput(sorted_eigenvectors_eigenvalues[0], K, fuzziness);
+				FuzzyKMeansClusterer<CoordinatePoint> clusterer = getClustererOutput(sorted_eigenvectors_eigenvalues[0], k, fuzziness);
 				
 				membership_matrix = getMembershipMatrixFromClusters(clusterer);
 				

@@ -64,11 +64,11 @@ public class ClizzAlgorithm implements OcdAlgorithm {
 	 * PARAMETER NAMES
 	 */
 	
-	protected static final String INFLUENCE_FACTOR_NAME = "influenceFactor";
-	
-	protected static final String MEMBERSHIPS_PRECISION_FACTOR_NAME = "membershipsPrecisionFactor";
-			
-	protected static final String MEMBERSHIPS_ITERATION_BOUND_NAME = "membershipsIterationBound";
+	public static final String INFLUENCE_FACTOR_NAME = "influenceFactor";
+
+	public static final String MEMBERSHIPS_PRECISION_FACTOR_NAME = "membershipsPrecisionFactor";
+
+	public static final String MEMBERSHIPS_ITERATION_BOUND_NAME = "membershipsIterationBound";
 	
 	/**
 	 * Creates a standard instance of the algorithm.

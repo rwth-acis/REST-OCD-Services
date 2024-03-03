@@ -50,11 +50,11 @@ public class LOCAlgorithm implements OcdAlgorithm {
 	 * PARAMETER NAMES
 	 */
 
-	protected static final String  ALPHA_NAME = "alpha";
+	public static final String  ALPHA_NAME = "alpha";
 
-	protected static final String K_NAME = "k";
+	public static final String K_NAME = "k";
 
-	protected static final String DC_NAME = "dc";
+	public static final String DC_NAME = "dc";
 
 
 	/**

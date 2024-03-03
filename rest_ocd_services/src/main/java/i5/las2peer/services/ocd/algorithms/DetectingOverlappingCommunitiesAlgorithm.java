@@ -63,7 +63,7 @@ public class DetectingOverlappingCommunitiesAlgorithm implements OcdAlgorithm {
 	/*
 	 * PARAMETER NAMES
 	 */
-	private static String OVERLAPPING_THRESHOLD_NAME = "overlappingThreshold";
+	public static String OVERLAPPING_THRESHOLD_NAME = "overlappingThreshold";
 	
 	@Override
 	public void setParameters(Map<String, String> parameters) {

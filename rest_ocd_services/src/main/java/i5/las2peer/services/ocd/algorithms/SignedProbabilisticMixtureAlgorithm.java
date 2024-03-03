@@ -45,9 +45,9 @@ public class SignedProbabilisticMixtureAlgorithm implements OcdAlgorithm {
 	/*
 	 * PARAMETER NAMES
 	 */
-	protected final String TRIAL_COUNT_NAME = "trialCount";
-	protected final String COMMUNITY_COUNT_NAME = "communityCount";
-	protected final String MIN_LIKELIHOOD_DIFFERENCE_NAME = "minLikelihoodDifference";
+	public static final String TRIAL_COUNT_NAME = "trialCount";
+	public static final String COMMUNITY_COUNT_NAME = "communityCount";
+	public static final String MIN_LIKELIHOOD_DIFFERENCE_NAME = "minLikelihoodDifference";
 	
 
 	@Override

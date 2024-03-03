@@ -100,19 +100,19 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 	 * PARAMETER NAMES
 	 */
 
-	protected static final String COMMA_SEPARATED_SEED_SET_NAME = "commaSeparatedSeedSet";
+	public static final String COMMA_SEPARATED_SEED_SET_NAME = "commaSeparatedSeedSet";
 
-	protected static final String MINIMUM_COMMUNITY_SIZE_NAME = "minimumCommunitySize";
+	public static final String MINIMUM_COMMUNITY_SIZE_NAME = "minimumCommunitySize";
 
-	protected static final String MAXIMUM_COMMUNITY_SIZE_NAME = "maximumCommunitySize";
+	public static final String MAXIMUM_COMMUNITY_SIZE_NAME = "maximumCommunitySize";
 
-	protected static final String EXPANSION_STEP_SIZE_NAME = "expansionStepSize";
+	public static final String EXPANSION_STEP_SIZE_NAME = "expansionStepSize";
 
-	protected static final String BIASED_NAME = "biased";
+	public static final String BIASED_NAME = "biased";
 
-	protected static final String SUBSPACE_DIMENSION_NAME = "subspaceDimension";
+	public static final String SUBSPACE_DIMENSION_NAME = "subspaceDimension";
 
-	protected static final String RANDOM_WALK_STEPS_NAME = "randomWalkSteps";
+	public static final String RANDOM_WALK_STEPS_NAME = "randomWalkSteps";
 
 	/**
 	 * Creates a standard instance of the algorithm. All attributes are assigned
@@ -228,6 +228,7 @@ public class LocalSpectralClusteringAlgorithm implements OcdAlgorithm {
 			boolean found = false;
 			for(Node node : graphNodes)
 			{
+				System.out.println("seed="+seed + " | node.getIndex()=" + node.getIndex() );
 				if(graph.getNodeName(node).equals(seed))
 				{
 					commaSeparatedSeedIndexSet.add(node.getIndex());

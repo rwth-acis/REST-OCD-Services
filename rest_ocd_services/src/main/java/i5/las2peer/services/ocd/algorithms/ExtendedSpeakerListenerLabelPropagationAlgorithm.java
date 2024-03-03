@@ -69,9 +69,9 @@ public class ExtendedSpeakerListenerLabelPropagationAlgorithm implements
 	 * PARAMETER NAMES
 	 */
 	
-	protected static final String PROBABILITY_THRESHOLD_NAME = "probabilityThreshold";
-	
-	protected static final String MEMORY_SIZE_NAME = "memorySize";
+	public static final String PROBABILITY_THRESHOLD_NAME = "probabilityThreshold";
+
+	public static final String MEMORY_SIZE_NAME = "memorySize";
 	
 	/**
 	 * Creates a standard instance of the algorithm.
