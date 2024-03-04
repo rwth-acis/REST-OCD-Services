@@ -75,6 +75,15 @@ public class GradleTaskExecutor {
         }
     }
 
+    /**
+     * Executes the 'pmdTest' Gradle task.
+     * This method is used to programmatically run a Gradle task that executes PMD analysis on test sources.
+     */
+    public static void runPmdTest() {
+        String gradlew = getGradlewCommand();
+        executeGradleTask(Arrays.asList(gradlew, "pmdTest"));
+    }
+
 
     /**
      * Runs a specified Gradle task for a given test class and captures the test results.

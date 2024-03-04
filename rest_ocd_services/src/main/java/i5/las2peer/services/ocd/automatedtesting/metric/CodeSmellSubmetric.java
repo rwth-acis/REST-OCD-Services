@@ -1,14 +1,21 @@
 package i5.las2peer.services.ocd.automatedtesting.metric;
 
-import i5.las2peer.services.ocd.automatedtesting.helpers.CodeSmellData;
+import i5.las2peer.services.ocd.automatedtesting.OCDATestAutomationConstants;
+import i5.las2peer.services.ocd.automatedtesting.helpers.*;
+import i5.las2peer.services.ocd.automatedtesting.ocdaexecutor.GradleTaskExecutor;
+import i5.las2peer.services.ocd.benchmarks.lfrAlgorithms.helpers.HelperMethods;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import static i5.las2peer.services.ocd.automatedtesting.OCDATestAutomationConstants.AUTO_GENERATED_TEST_CLASS_PACKAGE;
 import static i5.las2peer.services.ocd.automatedtesting.ocdparser.PmdReportParser.parsePmdXmlReportForViolationsForClass;
 
 public class CodeSmellSubmetric {
+
 
     /**
      * Value that determines from what number of code smell type presence will the submetric value become 0.
@@ -44,14 +51,26 @@ public class CodeSmellSubmetric {
      * @param ocdaTestClassName The name of the OCDA test class to be evaluated for code smells.
      * @return The calculated submetric value, which is a measure of code quality. The value is between 0 and 1,
      *         where 0 indicates a high number of diverse code smells and 1 indicates fewer or no code smells.
-     */    public static double evaluateCodeSmellSubmetric(String ocdaTestClassName){
-        HashMap<String, List<CodeSmellData>> ruleViolations
-                = parsePmdXmlReportForViolationsForClass(ocdaTestClassName);
+     */
+    public static double evaluateCodeSmellSubmetric(String ocdaTestClassName){
 
-        /* number of code smell types that were detected in the algorithm code*/
-        int detectedCodeSmellTypeCount = ruleViolations.size();
+        // generate pmd report to include newest tests
+         GradleTaskExecutor.runPmdTest();
+
+         HashMap<String, List<CodeSmellData>> ruleViolations
+                = parsePmdXmlReportForViolationsForClass(OCDATestAutomationConstants.AUTO_GENERATED_TEST_CLASS_PACKAGE, ocdaTestClassName);
+
+
+         /* number of code smell types that were detected in the algorithm code*/
+         int detectedCodeSmellTypeCount = 0;
+
+        ArrayList<String> untrackedSmells =  new ArrayList<String>(Arrays.asList("BeanMembersShouldSerialize", "AvoidCatchingThrowable", "UnnecessaryImport"));
 
         for (String codeSmellType : ruleViolations.keySet()){
+            if (untrackedSmells.contains(codeSmellType)){
+                continue;
+            }
+            detectedCodeSmellTypeCount++;
 
             // Add code smells to the prompt improvement remarks list to be used to improve future prompts to ChatGPT
             for (CodeSmellData codeSmellData : ruleViolations.get(codeSmellType)){
@@ -60,6 +79,7 @@ public class CodeSmellSubmetric {
             }
 
         }
+
 
 //        for (String pString : promptImprovementRemarks){
 //            System.out.println(pString);

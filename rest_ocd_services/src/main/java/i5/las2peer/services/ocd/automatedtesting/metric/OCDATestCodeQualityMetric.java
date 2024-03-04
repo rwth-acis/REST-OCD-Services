@@ -130,10 +130,10 @@ public class OCDATestCodeQualityMetric {
             }
 
             // Code Smell Sub-metric
-            if (includeCodeSmellSubmetric) {
+            if (OCDATestCodeQualityMetric.includeCodeSmellSubmetric) {
                 stringBuilder.append("#### Code Smell Submetric = " +roundToDecimalPlaces(CodeSmellSubmetric.getCodeSmellSubmetricValue(),2) + "\n");
                 stringBuilder.append("```text\n"); // Start code block to maintain formatting
-                stringBuilder.append("* Ratio representing lack of code smells: ").append(CodeSmellSubmetric.getNoCodeSmellRatio()).append("\n");
+                stringBuilder.append("  Ratio representing lack of code smells: ").append(CodeSmellSubmetric.getNoCodeSmellRatio()).append("\n");
                 stringBuilder.append("```\n\n"); // End code block
 
             }
@@ -151,7 +151,7 @@ public class OCDATestCodeQualityMetric {
                 String key = entry.getKey();
                 List<String> values = entry.getValue();
 
-                if (!includeCodeSmellSubmetric && CodeSmellSubmetric.class.getSimpleName().equals(key)) {
+                if (!OCDATestCodeQualityMetric.includeCodeSmellSubmetric && CodeSmellSubmetric.class.getSimpleName().equals(key)) {
                     continue;
                 }
 
