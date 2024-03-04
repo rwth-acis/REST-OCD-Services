@@ -1,53 +1,28 @@
 package i5.las2peer.services.ocd.utils;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Properties;
-import java.util.logging.Level;
-
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Collections;
-
-import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
-import i5.las2peer.services.ocd.cooperation.data.simulation.*;
-import i5.las2peer.services.ocd.metrics.OcdMetricLog;
-import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
-import i5.las2peer.logging.L2pLogger;
-import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
-import i5.las2peer.services.ocd.centrality.data.CentralityMap;
-import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
-import i5.las2peer.services.ocd.graphs.*;
-
-
-import com.arangodb.ArangoDB;
-import com.arangodb.ArangoDatabase;
-import com.arangodb.DbName;
-import com.arangodb.ArangoCollection;
-import com.arangodb.mapping.ArangoJack;
+import com.arangodb.*;
 import com.arangodb.entity.BaseDocument;
 import com.arangodb.entity.CollectionType;
 import com.arangodb.entity.StreamTransactionEntity;
-import com.arangodb.model.AqlQueryOptions;
-import com.arangodb.model.CollectionCreateOptions;
-import com.arangodb.model.StreamTransactionOptions;
-import com.arangodb.model.DocumentCreateOptions;
-import com.arangodb.model.DocumentReadOptions;
-import com.arangodb.model.DocumentDeleteOptions;
-import com.arangodb.ArangoCursor;
-
-
+import com.arangodb.mapping.ArangoJack;
+import com.arangodb.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import i5.las2peer.logging.L2pLogger;
+import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
+import i5.las2peer.services.ocd.centrality.data.CentralityMap;
+import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
+import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationDataset;
+import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
+import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesGroup;
+import i5.las2peer.services.ocd.graphs.*;
+import i5.las2peer.services.ocd.metrics.OcdMetricLog;
+import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-
-
-import org.apache.commons.io.FileUtils;
+import java.util.*;
+import java.util.logging.Level;
 
 
 public class Database {
@@ -396,7 +371,7 @@ public class Database {
 			String queryStr = "FOR g IN " + CustomGraph.collectionName + " FOR gcl IN " + GraphCreationLog.collectionName +
 					" FILTER g." + CustomGraph.userColumnName + " == @username AND gcl._key == g." + CustomGraph.creationMethodKeyColumnName +
 					" AND gcl." + GraphCreationLog.statusIdColumnName +" IN " + executionStatusIds +
-					" AND 8 NOT IN g." + CustomGraph.typesColumnName +
+					" AND 7 NOT IN g." + CustomGraph.typesColumnName +
 					" LIMIT " + firstIndex + "," + length + " RETURN "+
 					"{\"key\" : g._key," +
 					"\"userName\" : g." + CustomGraph.userColumnName + "," +
@@ -535,7 +510,7 @@ public class Database {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 			String queryStr = "FOR g IN " + CustomGraph.collectionName + " FOR gcl IN " + GraphCreationLog.collectionName +
 					" FILTER g." + CustomGraph.userColumnName + " == @username AND gcl._key == g." + CustomGraph.creationMethodKeyColumnName +
-					" AND gcl." + GraphCreationLog.statusIdColumnName +" IN " + 
+					" AND gcl." + GraphCreationLog.statusIdColumnName +" IN " +
 					executionStatusIds + " LIMIT " + firstIndex + "," + length + " RETURN g._key";
 			Map<String, Object> bindVars = Collections.singletonMap("username",username);
 			ArangoCursor<String> graphKeys = db.query(queryStr, bindVars, queryOpt, String.class);
@@ -720,12 +695,18 @@ public class Database {
 					BaseDocument bd = graphCollection.getDocument(graphKey, BaseDocument.class, readOpt);
 					String gclKey = bd.getAttribute(MultiplexGraph.creationMethodKeyColumnName).toString();
 
+					//delete the GraphCreationLog
 					ArangoCollection gclCollection = db.collection(GraphCreationLog.collectionName);
-					gclCollection.deleteDocument(gclKey, null, deleteOpt);		//delete the GraphCreationLog
+					gclCollection.deleteDocument(gclKey, null, deleteOpt);
 
+					//delete all layers
 					for(String layerKey : (List<String>)bd.getAttribute(MultiplexGraph.layerKeysColumnName)) {
 						deleteGraph(username, layerKey, threadHandler);
-					}																	//delete all layers
+					}
+
+					//delete representive custom graph
+					String representiveKey = bd.getAttribute(MultiplexGraph.representiveGraphKeyColumnName).toString();
+					deleteGraph(username, representiveKey, threadHandler);
 
 					String query = "FOR c IN " + Cover.collectionName + " FILTER c." + Cover.graphKeyColumnName
 							+ " == \"" + graphKey +"\" RETURN c._key";
@@ -734,7 +715,8 @@ public class Database {
 						deleteCover(coverKey, transId);
 					}
 
-					graphCollection.deleteDocument(graphKey, null, deleteOpt);		//delete the graph
+					//delete the multiplex graph
+					graphCollection.deleteDocument(graphKey, null, deleteOpt);
 					db.commitStreamTransaction(transId);
 				}catch(Exception e) {
 					db.abortStreamTransaction(transId);
@@ -1039,7 +1021,62 @@ public class Database {
 		}
 		return covers;
 	}
-	
+
+
+	/**
+	 * @param graphKey
+	 * 		  the key of the graph
+	 * @return a cover list
+	 */
+	public List<Cover> getLayerCovers(String graphKey) {
+		String transId = getTransactionId(null, false);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+
+		List<Cover> covers = new ArrayList<Cover>();
+		Map<String, CustomGraph> graphMap = new HashMap<String, CustomGraph>();
+		Set<String> graphKeySet = new HashSet<String>();
+		try {
+			ArangoCollection coverColl = db.collection(Cover.collectionName);
+			Map<String, Object> bindVars;
+			String queryStr = " FOR c IN " + Cover.collectionName + " FOR a IN " + CoverCreationLog.collectionName + " FILTER c." + Cover.graphKeyColumnName  + " == @gKey RETURN DISTINCT c._key";
+			bindVars = Collections.singletonMap("gKey", graphKey);
+			ArangoCursor<String> coverKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			List<String> keyList = coverKeys.asListRemaining();
+
+			//insert graphkeys to set to ensure no graphs appear more than one time
+			for (String cKey : keyList) {
+				BaseDocument bd = coverColl.getDocument(cKey, BaseDocument.class, readOpt);
+				String gKey = bd.getAttribute(Cover.graphKeyColumnName).toString();
+				graphKeySet.add(gKey);
+			}
+			if(graphKeySet.size()==1) {
+				CustomGraph g = CustomGraph.load(graphKeySet.iterator().next(), db, transId);
+				//if(username.equals(g.getUserName())) {
+				//	for(String cKey : keyList) {
+				//		covers.add(Cover.load(cKey, g, db, transId));
+				//	}
+			}else {	//load cover with associated graph
+				for(String gk : graphKeySet) {
+					graphMap.put(gk, CustomGraph.load(gk, db, transId));
+
+				}
+				//for(String cKey : keyList) {
+				//	BaseDocument bd = coverColl.getDocument(cKey, BaseDocument.class, readOpt);
+				//	String gKey = bd.getAttribute(Cover.graphKeyColumnName).toString();
+				//	CustomGraph g = graphMap.get(gKey);
+				//	covers.add(Cover.load(cKey, g, db, transId));
+				//}
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			System.out.println("transaction abort");
+			throw e;
+		}
+		return covers;
+	}
+
 	/**
 	 * Updates a persisted cover by updateing attributes, creation and metric logs
 	 * and deleting and restoring the communitys

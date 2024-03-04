@@ -101,14 +101,14 @@ public class ThreadHandler {
 	 * @param componentNodeCountFilter The node count filter used by the OcdAlgorithmExecutor.
 	 */
 	public void runMultiplexAlgorithm(Cover cover, OcdMultiplexAlgorithm algorithm, int componentNodeCountFilter) {
-		//CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
-		//CoverId coverId = new CoverId(cover.getKey(), gId);
-		//AlgorithmRunnable runnable = new AlgorithmRunnable(cover, algorithm, componentNodeCountFilter, this);
-		//CoverCreationLog log = cover.getCreationMethod();
-		//synchronized (algorithms) {
-		//	Future<CoverCreationLog> future = executor.<CoverCreationLog>submit(runnable, log);
-		//	algorithms.put(coverId, future);
-		//}
+		CustomGraphId gId = new CustomGraphId(cover.getGraph().getKey(), cover.getGraph().getUserName());
+		CoverId coverId = new CoverId(cover.getKey(), gId);
+		MultiplexAlgorithmRunnable runnable = new MultiplexAlgorithmRunnable(cover, algorithm, componentNodeCountFilter, this);
+		CoverCreationLog log = cover.getCreationMethod();
+		synchronized (algorithms) {
+			Future<CoverCreationLog> future = executor.<CoverCreationLog>submit(runnable, log);
+			algorithms.put(coverId, future);
+		}
 	}
 	
 	/**

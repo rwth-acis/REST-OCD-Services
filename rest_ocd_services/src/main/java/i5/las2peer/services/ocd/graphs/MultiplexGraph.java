@@ -1,11 +1,11 @@
 package i5.las2peer.services.ocd.graphs;
 
 import com.arangodb.ArangoCollection;
-import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.BaseDocument;
-import com.arangodb.entity.BaseEdgeDocument;
-import com.arangodb.model.*;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentReadOptions;
+import com.arangodb.model.DocumentUpdateOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.*;
@@ -26,6 +26,7 @@ public class MultiplexGraph {
 	public static final String edgeCountColumnName = "EDGE_COUNT";
 	public static final String layerCountColumnName = "LAYER_COUNT";
 	public static final String layerKeysColumnName = "LAYER_KEYS";
+	public static final String representiveGraphKeyColumnName = "REPRESENTIVE_KEY";
 	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
 	public static final String typesColumnName = "TYPES";
 	public static final String collectionName = "multiplexgraph";
@@ -72,6 +73,16 @@ public class MultiplexGraph {
 	 * The keys of the layers of the graph.
 	 */
 	private List<String> layerKeys = new ArrayList<String>();
+
+	/**
+	 * The key of respresentive CustomGraph of the MultiplexGraph.
+	 */
+	private String representiveKey;
+
+	/**
+	 * The respresentive CustomGraph of the MultiplexGraph.
+	 */
+	private CustomGraph representiveGraph;
 
 	/**
 	 * The graph's types.
@@ -210,6 +221,47 @@ public class MultiplexGraph {
 	 */
 	public void addLayerKey(String layerKey){this.layerKeys.add(layerKey);}
 
+	/**
+	 * Add a layer to the multiplexgraph
+	 * @param layerName	The key of the  customgraph
+	 * @param customGraph	The customgraph resprensting the layer
+	 */
+	public void addLayer(String layerName, CustomGraph customGraph) {
+		this.mapCustomGraphs.put(layerName, customGraph);
+		layerCount++;
+	}
+
+	public Map<String, CustomGraph> getCustomGraphs() {
+		return mapCustomGraphs;
+	}
+
+	protected CustomGraph getCustomGraph(CustomGraph customGraph) {
+		return mapCustomGraphs.get(customGraph.getId());
+	}
+
+	/**
+	 * Getter for the key of representive customgraph
+	 * @return	The key of the represnetive customgraph
+	 */
+	public String getRepresentiveKey(){return this.representiveKey;}
+
+	/**
+	 * Getter for representive customgraph
+	 * @return	The represnetive customgraph
+	 */
+	public CustomGraph getRepresentiveGraph(){return this.representiveGraph;}
+
+	/**
+	 * Setter for the key of representive customgraph
+	 * @param key	The key of the represnetive customgraph
+	 */
+	public void setRepresentiveKey(String key){this.representiveKey = key;}
+
+	/**
+	 * Setter for representive customgraph
+	 * @param graph The represnetive customgraph
+	 */
+	public void setRepresentiveGraph(CustomGraph graph){this.representiveGraph=graph;}
 
 	////////// Graph Types //////////
 	/**
@@ -269,22 +321,6 @@ public class MultiplexGraph {
 		return isOfType(GraphType.WEIGHTED);
 	}
 
-	public void addLayer(String layerName, CustomGraph customGraph) {
-		this.mapCustomGraphs.put(layerName, customGraph);
-		layerCount++;
-	}
-
-	public Map<String, CustomGraph> getCustomGraphs() {
-		return mapCustomGraphs;
-	}
-
-
-	//public void setCustomGraphs(Map<String, CustomGraph> customGraphs) {
-	//	this.mapCustomGraphs = customGraphs;
-	//}
-	protected CustomGraph getCustomGraph(CustomGraph customGraph) {
-		return mapCustomGraphs.get(customGraph.getId());
-	}
 
 	public static MultiplexGraph load(String key, ArangoDatabase db, String transId) {
 		MultiplexGraph graph = null;
@@ -314,6 +350,7 @@ public class MultiplexGraph {
 			graph.creationMethod = GraphCreationLog.load(creationMethodKey, db, readOpt);
 			Object objLayerKeys = bd.getAttribute(layerKeysColumnName);
 			graph.layerKeys = om.convertValue(objLayerKeys, List.class);
+			graph.representiveKey = bd.getAttribute(representiveGraphKeyColumnName).toString();
 		}
 		else {
 			System.out.println("Empty Graph document");
@@ -334,6 +371,7 @@ public class MultiplexGraph {
 		bd.addAttribute(edgeCountColumnName, this.graphEdgeCount);
 		bd.addAttribute(layerCountColumnName, this.layerCount);
 		bd.addAttribute(layerKeysColumnName, this.layerKeys);
+		bd.addAttribute(representiveGraphKeyColumnName, this.representiveKey);
 		this.creationMethod.persist(db, createOptions);
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		collection.insertDocument(bd, createOptions);

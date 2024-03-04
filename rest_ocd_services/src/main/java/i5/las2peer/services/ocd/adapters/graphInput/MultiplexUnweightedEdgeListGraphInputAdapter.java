@@ -80,13 +80,31 @@ public class MultiplexUnweightedEdgeListGraphInputAdapter extends
 				graph.setEdgeWeight(edge, 1);
 				line = Adapters.readLine(reader);
 
-				totalNumberOfEdges++;
 				totalNumberOfNodes.add(sourceNodeName);
 				totalNumberOfNodes.add(targetNodeName);
+				totalNumberOfEdges++;
 			}
 			if(line.size() > 0) {
 				throw new AdapterException("Invalid input format");
 			}
+			//make sure all nodes appear on all layers/in all CustomGraphs
+			for (CustomGraph graph : multiplexGraph.getCustomGraphs().values()) {
+				Map<String, Node>reverseNodeNames = graphReverseNodeNames.get(graph.getName());
+				for(String nodeName: totalNumberOfNodes) {
+					if (!reverseNodeNames.containsKey(nodeName)) {
+						Node node = graph.addNode(nodeName);
+						graph.setNodeName(node, nodeName);
+					}
+				}
+			}
+			//add representive graph
+			CustomGraph representiveGraph = new CustomGraph();
+			for(String nodeName: totalNumberOfNodes) {
+				Node node = representiveGraph.addNode(nodeName);
+				representiveGraph.setNodeName(node, nodeName);
+			}
+			multiplexGraph.setRepresentiveGraph(representiveGraph);
+
 			multiplexGraph.setNodeCount(totalNumberOfNodes.size());
 			multiplexGraph.setEdgeCount(totalNumberOfEdges);
 			return multiplexGraph;

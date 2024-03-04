@@ -27,12 +27,18 @@ public class MultiplexUnweightedEdgeListGraphInputAdapterTest {
 		MultiplexGraph multiplexGraph = inputAdapter.readGraph();
 		CustomGraph customGraph1 = multiplexGraph.getCustomGraphs().get("1");
 		CustomGraph customGraph2 = multiplexGraph.getCustomGraphs().get("2");
+		CustomGraph representiveGraph = multiplexGraph.getRepresentiveGraph();
 
 		assertEquals(2, multiplexGraph.getLayerCount());
+		assertEquals(4, multiplexGraph.getNodeCount());
+
 		assertEquals(4, customGraph1.getNodeCount());
 		assertEquals(3, customGraph1.getEdgeCount());
+
 		assertEquals(4, customGraph2.getNodeCount());
 		assertEquals(4, customGraph2.getEdgeCount());
+
+		assertEquals(4, representiveGraph.getNodeCount());
 	}
 
 	@Test
@@ -47,10 +53,15 @@ public class MultiplexUnweightedEdgeListGraphInputAdapterTest {
 		inputAdapter.setReader(reader);
 		MultiplexGraph multiplexGraph = inputAdapter.readGraph();
 		CustomGraph customGraph1 = multiplexGraph.getCustomGraphs().get("1");
+		CustomGraph representiveGraph = multiplexGraph.getRepresentiveGraph();
 
 		assertEquals(1, multiplexGraph.getLayerCount());
+		assertEquals(4, multiplexGraph.getNodeCount());
+
 		assertEquals(4, customGraph1.getNodeCount());
 		assertEquals(3, customGraph1.getEdgeCount());
+
+		assertEquals(4, representiveGraph.getNodeCount());
 	}
 
 }

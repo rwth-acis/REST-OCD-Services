@@ -1,54 +1,12 @@
 package i5.las2peer.services.ocd;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URLDecoder;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import i5.las2peer.services.ocd.centrality.data.*;
-import i5.las2peer.services.ocd.graphs.*;
-import i5.las2peer.services.ocd.utils.*;
-import i5.las2peer.services.ocd.utils.Error;
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.graphstream.algorithm.ConnectedComponents;
-import org.json.simple.JSONObject;
-import org.la4j.matrix.sparse.CCSMatrix;
-
 import i5.las2peer.api.Context;
 import i5.las2peer.api.ManualDeployment;
-import i5.las2peer.api.security.UserAgent;
-import i5.las2peer.api.execution.ServiceInvocationException; //TODO: Check
 import i5.las2peer.api.logging.MonitoringEvent;
-import i5.las2peer.logging.L2pLogger;
+import i5.las2peer.api.security.UserAgent;
 import i5.las2peer.p2p.AgentNotRegisteredException;
 import i5.las2peer.restMapper.RESTService;
 import i5.las2peer.restMapper.annotations.ServicePath;
-import i5.las2peer.execution.ExecutionContext;
 import i5.las2peer.services.ocd.adapters.centralityInput.CentralityInputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -56,61 +14,26 @@ import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
 import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputFormat;
-import i5.las2peer.services.ocd.algorithms.ContentBasedWeightingAlgorithm;
-import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
-import i5.las2peer.services.ocd.algorithms.OcdMultiplexAlgorithm;
-import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
-import i5.las2peer.services.ocd.algorithms.OcdMultiplexAlgorithmFactory;
+import i5.las2peer.services.ocd.algorithms.*;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
-import i5.las2peer.services.ocd.centrality.data.CentralityCreationLog;
-import i5.las2peer.services.ocd.centrality.data.CentralityCreationType;
-import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
-import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
-import i5.las2peer.services.ocd.centrality.data.CentralityMap;
-import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
+import i5.las2peer.services.ocd.centrality.data.*;
 import i5.las2peer.services.ocd.centrality.evaluation.CorrelationCoefficient;
 import i5.las2peer.services.ocd.centrality.evaluation.StatisticalProcessor;
-import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
-import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithmFactory;
-import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
-import i5.las2peer.services.ocd.centrality.utils.CentralitySimulationFactory;
-import i5.las2peer.services.ocd.centrality.utils.MatrixOperations;
+import i5.las2peer.services.ocd.centrality.utils.*;
 import i5.las2peer.services.ocd.cooperation.data.mapping.MappingFactory;
 import i5.las2peer.services.ocd.cooperation.data.mapping.SimulationGroupSetMapping;
 import i5.las2peer.services.ocd.cooperation.data.mapping.SimulationSeriesSetMapping;
-import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeries;
-import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesGroup;
-import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesGroupMetaData;
-import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesMetaData;
-import i5.las2peer.services.ocd.cooperation.data.simulation.SimulationSeriesParameters;
+import i5.las2peer.services.ocd.cooperation.data.simulation.*;
 import i5.las2peer.services.ocd.cooperation.simulation.SimulationBuilder;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.DynamicType;
 import i5.las2peer.services.ocd.cooperation.simulation.game.GameType;
 import i5.las2peer.services.ocd.cooperation.simulation.termination.ConditionType;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationLog;
-import i5.las2peer.services.ocd.graphs.CoverCreationType;
-import i5.las2peer.services.ocd.graphs.CoverId;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
-import i5.las2peer.services.ocd.graphs.GraphCreationLog;
-import i5.las2peer.services.ocd.graphs.GraphCreationType;
-import i5.las2peer.services.ocd.graphs.GraphProcessor;
-import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.graphs.properties.GraphProperty;
-import i5.las2peer.services.ocd.metrics.ExecutionTime;
-import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
-import i5.las2peer.services.ocd.metrics.NewmanModularityCombined;
-import i5.las2peer.services.ocd.metrics.OcdMetricFactory;
-import i5.las2peer.services.ocd.metrics.OcdMetricLog;
-import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
-import i5.las2peer.services.ocd.metrics.OcdMetricType;
-import i5.las2peer.services.ocd.metrics.StatisticalMeasure;
+import i5.las2peer.services.ocd.metrics.*;
 import i5.las2peer.services.ocd.utils.Error;
-import i5.las2peer.services.ocd.utils.ExecutionStatus;
-import i5.las2peer.services.ocd.utils.InvocationHandler;
-import i5.las2peer.services.ocd.utils.ThreadHandler;
+import i5.las2peer.services.ocd.utils.*;
 import i5.las2peer.services.ocd.viewer.LayoutHandler;
 import i5.las2peer.services.ocd.viewer.ViewerRequestHandler;
 import i5.las2peer.services.ocd.viewer.layouters.GraphLayoutType;
@@ -118,14 +41,24 @@ import i5.las2peer.services.ocd.viewer.painters.CoverPainter;
 import i5.las2peer.services.ocd.viewer.painters.CoverPainterFactory;
 import i5.las2peer.services.ocd.viewer.painters.CoverPaintingType;
 import i5.las2peer.services.ocd.viewer.utils.CentralityVisualizationType;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Contact;
-import io.swagger.annotations.Info;
-import io.swagger.annotations.License;
-import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.*;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.graphstream.algorithm.ConnectedComponents;
+import org.json.simple.JSONObject;
+import org.la4j.matrix.sparse.CCSMatrix;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URLDecoder;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.logging.Level;
 
 
 /**
@@ -199,10 +132,10 @@ public class ServiceClass extends RESTService {
 	 */
 	private final static OcdAlgorithmFactory algorithmFactory = new OcdAlgorithmFactory();
 
-	/**
-	 * The factory used for creating algorithms.
-	 */
-	private final static OcdMultiplexAlgorithmFactory multiplexAlgorithmFactory = new OcdMultiplexAlgorithmFactory();
+//	/**
+//	 * The factory used for creating algorithms.
+//	 */
+//	private final static OcdMultiplexAlgorithmFactory multiplexAlgorithmFactory = new OcdMultiplexAlgorithmFactory();
 
 	/**
 	 * The factory used for creating centrality simulations.
@@ -454,6 +387,7 @@ public class ServiceClass extends RESTService {
 						graph.removeType(GraphType.DIRECTED);
 					}
 					try {
+						//store layers
 						for (CustomGraph customGraph :graph.getCustomGraphs().values()) {
 							customGraph.setUserName(username);
 							customGraph.setCreationMethod(log);
@@ -461,7 +395,18 @@ public class ServiceClass extends RESTService {
 							database.storeGraph(customGraph);
 							graph.addLayerKey(customGraph.getKey());
 						}
+						//store representive graph
+						CustomGraph representiveGraph = graph.getRepresentiveGraph();
+						representiveGraph.setName(URLDecoder.decode(nameStr, "UTF-8"));
+						representiveGraph.setUserName(username);
+						representiveGraph.setCreationMethod(log);
+						representiveGraph.addType(GraphType.MULTIPLEX);
+						database.storeGraph(representiveGraph);
+						graph.setRepresentiveKey(representiveGraph.getKey());
+
+						//store multiplex graph
 						database.storeGraph(graph);
+
 						generalLogger.getLogger().log(Level.INFO, "user " + username + ": import graph " + graph.getKey() + " in format " + graphInputFormatStr);
 					} catch (Exception e) {
 						return requestHandler.writeError(Error.INTERNAL, "Could not store graph");
@@ -844,6 +789,7 @@ public class ServiceClass extends RESTService {
 				List<CustomGraphMeta> queryResults;
 				queryResults = database.getMultiplexGraphMetaDataOfLayersEfficiently(username, keyMultiplexStr);
 				String responseStr = requestHandler.writeGraphMetasEfficiently(queryResults);
+				System.out.println(responseStr);
 				return Response.ok(responseStr).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
@@ -1556,12 +1502,14 @@ public class ServiceClass extends RESTService {
 				}
 
 				Map<String, String> multiplexParameters;
-				OcdMultiplexAlgorithm multiplexAlgorithm;
+				OcdAlgorithm multiplexAlgorithm;
+				//OcdMultiplexAlgorithm multiplexAlgorithm;
 				Map<String, String> parameters;
 				OcdAlgorithm algorithm;
 				try {
 					multiplexParameters = requestHandler.parseParameters(multiplexContent);
-					multiplexAlgorithm = multiplexAlgorithmFactory.getInstance(multiplexAlgorithmType, new HashMap<String, String>(multiplexParameters));
+					multiplexAlgorithm = algorithmFactory.getInstance(multiplexAlgorithmType, new HashMap<String, String>(multiplexParameters));
+					//multiplexAlgorithm = multiplexAlgorithmFactory.getInstance(multiplexAlgorithmType, new HashMap<String, String>(multiplexParameters));
 					parameters = requestHandler.parseParameters(content);
 					algorithm = algorithmFactory.getInstance(algorithmType, new HashMap<String, String>(parameters));
 				} catch (Exception e) {
@@ -1621,9 +1569,11 @@ public class ServiceClass extends RESTService {
 							generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + algorithm.getClass().getSimpleName() + " on graph " + customGraph.getKey() + ". Created cover " + cover.getKey());
 						}
 					}
-					CustomGraph coverGraph = new CustomGraph();
-					//set nodes of coverGraph to nodes of multiplexgraph
-					cover = new Cover(coverGraph, new CCSMatrix(graph.getNodeCount(), 0));
+					/*
+					 * Run multiplex algorithm
+					 */
+					CustomGraph representiveGraph = graph.getRepresentiveGraph();
+					cover = new Cover(representiveGraph, new CCSMatrix(graph.getNodeCount(), 0));
 					log = new CoverCreationLog(multiplexAlgorithmType, multiplexParameters, multiplexAlgorithm.compatibleGraphTypes());
 					cover.setCreationMethod(log);
 					cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
@@ -1631,7 +1581,8 @@ public class ServiceClass extends RESTService {
 					/*
 					 * Registers and starts multiplex algorithm
 					 */
-					threadHandler.runMultiplexAlgorithm(cover, multiplexAlgorithm, componentNodeCountFilter);
+					//threadHandler.runMultiplexAlgorithm(cover, multiplexAlgorithm, componentNodeCountFilter);
+					threadHandler.runAlgorithm(cover, multiplexAlgorithm, componentNodeCountFilter);
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + multiplexAlgorithm.getClass().getSimpleName() + " on graph " + graph.getKey() + ". Created cover " + cover.getKey());
 
 				}
@@ -3265,8 +3216,8 @@ public class ServiceClass extends RESTService {
 					return requestHandler.writeError(Error.PARAMETER_INVALID,
 							"Specified cover creation type is not instantiatable: " + creationType.name());
 				} else {
-					OcdMultiplexAlgorithm defaultInstance = multiplexAlgorithmFactory.getInstance(creationType,
-							new HashMap<String, String>());
+					//OcdMultiplexAlgorithm defaultInstance = multiplexAlgorithmFactory.getInstance(creationType, new HashMap<String, String>());
+					OcdAlgorithm defaultInstance = algorithmFactory.getInstance(creationType, new HashMap<String, String>());
 					//generalLogger.getLogger().log(Level.INFO, "user " + username + ": get default parameters of " + coverCreationTypeStr );
 					return Response.ok(requestHandler.writeParameters(defaultInstance.getParameters())).build();
 				}
@@ -3565,10 +3516,10 @@ public class ServiceClass extends RESTService {
 
 		@GET
 		@Path("testforbot")
-		@Produces(MediaType.TEXT_XML)
+		@Produces(MediaType.APPLICATION_JSON)
 		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
 				@ApiResponse(code = 401, message = "Unauthorized") })
-		@ApiOperation(tags = {"names"}, value = "Algorithms information", notes = "Returns all algorithm type names.")
+		@ApiOperation(tags = {"testforbot"}, value = "A test method for the bot", notes = "Returns a success message.")
 		public Response testforbot() {
 			System.out.println("testforbot");
 			String jsonResponse = "{\"text\": \"test successfull\", \"closeContext\": \"\"}";
