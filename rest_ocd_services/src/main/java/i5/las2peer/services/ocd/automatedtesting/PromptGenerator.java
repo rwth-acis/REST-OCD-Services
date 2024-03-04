@@ -554,24 +554,24 @@ public class PromptGenerator {
 
         // Append test class with partially completed unit tests for specified OCDA methods
         stringBuilder
-                .append("### Test class with partially completed unit tests for the methods I want to test\n")
-                .append("```\n");
+                .append("### Test class with partially completed unit tests for the methods I want to test\n\n");
+
         String ocdaTestClassPath = OCDATestAutomationConstants.GPT_GENERATED_TEST_CLASS_CODE_LOCATION + "Generated" + ocdaName + "Test.java";
 
         // Generate OCDA test class with partially completed unit tests
         GradleTaskExecutor.runInitializeOCDAMethodTestFiles(ocdaName,methodNames);
-        File ocdaTestClass = new File(ocdaTestClassPath);
+        File ocdaTestClass = new File(PathResolver.addProjectRootPathIfSet(ocdaTestClassPath));
         stringBuilder
                 .append(FileHelpers.readFileAsString(ocdaTestClass))
-                .append("```\n");
+                .append("\n");
 
         // Add OCD algorithm code to the prompt
         stringBuilder
                 .append("### Full OCD algorithm code\n")
-                .append("```\n");
+                .append("\n");
         stringBuilder
                 .append(FileHelpers.readFileAsString(ocdaCode))
-                .append("```\n");
+                .append("\n");
 
         // Create an empty file where GPT response should be written for processing
         createGPTResponseFileForTests(OCDAParser.getClassName(ocdaCode), "");
@@ -579,7 +579,6 @@ public class PromptGenerator {
 
         // Path to write, which starts with root (i.e. not in child project) if root variable is set in gradle task
         String pathToWrite = PathResolver.addProjectRootPathIfSet("gpt/prompts/" + OCDAParser.getClassName(ocdaCode) +"_unit_test_completion_prompt.txt");
-
         // Write prompt for completing partially generated test classes
         generateAndWriteFile(pathToWrite, stringBuilder.toString(), false);
 
