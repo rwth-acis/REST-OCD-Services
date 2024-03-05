@@ -57,6 +57,12 @@ public class CoverageSubmetric {
      */
     public static double evaluateCoverageSubmetric(String ocdaName){
 
+        // TODO: this should be done in a nicer way in the future
+        // If class name starts with string Generated it is not the main test class
+        if (ocdaName.contains("Generated")) {
+            ocdaName = ocdaName.substring("Generated".length());
+        }
+
         HashMap<String, CoverageData> parsedJacocoReport = JacocoReportParser.parseJacocoXmlReportForClass(ocdaName);
 
         branchCoverage = parsedJacocoReport.get("BRANCH").computeCoverage();

@@ -10,8 +10,8 @@
     <rule ref="category/java/performance.xml/StringInstantiation" />
     <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
     <rule ref="category/java/codestyle.xml/ForLoopShouldBeWhileLoop" />
-    <rule ref="category/java/codestyle.xml/UnnecessaryImport" />
     <rule ref="category/java/bestpractices.xml/WhileLoopWithLiteralBoolean" />
+
     <!--    <rule ref="category/java/bestpractices.xml/JUnitAssertionsShouldIncludeMessage"/>  should this be included?-->
 
 </ruleset>

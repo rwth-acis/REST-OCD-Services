@@ -5,6 +5,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import i5.las2peer.services.ocd.automatedtesting.helpers.CodeSmellData;
 import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
+import i5.las2peer.services.ocd.automatedtesting.helpers.PathResolver;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;
@@ -20,7 +21,7 @@ import java.util.List;
  */
 public class PmdReportParser {
 
-    private static final String PMD_REPORT_LOCATION = "build/reports/pmd/pmd.xml";
+    private static final String PMD_REPORT_LOCATION = "rest_ocd_services/build/reports/pmd/pmd.xml";
 
 
     /**
@@ -36,7 +37,7 @@ public class PmdReportParser {
         HashMap<String, List<CodeSmellData>> ruleViolations = new HashMap<>();
 
         try {
-            File xmlFile = new File(FileHelpers.cleanDuplicateDirectories(PMD_REPORT_LOCATION));
+            File xmlFile = new File(PathResolver.addProjectRootPathIfSet(FileHelpers.cleanDuplicateDirectories(PMD_REPORT_LOCATION)));
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.parse(xmlFile);

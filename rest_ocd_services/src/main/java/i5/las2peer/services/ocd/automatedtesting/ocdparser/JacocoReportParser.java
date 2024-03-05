@@ -4,6 +4,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import i5.las2peer.services.ocd.automatedtesting.helpers.CoverageData;
+import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
+import i5.las2peer.services.ocd.automatedtesting.helpers.PathResolver;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;
@@ -30,7 +32,7 @@ public class JacocoReportParser {
 
 
         try {
-            File xmlFile = new File(JACOCO_REPORT_LOCATION);
+            File xmlFile = new File(PathResolver.addProjectRootPathIfSet(FileHelpers.cleanDuplicateDirectories(JACOCO_REPORT_LOCATION)));
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 
             // without this line, parser will try to load report.dtd which causes file not found exception

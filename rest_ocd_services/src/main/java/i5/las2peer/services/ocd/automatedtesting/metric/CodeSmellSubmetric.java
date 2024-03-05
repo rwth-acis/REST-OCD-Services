@@ -64,7 +64,7 @@ public class CodeSmellSubmetric {
          /* number of code smell types that were detected in the algorithm code*/
          int detectedCodeSmellTypeCount = 0;
 
-        ArrayList<String> untrackedSmells =  new ArrayList<String>(Arrays.asList("BeanMembersShouldSerialize", "AvoidCatchingThrowable", "UnnecessaryImport"));
+        ArrayList<String> untrackedSmells =  new ArrayList<String>(Arrays.asList("AvoidDuplicateLiterals","BeanMembersShouldSerialize", "AvoidCatchingThrowable", "UnnecessaryImport"));
 
         for (String codeSmellType : ruleViolations.keySet()){
             if (untrackedSmells.contains(codeSmellType)){
