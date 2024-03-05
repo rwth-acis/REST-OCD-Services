@@ -18,20 +18,21 @@ public class GradleTaskExecutor {
 
     /**
      * Executes a Gradle task using the specified command arguments.
-     * This method dynamically determines the correct path to the Gradle wrapper script (gradlew.bat)
-     * based on the current working directory and its parent. This is used to deal with a project hierarchy.
-     * It first checks if 'gradlew.bat' exists in the current working directory; if not, it checks the parent
-     * directory. It then executes the Gradle task with the provided command arguments and prints the output
-     * and exit status of the task.
+     * This method dynamically determines the correct path to the Gradle wrapper script
+     * based on the operating system and the current working directory and its parent.
+     * This is used to deal with a project hierarchy.
+     * It first checks if the appropriate gradle wrapper exists in the current working directory;
+     * if not, it checks the parent directory. It then executes the Gradle task with the provided
+     * command arguments and prints the output and exit status of the task.
      *
      * This approach allows the method to be flexible and work correctly regardless of whether it is
      * called from code or executed manually, accommodating environments where the
      * project structure includes child projects.
      *
      * @param command A list of strings representing the command and its arguments to execute the Gradle task.
-     *                The first element should be 'gradlew' or 'gradlew.bat', followed by the task name
+     *                The first element should be the gradlew command, followed by the task name
      *                and any necessary flags or parameters.
-     * @throws FileNotFoundException if the 'gradlew.bat' file cannot be found in either the current or parent directory.
+     * @throws FileNotFoundException if the gradle wrapper file cannot be found in either the current or parent directory.
      * @throws IOException          if an I/O error occurs when executing the gradle command.
      * @throws InterruptedException if the current thread is interrupted while waiting for the process to finish.
      */
@@ -41,25 +42,28 @@ public class GradleTaskExecutor {
             File currentDir = new File(System.getProperty("user.dir"));
             File parentDir = currentDir.getParentFile();
 
-            // Check if gradlew.bat exists in the current directory, otherwise look in the parent directory
-            File gradlewFile = new File(currentDir, "gradlew.bat");
+            // Determine the correct Gradle wrapper command for the operating system
+            String gradlewCommand = getGradlewCommand();
+
+            // Check if the Gradle wrapper script exists in the current directory, otherwise look in the parent directory
+            File gradlewFile = new File(currentDir, gradlewCommand);
             if (!gradlewFile.exists()) {
-                gradlewFile = new File(parentDir, "gradlew.bat");
+                gradlewFile = new File(parentDir, gradlewCommand);
                 if (!gradlewFile.exists()) {
-                    throw new FileNotFoundException("gradlew.bat not found in current or parent directory");
+                    throw new FileNotFoundException(gradlewCommand + " not found in current or parent directory");
                 }
             }
 
-            // Update the command to use the absolute path to gradlew.bat
+            // Update the command to use the absolute path to the Gradle wrapper script
             List<String> updatedCommand = new ArrayList<>(command);
             updatedCommand.set(0, gradlewFile.getAbsolutePath()); // Replace the gradlew command with the full path
 
-            // Set the working directory based on the location of gradlew.bat
+            // Set the working directory based on the location of the Gradle wrapper script
             File workingDirectory = gradlewFile.getParentFile();
 
             ProcessBuilder builder = new ProcessBuilder(updatedCommand);
             builder.redirectErrorStream(true);
-            builder.directory(workingDirectory); // Set the working directory to where gradlew.bat is found
+            builder.directory(workingDirectory); // Set the working directory to where the Gradle wrapper script is found
 
             Process process = builder.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
