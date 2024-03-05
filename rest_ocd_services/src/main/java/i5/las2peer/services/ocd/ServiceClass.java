@@ -30,7 +30,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import i5.las2peer.services.ocd.automatedtesting.AssistantGPTAPICodeProcessor;
+import i5.las2peer.services.ocd.automatedtesting.GPTCodeProcessor;
 import i5.las2peer.services.ocd.automatedtesting.PromptGenerator;
 import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
 import i5.las2peer.services.ocd.automatedtesting.helpers.OCDWriter;
@@ -786,7 +786,7 @@ public class ServiceClass extends RESTService {
 
 
 				// Process GPT-Generated code and return any issues in it to be used in subsequent prompts
-				String processedString = AssistantGPTAPICodeProcessor.processGraphTypeRelatedGPTTestCodeAndGenerateSubsequentPrompt(ocdaName);
+				String processedString = GPTCodeProcessor.processGraphTypeRelatedGPTTestCodeAndGenerateSubsequentPrompt(ocdaName);
 
 				// Log prompt sent to GPT after processing its previous response
 				if (processedString.equals("")){
@@ -838,7 +838,7 @@ public class ServiceClass extends RESTService {
 
 
 				// Process GPT-Generated code and return any issues in it to be used in subsequent prompts
-				String processedString = AssistantGPTAPICodeProcessor.processOCDAMethodGPTTestCodeAndGenerateSubsequentPrompt(ocdaName,methodNames);
+				String processedString = GPTCodeProcessor.processOCDAMethodGPTTestCodeAndGenerateSubsequentPrompt(ocdaName,methodNames);
 
 
 				// Log prompt sent to GPT after processing its previous response
@@ -878,7 +878,7 @@ public class ServiceClass extends RESTService {
 
 
 				// Process GPT-Generated code and return any issues in it to be used in subsequent prompts
-				AssistantGPTAPICodeProcessor.processGPTAssistantResponseForOCDAAccuracyTests(gptResponse,ocdaName);
+				GPTCodeProcessor.processGPTAssistantResponseForOCDAAccuracyTests(gptResponse,ocdaName);
 
 				return Response.ok().build();
 			} catch (Exception e) {

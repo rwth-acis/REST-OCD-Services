@@ -5,7 +5,6 @@ import i5.las2peer.services.ocd.automatedtesting.helpers.*;
 import i5.las2peer.services.ocd.automatedtesting.metric.*;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +14,7 @@ import i5.las2peer.services.ocd.automatedtesting.ocdparser.OCDAParser;
 
 import static i5.las2peer.services.ocd.automatedtesting.helpers.OCDWriter.generateAndWriteFile;
 
-public class AssistantGPTAPICodeProcessor {
+public class GPTCodeProcessor {
 
 
 

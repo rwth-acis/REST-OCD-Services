@@ -1,6 +1,6 @@
 package i5.las2peer.services.ocd.ocdatestautomation;
 
-import i5.las2peer.services.ocd.automatedtesting.AssistantGPTAPICodeProcessor;
+import i5.las2peer.services.ocd.automatedtesting.GPTCodeProcessor;
 import i5.las2peer.services.ocd.automatedtesting.PromptGenerator;
 import i5.las2peer.services.ocd.automatedtesting.TestClassMerger;
 import i5.las2peer.services.ocd.automatedtesting.helpers.FileHelpers;
@@ -363,7 +363,7 @@ public class OCDATestClassGenerator {
 
         // Extract valid OCDA params from GPT response and write them to a JSON file used for test creation
         System.out.println("Extracting Valid Auto-Generated OCDA Parameters from GPT Response and Writing them to JSON...");
-        AssistantGPTAPICodeProcessor.extractOCDAParamsFromGPTResponseAndWriteToJSON(ocdaName);
+        GPTCodeProcessor.extractOCDAParamsFromGPTResponseAndWriteToJSON(ocdaName);
         System.out.println("OCDA Parameters Successfully Extracted and Written. Moving On to Creating OCDA Accuracy Test...");
 
         // Generate ocd accuracy test for the specified OCD algorithm

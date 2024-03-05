@@ -505,7 +505,7 @@ task runProcessGraphTypeRelatedGPTTestCode(type: JavaExec) {
     }
 
     classpath = sourceSets.test.runtimeClasspath
-    main = 'i5.las2peer.services.ocd.automatedtesting.AssistantGPTAPICodeProcessor'
+    main = 'i5.las2peer.services.ocd.automatedtesting.GPTCodeProcessor'
 }
 
 
@@ -529,7 +529,7 @@ task runProcessOCDAMethodRelatedGPTTestCode (type: JavaExec) {
     }
 
     classpath = sourceSets.test.runtimeClasspath
-    main = 'i5.las2peer.services.ocd.automatedtesting.AssistantGPTAPICodeProcessor'
+    main = 'i5.las2peer.services.ocd.automatedtesting.GPTCodeProcessor'
 }
 
 
