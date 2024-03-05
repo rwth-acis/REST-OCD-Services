@@ -95,17 +95,19 @@
   links:
     - title: "About"
       url: "about"
-    - title: Class Models
-      url: "pages/wiki/class-models"
+    - title: Architecture/Class Models
+      url: "pages/wiki/architecture-class-models"
       children:
+        - title: WebOCD Architecture
+          url: "pages/wiki/architecture-class-models#webocd-architecture"
         - title: Service Architecture
-          url: "pages/wiki/class-models#service-architecture"
+          url: "pages/wiki/architecture-class-models#service-architecture"
         - title: Algorithms
-          url: "pages/wiki/class-models#algorithms"
+          url: "pages/wiki/architecture-class-models#algorithms"
         - title: Centralities
-          url: "pages/wiki/class-models#centrality"  
+          url: "pages/wiki/architecture-class-models#centrality"  
         - title: Cooperation Simulations
-          url: "pages/wiki/class-models#simulation"
+          url: "pages/wiki/architecture-class-models#simulation"
 - title: Tutorials
   url: tutorials
   links:
