@@ -2,6 +2,8 @@
 
 This document serves as a comprehensive guide for utilizing custom GPT models for the automatic generation of tests within the framework. If any questions arise, please reach out via the Rocket.Chat channel of DBIS.
 
+Custom GPT used for WebOCD's OCDA test generation can be accessed using the following link: https://chat.openai.com/g/g-JchAUbvgn-ocd-test-generator
+
 ## Graph Type Related Tests
 
 **Step 1: Initialize Test Class**
@@ -44,7 +46,7 @@ This document serves as a comprehensive guide for utilizing custom GPT models fo
 
 ---
 # Guide for Using Assistant GPT in Test Generation
-In case of assistant GPT usage, users need to execute a python script while WebOCD is running and wait for the automatic integration of validated test results into the main test class.
+In case of assistant GPT usage, users need to execute a python script while WebOCD is running and wait for the automatic integration of validated test results into the main test class. Before the scripts are executed, API key from Open AI should be added to `ocda_test_generator_python_intermediary/.env` as follows: OPEN_AI_API_KEY=your_key 
 
 **Graph Type Related Tests**:
 - **Command**: `python ocda_test_generator.py generate_graph_type_related_tests <AlgorithmName>`
