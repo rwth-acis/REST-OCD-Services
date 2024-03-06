@@ -1,8 +1,5 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.DirectedGraphTestReq;
 import i5.las2peer.services.ocd.ocdatestautomation.test_interfaces.UndirectedGraphTestReq;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +12,7 @@ import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.la4j.matrix.Matrix;
@@ -22,6 +20,9 @@ import org.la4j.vector.Vector;
 import org.la4j.vector.Vectors;
 
 import org.graphstream.graph.Node;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
 
 public class SskAlgorithmTest implements DirectedGraphTestReq, UndirectedGraphTestReq {
@@ -37,6 +38,103 @@ public class SskAlgorithmTest implements DirectedGraphTestReq, UndirectedGraphTe
 	@Override
 	public OcdAlgorithm getAlgorithm() {
 		return algo;
+	}
+
+	/**
+	 * Tests the detection of overlapping communities in a directed graph.
+	 * The test explores the algorithm's capability to handle directed graphs.
+	 * Algorithm parameters are uniquely set to challenge the algorithm with different conditions:
+	 * leadershipIterationBound is increased to test the algorithm's performance on a large number of iterations,
+	 * membershipsIterationBound is decreased to challenge the algorithm with a lower iteration limit for membership assignation,
+	 * leadershipPrecisionFactor and membershipsPrecisionFactor are set to lower values to test the algorithm's precision.
+	 * Completed by GPT
+	 */
+	@Test
+	public void directedGraphTest1() throws Exception {
+		try {
+			// Don't modify
+			CustomGraph directedGraph = OcdTestGraphFactory.getDirectedAperiodicTwoCommunitiesGraph();
+			// Don't modify
+			Map<String, String> parameters = new HashMap<>();
+			parameters.put("leadershipIterationBound", "1500");
+			parameters.put("membershipsIterationBound", "500");
+			parameters.put("leadershipPrecisionFactor", "0.0005");
+			parameters.put("membershipsPrecisionFactor", "0.0005");
+			// Don't modify
+			getAlgorithm().setParameters(parameters);
+			// Don't modify
+			Cover cover = getAlgorithm().detectOverlappingCommunities(directedGraph);
+			// Don't modify
+			assertTrue(cover.getCommunities().size() >= 1);
+		} catch (Throwable t) {
+			// Don't modify
+			fail("Test failed due to an exception or assertion error: " + t.getMessage());
+			// Don't modify
+			throw t;
+		}
+	}
+
+	/**
+	 * Tests the detection of overlapping communities in a weighted graph.
+	 * This test sets the algorithm parameters to extremes in order to challenge the algorithm's performance on weighted graphs.
+	 * Specifically, leadershipIterationBound and membershipsIterationBound are set to their maximum reasonable limits to assess the algorithm's capabilities under high iteration demands,
+	 * while the precision factors are tightened to evaluate its accuracy with extremely close convergence thresholds.
+	 * Completed by GPT
+	 */
+	@Test
+	public void weightedGraphTest1() throws Exception {
+		try {
+			// Don't modify
+			CustomGraph weightedGraph = OcdTestGraphFactory.getTwoCommunitiesWeightedGraph();
+			// Don't modify
+			Map<String, String> parameters = new HashMap<>();
+			parameters.put("leadershipIterationBound", "2000");
+			parameters.put("membershipsIterationBound", "2000");
+			parameters.put("leadershipPrecisionFactor", "0.0001");
+			parameters.put("membershipsPrecisionFactor", "0.0001");
+			// Don't modify
+			getAlgorithm().setParameters(parameters);
+			// Don't modify
+			Cover cover = getAlgorithm().detectOverlappingCommunities(weightedGraph);
+			// Don't modify
+			assertTrue(cover.getCommunities().size() >= 1);
+		} catch (Throwable t) {
+			// Don't modify
+			fail("Test failed due to an exception or assertion error: " + t.getMessage());
+			// Don't modify
+			throw t;
+		}
+	}
+
+	/**
+	 * Tests the detection of overlapping communities in an undirected graph.
+	 * This test employs a balanced approach with moderate iterations for leadership and membership assignation phases and
+	 * standard precision factors to evaluate the algorithm's effectiveness in typical conditions for undirected graphs.
+	 * Completed by GPT
+	 */
+	@Test
+	public void undirectedGraphTest1() throws Exception {
+		try {
+			// Don't modify
+			CustomGraph undirectedGraph = OcdTestGraphFactory.getUndirectedBipartiteGraph();
+			// Don't modify
+			Map<String, String> parameters = new HashMap<>();
+			parameters.put("leadershipIterationBound", "1200");
+			parameters.put("membershipsIterationBound", "800");
+			parameters.put("leadershipPrecisionFactor", "0.0007");
+			parameters.put("membershipsPrecisionFactor", "0.0007");
+			// Don't modify
+			getAlgorithm().setParameters(parameters);
+			// Don't modify
+			Cover cover = getAlgorithm().detectOverlappingCommunities(undirectedGraph);
+			// Don't modify
+			assertTrue(cover.getCommunities().size() >= 1);
+		} catch (Throwable t) {
+			// Don't modify
+			fail("Test failed due to an exception or assertion error: " + t.getMessage());
+			// Don't modify
+			throw t;
+		}
 	}
 
 
