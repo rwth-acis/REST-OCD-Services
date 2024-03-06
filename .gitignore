@@ -34,3 +34,8 @@ restMapping.xml
 
 # Ignore Gradle build output directory
 build
+
+# ignore locally generated files used for ocda test generator
+/gpt/
+/ocda_test_generator_python_intermediary/
+rest_ocd_services/src/test/java/i5/las2peer/services/ocd/ocdatestautomation/testrunner/generatedclasses/
