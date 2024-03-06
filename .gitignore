@@ -37,5 +37,6 @@ build
 
 # ignore locally generated files used for ocda test generator
 /gpt/
+!/gpt/guide.md
 /ocda_test_generator_python_intermediary/
 rest_ocd_services/src/test/java/i5/las2peer/services/ocd/ocdatestautomation/testrunner/generatedclasses/
