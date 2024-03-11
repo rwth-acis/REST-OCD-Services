@@ -97,13 +97,13 @@ public class MultiplexUnweightedEdgeListGraphInputAdapter extends
 					}
 				}
 			}
-			//add representive graph
-			CustomGraph representiveGraph = new CustomGraph();
+			//add representative graph
+			CustomGraph representativeGraph = new CustomGraph();
 			for(String nodeName: totalNumberOfNodes) {
-				Node node = representiveGraph.addNode(nodeName);
-				representiveGraph.setNodeName(node, nodeName);
+				Node node = representativeGraph.addNode(nodeName);
+				representativeGraph.setNodeName(node, nodeName);
 			}
-			multiplexGraph.setRepresentiveGraph(representiveGraph);
+			multiplexGraph.setRepresentativeGraph(representativeGraph);
 
 			multiplexGraph.setNodeCount(totalNumberOfNodes.size());
 			multiplexGraph.setEdgeCount(totalNumberOfEdges);

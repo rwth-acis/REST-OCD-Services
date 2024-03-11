@@ -60,45 +60,6 @@ public class OcdAlgorithmExecutor {
 			return cover;
 		}
 	}
-
-//	/**
-//	 * Calculates a cover by executing an ocd algorithm on a graph.
-//	 * The algorithm is run on each weakly connected component seperately.
-//	 * Small components are automatically considered to be one community.
-//	 * @param graph The graph.
-//	 * @param algorithm The algorithm.
-//	 * @param componentNodeCountFilter Weakly connected components of a size
-//	 * lower than the filter will automatically be considered a single community.
-//	 * @return A cover of the graph calculated by the algorithm.
-//	 * @throws OcdAlgorithmException In case of an algorithm failure.
-//	 * @throws InterruptedException In case of an algorithm interrupt.
-//	 * @throws OcdMetricException if the metric execution failed
-//	 */
-//	public Cover executeMultiplex(MultiplexGraph graph, OcdMultiplexAlgorithm algorithm, int componentNodeCountFilter) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
-//		MultiplexGraph graphCopy = new MultiplexGraph(graph);
-//		GraphProcessor processor = new GraphProcessor();
-//		processor.makeCompatible(graphCopy, algorithm.compatibleGraphTypes());
-//		if(algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.SIGNED_PROBABILISTIC_MIXTURE_ALGORITHM.toString()) || algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM.toString()) || algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM.toString()) || algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.LOCAL_SPECTRAL_CLUSTERING_ALGORITHM.toString()) || algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.LOUVAIN_ALGORITHM.toString())){
-//			ExecutionTime executionTime = new ExecutionTime();
-//			Cover cover = algorithm.detectOverlappingCommunities(graph);
-//			cover.setCreationMethod(new CoverCreationLog(algorithm.getAlgorithmType(), algorithm.getParameters(), algorithm.compatibleGraphTypes()));
-//			cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
-//			executionTime.setCoverExecutionTime(cover);
-//			return cover;
-//		}else{
-//			List<Pair<CustomGraph, Map<Node, Node>>> components;
-//			List<Pair<Cover, Map<Node, Node>>> componentCovers;
-//			components = processor.divideIntoConnectedComponents(graphCopy);
-//			ExecutionTime executionTime = new ExecutionTime();
-//			componentCovers = calculateComponentCovers(components, algorithm, componentNodeCountFilter, executionTime);
-//			Cover coverCopy = processor.mergeComponentCovers(graphCopy, componentCovers);
-//			Cover cover = new Cover(graph, coverCopy.getMemberships());
-//			cover.setCreationMethod(coverCopy.getCreationMethod());
-//			cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
-//			executionTime.setCoverExecutionTime(cover);
-//			return cover;
-//		}
-//	}
 	
 	/**
 	 * Calculates the cover of each connected component.

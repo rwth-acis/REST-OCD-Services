@@ -2,9 +2,9 @@
   {
     "username": "default",
     "allowedInactiveDays": "30",
-    "graphSize": "1000",
-    "graphCount": "20",
-    "coverCount": "40"
+    "graphSize": "1100",
+    "graphCount": "120",
+    "coverCount": "140"
   },
   {
     "username": "user1",

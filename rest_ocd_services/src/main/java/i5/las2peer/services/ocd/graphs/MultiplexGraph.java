@@ -26,7 +26,7 @@ public class MultiplexGraph {
 	public static final String edgeCountColumnName = "EDGE_COUNT";
 	public static final String layerCountColumnName = "LAYER_COUNT";
 	public static final String layerKeysColumnName = "LAYER_KEYS";
-	public static final String representiveGraphKeyColumnName = "REPRESENTIVE_KEY";
+	public static final String representativeGraphKeyColumnName = "REPRESENTATIVE_KEY";
 	public static final String creationMethodKeyColumnName = "CREATION_METHOD_KEY";
 	public static final String typesColumnName = "TYPES";
 	public static final String collectionName = "multiplexgraph";
@@ -70,21 +70,6 @@ public class MultiplexGraph {
 	private int layerCount;
 
 	/**
-	 * The keys of the layers of the graph.
-	 */
-	private List<String> layerKeys = new ArrayList<String>();
-
-	/**
-	 * The key of respresentive CustomGraph of the MultiplexGraph.
-	 */
-	private String representiveKey;
-
-	/**
-	 * The respresentive CustomGraph of the MultiplexGraph.
-	 */
-	private CustomGraph representiveGraph;
-
-	/**
 	 * The graph's types.
 	 */
 	private Set<Integer> types = new HashSet<Integer>();
@@ -96,13 +81,21 @@ public class MultiplexGraph {
 			new HashMap<String, String>());
 
 	/**
-	 * The covers based on this graph.
+	 * The keys of the layers of the graph.
 	 */
-	private List<Cover> covers = new ArrayList<Cover>();
+	private List<String> layerKeys = new ArrayList<String>();
 
 	private Map<String, CustomGraph> mapCustomGraphs = new HashMap<String, CustomGraph>();
 
-	//private Map<CustomGraph, String> mapCustomGraphIds = new HashMap<CustomGraph, String>();
+	/**
+	 * The key of respresentive CustomGraph of the MultiplexGraph.
+	 */
+	private String representativeKey;
+
+	/**
+	 * The respresentive CustomGraph of the MultiplexGraph.
+	 */
+	private CustomGraph representativeGraph;
 
 	//////////////////////////////////////////////////////////////////
 	///////// Constructor
@@ -240,28 +233,28 @@ public class MultiplexGraph {
 	}
 
 	/**
-	 * Getter for the key of representive customgraph
-	 * @return	The key of the represnetive customgraph
+	 * Getter for the key of representative customgraph
+	 * @return	The key of the representative customgraph
 	 */
-	public String getRepresentiveKey(){return this.representiveKey;}
+	public String getRepresentativeKey(){return this.representativeKey;}
 
 	/**
-	 * Getter for representive customgraph
-	 * @return	The represnetive customgraph
+	 * Getter for representative customgraph
+	 * @return	The representative customgraph
 	 */
-	public CustomGraph getRepresentiveGraph(){return this.representiveGraph;}
+	public CustomGraph getRepresentativeGraph(){return this.representativeGraph;}
 
 	/**
-	 * Setter for the key of representive customgraph
-	 * @param key	The key of the represnetive customgraph
+	 * Setter for the key of representative customgraph
+	 * @param key	The key of the representative customgraph
 	 */
-	public void setRepresentiveKey(String key){this.representiveKey = key;}
+	public void setRepresentativeKey(String key){this.representativeKey = key;}
 
 	/**
-	 * Setter for representive customgraph
-	 * @param graph The represnetive customgraph
+	 * Setter for representative customgraph
+	 * @param graph The representative customgraph
 	 */
-	public void setRepresentiveGraph(CustomGraph graph){this.representiveGraph=graph;}
+	public void setRepresentativeGraph(CustomGraph graph){this.representativeGraph=graph;}
 
 	////////// Graph Types //////////
 	/**
@@ -350,7 +343,8 @@ public class MultiplexGraph {
 			graph.creationMethod = GraphCreationLog.load(creationMethodKey, db, readOpt);
 			Object objLayerKeys = bd.getAttribute(layerKeysColumnName);
 			graph.layerKeys = om.convertValue(objLayerKeys, List.class);
-			graph.representiveKey = bd.getAttribute(representiveGraphKeyColumnName).toString();
+			Object objRepresentativeKey = bd.getAttribute(representativeGraphKeyColumnName);
+			graph.representativeKey = om.convertValue(objRepresentativeKey, String.class);
 		}
 		else {
 			System.out.println("Empty Graph document");
@@ -371,7 +365,7 @@ public class MultiplexGraph {
 		bd.addAttribute(edgeCountColumnName, this.graphEdgeCount);
 		bd.addAttribute(layerCountColumnName, this.layerCount);
 		bd.addAttribute(layerKeysColumnName, this.layerKeys);
-		bd.addAttribute(representiveGraphKeyColumnName, this.representiveKey);
+		bd.addAttribute(representativeGraphKeyColumnName, this.representativeKey);
 		this.creationMethod.persist(db, createOptions);
 		bd.addAttribute(creationMethodKeyColumnName, this.creationMethod.getKey());
 		collection.insertDocument(bd, createOptions);

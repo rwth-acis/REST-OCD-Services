@@ -12,9 +12,9 @@ import java.util.*;
 
 
 /**
- * Implements the algorithm to the ABACUS (Overlapping Community Detection based on Information Dynamics) method, by Z. Sun, B. Wang, J. Sheng,Z. Yu, J. Shao:
- * https://doi.org/10.1109/ACCESS.2018.2879648
- * Handles undirected and unweighted graphs.
+ * Implements the ABACUS (frequent pAttern mining-BAsed Community discovery in mUltidimensional networkS) algorithm
+ * by Berlingerio, Michele; Pinelli, Fabio; Calabrese, Francesco (2013): https://doi.org/10.1007/s10618-013-0331-0
+ * Handles multiplex graphs.
  */
 public class ABACUSAlgorithm implements OcdAlgorithm {
 
@@ -32,7 +32,7 @@ public class ABACUSAlgorithm implements OcdAlgorithm {
      * PARAMETER NAMES
      */
 
-    protected static final String THRESHOLD = "threshold";
+    protected static final String THRESHOLD_NAME = "threshold";
 
     /**
      * Creates a standard instance of the algorithm. All attributes are assigned
@@ -43,11 +43,10 @@ public class ABACUSAlgorithm implements OcdAlgorithm {
     }
 
     @Override
-    public Cover detectOverlappingCommunities(CustomGraph representiveGraph) throws InterruptedException {
-        //run FCIM on results
+    public Cover detectOverlappingCommunities(CustomGraph representativeGraph) throws InterruptedException {
+        // Create transactions from the communities that where discovered in the different layers
         Map<Integer, List<Integer>> transactions = new HashMap<>();
-
-        for (Cover cover : database.getLayerCovers(representiveGraph.getKey())) {
+        for (Cover cover : database.getLayerCovers(representativeGraph.getKey())) {
             for (Community community : cover.getCommunities()) {
                 String communityKey = community.getKey();
                 List<Integer> memberIndices = community.getMemberIndices();
@@ -60,9 +59,11 @@ public class ABACUSAlgorithm implements OcdAlgorithm {
             }
         }
 
+        // Run FCIM algorithm on the transactions
         AlgoAprioriClose algo = new AlgoAprioriClose();
         Itemsets itemsets = algo.runAlgorithm(this.threshold, transactions);
-        Matrix membershipMatrix = new Basic2DMatrix(representiveGraph.getNodeCount(), itemsets.getLevels().size());
+        // Create the membership matrix that represents the cover for the multiplex graph
+        Matrix membershipMatrix = new Basic2DMatrix(representativeGraph.getNodeCount(), itemsets.getLevels().size());
         int communityIndex = 0;
         for (List<Itemset> level : itemsets.getLevels()) {
             for (Itemset itemset : level) {
@@ -75,7 +76,7 @@ public class ABACUSAlgorithm implements OcdAlgorithm {
                 communityIndex++;
             }
         }
-        return new Cover(representiveGraph, membershipMatrix);
+        return new Cover(representativeGraph, membershipMatrix);
     }
 
     @Override
@@ -86,18 +87,33 @@ public class ABACUSAlgorithm implements OcdAlgorithm {
     @Override
     public Set<GraphType> compatibleGraphTypes() {
         Set<GraphType> compatibilities = new HashSet<GraphType>();
+        compatibilities.add(GraphType.MULTIPLEX);
         return compatibilities;
     }
 
     @Override
     public void setParameters(Map<String, String> parameters) throws IllegalArgumentException {
-
+        if(parameters.containsKey(THRESHOLD_NAME)) {
+            threshold = Double.parseDouble(parameters.get(THRESHOLD_NAME));
+            parameters.remove(THRESHOLD_NAME);
+        }
+        if(parameters.size() > 0) {
+            throw new IllegalArgumentException();
+        }
     }
 
     @Override
     public Map<String, String> getParameters() {
         Map<String, String> parameters = new HashMap<String, String>();
-        parameters.put(THRESHOLD, Double.toString(threshold));
+        parameters.put(THRESHOLD_NAME, Double.toString(threshold));
         return parameters;
+    }
+
+    /**
+     * Sets the database. Used for testing.
+     * @param database The database.
+     */
+    public void setDatabase(Database database) {
+        this.database = database;
     }
 }

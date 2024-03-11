@@ -15,10 +15,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 /**
- * A graph output adapter for the meta XML format.
+ * A multiplex graph output adapter for the meta XML format.
  * The output contains meta information about the graph in XML format, but not the actual graph structure or other node or edge related meta data.
- * @author Sebastian
- *
+ * @author Maren
  */
 public class MetaXmlMultiplexGraphOutputAdapter extends AbstractMultiplexGraphOutputAdapter {
 
@@ -48,6 +47,9 @@ public class MetaXmlMultiplexGraphOutputAdapter extends AbstractMultiplexGraphOu
 			Element graphLayerCountElt = doc.createElement("LayerCount");
 			graphLayerCountElt.appendChild(doc.createTextNode(Integer.toString(graph.getLayerCount())));
 			graphElt.appendChild(graphLayerCountElt);
+			Element representativeGraphKeyElt = doc.createElement("RepresentativeGraphKey");
+			representativeGraphKeyElt.appendChild(doc.createTextNode(graph.getRepresentativeKey()));
+			graphElt.appendChild(representativeGraphKeyElt);
 			/*
 			 * Graph Types
 			 */

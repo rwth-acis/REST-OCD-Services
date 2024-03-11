@@ -372,6 +372,7 @@ public class Database {
 					" FILTER g." + CustomGraph.userColumnName + " == @username AND gcl._key == g." + CustomGraph.creationMethodKeyColumnName +
 					" AND gcl." + GraphCreationLog.statusIdColumnName +" IN " + executionStatusIds +
 					" AND 7 NOT IN g." + CustomGraph.typesColumnName +
+					" AND 8 NOT IN g." + CustomGraph.typesColumnName +
 					" LIMIT " + firstIndex + "," + length + " RETURN "+
 					"{\"key\" : g._key," +
 					"\"userName\" : g." + CustomGraph.userColumnName + "," +
@@ -705,7 +706,7 @@ public class Database {
 					}
 
 					//delete representive custom graph
-					String representiveKey = bd.getAttribute(MultiplexGraph.representiveGraphKeyColumnName).toString();
+					String representiveKey = bd.getAttribute(MultiplexGraph.representativeGraphKeyColumnName).toString();
 					deleteGraph(username, representiveKey, threadHandler);
 
 					String query = "FOR c IN " + Cover.collectionName + " FILTER c." + Cover.graphKeyColumnName

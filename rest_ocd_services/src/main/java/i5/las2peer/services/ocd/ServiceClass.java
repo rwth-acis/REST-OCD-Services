@@ -1,5 +1,7 @@
 package i5.las2peer.services.ocd;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import i5.las2peer.api.Context;
 import i5.las2peer.api.ManualDeployment;
 import i5.las2peer.api.logging.MonitoringEvent;
@@ -14,7 +16,9 @@ import i5.las2peer.services.ocd.adapters.coverOutput.CoverOutputFormat;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
 import i5.las2peer.services.ocd.adapters.visualOutput.VisualOutputFormat;
-import i5.las2peer.services.ocd.algorithms.*;
+import i5.las2peer.services.ocd.algorithms.ContentBasedWeightingAlgorithm;
+import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
+import i5.las2peer.services.ocd.algorithms.OcdAlgorithmFactory;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.OcdBenchmarkFactory;
 import i5.las2peer.services.ocd.centrality.data.*;
@@ -44,7 +48,6 @@ import i5.las2peer.services.ocd.viewer.utils.CentralityVisualizationType;
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.graphstream.algorithm.ConnectedComponents;
 import org.json.simple.JSONObject;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -395,14 +398,14 @@ public class ServiceClass extends RESTService {
 							database.storeGraph(customGraph);
 							graph.addLayerKey(customGraph.getKey());
 						}
-						//store representive graph
-						CustomGraph representiveGraph = graph.getRepresentiveGraph();
-						representiveGraph.setName(URLDecoder.decode(nameStr, "UTF-8"));
-						representiveGraph.setUserName(username);
-						representiveGraph.setCreationMethod(log);
-						representiveGraph.addType(GraphType.MULTIPLEX);
-						database.storeGraph(representiveGraph);
-						graph.setRepresentiveKey(representiveGraph.getKey());
+						//store representative graph
+						CustomGraph representativeGraph = graph.getRepresentativeGraph();
+						representativeGraph.setName(URLDecoder.decode(nameStr, "UTF-8"));
+						representativeGraph.setUserName(username);
+						representativeGraph.setCreationMethod(log);
+						representativeGraph.addType(GraphType.MULTIPLEX);
+						database.storeGraph(representativeGraph);
+						graph.setRepresentativeKey(representativeGraph.getKey());
 
 						//store multiplex graph
 						database.storeGraph(graph);
@@ -1436,15 +1439,9 @@ public class ServiceClass extends RESTService {
 		 * @param creationTypeStr
 		 *            The name of a cover creation type corresponding to an ocd
 		 *            algorithm. Defines the algorithm to execute.
-		 * @param multiplexContent
-		 *            A parameter xml defining any non-default parameters passed
-		 *            to the multiplex algorithm.
-		 * @param content
-		 *            A parameter xml defining any non-default parameters passed
-		 *            to the algorithm.
-		 * @param componentNodeCountFilter
-		 *            Option query parameter. The component node count filter
-		 *            applied by the OcdAlgorithmExecutor.
+		 * //@param jsonDataStr contains multiplexContent and content
+		 *            multiplexContent defines any non-default parameters passed to the multiplex algorithm.
+		 *            content defines any non-default parameters passed to the algorithm.
 		 * @return The id of the cover being calculated which is reserved for
 		 *         the algorithm result. Or an error xml.
 		 */
@@ -1457,17 +1454,25 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"execution"}, value = "Run OCD Algorithm", notes = "Creates a new cover by running an algorithm on an existing graph.  \n " +
 				"The provided data represents the algorithm parameters and needs to be an XML with the root \"Parameters\" enclosing \"Parameter\" nodes which have both \"Name\" and \"Value\" nodes." +
 				"\n To see which parameters of what type are needed for an algorithm, fetch its default parameters")
-		public Response runABACUSAlgorithm(@FormDataParam("graphId") String graphIdStr,
-										   @FormDataParam("name") String nameStr,
-										   @FormDataParam("multiplexalgorithm") String multiplexCreationTypeStr,
-										   @FormDataParam("algorithm") String creationTypeStr,
-										   @FormDataParam("componentNodeCountFilter") int componentNodeCountFilter,
-										   @FormDataParam("multiplexContent") String multiplexContent,
-										   @FormDataParam("content") String content) {
+		public Response runABACUSAlgorithm(@PathParam("graphId") String graphIdStr,
+										   @DefaultValue("unnamed") @QueryParam("name") String nameStr,
+										   @DefaultValue("OCDID_ALGORITHM") @QueryParam("algorithm") String creationTypeStr,
+										   @DefaultValue("ABACUS_ALGORITHM") @QueryParam("multiplexalgorithm") String multiplexCreationTypeStr,
+										   String content) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				CoverCreationType multiplexAlgorithmType;
 				CoverCreationType algorithmType;
+				String params = "";
+				String multiplexParams = "";
+				ObjectMapper objectMapper = new ObjectMapper();
+				System.out.println("runABACUSAlgorithm");
+				try {
+					JsonNode jsonDataObj = objectMapper.readTree(content);
+					multiplexParams = jsonDataObj.get("multiplexparams").asText();
+					params = jsonDataObj.get("params").asText();
+				} catch (IOException e) {
+				}
 
 				/*
 				Check if user has a limit regarding number of graph or covers and throw an error if the limit is violated.
@@ -1476,6 +1481,7 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "user: " + username + " reached cover count limit.");
 					return requestHandler.writeError(Error.INTERNAL, "Cover count limit reached. Delete a cover before generating a new one, or contact administrator to adjust limits.");
 				}
+
 				try {
 					multiplexAlgorithmType = CoverCreationType.valueOf(multiplexCreationTypeStr);
 					if (multiplexAlgorithmType == CoverCreationType.UNDEFINED
@@ -1500,17 +1506,14 @@ public class ServiceClass extends RESTService {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
 					return requestHandler.writeError(Error.PARAMETER_INVALID, "Specified multiplex algorithm does not exist.");
 				}
-
 				Map<String, String> multiplexParameters;
 				OcdAlgorithm multiplexAlgorithm;
-				//OcdMultiplexAlgorithm multiplexAlgorithm;
 				Map<String, String> parameters;
 				OcdAlgorithm algorithm;
 				try {
-					multiplexParameters = requestHandler.parseParameters(multiplexContent);
+					multiplexParameters = requestHandler.parseParameters(multiplexParams);
 					multiplexAlgorithm = algorithmFactory.getInstance(multiplexAlgorithmType, new HashMap<String, String>(multiplexParameters));
-					//multiplexAlgorithm = multiplexAlgorithmFactory.getInstance(multiplexAlgorithmType, new HashMap<String, String>(multiplexParameters));
-					parameters = requestHandler.parseParameters(content);
+					parameters = requestHandler.parseParameters(params);
 					algorithm = algorithmFactory.getInstance(algorithmType, new HashMap<String, String>(parameters));
 				} catch (Exception e) {
 					requestHandler.log(Level.WARNING, "user: " + username, e);
@@ -1557,7 +1560,7 @@ public class ServiceClass extends RESTService {
 										"Invalid graph creation method status for metric execution: "
 												+ customGraph.getCreationMethod().getStatus().name());
 							}
-							cover = new Cover(customGraph, new CCSMatrix(graph.getNodeCount(), 0));
+							cover = new Cover(customGraph, new CCSMatrix(customGraph.getNodeCount(), 0));
 							log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
 							cover.setCreationMethod(log);
 							cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
@@ -1565,15 +1568,31 @@ public class ServiceClass extends RESTService {
 							/*
 							* Registers and starts algorithm
 							*/
-							threadHandler.runAlgorithm(cover, algorithm, componentNodeCountFilter);
+							threadHandler.runAlgorithm(cover, algorithm, 0);
 							generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + algorithm.getClass().getSimpleName() + " on graph " + customGraph.getKey() + ". Created cover " + cover.getKey());
 						}
 					}
 					/*
 					 * Run multiplex algorithm
 					 */
-					CustomGraph representiveGraph = graph.getRepresentiveGraph();
-					cover = new Cover(representiveGraph, new CCSMatrix(graph.getNodeCount(), 0));
+					String key = graph.getRepresentativeKey();
+					CustomGraph representativeGraph = database.getGraph(username, key);
+					if (representativeGraph == null) {
+						requestHandler.log(Level.WARNING,
+								"user: " + username + ", " + "Graph does not exist: graph id " + key);
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Graph does not exist: graph id " + key);
+					}
+					if (representativeGraph.getCreationMethod().getStatus() != ExecutionStatus.COMPLETED) {
+						requestHandler.log(Level.WARNING,
+								"user: " + username + ", "
+										+ "Invalid graph creation method status for metric execution: "
+										+ representativeGraph.getCreationMethod().getStatus().name());
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Invalid graph creation method status for metric execution: "
+										+ representativeGraph.getCreationMethod().getStatus().name());
+					}
+					cover = new Cover(representativeGraph, new CCSMatrix(representativeGraph.getNodeCount(), 0));
 					log = new CoverCreationLog(multiplexAlgorithmType, multiplexParameters, multiplexAlgorithm.compatibleGraphTypes());
 					cover.setCreationMethod(log);
 					cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
@@ -1581,12 +1600,30 @@ public class ServiceClass extends RESTService {
 					/*
 					 * Registers and starts multiplex algorithm
 					 */
-					//threadHandler.runMultiplexAlgorithm(cover, multiplexAlgorithm, componentNodeCountFilter);
-					threadHandler.runAlgorithm(cover, multiplexAlgorithm, componentNodeCountFilter);
+					threadHandler.runAlgorithm(cover, multiplexAlgorithm, 0);
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + multiplexAlgorithm.getClass().getSimpleName() + " on graph " + graph.getKey() + ". Created cover " + cover.getKey());
-
 				}
-				return Response.ok(requestHandler.writeId(cover)).build(); //do I need it for the layers as well?
+				return Response.ok(requestHandler.writeId(cover)).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		@POST
+		@Path("covers/multiplexgraph/{graphId}/algorithms")
+		@Produces(MediaType.TEXT_XML)
+		@Consumes(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"execution"}, value = "Run OCD Algorithm", notes = "Creates a new cover by running an algorithm on an existing graph.  \n " +
+				"The provided data represents the algorithm parameters and needs to be an XML with the root \"Parameters\" enclosing \"Parameter\" nodes which have both \"Name\" and \"Value\" nodes." +
+				"\n To see which parameters of what type are needed for an algorithm, fetch its default parameters")
+		public Response runABACUSAlgorith(String jsonDataStr) {
+			try {
+				System.out.println("runABACUSAlgorithm");
+
+				return Response.ok().build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");

@@ -1,19 +1,17 @@
 package i5.las2peer.services.ocd.adapters.coverInput;
 
-import static org.junit.Assert.assertEquals;
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.adapters.coverInput.CommunityMemberListsCoverInputAdapter;
-import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 public class CommunityMemberListsInputAdapterTest {
 

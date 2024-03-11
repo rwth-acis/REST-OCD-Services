@@ -18,11 +18,9 @@ import i5.las2peer.services.ocd.adapters.graphInput.CommonGraphInputAdapter;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphInput.GraphInputFormat;
 import i5.las2peer.services.ocd.adapters.graphOutput.CommonGraphOutputAdapter;
-import i5.las2peer.services.ocd.adapters.graphOutput.MultiplexGraphOutputAdapter;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.graphOutput.GraphOutputFormat;
 import i5.las2peer.services.ocd.adapters.metaOutput.*;
-import i5.las2peer.services.ocd.algorithms.ABACUSAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeasureType;
 import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
@@ -30,30 +28,7 @@ import i5.las2peer.services.ocd.centrality.data.CentralitySimulationType;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricType;
-
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.commons.math3.linear.RealMatrix;
-import org.mockito.cglib.core.Local;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -62,6 +37,17 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.*;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.logging.Level;
 
 /**
  * Manages different request-related tasks for the Service Class. Mainly in
@@ -878,7 +864,7 @@ public class RequestHandler {
 		Document doc = getDocument();
 		Element namesElt = doc.createElement("Names");
 		for(CoverCreationType e : CoverCreationType.class.getEnumConstants()) {
-			if(e.correspondsAlgorithm()) {
+			if(e.correspondsAlgorithm()&& e != CoverCreationType.ABACUS_ALGORITHM) {
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
 				nameElt.setAttribute("displayName", e.getDisplayName());
@@ -898,7 +884,7 @@ public class RequestHandler {
 		Document doc = getDocument();
 		Element namesElt = doc.createElement("Names");
 		for(CoverCreationType e : CoverCreationType.class.getEnumConstants()) {
-			if(e.correspondsMultiplexAlgorithm()) {
+			if(e.correspondsAlgorithm() && e == CoverCreationType.ABACUS_ALGORITHM) {
 				Element nameElt = doc.createElement("Name");
 				nameElt.appendChild(doc.createTextNode(e.name()));
 				nameElt.setAttribute("displayName", e.getDisplayName());
