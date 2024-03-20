@@ -12,8 +12,7 @@ RUN mkdir ../gradleFolder && wget https://services.gradle.org/distributions/grad
  && unzip -d ../gradleFolder ../gradleFolder/gradle-7.3.2-bin.zip && rm -R ../gradleFolder/gradle-7.3.2-bin.zip
 
 # Replace HOST for database configuration (standard & for testing) with the db container name
-RUN sed -i "s/^HOST.*/HOST=arangodb/" ocd/arangoDB/config_test.properties
-RUN sed -i "s/^HOST.*/HOST=arangodb/" ocd/arangoDB/standard_config.properties
+RUN sed -i "s/^HOST.*/HOST=arangodb/" ocd/arangoDB/config.properties
 
 
 # This is to clean the previously generated agents and avoid error in case WebOCD was built before image creation
