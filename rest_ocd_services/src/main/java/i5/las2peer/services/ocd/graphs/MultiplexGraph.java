@@ -203,12 +203,6 @@ public class MultiplexGraph {
 	public int getLayerCount(){return this.layerCount;}
 
 	/**
-	 * Getter for the layer keys.
-	 * @return	The layer keys.
-	 */
-	public List<String> getLayerKeys(){return this.layerKeys;}
-
-	/**
 	 * Adds a layer key
 	 * @param layerKey	The layer key
 	 */
@@ -226,10 +220,6 @@ public class MultiplexGraph {
 
 	public Map<String, CustomGraph> getCustomGraphs() {
 		return mapCustomGraphs;
-	}
-
-	protected CustomGraph getCustomGraph(CustomGraph customGraph) {
-		return mapCustomGraphs.get(customGraph.getId());
 	}
 
 	/**
@@ -319,37 +309,27 @@ public class MultiplexGraph {
 		MultiplexGraph graph = null;
 		ArangoCollection collection = db.collection(collectionName);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
-		//AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
 		BaseDocument bd = collection.getDocument(key, BaseDocument.class, readOpt);
-
-		if (bd != null) {
-			graph = new MultiplexGraph();
-			ObjectMapper om = new ObjectMapper();
-			Object objId = bd.getAttribute(idColumnName);
-			if(objId!= null) {
-				graph.id = Long.parseLong(objId.toString());
-			}
-			graph.key = key;
-			graph.userName = bd.getAttribute(userColumnName).toString();
-			graph.name = bd.getAttribute(nameColumnName).toString();
-			Object objTypes = bd.getAttribute(typesColumnName);
-			graph.types = om.convertValue(objTypes, Set.class);
-			//Object objProperties = bd.getAttribute(propertiesColumnName);
-			//graph.properties = om.convertValue(objProperties, List.class);
-			String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
-			graph.graphNodeCount = om.convertValue(bd.getAttribute(nodeCountColumnName), Long.class);
-			graph.graphEdgeCount = om.convertValue(bd.getAttribute(edgeCountColumnName), Long.class);
-			graph.layerCount = om.convertValue(bd.getAttribute(layerCountColumnName), Integer.class);
-			graph.creationMethod = GraphCreationLog.load(creationMethodKey, db, readOpt);
-			Object objLayerKeys = bd.getAttribute(layerKeysColumnName);
-			graph.layerKeys = om.convertValue(objLayerKeys, List.class);
-			Object objRepresentativeKey = bd.getAttribute(representativeGraphKeyColumnName);
-			graph.representativeKey = om.convertValue(objRepresentativeKey, String.class);
+		graph = new MultiplexGraph();
+		ObjectMapper om = new ObjectMapper();
+		Object objId = bd.getAttribute(idColumnName);
+		if(objId!= null) {
+			graph.id = Long.parseLong(objId.toString());
 		}
-		else {
-			System.out.println("Empty Graph document");
-			System.out.println(" DB name: " + db.dbName().get());
-		}
+		graph.key = key;
+		graph.userName = bd.getAttribute(userColumnName).toString();
+		graph.name = bd.getAttribute(nameColumnName).toString();
+		Object objTypes = bd.getAttribute(typesColumnName);
+		graph.types = om.convertValue(objTypes, Set.class);
+		String creationMethodKey = bd.getAttribute(creationMethodKeyColumnName).toString();
+		graph.graphNodeCount = om.convertValue(bd.getAttribute(nodeCountColumnName), Long.class);
+		graph.graphEdgeCount = om.convertValue(bd.getAttribute(edgeCountColumnName), Long.class);
+		graph.layerCount = om.convertValue(bd.getAttribute(layerCountColumnName), Integer.class);
+		graph.creationMethod = GraphCreationLog.load(creationMethodKey, db, readOpt);
+		Object objLayerKeys = bd.getAttribute(layerKeysColumnName);
+		graph.layerKeys = om.convertValue(objLayerKeys, List.class);
+		Object objRepresentativeKey = bd.getAttribute(representativeGraphKeyColumnName);
+		graph.representativeKey = om.convertValue(objRepresentativeKey, String.class);
 		return graph;
 	}
 	public void persist(ArangoDatabase db, String transId) throws InterruptedException {

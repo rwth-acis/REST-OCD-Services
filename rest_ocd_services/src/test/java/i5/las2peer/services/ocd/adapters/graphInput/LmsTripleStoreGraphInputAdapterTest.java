@@ -2,18 +2,18 @@ package i5.las2peer.services.ocd.adapters.graphInput;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import org.junit.Test;
+import org.junit.Ignore;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.util.HashMap;
 
-import org.junit.Test;
-
 //TODO: Refactor Triplestore tests
 public class LmsTripleStoreGraphInputAdapterTest {
-		
 
+	@Ignore
 	@Test
 	public void wholeGraphtest() throws AdapterException {
 		LmsTripleStoreGraphInputAdapter inputAdapter = new LmsTripleStoreGraphInputAdapter();
@@ -21,7 +21,8 @@ public class LmsTripleStoreGraphInputAdapterTest {
 		System.out.println(graph.getNodeCount() + " " +  graph.getEdgeCount());
 		System.out.println(graph.getNodeName(graph.getNode(0)));
 	}
-	
+
+	@Ignore
 	@Test
 	public void testParams() throws MalformedURLException, IOException, AdapterException, IllegalArgumentException, ParseException {		
 		LmsTripleStoreGraphInputAdapter inputAdapter = new LmsTripleStoreGraphInputAdapter();

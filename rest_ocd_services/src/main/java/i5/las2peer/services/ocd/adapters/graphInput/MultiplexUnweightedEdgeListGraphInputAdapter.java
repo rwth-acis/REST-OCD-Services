@@ -41,8 +41,10 @@ public class MultiplexUnweightedEdgeListGraphInputAdapter extends
 	@Override
 	public MultiplexGraph readGraph() throws AdapterException {
 		MultiplexGraph multiplexGraph = new MultiplexGraph();
+		CustomGraph representativeGraph = new CustomGraph();
 		try {
 			Map<String, Map<String, Node>> graphReverseNodeNames = new HashMap<String, Map<String, Node>>();
+			HashMap<String, Node> representativeGraphReverseNodeNames = new HashMap<String, Node>();
 			List<String> line = Adapters.readLine(reader);
 			Set<String> totalNumberOfNodes = new HashSet<String>();
 			int totalNumberOfEdges = 0;
@@ -58,6 +60,7 @@ public class MultiplexUnweightedEdgeListGraphInputAdapter extends
 				Map<String, Node>reverseNodeNames = graphReverseNodeNames.get(layerName);
 
 				//read edge
+				//add nodes and edge to layer
 				String sourceNodeName = line.get(1);
 				Node sourceNode;
 				if (!reverseNodeNames.containsKey(sourceNodeName)) {
@@ -78,6 +81,24 @@ public class MultiplexUnweightedEdgeListGraphInputAdapter extends
 				}
 				Edge edge = graph.addEdge(UUID.randomUUID().toString(), sourceNode, targetNode);
 				graph.setEdgeWeight(edge, 1);
+
+				//add nodes and edge to representative graph
+				if (!representativeGraphReverseNodeNames.containsKey(sourceNodeName)) {
+					sourceNode = representativeGraph.addNode(sourceNodeName);
+					representativeGraphReverseNodeNames.put(sourceNodeName, sourceNode);
+					representativeGraph.setNodeName(sourceNode, sourceNodeName);
+				} else {
+					sourceNode = representativeGraphReverseNodeNames.get(sourceNodeName);
+				}
+				if (!representativeGraphReverseNodeNames.containsKey(targetNodeName)) {
+					targetNode = representativeGraph.addNode(targetNodeName);
+					representativeGraphReverseNodeNames.put(targetNodeName, targetNode);
+					representativeGraph.setNodeName(targetNode, targetNodeName);
+				} else {
+					targetNode = representativeGraphReverseNodeNames.get(targetNodeName);
+				}
+				representativeGraph.addEdge(UUID.randomUUID().toString(), sourceNode, targetNode);
+
 				line = Adapters.readLine(reader);
 
 				totalNumberOfNodes.add(sourceNodeName);
@@ -96,12 +117,6 @@ public class MultiplexUnweightedEdgeListGraphInputAdapter extends
 						graph.setNodeName(node, nodeName);
 					}
 				}
-			}
-			//add representative graph
-			CustomGraph representativeGraph = new CustomGraph();
-			for(String nodeName: totalNumberOfNodes) {
-				Node node = representativeGraph.addNode(nodeName);
-				representativeGraph.setNodeName(node, nodeName);
 			}
 			multiplexGraph.setRepresentativeGraph(representativeGraph);
 

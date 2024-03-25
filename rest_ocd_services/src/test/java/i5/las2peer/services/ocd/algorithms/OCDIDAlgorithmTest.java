@@ -334,7 +334,6 @@ public class OCDIDAlgorithmTest {
         assertEquals(expectedMatrix, actualMatrix);
     }
 
-
     @Test
     public void testOnGraphFromOCDIDPaper() throws InterruptedException {
         OCDIDAlgorithm ocdid = new OCDIDAlgorithm(); // instance of OCDID algorithm

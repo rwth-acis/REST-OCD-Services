@@ -4,7 +4,7 @@ import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 
 /**
- * Instance of this class holds meta information about graphs and is used
+ * Instance of this class holds meta information about multiplex graphs and is used
  * for efficient requests that don't require accessing full graph
  */
 public class MultiplexGraphMeta extends CustomGraphMeta {

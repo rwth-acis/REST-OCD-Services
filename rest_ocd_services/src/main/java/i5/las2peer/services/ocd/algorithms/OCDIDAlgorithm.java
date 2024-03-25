@@ -1,6 +1,9 @@
 package i5.las2peer.services.ocd.algorithms;
 
-import i5.las2peer.services.ocd.graphs.*;
+import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CoverCreationType;
+import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.GraphType;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.la4j.matrix.Matrix;
@@ -18,11 +21,11 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
     /**
      * The threshold value used for spreading the information in the network.
      */
-    private double thresholdOCDID = 0.0001;
+    private double thresholdOCDID = 0.00001;
     /**
      * The threshold value used in the community detection phase of the algorithm.
      */
-    private double thresholdCD = 0.002;
+    private double thresholdCD = 0.0002;
     /**
      * The threshold value used in the overlapping community detection phase of the algorithm.
      */
@@ -410,7 +413,6 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
      */
     protected Matrix ocd(CustomGraph graph, Matrix communities, double[][] I_uv) throws InterruptedException{
         Set<Node> BN = boundaryNodes(graph, communities);
-
         for (Node node : BN) {
             int nodeID = node.getIndex();
             Set<Node> neighbours = graph.getNeighbours(node);
@@ -425,6 +427,7 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
                 }
                 if(B > hightesB){                                       //extension so that all nodes are assigned
                     communityOfHighestB = community;
+                    hightesB = B;
                 }
             }
             if (getMemberships(communities, nodeID).isEmpty()){        //extension so that all nodes are assigned
@@ -601,16 +604,6 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
             }
         }
 
-        //if columns are identical only keep one of them, only needed for ocdBetter
-        for (int col1 = 0; col1 < numCols; col1++) {
-            for (int col2 = col1 + 1; col2 < numCols; col2++) {
-                if (keepColumns[col2] && columnsEqual(oc, col1, col2, numRows)) {
-                    keepColumns[col2] = false;
-                    remainingColumnsCount--;
-                }
-            }
-        }
-
         Matrix membershipMatrix = new Basic2DMatrix(numRows, remainingColumnsCount);
         int newCol = 0;
         for (int col = 0; col < numCols; col++) {
@@ -623,15 +616,5 @@ public class OCDIDAlgorithm implements OcdAlgorithm {
         }
 
         return membershipMatrix;
-    }
-
-
-    protected boolean columnsEqual(Matrix matrix, int col1, int col2, int numRows) {
-        for (int row = 0; row < numRows; row++) {
-            if (matrix.get(row, col1) != matrix.get(row, col2)) {
-                return false;
-            }
-        }
-        return true;
     }
 }
