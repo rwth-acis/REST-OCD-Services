@@ -308,6 +308,7 @@ public class CustomGraph extends MultiGraph {
 				graph.creationMethod.getParameters());
 		this.creationMethod.setStatus(graph.creationMethod.getStatus());
 		this.customNodes = new HashMap<Integer, CustomNode>();
+		System.out.println("Into Copy");
 		copyMappings(graph.customNodes, graph.customEdges, graph.nodeIds, graph.edgeIds);
 		this.userName = new String(graph.userName);
 		this.name = new String(graph.name);
@@ -1141,7 +1142,7 @@ public class CustomGraph extends MultiGraph {
 
 		}
 		return positiveEdges;
-	}
+	}	
 
 	/**
 	 * Returns the set of all positive incoming edges for a given node.
@@ -1449,6 +1450,36 @@ public class CustomGraph extends MultiGraph {
 	}
 
 	/**
+	 * Extension for DynamicGraphs, copy Mappings with edges as Dynamic Interaction
+	 * @param customNodes
+	 * @param customEdges
+	 * @param nodeIds
+	 * @param edgeIds
+	 *//*
+	protected void copyDynamicMappings(Map<Integer, CustomNode> customNodes, Map<Integer, CustomEdge> customEdges,
+								Map<MultiNode, Integer> nodeIds, Map<Edge, Integer> edgeIds) {
+		for (Map.Entry<Integer, CustomNode> entry : customNodes.entrySet()) {
+			this.customNodes.put(entry.getKey(), new CustomNode(entry.getValue()));
+		}
+		for (Map.Entry<Integer, CustomEdge> entry : customEdges.entrySet()) {
+			this.customEdges.put(entry.getKey(), new DynamicInteraction((DynamicInteraction) entry.getValue()));
+		}
+		Node[] nodeArr = this.nodes().toArray(Node[]::new);
+		for (Map.Entry<MultiNode, Integer> entry : nodeIds.entrySet()) {
+			this.nodeIds.put((MultiNode) nodeArr[entry.getKey().getIndex()], entry.getValue());
+		}
+		Node[] nodes = this.nodes().toArray(Node[]::new);
+		for (Node node : nodes) {
+			this.reverseNodeMap.put(this.getCustomNode(node), (MultiNode) node);
+		}
+		Edge[] edgeArr = this.edges().toArray(Edge[]::new);
+		for (Map.Entry<Edge, Integer> entry : edgeIds.entrySet()) {
+			this.edgeIds.put(edgeArr[entry.getKey().getIndex()], entry.getValue());
+		}
+	}
+*/
+
+	/**
 	 * Returns the custom edge object corresponding to an edge.
 	 *
 	 * @param edge
@@ -1551,6 +1582,16 @@ public class CustomGraph extends MultiGraph {
 		this.customEdges.remove(id);
 	}
 
+/*	*//**
+	 * This method is used in DynamicGraphs to give access to CustomGraph Maps
+	 * @param edge the added edge
+	 * @param customEdge the newly created dynamic interaction
+	 *//*
+	protected void addDynamicInteraction(Edge edge, CustomEdge customEdge) {
+		this.edgeIds.put(edge, this.edgeIndexer);
+		this.customEdges.put(edgeIndexer, customEdge);
+		edgeIndexer++;
+	}*/
 	/////////////////////////// PERSISTENCE CALLBACK METHODS
 
 	/**

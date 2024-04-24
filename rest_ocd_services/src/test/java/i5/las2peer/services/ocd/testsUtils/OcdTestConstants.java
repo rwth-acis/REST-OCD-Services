@@ -42,6 +42,10 @@ public class OcdTestConstants {
 	public static final String wikiElecWeightedEdgeListInputPath = inputFolderPath + "wikiElecWeightedEdgeList.txt";
 	public static final String epinionsWeightedEdgeListInputPath = inputFolderPath + "epinionsWeightedEdgeList.txt";
 	public static final String slashDotWeightedEdgeListInputPath = inputFolderPath + "slashDotWeightedEdgeList.txt";
+
+	public static final String timestampedEdgeListWithoutActionPath = inputFolderPath + "TimestampedEdgeListWithoutAction.txt";
+
+	public static final String timestampedEdgeListWithActionPath = inputFolderPath + "TimestampedEdgeListWithAction.txt";
 	
 	/*
 	 * Cover input filenames

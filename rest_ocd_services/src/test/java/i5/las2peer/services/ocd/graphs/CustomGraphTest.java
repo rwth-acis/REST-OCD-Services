@@ -21,7 +21,8 @@ public class CustomGraphTest {
 		CustomGraph graph = new CustomGraph();
 		Node node0 = graph.addNode("0");
 		Node node1 = graph.addNode("1");
-		graph.addEdge(UUID.randomUUID().toString(), node0, node1);
+		Edge edge = graph.addEdge(UUID.randomUUID().toString(), node0, node1);
+
 		graph.addEdge(UUID.randomUUID().toString(), node1, node0);
 		graph.addEdge(UUID.randomUUID().toString(), node0, node0);
 		Node node2 = graph.addNode("2");
