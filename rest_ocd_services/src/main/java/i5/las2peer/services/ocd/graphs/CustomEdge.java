@@ -107,7 +107,14 @@ public class CustomEdge {
 	public int getId() {
 		return id;
 	}
-	
+	public CustomGraph getGraph() {
+		return this.graph;
+	}
+
+	public void setGraph(CustomGraph graph) {
+		this.graph = graph;
+	}
+
 	/**
 	 * Getter for the key.
 	 * @return The key.

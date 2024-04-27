@@ -80,7 +80,7 @@ public class TimestampedEdgeListInputAdapter extends AbstractGraphInputAdapter {
                     String edgeDate = line.get(0);
                     String edgeAction = "+";
                     Edge edge = graph.addEdge(UUID.randomUUID().toString(), sourceNode, targetNode);
-                    graph.addDynamicInteraction(new DynamicInteraction(edge, edgeDate, edgeAction));
+                    graph.addDynamicInteraction(edge, edgeDate, edgeAction);
                     line = Adapters.readLine(reader);
                 }
             } else if (line.size() == 4) {
@@ -107,15 +107,15 @@ public class TimestampedEdgeListInputAdapter extends AbstractGraphInputAdapter {
                     String edgeAction = line.get(1);
                     if (edgeAction.equals("+")) {
                         Edge edge = graph.addEdge(UUID.randomUUID().toString(), sourceNode, targetNode);
-                        graph.addDynamicInteraction(new DynamicInteraction(edge,edgeDate,edgeAction));
+                        graph.addDynamicInteraction(edge, edgeDate, edgeAction);
                     }else if(edgeAction.equals("-")) {
                         try {
                             Edge edge = graph.removeEdge(sourceNode,targetNode);
-                            graph.addDynamicInteraction(new DynamicInteraction(edge,edgeDate,edgeAction));
+                            graph.addDynamicInteraction(edge, edgeDate, edgeAction);
                         } catch (ElementNotFoundException e1) {
                             try {
                                 Edge edge = graph.removeEdge(targetNode, sourceNode);
-                                graph.addDynamicInteraction(new DynamicInteraction(edge,edgeDate,edgeAction));
+                                graph.addDynamicInteraction(edge, edgeDate, edgeAction);
                             } catch (ElementNotFoundException e2) {
                                 System.out.println(e1 + " and/or " + e2);
                             }

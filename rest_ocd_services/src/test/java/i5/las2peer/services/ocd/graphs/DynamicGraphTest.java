@@ -21,24 +21,24 @@ public class DynamicGraphTest {
         Node node0 = graph.addNode("0");
         Node node1 = graph.addNode("1");
         Edge edge0 = graph.addEdge(UUID.randomUUID().toString(), node0, node1);
-        graph.addDynamicInteraction(new DynamicInteraction(edge0, "0", "+"));
+        graph.addDynamicInteraction(edge0, "0", "+");
 
         Edge edge1 = graph.addEdge(UUID.randomUUID().toString(), node1, node0);
-        graph.addDynamicInteraction(new DynamicInteraction(edge1, "1", "+"));
+        graph.addDynamicInteraction(edge1, "1", "+");
 
         Edge edge2 = graph.addEdge(UUID.randomUUID().toString(), node0, node0);
-        graph.addDynamicInteraction(new DynamicInteraction(edge2, "2", "+"));
+        graph.addDynamicInteraction(edge2, "2", "+");
 
         Node node2 = graph.addNode("2");
 
         Edge edge3 = graph.addEdge(UUID.randomUUID().toString(), node0, node2);
-        graph.addDynamicInteraction(new DynamicInteraction(edge3, "3", "+"));
+        graph.addDynamicInteraction(edge3, "3", "+");
 
         Edge edge4 = graph.addEdge(UUID.randomUUID().toString(), node1, node2);
-        graph.addDynamicInteraction(new DynamicInteraction(edge4, "4", "+"));
+        graph.addDynamicInteraction(edge4, "4", "+");
 
         Edge edge5 = graph.addEdge(UUID.randomUUID().toString(), node2, node1);
-        graph.addDynamicInteraction(new DynamicInteraction(edge5, "5", "+"));
+        graph.addDynamicInteraction(edge5, "5", "+");
 
         graph.setEdgeWeight(edge5, 5);
         DynamicGraph copy = new DynamicGraph(graph);
@@ -51,6 +51,8 @@ public class DynamicGraphTest {
         assertEquals(5, copy.getEdgeWeight(copyEdge5), 0);
         copy.removeEdge(copyEdge5);
         assertEquals(graph.getEdgeCount() - 1, copy.getEdgeCount());
+        assertEquals(graph.getDynamicInteractions().size(), graph.getEdgeCount());
+        System.out.println(graph.getDynamicInteractions());
         assertEquals(graph.getDynamicInteractions(), copy.getDynamicInteractions());
     }
 
@@ -59,16 +61,23 @@ public class DynamicGraphTest {
         DynamicGraph graph = new DynamicGraph();
         Node node0 = graph.addNode("0");
         Node node1 = graph.addNode("1");
-        graph.addEdge(UUID.randomUUID().toString(), node0, node1);
-        graph.addEdge(UUID.randomUUID().toString(), node1, node0);
-        graph.addEdge(UUID.randomUUID().toString(), node0, node0);
+        Edge edge0 = graph.addEdge(UUID.randomUUID().toString(), node0, node1);
+        graph.addDynamicInteraction(edge0,"0", "+");
+        Edge edge1 =graph.addEdge(UUID.randomUUID().toString(), node1, node0);
+        graph.addDynamicInteraction(edge1,"0","+");
+        Edge edge2 = graph.addEdge(UUID.randomUUID().toString(), node0, node0);
+        graph.addDynamicInteraction(edge2,"0","+");
         Node node2 = graph.addNode("2");
-        graph.addEdge(UUID.randomUUID().toString(), node0, node2);
-        graph.addEdge(UUID.randomUUID().toString(), node1, node2);
+        Edge edge3 = graph.addEdge(UUID.randomUUID().toString(), node0, node2);
+        graph.addDynamicInteraction(edge3,"0","+");
+        Edge edge4 = graph.addEdge(UUID.randomUUID().toString(), node1, node2);
+        graph.addDynamicInteraction(edge4,"0","+");
         Edge edge5 = graph.addEdge(UUID.randomUUID().toString(), node2, node1);
+        graph.addDynamicInteraction(edge5,"0","+");
         graph.setEdgeWeight(edge5, 5);
         assertEquals(6, graph.getEdgeCount());
         graph.removeEdge(edge5);
+        assertEquals(graph.getDynamicInteractions().size(),6);
         assertEquals(5, graph.getEdgeCount());
         graph.getEdgeWeight(edge5);
     }

@@ -54,6 +54,11 @@ public class GraphProcessor {
 			}			
 
 		}
+
+		if (graph instanceof DynamicGraph) {
+			graph.addType(GraphType.DYNAMIC);
+		}
+
 		if (graph.getPath() != "" && graph.getPath() != null) {
 			if (graph.getEdgeCount() == 0) {
 				graph.addType(GraphType.CONTENT_UNLINKED);

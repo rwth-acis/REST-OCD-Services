@@ -1,5 +1,11 @@
 package i5.las2peer.services.ocd.graphs;
 
+import com.arangodb.ArangoCollection;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import com.arangodb.model.DocumentCreateOptions;
+import com.arangodb.model.DocumentUpdateOptions;
+import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.AbstractGraph;
@@ -12,6 +18,8 @@ public class DynamicGraph extends CustomGraph{
      * Dynamic graph extension
      * Extends CustomGraph's by a list of interactions
      */
+
+    public static final String dynInKeysColumnName = "DYNAMICINTERACTION_KEYS";
     private List<DynamicInteraction> dynamicInteractions = new ArrayList<>();
 
     public DynamicGraph() {
@@ -58,77 +66,32 @@ public class DynamicGraph extends CustomGraph{
         return isOfType(GraphType.DYNAMIC);
     }
 
-    public void addDynamicInteraction(DynamicInteraction dynamicInteraction) {
+    public void addDynamicInteraction(Edge edge, String date, String action) {
+        CustomNode source = this.getCustomNode(edge.getSourceNode());
+        CustomNode target = this.getCustomNode(edge.getTargetNode());
+        DynamicInteraction dynamicInteraction = new DynamicInteraction(source, target, date, action);
         this.dynamicInteractions.add(dynamicInteraction);
     }
 
-    /*@Override
-    protected void copyMappings(Map<Integer, CustomNode> customNodes, Map<Integer, CustomEdge> customEdges, Map<MultiNode, Integer> nodeIds, Map<Edge, Integer> edgeIds) {
-       copyDynamicMappings(customNodes, customEdges, nodeIds, edgeIds);
-    }*/
-
-    /*@Override
-    protected void addCustomEdge(Edge edge) {
-        DynamicInteraction dynamicInteraction = new DynamicInteraction();
-        this.addDynamicInteraction(edge, dynamicInteraction);
-    }*/
-
-    /**
-     * Getter for the edge date of a certain edge.
-     *
-     * @param edge
-     *            The edge.
-     * @return The edge date.
-     *//*
-    public String getEdgeDate(Edge edge) {
-        if(getCustomEdge(edge) instanceof DynamicInteraction) {
-            DynamicInteraction result = (DynamicInteraction) getCustomEdge(edge);
-            return result.getDate();
+    @Override
+    public void persist(ArangoDatabase db, String transId) throws InterruptedException {
+        super.persist(db, transId);
+        for(DynamicInteraction dynIn: dynamicInteractions) {
+            dynIn.update(this);
         }
-       return "no date";
+        ArangoCollection collection = db.collection(collectionName);
+        BaseDocument bd = new BaseDocument();
+        DocumentUpdateOptions updateOptions = new DocumentUpdateOptions().streamTransactionId(transId);
+        DocumentCreateOptions createOptions = new DocumentCreateOptions().streamTransactionId(transId);
+
+        List<String> dynInteractionKeyList = new ArrayList<String>();
+        for(DynamicInteraction di : this.dynamicInteractions) {
+            di.persist(db, createOptions);
+            dynInteractionKeyList.add(di.getKey());
+        }
+
+        bd.addAttribute(dynInKeysColumnName, dynInteractionKeyList);
+
+        collection.updateDocument(this.getKey(), bd, updateOptions);
     }
-
-    *//**
-     * Setter for the edge date of a certain edge.
-     *
-     * @param edge
-     *            The edge.
-     * @param date
-     *            The edge date.
-     *//*
-    public void setEdgeDate(Edge edge, String date) {
-        if(getCustomEdge(edge) instanceof DynamicInteraction) {
-            DynamicInteraction result = (DynamicInteraction) getCustomEdge(edge);
-            result.setDate(date);
-        }
-    }
-
-    *//**
-     * Getter for the edge action of a certain edge.
-     *
-     * @param edge
-     *            The edge.
-     * @return The edge action.
-     *//*
-    public String getEdgeAction(Edge edge) {
-        if(getCustomEdge(edge) instanceof DynamicInteraction) {
-            DynamicInteraction result = (DynamicInteraction) getCustomEdge(edge);
-            return result.getAction();
-        }
-        return "no action";
-    }
-
-    *//**
-     * Setter for the edge action of a certain edge.
-     *
-     * @param edge
-     *            The edge.
-     * @param action
-     *            The edge action.
-     *//*
-    public void setEdgeAction(Edge edge, String action) {
-        if(getCustomEdge(edge) instanceof DynamicInteraction) {
-            ((DynamicInteraction) getCustomEdge(edge)).setAction(action);
-        }
-    }*/
 }
