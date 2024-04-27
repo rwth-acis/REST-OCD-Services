@@ -27,10 +27,10 @@ public class DynamicGraphDatabaseTest {
         database = new Database(true);
     }
 
-    //@AfterClass
-   // public static void deleteDatabase() {
-       // database.deleteDatabase();
-   // }
+    @AfterClass
+    public static void deleteDatabase() {
+        database.deleteDatabase();
+    }
 
     @Test
     public void testPersist() {
