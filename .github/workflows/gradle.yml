@@ -1,31 +1,58 @@
-# This workflow will build a Java project with Gradle
-
 name: Java CI with Gradle
 
-# Triggers the workflow on push events (on every branch)
 on:
   push:
     branches:
       - '*'
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      arangodb:
+        image: arangodb/arangodb:3.10.0
+        ports:
+          - 8529:8529  # Maps the default ArangoDB port to the same port on the host
+        env:
+          ARANGO_ROOT_PASSWORD: password
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
-        
+
       - name: Set up JDK 17
         uses: actions/setup-java@v1
         with:
           java-version: 17
-          
-      - name: Set up Arangodb
-        uses: xinova/arangodb-action@v1
-        with:
-          arangodb version: 'latest'  # See https://hub.docker.com/_/arangodb for available versions
-          
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-        
+
+      - name: Wait for ArangoDB to be ready
+        run: |
+          echo "Waiting for ArangoDB to become ready..."
+          until curl -s -u root:password --fail http://localhost:8529/_api/version; do
+            echo "Waiting for ArangoDB to start..."
+            sleep 10
+          done
+          echo "ArangoDB is ready!"
+
       - name: Build WebOCD Service
         run: ./gradlew build
+        env:
+          ARANGO_HOST: localhost
+          ARANGO_PORT: 8529
+          ARANGO_USER: root
+          ARANGO_PASSWORD: password
+          ARANGO_DB: ocdDB
+
+      - name: Print ArangoDB logs
+        if: always()
+        run: docker logs $(docker ps -aqf "name=arangodb")
+
+      - name: Additional diagnostics if service fails
+        if: failure()  # Executes only if previous steps fail
+        run: |
+          echo "Fetching additional diagnostic information..."
+          CONTAINER_ID=$(docker ps -aqf "name=arangodb")
+          docker inspect $CONTAINER_ID
