@@ -1,4 +1,4 @@
-/*
+
 package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.utils.Database;
@@ -57,4 +57,4 @@ public class DynamicGraphDatabaseTest {
 
     }
 
-}*/
+}
