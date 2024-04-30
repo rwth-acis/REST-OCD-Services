@@ -1,6 +1,7 @@
 
 package i5.las2peer.services.ocd.graphs;
 
+import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
 import i5.las2peer.services.ocd.utils.Database;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -30,7 +31,7 @@ public class DynamicGraphDatabaseTest {
 
     @AfterClass
     public static void deleteDatabase() {
-        database.deleteDatabase();
+       database.deleteDatabase();
     }
 
     @Test
@@ -54,6 +55,63 @@ public class DynamicGraphDatabaseTest {
 
         database.storeGraph(graph);
 
+        List<DynamicGraph> queryResults = database.getDynamicGraphsbyName(graphName1);
+
+        assertEquals(1, queryResults.size());
+        DynamicGraph persistedGraph = queryResults.get(0);
+        assertNotNull(persistedGraph);
+
+        System.out.println("Username: " + persistedGraph.getUserName());
+        System.out.println("Graphname: " + persistedGraph.getName());
+        System.out.println("Nodecount: " + persistedGraph.getNodeCount());
+        System.out.println("Edgecount: " + persistedGraph.getEdgeCount());
+
+        assertEquals(graphName1, persistedGraph.getName());
+        assertEquals(userName1, persistedGraph.getUserName());
+        assertEquals(3, persistedGraph.getNodeCount());
+        assertEquals(2, persistedGraph.getEdgeCount());
+
+        Set<String> nodeNames = new HashSet<String>();
+        nodeNames.add("A");
+        nodeNames.add("B");
+        nodeNames.add("C");
+        Node[] nodes = graph.nodes().toArray(Node[]::new);
+        for(int i=0; i<3; i++) {
+            Node node = nodes[i];
+            String name = persistedGraph.getNodeName(node);
+            System.out.println("Node: " + node.getIndex() + ", Name: " + persistedGraph.getNodeName(node));
+            assertTrue(nodeNames.contains(name));
+            nodeNames.remove(name);
+        }
+
+        Edge[] edges = persistedGraph.edges().toArray(Edge[]::new);
+        for(int i=0; i<2; i++) {
+            Edge edge =edges[i];
+            Double weight = persistedGraph.getEdgeWeight(edge);
+            if(weight == 5) {
+                assertEquals("A", persistedGraph.getNodeName(edge.getSourceNode()));
+                assertEquals("B", persistedGraph.getNodeName(edge.getTargetNode()));
+            }
+            else if(weight == 2.5) {
+                assertEquals("B", persistedGraph.getNodeName(edge.getSourceNode()));
+                assertEquals("C", persistedGraph.getNodeName(edge.getTargetNode()));
+            }
+            else {
+                throw new IllegalStateException("Invalid Node Weight");
+            }
+        }
+
+        assertEquals(1, persistedGraph.getTypes().size());
+        assertTrue(persistedGraph.getTypes().contains(GraphType.DYNAMIC));
+        System.out.println("Types: " + graph.getTypes());
+
+        assertEquals(2, persistedGraph.getDynamicInteractions().size());
+        System.out.println(persistedGraph.getDynamicInteractions().toString());
+
+        System.out.println(graph.getDynamicInteractions().toString());
+        List<CustomGraph> queryResults2 = database.getGraphs(invalidGraphName);
+
+        assertEquals(0, queryResults2.size());
 
     }
 

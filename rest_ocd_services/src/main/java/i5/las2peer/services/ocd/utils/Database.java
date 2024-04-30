@@ -14,6 +14,7 @@ import java.util.Collections;
 
 import i5.las2peer.services.ocd.centrality.data.CentralityMeta;
 import i5.las2peer.services.ocd.cooperation.data.simulation.*;
+import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
 import i5.las2peer.logging.L2pLogger;
@@ -185,7 +186,7 @@ public class Database {
 		collectionNames.add(DynamicInteraction.collectionName); //13
 		collection = db.collection(DynamicInteraction.collectionName);
 		if(!collection.exists()) {
-			collection.create();
+			db.createCollection(DynamicInteraction.collectionName, new CollectionCreateOptions().type(CollectionType.EDGES));
 		}
 
 	}
@@ -433,9 +434,37 @@ public class Database {
 		}
 
 		return queryResults;
-	}	
+	}
 
-	
+	/**
+	 * Return all dynamic graphs with the right name
+	 *
+	 * @param name
+	 *            graphs name
+	 * @return graph list
+	 */
+	public List<DynamicGraph> getDynamicGraphsbyName(String name) {
+		String transId = getTransactionId(DynamicGraph.class, false);
+		List<DynamicGraph> queryResults = new ArrayList<DynamicGraph>();
+		try {
+			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+			String queryStr = "FOR g IN " + CustomGraph.collectionName + " FILTER g." + CustomGraph.nameColumnName + " == @name RETURN g._key";
+			Map<String, Object> bindVars = Collections.singletonMap("name",name);
+			ArangoCursor<String> graphKeys = db.query(queryStr, bindVars, queryOpt, String.class);
+			for(String key : graphKeys) {
+				queryResults.add(DynamicGraph.load(key,  db, transId));
+			}
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+
+		return queryResults;
+	}
+
+
+
 	private void deleteGraph(String key) {
 		String transId = this.getTransactionId(null, true);
 		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
