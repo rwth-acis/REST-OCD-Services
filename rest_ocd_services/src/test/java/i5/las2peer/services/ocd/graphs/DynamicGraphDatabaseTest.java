@@ -3,6 +3,7 @@ package i5.las2peer.services.ocd.graphs;
 
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
 import i5.las2peer.services.ocd.utils.Database;
+import i5.las2peer.services.ocd.utils.ThreadHandler;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.junit.AfterClass;
@@ -55,10 +56,13 @@ public class DynamicGraphDatabaseTest {
 
         database.storeGraph(graph);
 
-        List<DynamicGraph> queryResults = database.getDynamicGraphsbyName(graphName1);
+        List<CustomGraph> queryResults = database.getGraphs(userName1);
+        DynamicGraph persistedGraphByKey = (DynamicGraph) database.getGraph(userName1, graph.getKey());
+        assertNotNull(persistedGraphByKey);
 
         assertEquals(1, queryResults.size());
-        DynamicGraph persistedGraph = queryResults.get(0);
+
+        DynamicGraph persistedGraph = (DynamicGraph) queryResults.get(0);
         assertNotNull(persistedGraph);
 
         System.out.println("Username: " + persistedGraph.getUserName());
@@ -112,6 +116,15 @@ public class DynamicGraphDatabaseTest {
         List<CustomGraph> queryResults2 = database.getGraphs(invalidGraphName);
 
         assertEquals(0, queryResults2.size());
+
+        try {
+            database.deleteGraph(userName1, graph.getKey(), new ThreadHandler());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        List<CustomGraph> queryResultsAfterDel = database.getGraphs(userName1);
+        assertEquals(0, queryResultsAfterDel.size());
 
     }
 

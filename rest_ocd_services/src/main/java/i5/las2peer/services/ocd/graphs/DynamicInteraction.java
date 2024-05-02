@@ -15,37 +15,52 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Dynamic interaction extension
+ * Dynamic interaction extension to CustomEdge's
  *
  * @author fsaintpreux
  */
 public class DynamicInteraction extends CustomEdge{
 
+    /**
+     * The column name for the timestamp.
+     */
     private static final String dateColumnName = "DATE";
+    /**
+     * The column name for the action.
+     */
     private static final String actionColumnName = "ACTION";
-
+    /**
+     * The collection name in the database for DynamicInteractions.
+     */
     public static final String collectionName = "dynamicinteraction";
-
     /**
      * The edge date as a string
      */
     private String date;
-
     /**
      * The edge action as a string, either "+" or "-"
      */
     private String action;
 
+    /**
+     * Creates a new instance.
+     */
     public DynamicInteraction() {
     }
 
+    /**
+     * Creates a new instance with every attribute as input.
+     * @param source
+     * @param target
+     * @param date
+     * @param action
+     */
     public DynamicInteraction(CustomNode source, CustomNode target, String date, String action) {
         this.setSource(source);
         this.setTarget(target);
         this.date = date;
         this.action = action;
     }
-
 
     /**
      * Getter for the date.
@@ -79,9 +94,19 @@ public class DynamicInteraction extends CustomEdge{
         this.action = action;
     }
 
+    /**
+     * Updates the graph attribute before persisting DynamicInteraction.
+     * @param graph
+     */
     public void update(DynamicGraph graph) {
         this.setGraph(graph);
     }
+
+    /**
+     * Handles storing a DynamicInteractin into the database
+     * @param db
+     * @param opt
+     */
     @Override
     public void persist(ArangoDatabase db, DocumentCreateOptions opt) {
         ArangoCollection collection = db.collection(collectionName);
@@ -98,6 +123,15 @@ public class DynamicInteraction extends CustomEdge{
         this.key = bed.getKey();
     }
 
+    /**
+     * Handles loading a DynamicInteractioj from the database
+     * @param key
+     * @param graph
+     * @param customNodeKeyMap
+     * @param db
+     * @param opt
+     * @return
+     */
     public static DynamicInteraction load(String key, DynamicGraph graph, Map<String, CustomNode> customNodeKeyMap, ArangoDatabase db, DocumentReadOptions opt) {
         DynamicInteraction dynamicInteraction = new DynamicInteraction();
         ArangoCollection collection = db.collection(collectionName);

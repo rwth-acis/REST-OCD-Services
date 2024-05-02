@@ -49,6 +49,7 @@ import java.io.IOException;
 
 
 import org.apache.commons.io.FileUtils;
+import org.glassfish.jersey.internal.inject.Custom;
 
 
 public class Database {
@@ -68,7 +69,7 @@ public class Database {
 	private ArangoDB arangoDB;
 	public ArangoDatabase db;
 	
-	private List<String> collectionNames =new ArrayList<String>(13);
+	private List<String> collectionNames =new ArrayList<String>(14);
 	
 	
 	public Database(boolean testDB) {
@@ -136,57 +137,57 @@ public class Database {
 		if(!collection.exists()) {
 			collection.create();
 		}
+		collectionNames.add(DynamicInteraction.collectionName); //4
+		collection = db.collection(DynamicInteraction.collectionName);
+		if(!collection.exists()) {
+			db.createCollection(DynamicInteraction.collectionName, new CollectionCreateOptions().type(CollectionType.EDGES));
+		}
 		
-		collectionNames.add(Cover.collectionName);				//4
+		collectionNames.add(Cover.collectionName);				//5
 		collection = db.collection(Cover.collectionName);
 		if(!collection.exists()) {
 			collection.create();
 		}
-		collectionNames.add(CoverCreationLog.collectionName);	//5
+		collectionNames.add(CoverCreationLog.collectionName);	//6
 		collection = db.collection(CoverCreationLog.collectionName);
 		if(!collection.exists()) {
 			collection.create();
 		}
-		collectionNames.add(OcdMetricLog.collectionName);		//6
+		collectionNames.add(OcdMetricLog.collectionName);		//7
 		collection = db.collection(OcdMetricLog.collectionName);
 		if(!collection.exists()) {
 			collection.create();
 		}
-		collectionNames.add(Community.collectionName);			//7
+		collectionNames.add(Community.collectionName);			//8
 		collection = db.collection(Community.collectionName);
 		if(!collection.exists()) {
 			collection.create();
 		}
 		
-		collectionNames.add(CentralityMap.collectionName);		//8
+		collectionNames.add(CentralityMap.collectionName);		//9
 		collection = db.collection(CentralityMap.collectionName);
 		if(!collection.exists()) {
 			collection.create();
 		}
-		collectionNames.add(CentralityCreationLog.collectionName);//9
+		collectionNames.add(CentralityCreationLog.collectionName);//10
 		collection = db.collection(CentralityCreationLog.collectionName);
 		if(!collection.exists()) {
 			collection.create();
 		}
-		collectionNames.add(InactivityData.collectionName);		//10
+		collectionNames.add(InactivityData.collectionName);		//11
 		collection = db.collection(InactivityData.collectionName);
 		if(!collection.exists()) {
 			collection.create();
 		}
-		collectionNames.add(SimulationSeries.collectionName);		//11
+		collectionNames.add(SimulationSeries.collectionName);		//12
 		collection = db.collection(SimulationSeries.collectionName);
 		if(!collection.exists()) {
 			collection.create();
 		}
-		collectionNames.add(SimulationSeriesGroup.collectionName);		//12
+		collectionNames.add(SimulationSeriesGroup.collectionName);		//13
 		collection = db.collection(SimulationSeriesGroup.collectionName);
 		if(!collection.exists()) {
 			collection.create();
-		}
-		collectionNames.add(DynamicInteraction.collectionName); //13
-		collection = db.collection(DynamicInteraction.collectionName);
-		if(!collection.exists()) {
-			db.createCollection(DynamicInteraction.collectionName, new CollectionCreateOptions().type(CollectionType.EDGES));
 		}
 
 	}
@@ -205,9 +206,6 @@ public class Database {
 	 */
 	public String storeGraph(CustomGraph graph) {
 		String transId = getTransactionId(CustomGraph.class, true);
-		if(graph instanceof DynamicGraph) {
-			transId = getTransactionId(DynamicGraph.class, true);
-		}
 		try {
 			graph.persist(db, transId);
 			db.commitStreamTransaction(transId);
@@ -258,9 +256,14 @@ public class Database {
 	private CustomGraph getGraph(String key) {
 		String transId = getTransactionId(CustomGraph.class, false);
 		CustomGraph graph;
-		try {	
-			graph = CustomGraph.load(key, db, transId);
-			db.commitStreamTransaction(transId);
+		try {
+			try {
+				graph = DynamicGraph.load(key, db, transId);
+				db.commitStreamTransaction(transId);
+			} catch (Exception e) {
+				graph = CustomGraph.load(key, db, transId);
+				db.commitStreamTransaction(transId);
+			}
 		}catch(Exception e) {
 			db.abortStreamTransaction(transId);
 			throw e;
@@ -307,11 +310,12 @@ public class Database {
 			Map<String, Object> bindVars = Collections.singletonMap("username",username);
 			ArangoCursor<String> graphKeys = db.query(queryStr, bindVars, queryOpt, String.class);
 			for(String key : graphKeys) {
-				queryResults.add(CustomGraph.load(key,  db, transId));
+				//queryResults.add(CustomGraph.load(key,  db, transId));
+				queryResults.add(getGraph(key));
 			}
-			db.commitStreamTransaction(transId);
+			//db.commitStreamTransaction(transId);
 		}catch(Exception e) {
-			db.abortStreamTransaction(transId);
+			//db.abortStreamTransaction(transId);
 			throw e;
 		}
 
@@ -444,7 +448,7 @@ public class Database {
 	 * @return graph list
 	 */
 	public List<DynamicGraph> getDynamicGraphsbyName(String name) {
-		String transId = getTransactionId(DynamicGraph.class, false);
+		String transId = getTransactionId(CustomGraph.class, false);
 		List<DynamicGraph> queryResults = new ArrayList<DynamicGraph>();
 		try {
 			AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
@@ -484,6 +488,13 @@ public class Database {
 			query = "FOR e IN " + CustomEdge.collectionName + " FILTER e." + CustomEdge.graphKeyColumnName 
 					+ " == \"" + key +"\" REMOVE e IN " + CustomEdge.collectionName;
 			db.query(query, queryOpt, BaseDocument.class);				//delete all edges
+			try {
+				query = "FOR n IN " + DynamicInteraction.collectionName + " FILTER n." +DynamicInteraction.graphKeyColumnName
+						+ " == \"" + key +"\" REMOVE n IN " + DynamicInteraction.collectionName;
+				db.query(query, queryOpt, BaseDocument.class);
+			} catch (Exception e) {
+				System.out.println("Graph is not dynamic");
+			}
 			
 			/////////////THIS PART SHOULD NOT BE NEEDED BUT ASSURES NO COVER OR CENTRALITY MAP IS MISSED/////////////
 			query = "FOR c IN " + Cover.collectionName + " FILTER c." + Cover.graphKeyColumnName 
@@ -1769,34 +1780,34 @@ public class Database {
 	public String getTransactionId(Class c, boolean write) {
 		String [] collections;
 		if(c == CustomGraph.class) {
-			collections = collectionNames.subList(0, 4).toArray(new String[4]);
+			collections = collectionNames.subList(0, 5).toArray(new String[5]);
 		}
 		else if(c == Cover.class) {
-			collections = collectionNames.subList(4, 8).toArray(new String[4]);
+			collections = collectionNames.subList(5, 9).toArray(new String[4]);
 		}
 		else if(c == CentralityMap.class) {
-			collections = collectionNames.subList(8, 10).toArray(new String[2]);
+			collections = collectionNames.subList(9, 11).toArray(new String[2]);
 		}
 		else if(c == OcdMetricLog.class) {
-			collections = collectionNames.subList(6, 7).toArray(new String[1]);
+			collections = collectionNames.subList(7, 8).toArray(new String[1]);
 		}
 		else if(c == GraphCreationLog.class) {
 			collections = collectionNames.subList(3, 4).toArray(new String[1]);
 		}
 		else if(c == CoverCreationLog.class) {
-			collections = collectionNames.subList(5, 6).toArray(new String[1]);
+			collections = collectionNames.subList(6, 7).toArray(new String[1]);
 		}
 		else if(c == CentralityCreationLog.class) {
-			collections = collectionNames.subList(9, 10).toArray(new String[1]);
-		}
-		else if(c == InactivityData.class) {
 			collections = collectionNames.subList(10, 11).toArray(new String[1]);
 		}
+		else if(c == InactivityData.class) {
+			collections = collectionNames.subList(11, 12).toArray(new String[1]);
+		}
 		else if(c == SimulationSeries.class){
-			collections = collectionNames.subList(11,13).toArray(new String[1]);
+			collections = collectionNames.subList(12,14).toArray(new String[1]);
 		}
 		else if(c == SimulationSeriesGroup.class){
-			collections = collectionNames.subList(11,13).toArray(new String[1]);
+			collections = collectionNames.subList(12,14).toArray(new String[1]);
 		}
 		else {
 			collections = collectionNames.subList(0, 14).toArray(new String[10]);

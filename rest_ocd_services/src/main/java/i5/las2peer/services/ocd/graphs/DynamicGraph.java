@@ -18,36 +18,67 @@ import org.graphstream.graph.implementations.AbstractGraph;
 import org.graphstream.graph.implementations.MultiNode;
 
 import java.util.*;
-
+/**
+ * Dynamic graph extension
+ * Extends CustomGraph's by a list of interactions
+ *
+ * @author fsaintpreux
+ */
 public class DynamicGraph extends CustomGraph{
     /**
-     * Dynamic graph extension
-     * Extends CustomGraph's by a list of interactions
+     *  Column name in the database for the keys of the graphs dynamic interactions.
      */
-
     public static final String dynInKeysColumnName = "DYNAMICINTERACTION_KEYS";
+    /**
+     *  List of dynamic interactions with source, target, timestamp and action.
+     */
     private List<DynamicInteraction> dynamicInteractions = new ArrayList<>();
 
+    /**
+     *  Creates a new instance
+     */
     public DynamicGraph() {
     }
 
+    /**
+     * Creates a new instance from a given CustomGraph and a list of dynamic interactions
+     * @param graph
+     * @param dynamicInteractions
+     */
     public DynamicGraph(CustomGraph graph, List<DynamicInteraction> dynamicInteractions) {
         super(graph);
         this.dynamicInteractions = dynamicInteractions;
     }
 
+    /**
+     * Creates a new instance with a given CustomGraph. Used for loading DynamicGraphs from the database.
+     * @param graph
+     */
     public DynamicGraph(CustomGraph graph){
         super(graph);
     }
 
+    /**
+     * Creates a new instance with given persistence key. The name attribute will be a random UUID
+     */
     public DynamicGraph(String key) {
         super(key);
     }
 
+    /**
+     * Copy constructor.
+     *
+     * @param graph
+     *            The graph to copy.
+     */
     public DynamicGraph(AbstractGraph graph) {
         super(graph);
     }
 
+    /**
+     * Copy constructor
+     * @param graph
+     */
     public DynamicGraph(DynamicGraph graph) {
         super(graph);
         this.dynamicInteractions = graph.dynamicInteractions;
@@ -76,6 +107,12 @@ public class DynamicGraph extends CustomGraph{
         return isOfType(GraphType.DYNAMIC);
     }
 
+    /**
+     * Adds a new dynamic interaction to the list of dynamic interactions.
+     * @param edge  the edge which is added or removed from the graph
+     * @param date the timestamp
+     * @param action the action of the interaction
+     */
     public void addDynamicInteraction(Edge edge, String date, String action) {
         CustomNode source = this.getCustomNode(edge.getSourceNode());
         CustomNode target = this.getCustomNode(edge.getTargetNode());
@@ -83,6 +120,12 @@ public class DynamicGraph extends CustomGraph{
         this.dynamicInteractions.add(dynamicInteraction);
     }
 
+    /**
+     * Handles uploading a DynamicGraph to the database.
+     * @param db
+     * @param transId
+     * @throws InterruptedException
+     */
     @Override
     public void persist(ArangoDatabase db, String transId) throws InterruptedException {
         super.persist(db, transId);
@@ -106,7 +149,15 @@ public class DynamicGraph extends CustomGraph{
         collection.updateDocument(this.getKey(), bd, updateOptions);
     }
 
+    /**
+     * Handles loading a graph from the database.
+     * @param key
+     * @param db
+     * @param transId
+     * @return
+     */
     public static DynamicGraph load(String key, ArangoDatabase db, String transId) {
+
         // Load underlying CustomGraph
         DynamicGraph graph = new DynamicGraph(CustomGraph.load(key, db, transId));
 

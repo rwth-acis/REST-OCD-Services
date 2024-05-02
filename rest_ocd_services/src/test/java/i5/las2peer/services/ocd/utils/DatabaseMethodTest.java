@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.List;
 
+import i5.las2peer.services.ocd.graphs.DynamicGraph;
 import i5.las2peer.services.ocd.utils.Database;
 import i5.las2peer.services.ocd.utils.DatabaseConfig;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
