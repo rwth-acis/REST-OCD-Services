@@ -135,7 +135,7 @@ public class CustomNode {
 	 * Getter for the node name.
 	 * @return The node name.
 	 */
-	protected String getName() {
+	public String getName() {
 		return name;
 	}
 

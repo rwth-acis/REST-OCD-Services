@@ -148,7 +148,7 @@ public class CustomEdge {
 	 * Only for persistence purposes.
 	 * @return The source custom node.
 	 */
-	protected CustomNode getSource() {
+	public CustomNode getSource() {
 		return source;
 	}
 
@@ -166,7 +166,7 @@ public class CustomEdge {
 	 * Only for persistence purposes.
 	 * @return The target custom node.
 	 */
-	protected CustomNode getTarget() {
+	public CustomNode getTarget() {
 		return target;
 	}
 

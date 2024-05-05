@@ -1,29 +1,6 @@
 package i5.las2peer.services.ocd.graphs;
 
-import i5.las2peer.services.ocd.algorithms.BinarySearchRandomWalkLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.ClizzAlgorithm;
-import i5.las2peer.services.ocd.algorithms.CostFunctionOptimizationClusteringAlgorithm;
-import i5.las2peer.services.ocd.algorithms.EvolutionaryAlgorithmBasedOnSimilarity;
-import i5.las2peer.services.ocd.algorithms.ExtendedSpeakerListenerLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.LinkCommunitiesAlgorithm;
-import i5.las2peer.services.ocd.algorithms.MergingOfOverlappingCommunitiesAlgorithm;
-import i5.las2peer.services.ocd.algorithms.NISEAlgorithm;
-import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
-import i5.las2peer.services.ocd.algorithms.RandomWalkLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.SignedDMIDAlgorithm;
-import i5.las2peer.services.ocd.algorithms.SignedProbabilisticMixtureAlgorithm;
-import i5.las2peer.services.ocd.algorithms.SpeakerListenerLabelPropagationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.SskAlgorithm;
-import i5.las2peer.services.ocd.algorithms.WeightedLinkCommunitiesAlgorithm;
-import i5.las2peer.services.ocd.algorithms.WordClusteringRefinementAlgorithm;
-import i5.las2peer.services.ocd.algorithms.LocalSpectralClusteringAlgorithm;
-import i5.las2peer.services.ocd.algorithms.AntColonyOptimizationAlgorithm;
-import i5.las2peer.services.ocd.algorithms.LouvainAlgorithm;
-import i5.las2peer.services.ocd.algorithms.DetectingOverlappingCommunitiesAlgorithm;
-import i5.las2peer.services.ocd.algorithms.MemeticLinkClusteringAlgorithm;
-import i5.las2peer.services.ocd.algorithms.FuzzyCMeansSpectralClusteringAlgorithm;
-import i5.las2peer.services.ocd.algorithms.WeakCliquePercolationMethodAlgorithm;
-import i5.las2peer.services.ocd.algorithms.LOCAlgorithm;
+import i5.las2peer.services.ocd.algorithms.*;
 import i5.las2peer.services.ocd.benchmarks.GroundTruthBenchmark;
 import i5.las2peer.services.ocd.benchmarks.LfrBenchmark;
 import i5.las2peer.services.ocd.benchmarks.SignedLfrBenchmark;
@@ -172,7 +149,11 @@ public enum CoverCreationType implements EnumDisplayNames {
 	/**
 	 * Type corresponding to the LOCAlgoirthm Algorithm.
 	 */
-	LOC_ALGORITHM("LOC Algorithm", LOCAlgorithm.class, 27);
+	LOC_ALGORITHM("LOC Algorithm", LOCAlgorithm.class, 27),
+	/**
+	 * Type corresponding to the iLCDAlgorithm Algorithm.
+	 */
+	ILCD_ALGORITHM("iLCD Algorithm", iLCDAlgorithm.class, 28);
 	/**
 	 * The class corresponding to the type, typically a concrete OcdAlgorithm or GroundTruthBenchmark subclass.
 	 * Abstract types correspond to the CoverCreationMethod interface itself.
