@@ -46,6 +46,10 @@ public class OcdTestConstants {
 	public static final String timestampedEdgeListWithoutActionPath = inputFolderPath + "TimestampedEdgeListWithoutAction.txt";
 
 	public static final String timestampedEdgeListWithActionPath = inputFolderPath + "TimestampedEdgeListWithAction.txt";
+
+	public static final String timestampedKarateClubPath = inputFolderPath + "KarateClubTimestampedAction.txt";
+
+	public static final String rdynTestGraphPath = inputFolderPath + "rdynConversion.txt";
 	
 	/*
 	 * Cover input filenames
@@ -124,6 +128,10 @@ public class OcdTestConstants {
 	public static final String LinkGraphName = "Link Graph";	
 	public static final String ModularityTestGraphName = "Undirected Unweighted Graph for Modularity testing";
 	public static final String gahukuGamaGraphName = "Gahuku Gama Graph";
+
+	public static final String timestampedKarateName = "Timestamped Karate";
+
+	public static final String rdynTestGraph = "RDyn Test Graph";
 	
 	/*
 	 * others

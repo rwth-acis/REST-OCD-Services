@@ -3,8 +3,14 @@ package i5.las2peer.services.ocd.algorithms;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
 import i5.las2peer.services.ocd.algorithms.utils.iLCDCommunityAgent;
 import i5.las2peer.services.ocd.algorithms.utils.iLCDNodeAgent;
+import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
+import org.apache.jena.base.Sys;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
+import org.la4j.matrix.Matrix;
+import org.la4j.matrix.dense.Basic2DMatrix;
 import org.web3j.abi.datatypes.Array;
 import org.web3j.abi.datatypes.Int;
 
@@ -45,21 +51,25 @@ public class iLCDAlgorithm implements OcdAlgorithm{
 
         HashMap<String, iLCDNodeAgent> graphNodes = new HashMap<String, iLCDNodeAgent>();
         HashMap<Integer, iLCDCommunityAgent> graphCommunities = new HashMap<Integer, iLCDCommunityAgent>();
-        HashSet<iLCDCommunityAgent> modifiedCommunities = new HashSet<iLCDCommunityAgent>();
+
 
         if (graph instanceof DynamicGraph) {
             // Set start timestamp
             String currentTimestep = ((DynamicGraph) graph).getDynamicInteractions().get(0).getDate();
 
             for (DynamicInteraction dynamicInteraction: ((DynamicGraph) graph).getDynamicInteractions()) {
+                HashSet<iLCDCommunityAgent> modifiedCommunities = new HashSet<iLCDCommunityAgent>();
                 currentTimestep = dynamicInteraction.getDate();
                 String sourceName = dynamicInteraction.getSource().getName();
+
                 String targetName = dynamicInteraction.getTarget().getName();
+
                 switch (dynamicInteraction.getAction()) {
                     // Case ADD
                     case "+":
-                        // ADD vertices and edges to agent network
+                        // ADD missing vertices and edge to agent network
                         addMissingAgents(graphNodes, dynamicInteraction);
+
                         graphNodes.get(sourceName).addNeighbor(graphNodes.get(targetName));
 
                         // GROWTH //
@@ -81,7 +91,7 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                             if(!community.getNodes().contains(graphNodes.get(sourceName))){
                                 // send request to community
                                 if(community.decideIntegration(graphNodes.get(sourceName), th_integration)) {
-                                    community.addNodeToCommunity(graphNodes.get(targetName));
+                                    community.addNodeToCommunity(graphNodes.get(sourceName));
                                     modifiedCommunities.add(community);
                                 }
                             }
@@ -148,7 +158,8 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                             // DEATH
                             for (iLCDCommunityAgent community: resultingCommunities) {
                                 if (community.getNodes().size() < min_C) {
-                                    for(iLCDNodeAgent node: community.getNodes()) {
+                                    ArrayList<iLCDNodeAgent> nodesToDelete = new ArrayList<>(community.getNodes());
+                                    for(iLCDNodeAgent node: nodesToDelete) {
                                         community.removeNodeFromCommunity(node);
                                     }
                                     community.setDeath(currentTimestep);
@@ -164,15 +175,19 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                 }
 
                 //FUSION
-                //ArrayList<iLCDCommunityAgent> modifiedCommunitiesSorted = new ArrayList<>(modifiedCommunities);
+                ArrayList<iLCDCommunityAgent> modifiedCommunitiesSorted = new ArrayList<>(modifiedCommunities);
 
 
                 //Collections.sort(modifiedCommunitiesSorted, Comparator.comparing(iLCDCommunityAgent::getId));
                 //Collections.reverse(modifiedCommunitiesSorted);
+                Collections.sort(modifiedCommunitiesSorted, Comparator.comparing(iLCDCommunityAgent::getId));
+
+
+
 
                 HashSet<iLCDCommunityAgent> fusionCandidates = new HashSet<iLCDCommunityAgent>();
                  //Foreach modified community
-                for(iLCDCommunityAgent community: modifiedCommunities) {
+                for(iLCDCommunityAgent community: modifiedCommunitiesSorted) {
                     //Get all communities "community"'s agents are part of
                     for(iLCDNodeAgent node: community.getNodes()) {
                         fusionCandidates.addAll(node.getCommunities());
@@ -196,14 +211,16 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                                     }
                                 }
                                 //Remove all nodes from the community
-                                for(iLCDNodeAgent node: candidate.getNodes()){
+                                ArrayList<iLCDNodeAgent> candidateNodes = new ArrayList<>(candidate.getNodes());
+                                for(iLCDNodeAgent node: candidateNodes){
                                     candidate.removeNodeFromCommunity(node);
                                 }
+
                                 //Death timestamp setzen
                                 candidate.setDeath(currentTimestep);
                                 //TODO handle Fusion event
                                 //jüngere community aus denGraphCommunities löschen
-                                graphCommunities.remove(candidate);
+                                graphCommunities.remove(candidate.getId());
                                 //death timestamp setzen
                             }
                         }
@@ -215,7 +232,10 @@ public class iLCDAlgorithm implements OcdAlgorithm{
             System.out.println("Graph is static");
         }
 
-        return null;
+        Matrix community_matrix = getCommunityMatrix((DynamicGraph) graph, graphCommunities);
+        printCommunities(graphCommunities);
+        Cover cover = new Cover(graph, community_matrix);
+        return cover;
     }
 
     @Override
@@ -273,7 +293,8 @@ public class iLCDAlgorithm implements OcdAlgorithm{
     private void addMissingAgents(HashMap<String, iLCDNodeAgent> map, DynamicInteraction dynamicInteraction) {
         if(!map.containsKey(dynamicInteraction.getSource().getName())) {
             map.put(dynamicInteraction.getSource().getName(), new iLCDNodeAgent(dynamicInteraction.getSource()));
-        } else if (!map.containsKey(dynamicInteraction.getTarget().getName())) {
+        }
+        if (!map.containsKey(dynamicInteraction.getTarget().getName())) {
             map.put(dynamicInteraction.getTarget().getName(), new iLCDNodeAgent(dynamicInteraction.getTarget()));
         }
     }
@@ -351,6 +372,37 @@ public class iLCDAlgorithm implements OcdAlgorithm{
         }
     }
 
+    public Matrix getCommunityMatrix(DynamicGraph graph, HashMap<Integer, iLCDCommunityAgent> communities) {
+        if(communities == null) {
+            throw new RuntimeException("Communities empty!");
+        }
 
+        ArrayList<iLCDCommunityAgent> communityList = new ArrayList<iLCDCommunityAgent>(communities.values());
+        Matrix result = new Basic2DMatrix(graph.getNodeCount(), communityList.size());
+        int community_index = 0;
+        for(iLCDCommunityAgent community: communityList){
+            if(community != null){
+                for(iLCDNodeAgent node: community.getNodes()) {
+                    Node realNode = graph.getNode(node.getNode().getName());
+                    result.set(realNode.getIndex(),community_index,1);
+                }
+                community_index++;
+            }
 
+        }
+        return result;
+    }
+
+    public void printCommunities(HashMap<Integer, iLCDCommunityAgent> communities) {
+        ArrayList<iLCDCommunityAgent> communityList = new ArrayList<>(communities.values());
+        int index = 0;
+        for(iLCDCommunityAgent community: communityList){
+            System.out.print(index + "\t[");
+            for(iLCDNodeAgent node: community.getNodes()){
+                System.out.print(node.getNode().getName()+", ");
+            }
+            System.out.println("]");
+            index++;
+        }
+    }
 }

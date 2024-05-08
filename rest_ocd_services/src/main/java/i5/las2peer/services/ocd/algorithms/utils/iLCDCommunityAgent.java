@@ -1,5 +1,6 @@
 package i5.las2peer.services.ocd.algorithms.utils;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
@@ -137,6 +138,9 @@ public class iLCDCommunityAgent {
      * @return true if the node is to be integrated
      */
     public boolean decideIntegration(iLCDNodeAgent node, double threshold) {
+        double pb = getPotentialBelonging(node);
+        double sec = getSeclusion();
+        //System.out.println("Integration " + pb + " vs " + threshold*sec);
         if (getPotentialBelonging(node) >= threshold * getSeclusion()) {
             return true;
         }
@@ -149,7 +153,7 @@ public class iLCDCommunityAgent {
      * @return true if the community is younger than the given community.
      */
     public boolean isYounger(iLCDCommunityAgent community) {
-        return Integer.parseInt(this.birth) < Integer.parseInt(community.birth);
+        return Integer.parseInt(this.birth) > Integer.parseInt(community.birth);
     }
 
     /**
@@ -160,11 +164,26 @@ public class iLCDCommunityAgent {
      * @return true if the community is to be absorbed
      */
     public boolean decideFusion(iLCDCommunityAgent youngerCommunity, double threshold) {
+        //Representativity of common nodes from Cazabet's shared code
+        double representativityOfCommonNodes = 0;
+        for(iLCDNodeAgent node: getCommonNodes(youngerCommunity)){
+            representativityOfCommonNodes += node.getRepresentativeness(youngerCommunity);
+        }
+
+        // Community Likeness from the paper
         double communityLikeness = 0;
         for (iLCDNodeAgent node: youngerCommunity.getNodes()) {
             communityLikeness += this.getPotentialBelonging(node);
         }
+        double sec = youngerCommunity.getSeclusion();
 
-        return (communityLikeness >= threshold*youngerCommunity.getSeclusion());
+        //System.out.println(representativityOfCommonNodes + " vs " + communityLikeness);
+        return (representativityOfCommonNodes > threshold*youngerCommunity.getSeclusion());
+    }
+
+    public ArrayList<iLCDNodeAgent> getCommonNodes(iLCDCommunityAgent community) {
+        ArrayList<iLCDNodeAgent> commonNodes = new ArrayList<>(community.getNodes());
+        commonNodes.retainAll(this.getNodes());
+        return commonNodes;
     }
 }

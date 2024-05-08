@@ -1,17 +1,9 @@
 package i5.las2peer.services.ocd.testsUtils;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
-import i5.las2peer.services.ocd.adapters.graphInput.GmlGraphInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.GraphInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.NodeContentEdgeListGraphInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.NodeWeightedEdgeListGraphInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.UnweightedEdgeListGraphInputAdapter;
-import i5.las2peer.services.ocd.adapters.graphInput.WeightedEdgeListGraphInputAdapter;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.GraphCreationLog;
-import i5.las2peer.services.ocd.graphs.GraphCreationType;
-import i5.las2peer.services.ocd.graphs.GraphProcessor;
-import i5.las2peer.services.ocd.graphs.GraphType;
+import i5.las2peer.services.ocd.adapters.graphInput.*;
+import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.ExecutionStatus;
 
 import java.io.FileNotFoundException;
@@ -893,6 +885,32 @@ public class OcdTestGraphFactory {
 			graph.setEdgeWeight(edge, 1);
 		}
 		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	public static DynamicGraph getTimestampedKarateGraph() throws AdapterException, FileNotFoundException {
+		GraphInputAdapter adapter = new TimestampedEdgeListInputAdapter(new FileReader(OcdTestConstants.timestampedKarateClubPath));
+		DynamicGraph graph = (DynamicGraph) adapter.readGraph();
+		graph.setName(OcdTestConstants.timestampedKarateName);
+		GraphProcessor processor = new GraphProcessor();
+		graph.addType(GraphType.DYNAMIC);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.REAL_WORLD, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
+
+	public static DynamicGraph getRdynTestGraph() throws AdapterException, FileNotFoundException {
+		GraphInputAdapter adapter = new TimestampedEdgeListInputAdapter(new FileReader(OcdTestConstants.rdynTestGraphPath));
+		DynamicGraph graph = (DynamicGraph) adapter.readGraph();
+		graph.setName(OcdTestConstants.rdynTestGraph);
+		GraphProcessor processor = new GraphProcessor();
+		graph.addType(GraphType.DYNAMIC);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.REAL_WORLD, new HashMap<String, String>());
 		log.setStatus(ExecutionStatus.COMPLETED);
 		graph.setCreationMethod(log);
 		return graph;
