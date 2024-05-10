@@ -107,7 +107,7 @@ public class CustomGraphDatabaseTest {
 	    assertEquals(1, persistedGraph.getTypes().size());
 	    assertTrue(persistedGraph.getTypes().contains(GraphType.DIRECTED));
 	    System.out.println("Types: " + graph.getTypes());
-	    
+	    System.out.println(persistedGraph.getProperties());
 	    queryResults = database.getGraphs(invalidGraphName);
 	    
 		assertEquals(0, queryResults.size());

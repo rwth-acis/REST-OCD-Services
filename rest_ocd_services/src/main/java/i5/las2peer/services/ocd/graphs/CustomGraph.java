@@ -308,6 +308,7 @@ public class CustomGraph extends MultiGraph {
 				graph.creationMethod.getParameters());
 		this.creationMethod.setStatus(graph.creationMethod.getStatus());
 		this.customNodes = new HashMap<Integer, CustomNode>();
+
 		copyMappings(graph.customNodes, graph.customEdges, graph.nodeIds, graph.edgeIds);
 		this.userName = new String(graph.userName);
 		this.name = new String(graph.name);
@@ -320,6 +321,7 @@ public class CustomGraph extends MultiGraph {
 		nodeIndexer = graph.nodeIndexer;
 		edgeIndexer = graph.edgeIndexer;
 		this.types = new HashSet<Integer>(graph.types);
+		this.properties = graph.getProperties();
 	}
 
 	//////////////////////////////////////////////////////////////////

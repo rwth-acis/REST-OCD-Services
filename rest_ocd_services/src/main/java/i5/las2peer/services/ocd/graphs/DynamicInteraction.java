@@ -114,7 +114,6 @@ public class DynamicInteraction extends CustomEdge{
         bed.addAttribute(graphKeyColumnName, this.getGraph().getKey());
         bed.addAttribute(dateColumnName, this.date);
         bed.addAttribute(actionColumnName, this.action);
-
         bed.setFrom(CustomNode.collectionName + "/" + this.getSource().getKey());
 
         bed.setTo(CustomNode.collectionName + "/" + this.getTarget().getKey());

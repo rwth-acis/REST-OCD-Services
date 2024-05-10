@@ -33,6 +33,11 @@ public class iLCDCommunityAgent {
         communityIndexer++;
     }
 
+    public iLCDCommunityAgent(iLCDCommunityAgent community) {
+        this.nodes = community.getNodes();
+
+    }
+
     public iLCDCommunityAgent(int id) {
         this.id = id;
     }

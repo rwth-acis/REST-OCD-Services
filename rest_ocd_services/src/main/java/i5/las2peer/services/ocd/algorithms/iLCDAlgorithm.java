@@ -55,8 +55,11 @@ public class iLCDAlgorithm implements OcdAlgorithm{
 
         if (graph instanceof DynamicGraph) {
             // Set start timestamp
+            // List<DynamicInteraction> dynamicInteractions = ((DynamicGraph) graph).getDynamicInteractions();
             String currentTimestep = ((DynamicGraph) graph).getDynamicInteractions().get(0).getDate();
-
+            //for (int i = 0; i < dynamicInteractions.size(); i++) {
+            //    dynamicInteractions.get(i).
+            //}
             for (DynamicInteraction dynamicInteraction: ((DynamicGraph) graph).getDynamicInteractions()) {
                 HashSet<iLCDCommunityAgent> modifiedCommunities = new HashSet<iLCDCommunityAgent>();
                 currentTimestep = dynamicInteraction.getDate();
@@ -146,7 +149,7 @@ public class iLCDAlgorithm implements OcdAlgorithm{
 
                          same for sourceNode
                          */
-
+                            iLCDCommunityAgent temp = new iLCDCommunityAgent(commonCommunity);
                             ArrayList<iLCDCommunityAgent> resultingCommunities = new ArrayList<>();
                             //Contraction
                             ArrayList<iLCDCommunityAgent> resultingCommunitiesSource = getContractionResult(commonCommunity, graphNodes.get(sourceName));
@@ -155,6 +158,33 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                             }
                             modifiedCommunities.addAll(resultingCommunities);
 
+                            // check if rejected nodes can form a new community
+                            if(resultingCommunities.size() == 1){
+                                ArrayList<iLCDNodeAgent> rejectedNodes = new ArrayList<>(temp.getNodes());
+                                rejectedNodes.removeAll(resultingCommunities.get(0).getNodes());
+
+                                for(iLCDNodeAgent rejectedNode: rejectedNodes) {
+                                    for(iLCDNodeAgent nodeInCom: rejectedNode.getNeighborsInCommunity(resultingCommunities.get(0))){
+                                        ArrayList<iLCDCommunityAgent> newCommunities = new ArrayList<iLCDCommunityAgent>();
+                                        // Choose birth based on the parameter
+                                        switch(min_C){
+                                            case 3:
+                                                newCommunities = birthCase3(rejectedNode, nodeInCom);
+                                                break;
+                                            case 4:
+                                                newCommunities = birthCase4(rejectedNode, nodeInCom);
+                                                break;
+                                        }
+
+                                        for(iLCDCommunityAgent newCommunity: newCommunities) {
+                                            newCommunity.setBirth(currentTimestep);
+                                            graphCommunities.put(newCommunity.getId(), newCommunity);
+                                            //TODO handle BIRTH event
+                                            modifiedCommunities.add(newCommunity);
+                                        }
+                                    }
+                                }
+                            }
                             // DEATH
                             for (iLCDCommunityAgent community: resultingCommunities) {
                                 if (community.getNodes().size() < min_C) {
@@ -230,6 +260,7 @@ public class iLCDAlgorithm implements OcdAlgorithm{
             }
         }else {
             System.out.println("Graph is static");
+            throw new OcdAlgorithmException("Graph is static");
         }
 
         Matrix community_matrix = getCommunityMatrix((DynamicGraph) graph, graphCommunities);

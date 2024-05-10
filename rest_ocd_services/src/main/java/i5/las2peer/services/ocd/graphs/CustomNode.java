@@ -114,6 +114,9 @@ public class CustomNode {
 	 */
 	protected CustomNode(CustomNode customNode) {
 		this.name = customNode.name;
+		this.graph = customNode.graph;
+		this.key = customNode.key;
+		this.id = customNode.id;
 	}
 	
 	/**

@@ -281,7 +281,7 @@ public class Community {
 		bd.addAttribute(propertiesColumnName, this.properties);  
 		bd.addAttribute(coverKeyColumnName, this.cover.getKey());
 		Map<String, Double> membershipKeyMap = new HashMap<String, Double>();
-		
+
 		for (Map.Entry<CustomNode, Double> entry : this.memberships.entrySet()) {	
 			membershipKeyMap.put(entry.getKey().getKey(), entry.getValue());	//CustomNode Keys muessen bekannt sein
 		}
@@ -307,7 +307,6 @@ public class Community {
 			c.name = bd.getAttribute(nameColumnName).toString();
 			c.color = Integer.parseInt(colorString);
 			c.properties = om.convertValue(objProperties, List.class);
-
 			// each customNode is assigned the stored belongingValue
 			for (Map.Entry<String, Double> entry : membershipKeyMap.entrySet()) {
 				String nodeKey = entry.getKey();

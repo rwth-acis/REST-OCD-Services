@@ -129,7 +129,6 @@ public class DynamicGraph extends CustomGraph{
     @Override
     public void persist(ArangoDatabase db, String transId) throws InterruptedException {
         super.persist(db, transId);
-
         for(DynamicInteraction dynIn: dynamicInteractions) {
             dynIn.update(this);
         }
@@ -160,7 +159,6 @@ public class DynamicGraph extends CustomGraph{
 
         // Load underlying CustomGraph
         DynamicGraph graph = new DynamicGraph(CustomGraph.load(key, db, transId));
-
         ArangoCollection collection = db.collection(collectionName);
         DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
         AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);

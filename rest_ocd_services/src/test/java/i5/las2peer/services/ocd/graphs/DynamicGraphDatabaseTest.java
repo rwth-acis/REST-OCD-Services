@@ -60,6 +60,7 @@ public class DynamicGraphDatabaseTest {
         DynamicGraph persistedGraphByKey = (DynamicGraph) database.getGraph(userName1, graph.getKey());
         assertNotNull(persistedGraphByKey);
 
+
         assertEquals(1, queryResults.size());
 
         DynamicGraph persistedGraph = (DynamicGraph) queryResults.get(0);
@@ -82,7 +83,8 @@ public class DynamicGraphDatabaseTest {
         Node[] nodes = graph.nodes().toArray(Node[]::new);
         for(int i=0; i<3; i++) {
             Node node = nodes[i];
-            String name = persistedGraph.getNodeName(node);
+            System.out.println(persistedGraphByKey.getCustomNode(node).String());
+            String name = persistedGraphByKey.getNodeName(node);
             System.out.println("Node: " + node.getIndex() + ", Name: " + persistedGraph.getNodeName(node));
             assertTrue(nodeNames.contains(name));
             nodeNames.remove(name);
@@ -109,11 +111,12 @@ public class DynamicGraphDatabaseTest {
         assertTrue(persistedGraph.getTypes().contains(GraphType.DYNAMIC));
         System.out.println("Types: " + graph.getTypes());
 
-        assertEquals(2, persistedGraph.getDynamicInteractions().size());
-        System.out.println(persistedGraph.getDynamicInteractions().toString());
+        assertEquals(2, persistedGraphByKey.getDynamicInteractions().size());
 
-        System.out.println(graph.getDynamicInteractions().toString());
+
+        System.out.println(persistedGraphByKey.getDynamicInteractions().toString());
         List<CustomGraph> queryResults2 = database.getGraphs(invalidGraphName);
+
 
         assertEquals(0, queryResults2.size());
 
