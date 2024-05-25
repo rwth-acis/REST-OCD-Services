@@ -215,9 +215,10 @@ public class iLCDAlgorithm implements OcdAlgorithm{
 
 
 
-                HashSet<iLCDCommunityAgent> fusionCandidates = new HashSet<iLCDCommunityAgent>();
+
                  //Foreach modified community
                 for(iLCDCommunityAgent community: modifiedCommunitiesSorted) {
+                    HashSet<iLCDCommunityAgent> fusionCandidates = new HashSet<iLCDCommunityAgent>();
                     //Get all communities "community"'s agents are part of
                     for(iLCDNodeAgent node: community.getNodes()) {
                         fusionCandidates.addAll(node.getCommunities());

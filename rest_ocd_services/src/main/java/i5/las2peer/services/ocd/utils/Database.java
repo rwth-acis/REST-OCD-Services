@@ -189,6 +189,16 @@ public class Database {
 		if(!collection.exists()) {
 			collection.create();
 		}
+		collectionNames.add(CommunityLifeCycle.collectionName);		//14
+		collection = db.collection(CommunityLifeCycle.collectionName);
+		if(!collection.exists()) {
+			collection.create();
+		}
+		collectionNames.add(CommunityEvent.collectionName);		//15
+		collection = db.collection(CommunityEvent.collectionName);
+		if(!collection.exists()) {
+			collection.create();
+		}
 
 	}
 	
@@ -996,6 +1006,45 @@ public class Database {
 		}
 		
 	}
+	/////////////////////////////////////////////// COMMUNTIY LIFE CYCLE //////////////////////////////////////////////////////////
+	public String storeCLC(CommunityLifeCycle clc){
+		String transId = this.getTransactionId(CommunityLifeCycle.class, true);
+		try{
+			clc.persist(db, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e){
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return clc.getKey();
+	}
+
+	public CommunityLifeCycle getCLC(String key, Cover c, DynamicGraph g){
+		String transId = this.getTransactionId(CommunityLifeCycle.class, false);
+		CommunityLifeCycle clc;
+		try {
+			clc = CommunityLifeCycle.load(key, c, g, db, transId);
+		}catch(Exception e){
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+		return clc;
+	}
+
+	public CommunityLifeCycle getCLC(String username, String clcKey, String graphKey, String coverKey){
+		DynamicGraph graph = (DynamicGraph) getGraph(graphKey);
+		Cover cover = getCover(coverKey, graph);
+		CommunityLifeCycle clc = null;
+		if(!(graph == null) && !(cover==null)){
+			clc = getCLC(clcKey, cover, graph);
+		}
+		if(cover == null){
+			logger.log(Level.WARNING, "user: " + username + ", " + "CLC does not exist: cover id " + clcKey + ", graph id " + graphKey + ", cover id " + coverKey);
+		}
+		return clc;
+	}
+
+
 	
 	////////////////////////////////////////////////// CENTRALITY MAPS ////////////////////////////////////////////////////////////
 
@@ -1810,7 +1859,7 @@ public class Database {
 			collections = collectionNames.subList(12,14).toArray(new String[1]);
 		}
 		else {
-			collections = collectionNames.subList(0, 14).toArray(new String[10]);
+			collections = collectionNames.subList(0, 16).toArray(new String[16]);
 		}
 		StreamTransactionEntity tx;
 		if(write) {
