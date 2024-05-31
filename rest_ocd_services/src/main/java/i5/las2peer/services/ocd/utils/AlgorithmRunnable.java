@@ -3,7 +3,9 @@ package i5.las2peer.services.ocd.utils;
 import java.util.logging.Level;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithm;
 import i5.las2peer.services.ocd.algorithms.OcdAlgorithmExecutor;
+import i5.las2peer.services.ocd.algorithms.iLCDAlgorithm;
 import i5.las2peer.services.ocd.graphs.Cover;
+import i5.las2peer.services.ocd.graphs.CoverCreationType;
 import i5.las2peer.services.ocd.graphs.CoverId;
 import i5.las2peer.services.ocd.graphs.CustomGraphId;
 
@@ -47,6 +49,7 @@ public class AlgorithmRunnable implements Runnable {
 	
 	@Override
 	public void run() {
+		boolean dynamic = false;
 		boolean error = false;
 		/*
 		 * Set algorithm state to running.
@@ -84,6 +87,9 @@ public class AlgorithmRunnable implements Runnable {
 	        OcdAlgorithmExecutor executor = new OcdAlgorithmExecutor();
 	        try {
 	        	resultCover = executor.execute(cover.getGraph(), algorithm, componentNodeCountFilter);
+				if(algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.ILCD_ALGORITHM.toString())){
+					database.storeCLC((((iLCDAlgorithm) algorithm).getClc()));
+				}
 	        	if(Thread.interrupted()) {
 	        		throw new InterruptedException();
 	        	}

@@ -6,6 +6,7 @@ import i5.las2peer.services.ocd.algorithms.utils.iLCDNodeAgent;
 import i5.las2peer.services.ocd.cooperation.simulation.dynamic.Dynamic;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
+import i5.las2peer.services.ocd.utils.CommunityLifeCycle;
 import org.apache.jena.base.Sys;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
@@ -16,7 +17,17 @@ import org.web3j.abi.datatypes.Int;
 
 import java.util.*;
 
+/**
+ * The iLCD Algorithm according to Remy Cazabet and Frederic Amblard.
+ * [DOI 10.1109/WI-IAT.2011.50]
+ * Implemented with the help of a shared implementation
+ * https://cazabetremy.fr/rRessources/iLCD.html
+ */
 public class iLCDAlgorithm implements OcdAlgorithm{
+    /**
+     * The Community Life Cycle object representing the community events over the course of running.
+     */
+    private CommunityLifeCycle clc = new CommunityLifeCycle();
     /**
      * Size of the minimal community.
      */
@@ -45,6 +56,10 @@ public class iLCDAlgorithm implements OcdAlgorithm{
     public iLCDAlgorithm() {
     }
 
+    public CommunityLifeCycle getClc() {
+        return clc;
+    }
+
     @Override
     public Cover detectOverlappingCommunities(CustomGraph graph) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
         Cover result = new Cover(graph);
@@ -54,6 +69,7 @@ public class iLCDAlgorithm implements OcdAlgorithm{
 
 
         if (graph instanceof DynamicGraph) {
+            clc.setGraph((DynamicGraph) graph);
             // Set start timestamp
             // List<DynamicInteraction> dynamicInteractions = ((DynamicGraph) graph).getDynamicInteractions();
             String currentTimestep = ((DynamicGraph) graph).getDynamicInteractions().get(0).getDate();
@@ -83,7 +99,8 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                                 // Send request to community
                                 if(community.decideIntegration(graphNodes.get(targetName), th_integration)){
                                     community.addNodeToCommunity(graphNodes.get(targetName));
-                                    // TODO Handle GROWTH event
+                                    //Add GROWTH event to CLC
+                                    clc.handleGrowth(currentTimestep, community.getId(), targetName);
                                     modifiedCommunities.add(community);
                                 }
                             }
@@ -95,6 +112,8 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                                 // send request to community
                                 if(community.decideIntegration(graphNodes.get(sourceName), th_integration)) {
                                     community.addNodeToCommunity(graphNodes.get(sourceName));
+                                    //Add GROWTH event to CLC
+                                    clc.handleGrowth(currentTimestep, community.getId(), sourceName);
                                     modifiedCommunities.add(community);
                                 }
                             }
@@ -117,7 +136,8 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                             for(iLCDCommunityAgent newCommunity: newCommunities) {
                                 newCommunity.setBirth(currentTimestep);
                                 graphCommunities.put(newCommunity.getId(), newCommunity);
-                                //TODO handle BIRTH event
+                                //Add BIRTH event to clc
+                                clc.handleBirth(currentTimestep, newCommunity.getId(), newCommunity.getNodeNamesAsList());
                                 modifiedCommunities.add(newCommunity);
                             }
                         }
@@ -152,9 +172,9 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                             iLCDCommunityAgent temp = new iLCDCommunityAgent(commonCommunity);
                             ArrayList<iLCDCommunityAgent> resultingCommunities = new ArrayList<>();
                             //Contraction
-                            ArrayList<iLCDCommunityAgent> resultingCommunitiesSource = getContractionResult(commonCommunity, graphNodes.get(sourceName));
+                            ArrayList<iLCDCommunityAgent> resultingCommunitiesSource = getContractionResult(currentTimestep,commonCommunity, graphNodes.get(sourceName));
                             for(iLCDCommunityAgent commonCommunity2: resultingCommunitiesSource) {
-                                resultingCommunities.addAll(getContractionResult(commonCommunity2, graphNodes.get(targetName)));
+                                resultingCommunities.addAll(getContractionResult(currentTimestep,commonCommunity2, graphNodes.get(targetName)));
                             }
                             modifiedCommunities.addAll(resultingCommunities);
 
@@ -179,7 +199,8 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                                         for(iLCDCommunityAgent newCommunity: newCommunities) {
                                             newCommunity.setBirth(currentTimestep);
                                             graphCommunities.put(newCommunity.getId(), newCommunity);
-                                            //TODO handle BIRTH event
+                                            //Add BIRTH event to clc
+                                            clc.handleBirth(currentTimestep, newCommunity.getId(), newCommunity.getNodeNamesAsList());
                                             modifiedCommunities.add(newCommunity);
                                         }
                                     }
@@ -193,7 +214,8 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                                         community.removeNodeFromCommunity(node);
                                     }
                                     community.setDeath(currentTimestep);
-                                    //TODO Handle Death event
+                                    //Add DEATH event to CLC
+                                    clc.handleDeath(currentTimestep, community.getId());
                                     modifiedCommunities.remove(community);
                                     graphCommunities.remove(community.getId());
                                 }
@@ -231,7 +253,11 @@ public class iLCDAlgorithm implements OcdAlgorithm{
                         if(candidate.isYounger(community)) {
                             // If fusion condition is fulfilled
                             if(community.decideFusion(candidate, th_merge)){
-
+                                //Add Fusion event to clc
+                                ArrayList<Integer> clcCommunityList = new ArrayList<>();
+                                clcCommunityList.add(community.getId());
+                                clcCommunityList.add(candidate.getId());
+                                clc.handleFusion(currentTimestep, clcCommunityList);
                                 //Add all nodes from the younger community to the older community
                                 for (iLCDNodeAgent node: candidate.getNodes()) {
                                     //If they are not yet included
@@ -383,7 +409,7 @@ public class iLCDAlgorithm implements OcdAlgorithm{
      * @param node the node to check
      * @return the resulting community
      */
-    public ArrayList<iLCDCommunityAgent> getContractionResult(iLCDCommunityAgent community, iLCDNodeAgent node) {
+    public ArrayList<iLCDCommunityAgent> getContractionResult(String date, iLCDCommunityAgent community, iLCDNodeAgent node) {
         ArrayList<iLCDCommunityAgent> result = new ArrayList<>();
         result.add(community);
 
@@ -397,8 +423,10 @@ public class iLCDAlgorithm implements OcdAlgorithm{
             return result;
         } else {
             community.removeNodeFromCommunity(node);
+            //Add CONTRACTION event to clc
+            clc.handleContraction(date, community.getId(), node.getNodeName());
             for(iLCDNodeAgent neighbor: node.getNeighborsInCommunity(community)) {
-                getContractionResult(community, neighbor);
+                getContractionResult(date, community, neighbor);
             }
             return result;
         }

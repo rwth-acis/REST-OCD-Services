@@ -28,6 +28,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.algorithms.iLCDAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.*;
 import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.utils.*;
@@ -1083,7 +1084,151 @@ public class ServiceClass extends RESTService {
 				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
 			}
 		}
-		
+
+		//////////////////////////////////////////////////////////////////////////
+		//////////// CLCs
+		//////////////////////////////////////////////////////////////////////////
+
+		/**
+		 * Returns the ids (or meta information) of multiple clcs.
+		 *
+		 * @param firstIndexStr
+		 *            Optional query parameter. The result list index of the
+		 *            first id to return. Defaults to 0.
+		 * @param lengthStr
+		 *            Optional query parameter. The number of ids to return.
+		 *            Defaults to Long.MAX_VALUE.
+		 * @param includeMetaStr
+		 *            Optional query parameter. If TRUE, instead of the ids the
+		 *            META XML of each graph is returned. Defaults to FALSE.
+		 * @param executionStatusesStr
+		 *            Optional query parameter. If set only those covers are
+		 *            returned whose creation method status corresponds to one
+		 *            of the given ExecutionStatus names. Multiple status names
+		 *            are separated using the "-" delimiter.
+		 * @param graphIdStr
+		 *            Optional query parameter. If set only those covers are
+		 *            returned that are based on the corresponding graph.
+		 * @param coverIdStr
+		 * 			  Optional query parameter. If set only those clcs are
+		 *            returned that are based on the corresponding cover.
+		 * @return The clcs. Or an error xml.
+		 */
+		@GET
+		@Path("clcs")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = {
+				@ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized")
+		})
+		@ApiOperation(tags = {"show"}, value = "Get CLCs Info",
+				notes = "Returns the ids (or meta information) of multiple clcs.")
+		public Response getClcs(
+				@DefaultValue("0") @QueryParam("firstIndex") String firstIndexStr,
+				@DefaultValue("") @QueryParam("length") String lengthStr,
+				@DefaultValue("FALSE") @QueryParam("includeMeta") String includeMetaStr,
+				@DefaultValue("") @QueryParam("executionStatuses") String executionStatusesStr,
+				@DefaultValue("") @QueryParam("graphId") String graphIdStr,
+				@DefaultValue("") @QueryParam("coverId") String coverIdStr)
+		{
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+				int length;
+				int firstIndex;
+				List<Integer> executionStatusIds = new ArrayList<Integer>();
+				if (!executionStatusesStr.equals("")) {
+					try {
+						List<String> executionStatusesStrList = requestHandler
+								.parseQueryMultiParam(executionStatusesStr);
+						for (String executionStatusStr : executionStatusesStrList) {
+							ExecutionStatus executionStatus = ExecutionStatus.valueOf(executionStatusStr);
+							executionStatusIds.add(executionStatus.getId());
+						}
+					} catch (Exception e) {
+						requestHandler.log(Level.WARNING, "user: " + username, e);
+						return requestHandler.writeError(Error.PARAMETER_INVALID,
+								"Specified execution status does not exist.");
+					}
+				} else {
+					for (ExecutionStatus executionStatus : ExecutionStatus.values()) {
+						executionStatusIds.add(executionStatus.getId());
+					}
+				}
+
+				List<CLCMeta> queryResults;
+				try {
+					firstIndex = Integer.parseInt(firstIndexStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "First index is not valid.");
+				}
+				try {
+					if (!lengthStr.equals("")) {
+						length = Integer.parseInt(lengthStr);
+					}
+					else {
+						length = Integer.MAX_VALUE;
+					}
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Length is not valid.");
+				}
+				boolean includeMeta;
+				try {
+					includeMeta = requestHandler.parseBoolean(includeMetaStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "", e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID, "Include meta is not a boolean value.");
+				}
+
+				queryResults = database.getClcMetaDataEfficiently(username, graphIdStr, coverIdStr, executionStatusIds, firstIndex, length);
+				String responseStr;
+				if (includeMeta) {
+					responseStr = requestHandler.writeClcMetasEfficiently(queryResults);
+				} else {
+					responseStr = requestHandler.writeClcIdsEfficiently(queryResults);
+				}
+				return Response.ok(responseStr).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
+		 * Deletes a clc.
+		 *
+		 * @param clcIdStr
+		 *            The clc id.
+		 * @return A confirmation xml. Or an error xml.
+		 */
+		@DELETE
+		@Path("clcs/{clcId}")
+		@Produces(MediaType.TEXT_XML)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@ApiOperation(tags = {"delete"}, value = "Delete CLC", notes = "Deletes a clc.")
+		public Response deleteClc(@PathParam("clcId") String clcIdStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+
+				try {
+					database.deleteClc(clcIdStr);
+					generalLogger.getLogger().log(Level.INFO, "user " + username + ": delete clc " + clcIdStr);
+					return Response.ok(requestHandler.writeConfirmationXml()).build();
+				} catch (IllegalArgumentException e) {
+					return requestHandler.writeError(Error.PARAMETER_INVALID, e.getMessage());
+				} catch (Exception e) {
+					requestHandler.log(Level.SEVERE, "", e);
+					return requestHandler.writeError(Error.INTERNAL, "Clc not deleted");
+				}
+
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
 		//////////////////////////////////////////////////////////////////////////
 		//////////// ALGORITHMS
 		//////////////////////////////////////////////////////////////////////////
@@ -1220,13 +1365,21 @@ public class ServiceClass extends RESTService {
 					log = new CoverCreationLog(algorithmType, parameters, algorithm.compatibleGraphTypes());
 					cover.setCreationMethod(log);
 					cover.setName(URLDecoder.decode(nameStr, "UTF-8"));
-					database.storeCover(cover);		//done
+					if(algorithm.getAlgorithmType() == CoverCreationType.ILCD_ALGORITHM){
+						((iLCDAlgorithm)algorithm).getClc().setName(cover.getName() + "_CLC");
+
+					}
+					database.storeCover(cover);
+					if(algorithm.getAlgorithmType() == CoverCreationType.ILCD_ALGORITHM){
+						((iLCDAlgorithm)algorithm).getClc().setCover(cover);
+					}
 					/*
 					 * Registers and starts algorithm
 					 */
 					threadHandler.runAlgorithm(cover, algorithm, componentNodeCountFilter);
 					generalLogger.getLogger().log(Level.INFO, "user " + username + ": run " + algorithm.getClass().getSimpleName() + " on graph " + graph.getKey() + ". Created cover " + cover.getKey());
 				}
+
 				return Response.ok(requestHandler.writeId(cover)).build();
 			} catch (Exception e) {
 				requestHandler.log(Level.SEVERE, "", e);

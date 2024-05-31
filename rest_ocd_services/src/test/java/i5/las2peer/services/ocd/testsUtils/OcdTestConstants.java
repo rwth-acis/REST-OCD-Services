@@ -80,6 +80,13 @@ public class OcdTestConstants {
 	public static final String sawmillLabeledMembershipMatrixOutputPath = outputFolderPath + "SawmillLabeledMembershipMatrix.txt";
 	public static final String dolphinsLabeledMembershipMatrixOutputPath = outputFolderPath + "DolphinsLabeledMembershipMatrix.txt";
 	public static final String testXmlCoverOutputPath = outputFolderPath + "TestXmlCover";
+
+	/*
+	 * CLC output filenames
+	 */
+	public static final String testEventListClcOutputPath = outputFolderPath + "EventListTest.txt";
+
+	public static final String testXmlClcOutputPath = outputFolderPath + "TestXmlClc";
 	
 	/*
 	 * Graph output filenames
@@ -94,6 +101,8 @@ public class OcdTestConstants {
 	public static final String testMetaXmlGraphMetaOutputPath = outputFolderPath + "testMetaXmlGraphMeta";
 	public static final String testMetaXmlCoverMetaOutputPath = outputFolderPath + "testMetaXmlCoverMeta";
 	public static final String testMetaXmlMetricMetaOutputPath = outputFolderPath + "testMetaXmlCentralityMeta";
+
+	public static final String testMetaXmlCLCMetaOutputPath = outputFolderPath + "testMetaXmlCLCMeta";
 
 
 

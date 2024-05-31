@@ -2,10 +2,12 @@ package i5.las2peer.services.ocd.algorithms;
 
 import i5.las2peer.services.ocd.adapters.AdapterException;
 import i5.las2peer.services.ocd.algorithms.utils.OcdAlgorithmException;
+import i5.las2peer.services.ocd.graphs.Community;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.DynamicGraph;
 import i5.las2peer.services.ocd.metrics.OcdMetricException;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
+import i5.las2peer.services.ocd.utils.CommunityLifeCycle;
 import org.junit.Test;
 
 import java.io.FileNotFoundException;
@@ -27,7 +29,9 @@ public class iLCDAlgorithmTest {
         DynamicGraph karateClub = OcdTestGraphFactory.getTimestampedKarateGraph();
         try {
             Cover c = algorithm.detectOverlappingCommunities(karateClub);
-            System.out.println(c.toString());
+            algorithm.getClc().setCover(c);
+            CommunityLifeCycle clcResult = algorithm.getClc();
+            System.out.println(clcResult.getEvents());
         } catch (OcdAlgorithmException | OcdMetricException | InterruptedException e){
             e.printStackTrace();
         }
@@ -47,8 +51,12 @@ public class iLCDAlgorithmTest {
         DynamicGraph rdynTestGraph = OcdTestGraphFactory.getRdynTestGraph();
         try {
             Cover c = algorithm.detectOverlappingCommunities(rdynTestGraph);
+            algorithm.getClc().setCover(c);
+            CommunityLifeCycle clcResult = algorithm.getClc();
+            System.out.println(clcResult.getEvents());
         } catch (OcdAlgorithmException | OcdMetricException | InterruptedException e){
             e.printStackTrace();
         }
+
     }
 }

@@ -973,10 +973,10 @@ public class Database {
 	
 	/**
 	 * Deletes a persisted cover from the database
-	 * 
+	 *
 	 * Checks whether cover is being calculated by a ground truth benchmark and
 	 * if so deletes the graph instead.
-	 * 
+	 *
 	 * @param username
 	 *            owner of the cover
 	 * @param graphKey
@@ -1004,8 +1004,10 @@ public class Database {
 		else {
 			this.deleteCover(cover, threadHandler);
 		}
-		
+
 	}
+
+
 	/////////////////////////////////////////////// COMMUNTIY LIFE CYCLE //////////////////////////////////////////////////////////
 	public String storeCLC(CommunityLifeCycle clc){
 		String transId = this.getTransactionId(CommunityLifeCycle.class, true);
@@ -1044,8 +1046,114 @@ public class Database {
 		return clc;
 	}
 
+	private void deleteClc(String key, String transId) {
+		ArangoCollection clcCollection = db.collection(CommunityLifeCycle.collectionName);
 
-	
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+		DocumentDeleteOptions deleteOpt = new DocumentDeleteOptions().streamTransactionId(transId);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		BaseDocument clcDoc = clcCollection.getDocument(key, BaseDocument.class, readOpt);
+
+		ObjectMapper om = new ObjectMapper();
+		Object objEventKeys = clcDoc.getAttribute(CommunityLifeCycle.eventKeysColumnName);
+		List<String> eventKeys = om.convertValue(objEventKeys, List.class);
+		for(String eventKey : eventKeys) {			//delete all events
+			ArangoCollection eventCollection = db.collection(CommunityEvent.collectionName);
+			eventCollection.deleteDocument(eventKey, null, deleteOpt);
+		}
+
+		clcCollection.deleteDocument(key, null, deleteOpt);				//delete Cover
+	}
+
+	public void deleteClc(String key) {
+		String transId = this.getTransactionId(CommunityLifeCycle.class, true);
+		try {
+			deleteClc(key, transId);
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			throw e;
+		}
+	}
+
+	/**
+	 * Returns metadata of clcs efficiently, without loading full clc.
+	 *
+	 * @param username
+	 * 		  the name of the user
+	 * @param graphKey
+	 * 		  the key of the graph
+	 * @param coverKey the key of the cover
+	 * @param firstIndex
+	 * 		  the first index
+	 * @param length
+	 * 		  the length of the result set
+	 * @return a clc list
+	 */
+	public List<CLCMeta> getClcMetaDataEfficiently(String username, String graphKey, String coverKey,  List<Integer> executionStatusIds, int firstIndex, int length) {
+		String transId = getTransactionId(null, false);
+		AqlQueryOptions queryOpt = new AqlQueryOptions().streamTransactionId(transId);
+		DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		ArrayList<CLCMeta> clcMetas = new ArrayList<CLCMeta>();
+
+		try {
+			Map<String, Object> bindVars;
+			String queryStr = " FOR l IN " + CommunityLifeCycle.collectionName + " FOR a IN " + CoverCreationLog.collectionName +
+					" FILTER l." + CommunityLifeCycle.creationMethodKeyColumnName + " == a._key AND a." + CoverCreationLog.statusIdColumnName + " IN " + executionStatusIds;
+//
+			if(!graphKey.equals("")) {		//es gibt einen graphKey
+				queryStr += " FOR g IN " + CustomGraph.collectionName
+						+" FILTER l." + CommunityLifeCycle.graphKeyColumnName  + " == @gKey AND g._key == @gKey";
+				bindVars = Collections.singletonMap("gKey", graphKey);
+			}
+			else {			//es gibt keinen graphKey
+				queryStr += " FOR g IN " + CustomGraph.collectionName +
+						" FILTER g." + CustomGraph.userColumnName + " == @user AND l." + CommunityLifeCycle.graphKeyColumnName + " == g._key";
+				bindVars = Collections.singletonMap("user", username);
+			}
+
+			if(!coverKey.equals("")) {
+				queryStr += " FOR c IN " + Cover.collectionName
+						+" FILTER l." + CommunityLifeCycle.graphKeyColumnName  + " == @cKey AND c._key == @cKey";
+				bindVars = Collections.singletonMap("gKey", graphKey);
+			}
+			else {			//es gibt keinen graphKey
+				queryStr += " FOR c IN " + Cover.collectionName +
+						" FILTER g." + CustomGraph.userColumnName + " == @user + AND l." + CommunityLifeCycle.coverKeyColumnName + " == c._key + AND g._key == c._key";
+				bindVars = Collections.singletonMap("user", username);
+			}
+
+
+			queryStr += " LIMIT " + firstIndex + ", " + length + " RETURN " +
+					"{\"key\" : l._key," +
+					"\"name\" : l." + CommunityLifeCycle.nameColumnName + "," +
+					"\"graphKey\" : g._key," +
+					"\"graphName\" : g." + CustomGraph.nameColumnName  +  "," +
+					"\"coverKey\" : c._key," +
+					"\"graphName\" : c." + Cover.nameColumnName  +  "," +
+					"\"creationTypeId\" : a." + CoverCreationLog.typeColumnName + "," +
+					"\"creationStatusId\" : a." + GraphCreationLog.statusIdColumnName +
+					"}";
+
+			ArangoCursor<String> clcMetaJson = db.query(queryStr, bindVars, queryOpt, String.class);
+			while(clcMetaJson.hasNext()) {
+                /* Instantiate CustomGraphMeta from the json string acquired from a query.
+                Then add it to the list that will be returned*/
+				clcMetas.add(objectMapper.readValue(clcMetaJson.next(), CLCMeta.class));
+
+			}
+
+			db.commitStreamTransaction(transId);
+		}catch(Exception e) {
+			db.abortStreamTransaction(transId);
+			System.out.println("transaction abort");
+			e.printStackTrace();
+		}
+
+		return clcMetas;
+	}
 	////////////////////////////////////////////////// CENTRALITY MAPS ////////////////////////////////////////////////////////////
 
 	/**

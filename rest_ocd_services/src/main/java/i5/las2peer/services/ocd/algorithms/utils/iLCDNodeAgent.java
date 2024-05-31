@@ -2,7 +2,9 @@ package i5.las2peer.services.ocd.algorithms.utils;
 
 import i5.las2peer.services.ocd.graphs.CustomNode;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * The class corresponding to a node agent used in the iLCD algorithm
@@ -51,6 +53,9 @@ public class iLCDNodeAgent {
         this.communities = communities;
     }
 
+    public String getNodeName(){
+        return this.node.getName();
+    }
     /////////////////////////////////////////////////////Methods////////////////////////////////////////////////////////
 
     /**

@@ -7,12 +7,7 @@ import i5.las2peer.services.ocd.centrality.data.CentralityMap;
 import i5.las2peer.services.ocd.centrality.data.CentralityMapId;
 import i5.las2peer.services.ocd.centrality.utils.CentralityAlgorithm;
 import i5.las2peer.services.ocd.centrality.utils.CentralitySimulation;
-import i5.las2peer.services.ocd.graphs.Cover;
-import i5.las2peer.services.ocd.graphs.CoverCreationLog;
-import i5.las2peer.services.ocd.graphs.CoverId;
-import i5.las2peer.services.ocd.graphs.CustomGraph;
-import i5.las2peer.services.ocd.graphs.CustomGraphId;
-import i5.las2peer.services.ocd.graphs.GraphCreationLog;
+import i5.las2peer.services.ocd.graphs.*;
 import i5.las2peer.services.ocd.metrics.KnowledgeDrivenMeasure;
 import i5.las2peer.services.ocd.metrics.OcdMetricLog;
 import i5.las2peer.services.ocd.metrics.OcdMetricLogId;
@@ -349,6 +344,7 @@ public class ThreadHandler {
 					cover.addMetric(log);
 					cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
 					database.updateCover(cover);
+
 		    	} catch(Exception e ) {
 					error = true;
 				}
@@ -375,6 +371,71 @@ public class ThreadHandler {
 	    	unsynchedInterruptAlgorithm(coverId);
 		}
 	}
+
+	/**
+	 * Merges a calculated cover to the persistence context.
+	 * Is called from the runnable itself.
+	 * @param calculatedCover The calculated cover.
+	 * May be null if error is true.
+	 * @param coverId The id reserved for the calculated cover.
+	 * @param error States whether an error occurred (true) during execution.
+	 */
+	public void createCoverAndCLC(CommunityLifeCycle clc, Cover calculatedCover, CoverId coverId, boolean error) {
+		String cKey = coverId.getKey();
+		CustomGraphId gId = coverId.getGraphId();
+		String user = gId.getUser();
+		String gKey = gId.getKey();
+		synchronized (algorithms) {
+			if(Thread.interrupted()) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+			if(!error) {
+
+				try {
+					Cover cover = database.getCover(user, gKey, cKey);
+					if(cover == null) {
+						/*
+						 * Should not happen.
+						 */
+						requestHandler.log(Level.SEVERE, "Cover deleted while algorithm running.");
+						throw new IllegalStateException();
+					}
+					cover.setMemberships(calculatedCover.getMemberships());
+					OcdMetricLog calculatedExecTime = calculatedCover.getMetrics().get(0);
+					OcdMetricLog log = new OcdMetricLog(calculatedExecTime.getType(), calculatedExecTime.getValue(), calculatedExecTime.getParameters(), cover);
+					log.setStatus(ExecutionStatus.COMPLETED);
+					cover.addMetric(log);
+					cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+					database.storeCLC(clc);
+					database.updateCover(cover);
+				} catch(Exception e ) {
+					error = true;
+				}
+
+			}
+			if(error) {
+
+				try {
+					Cover cover = database.getCover(user, gKey, cKey);
+					if(cover == null) {
+						/*
+						 * Should not happen.
+						 */
+						requestHandler.log(Level.SEVERE, "Cover deleted while algorithm running.");
+						throw new IllegalStateException();
+					}
+					cover.getCreationMethod().setStatus(ExecutionStatus.ERROR);
+					database.updateCoverCreationLog(cover);
+				} catch( Exception e ) {
+					e.printStackTrace();
+				}
+
+			}
+			unsynchedInterruptAlgorithm(coverId);
+		}
+	}
+
 	
 	/**
 	 * Merges a calculated CentralityMap to the persistence context.

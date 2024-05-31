@@ -2,6 +2,7 @@ package i5.las2peer.services.ocd.algorithms.utils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * The class corresponding to a community agent used in the iLCD algorithm
@@ -74,6 +75,14 @@ public class iLCDCommunityAgent {
 
     public void setNodes(HashSet<iLCDNodeAgent> nodes) {
         this.nodes = nodes;
+    }
+
+    public List<String> getNodeNamesAsList(){
+        List<String> result = new ArrayList<>();
+        for(iLCDNodeAgent node: nodes){
+            result.add(node.getNodeName());
+        }
+        return result;
     }
 
     ///////////////////////////////////////////////////Methods//////////////////////////////////////////////////////////

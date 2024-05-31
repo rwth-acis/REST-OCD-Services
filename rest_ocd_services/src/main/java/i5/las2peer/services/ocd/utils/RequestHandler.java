@@ -8,6 +8,9 @@ import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputAdapte
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.centralityOutput.CentralityOutputFormat;
 import i5.las2peer.services.ocd.adapters.centralityOutput.DefaultXmlCentralityOutputAdapter;
+import i5.las2peer.services.ocd.adapters.clcOutput.ClcOutputAdapter;
+import i5.las2peer.services.ocd.adapters.clcOutput.ClcOutputAdapterFactory;
+import i5.las2peer.services.ocd.adapters.clcOutput.ClcOutputFormat;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapterFactory;
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputFormat;
@@ -111,6 +114,12 @@ public class RequestHandler {
 	 * The factory used for creating graph input adapters.
 	 */
 	private static GraphInputAdapterFactory graphInputAdapterFactory = new GraphInputAdapterFactory();
+
+	/**
+	 * The factory used for creating clc output adapters.
+	 */
+
+	private static ClcOutputAdapterFactory clcOutputAdapterFactory = new ClcOutputAdapterFactory();
 
 	/**
 	 * Creates a new log entry based on an exception.
@@ -350,6 +359,25 @@ public class RequestHandler {
 		return writeDoc(doc);
 	}
 
+	/**
+	 * Creates an XML document containing multiple clc ids efficiently,
+	 * using CLCMeta instance instead of clc instance.
+	 *
+	 * @param clcMetas
+	 *            The covers.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parser config failed
+	 */
+	public String writeClcIdsEfficiently(List<CLCMeta> clcMetas) throws ParserConfigurationException {
+		Document doc = getDocument();
+		Element clcsElt = doc.createElement("CLCs");
+		for (int i = 0; i < clcMetas.size(); i++) {
+			clcsElt.appendChild(getIdElt(clcMetas.get(i), doc));
+		}
+		doc.appendChild(clcsElt);
+		return writeDoc(doc);
+	}
+
 
 	/**
 	 * Creates an XML document containing multiple CentralityMap ids.
@@ -496,6 +524,34 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates an XML document containing meta information about multiple
+	 * clcs.
+	 *
+	 * @param clcMetas
+	 *            The covers' meta information.
+	 * @return The document.
+	 * @throws AdapterException if adapter failed
+	 * @throws ParserConfigurationException if parser config failed
+	 * @throws IOException if reading failed
+	 * @throws SAXException if parsing failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeClcMetasEfficiently(List<CLCMeta> clcMetas) throws AdapterException, ParserConfigurationException,
+			IOException, SAXException, InstantiationException, IllegalAccessException {
+		Document doc = getDocument();
+		Element clcsElt = doc.createElement("CLCs");
+		for (CLCMeta clcMeta : clcMetas) {
+			String metaDocStr = writeClcEfficiently(clcMeta);
+			Node metaDocNode = parseDocumentToNode(metaDocStr);
+			Node importNode = doc.importNode(metaDocNode, true);
+			clcsElt.appendChild(importNode);
+		}
+		doc.appendChild(clcsElt);
+		return writeDoc(doc);
+	}
+
+	/**
 	 * Creates an XML document containing meta information about multiple centrality maps.
 	 * @param maps The centrality maps.
 	 * @return The document.
@@ -569,6 +625,20 @@ public class RequestHandler {
 	public String writeId(Cover cover) throws ParserConfigurationException {
 		Document doc = getDocument();
 		doc.appendChild(getIdElt(cover, doc));
+		return writeDoc(doc);
+	}
+
+	/**
+	 * Creates an XML document containing the id of a single clc.
+	 *
+	 * @param clc
+	 *            The clc.
+	 * @return The document.
+	 * @throws ParserConfigurationException if parsing failed
+	 */
+	public String writeId(CommunityLifeCycle clc) throws ParserConfigurationException {
+		Document doc = getDocument();
+		doc.appendChild(getIdElt(clc, doc));
 		return writeDoc(doc);
 	}
 
@@ -660,6 +730,27 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Creates a clc output in a specified format.
+	 *
+	 * @param clc
+	 *            The clc.
+	 * @param outputFormat
+	 *            The format.
+	 * @return The clc output.
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeClc(CommunityLifeCycle clc, ClcOutputFormat outputFormat)
+			throws AdapterException, InstantiationException, IllegalAccessException {
+		Writer writer = new StringWriter();
+		ClcOutputAdapter adapter = clcOutputAdapterFactory.getInstance(outputFormat);
+		adapter.setWriter(writer);
+		adapter.writeClc(clc);
+		return writer.toString();
+	}
+
+	/**
 	 * Creates a cover output efficiently in MetaXml format
 	 *
 	 * @param coverMeta
@@ -675,6 +766,26 @@ public class RequestHandler {
 		CoverMetaOutputAdapter adapter = new MetaXmlCoverMetaOutputAdapter();
 		adapter.setWriter(writer);
 		adapter.writeCover(coverMeta);
+		return writer.toString();
+
+	}
+
+	/**
+	 * Creates a clc output efficiently in MetaXml format
+	 *
+	 * @param clcMeta
+	 *            The clc meta information.
+	 * @return The clc output.
+	 * @throws AdapterException if adapter failed
+	 * @throws InstantiationException if instantiation failed
+	 * @throws IllegalAccessException if an illegal access occurred on the instance
+	 */
+	public String writeClcEfficiently(CLCMeta clcMeta)
+			throws AdapterException, InstantiationException, IllegalAccessException {
+		Writer writer = new StringWriter();
+		CLCMetaOutputAdapter adapter = new MetaXmlCLCMetaOutputAdapter();
+		adapter.setWriter(writer);
+		adapter.writeCLC(clcMeta);
 		return writer.toString();
 
 	}
@@ -987,6 +1098,31 @@ public class RequestHandler {
 	}
 
 	/**
+	 * Returns an XML element node representing the id (key) of a clc.
+	 * @param clc
+	 *            The clc.
+	 * @param doc
+	 *            The document to create the element node for.
+	 * @return The element node.
+	 */
+	protected Node getIdElt(CommunityLifeCycle clc, Document doc) {
+		Element clcElt = doc.createElement("CLC");
+		Element idElt = doc.createElement("Id");
+		Element clcIdElt = doc.createElement("ClcId");
+		clcIdElt.appendChild(doc.createTextNode(clc.getKey()));
+		idElt.appendChild(clcIdElt);
+		Element coverIdElt = doc.createElement("CoverId");
+		coverIdElt.appendChild(doc.createTextNode(clc.getCover().getKey()));
+		idElt.appendChild(coverIdElt);
+		Element graphIdElt = doc.createElement("GraphId");
+		graphIdElt.appendChild(doc.createTextNode(clc.getGraph().getKey()));
+		idElt.appendChild(graphIdElt);
+		clcElt.appendChild(idElt);
+		return clcElt;
+
+	}
+
+	/**
 	 * Returns an XML element node representing the id (key) of a cover.
 	 *
 	 * @param coverMeta
@@ -1006,6 +1142,31 @@ public class RequestHandler {
 		idElt.appendChild(graphIdElt);
 		coverElt.appendChild(idElt);
 		return coverElt;
+	}
+
+	/**
+	 * Returns an XML element node representing the id (key) of a clc.
+	 * @param clcMeta
+	 *            The cover meta information.
+	 * @param doc
+	 *            The document to create the element node for.
+	 * @return The element node.
+	 */
+	protected Node getIdElt(CLCMeta clcMeta, Document doc) {
+		Element clcElt = doc.createElement("CLC");
+		Element idElt = doc.createElement("Id");
+		Element clcIdElt = doc.createElement("ClcId");
+		clcIdElt.appendChild(doc.createTextNode(clcMeta.getKey()));
+		idElt.appendChild(clcIdElt);
+		Element coverIdElt = doc.createElement("CoverId");
+		coverIdElt.appendChild(doc.createTextNode(clcMeta.getCoverKey()));
+		idElt.appendChild(coverIdElt);
+		Element graphIdElt = doc.createElement("GraphId");
+		graphIdElt.appendChild(doc.createTextNode(clcMeta.getGraphKey()));
+		idElt.appendChild(graphIdElt);
+		clcElt.appendChild(idElt);
+		return clcElt;
+
 	}
 
 	/**

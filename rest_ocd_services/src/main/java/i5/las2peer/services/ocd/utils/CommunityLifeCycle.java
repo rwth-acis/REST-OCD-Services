@@ -86,8 +86,28 @@ public class CommunityLifeCycle {
 
     }
 
+    public DynamicGraph getGraph() {
+        return graph;
+    }
+
+    public Cover getCover() {
+        return cover;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setGraph(DynamicGraph graph) {
+        this.graph = graph;
+    }
+
+    public void setCover(Cover cover) {
+        this.cover = cover;
     }
 
     /**
