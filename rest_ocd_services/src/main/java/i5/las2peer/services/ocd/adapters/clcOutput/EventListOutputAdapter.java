@@ -14,6 +14,9 @@ public class EventListOutputAdapter extends AbstractClcOutputAdapter{
         this.setWriter(writer);
     }
 
+    public EventListOutputAdapter() {
+    }
+
     @Override
     public void writeClc(CommunityLifeCycle clc) throws AdapterException {
         try{

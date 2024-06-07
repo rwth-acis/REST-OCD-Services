@@ -28,6 +28,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import i5.las2peer.services.ocd.adapters.clcOutput.ClcOutputFormat;
 import i5.las2peer.services.ocd.algorithms.iLCDAlgorithm;
 import i5.las2peer.services.ocd.centrality.data.*;
 import i5.las2peer.services.ocd.graphs.*;
@@ -1132,6 +1133,7 @@ public class ServiceClass extends RESTService {
 				@DefaultValue("") @QueryParam("coverId") String coverIdStr)
 		{
 			try {
+				System.out.println("In getClcs");
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 				int length;
 				int firstIndex;
@@ -1196,6 +1198,56 @@ public class ServiceClass extends RESTService {
 		}
 
 		/**
+		 * Returns a clc in a specified format only if cover still exists.
+		 * @param clcIdStr The clc id
+		 * @param graphIdStr
+		 *            The id of the graph that the clc is based on.
+		 * @param coverIdStr
+		 *            The cover id that the clc is based on.
+		 * @param clcOutputFormatStr
+		 *            The clc output format.
+		 * @return The clc output. Or an error xml.
+		 */
+		@GET
+		@Produces(MediaType.TEXT_PLAIN)
+		@ApiResponses(value = { @ApiResponse(code = 200, message = "Success"),
+				@ApiResponse(code = 401, message = "Unauthorized") })
+		@Path("clcs/{clcId}/covers/{coverId}/graphs/{graphId}")
+		@ApiOperation(tags = {"export"}, value = "Export CLC", notes = "Returns a clc in a specified format.")
+		public Response getCover(@PathParam("clcId") String clcIdStr, @PathParam("graphId") String graphIdStr, @PathParam("coverId") String coverIdStr,
+								 @DefaultValue("EVENT_LIST") @QueryParam("outputFormat") String clcOutputFormatStr) {
+			try {
+				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
+
+				ClcOutputFormat format;
+				try {
+					format = ClcOutputFormat.valueOf(clcOutputFormatStr);
+				} catch (Exception e) {
+					requestHandler.log(Level.WARNING, "user: " + username, e);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Specified clc output format does not exist.");
+				}
+
+				CommunityLifeCycle clc = null;
+				try {
+					clc = database.getCLC(username, clcIdStr, graphIdStr, coverIdStr);	//done
+
+				} catch (Exception e) {
+
+					requestHandler.log(Level.WARNING, "user: " + username + ", " + "Clc does not exist: clc id "
+							+ clcIdStr + ", graph id " + graphIdStr + ", cover id " + coverIdStr);
+					return requestHandler.writeError(Error.PARAMETER_INVALID,
+							"Clc does not exist: clc id " + clcIdStr + ", graph id " + graphIdStr + ", cover id " + coverIdStr);
+				}
+				generalLogger.getLogger().log(Level.INFO, "user " + username + ": get clc " + clcIdStr + " in format " + clcOutputFormatStr );
+				return Response.ok(requestHandler.writeClc(clc, format)).build();
+			} catch (Exception e) {
+				requestHandler.log(Level.SEVERE, "", e);
+				return requestHandler.writeError(Error.INTERNAL, "Internal system error.");
+			}
+		}
+
+		/**
 		 * Deletes a clc.
 		 *
 		 * @param clcIdStr
@@ -1210,6 +1262,7 @@ public class ServiceClass extends RESTService {
 		@ApiOperation(tags = {"delete"}, value = "Delete CLC", notes = "Deletes a clc.")
 		public Response deleteClc(@PathParam("clcId") String clcIdStr) {
 			try {
+				System.out.println("In delete CLC");
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();
 
 				try {

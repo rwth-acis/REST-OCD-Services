@@ -45,7 +45,7 @@ public class CLCMeta {
      */
     int creationStatusId;
 
-    @ConstructorProperties({"key", "name", "numberOfEvents", "graphKey", "graphName", "coverKey", "coverName", "creationTypeId", "creationStatusId"})
+    @ConstructorProperties({"key", "name", "graphKey", "graphName", "coverKey", "coverName", "creationTypeId", "creationStatusId"})
     public CLCMeta(String key, String name, String graphKey,
                    String graphName, String coverKey, String coverName, int creationTypeId, int creationStatusId) {
         this.key = key;

@@ -1117,12 +1117,12 @@ public class Database {
 			if(!coverKey.equals("")) {
 				queryStr += " FOR c IN " + Cover.collectionName
 						+" FILTER l." + CommunityLifeCycle.graphKeyColumnName  + " == @cKey AND c._key == @cKey";
-				bindVars = Collections.singletonMap("gKey", graphKey);
+				bindVars = Collections.singletonMap("cKey", coverKey);
 			}
 			else {			//es gibt keinen graphKey
 				queryStr += " FOR c IN " + Cover.collectionName +
-						" FILTER g." + CustomGraph.userColumnName + " == @user + AND l." + CommunityLifeCycle.coverKeyColumnName + " == c._key + AND g._key == c._key";
-				bindVars = Collections.singletonMap("user", username);
+						" FILTER l." + CommunityLifeCycle.coverKeyColumnName + " == c._key AND g._key == c." + Cover.graphKeyColumnName;
+
 			}
 
 
@@ -1132,11 +1132,12 @@ public class Database {
 					"\"graphKey\" : g._key," +
 					"\"graphName\" : g." + CustomGraph.nameColumnName  +  "," +
 					"\"coverKey\" : c._key," +
-					"\"graphName\" : c." + Cover.nameColumnName  +  "," +
+					"\"coverName\" : c." + Cover.nameColumnName  +  "," +
 					"\"creationTypeId\" : a." + CoverCreationLog.typeColumnName + "," +
 					"\"creationStatusId\" : a." + GraphCreationLog.statusIdColumnName +
 					"}";
 
+			System.out.println("Query: " + queryStr);
 			ArangoCursor<String> clcMetaJson = db.query(queryStr, bindVars, queryOpt, String.class);
 			while(clcMetaJson.hasNext()) {
                 /* Instantiate CustomGraphMeta from the json string acquired from a query.
@@ -1151,7 +1152,7 @@ public class Database {
 			System.out.println("transaction abort");
 			e.printStackTrace();
 		}
-
+		System.out.println(clcMetas.toString());
 		return clcMetas;
 	}
 	////////////////////////////////////////////////// CENTRALITY MAPS ////////////////////////////////////////////////////////////
