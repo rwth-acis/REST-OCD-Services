@@ -1009,6 +1009,12 @@ public class Database {
 
 
 	/////////////////////////////////////////////// COMMUNTIY LIFE CYCLE //////////////////////////////////////////////////////////
+
+	/**
+	 * Stores a community life cycle in the database.
+	 * @param clc the clc to store
+	 * @return the key of the persisted clc
+	 */
 	public String storeCLC(CommunityLifeCycle clc){
 		String transId = this.getTransactionId(CommunityLifeCycle.class, true);
 		try{
@@ -1021,7 +1027,14 @@ public class Database {
 		return clc.getKey();
 	}
 
-	public CommunityLifeCycle getCLC(String key, Cover c, DynamicGraph g){
+	/**
+	 * Load a community life cycle from the database.
+	 * @param key the key of the clc to load
+	 * @param c the cover which is connected to the clc
+	 * @param g the graph the clc is based on
+	 * @return the clc object that was loaded
+	 */
+	public CommunityLifeCycle getCLC(String key, Cover c, CustomGraph g){
 		String transId = this.getTransactionId(CommunityLifeCycle.class, false);
 		CommunityLifeCycle clc;
 		try {
@@ -1033,19 +1046,34 @@ public class Database {
 		return clc;
 	}
 
+	/**
+	 * Loads a community life cycle from the database based on the keys. Uses getClc() after loading the
+	 * DynamicGraph and Cover.
+	 * @param username the username the graph is tagged with
+	 * @param clcKey the key of the clc in the db
+	 * @param graphKey the key of the graph in the db
+	 * @param coverKey the key of the cover in the db
+	 * @return the clc object that was loaded
+	 */
 	public CommunityLifeCycle getCLC(String username, String clcKey, String graphKey, String coverKey){
-		DynamicGraph graph = (DynamicGraph) getGraph(graphKey);
+		CustomGraph graph = getGraph(graphKey);
+
 		Cover cover = getCover(coverKey, graph);
 		CommunityLifeCycle clc = null;
 		if(!(graph == null) && !(cover==null)){
 			clc = getCLC(clcKey, cover, graph);
 		}
-		if(cover == null){
+		if(clc == null){
 			logger.log(Level.WARNING, "user: " + username + ", " + "CLC does not exist: cover id " + clcKey + ", graph id " + graphKey + ", cover id " + coverKey);
 		}
 		return clc;
 	}
 
+	/**
+	 * Deletes a community life cycle from the database.
+	 * @param key the key of the clc to delete
+	 * @param transId the transaction id
+	 */
 	private void deleteClc(String key, String transId) {
 		ArangoCollection clcCollection = db.collection(CommunityLifeCycle.collectionName);
 
@@ -1065,6 +1093,10 @@ public class Database {
 		clcCollection.deleteDocument(key, null, deleteOpt);				//delete Cover
 	}
 
+	/**
+	 * Deletes a community life cycle from the database. Uses deleteClc() with the transaction id.
+	 * @param key the key of the clc to delete
+	 */
 	public void deleteClc(String key) {
 		String transId = this.getTransactionId(CommunityLifeCycle.class, true);
 		try {

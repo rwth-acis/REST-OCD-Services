@@ -290,9 +290,14 @@ public class iLCDAlgorithm implements OcdAlgorithm{
             throw new OcdAlgorithmException("Graph is static");
         }
 
+        System.out.println("graphCommunities: " + graphCommunities.size());
         Matrix community_matrix = getCommunityMatrix((DynamicGraph) graph, graphCommunities);
+        System.out.println("matrix count: " + community_matrix.columns());
         printCommunities(graphCommunities);
         Cover cover = new Cover(graph, community_matrix);
+        System.out.println("community count in cover: " + cover.communityCount());
+        iLCDCommunityAgent reset = new iLCDCommunityAgent();
+        reset.resetCounter();
         return cover;
     }
 

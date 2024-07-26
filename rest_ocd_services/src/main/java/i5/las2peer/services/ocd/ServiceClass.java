@@ -1214,7 +1214,7 @@ public class ServiceClass extends RESTService {
 				@ApiResponse(code = 401, message = "Unauthorized") })
 		@Path("clcs/{clcId}/covers/{coverId}/graphs/{graphId}")
 		@ApiOperation(tags = {"export"}, value = "Export CLC", notes = "Returns a clc in a specified format.")
-		public Response getCover(@PathParam("clcId") String clcIdStr, @PathParam("graphId") String graphIdStr, @PathParam("coverId") String coverIdStr,
+		public Response getClc(@PathParam("clcId") String clcIdStr, @PathParam("graphId") String graphIdStr, @PathParam("coverId") String coverIdStr,
 								 @DefaultValue("EVENT_LIST") @QueryParam("outputFormat") String clcOutputFormatStr) {
 			try {
 				String username = ((UserAgent) Context.getCurrent().getMainAgent()).getLoginName();

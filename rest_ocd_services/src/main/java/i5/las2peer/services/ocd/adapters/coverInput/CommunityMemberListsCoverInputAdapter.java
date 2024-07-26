@@ -66,6 +66,13 @@ public class CommunityMemberListsCoverInputAdapter extends AbstractCoverInputAda
 			 * Reads edges
 			 */
 			while (line.size() >= 1) {
+				if(lineContainNonAlphaNumericChar(line)){
+					line.remove(0);
+					for (int i = 0; i < line.size(); i++) {
+						line.set(i, removeNonAlphanumeric(line.get(i)));
+					}
+				}
+				System.out.println(line);
 				int i=0;
 				if(communityNamesDefined) {
 					communityName = line.get(0);
@@ -116,4 +123,27 @@ public class CommunityMemberListsCoverInputAdapter extends AbstractCoverInputAda
 		return cover;
 	}
 
+	/**
+	 * Returns true if a line contains a character that is non-alphanumeric. Used for cleaning up rdyn ground-truth covers.
+	 * @param line the line
+	 * @return true if yes
+	 */
+	private boolean lineContainNonAlphaNumericChar(List<String> line){
+		for(String str: line){
+			if(str.contains(",") || str.contains("[") || str.contains("]")){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Cleans up str from non-alphanumeric chars
+	 * @param str the str containing node name
+	 * @return cleaned up node name
+	 */
+	private String removeNonAlphanumeric(String str){
+		str = str.replaceAll("[^a-zA-Z0-9]", "");
+		return str;
+	}
 }

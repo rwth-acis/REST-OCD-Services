@@ -85,6 +85,10 @@ public class iLCDCommunityAgent {
         return result;
     }
 
+    public void resetCounter(){
+        communityIndexer = 0;
+    }
+
     ///////////////////////////////////////////////////Methods//////////////////////////////////////////////////////////
 
     /**

@@ -3,7 +3,7 @@ package i5.las2peer.services.ocd.graphs;
 import i5.las2peer.services.ocd.utils.Pair;
 
 
-
+import org.apache.commons.math3.random.RandomAdaptor;
 import org.apache.jena.atlas.iterator.Iter;//TODO: why this iterator? i think iterator is already in java.util
 import org.la4j.matrix.Matrix;
 import org.la4j.matrix.sparse.CCSMatrix;
@@ -13,6 +13,7 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Pre-processes graphs to facilitate community detection.
@@ -80,7 +81,7 @@ public class GraphProcessor {
 	 *            The graph to be transformed.
 	 */
 	public void makeUndirected(CustomGraph graph) {
-
+		System.out.println("makeUndirected");
 		// copy of the input graph to be used for iteration
 		CustomGraph graphCopy = new CustomGraph(graph);
 
@@ -391,6 +392,27 @@ public class GraphProcessor {
 		graph.addType(GraphType.DIRECTED);
 	}
 
+	public DynamicGraph makeDynamic(CustomGraph graph){
+		DynamicGraph dynamicCopy = new DynamicGraph(graph);
+		ArrayList<Edge> edgeList = new ArrayList<>(graph.edges().collect(Collectors.toList()));
+
+		Comparator<Edge> cmp = Comparator.comparing((Edge edge) -> edge.getNode0().getIndex())
+						.thenComparing((Edge edge) -> edge.getNode1().getIndex());
+		Collections.sort(edgeList,cmp);
+
+		//Maybe random shuffle for quality of covers since edges are sorted
+		Collections.shuffle(edgeList, new Random(19624));
+		int date = 0;
+		for(Edge edge: edgeList){
+			dynamicCopy.addDynamicInteraction(edge, String.valueOf(date), "+");
+			date++;
+		}
+		for(DynamicInteraction di: dynamicCopy.getDynamicInteractions()){
+			System.out.println(di.getSource().getName() + " - " + di.getTarget().getName());
+		}
+		dynamicCopy.addType(GraphType.DYNAMIC);
+		return dynamicCopy;
+	}
 	/**
 	 * Creates a graph, which is exactly a copy of the input graph
 	 * 

@@ -6,6 +6,7 @@ import i5.las2peer.services.ocd.adapters.coverInput.CommunityMemberListsCoverInp
 import i5.las2peer.services.ocd.adapters.coverInput.CoverInputAdapter;
 import i5.las2peer.services.ocd.graphs.Cover;
 import i5.las2peer.services.ocd.graphs.CustomGraph;
+import i5.las2peer.services.ocd.graphs.DynamicGraph;
 import i5.las2peer.services.ocd.testsUtils.OcdTestConstants;
 import i5.las2peer.services.ocd.testsUtils.OcdTestGraphFactory;
 
@@ -39,4 +40,13 @@ public class CommunityMemberListsInputAdapterTest {
 		assertEquals(193, cover.communityCount());
 	}
 
+	@Test
+	public void testOnRDynGroundTruth() throws AdapterException, FileNotFoundException {
+		DynamicGraph graph = OcdTestGraphFactory.getRDynGtGraph();
+		Cover cover;
+		CoverInputAdapter adapter = new CommunityMemberListsCoverInputAdapter(new FileReader(OcdTestConstants.rdynGtCommunityMemberListxInputPath));
+		cover = adapter.readCover(graph);
+		System.out.println(cover.communityCount());
+		System.out.println(cover);
+	}
 }

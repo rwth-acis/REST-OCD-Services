@@ -38,14 +38,30 @@ public class OcdAlgorithmExecutor {
 	 */
 	public Cover execute(CustomGraph graph, OcdAlgorithm algorithm, int componentNodeCountFilter) throws OcdAlgorithmException, InterruptedException, OcdMetricException {
 		CustomGraph graphCopy = new CustomGraph(graph);
+		DynamicGraph dynamicGraphCopy = new DynamicGraph();
 		GraphProcessor processor = new GraphProcessor();
 		processor.makeCompatible(graphCopy, algorithm.compatibleGraphTypes());
+		//Static graph compatibility mostly for evaluation purposes
+		boolean staticToDynamic = false;
+		if(algorithm.compatibleGraphTypes().contains(GraphType.DYNAMIC) && !(graph instanceof DynamicGraph)){
+			staticToDynamic = true;
+			System.out.println("Dynamic Conversion");
+			dynamicGraphCopy = processor.makeDynamic(graphCopy);
+		}
+
 		if(algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.SIGNED_PROBABILISTIC_MIXTURE_ALGORITHM.toString()) || algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.WORD_CLUSTERING_REF_ALGORITHM.toString()) || algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.COST_FUNC_OPT_CLUSTERING_ALGORITHM.toString()) || algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.LOCAL_SPECTRAL_CLUSTERING_ALGORITHM.toString()) || algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.LOUVAIN_ALGORITHM.toString()) || algorithm.getAlgorithmType().toString().equalsIgnoreCase(CoverCreationType.ILCD_ALGORITHM.toString())){
 			ExecutionTime executionTime = new ExecutionTime();
 			//TODO: I think it should be detectOverlappingCommunities(graphCopy) - Tobias
-			Cover cover = algorithm.detectOverlappingCommunities(graph);
+			Cover cover;
+			executionTime.start();
+			if(staticToDynamic){
+				cover = algorithm.detectOverlappingCommunities(dynamicGraphCopy);
+			}else{
+				cover = algorithm.detectOverlappingCommunities(graph);
+			}
 			cover.setCreationMethod(new CoverCreationLog(algorithm.getAlgorithmType(), algorithm.getParameters(), algorithm.compatibleGraphTypes()));
 			cover.getCreationMethod().setStatus(ExecutionStatus.COMPLETED);
+			executionTime.stop();
 			executionTime.setCoverExecutionTime(cover);
 			return cover;
 		}else{

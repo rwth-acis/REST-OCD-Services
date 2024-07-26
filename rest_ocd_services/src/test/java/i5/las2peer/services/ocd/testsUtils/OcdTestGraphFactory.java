@@ -915,4 +915,17 @@ public class OcdTestGraphFactory {
 		graph.setCreationMethod(log);
 		return graph;
 	}
+
+	public static DynamicGraph getRDynGtGraph() throws AdapterException, FileNotFoundException {
+		GraphInputAdapter adapter = new TimestampedEdgeListInputAdapter(new FileReader(OcdTestConstants.rdynGtGraphPath));
+		DynamicGraph graph = (DynamicGraph)  adapter.readGraph();
+		graph.setName(OcdTestConstants.rdynGtGraph);
+		GraphProcessor processor = new GraphProcessor();
+		graph.addType(GraphType.DYNAMIC);
+		processor.makeCompatible(graph, new HashSet<GraphType>());
+		GraphCreationLog log = new GraphCreationLog(GraphCreationType.UNDEFINED, new HashMap<String, String>());
+		log.setStatus(ExecutionStatus.COMPLETED);
+		graph.setCreationMethod(log);
+		return graph;
+	}
 }

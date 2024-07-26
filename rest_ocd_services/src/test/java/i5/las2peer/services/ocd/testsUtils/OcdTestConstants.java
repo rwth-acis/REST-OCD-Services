@@ -50,6 +50,8 @@ public class OcdTestConstants {
 	public static final String timestampedKarateClubPath = inputFolderPath + "KarateClubTimestampedAction.txt";
 
 	public static final String rdynTestGraphPath = inputFolderPath + "rdynConversion.txt";
+
+	public static final String rdynGtGraphPath = inputFolderPath + "rdynGtGraph.txt";
 	
 	/*
 	 * Cover input filenames
@@ -73,7 +75,8 @@ public class OcdTestConstants {
 			+ "signedLfrBlurredGroundTruthLabeledMembershipMatrix.txt";
 	public static final String sloveneParliamentaryPartyCommunityMemberMatrixInputPath = inputFolderPath
 			+ "sloveneParliamentaryPartyGroundTruthMembershipMatrix.txt";
-	
+
+	public static final String rdynGtCommunityMemberListxInputPath = inputFolderPath + "rdynGtCommunityMemberList.txt";
 	/*
 	 * Cover output filenames
 	 */
@@ -141,6 +144,8 @@ public class OcdTestConstants {
 	public static final String timestampedKarateName = "Timestamped Karate";
 
 	public static final String rdynTestGraph = "RDyn Test Graph";
+
+	public static final String rdynGtGraph = "RDyn GT Graph";
 	
 	/*
 	 * others

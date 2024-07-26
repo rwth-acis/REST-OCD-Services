@@ -42,7 +42,7 @@ public class CommunityLifeCycle {
     /**
      * The graph the community life cycle is based on
      */
-    private DynamicGraph graph = new DynamicGraph();
+    private CustomGraph graph = new CustomGraph();
     /**
      * The cover the community life cycle is based on
      */
@@ -63,7 +63,7 @@ public class CommunityLifeCycle {
     public CommunityLifeCycle() {
     }
 
-    public CommunityLifeCycle(Cover c, DynamicGraph g){
+    public CommunityLifeCycle(Cover c, CustomGraph g){
         this.graph = g;
         this.cover = c;
     }
@@ -86,7 +86,7 @@ public class CommunityLifeCycle {
 
     }
 
-    public DynamicGraph getGraph() {
+    public CustomGraph getGraph() {
         return graph;
     }
 
@@ -102,7 +102,7 @@ public class CommunityLifeCycle {
         this.name = name;
     }
 
-    public void setGraph(DynamicGraph graph) {
+    public void setGraph(CustomGraph graph) {
         this.graph = graph;
     }
 
@@ -265,7 +265,7 @@ public class CommunityLifeCycle {
         collection.updateDocument(this.key, bd, updateOptions);
     }
 
-    public static CommunityLifeCycle load(String key, Cover c, DynamicGraph g, ArangoDatabase db, String transId){
+    public static CommunityLifeCycle load(String key, Cover c, CustomGraph g, ArangoDatabase db, String transId){
         CommunityLifeCycle clc = null;
         ArangoCollection collection = db.collection(collectionName);
         DocumentReadOptions readOpt = new DocumentReadOptions().streamTransactionId(transId);

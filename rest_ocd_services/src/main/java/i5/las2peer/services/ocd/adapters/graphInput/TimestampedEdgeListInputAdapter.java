@@ -125,6 +125,49 @@ public class TimestampedEdgeListInputAdapter extends AbstractGraphInputAdapter {
                     }
                     line = Adapters.readLine(reader);
                 }
+            } else if(line.size() == 5){
+                // For RDyn datasets, because there is additionally an absolute ordering provided in the interactions
+                while (line.size() == 5) {
+                    String sourceNodeName = line.get(3);
+                    Node sourceNode;
+                    if (!reverseNodeNames.containsKey(sourceNodeName)) {
+                        sourceNode = graph.addNode(sourceNodeName);
+                        reverseNodeNames.put(sourceNodeName, sourceNode);
+                        graph.setNodeName(sourceNode, sourceNodeName);
+                    } else {
+                        sourceNode = reverseNodeNames.get(sourceNodeName);
+                    }
+                    String targetNodeName = line.get(4);
+                    Node targetNode;
+                    if (!reverseNodeNames.containsKey(targetNodeName)) {
+                        targetNode = graph.addNode(targetNodeName);
+                        reverseNodeNames.put(targetNodeName, targetNode);
+                        graph.setNodeName(targetNode, targetNodeName);
+                    } else {
+                        targetNode = reverseNodeNames.get(targetNodeName);
+                    }
+                    String edgeDate = line.get(0);
+                    String edgeAction = line.get(2);
+                    if (edgeAction.equals("+")) {
+                        Edge edge = graph.addEdge(UUID.randomUUID().toString(), sourceNode, targetNode);
+                        graph.addDynamicInteraction(edge, edgeDate, edgeAction);
+                    }else if(edgeAction.equals("-")) {
+                        try {
+                            Edge edge = graph.removeEdge(sourceNode,targetNode);
+                            graph.addDynamicInteraction(edge, edgeDate, edgeAction);
+                        } catch (ElementNotFoundException e1) {
+                            try {
+                                Edge edge = graph.removeEdge(targetNode, sourceNode);
+                                graph.addDynamicInteraction(edge, edgeDate, edgeAction);
+                            } catch (ElementNotFoundException e2) {
+                                System.out.println(e1 + " and/or " + e2);
+                            }
+                        }
+                    }else {
+                        throw new AdapterException("Invalid action");
+                    }
+                    line = Adapters.readLine(reader);
+                }
             }
             if(line.size() > 0) {
                 throw new AdapterException("Invalid input format");
