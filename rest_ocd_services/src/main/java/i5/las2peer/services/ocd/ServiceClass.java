@@ -1230,6 +1230,7 @@ public class ServiceClass extends RESTService {
 
 				CommunityLifeCycle clc = null;
 				try {
+					System.out.println("3");
 					clc = database.getCLC(username, clcIdStr, graphIdStr, coverIdStr);	//done
 
 				} catch (Exception e) {
